@@ -1,0 +1,36 @@
+{
+  "operation": "commercial-batch-20261104-42-primary",
+  "state": "EXACT_DECLARED_OWNER_HREFS_THREE_ONLY_NO_NATIVE_PHOTO_ACCEPTANCE",
+  "proven_scope": [
+    62505,
+    968,
+    65782,
+    1032,
+    1035,
+    15693,
+    231,
+    67897,
+    473,
+    468
+  ],
+  "sources": [
+    {
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "url": "https://mice.robinson.com/en/clubs/soma-bay/",
+      "owner_href_proof": "Exact owner MICE pointer returned by source discovery2; not previously fetched; prior accepted family club source is a different property detail path"
+    },
+    {
+      "hotel_id": 968,
+      "hotel": "ALI BEY PARK MANAVGAT",
+      "url": "https://www.alibey.com/en/park/beach-waterpark",
+      "owner_href_proof": "Exact href declared by retained36 Park property page; Park root and prior3Parkphotos remain closed"
+    },
+    {
+      "hotel_id": 65782,
+      "hotel": "PALOMA FINESSE SIDE",
+      "url": "https://www.palomahotels.com/en/finesse-side/mice",
+      "owner_href_proof": "Exact href declared by retained34 Finesse property page; root/beach and38offsite explore remain closed"
+    }
+  ]
+}

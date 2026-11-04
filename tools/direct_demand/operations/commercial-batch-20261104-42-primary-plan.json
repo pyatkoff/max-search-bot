@@ -1,0 +1,117 @@
+{
+  "operation": "commercial-batch-20261104-42-primary",
+  "state": "PREPARED_NOT_EXECUTED_NOT_READY",
+  "goal": "Prepare ten proven retained candidates while production is blocked; read three never requested declared owner pages for exact property content and different hotel photography references",
+  "boundaries": {
+    "baseline_published_each_channel": 157,
+    "baseline_live_yml": [
+      156,
+      156,
+      312
+    ],
+    "proven_hotel_ids": [
+      62505,
+      968,
+      65782,
+      1032,
+      1035,
+      15693,
+      231,
+      67897,
+      473,
+      468
+    ],
+    "new_declared_owner_page_requests": 3,
+    "readonly_groups": 1,
+    "max_parallel": 2,
+    "raw_photo_gets": 0,
+    "canva_transactions": 0,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "new_native_ids": 0,
+    "new_hotels_counted": 0
+  },
+  "criteria": [
+    "All ten native identities already proven by retained inventory39; not newlookup or stockcredit",
+    "Exact three owner hrefs only, not guessed paths or alternate-host access to blocked content",
+    "No closedroot/image requests repeated; oldURL+basename exclusions through41 before any later finite photo pass",
+    "Owner image host metadata is not downloadpermission and shared nav or otherhotel imagery is not target membership",
+    "ROBINSON remains family, MICE boat/event services not universal package rights; AliBeyPark not Club/ResortSorgun transfer; Paloma Finesse not Orenda or category villa universal rights",
+    "Real whole property hero plus2distinct exact property lower photos and full factual caption before any cover readiness"
+  ],
+  "risks": [
+    "Conference pages may give only interiors, no suitable photography; noforcedhero",
+    "AliBeyPark sources can contain Club/ResortSorgun shared nav photos; exact property membership must be proven",
+    "Currentproduction9678failed/TLSskipped still prohibits botSSH/provider/DB and actualsend"
+  ],
+  "candidates": [
+    {
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "new_source": "https://mice.robinson.com/en/clubs/soma-bay/",
+      "proof": "Exact owner MICE pointer returned by source discovery2; not previously fetched; prior accepted family club source is a different property detail path"
+    },
+    {
+      "hotel_id": 968,
+      "hotel": "ALI BEY PARK MANAVGAT",
+      "new_source": "https://www.alibey.com/en/park/beach-waterpark",
+      "proof": "Exact href declared by retained36 Park property page; Park root and prior3Parkphotos remain closed"
+    },
+    {
+      "hotel_id": 65782,
+      "hotel": "PALOMA FINESSE SIDE",
+      "new_source": "https://www.palomahotels.com/en/finesse-side/mice",
+      "proof": "Exact href declared by retained34 Finesse property page; root/beach and38offsite explore remain closed"
+    },
+    {
+      "hotel_id": 1032,
+      "hotel": "BAYOU ACANTHUS",
+      "deferred_reason": "Need a different whole property photograph and exact declared unclosed source; no root or former rejected frames repeated"
+    },
+    {
+      "hotel_id": 1035,
+      "hotel": "LARA BARUT COLLECTION",
+      "deferred_reason": "Root/gallery and old frames closed; category villa rights not universal"
+    },
+    {
+      "hotel_id": 15693,
+      "hotel": "THE MAKADI SPA",
+      "deferred_reason": "Owner age16versus18 conflict unresolved; no root retry"
+    },
+    {
+      "hotel_id": 231,
+      "hotel": "THE GRAND MAKADI",
+      "deferred_reason": "Root already closed in26; reuse wholecaption, do not GET it again"
+    },
+    {
+      "hotel_id": 67897,
+      "hotel": "JAZ MARAYA",
+      "deferred_reason": "Sea entry primary conflict unresolved; old source and photographs not repeated"
+    },
+    {
+      "hotel_id": 473,
+      "hotel": "SUNNY DAYS EL PALACIO",
+      "deferred_reason": "Exact owner property href still unresolved; no guessed URL"
+    },
+    {
+      "hotel_id": 468,
+      "hotel": "SULTAN BEY",
+      "deferred_reason": "PDF403 and old cropped aerial/street closed; need different declared owner whole view"
+    }
+  ],
+  "parser_functionality_unchanged": true,
+  "new_explicit_owner_host": "mice.robinson.com",
+  "new_input_scope_cases": 3,
+  "old_parser_fixtures_rerun": 0,
+  "closed_source_dedup_evidence": [
+    "retained36Parkroot declares /en/park/beach-waterpark, native36sourceindex only Parkroot,39requested Clubbeach not Park",
+    "retained34Finesse root declares /en/finesse-side/mice, previous34root+beach/38explore closed",
+    "source-discovery2ROBINSONMICEpointer only and no actualpageGET; prior clubdetail separateURI",
+    "GrandMakadiroot proven already closed in26 and excluded"
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
