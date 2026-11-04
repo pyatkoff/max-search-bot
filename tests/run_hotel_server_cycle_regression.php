@@ -424,6 +424,7 @@ $f=hsFixture();try{
 }finally{hsCleanup($f);}
 
 require __DIR__.'/fixtures/hotel_server_correction_cases.php';
+require __DIR__.'/fixtures/hotel_server_catalog_cases.php';
 
 echo 'HOTEL SERVER CYCLE '.(getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'NATIVE MYSQL':'SQLITE').': '.$hsChecks." PASS\n";
 
