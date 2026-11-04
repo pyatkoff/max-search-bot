@@ -1,0 +1,96 @@
+{
+  "operation": "commercial-batch-20261104-38-source-index",
+  "state": "RETAINED_SOURCES_NEW_DECLARED_URLS_NO_NATIVE37_REPEATS",
+  "hotels": [
+    {
+      "hotel_id": 1416,
+      "native_name": "PALOMA OCEANA RESORT",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-oceana/explore",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/paloma-oceana",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1491,
+      "native_name": "PALOMA PERISSIA",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-perissia/explore",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/paloma-perissia",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 65782,
+      "native_name": "PALOMA FINESSE SIDE",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/finesse-side/explore",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/finesse-side",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 15879,
+      "native_name": "KIRMAN BELAZUR RESORT & SPA",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.belazur.com.tr/en/pools-waterparks.html",
+      "declared_in_retained_source": "https://www.belazur.com.tr/en",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 55828,
+      "native_name": "SELECTUM LUXURY RESORT BELEK",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://luxuryresortbelek.selectumhotels.com/en/pool-and-beach/pools",
+      "declared_in_retained_source": "https://luxuryresortbelek.selectumhotels.com/en",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 2144,
+      "native_name": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "country_id": 4,
+      "region_id": 26,
+      "new_declared_owner_url": "https://dmarisbay.com/en/nature",
+      "declared_in_retained_source": "https://dmarisbay.com/en/accommodation",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 3469,
+      "native_name": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "country_id": 4,
+      "region_id": 27,
+      "new_declared_owner_url": "https://www.dresortgocek.com/en/beaches/beach-pool",
+      "declared_in_retained_source": "https://www.dresortgocek.com/en",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 9321,
+      "native_name": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "country_id": 4,
+      "region_id": 306,
+      "new_declared_owner_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/photos",
+      "declared_in_retained_source": "https://www.clubmarvy.com/en/beach-club-resort-turkey/rooms",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1543,
+      "native_name": "SUSESI LUXURY RESORT",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.susesihotel.com/en/experiences/beach-pools/",
+      "declared_in_retained_source": "https://www.susesihotel.com/en",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1137,
+      "native_name": "CORNELIA DIAMOND GOLF RESORT & SPA",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/photos-and-videos",
+      "declared_in_retained_source": "https://corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/dining",
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    }
+  ]
+}

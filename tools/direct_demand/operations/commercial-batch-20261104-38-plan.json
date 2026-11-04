@@ -1,0 +1,247 @@
+{
+  "operation": "commercial-hotel-batch-20261104-38-v1",
+  "state": "TEN_PROVEN_RETAINED_MATERIALS_NEW_OWNER_PAGES_PLAN_NOT_SENT",
+  "goal": "Prepare ten proven remaining materials together using retained whole captions and different actually declared owner pages",
+  "boundaries": [
+    "No repeats of closed primary URLs or rejected photographs",
+    "One finite grouped photo pass; no guessed variants/CDN automatic permission",
+    "Do not hold ready subset for disputed frames; publish one existing serial run",
+    "Current link task stays priority; new native page read after current feed writer"
+  ],
+  "criteria": [
+    "Exact hotel owner photo membership and whole-complex hero plus2different lowerphotos",
+    "Canva nativePNGvisual+bytes/SHA then actualpairedsend beforedeliverycredit"
+  ],
+  "risks": [
+    "All ten are identities and retained texts, not ready material",
+    "Photographs may remain insufficient; do not credit preparation"
+  ],
+  "baseline_logical_hotels": 156,
+  "hotel_ids": [
+    1416,
+    1491,
+    65782,
+    15879,
+    55828,
+    2144,
+    3469,
+    9321,
+    1543,
+    1137
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "hotels": [
+    {
+      "hotel_id": 1416,
+      "native_name": "PALOMA OCEANA RESORT",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-oceana/explore",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/paloma-oceana",
+      "retained_whole_caption": {
+        "hotel_id": 1416,
+        "hotel": "Paloma Oceana",
+        "key": "paloma-oceana",
+        "aliases": [
+          "PALOMA OCEANA RESORT"
+        ],
+        "sources": [
+          "https://www.palomahotels.com/en/paloma-oceana"
+        ],
+        "text": "✈️ Туры в Paloma Oceana с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж прямо у отеля.\n👧 Детский клуб Polly с играми и занятиями.\n🧘 Фитнес, йога и теннис.\n🧖 Спа на территории.\n\n💡 Аквапарк Palomaqua расположен отдельно от отеля. К нему организован трансфер. Виллы с собственным бассейном относятся к отдельной категории.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Oceana."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1491,
+      "native_name": "PALOMA PERISSIA",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-perissia/explore",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/paloma-perissia",
+      "retained_whole_caption": {
+        "hotel_id": 1491,
+        "hotel": "Paloma Perissia",
+        "key": "paloma-perissia",
+        "aliases": [
+          "PALOMA PERISSIA"
+        ],
+        "sources": [
+          "https://www.palomahotels.com/en/paloma-perissia"
+        ],
+        "text": "✈️ Туры в Paloma Perissia с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж длиной 200 метров.\n👧 Детский клуб Polly.\n🧖 Спа и спортивные занятия.\n🚶 Прогулочная дорога вдоль моря ведёт к старому Сиде.\n\n💡 Аквапарк Palomaqua находится в 10 км от отеля. До него ходит трансфер.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Perissia."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 65782,
+      "native_name": "PALOMA FINESSE SIDE",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/finesse-side/explore",
+      "declared_in_retained_source": "https://www.palomahotels.com/en/finesse-side",
+      "retained_whole_caption": {
+        "hotel_id": 65782,
+        "hotel": "Paloma Finesse Side",
+        "key": "paloma-finesse-side",
+        "aliases": [
+          "PALOMA FINESSE SIDE"
+        ],
+        "sources": [
+          "https://www.palomahotels.com/en/finesse-side"
+        ],
+        "text": "✈️ Туры в Paloma Finesse Side с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж длиной 350 метров.\n🏊 Большой основной бассейн и отдельный детский.\n👧 Детский клуб The Play House.\n💦 Аквапарк Palomaqua рядом с отелем.\n\n💡 Прямой выход к бассейну есть в отдельных категориях номеров. Пляжные кабаны оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Finesse."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 15879,
+      "native_name": "KIRMAN BELAZUR RESORT & SPA",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.belazur.com.tr/en/pools-waterparks.html",
+      "declared_in_retained_source": "https://www.belazur.com.tr/en",
+      "retained_whole_caption": {
+        "hotel_id": 15879,
+        "hotel": "Kirman Belazur Resort & Spa",
+        "key": "kirman-belazur",
+        "aliases": [
+          "KIRMAN BELAZUR RESORT & SPA"
+        ],
+        "sources": [
+          "https://www.belazur.com.tr/en"
+        ],
+        "text": "✈️ Туры в Kirman Belazur Resort & Spa с перелётом\n📍 Богазкент, Белек, Турция.\n\n🏖 Пляж и пирс у отеля.\n💦 Бассейны и аквапарк.\n👧 Детский клуб Kichi.\n🏋️ Спортивные занятия в Healthy Sports Club.\n\n💡 Есть семейные номера площадью 39 м². Вид на море, бассейн или территорию зависит от категории размещения.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Kirman Belazur."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 55828,
+      "native_name": "SELECTUM LUXURY RESORT BELEK",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://luxuryresortbelek.selectumhotels.com/en/pool-and-beach/pools",
+      "declared_in_retained_source": "https://luxuryresortbelek.selectumhotels.com/en",
+      "retained_whole_caption": {
+        "hotel_id": 55828,
+        "hotel": "Selectum Luxury Resort Belek",
+        "key": "selectum-luxury-belek",
+        "aliases": [
+          "SELECTUM LUXURY RESORT BELEK"
+        ],
+        "sources": [
+          "https://luxuryresortbelek.selectumhotels.com/en"
+        ],
+        "text": "✈️ Туры в Selectum Luxury Resort Belek с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж у Средиземного моря.\n💦 Аквапарк, крытые и открытые бассейны.\n👧 Детский клуб Puppies’ World.\n🏋️ Занятия в Pure Sports Academy и вечерние шоу.\n\n💡 В отеле есть разные категории номеров с классической мебелью и бассейн с морской водой.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Selectum Luxury Resort Belek."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 2144,
+      "native_name": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "country_id": 4,
+      "region_id": 26,
+      "new_declared_owner_url": "https://dmarisbay.com/en/nature",
+      "declared_in_retained_source": "https://dmarisbay.com/en/accommodation",
+      "retained_whole_caption": {
+        "hotel_id": 2144,
+        "hotel": "D Maris Bay",
+        "key": "d-maris-bay",
+        "aliases": [
+          "D MARIS BAY (EX. D HOTEL MARIS)"
+        ],
+        "sources": [
+          "https://dmarisbay.com/en/accommodation"
+        ],
+        "text": "✈️ Туры в D Maris Bay с перелётом\n📍 Мармарис, Турция.\n\n🏖 Пляжи у живописной бухты.\n🧖 Спа Mytha.\n🍽 Рестораны Nusr Et, Zuma и другие варианты кухни.\n🛏 Есть номера с видом на море или горы.\n\n💡 Собственный бассейн и услуги дворецкого предусмотрены в отдельной вилле. Это отдельная категория размещения.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в D Maris Bay."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 3469,
+      "native_name": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "country_id": 4,
+      "region_id": 27,
+      "new_declared_owner_url": "https://www.dresortgocek.com/en/beaches/beach-pool",
+      "declared_in_retained_source": "https://www.dresortgocek.com/en",
+      "retained_whole_caption": {
+        "hotel_id": 3469,
+        "hotel": "D Resort Gocek",
+        "key": "d-resort-gocek",
+        "aliases": [
+          "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)"
+        ],
+        "sources": [
+          "https://www.dresortgocek.com/en"
+        ],
+        "text": "✈️ Туры в D Resort Gocek с перелётом\n📍 Гёчек, Фетхие, Турция.\n\n🏖 Собственный пляж у бухты.\n🧖 Спа D Spa.\n🏋️ Фитнес центр D Gym.\n🍽 Рестораны D’Breeze, Olives и Q Lounge.\n\n💡 Прямой выход к бассейну предусмотрен в отдельных категориях Pool Access. В отеле есть номера и сьюты.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в D Resort Gocek."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 9321,
+      "native_name": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "country_id": 4,
+      "region_id": 306,
+      "new_declared_owner_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/photos",
+      "declared_in_retained_source": "https://www.clubmarvy.com/en/beach-club-resort-turkey/rooms",
+      "retained_whole_caption": {
+        "hotel_id": 9321,
+        "hotel": "Club Marvy",
+        "key": "club-marvy",
+        "aliases": [
+          "CLUB MARVY (EX. PALOMA CLUB SULTAN)"
+        ],
+        "sources": [
+          "https://www.clubmarvy.com/en/beach-club-resort-turkey/rooms"
+        ],
+        "text": "✈️ Туры в Club Marvy с перелётом\n📍 Измир, Турция, бухта Кесре.\n\n🌿 Территория у Эгейского моря.\n👧 Программы Marvy Kids & Youngsters.\n🏋️ Фитнес Mar Fitness и спа Mar Spa.\n🛏 Есть семейные номера и сьюты.\n\n💡 Для семей есть отдельные категории номеров. Категории Premium Adults Only предназначены для отдыха взрослых.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Club Marvy."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1543,
+      "native_name": "SUSESI LUXURY RESORT",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.susesihotel.com/en/experiences/beach-pools/",
+      "declared_in_retained_source": "https://www.susesihotel.com/en",
+      "retained_whole_caption": {
+        "hotel_id": 1543,
+        "hotel": "Susesi Luxury Resort",
+        "key": "susesi-luxury",
+        "aliases": [
+          "SUSESI LUXURY RESORT"
+        ],
+        "sources": [
+          "https://www.susesihotel.com/en"
+        ],
+        "text": "✈️ Туры в Susesi Luxury Resort с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж и бассейны на территории.\n🧖 Спа La Calisse.\n🍽 Рестораны с кухнями разных стран.\n🛏 Есть номера Deluxe и семейные категории.\n\n💡 Собственный бассейн и услуги дворецкого предусмотрены в отдельных особых категориях размещения.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Susesi Luxury Resort."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1137,
+      "native_name": "CORNELIA DIAMOND GOLF RESORT & SPA",
+      "country_id": 4,
+      "region_id": 21,
+      "new_declared_owner_url": "https://www.corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/photos-and-videos",
+      "declared_in_retained_source": "https://corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/dining",
+      "retained_whole_caption": {
+        "hotel_id": 1137,
+        "hotel": "Cornelia Diamond Golf Resort & Spa",
+        "key": "cornelia-diamond",
+        "aliases": [
+          "CORNELIA DIAMOND GOLF RESORT & SPA"
+        ],
+        "sources": [
+          "https://corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/dining",
+          "https://www.corneliaresort.com/TR/Cornelia-Diamond-Luks-Golf-Resort-Spa-Oteli-Belek-Antalya/genel-gorunum-galeri"
+        ],
+        "text": "✈️ Туры в Cornelia Diamond Golf Resort & Spa с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж и пирс.\n🏊 Бассейны на территории.\n🍽 Рестораны с международной, азиатской и средиземноморской кухней.\n🧖 Спа Crassula.\n\n💡 Рестораны работают по летнему и зимнему расписанию.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cornelia Diamond."
+      },
+      "state": "PROVEN_IDENTITY_RETAINED_CAPTION_NEW_PHOTOGRAPHY_PENDING"
+    }
+  ]
+}

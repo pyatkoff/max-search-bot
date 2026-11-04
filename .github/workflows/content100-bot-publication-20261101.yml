@@ -1,42 +1,38 @@
-name: Prepare156 YML with exact previous150 offers and metadata preserved
+name: Read ten new declared owner pages for retained batch38 materials
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
-  prepare:
+  inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        media_group: [0,1,2,3]
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           sparse-checkout: |
-            /tools/direct_demand/operations/
-            /.github/traffic-publish/hotel-posts-telegram.xml
-            /.github/traffic-publish/hotel-posts-max.xml
-            /.github/traffic-publish/hotel-posts-all.xml
-          sparse-checkout-cone-mode: false
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 41818905386
-          name: commercial-channel-hotel-feeds-20261104-read13
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/new6
-      - name: Build the three public YML exports from only new six canonical pairs
-        run: python3 tools/direct_demand/operations/prepare-commercial-max156-feeds-20261104.py
+            tools/direct_demand/operations
+          sparse-checkout-cone-mode: true
+      - name: Read only fixed official hotel descriptions and public photo references
+        env:
+          MEDIA_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261104-update12-prepared
+          name: commercial-batch38-primary-sources-${{ matrix.media_group }}
           path: |
-            ${{ runner.temp }}/hotel-posts-*.xml
-            ${{ runner.temp }}/feed156-route-baseline.json
+            public-media-sources.json
           retention-days: 14
           if-no-files-found: error
