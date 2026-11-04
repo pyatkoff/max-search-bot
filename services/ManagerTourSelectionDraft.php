@@ -24,17 +24,34 @@ final class ManagerTourSelectionDraft
 
     private static function normalizeInput($input,bool $stored): ?array
     {
-        if (!is_array($input) || array_diff(array_keys($input), ['title','intro','offers'])) return null;
+        if (!is_array($input) || array_diff(array_keys($input), ['title','intro','offers','appearance'])) return null;
         $title=self::text($input['title']??'',120); $intro=self::text($input['intro']??'',1200,true);
         $offers=$input['offers']??null;
         if ($title===null || $intro===null || !is_array($offers) || !array_is_list($offers) || count($offers)>self::MAX_OFFERS) return null;
         $result=['title'=>$title,'intro'=>$intro,'offers'=>[]]; $ids=[];
+        // Optional on legacy drafts: never change their canonical shape/hash.
+        if (array_key_exists('appearance',$input)) {
+            $appearance=self::appearance($input['appearance']);
+            if ($appearance===null) return null;
+            $result['appearance']=$appearance;
+        }
         foreach ($offers as $offer) {
             $item=self::offer($offer,$stored);
             if ($item===null || isset($ids[$item['id']])) return null;
             $ids[$item['id']]=true; $result['offers'][]=$item;
         }
         return $result;
+    }
+
+    /** Plain text and fixed presentation choices only; no URLs, CSS or uploads. */
+    public static function appearance($input): ?array
+    {
+        if (!is_array($input) || count($input)!==3 || array_diff(array_keys($input),['template','palette','agency_name'])
+            || !in_array($input['template']??null,['photo','compact'],true)
+            || !in_array($input['palette']??null,['forest','ocean','sunset'],true)) return null;
+        $agency=self::text($input['agency_name']??null,80);
+        if ($agency===null || $agency==='') return null;
+        return ['template'=>$input['template'],'palette'=>$input['palette'],'agency_name'=>$agency];
     }
 
     private static function offer($input,bool $stored): ?array
