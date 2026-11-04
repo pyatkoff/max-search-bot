@@ -13,21 +13,50 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verify:
+  verify-syntax:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring
           coverage: none
+      - name: Check PHP syntax
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
 
-      - name: Run required checks
-        run: bash tests/run_required_checks.sh
+  verify-required:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [architecture, dialogue, website, manager, diagnostics]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+      - name: Run required group
+        run: php tests/run_required_group.php "${{ matrix.group }}"
+
+  verify:
+    if: always()
+    needs: [verify-syntax, verify-required]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all original checks
+        env:
+          SYNTAX_RESULT: ${{ needs.verify-syntax.result }}
+          REQUIRED_RESULT: ${{ needs.verify-required.result }}
+        run: |
+          test "$SYNTAX_RESULT" = success
+          test "$REQUIRED_RESULT" = success
 
   deploy:
     needs: verify
