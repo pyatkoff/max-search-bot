@@ -105,15 +105,27 @@ jobs:
           PREPARED_REPLY_MYSQL_USER: root
           PREPARED_REPLY_MYSQL_PASS: prepared-fixture-only
         run: |
-          php tests/run_manager_prepared_reply_regression.php
-          php tests/mysql/manager-preparation-migrations.php
-          php tests/mysql/virtual-reply-sampling.php
-          php tests/mysql/virtual-reply-controls.php
-          php tests/mysql/manager-tour-delivery.php
-          php tests/mysql/hotel-work-queue.php
-          php tests/mysql/hotel-work-events.php
-          php tests/mysql/development-work-queue.php
-          php tests/mysql/development-work-events.php
+          # Preserve the original command order, shared fixture and fail-fast result.
+          # Measure individual tests on the next naturally required CI run.
+          for test in \
+            tests/run_manager_prepared_reply_regression.php \
+            tests/mysql/manager-preparation-migrations.php \
+            tests/mysql/virtual-reply-sampling.php \
+            tests/mysql/virtual-reply-controls.php \
+            tests/mysql/manager-tour-delivery.php \
+            tests/mysql/hotel-work-queue.php \
+            tests/mysql/hotel-work-events.php \
+            tests/mysql/development-work-queue.php \
+            tests/mysql/development-work-events.php; do
+            start=$SECONDS
+            if php "$test"; then
+              printf 'MYSQL_TEST_TIMING test=%s seconds=%d status=success\\n' "$test" "$((SECONDS-start))"
+            else
+              result=$?
+              printf 'MYSQL_TEST_TIMING test=%s seconds=%d status=failure exit=%d\\n' "$test" "$((SECONDS-start))" "$result"
+              exit "$result"
+            fi
+          done
 
   oauth:
     needs: change-scope
