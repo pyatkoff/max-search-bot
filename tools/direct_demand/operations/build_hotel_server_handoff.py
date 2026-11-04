@@ -213,7 +213,8 @@ def diagnostic_source(path):
     # encrypted runner captures. Exactly one supported operation declaration.
     kinds = re.findall(r"^const (HOTEL_ACTIVATION_KIND|HOTEL_STATUS_KIND)='([^']+)';$", text, re.M)
     require(kinds in [[('HOTEL_ACTIVATION_KIND', KIND)],
-                      [('HOTEL_STATUS_KIND', 'hotel-server-private-incident-v1')]],
+                      [('HOTEL_STATUS_KIND', 'hotel-server-private-incident-v1')],
+                      [('HOTEL_STATUS_KIND', 'hotel-server-private-correction-v1')]],
             'diagnostic_source_identity_unconfirmed')
     recipients = re.findall(
         r"^[ \t]*\$recipient=<<<'PUBLIC_RECEIPT_RECIPIENT'\n"

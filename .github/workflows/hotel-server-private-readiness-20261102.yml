@@ -1,16 +1,18 @@
-name: Read exact B07 correction prerequisites once through the existing private channel
+name: Apply the reviewed B07 correction once through the existing private channel
 on:
   push:
     branches: [ops/hotel-server-private-activation-20261102]
     paths: [.github/workflows/hotel-server-private-readiness-20261102.yml]
 permissions:
   contents: read
+  issues: read
+  actions: read
 concurrency:
   group: hotel-server-private-activation
   cancel-in-progress: false
 jobs:
-  private_incident:
-    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == 'dc1258a99ab1aeb44c28d17598ffaddaf804db6a' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+  private_correction:
+    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == 'e5b5d3e58ba4ce7f63ca3e48b57cc3cf0f0d2c9a' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -26,10 +28,10 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib,re
           root=pathlib.Path(os.environ['RUNNER_TEMP'])
-          operator_blob = 'f62fa5f87844af113780fe52c483e1a9e8d16593'
-          operator_sha = '6ab65bb0830b3366973e12ba69eafb42f5be71f31307f1e6af7d934030728b7e'
-          builder_blob = 'd2bbe82a97ae8229005db2ffcc1825ce2be37a04'
-          builder_sha = '94296118e08221cbcd33e949cfd69c2247fcb6f9ca4a4d7a7b0ab8eb528ffecc'
+          operator_blob = '4f2d545589ee65f918fed9cf0a387524351660cc'
+          operator_sha = '98d3e3f5f0733f99c13412d0ca0efaf327eae7c9f83f2af0dca4199b5005d694'
+          builder_blob = '3f1f772991e633438fb7f78ec0aab5c5e71503a2'
+          builder_sha = 'f46e24b7d298891ab06bc61c675afe0867f7a34f79432406b4b25affc512e38f'
           for input_name,output_name,expected_blob,expected_sha,limit in [
               ('hotel_handoff_source.json','hotel_handoff.php',operator_blob,operator_sha,196608),
               ('hotel_handoff_builder.json','build_hotel_server_handoff.py',builder_blob,builder_sha,65536)]:
@@ -59,33 +61,38 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_handoff_refusal.json').read_text())
-          assert d=={'operation':'hotel-server-private-incident-v1','state':'HOLD','reason':'target_unconfirmed','operator_provider_calls':0}
+          assert d=={'operation':'hotel-server-private-correction-v1','state':'HOLD','reason':'target_unconfirmed','operator_provider_calls':0}
           PY
       - name: Verify local diagnostic encryption before loading server credentials
         shell: bash
         run: |
           set -euo pipefail
           python3 -B "$RUNNER_TEMP/build_hotel_server_handoff.py" --check-runner-diagnostics "$RUNNER_TEMP/hotel_handoff.php"
-      - name: Load the independently reviewed correction source for the isolated fixture
-        uses: actions/checkout@v4
-        with:
-          repository: pyatkoff/max-search-bot
-          ref: 7f96ed9340aeacf65cdfe8c464f2ee44f14c7994
-          path: hotel-core-fixture
-          persist-credentials: false
-          fetch-depth: 1
-      - name: Verify the bounded correction on synthetic SQLite before server credentials
+      - name: Verify the existing publisher and original installed release before credentials
         env:
-          HOTEL_WORK_NATIVE_MYSQL: '0'
-          HOTEL_CORE_SOURCE_SHA: 7f96ed9340aeacf65cdfe8c464f2ee44f14c7994
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          cd "$GITHUB_WORKSPACE/hotel-core-fixture"
-          test "$(git rev-parse HEAD)" = "$HOTEL_CORE_SOURCE_SHA"
-          php -v
-          php tests/run_hotel_server_cycle_regression.php | tee "$RUNNER_TEMP/hotel_core_focused.txt"
-          php -r 'echo json_encode(["schema"=>"hotel-core-focused-v1","source_sha"=>getenv("HOTEL_CORE_SOURCE_SHA"),"php_version"=>PHP_VERSION,"suite"=>"tests/run_hotel_server_cycle_regression.php","backend"=>"isolated_synthetic_sqlite","state"=>"passed","production_credentials_loaded"=>false,"production_provider_calls"=>0,"required_pr_ci_passed"=>false], JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR), "\n";' >"$RUNNER_TEMP/hotel_core_focused.json"
+          umask 077
+          gh api 'repos/pyatkoff/max-search-bot/git/ref/heads/main' >"$RUNNER_TEMP/hotel_apply_main.json"
+          gh api 'repos/pyatkoff/max-search-bot/issues/comments/6608084807' >"$RUNNER_TEMP/hotel_apply_publisher.json"
+          gh api 'repos/pyatkoff/max-search-bot/actions/runs/41833573177' >"$RUNNER_TEMP/hotel_apply_deploy.json"
+          python3 - <<'PY'
+          import os,json,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          main=json.loads((root/'hotel_apply_main.json').read_text())
+          publisher=json.loads((root/'hotel_apply_publisher.json').read_text())
+          deploy=json.loads((root/'hotel_apply_deploy.json').read_text())
+          expected='31ea399bb7f2837bd05ab6a5f5e8529222ea71a4'
+          assert main['object']['sha']==expected
+          assert publisher['id']==6608084807 and publisher['user']['id']==226193297
+          assert publisher['body']=='PR1327: выпуск занят' and publisher['updated_at']=='2026-11-04T13:05:59Z'
+          assert deploy['id']==41833573177 and deploy['head_sha']==expected
+          assert deploy['event']=='push' and deploy['run_attempt']==1
+          assert deploy['status']=='completed' and deploy['conclusion']=='success'
+          print('{"existing_publisher":"confirmed","original_deploy":"success","provider_calls":0}')
+          PY
       - name: Prepare the existing administrator connection and approved host continuity
         env:
           CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -118,7 +125,7 @@ jobs:
           assert approved,'Existing host continuity mismatch; STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_handoff_hosts').write_text('\n'.join(approved)+'\n')
           PY
-      - name: Read exact B07 stage0 candidate and correction prerequisites once
+      - name: Apply the exact independently reviewed B07 correction once
         id: handoff
         env:
           CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -136,22 +143,22 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib,sys
           root=pathlib.Path(os.environ['RUNNER_TEMP']);ok=False;status=int(os.environ['HOTEL_HANDOFF_STATUS'])
-          safe={'operation':'hotel-server-private-incident-v1','state':'HOLD','reason':'readback_result_unconfirmed','operator_provider_calls':0}
+          safe={'operation':'hotel-server-private-correction-v1','state':'HOLD','reason':'apply_result_unconfirmed','operator_provider_calls':0}
           try:
               p=root/'hotel_handoff_raw.private';assert 0<p.stat().st_size<=786432
               d=json.loads(p.read_text());assert type(d) is dict
-              assert d['operation']=='hotel-server-private-incident-v1' and type(d['operator_provider_calls']) is int and d['operator_provider_calls']==0
+              assert d['operation']=='hotel-server-private-correction-v1' and type(d['operator_provider_calls']) is int and d['operator_provider_calls']==0
               if d['state']=='sealed':
                   assert set(d)=={'operation','state','operator_provider_calls','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256'}
                   assert d['algorithm']=='RSA-OAEP-SHA1+A256GCM' and d['recipient_sha256']=='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d'
-                  assert d['aad']=='hotel-server-private-incident-v1|17400f819817593b3b4428b43a8dbe24b109c428|90b00f80c62dccb911eb4a0082c634685f2bb55155d17a10a531783cd9fbf9f8'
+                  assert d['aad']=='hotel-server-private-correction-v1|31ea399bb7f2837bd05ab6a5f5e8529222ea71a4|ad2df472c3a90392a9a1023561fe6584c73b25f06e191321d26213bffe0f6f5d'
                   decoded={k:base64.b64decode(d[k],validate=True) for k in ['key','nonce','tag','ciphertext']}
                   assert len(decoded['key'])==384 and len(decoded['nonce'])==12 and len(decoded['tag'])==16
                   assert 0<len(decoded['ciphertext'])<=524288 and hashlib.sha256(decoded['ciphertext']).hexdigest()==d['ciphertext_sha256']
                   safe=d;ok=True
               else:
                   assert status!=0 and set(d)=={'operation','state','reason','operator_provider_calls'} and d['state']=='HOLD'
-                  assert d['reason'] in {'target_unconfirmed','sealed_readback_result_unconfirmed'}
+                  assert d['reason'] in {'target_unconfirmed','sealed_apply_result_unconfirmed'}
                   safe=d
           except Exception:pass
           (root/'hotel_handoff_sealed.json').write_text(json.dumps(safe,sort_keys=True)+'\n')
@@ -161,11 +168,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hotel-server-private-correction-preflight-sealed
+          name: hotel-server-private-correction-apply-sealed
           path: ${{ runner.temp }}/hotel_handoff_sealed.json
           retention-days: 7
           if-no-files-found: ignore
-      - name: Retain encrypted runner diagnostics for an unsuccessful original observation
+      - name: Retain encrypted runner diagnostics for an unsuccessful original operation
         id: runner_diagnostic
         if: always() && steps.handoff.outcome != 'success'
         shell: bash
@@ -206,23 +213,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always() && steps.runner_diagnostic.outcome == 'success' && steps.runner_diagnostic.outputs.sealed == 'true'
         with:
-          name: hotel-server-private-correction-preflight-diagnostic
+          name: hotel-server-private-correction-apply-diagnostic
           path: ${{ runner.temp }}/hotel_handoff_runner_diagnostic.sealed.json
-          retention-days: 7
-          if-no-files-found: ignore
-      - name: Preserve the exact synthetic focused-test evidence
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: hotel-b07-core-focused
-          path: |
-            ${{ runner.temp }}/hotel_core_focused.json
-            ${{ runner.temp }}/hotel_core_focused.txt
           retention-days: 7
           if-no-files-found: ignore
       - name: Remove only this run's ephemeral files
         if: always()
         shell: bash
         run: |
-          rm -f "$RUNNER_TEMP/hotel_handoff_source.json" "$RUNNER_TEMP/hotel_handoff_builder.json" "$RUNNER_TEMP/build_hotel_server_handoff.py" "$RUNNER_TEMP/hotel_boundary_fixture.php" "$RUNNER_TEMP/hotel_handoff.php" "$RUNNER_TEMP/hotel_handoff_refusal.json" "$RUNNER_TEMP/hotel_handoff_key" "$RUNNER_TEMP/hotel_handoff_hosts" "$RUNNER_TEMP/hotel_handoff_raw.private" "$RUNNER_TEMP/hotel_handoff_stderr.private" "$RUNNER_TEMP/hotel_handoff_status.private" "$RUNNER_TEMP/hotel_handoff_sealed.json" "$RUNNER_TEMP/hotel_handoff_runner_diagnostic.sealed.json"
+          rm -f "$RUNNER_TEMP/hotel_apply_main.json" "$RUNNER_TEMP/hotel_apply_publisher.json" "$RUNNER_TEMP/hotel_apply_deploy.json" "$RUNNER_TEMP/hotel_handoff_source.json" "$RUNNER_TEMP/hotel_handoff_builder.json" "$RUNNER_TEMP/build_hotel_server_handoff.py" "$RUNNER_TEMP/hotel_boundary_fixture.php" "$RUNNER_TEMP/hotel_handoff.php" "$RUNNER_TEMP/hotel_handoff_refusal.json" "$RUNNER_TEMP/hotel_handoff_key" "$RUNNER_TEMP/hotel_handoff_hosts" "$RUNNER_TEMP/hotel_handoff_raw.private" "$RUNNER_TEMP/hotel_handoff_stderr.private" "$RUNNER_TEMP/hotel_handoff_status.private" "$RUNNER_TEMP/hotel_handoff_sealed.json" "$RUNNER_TEMP/hotel_handoff_runner_diagnostic.sealed.json"
 
