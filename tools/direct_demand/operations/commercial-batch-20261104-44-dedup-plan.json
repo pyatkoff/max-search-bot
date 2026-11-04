@@ -1,0 +1,96 @@
+{
+  "operation": "commercial-batch-20261104-44-dedup-prepare1",
+  "state": "PURE_RETAINED_INPUT_DEDUP_ONLY_NO_PHOTO_GET_NO_READY",
+  "goal": "Prepare ten proven unpublished materials and resolve addressed old photo exclusions before any new ROBINSON/Park photo requests",
+  "boundaries": {
+    "proven_scope": [
+      1074,
+      969,
+      975,
+      1294,
+      1402,
+      62505,
+      968,
+      65782,
+      1338,
+      65895
+    ],
+    "baseline_published_each_channel": 159,
+    "raw_photo_gets": 0,
+    "owner_page_gets": 0,
+    "server_calls": 0,
+    "db_reads": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "canva_transactions": 0
+  },
+  "criteria": [
+    "Ten unchanged retained whole captions from43/40",
+    "Every selected image URI declared by retained42 exact propertypage",
+    "Addressed old rawcontact plans for62505/968 only; check exactURL and decodedbasename; no old photoGET",
+    "Missing old addressedproof remains deferred, never absence/permission",
+    "WrongSorgunimage excluded evenaltPark; no onepool/people/banner forcedhero"
+  ],
+  "risks": [
+    "These10 candidateURIs are not accepted photos or download authorization; actualnativepixels still pending",
+    "ROBINSONMICEeventservices notuniversalinclusions; Parksharedclub images notautomaticpropertyrights",
+    "Known old43URLs/basenames and allolderframes remainclosed"
+  ],
+  "candidate_images": [
+    {
+      "hotel_id": 62505,
+      "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9851.jpg",
+      "primary_source_url": "https://mice.robinson.com/en/clubs/soma-bay/"
+    },
+    {
+      "hotel_id": 62505,
+      "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9840_WOL.jpg",
+      "primary_source_url": "https://mice.robinson.com/en/clubs/soma-bay/"
+    },
+    {
+      "hotel_id": 62505,
+      "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9918_WOL.jpg",
+      "primary_source_url": "https://mice.robinson.com/en/clubs/soma-bay/"
+    },
+    {
+      "hotel_id": 62505,
+      "url": "https://mice.robinson.com/fileadmin/user_upload/RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+      "primary_source_url": "https://mice.robinson.com/en/clubs/soma-bay/"
+    },
+    {
+      "hotel_id": 62505,
+      "url": "https://mice.robinson.com/fileadmin/user_upload/sm96__7342.jpg",
+      "primary_source_url": "https://mice.robinson.com/en/clubs/soma-bay/"
+    },
+    {
+      "hotel_id": 62505,
+      "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9878_WOL__1_.jpg",
+      "primary_source_url": "https://mice.robinson.com/en/clubs/soma-bay/"
+    },
+    {
+      "hotel_id": 62505,
+      "url": "https://mice.robinson.com/fileadmin/user_upload/sm96__7323_WOL.jpg",
+      "primary_source_url": "https://mice.robinson.com/en/clubs/soma-bay/"
+    },
+    {
+      "hotel_id": 968,
+      "url": "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_1.jpg",
+      "primary_source_url": "https://www.alibey.com/en/park/beach-waterpark"
+    },
+    {
+      "hotel_id": 968,
+      "url": "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_2.jpg",
+      "primary_source_url": "https://www.alibey.com/en/park/beach-waterpark"
+    },
+    {
+      "hotel_id": 968,
+      "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_1.jpg",
+      "primary_source_url": "https://www.alibey.com/en/park/beach-waterpark"
+    }
+  ],
+  "retained_wholecaption_count": 10,
+  "new_input_cases": 3,
+  "old_image_guard_fixtures_rerun": 0,
+  "ready_for_send": 0,
+  "new_posts": 0
+}

@@ -1,0 +1,159 @@
+{
+  "operation": "commercial-stock-20261104-44-source-notes",
+  "state": "TEN_RETAINED_WHOLECAPTIONS_UNCHANGED_NOT_READY",
+  "proven_scope": [
+    1074,
+    969,
+    975,
+    1294,
+    1402,
+    62505,
+    968,
+    65782,
+    1338,
+    65895
+  ],
+  "captions": [
+    {
+      "hotel_id": 1074,
+      "hotel": "Gural Premier Belek",
+      "sources": [
+        "https://www.guralpremier.com/en/belek",
+        "https://www.guralpremier.com/en/belek/aquapark",
+        "https://www.guralpremier.com/en/belek/plajlar"
+      ],
+      "text": "✈️ Туры в Gural Premier Belek с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж длиной 350 метров.\n💦 Аквапарк с 20 горками: 11 для взрослых и 9 для детей.\n🏴‍☠️ В детской водной зоне есть пиратский корабль.\n👨‍👩‍👧‍👦 Есть семейные категории с двумя комнатами.\n\n💡 Пляжные павильоны бронируются заранее. Работа открытых зон зависит от сезона.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Gural Premier Belek.",
+      "limitations": [
+        "Pool Room/Pool Suite не универсальные права",
+        "Не обещать текущую работу открытых зон и программу2020"
+      ],
+      "ready_for_send": false
+    },
+    {
+      "hotel_id": 969,
+      "hotel": "Gural Premier Tekirova",
+      "sources": [
+        "https://www.guralpremier.com/en/tekirova",
+        "https://www.guralpremier.com/en/tekirova/aquapark",
+        "https://www.guralpremier.com/en/tekirova/beach"
+      ],
+      "text": "✈️ Туры в Gural Premier Tekirova с перелётом\n📍 Текирова, Кемер, Турция.\n\n🏖 Пляж длиной 440 метров.\n💦 Аквапарк с 22 горками: 9 для взрослых и 13 для детей.\n🏴‍☠️ Для детей предусмотрены водная зона и пиратский корабль.\n👨‍👩‍👧‍👦 Есть семейные категории с двумя комнатами.\n\n💡 Пляжные павильоны требуют бронирования. Работа открытых зон зависит от сезона.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Gural Premier Tekirova.",
+      "limitations": [
+        "Pool Suite/вилла не универсальные права",
+        "Нет универсального павильона/включённых услуг павильона"
+      ],
+      "ready_for_send": false
+    },
+    {
+      "hotel_id": 975,
+      "hotel": "Nirvana Dolce Vita",
+      "sources": [
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita/aqua-life"
+      ],
+      "text": "✈️ Туры в Nirvana Dolce Vita с перелётом\n📍 Текирова, Кемер, Турция.\n\n🏖 Отель расположен у собственной бухты, у подножия Таврских гор.\n💦 Аквапарк и бассейны Aqua Life.\n👧 Детский мини клуб.\n🌿 Зона Well Being для отдыха и заботы о себе.\n\n💡 Сочетание моря и горного пейзажа на территории одного курорта.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Nirvana Dolce Vita.",
+      "limitations": [
+        "Не переносить услуги другихNirvana",
+        "Кабаны/катамаран/спауслуги не объявлять включёнными"
+      ],
+      "ready_for_send": false
+    },
+    {
+      "hotel_id": 1294,
+      "hotel": "Nirvana Cosmopolitan",
+      "sources": [
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan/aqua-life"
+      ],
+      "text": "✈️ Туры в Nirvana Cosmopolitan с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Пляжный отдых в городской части Антальи.\n💦 Аквапарк и бассейны Aqua Life.\n👧 Детский мини клуб.\n🎾 Cosmos Sports Center с теннисными кортами и футбольными полями.\n\n💡 Современный курортный комплекс в Ларе со спортивной инфраструктурой.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Nirvana Cosmopolitan.",
+      "limitations": [
+        "Спорт/кабаны/CosmosMoonlight не универсально включённые права",
+        "KHGглобальныефото не targetmembership"
+      ],
+      "ready_for_send": false
+    },
+    {
+      "hotel_id": 1402,
+      "hotel": "Orange County Kemer",
+      "sources": [
+        "https://www.orangecounty.com.tr/kemer/en"
+      ],
+      "text": "✈️ Туры в Orange County Kemer с перелётом\n📍 Кемер, Турция.\n\n🏘 Архитектура в стиле Амстердама.\n🏖 Галечный пляж длиной 90 метров.\n🧖 Турецкая баня, сауна и фитнес центр.\n🍽 Основной ресторан, кафе и кондитерская.\n\n💡 Отель с узнаваемыми голландскими фасадами на фоне Таврских гор.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Orange County Kemer.",
+      "limitations": [
+        "Возрастнаяполитика не установлена",
+        "Не обещать бесплатныймассаж/спа/текущуюпрограммуизстарыхафиш"
+      ],
+      "ready_for_send": false
+    },
+    {
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "sources": [
+        "https://mice.robinson.com/en/clubs/soma-bay/"
+      ],
+      "text": "✈️ Туры в ROBINSON SOMA BAY с перелётом\n📍 Сома Бэй, Египет.\n\n🏖 Длинный песчаный пляж на Красном море.\n🏄 Водные виды спорта.\n🌿 Спа центр WellFit.\n🌴 Территория клуба занимает 120 000 м², в отеле 348 номеров.\n\n💡 Здесь сочетаются отдых у моря и спортивный формат.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в ROBINSON SOMA BAY.",
+      "limitations": [
+        "СемейныйотельнеAdultsOnly/ROBY3+предыдущиеограничениясохраняются",
+        "MICEлодки/гольф/урокинепереноситьвуниверсальныевключения"
+      ],
+      "ready_for_send": false
+    },
+    {
+      "hotel_id": 968,
+      "hotel": "Ali Bey Park Manavgat",
+      "sources": [
+        "https://www.alibey.com/en/park/beach-waterpark"
+      ],
+      "text": "✈️ Туры в Ali Bey Park Manavgat с перелётом\n📍 Манавгат, Сиде, Турция.\n\n🏖 Отель с пляжем на берегу моря.\n💦 Аквапарк площадью 25 000 м².\n🛝 25 горок: 12 для взрослых и 13 для детей и малышей.\n🏊 Бассейны для взрослых, детей и младенцев.\n\n💡 Пляжные павильоны оплачиваются отдельно и требуют бронирования.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Ali Bey Park.",
+      "limitations": [
+        "НепереноситьфотоClub/ResortSorgun",
+        "Нет универсальныхправнакабаны/обслуживание/обед"
+      ],
+      "ready_for_send": false
+    },
+    {
+      "hotel_id": 65782,
+      "hotel": "Paloma Finesse Side",
+      "sources": [
+        "https://www.palomahotels.com/en/finesse-side"
+      ],
+      "text": "✈️ Туры в Paloma Finesse Side с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж длиной 350 метров.\n🏊 Большой основной бассейн и отдельный детский.\n👧 Детский клуб The Play House.\n💦 Аквапарк Palomaqua рядом с отелем.\n\n💡 Прямой выход к бассейну есть в отдельных категориях номеров. Пляжные кабаны оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Finesse.",
+      "limitations": [
+        "Retainedwholecaption34unchanged",
+        "Местаданнойкатегории/платныекабаныкаквисходномwholecaption"
+      ],
+      "ready_for_send": false
+    },
+    {
+      "hotel_id": 1338,
+      "hotel": "Limak Lara De Luxe Hotel & Resort",
+      "key": "limak-lara-de-luxe",
+      "aliases": [
+        "LIMAK LARA DE LUXE HOTEL & RESORT",
+        "LIMAK LARA"
+      ],
+      "sources": [
+        "https://www.limakhotels.com/lara"
+      ],
+      "text": "✈️ Туры в Limak Lara De Luxe с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Песчаный пляж у Средиземного моря.\n🏊 Бассейны на территории.\n🛏 В семейных номерах есть гостиная, спальня и две ванные комнаты.\n🍽 Рестораны с турецкой и международной кухней.\n\n💡 Архитектура и оформление отеля вдохновлены Азией.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Limak Lara."
+    },
+    {
+      "hotel_id": 65895,
+      "hotel": "Paloma Orenda",
+      "key": "paloma-orenda",
+      "aliases": [
+        "PALOMA ORENDA RESORT"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/paloma-orenda"
+      ],
+      "text": "✈️ Туры в Paloma Orenda с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж длиной 350 метров.\n🌿 Невысокие корпуса среди садов.\n🎾 Теннис, падел и другие спортивные занятия.\n👧 Детский клуб Polly.\n\n💡 Приватные кабаны на пляже оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Orenda."
+    }
+  ],
+  "source_files": [
+    "commercial-stock-20261104-43-source-notes.json",
+    "commercial-stock-20261104-40-source-notes.json"
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
