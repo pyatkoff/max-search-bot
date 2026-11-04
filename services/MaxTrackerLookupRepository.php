@@ -69,7 +69,7 @@ final class MaxTrackerLookupRepository
             .' ORDER BY h.UF_DATE,h.ID LIMIT 21';
         $q=$this->pdo->prepare($sql);$out=[];
         $source="CASE WHEN s.UF_METRIC_SOURCE IS NOT NULL AND s.UF_METRIC_SOURCE<>'' THEN s.UF_METRIC_SOURCE ELSE s.UF_SOURCE END";
-        $retentionSql='SELECT r.ID,r.UF_SUB_ID,r.UF_DATE,s.UF_SUB_DATE,s.UF_TYPE,'.$source.' AS LINK_SOURCE FROM `'.$retentionTable.'` r'
+        $retentionSql='SELECT r.ID,r.UF_SUB_ID,r.UF_DATE,s.UF_SUB_DATE,'.$source.' AS LINK_SOURCE FROM `'.$retentionTable.'` r'
             .' JOIN `'.$mainTable.'` s ON s.ID=r.UF_SUB_ID WHERE s.UF_CHAT_ID=? AND r.UF_DATE>=? AND r.UF_DATE<=?'
             .' AND EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID'
             ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND ep.IBLOCK_ELEMENT_ID=".$source.' AND ep.VALUE=?)'
@@ -85,9 +85,9 @@ final class MaxTrackerLookupRepository
             if(count($rows)>20||count($checkRows)>20){$out[$userId]=[];continue;}
             $checks=[];$invalid=false;
             foreach($checkRows as$row){
-                $record=(string)$row['ID'];$subscription=(string)$row['UF_SUB_ID'];$sourceId=(string)$row['LINK_SOURCE'];$type=(string)$row['UF_TYPE'];
+                $record=(string)$row['ID'];$subscription=(string)$row['UF_SUB_ID'];$sourceId=(string)$row['LINK_SOURCE'];
                 if(!MaxTrackerLookupProtocol::id($record)||!MaxTrackerLookupProtocol::id($subscription)
-                    ||!MaxTrackerLookupProtocol::id($sourceId)||$type!=='1'){$invalid=true;break;}
+                    ||!MaxTrackerLookupProtocol::id($sourceId)){$invalid=true;break;}
                 try{$at=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_DATE'],$zone);
                     $subscriptionAt=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$row['UF_SUB_DATE'],$zone);}
                 catch(InvalidArgumentException $ignored){$invalid=true;break;}
@@ -141,46 +141,15 @@ final class MaxTrackerLookupRepository
         return $out;
     }
 
-    /** Existing HL9 current subscriptions, independently of the dialogue outbox. */
+    /** A processing marker is not proof of current membership or a billable member page. */
     public function currentMemberPage(string $counterId,string $after,int $now):array
     {
         MaxTrackerLookupProtocol::body($counterId,[],$now,str_repeat('0',32),null,$after);
         if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'||$this->pdo->inTransaction())
             throw new RuntimeException('tracker_readonly_required');
-        $this->pdo->exec('SET TRANSACTION READ ONLY');$this->pdo->beginTransaction();
-        try{
-            $table=$this->tableName(9);$retention=$this->tableName(12);
-            $source="CASE WHEN s.UF_METRIC_SOURCE IS NOT NULL AND s.UF_METRIC_SOURCE<>'' THEN s.UF_METRIC_SOURCE ELSE s.UF_SOURCE END";
-            $newSource="CASE WHEN n.UF_METRIC_SOURCE IS NOT NULL AND n.UF_METRIC_SOURCE<>'' THEN n.UF_METRIC_SOURCE ELSE n.UF_SOURCE END";
-            $q=$this->pdo->prepare('SELECT s.ID,s.UF_CHAT_ID,s.UF_CLIENT_ID,s.UF_SUB_DATE,'.$source.' AS LINK_SOURCE FROM `'.$table.'` s'
-                ." WHERE s.ID>? AND s.UF_TYPE=1 AND NOT EXISTS (SELECT 1 FROM `".$table.'` n WHERE n.UF_CHAT_ID=s.UF_CHAT_ID AND '.$newSource.'='.$source.' AND n.ID>s.ID)'
-                .' AND EXISTS (SELECT 1 FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID'
-                ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND ep.IBLOCK_ELEMENT_ID=".$source.' AND ep.VALUE=?) ORDER BY s.ID LIMIT 6');
-            $q->execute([$after,$counterId]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$more=count($rows)>5;$rows=array_slice($rows,0,5);
-            $check=$this->pdo->prepare('SELECT ID,UF_DATE FROM `'.$retention.'` WHERE UF_SUB_ID=? ORDER BY UF_DATE,ID LIMIT 21');
-            $zone=new DateTimeZone('Europe/London');$members=[];$last=$after;
-            foreach($rows as$r){
-                foreach(['ID','UF_CHAT_ID','LINK_SOURCE']as$k)if(!MaxTrackerLookupProtocol::id((string)$r[$k]))throw new RuntimeException('tracker_invalid_member');
-                $at=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$r['UF_SUB_DATE'],$zone);
-                if($at>$now)throw new RuntimeException('tracker_invalid_member_clock');
-                $member=['record_id'=>(string)$r['ID'],'external_user_id'=>(string)$r['UF_CHAT_ID'],'source_id'=>(string)$r['LINK_SOURCE'],
-                    'state'=>'subscribed','subscribed_at_unix'=>$at,'retention_checked_at_unix'=>null,'retention_record_id'=>null,
-                    'attribution'=>['status'=>'unknown','reason'=>'missing_valid_current_client_id']];
-                // An actual HL12 observation is required. No inference from missing unsubscribe.
-                $check->execute([$member['record_id']]);$checks=$check->fetchAll(PDO::FETCH_ASSOC);
-                if(count($checks)<=20)foreach($checks as$c){
-                    try{$checked=MaxSubscriptionAttributionPolicy::eventTimeUnix((string)$c['UF_DATE'],$zone);}catch(InvalidArgumentException $ignored){continue;}
-                    if($checked>=$at+1800&&$checked<=$now&&MaxTrackerLookupProtocol::id((string)$c['ID'])){
-                        $member['retention_checked_at_unix']=$checked;$member['retention_record_id']=(string)$c['ID'];break;
-                    }
-                }
-                if(MaxTrackerLookupProtocol::id((string)$r['UF_CLIENT_ID'],40))$member['attribution']=['status'=>'known',
-                    'client_id'=>(string)$r['UF_CLIENT_ID'],'basis'=>'current_tracker_row_not_historical_visit'];
-                $members[]=$member;$last=$member['record_id'];
-            }
-            return ['members'=>$members,'next_after'=>$last,'has_more'=>$more,'observed_at_unix'=>$now,
-                'coverage'=>'bounded_current_max_members_not_complete_cohort','historical_available_at'=>null];
-        }finally{if($this->pdo->inTransaction())$this->pdo->rollBack();}
+        // History-backed current membership needs its own reviewed contract.
+        // Keep the existing legacy page unavailable instead of inventing subscribers.
+        throw new RuntimeException('tracker_current_membership_unavailable');
     }
 
     private function tableName(int $id): string

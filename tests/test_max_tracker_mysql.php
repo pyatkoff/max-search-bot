@@ -6,7 +6,8 @@ if(!getenv('MAX_ATTRIBUTION_TEST_MYSQL_DSN'))throw new RuntimeException('native_
 $p=maxAttributionFixture();$checks=0;
 function same($a,$b,string $name):void{global $checks;$checks++;if($a!==$b)throw new RuntimeException('FAIL '.$name);}
 function rejects(callable $f,string $name):void{global $checks;try{$f();}catch(Throwable $e){$checks++;return;}throw new RuntimeException('FAIL '.$name);}
-$p->exec('CREATE TABLE max_sub_links (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_CLIENT_ID VARCHAR(60),UF_DATE DATETIME NULL,UF_METRIC_SOURCE VARCHAR(20),UF_SOURCE VARCHAR(20),UF_PLATFORM VARCHAR(20),UF_SUB_DATE DATETIME NULL,UF_TYPE INTEGER NULL)');
+function currentUnavailable(callable $f,string $name):void{try{$f();}catch(RuntimeException $e){same($e->getMessage(),'tracker_current_membership_unavailable',$name);return;}throw new RuntimeException('FAIL '.$name);}
+$p->exec('CREATE TABLE max_sub_links (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_CLIENT_ID VARCHAR(60),UF_DATE DATETIME NULL,UF_METRIC_SOURCE INT,UF_SOURCE INT,UF_PLATFORM VARCHAR(20),UF_SUB_DATE DATETIME NULL,UF_SUBDED INT NULL)');
 $p->exec('CREATE TABLE b_iblock_property (ID BIGINT PRIMARY KEY,IBLOCK_ID BIGINT,CODE VARCHAR(64))');
 $p->exec('CREATE TABLE b_iblock_element_property (IBLOCK_PROPERTY_ID BIGINT,IBLOCK_ELEMENT_ID BIGINT,VALUE VARCHAR(64))');
 $p->exec('CREATE TABLE b_hlblock_entity (ID BIGINT PRIMARY KEY,TABLE_NAME VARCHAR(64))');
@@ -26,27 +27,30 @@ foreach([
     ['9007199254740997','123','888','2026-10-15 13:04:00','13','10','ios',null,null],
     ['9007199254740998','123','777','2026-10-15 13:05:00','0','10','ios',null,null],
     ['9007199254740999','123',"666\n",'2026-10-15 13:06:00','10','10','ios',null,null],
-    ['9007199254741000','456','1844674407370955161512345','2026-07-15 12:00:00','','10','ios','2026-07-15 12:00:00',1],
+    ['9007199254741000','456','1844674407370955161512345','2026-07-15 12:00:00',null,'10','ios','2026-07-15 12:00:00',1],
     ['9007199254741001','789','55555555555555555555','2026-01-15 12:00:00','10','11','android',null,null],
     ['9007199254741002','999','99999999999999999999','2026-10-25 01:30:00','10','11','android',null,null],
 ] as $r)$q->execute($r);
 $before=(string)$p->query('SELECT COUNT(*) FROM max_sub_links')->fetchColumn();
 $repo=new MaxTrackerLookupRepository($p);$rows=$repo->lookup('98615635',['123','456','789','999','404']);
-same($rows[0]['record_id'],'9007199254740992','numeric ID DESC before wall clock');same($rows[0]['client_id'],'22222222222222222222','effective source overrides fallback');
+same($rows[0]['record_id'],'9007199254740998','INT zero metric source uses fallback and latest numeric ID');same($rows[0]['client_id'],'777','INT zero fallback preserves the actual matching client');
+$p->exec("UPDATE max_sub_links SET UF_CLIENT_ID='' WHERE ID=9007199254740998");
+$overridden=$repo->lookup('98615635',['123']);
+same($overridden[0]['record_id'],'9007199254740992','nonzero effective source overrides the raw source');
+same($overridden[0]['client_id'],'22222222222222222222','wrong counter and property remain excluded');
+$p->exec("UPDATE max_sub_links SET UF_CLIENT_ID='777' WHERE ID=9007199254740998");
 same($rows[1]['client_id'],'1844674407370955161512345','large CID string');same($rows[1]['observed_at_unix'],strtotime('2026-07-15 11:00:00 UTC'),'summer London');
 same($rows[2]['observed_at_unix'],strtotime('2026-01-15 12:00:00 UTC'),'winter London');same($rows[3]['observed_at_unix'],null,'ambiguous clock never guesses or loses CID');
 same($rows[4],['external_user_id'=>'404','found'=>false],'exact unknown identity');same($p->inTransaction(),false,'readonly transaction rolled back');
 same((string)$p->query('SELECT COUNT(*) FROM max_sub_links')->fetchColumn(),$before,'tracker rows unchanged');
-// The current-member page includes subscribers who have never opened a dialogue.
+// Real HL9 has a processing marker, not the fixture's former UF_TYPE state.
 $memberNow=strtotime('2026-10-16 11:00:00 UTC');
-$memberPage=$repo->currentMemberPage('98615635','0',$memberNow);
-same(array_column($memberPage['members'],'external_user_id'),['456'],'subscriber-only current registry reads existing HL9');
-same($memberPage['members'][0]['retention_checked_at_unix'],null,'absence of HL12 never proves retention');
+currentUnavailable(fn()=>$repo->currentMemberPage('98615635','0',$memberNow),'processing marker cannot create a current-subscriber page');
+same($p->inTransaction(),false,'unavailable legacy page never opens a transaction');
 $p->exec("INSERT INTO max_no_unsub_goals VALUES(8801,9007199254741000,'2026-07-15 12:30:00',1)");
-$memberPage=$repo->currentMemberPage('98615635','0',$memberNow);
-same($memberPage['members'][0]['retention_checked_at_unix'],strtotime('2026-07-15 11:30:00 UTC'),'actual HL12 clock converted separately');
-same($p->inTransaction(),false,'current registry SELECT-only transaction rolled back');
-same($repo->currentMemberPage('98615635',$memberPage['next_after'],$memberNow)['members'],[],'current member cursor advances without repeating accrual');
+currentUnavailable(fn()=>$repo->currentMemberPage('98615635','0',$memberNow),'processing marker and old HL12 cannot create current membership');
+same($p->inTransaction(),false,'unavailable legacy page with a queue row stays read only');
+currentUnavailable(fn()=>$repo->currentMemberPage('98615635','9007199254741000',$memberNow),'a prior cursor cannot bypass the unavailable current-state contract');
 rejects(fn()=>MaxTrackerLookupProtocol::body('98615635',['123'],$memberNow,null,null,'0'),'member-page scope cannot mix arbitrary user lookup');
 $p->exec('DELETE FROM max_no_unsub_goals WHERE ID=8801');
 $other=$repo->lookup('999',['123']);same($other[0]['record_id'],'9007199254740993','counter filtering precedes latest');
@@ -60,7 +64,7 @@ $p->exec("INSERT INTO max_membership_events VALUES
  (1007,'789','10',4,'2026-07-15 12:10:00'),
  (1008,'789','10',3,'2026-07-15 12:20:00')");
 $p->exec("INSERT INTO max_no_unsub_goals VALUES(3001,9007199254741000,'2026-07-15 12:30:00',0)");
-$p->exec("UPDATE max_sub_links SET UF_SUB_DATE='2026-07-15 12:19:59',UF_TYPE=1 WHERE ID=9007199254741001");
+$p->exec("UPDATE max_sub_links SET UF_SUB_DATE='2026-07-15 12:19:59',UF_SUBDED=1 WHERE ID=9007199254741001");
 $p->exec("INSERT INTO max_no_unsub_goals VALUES(3003,9007199254741001,'2026-07-15 12:50:00',0)");
 $notBefore=strtotime('2026-07-15 10:59:00 UTC');$at=strtotime('2026-07-15 11:00:00 UTC');
 $before=$repo->lookup('98615635',['123','456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1799]);
@@ -71,7 +75,16 @@ same($mature[1]['membership_receipts'][1]['state'],'retained','exact per-user 30
 same($mature[1]['membership_receipts'][1]['source_record_id'],'3001','retained receipt is owned by actual queue row');
 same(count($mature[1]['membership_receipts']),2,'duplicate join does not invent a rejoin period');
 same(count($mature[0]['membership_receipts']),2,'wrong-source membership row excluded');
-// HL10 history enums 3/4 are distinct from the HL9 current-state codes.
+$p->exec("UPDATE max_sub_links SET UF_SUBDED=0 WHERE ID=9007199254741000");
+$pastCheck=$repo->lookup('98615635',['456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]);
+same($pastCheck[0]['membership_receipts'][1]['state'],'retained','current processing marker cannot rewrite an exact historical retention receipt');
+$p->exec("UPDATE max_sub_links SET UF_SUBDED=1 WHERE ID=9007199254741000");
+$p->exec("INSERT INTO max_membership_events VALUES(1009,'456','10',4,'2026-07-15 12:29:00')");
+$conflictingCheck=$repo->lookup('98615635',['456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]);
+same(array_column($conflictingCheck[0]['membership_receipts'],'state'),['subscribed','not_retained'],'own early leave overrides even a linked positive HL12 queue record');
+$p->exec('DELETE FROM max_membership_events WHERE ID=1009');
+
+// HL10 history codes 1/2 are invalid; HL9 has no UF_TYPE column.
 $p->exec("INSERT INTO max_membership_events VALUES(1010,'505','10',1,'2026-07-15 12:00:00'),(1011,'505','10',2,'2026-07-15 12:10:00')");
 $wrongHistoryCodes=$repo->lookup('98615635',['505'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]);
 same($wrongHistoryCodes[0]['membership_receipts'],[],'HL10 types 1/2 cannot create subscription or retention receipts');
@@ -82,7 +95,7 @@ for($id=1100;$id<1121;$id++)$q->execute([(string)$id,'404','10',3,'2026-07-15 12
 $oversized=$repo->lookup('98615635',['404','456'],['not_before_unix'=>$notBefore,'cutoff_unix'=>$at+1800]);
 same($oversized[0]['membership_receipts'],[],'oversized exact user fails closed as unknown without poisoning the batch');
 same($oversized[1]['membership_receipts'][1]['source_record_id'],'3001','next exact user remains observable after one oversized history');
-$p->exec("UPDATE max_sub_links SET UF_SUB_DATE='2026-10-25 00:30:00',UF_TYPE=1 WHERE ID=9007199254741002");
+$p->exec("UPDATE max_sub_links SET UF_SUB_DATE='2026-10-25 00:30:00',UF_SUBDED=1 WHERE ID=9007199254741002");
 $p->exec("INSERT INTO max_membership_events VALUES(4001,'999','10',3,'2026-10-25 00:30:00'),(4002,'999','10',4,'2026-10-25 01:30:00')");
 $p->exec("INSERT INTO max_no_unsub_goals VALUES(4003,9007199254741002,'2026-10-25 02:30:00',0)");
 $ambiguous=$repo->lookup('98615635',['999'],['not_before_unix'=>strtotime('2026-10-24 00:00:00 UTC'),'cutoff_unix'=>strtotime('2026-10-25 03:00:00 UTC')]);
@@ -104,7 +117,7 @@ same($many[0]['membership_receipts'],[],'twenty periods projecting forty receipt
 same($many[1]['membership_receipts'][1]['source_record_id'],'3001','projected per-user overflow cannot poison the next exact user');
 $dynamicNow=time();$dynamicAt=(new DateTimeImmutable('@'.($dynamicNow-1800)))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');
 $p->prepare('INSERT INTO max_membership_events VALUES(?,?,?,?,?)')->execute(['2001','123','10',3,$dynamicAt]);
-$p->prepare('UPDATE max_sub_links SET UF_SUB_DATE=?,UF_TYPE=1 WHERE ID=9007199254740991')->execute([$dynamicAt]);
+$p->prepare('UPDATE max_sub_links SET UF_SUB_DATE=?,UF_SUBDED=1 WHERE ID=9007199254740991')->execute([$dynamicAt]);
 $dynamicCheck=(new DateTimeImmutable('@'.$dynamicNow))->setTimezone(new DateTimeZone('Europe/London'))->format('Y-m-d H:i:s');
 $p->prepare('INSERT INTO max_no_unsub_goals VALUES(?,?,?,0)')->execute(['3002','9007199254740991',$dynamicCheck]);
 // Native MySQL JSON predicates must find a text/contact after arbitrary callback volume.
