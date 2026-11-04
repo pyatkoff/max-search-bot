@@ -1,4 +1,4 @@
-name: Read proven fresh retained source inputs for157 published hotels
+name: Check one justified new retained tour price after server recovery
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -55,25 +55,30 @@ jobs:
           assert d['status']=='completed' and d['conclusion']=='success'
           print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
           PY
-      - name: Prepare immutable157scope30h reader without repeating closed pure cases
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261104-read9
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41898354901
+          path: ${{ runner.temp }}/retained-read9
+      - name: Bind one exact new retained candidate and original whole caption
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          python3 - <<'PY'
-          import os,pathlib
-          source=pathlib.Path('tools/direct_demand/operations/read-commercial-price-monitor-20261104-read9.php').read_text()
-          prefix="<?php\ndeclare(strict_types=1);\n"
-          assert source.startswith(prefix)
-          assert "count($scope)===157" in source
-          assert "max(1793812524,$now-108000)" in source
-          assert "LIMIT 2" in source and "'2026-11-04','2027-02-02'" in source
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
-          pathlib.Path(os.environ['RUNNER_TEMP'],'price-read.php').write_text(header+source[len(prefix):])
-          print('PRICE_READ9_EXACT_EXECUTION_INPUTS_OK scope157 max_age_seconds108000 proven_new_retained_input16 old_scope_cases_rerun0 server_calls0')
-          PY
-          php -l "$RUNNER_TEMP/price-read.php"
-          ANYTOUR_PRICE157_RETAINED_SOURCE_FIXTURE=1 php "$RUNNER_TEMP/price-read.php"
+          python3 tools/direct_demand/operations/prepare-commercial-price-20261104-quote3.py
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+          ANYTOUR_QUOTE3_IDENTITY_FIXTURE=1 php "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain durable private intent before the one gateway request
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-price-monitor-20261104-quote3-intent
+          path: |
+            ${{ runner.temp }}/quote-intent.json
+            ${{ runner.temp }}/quote3-candidate.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Prepare existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -112,7 +117,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read one bounded current157price scope through the existing strict server route
+      - name: Make the one justified existing gateway actualization
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -120,35 +125,31 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/price-read.php" > "$RUNNER_TEMP/price-readback.json" || probe_status=$?
+          probe_status=0
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
-          import json,pathlib,os
-          p=pathlib.Path(os.environ['RUNNER_TEMP'],'price-readback.json')
-          d=json.loads(p.read_text().splitlines()[-1])
-          assert d['operation']=='commercial-price-monitor-20261104-read9' and d['mode']=='read_existing_monitored_price_inputs'
-          assert d['ok'] is True and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert len(d['hotels'])==157 and len({r['local_tv_id'] for r in d['hotels']})==157
-          assert d['db_writes']==d['provider_calls']==d['message_sends']==d['price_block_updates']==0
-          assert d['max_age_seconds']==108000 and d['source_collection_persistence_epoch_utc']==1793812524
-          assert all(len(r['observations'])<=2 for r in d['hotels'])
-          count=sum(len(r['observations']) for r in d['hotels'])
-          hotels=sum(bool(r['observations']) for r in d['hotels'])
-          summary={'operation':d['operation'],'ok':True,'scope_hotels':157,'hotels_with_retained_rows':hotels,'retained_rows':count,'eligible_current_name_hotels':sum(bool(r['observations']) and r.get('current_name_matches_expected') is True for r in d['hotels']),'readback_epoch_utc':d['readback_epoch_utc'],'created_after_persistence_epoch_utc':d['created_after_persistence_epoch_utc'],'max_age_seconds':108000,'db_writes':0,'provider_calls':0,'message_sends':0,'price_block_updates':0}
-          pathlib.Path(os.environ['RUNNER_TEMP'],'price-read8-summary.json').write_text(json.dumps(summary)+'\n')
-          print(json.dumps(summary,sort_keys=True))
+          import json,os,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1])
+          assert d['operation']=='commercial-price-monitor-20261104-quote3' and d['mode']=='one_existing_gateway_quote_contract'
+          assert d['db_writes']==d['message_sends']==d['price_block_updates']==0 and d['gateway_requests_attempted']<=1
+          safe={k:d.get(k) for k in ['operation','ok','error','catalog_id','gateway_requests_attempted','quote_state','http_status','response_bytes','request_started_epoch_utc','response_received_epoch_utc','automatic_retry_allowed','full_total_verified','current_availability_verified']}
+          print(json.dumps(safe,sort_keys=True))
+          assert d['ok'] is True
           PY
-          test "${probe_status:-0}" = 0
-      - name: Retain bounded private price inputs only in authenticated artifact
+          test "$probe_status" = 0
+      - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-read9
+          name: commercial-price-monitor-20261104-quote3
           path: |
-            ${{ runner.temp }}/price-readback.json
-            ${{ runner.temp }}/price-read8-summary.json
+            ${{ runner.temp }}/channel-preflight.json
+            ${{ runner.temp }}/quote-intent.json
+            ${{ runner.temp }}/quote3-candidate.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection and read scripts
+      - name: Remove ephemeral connection and script files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/price-read.php" "$RUNNER_TEMP/price-readback.json" "$RUNNER_TEMP/price-read8-summary.json" "$RUNNER_TEMP/current-diagnostics-run.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/quote-intent.json" "$RUNNER_TEMP/quote3-candidate.json"
+

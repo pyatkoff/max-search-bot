@@ -1,0 +1,32 @@
+{
+  "operation": "commercial-price-monitor-20261104-read9",
+  "state": "CLOSED_ACTUAL_FRESH_TRUSTED_RETAINED_CONTEXTS_AVAILABLE",
+  "run": 41898354901,
+  "job": 126813807448,
+  "artifact": 13357152456,
+  "source_commit": "5b805e284ef7ebda1d1b3373c869803aaa2a7a1a",
+  "summary": {
+    "created_after_persistence_epoch_utc": 1793812524,
+    "db_writes": 0,
+    "eligible_current_name_hotels": 13,
+    "hotels_with_retained_rows": 13,
+    "max_age_seconds": 108000,
+    "message_sends": 0,
+    "ok": true,
+    "operation": "commercial-price-monitor-20261104-read9",
+    "price_block_updates": 0,
+    "provider_calls": 0,
+    "readback_epoch_utc": 1793820923,
+    "retained_rows": 16,
+    "scope_hotels": 157
+  },
+  "new_native_source_cases": 3,
+  "old_age_scope_cases_rerun": 0,
+  "actual_readonly_server_operation": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "quotes": 0,
+  "message_edits": 0,
+  "new_posts": 0,
+  "repeat_policy": "Do not repeat this scope read; reuse the authenticated original artifact for exact eligible context selection. Full contexts and fingerprints stay authenticated."
+}

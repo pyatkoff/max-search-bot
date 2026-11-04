@@ -1,0 +1,47 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote3",
+  "state": "EXACT_ONE_NEW_RETAINED_CANDIDATE_SELECTION_AND_QUOTE_PREPARED_NOT_EXECUTED",
+  "goal": "Verify one real new tour total from the newly proven eligible retained inputs, then update the existing two channel posts if finalflight/basket contract passes",
+  "boundaries": {
+    "retained_source_run": 41898354901,
+    "retained_source_artifact": 13357152456,
+    "scope_only": "Actual157publishednativeIDs from read9; accepted_native_catalog_read/currentnameonly",
+    "excluded_consumed_ids": [
+      12114,
+      9432
+    ],
+    "name_review_ids_preserved": [
+      482,
+      476,
+      81173,
+      32577,
+      478,
+      80964
+    ],
+    "max_age_seconds": 108000,
+    "adults": 2,
+    "children": 0,
+    "currency": "RUB",
+    "max_gateway_requests": 1,
+    "automatic_retry_allowed": false,
+    "db_writes": 0,
+    "message_sends": 0,
+    "price_edits": 0,
+    "new_posts": 0,
+    "full_private_context": "authenticatedintent/resultartifactonly"
+  },
+  "criteria": [
+    "Freshcurrentmain/successfuloriginalDeploy/TLS/diagnostics/full21/host/runtimeclean/schema remain",
+    "Select exact newcontext with a unique originalmanifest logical/text/photo binding; no guessed publication IDs",
+    "Durable private intent and frozen candidate before provider; actualnativeidentity/currentcountry/name and everyretainedfield revalidated immediately before ONEexistingaction=flights call",
+    "New3nativebindingcases andPHP-l beforeSSH; oldquote30hfixturesnotrerun",
+    "Resolve UNKNOWN originaloutcome before any repeat; quote1/quote2 notrerun",
+    "No rawcache price/fuel arithmetic; fullbasket asreceived and realroundtrip/noPlace/onDemand/inclusionflags required before any later edit",
+    "Wholeoldcaption/photo/button/source/currentregistry preserved by existingupdater; quoteonlythisstage"
+  ],
+  "risks": [
+    "Gateway may return no valid flight or noavailability; noforcedpostprice",
+    "One returnedquote doesnotproveavailabilityforall13hotels",
+    "No automaticretry ifnetworkoutcomeunknown or resultartifact fails"
+  ]
+}
