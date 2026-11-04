@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261104-quote5",
-  "state": "CLOSED_ONE_GATEWAY_RESPONSE_RETAINED_PENDING_PRICE_EDIT_VALIDATION",
+  "state": "CLOSED_CONSUMED_QUOTE_AND_TWO_EXISTING_PRICE_EDITS_VERIFIED",
   "run": 41915511385,
   "job": 126873978112,
   "artifact": 13363918786,
@@ -36,8 +36,14 @@
   "new_input_scope_cases": 3,
   "old_native_identity_and_age_cases_rerun": 0,
   "db_writes": 0,
-  "message_edits": 0,
+  "message_edits": 2,
   "new_posts": 0,
   "automatic_retry_allowed": false,
-  "repeat_policy": "CONSUMED: use only original private response for strict edit validation; never repeat quote5."
+  "repeat_policy": "CONSUMED: use only original private response for strict edit validation; never repeat quote5.",
+  "actual_update_run": 41916096810,
+  "actual_update_job": 126876039297,
+  "actual_checked_utc": "2026-11-04T21:22:55.000Z",
+  "full_total_and_real_flights_validated_for_edit": true,
+  "do_not_rerun_quote": true,
+  "do_not_readback_same_provider_posts_again": true
 }
