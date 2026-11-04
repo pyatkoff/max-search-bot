@@ -1,0 +1,253 @@
+{
+  "operation": "commercial-batch37-photo-acceptance",
+  "state": "SIX_HOTELS_REAL_PHOTOS_ACCEPTED_NOT_PUBLISHED",
+  "native_run": 41812718954,
+  "photos_attempted": 29,
+  "byte_guard_passes": 27,
+  "rejections": 2,
+  "ready_for_canva_ids": [
+    1659,
+    21695,
+    28668,
+    55205,
+    1334,
+    1715
+  ],
+  "native_pixels_verified": true,
+  "notes": {
+    "1142": "exactownerrootHTTP403closed",
+    "1334": "wholebuilding+aquaparkgroundshero5; poollayout+familyroomlowers; norelationsisterhotelrights",
+    "1653": "exactownerpageHTTP403closed",
+    "1659": "wholegrounds/mainbuildinghero; lowerpool androom; seasonalclosurecaption retained",
+    "1715": "wholecoastalcomplexaerialhero2; room+beachlowers;notprivateproduct",
+    "21695": "wholecoastaerialhero; beach+roomlowers;16+/hillside/shuttlecaption",
+    "28327": "twoownerMEexperienceHTTP200JPEGheight176 failedunchangeddimensionguard,not403;heronoaccepted",
+    "28668": "wholecomplexmarinaaerialhero; poolcoupleloweronly+room;13+; nofreeboat/villarights",
+    "54592": "exactownerpageHTTP403closed",
+    "55205": "wholecomplex/aquaparkaerialhero; poolfront+roomlowers; nofreeisland/beachclaim"
+  },
+  "selections": [
+    {
+      "hotel_id": 1659,
+      "cover_title": "Sarigerme Park",
+      "hero": {
+        "hotel_id": 1659,
+        "role": "h1659_hero1",
+        "index": 0,
+        "source_url": "https://www.tui-blue.com/media/hotels/Sarigerme/NEW_2025/overview/TB-SarigermePark-Hotel-Overview-1580.jpg",
+        "format": "JPEG",
+        "width": 1920,
+        "height": 1080,
+        "bytes": 1031899,
+        "sha256": "54d1255539a07eeb57fd8f26df4b2751bb5e3b6005f51521df24651979a9b2aa"
+      },
+      "left": {
+        "hotel_id": 1659,
+        "role": "h1659_hero2",
+        "index": 1,
+        "source_url": "https://www.tui-blue.com/media/hotels/Sarigerme/NEW_2025/overview/TB-SarigermePark-Hotel-Overview-1054.jpg",
+        "format": "JPEG",
+        "width": 1920,
+        "height": 1080,
+        "bytes": 938970,
+        "sha256": "9c8a431e28d170dd30f52e71de4fab53a00bdf4a3730d5dda4744500824465f1"
+      },
+      "right": {
+        "hotel_id": 1659,
+        "role": "h1659_room",
+        "index": 3,
+        "source_url": "https://www.tui-blue.com/media/hotels/Sarigerme/NEW_2025/rooms_new_2025/TB-SarigermePark-Comfort-Room-Mainbuilding-Bedroom-0878.jpg",
+        "format": "JPEG",
+        "width": 1920,
+        "height": 1080,
+        "bytes": 547627,
+        "sha256": "06d9a5311780379cf1d40953dea944dec58f239be7fd14a6c02060f44d82372e"
+      }
+    },
+    {
+      "hotel_id": 21695,
+      "cover_title": "TUI BLUE Seno",
+      "hero": {
+        "hotel_id": 21695,
+        "role": "h21695_hero2",
+        "index": 5,
+        "source_url": "https://www.tui-blue.com/media/hotels/Seno/UEbersicht/1920x1080/TUI-blue-Seno-overview-hotel.jpg",
+        "format": "JPEG",
+        "width": 1268,
+        "height": 505,
+        "bytes": 228880,
+        "sha256": "6a570456400ef1e5af52c6d142f0fca7dfad4fe38be7e7ff67662d56f2511cbe"
+      },
+      "left": {
+        "hotel_id": 21695,
+        "role": "h21695_beach",
+        "index": 6,
+        "source_url": "https://www.tui-blue.com/media/hotels/Seno/UEbersicht/1920x1080/tui-blue-Seno-Beach.jpg",
+        "format": "JPEG",
+        "width": 1268,
+        "height": 504,
+        "bytes": 294204,
+        "sha256": "9b19d8d8eff4a86d2e2c470d9edb70bb4e4d02a9adab14eb44c2a47c6722b021"
+      },
+      "right": {
+        "hotel_id": 21695,
+        "role": "h21695_room",
+        "index": 7,
+        "source_url": "https://www.tui-blue.com/media/hotels/Seno/Zimmer/1920x1080/tui-blue-seno-doppelzimmer-meerblick-balkon.jpg",
+        "format": "JPEG",
+        "width": 1920,
+        "height": 1080,
+        "bytes": 248772,
+        "sha256": "b1c224a16632181aa91dcefed4d4db904f0e6895b622a7af861f8bf5aedf9da4"
+      }
+    },
+    {
+      "hotel_id": 28668,
+      "cover_title": "Rixos Gocek",
+      "hero": {
+        "hotel_id": 28668,
+        "role": "h28668_hero1",
+        "index": 0,
+        "source_url": "https://www.ahstatic.com/photos/b1j7_ho_00_p_1024x768.jpg",
+        "format": "JPEG",
+        "width": 1024,
+        "height": 768,
+        "bytes": 399853,
+        "sha256": "ab5b358b5c6dab5b7c82587a91911b9e44f4cb7809571ab1c7ad6aca88a2d59a"
+      },
+      "left": {
+        "hotel_id": 28668,
+        "role": "h28668_hero3",
+        "index": 2,
+        "source_url": "https://www.ahstatic.com/photos/b1j7_ho_02_p_1024x768.jpg",
+        "format": "JPEG",
+        "width": 1024,
+        "height": 768,
+        "bytes": 369789,
+        "sha256": "c89a1222db9333c1f55b1d21b557fd25758524d689ff33ef11891c77deec6c94"
+      },
+      "right": {
+        "hotel_id": 28668,
+        "role": "h28668_room",
+        "index": 4,
+        "source_url": "https://www.ahstatic.com/photos/b1j7_roskd_00_p_1024x768.jpg",
+        "format": "JPEG",
+        "width": 1024,
+        "height": 768,
+        "bytes": 381622,
+        "sha256": "bcd85e5c8a8c20f6e3624a27b5ea84ce900e913cb48a815ea8130c8f3567bc8a"
+      }
+    },
+    {
+      "hotel_id": 55205,
+      "cover_title": "Eftalia Ocean",
+      "hero": {
+        "hotel_id": 55205,
+        "role": "h55205_aquapark",
+        "index": 6,
+        "source_url": "https://eftaliahotels.com/wp-content/uploads/2021/03/ocean-kaydirak2048-1-2048x941.jpg",
+        "format": "JPEG",
+        "width": 2048,
+        "height": 941,
+        "bytes": 1034271,
+        "sha256": "6b5059fd99faa575d803bf99941fac20ad47ac86b8a2efc743d9bc0f205e11cd"
+      },
+      "left": {
+        "hotel_id": 55205,
+        "role": "h55205_hero1",
+        "index": 5,
+        "source_url": "https://eftaliahotels.com/wp-content/uploads/2021/03/ocean2048-1-1-2048x941.jpg",
+        "format": "JPEG",
+        "width": 2048,
+        "height": 941,
+        "bytes": 770052,
+        "sha256": "2c09fa5416ddc8f7a426d007dc6156be9ae0b9a06bf73e6a7dc003c1e0ff8463"
+      },
+      "right": {
+        "hotel_id": 55205,
+        "role": "h55205_room",
+        "index": 7,
+        "source_url": "https://eftaliahotels.com/wp-content/uploads/2021/03/ocean-oda-2048-2048x941.jpg",
+        "format": "JPEG",
+        "width": 2048,
+        "height": 941,
+        "bytes": 366303,
+        "sha256": "deabcf8276d6f3e992046309bf7a8eac653a293d60658ed906e47ffe3d223df6"
+      }
+    },
+    {
+      "hotel_id": 1334,
+      "cover_title": "Leodikya Kirman",
+      "hero": {
+        "hotel_id": 1334,
+        "role": "h1334_hero5",
+        "index": 4,
+        "source_url": "https://www.kirmanpremium.com/image/icerik/_67a2151d9715a.jpg",
+        "format": "JPEG",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 906543,
+        "sha256": "28e36fb1bb10feec84a7147c4d69db20965fbe585aa81de62de3926e5477957a"
+      },
+      "left": {
+        "hotel_id": 1334,
+        "role": "h1334_hero3",
+        "index": 2,
+        "source_url": "https://www.kirmanpremium.com/image/icerik/_67a2151d9aa16.jpg",
+        "format": "JPEG",
+        "width": 1024,
+        "height": 1024,
+        "bytes": 1001854,
+        "sha256": "2b7dcb10408709b5ec6f9e024d41ca3809058daf82a3e9d9c4a746659009d40f"
+      },
+      "right": {
+        "hotel_id": 1334,
+        "role": "h1334_room",
+        "index": 5,
+        "source_url": "https://www.kirmanpremium.com/image/icerik/67a2118a790b8.png",
+        "format": "PNG",
+        "width": 690,
+        "height": 480,
+        "bytes": 555139,
+        "sha256": "04999c3651ae048a93e3702b348bf1676ac9171d551b4076be302c8c06b2d4a1"
+      }
+    },
+    {
+      "hotel_id": 1715,
+      "cover_title": "Voyage Torba",
+      "hero": {
+        "hotel_id": 1715,
+        "role": "h1715_hero2",
+        "index": 8,
+        "source_url": "https://voyagecdn.blob.core.windows.net/mediafiles/voyage_torba/Beach_Pool_Aquapark/VTO_General_View_9_1803x720.jpg",
+        "format": "JPEG",
+        "width": 1803,
+        "height": 720,
+        "bytes": 451978,
+        "sha256": "7f85c492a909e7105c579a738af900c47b1a2c8424d3cfc113fd50723002f0b5"
+      },
+      "left": {
+        "hotel_id": 1715,
+        "role": "h1715_beach",
+        "index": 9,
+        "source_url": "https://voyagecdn.blob.core.windows.net/mediafiles/voyage_torba/Beach_Pool_Aquapark/VTO_Beach_5_1140x570.jpg",
+        "format": "JPEG",
+        "width": 1140,
+        "height": 570,
+        "bytes": 182134,
+        "sha256": "511b0f2abb3172e7391d37f03c57ef524c32b00f9b5621ffe34cdbc329aa65aa"
+      },
+      "right": {
+        "hotel_id": 1715,
+        "role": "h1715_room",
+        "index": 7,
+        "source_url": "https://voyagecdn.blob.core.windows.net/mediafiles/VTO_Yepyeni_04.11/617x537_Executive_Sea_Side_Family_1.jpg",
+        "format": "JPEG",
+        "width": 617,
+        "height": 537,
+        "bytes": 324575,
+        "sha256": "97af8ba2164f6c58d1cc5d965cb5a6c5d3415db0f88d09862aa1f56945bc4687"
+      }
+    }
+  ]
+}

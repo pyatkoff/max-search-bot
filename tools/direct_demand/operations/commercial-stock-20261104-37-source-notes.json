@@ -1,0 +1,141 @@
+{
+  "operation": "commercial-stock-20261104-37-source-notes",
+  "state": "SEVEN_WHOLE_CAPTIONS_PRIMARY_REVIEWED_SIX_PHOTO_SETS_ACCEPTED_NOT_DELIVERED",
+  "goal": "Publish wholehotel facts with readyrealphotos; do not hold6for4deferred",
+  "boundaries": [
+    "Four readonlygroups/maxparallel2; server/provider/DBwrites/messages0",
+    "29actualdeclareddifferentURLs; no guessedvariants/querystrips/retries of closed403",
+    "No beachaccess/freeisland claims forEftalia; no genericKHGphotosorunicode-mangledrefs",
+    "Nativepixels/bytes/format/dims/SHA before Canva"
+  ],
+  "criteria": [
+    "Wholecomplex hero+2different usefullowerphotos; rejectonepool/model/render/logo",
+    "Keep actual acceptedprimaryseasonality/age/categoryscope in wholecaption"
+  ],
+  "risks": [
+    "3initialownerpagesHTTP403 deferred; Nirvana only2targetlowercandidates maynotcomplete",
+    "TUISarigerme2026season ended02Nov; mustsayso; Seno16+/hillside/shuttle"
+  ],
+  "source_runs": [
+    41811362064,
+    41811835796
+  ],
+  "captions": [
+    {
+      "hotel_id": 1659,
+      "name": "TUI BLUE Sarigerme Park",
+      "cover_title": "Sarigerme Park",
+      "caption": "✈️ Туры в TUI BLUE Sarigerme Park с перелётом\n\nТур с перелётом в Сарыгерме, Турция.\n🌿 Сад и территория 140 000 м².\n🏖 Песчаный пляж с участком отеля.\n🏊 Три бассейна.\n🛏 Есть семейные номера.\n\n📌 Отель сезонный. Официальный сезон 2026 завершился 2 ноября.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "source_urls": [
+        "https://www.tui-blue.com/en/en/hotels/tui-blue-sarigerme-park/"
+      ],
+      "material_scope": "seasonal closure explicit; no2027opening oravailability invented",
+      "utf16_units": 315,
+      "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 21695,
+      "name": "TUI BLUE Seno",
+      "cover_title": "TUI BLUE Seno",
+      "caption": "✈️ Туры в TUI BLUE Seno с перелётом\n\nТур с перелётом в Сарыгерме, Турция.\n👤 Отель для гостей от 16 лет.\n🏖 Песчаный пляж в бухте.\n🏊 Пять бассейнов, включая инфинити.\n🧖 Спа BLUE Spa.\n\n📌 Территория расположена на склоне. К пляжу есть шаттл.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "source_urls": [
+        "https://www.tui-blue.com/en/en/hotels/tui-blue-seno/"
+      ],
+      "material_scope": "16+ not18; hillside and beachshuttle; noheat orseasonavailability promise",
+      "utf16_units": 301,
+      "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 28668,
+      "name": "Rixos Premium Gocek",
+      "cover_title": "Rixos Gocek",
+      "caption": "✈️ Туры в Rixos Premium Gocek с перелётом\n\nТур с перелётом в Гёджек, регион Фетхие, Турция.\n👤 Отель принимает гостей от 13 лет.\n🏖 Собственный пляж в уединённой бухте.\n🌲 Сосновый лес и сады вокруг комплекса.\n🧖 Спа и спортивные занятия.\n\n📌 Виллы расположены отдельно от основной территории отеля.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "source_urls": [
+        "https://all.accor.com/hotel/B1J7/index.en.shtml"
+      ],
+      "material_scope": "Accorprimary13+proven; no universallyfreeboat/villa/transfer rights",
+      "utf16_units": 358,
+      "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 55205,
+      "name": "Eftalia Ocean",
+      "cover_title": "Eftalia Ocean",
+      "caption": "✈️ Туры в Eftalia Ocean с перелётом\n\nТур с перелётом в Тюрклер, регион Алания, Турция.\n🏨 Большой комплекс на 682 номера.\n🍽 Главный ресторан и два ресторана à la carte.\n🛏 Есть номера Swim Up с прямым выходом в бассейн.\n\n📌 Размещение с домашними животными не предусмотрено.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "source_urls": [
+        "https://eftaliahotels.com/en/eftalia-ocean-hotel-2/"
+      ],
+      "material_scope": "No inventedbeachaccess/freeEftaliaIsland/aquaparkscope; swimUpcategoryonly",
+      "utf16_units": 334,
+      "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1334,
+      "name": "Leodikya Kirman Premium",
+      "cover_title": "Leodikya Kirman",
+      "caption": "✈️ Туры в Leodikya Kirman Premium с перелётом\n\nТур с перелётом в Окурджалар, регион Алания, Турция.\n🏖 Пляж длиной 200 метров, песок и галька.\n💦 Аквапарк с пятью горками и детский аквакомплекс.\n🧸 Детский клуб Kichi.\n🛏 Есть семейные номера.\n\n📌 Джакузи на террасе относится к отдельной категории номеров.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "source_urls": [
+        "https://www.kirmanpremium.com/leodikya-kirman-premium/en",
+        "https://www.kirmanpremium.com/leodikya-kirman-premium/en/beach-3"
+      ],
+      "material_scope": "No directbooking/freechild/universalJacuzzi orwinterheat promises",
+      "utf16_units": 365,
+      "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 1715,
+      "name": "Voyage Torba",
+      "cover_title": "Voyage Torba",
+      "caption": "✈️ Туры в Voyage Torba с перелётом\n\nТур с перелётом в Торбу, Бодрум, Турция.\n🏖 Песчаный пляж длиной 300 метров с Голубым флагом.\n💦 Аквапарк и отдельная детская зона с горками.\n🛏 Есть семейные категории номеров.\n\n📌 Прямой выход к бассейну относится к категориям Swim Up.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "source_urls": [
+        "https://www.voyagehotel.com/en/voyage-torba",
+        "https://www.voyagehotel.com/en/voyage-torba/pool-beach"
+      ],
+      "material_scope": "NotVoyageTorbaPrivate; no universalLagoon/transfer/directbooking rights",
+      "utf16_units": 332,
+      "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
+    },
+    {
+      "hotel_id": 28327,
+      "name": "Nirvana Mediterranean Excellence",
+      "cover_title": "Nirvana Mediterranean",
+      "caption": "✈️ Туры в Nirvana Mediterranean Excellence с перелётом\n\nТур с перелётом в Бельдиби, Кемер, Турция.\n🌲 Территория среди соснового леса.\n🏖 Собственный пляж с Голубым флагом.\n💦 Аквапарк Naja Naja и детский клуб.\n🧖 Спа ME Spa by L’Occitane.\n\n📌 Лагунные бассейны относятся к определённым категориям размещения.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "source_urls": [
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-mediterranean-excellence"
+      ],
+      "material_scope": "TargetNME notsisters; sourcewebownerfacts+native; no universalvilla/lagoon/cabana rights; photographynotready",
+      "utf16_units": 368,
+      "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
+    }
+  ],
+  "photo_acceptance": {
+    "operation": "commercial-batch37-photo-acceptance",
+    "state": "SIX_HOTELS_REAL_PHOTOS_ACCEPTED_NOT_PUBLISHED",
+    "native_run": 41812718954,
+    "photos_attempted": 29,
+    "byte_guard_passes": 27,
+    "rejections": 2,
+    "ready_for_canva_ids": [
+      1659,
+      21695,
+      28668,
+      55205,
+      1334,
+      1715
+    ],
+    "native_pixels_verified": true,
+    "notes": {
+      "1142": "exactownerrootHTTP403closed",
+      "1334": "wholebuilding+aquaparkgroundshero5; poollayout+familyroomlowers; norelationsisterhotelrights",
+      "1653": "exactownerpageHTTP403closed",
+      "1659": "wholegrounds/mainbuildinghero; lowerpool androom; seasonalclosurecaption retained",
+      "1715": "wholecoastalcomplexaerialhero2; room+beachlowers;notprivateproduct",
+      "21695": "wholecoastaerialhero; beach+roomlowers;16+/hillside/shuttlecaption",
+      "28327": "twoownerMEexperienceHTTP200JPEGheight176 failedunchangeddimensionguard,not403;heronoaccepted",
+      "28668": "wholecomplexmarinaaerialhero; poolcoupleloweronly+room;13+; nofreeboat/villarights",
+      "54592": "exactownerpageHTTP403closed",
+      "55205": "wholecomplex/aquaparkaerialhero; poolfront+roomlowers; nofreeisland/beachclaim"
+    }
+  },
+  "new_posts": 0
+}
