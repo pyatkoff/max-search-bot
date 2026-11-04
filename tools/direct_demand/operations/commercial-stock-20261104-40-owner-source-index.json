@@ -1,0 +1,135 @@
+{
+  "operation": "commercial-stock-20261104-40-owner-discovery1",
+  "state": "SEARCH_POINTERS_ONLY_NOT_NATIVE_IDS_NOT_OWNER_PAGE_GET_NOT_READY",
+  "lookup_scope": [
+    "adalya-elite-lara",
+    "adalya-ocean-deluxe",
+    "adalya-resort",
+    "adalya-artside",
+    "melas-lara",
+    "melas-resort",
+    "melas-holiday",
+    "sunis-elita",
+    "sunis-kumkoy",
+    "sunis-evren"
+  ],
+  "sources": [
+    {
+      "key": "adalya-elite-lara",
+      "owner_page": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "status": "EXACT_OWNER_PROPERTY_URI_RETURNED_SEARCH_ONLY",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "adalya-ocean-deluxe",
+      "owner_page": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/?v=1756783862",
+      "status": "EXACT_RETURNED_QUERY_URI_METADATA_ONLY_NO_STRIP_OR_GET",
+      "additional_exact_room_page": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/accommodation/standard-rooms/superior-comfort-room/",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "adalya-resort",
+      "owner_index": "https://www.adalyahotels.com/en/our-hotels/",
+      "status": "DEFERRED_PRODUCT_BINDING_CURRENT_BLISS_VS_LEGACY_RESORT_NOT_FORCED",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "adalya-artside",
+      "owner_page": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "status": "EXACT_OWNER_PROPERTY_URI_RETURNED_SEARCH_ONLY",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "melas-lara",
+      "owner_page": "https://www.melashotels.com/en/melas-lara-hotel",
+      "status": "EXACT_OWNER_PROPERTY_URI_RETURNED_SEARCH_ONLY",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "melas-resort",
+      "owner_page": "https://www.melashotels.com/en/melas-resort-hotel",
+      "status": "EXACT_OWNER_PROPERTY_URI_RETURNED_SEARCH_ONLY",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "melas-holiday",
+      "owner_index": "https://www.melashotels.com/en",
+      "owner_history": "https://www.melashotels.com/en/about-us",
+      "status": "DEFERRED_PRODUCT_BINDING_CURRENT_CLUB_MELAS_PRIVE_VS_HOLIDAY_NOT_FORCED",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "sunis-elita",
+      "owner_page": "https://www.elitabeachresort.com/",
+      "status": "EXACT_OWNER_PROPERTY_URI_RETURNED_SEARCH_ONLY",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "sunis-kumkoy",
+      "owner_page": "https://www.kumkoybeachresort.com/",
+      "status": "EXACT_OWNER_PROPERTY_URI_RETURNED_SEARCH_ONLY",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    },
+    {
+      "key": "sunis-evren",
+      "owner_page": null,
+      "status": "DEFERRED_EXACT_OWNER_PROPERTY_URI_UNRESOLVED_NOT_ABSENCE",
+      "native_catalog_id": null,
+      "native_country_active_current_name_proven": false,
+      "registry_counts_checked": false,
+      "owner_http_gets": 0,
+      "raw_photo_gets": 0,
+      "ready_for_send": false
+    }
+  ],
+  "excluded_old_lookup_pointer": {
+    "key": "acanthus-cennet",
+    "owner_page": "https://barutacanthuscennet.com/en",
+    "state": "RETAINED_REFERENCE_ONLY_OLD_STOCK30_LOOKUP_DEFERRED_NO_GET"
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "operation": "commercial-stock-20261104-40-read1",
+  "state": "CURRENT_MAIN_SOURCE_STOP_BEFORE_SSH_DB_PENDING_CORRECTED_CODE_PURE_VALIDATED",
+  "source_stop_run": 41921737318,
+  "source_stop_job": 126895683297,
+  "source_stop_count": 1,
+  "source_stop_commit": "2d19beb0d7e3c70a2ba63d827ffbf1c876c3d509",
+  "source_stop_reason": "approved_source_not_current",
+  "approved_old_source": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
+  "current_main_not_accepted": "2dfd5249aba1419966c35f40961e650d2e982099",
+  "current_deploy_run": 41921002397,
+  "verify_job": 126893171141,
+  "verify_conclusion": "failure",
+  "deploy_job": 126894227693,
+  "deploy_conclusion": "skipped",
+  "tls_run": 41921323283,
+  "tls_conclusion": "skipped",
+  "current_diagnostics_run": 41921323017,
+  "diagnostics_conclusion": "skipped",
+  "new_diff_paths": [
+    "services/MaxTrackerLookupRepository.php",
+    "tests/test_max_tracker_mysql.php",
+    "tools/install_max_attribution_lookup.py"
+  ],
+  "new_diff_commits": 4,
+  "foreign_release_logs_read": 0,
+  "foreign_release_reruns": 0,
+  "manual_private_captures": 0,
+  "current_runtime_installed_source_not_assumed": true,
+  "stock_server_calls": 0,
+  "stock_db_reads": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "lookup_groups": {
+    "adalya-elite-lara": [
+      "adalya elite lara"
+    ],
+    "adalya-ocean-deluxe": [
+      "adalya ocean deluxe"
+    ],
+    "adalya-resort": [
+      "adalya resort"
+    ],
+    "adalya-artside": [
+      "adalya artside",
+      "adalya art side"
+    ],
+    "melas-lara": [
+      "melas lara"
+    ],
+    "melas-resort": [
+      "melas resort"
+    ],
+    "melas-holiday": [
+      "melas holiday"
+    ],
+    "sunis-elita": [
+      "sunis elita beach"
+    ],
+    "sunis-kumkoy": [
+      "sunis kumkoy beach",
+      "sunis kumköy beach"
+    ],
+    "sunis-evren": [
+      "sunis evren beach"
+    ]
+  },
+  "native_identities_proven": 0,
+  "old_acanthus_lookup_input_deferred": true,
+  "pure_prepare1_run": 41922240471,
+  "pure_prepare1_stopped_before_php_l_or_cases": true,
+  "pure_prepare2_run": 41922553431,
+  "pure_prepare2_job": 126898478448,
+  "pure_code_commit": "33e9e988969d6ead63e375edaa3e275f033fde0b",
+  "new_scope_projection_cases_passed": 3,
+  "php_l_passed": true,
+  "old_projection_and_stock39_fixtures_rerun": 0,
+  "targeted_registry_projection": "ONLYnewmatchednativeIDs ORnewexactnamedaliases; no full159/old300read",
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "repeat_policy": "DoNOTrerunfailedsource/pure1/pure2jobs. AfterNEWhealthycurrentrelease+fullgates use NEWapprovedsourceactualstockattempt, removeclosedquote7inspectionandunchanged3fixtureinvocationfromrestoredroute. No repin tofailed2df/foreignfix."
+}

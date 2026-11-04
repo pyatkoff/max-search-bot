@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-batch-20261104-44-addressed-recovery1",
+  "state": "CLOSED_SEVEN_ADDRESSED_PUBLIC_RETAINED_FILES_DID_NOT_CONTAIN_62505_PROOF_NO_PHOTO_GET",
+  "files": [
+    "commercial-stock-20261103-16-plan.json",
+    "commercial-stock-20261103-17-plan.json",
+    "commercial-stock-20261103-20-plan.json",
+    "commercial-stock-20261103-25-plan.json",
+    "commercial-stock-20261103-26-source-notes.json",
+    "commercial-batch-20261103-26-source-notes.json",
+    "commercial-batch-20261103-25-source-notes.json"
+  ],
+  "source_sha": "bbbda1721fbb8879da5adafdc3f1b19bfa15d714",
+  "same_file_reread_allowed_without_new_input": false,
+  "older62505_photo_proof_still_unresolved": true,
+  "absence_claim": false,
+  "photo_gets": 0,
+  "owner_page_gets": 0,
+  "server_calls": 0,
+  "ready_for_send": 0,
+  "new_posts": 0
+}
