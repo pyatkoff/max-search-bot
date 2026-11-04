@@ -1,6 +1,6 @@
 {
   "operation": "commercial-batch-20261104-36-primary-sources-retained",
-  "state": "TEN_NEW_OWNER_PAGES_NATIVE_READ_SUCCESS_PHOTOS_NOT_YET_ACCEPTED",
+  "state": "FIFTEEN_NEW_OWNER_PAGES_NATIVE_READ_SUCCESS_PHOTOS_NOT_YET_ACCEPTED",
   "pages": [
     {
       "source_url": "https://www.palomahotels.com/en/paloma-pasha",
@@ -2556,7 +2556,1296 @@
           "categories": []
         }
       ]
+    },
+    {
+      "source_url": "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+      "final_url": "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+      "page_title": "Beaches in Fethiye | Hillside Beach Club Official Website",
+      "image_hosts": [
+        "storage.googleapis.com",
+        "www.hillsidebeachclub.com"
+      ],
+      "image_urls": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image/original/beach.jpg?=4bad7ba9b35f052ce807893f78facfa9",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image_sm/990x400/beach.jpg?=4bad7ba9b35f052ce807893f78facfa9",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image_xs/414x370/beach.jpg?=4bad7ba9b35f052ce807893f78facfa9",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/main-beach.jpg?=98b3950808f50882f0ad90fac7001209",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_sm/990x400/main-beachd-4.jpg?=98b3950808f50882f0ad90fac7001209",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_xs/414x370/663-anaplaj-4.jpg?=98b3950808f50882f0ad90fac7001209",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/serenity-beach.jpg?=cc271716245a84888e45fa05dee8484c",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_sm/990x400/serenity-beach.jpg?=cc271716245a84888e45fa05dee8484c",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_xs/414x370/serenity-beach.jpg?=cc271716245a84888e45fa05dee8484c",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/silent-beach.jpg?=a1a5edf476f533fa83337e94c1446f9b",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_sm/990x400/silent-beach.jpg?=a1a5edf476f533fa83337e94c1446f9b",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_xs/414x370/silent-beach.jpg?=a1a5edf476f533fa83337e94c1446f9b",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/pasha-beach.jpg?=509ba20ced98b11314aeab2097c0f652",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_sm/990x400/pasha-beach.jpg?=509ba20ced98b11314aeab2097c0f652",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_xs/414x370/pasha-beacha-7.jpg?=509ba20ced98b11314aeab2097c0f652",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.hillsidebeachclub.com",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+        "https://www.hillsidebeachclub.com/de/uber-das-hotel/strande",
+        "https://www.hillsidebeachclub.com/ru/about-the-resort/beaches",
+        "https://www.hillsidebeachclub.com/nl/over-de-club/stranden",
+        "https://www.hillsidebeachclub.com/tr/kulup-hakkinda/plajlar",
+        "https://www.hillsidebeachclub.com/en",
+        "https://www.hillsidebeachclub.com/en/about-the-resort",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/rooms",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/restaurants",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/bars",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/pool",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/region",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/resort-map",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/meetings",
+        "https://www.hillsidebeachclub.com/en/experiences",
+        "https://www.hillsidebeachclub.com/en/experiences/water-sports",
+        "https://www.hillsidebeachclub.com/en/experiences/children-youth",
+        "https://www.hillsidebeachclub.com/en/experiences/yoga",
+        "https://www.hillsidebeachclub.com/en/experiences/sports-activities",
+        "https://www.hillsidebeachclub.com/en/experiences/excursion",
+        "https://www.hillsidebeachclub.com/en/experiences/artside",
+        "https://www.hillsidebeachclub.com/en/experiences/honeymoons",
+        "https://www.hillsidebeachclub.com/en/spa-wellness",
+        "https://www.hillsidebeachclub.com/en/gallery",
+        "https://www.hillsidebeachclub.com/en/feel-good-stories",
+        "https://www.hillsidebeachclub.com/en/contact",
+        "https://www.hillsidebeachclub.com/en/more",
+        "https://www.hillsidebeachclub.com/en/guest-reviews",
+        "https://www.hillsidebeachclub.com/en/featured-in"
+      ],
+      "public_text": "Beaches in Fethiye | Hillside Beach Club Official Website '); } ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT MORE EN TR DE RU BOOK NOW ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings All About EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons All Experiences SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT Contact Form Map App Social Media Subscribe MORE GUEST REVIEWS FEATURED-IN PRESS ROOM SEE MORE BOOK NOW Into the blue Crystal-clear waters of the Aegean Sea listlessly lap the beaches of Hillside Beach Club. Three pristine beaches offer guests total tranquillity. Main Beach buzzes with activity with wakeboarders and sail boats the only interruption to the endless turquoise view. Whilst adults-only Serenity and Silent Beach offer peace and harmony from the outside world, as guests lose themselves in the total calm of these slices of heaven. Main Beach GALLERY Main Beach At the heart of Hillside Beach Club, Main Beach buzzes with activity throughout the day until the set sets over the twinkling turquoise Aegean Sea. Children laugh and splash in the warm waters, while couples sit back and relax in the sun, occasionally cheering on those playing beach volleyball. The longest of the three Hillside beaches, Main Beach is also home to the resort’s state of the art Watersports Centre, where the team are on hand to help whatever the need, be it learning to wakeboard or perfecting sailing skills. Plus, with the Pool Bar and Beach Restaurant just a stone’s throw away, you’ll never go hungry or thirsty! GALLERY Serenity Beach GALLERY Serenity Beach Those seeking true peace and harmony can take a relaxing stroll through the fragrant pine forest to Serenity Beach, one of two adult-only beaches at Hillside. Alternatively, hop on the half hourly boat for the five-minute trip to the heavenly slice of paradise where the hustle and bustle of daily life feels a world away. Here, all you need is a book for company as you sink back in a hammock listening to the sound of the waves gently lapping the shore. Cooling cocktails and delicious light lunches served at Serenity Bar means there’s no need to leave what feels like your own private island for the day… GALLERY Silent Beach GALLERY Silent Beach Have trouble switching off? Glued to technology? Hillside’s Silent Beach is for you! One of two adult-only beaches at Hillside, Silent Beach encourages guests to step away from their devices and reconnect with nature. Indulge in a lazy morning or afternoon listening only to the sounds of pines swaying in the wind, birdsong in the trees and the sea washing gently in and out. Pick up a book from the beach library and enjoy the sense of total calm with the warming sun on your back. With Sanda Nature SPA neighbouring Silent Beach it makes sense to pop in after a soothing massage or unwind with a dip in the bright blue sea after a refreshing facial. GALLERY Pasha Beach GALLERY Pasha Beach Just a stone's throw away from the Pasha Restaurant, Pasha Beach is the ideal location to relax with a refreshing freshly-squeezed juice as guests recline on the cloud-like sunbeds. Secluded from Main Beach, guests will relax and watch the boats sail by with uninterrupted views of the bay. GALLERY Follow us on HillsideBeachClub press room business associates awards sustainability © 2019 Hillside Beach Club. All rights reserved. Hillside Beach Club is a Alarko company. Privacy And Protection Of Personal Data Policy Hillside Beach Club Official Website",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.hillsidebeachclub.com/en/about-the-resort/rooms",
+      "final_url": "https://www.hillsidebeachclub.com/en/about-the-resort/rooms",
+      "page_title": "Rooms | Hillside Beach Club Official Website",
+      "image_hosts": [
+        "storage.googleapis.com",
+        "www.hillsidebeachclub.com"
+      ],
+      "image_urls": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image/original/room.jpg?=40a0966b18e4ea8982696e968802cd05",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image_sm/990x400/room.jpg?=40a0966b18e4ea8982696e968802cd05",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image_xs/414x370/room.jpg?=40a0966b18e4ea8982696e968802cd05",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/superior-double-room.jpg?=4f9a739fce4fb2c6b9be929d86a22f02",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_sm/990x400/superior-double-room.jpg?=4f9a739fce4fb2c6b9be929d86a22f02",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_xs/414x370/superior-double-room.jpg?=4f9a739fce4fb2c6b9be929d86a22f02",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/superior-family-room.jpg?=4f9a739fce4fb2c6b9be929d86a22f02",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_sm/990x400/superior-family-room.jpg?=4f9a739fce4fb2c6b9be929d86a22f02",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_xs/414x370/superior-family-room.jpg?=4f9a739fce4fb2c6b9be929d86a22f02",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image/1920x635/club-oda2-11.jpg?=ba47be63dd6f565c72634288f9d33ccd",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_sm/990x400/club-oda3-11.jpg?=ba47be63dd6f565c72634288f9d33ccd",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/section_image_xs/414x370/club-oda4-11.jpg?=ba47be63dd6f565c72634288f9d33ccd",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.hillsidebeachclub.com",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/rooms",
+        "https://www.hillsidebeachclub.com/de/uber-das-hotel/zimmer",
+        "https://www.hillsidebeachclub.com/ru/about-the-resort/rooms",
+        "https://www.hillsidebeachclub.com/nl/over-de-club/kamers",
+        "https://www.hillsidebeachclub.com/tr/kulup-hakkinda/odalar",
+        "https://www.hillsidebeachclub.com/en",
+        "https://www.hillsidebeachclub.com/en/about-the-resort",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/restaurants",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/bars",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/pool",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/region",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/resort-map",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/meetings",
+        "https://www.hillsidebeachclub.com/en/experiences",
+        "https://www.hillsidebeachclub.com/en/experiences/water-sports",
+        "https://www.hillsidebeachclub.com/en/experiences/children-youth",
+        "https://www.hillsidebeachclub.com/en/experiences/yoga",
+        "https://www.hillsidebeachclub.com/en/experiences/sports-activities",
+        "https://www.hillsidebeachclub.com/en/experiences/excursion",
+        "https://www.hillsidebeachclub.com/en/experiences/artside",
+        "https://www.hillsidebeachclub.com/en/experiences/honeymoons",
+        "https://www.hillsidebeachclub.com/en/spa-wellness",
+        "https://www.hillsidebeachclub.com/en/gallery",
+        "https://www.hillsidebeachclub.com/en/feel-good-stories",
+        "https://www.hillsidebeachclub.com/en/contact",
+        "https://www.hillsidebeachclub.com/en/more",
+        "https://www.hillsidebeachclub.com/en/guest-reviews",
+        "https://www.hillsidebeachclub.com/en/featured-in"
+      ],
+      "public_text": "Rooms | Hillside Beach Club Official Website '); } ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT MORE EN TR DE RU BOOK NOW ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings All About EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons All Experiences SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT Contact Form Map App Social Media Subscribe MORE GUEST REVIEWS FEATURED-IN PRESS ROOM SEE MORE BOOK NOW A Remarkable Stay Designed in harmony with nature, Hillside Beach Club’s luxurious rooms offer a heavenly base from which guests can experience all the hotel has to offer. The calming sea breeze and beautiful views create a private oasis without compromising on comfort. Superior Double Room with Private Terrace GALLERY Superior Double Room with Private Terrace Hillside Beach Club’s rooms are all designed in harmony with nature and the Superior Double is no different. Spacious and contemporary, guests are cocooned in comfort from the moment they walk through the door. Soothing tones and natural furnishings calm the mind and body, while the private terrace offers unbeatable privacy, space and mesmerising views over the tranquil bay. SUPERIOR DOUBLE ROOM WITH PRIVATE TERRACE (Type A) A total of 40 sqm including a 10 sqm private terrace. Complimentary gigabit wi-fi IP TV Mini bar In-room safe Kettle Hairdryer Pillow menu Black-Out curtains Nespresso coffee machine detail GALLERY Superior Family Room with Private Terrace GALLERY Superior Family Room with Private Terrace Families looking for a home-away-from-home need look no further than Hillside Beach Club’s Superior Family Room. Offering a separate single room and double room, families can enjoy precious time together in this spacious oasis without compromising on comfort. With space to sleep two adults and two children, natural tones and light create a sense of calm as the sea breeze gently comes in through the private terrace, offering spectacular views- the ideal backdrop to the perfect family holiday. SUPERIOR FAMILY ROOM WITH PRIVATE TERRACE (Type B) A total of 50 sqm including a 10 sqm private terrace. Complimentary gigabit wi-fi IP TV Mini bar In-room safe Kettle Hairdryer Pillow menu Black-Out curtains Nespresso coffee machine detail GALLERY Double Club Room GALLERY Double Club Room Hillside's cozy and intimate Double Club Rooms are ideal for taking a rest after a day of outing or a busy day spent at the beach. In the room filled with natural light, the natural scent of the pine forests enchants the guests. Ideal for couples who look for practical solutions, these rooms offer every comfort option possible. DOUBLE CLUB ROOM (Type C) A 30 sqm room without a terrace. Complimentary gigabit wi-fi IP TV Mini bar In-room safe Kettle Hairdryer Pillow menu Black-Out curtains Nespresso coffee machine detail GALLERY Follow us on HillsideBeachClub press room business associates awards sustainability © 2019 Hillside Beach Club. All rights reserved. Hillside Beach Club is a Alarko company. Privacy And Protection Of Personal Data Policy Hillside Beach Club Official Website",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.palomahotels.com/en/paloma-pasha/beach-and-pool",
+      "final_url": "https://www.palomahotels.com/en/paloma-pasha/beach-and-pool",
+      "page_title": "Beach & Pool | Paloma Pasha",
+      "image_hosts": [
+        "www.palomahotels.com"
+      ],
+      "image_urls": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-pasha-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-pasha-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/paloma-pasha/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/paloma-pasha/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-33-16-PMbeachandpool.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-5-17-35-PM11-2-2020-2-14-09-pmbeach-serene-bg.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-9-12-2025-12-56-57pash.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-43-16-PMbeach1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-48-04-PMpool.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-48-04-PMpool1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-52-42-PMindoorpool.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-52-43-PMwaterslide.jpg",
+        "https://www.palomahotels.com/Content/images/footer-visa.png",
+        "https://www.palomahotels.com/Content/images/footer-master.png",
+        "https://www.palomahotels.com/Content/images/footer-secured.png",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+        "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+        "https://www.palomahotels.com/Content/images/footer-app.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-pasha-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-pasha-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/paloma-pasha/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/paloma-pasha/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-33-16-PMbeachandpool.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-5-17-35-PM11-2-2020-2-14-09-pmbeach-serene-bg.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-9-12-2025-12-56-57pash.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-43-16-PMbeach1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-48-04-PMpool.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-48-04-PMpool1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-52-42-PMindoorpool.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-52-43-PMwaterslide.jpg",
+        "https://www.palomahotels.com/Content/images/footer-visa.png",
+        "https://www.palomahotels.com/Content/images/footer-master.png",
+        "https://www.palomahotels.com/Content/images/footer-secured.png",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+        "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+        "https://www.palomahotels.com/Content/images/footer-app.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "alt": "Paloma Number"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-pasha-logo.png",
+          "alt": "Paloma Index"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "alt": "Paloma Menu"
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "alt": "Paloma Book Now Close"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/paloma-pasha/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/paloma-pasha/images/close-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-33-16-PMbeachandpool.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-5-17-35-PM11-2-2020-2-14-09-pmbeach-serene-bg.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-9-12-2025-12-56-57pash.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-43-16-PMbeach1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-48-04-PMpool.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-48-04-PMpool1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-52-42-PMindoorpool.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-52-43-PMwaterslide.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "alt": "Paloma Number"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-visa.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-master.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-secured.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "alt": "Paloma Youtube"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "alt": "Paloma Twitter"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "alt": "Paloma Facebook"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "alt": "Paloma Instagram"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "alt": "Paloma Linkedin"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-app.png",
+          "alt": "Alternate Text"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.palomahotels.com/en/paloma-pasha/beach-and-pool",
+        "https://www.palomahotels.com/",
+        "https://www.palomahotels.com/paloma-pasha/plaj-ve-havuz",
+        "https://www.palomahotels.com/de/paloma-pasha/strand-und-pool",
+        "https://www.palomahotels.com/ru/paloma-pasha/beach-and-pool",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff2",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff",
+        "https://www.palomahotels.com/en/paloma-pasha",
+        "https://www.palomahotels.com/en",
+        "https://www.palomahotels.com/en/paloma-pasha/stay",
+        "https://www.palomahotels.com/en/paloma-pasha/tastes-of-paloma",
+        "https://www.palomahotels.com/en/paloma-pasha/palomotion",
+        "https://www.palomahotels.com/en/paloma-pasha/spa-and-wellness",
+        "https://www.palomahotels.com/en/paloma-pasha/mice",
+        "https://www.palomahotels.com/en/paloma-pasha/offers",
+        "https://www.palomahotels.com/en/happy-pals",
+        "https://www.palomahotels.com/loyalty-redirect",
+        "https://www.palomahotels.com/en/paloma-pasha/explore",
+        "https://www.palomahotels.com/en/Home/VacationCardPage",
+        "https://www.palomahotels.com/paloma-pasha",
+        "https://www.palomahotels.com/en/finesse-side",
+        "https://www.palomahotels.com/en/paloma-orenda",
+        "https://www.palomahotels.com/en/paloma-perissia",
+        "https://www.palomahotels.com/en/paloma-oceana",
+        "https://www.palomahotels.com/en/paloma-grida",
+        "https://www.palomahotels.com/en/paloma-sencia",
+        "https://www.palomahotels.com/en/tastes-of-paloma",
+        "https://www.palomahotels.com/en/beach-and-pool",
+        "https://www.palomahotels.com/en/paloma-group/palomotion",
+        "https://www.palomahotels.com/en/palomaqua"
+      ],
+      "public_text": "Beach & Pool | Paloma Pasha BOOK NOW 0850 440 00 00 HOME STAY EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS MICE OFFERS PALOMA LOYALTY HAPPY PALS EARN&BURN EXPLORE BOOK NOW EN TR EN DE RU +90 850 440 00 00 HOME STAY EXPERIENCES OFFERS PALOMA LOYALTY EXPLORE EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS MICE PALOMA LOYALTY HAPPY PALS EARN&BURN Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now Hello My Name in Angel. Welcome to PALOMA! How can we help you? EMBRACE THE SEA The texture of water is offering serenity and calmness, invites you to its relaxing and soothing world. Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now HOME / PALOMA PASHA / BEACH & POOL PALOMA PASHA BEACH & POOL Embrace all the shades of green and blue… Whether you're looking for peace or excitement, it's impossible not to have a pleasant day at Paloma Pasha. You will feel the warm sunlight of the Aegean on your skin while fine golden sand beneath your feet. During the day, read your book, indulge in a refreshing drink on your comfortable sunbed, or play with your kids on the beach. Just enjoy your beach day as you please. Feel the touch of fresh air and sunshine... BEACH Immerse in an intimate place full of fresh air and escape to the stunning views of endless blue... Let yourself go on comfortable sunbeds beneath the crystal-clear turquoise sea and feel the fine golden sand. If you want to cool down and listen to the sounds of waves you can have a relaxing time at the pier. Sunbed, sunshades, and towels are provided at the beach and pier for your comfort. Daily refreshments and treats around the beach and pool are served at certain hours of the day. MAIN POOL Imagine yourself at one of our comfortable sunbeds by the pool listening to the sound of silence... If your venue of choice is a pool rather than the beach, you will love our main pool. Relax and lounge at the sunbeds, dance to the rhythm of the summer by the pool, or enjoy the music from within the refreshing water. The main pool is 140 cm deep. INDOOR POOL Our indoor pool provides a fabulous time and relaxing atmosphere in every weather condition. Grab your bathing suit and dive into this amazing indoor pool. Our indoor pool has separate children’s pool and is located in our SPA Centre where you can also enjoy the Turkish bath and Sauna. It is out of service between May 15 and October 15. WATER SLIDES POOL Who doesn’t love a good splash? We have different slides of various sizes in our water slides pool for the kids and those who are still feeling young at heart. The waterslide pool is 140 cm deep. Previous Next OUR HOTELS PALOMA FINESSE PALOMA ORENDA PALOMA PERISSIA PALOMA OCEANA PALOMA GRIDA PALOMA SENCIA PALOMA PASHA TASTES OF PALOMA BEACH & POOL PALOMOTION PALOMAQUA SPORTS SPA & WELLNESS VILLAS & SUITES PRIMETIMER GROUPS/MICE WEDDING INFORMATION FORM SITEMAP HEAD OFFICE Yenigöl Mahallesi Serik Caddesi No:64/A 07230 Antalya/Türkiye +90 242 341 40 75 Information and Reservation +90 850 440 00 00 FOLLOW US RANK US © 2026 Paloma Hotels. All rights reserved.",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "tag": "img",
+          "alt": "Paloma Number",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-pasha-logo.png",
+          "tag": "img",
+          "alt": "Paloma Index",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "tag": "img",
+          "alt": "Paloma Menu",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Book Now Close",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-33-16-PMbeachandpool.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-5-17-35-PM11-2-2020-2-14-09-pmbeach-serene-bg.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-9-12-2025-12-56-57pash.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-43-16-PMbeach1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-48-04-PMpool.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-48-04-PMpool1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-52-42-PMindoorpool.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-9-2020-4-52-43-PMwaterslide.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-visa.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-master.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-secured.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "tag": "img",
+          "alt": "Paloma Youtube",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "tag": "img",
+          "alt": "Paloma Twitter",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "tag": "img",
+          "alt": "Paloma Facebook",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "tag": "img",
+          "alt": "Paloma Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "tag": "img",
+          "alt": "Paloma Linkedin",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-app.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.palomahotels.com/en/paloma-orenda/beach-and-pool",
+      "final_url": "https://www.palomahotels.com/en/paloma-orenda/beach-and-pool",
+      "page_title": "Beach & Pool | Paloma Orenda",
+      "image_hosts": [
+        "www.palomahotels.com"
+      ],
+      "image_urls": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/paloma-orenda/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/paloma-orenda/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/12-5-2020-1-15-47-PMorendabeachbanner.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-2-15-17-PMprivate%20cabana%20background.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-01-48-PMcabana1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-2-09-01-PMa%20%20serene%20and%20%20privileged%20place%20to%20indulge%20in%20...2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-15-17-PMspecial%20times%201.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-15-17-PMspecial%20times%202.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-5-05-14-PMchildren%20pool.jpg",
+        "https://www.palomahotels.com/Content/images/footer-visa.png",
+        "https://www.palomahotels.com/Content/images/footer-master.png",
+        "https://www.palomahotels.com/Content/images/footer-secured.png",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+        "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+        "https://www.palomahotels.com/Content/images/footer-app.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/paloma-orenda/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/paloma-orenda/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/12-5-2020-1-15-47-PMorendabeachbanner.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-2-15-17-PMprivate%20cabana%20background.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-01-48-PMcabana1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-2-09-01-PMa%20%20serene%20and%20%20privileged%20place%20to%20indulge%20in%20...2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-15-17-PMspecial%20times%201.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-15-17-PMspecial%20times%202.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-5-2020-5-05-14-PMchildren%20pool.jpg",
+        "https://www.palomahotels.com/Content/images/footer-visa.png",
+        "https://www.palomahotels.com/Content/images/footer-master.png",
+        "https://www.palomahotels.com/Content/images/footer-secured.png",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+        "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+        "https://www.palomahotels.com/Content/images/footer-app.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "alt": "Paloma Number"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+          "alt": "Paloma Index"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "alt": "Paloma Menu"
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "alt": "Paloma Book Now Close"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/paloma-orenda/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/paloma-orenda/images/close-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-5-2020-1-15-47-PMorendabeachbanner.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-2-15-17-PMprivate%20cabana%20background.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-01-48-PMcabana1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-2-09-01-PMa%20%20serene%20and%20%20privileged%20place%20to%20indulge%20in%20...2.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-15-17-PMspecial%20times%201.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-15-17-PMspecial%20times%202.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-5-05-14-PMchildren%20pool.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "alt": "Paloma Number"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-visa.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-master.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-secured.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "alt": "Paloma Youtube"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "alt": "Paloma Twitter"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "alt": "Paloma Facebook"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "alt": "Paloma Instagram"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "alt": "Paloma Linkedin"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-app.png",
+          "alt": "Alternate Text"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.palomahotels.com/en/paloma-orenda/beach-and-pool",
+        "https://www.palomahotels.com/",
+        "https://www.palomahotels.com/paloma-orenda/plaj-ve-havuz",
+        "https://www.palomahotels.com/de/paloma-orenda/strand-und-pool",
+        "https://www.palomahotels.com/ru/paloma-orenda/beach-and-pool",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff2",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff",
+        "https://www.palomahotels.com/en/paloma-orenda",
+        "https://www.palomahotels.com/en",
+        "https://www.palomahotels.com/en/paloma-orenda/stay",
+        "https://www.palomahotels.com/en/paloma-orenda/tastes-of-paloma",
+        "https://www.palomahotels.com/en/paloma-orenda/palomotion",
+        "https://www.palomahotels.com/en/paloma-orenda/spa-and-wellness",
+        "https://www.palomahotels.com/en/paloma-orenda/offers",
+        "https://www.palomahotels.com/en/happy-pals",
+        "https://www.palomahotels.com/loyalty-redirect",
+        "https://www.palomahotels.com/en/paloma-orenda/explore",
+        "https://www.palomahotels.com/en/Home/VacationCardPage",
+        "https://www.palomahotels.com/en/paloma-orenda/mice",
+        "https://www.palomahotels.com/paloma-orenda",
+        "https://www.palomahotels.com/en/finesse-side",
+        "https://www.palomahotels.com/en/paloma-perissia",
+        "https://www.palomahotels.com/en/paloma-oceana",
+        "https://www.palomahotels.com/en/paloma-grida",
+        "https://www.palomahotels.com/en/paloma-sencia",
+        "https://www.palomahotels.com/en/paloma-pasha",
+        "https://www.palomahotels.com/en/tastes-of-paloma",
+        "https://www.palomahotels.com/en/beach-and-pool",
+        "https://www.palomahotels.com/en/paloma-group/palomotion",
+        "https://www.palomahotels.com/en/palomaqua"
+      ],
+      "public_text": "Beach & Pool | Paloma Orenda BOOK NOW 0850 440 00 00 HOME STAY EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS OFFERS PALOMA LOYALTY HAPPY PALS EARN&BURN EXPLORE BOOK NOW EN TR EN DE RU +90 850 440 00 00 HOME STAY EXPERIENCES OFFERS PALOMA LOYALTY EXPLORE EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS MICE PALOMA LOYALTY HAPPY PALS EARN&BURN Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now Hello My Name in Angel. Welcome to PALOMA! How can we help you? THE ULTIMATE BEACH BREAK Treat yourself to an ultimate beach and pool experience. Let loose within lavish gardens, take a plunge in our large swimming pool or relax on our long sandy beach. Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now HOME / PALOMA ORENDA / BEACH & POOL PALOMA ORENDA BEACH & POOL Paloma Orenda excites you with its turquoise pools, 350-meter long golden sand beach and deep blue sea in a charming Mediterranean environment. Select your sun-lounger and lose yourself in a day of indulgent relaxation by the beach or pool. On the beach, you can play beach volley and experience various water sports such as Banana ride, Jet Ski, Ringo, Parasailing, Windsurfing, and Catamaran. Relax and escape the life for a moment... PRIVATE CABANA You can create your private area with cabanas and seize your beach time with perfectly designed services including ice-cold drinks, fresh fruits, delicious snacks, and lunch bites. A private beach experience with sparkling wine and Cabana menu... Sparkling Wine Fresh orange juice Fresh fruits Pastries and cakes Alcoholic and soft drinks Cabanas with special service: 10:00 - 18:00 Cabanas are with an extra charge. You can reserve your private cabana through Guest Relations. MAIN POOL Our large pools are waiting for you... You can spend the whole day with the family in our facilities with special pools for both adults and children and a beautifully designed pool area. CHILDREN'S POOL Paloma Orenda offers a separate kiddy pool for children to have fun freely and safely. LIMITLESS FUN FOR EVERYONE!​ The largest and extensive aquapark of the region, the spectacular “Palomaqua”, provides endless fun for the entire family wishing to discover something new and exciting at every corner. Palomaqua is specially designed that allow riders to live the joy of different sliding paths with 12 slides, 7 dedicated kids’ slides, splash courses and much more. Palomaqua is located between Paloma Finesse and Paloma Orenda, a few minutes' walk from both. OUR HOTELS PALOMA FINESSE PALOMA ORENDA PALOMA PERISSIA PALOMA OCEANA PALOMA GRIDA PALOMA SENCIA PALOMA PASHA TASTES OF PALOMA BEACH & POOL PALOMOTION PALOMAQUA SPORTS SPA & WELLNESS VILLAS & SUITES PRIMETIMER GROUPS/MICE WEDDING INFORMATION FORM SITEMAP HEAD OFFICE Yenigöl Mahallesi Serik Caddesi No:64/A 07230 Antalya/Türkiye +90 242 341 40 75 Information and Reservation +90 850 440 00 00 FOLLOW US RANK US © 2026 Paloma Hotels. All rights reserved.",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "tag": "img",
+          "alt": "Paloma Number",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+          "tag": "img",
+          "alt": "Paloma Index",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "tag": "img",
+          "alt": "Paloma Menu",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Book Now Close",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-5-2020-1-15-47-PMorendabeachbanner.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-2-15-17-PMprivate%20cabana%20background.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-01-48-PMcabana1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-2-09-01-PMa%20%20serene%20and%20%20privileged%20place%20to%20indulge%20in%20...2.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-15-17-PMspecial%20times%201.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-4-15-17-PMspecial%20times%202.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-5-2020-5-05-14-PMchildren%20pool.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-visa.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-master.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-secured.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "tag": "img",
+          "alt": "Paloma Youtube",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "tag": "img",
+          "alt": "Paloma Twitter",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "tag": "img",
+          "alt": "Paloma Facebook",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "tag": "img",
+          "alt": "Paloma Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "tag": "img",
+          "alt": "Paloma Linkedin",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-app.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.mandarinoriental.com/en/bodrum/paradise-bay/gallery",
+      "final_url": "https://www.mandarinoriental.com/en/bodrum/paradise-bay/gallery",
+      "page_title": " Photo & Video Gallery | Mandarin Oriental, Bodrum ",
+      "image_hosts": [
+        "media.ffycdn.net",
+        "www.mandarinoriental.com"
+      ],
+      "image_urls": [
+        "https://www.mandarinoriental.com/img/icons/favicon-16x16.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-32x32.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-64x64.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-128x128.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-256x256.png",
+        "https://www.mandarinoriental.com/img/icons/android-36x36.png",
+        "https://www.mandarinoriental.com/img/icons/android-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/android-72x72.png",
+        "https://www.mandarinoriental.com/img/icons/android-96x96.png",
+        "https://www.mandarinoriental.com/img/icons/android-144x144.png",
+        "https://www.mandarinoriental.com/img/icons/android-192x192.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-60x60.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-76x76.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-120x120.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-152x152.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-167x167.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-180x180.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.mandarinoriental.com/img/icons/favicon-16x16.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-32x32.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-64x64.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-128x128.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-256x256.png",
+        "https://www.mandarinoriental.com/img/icons/android-36x36.png",
+        "https://www.mandarinoriental.com/img/icons/android-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/android-72x72.png",
+        "https://www.mandarinoriental.com/img/icons/android-96x96.png",
+        "https://www.mandarinoriental.com/img/icons/android-144x144.png",
+        "https://www.mandarinoriental.com/img/icons/android-192x192.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-60x60.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-76x76.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-120x120.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-152x152.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-167x167.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-180x180.png",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/bjqno34XYwY8nnPcgtki.jpg",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/KkeV2ndoShmTc1B42m31.jpg"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/zh-cn/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/tr/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/pt-br/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/fr/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/es/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/cs/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/it/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/ar-ae/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/es-es/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/de/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/el-gr/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/ru/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/ko-kr/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/th/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/ja/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/ca-es/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/id/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/zh-hk/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/nl/bodrum/paradise-bay/gallery",
+        "https://www.mandarinoriental.com/app.webmanifest",
+        "https://www.mandarinoriental.com/en",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/stay",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/dine",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/wellness",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/celebrate",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/meet",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/family"
+      ],
+      "public_text": "\") document.write(\" \") function OptanonWrapper() {} } else { document.write(\" \") function OptanonWrapper() {} } Photo & Video Gallery | Mandarin Oriental, Bodrum Skip to Navigation Skip to Content Skip to Footer Global Home Bodrum Sign In / Join Now Logout Languages Our Hotels & Resorts Stay Dine Wellness Explore Celebrate Meet Family Gallery Gift Offers Book Book Stay Stay All Accommodations Rooms Suites Villas Apartments Connecting & Family Rooms Exceptional Villas Spacious Suites Dine All Dining Blue Beach Club & Bar Ferdi Baba GAIA Gigi Bodrum Hafız Mustafa 1864 Hakkasan Maison Revka Mandarin Bar Pool Bar & Restaurant ROKA Sofra Vakko L'atelier In-Room Dining Wellness All Wellness Spa Treatments Fitness Wellness Technology Packages and Retreats Family Schedule a Treatment Explore Celebrate Meet Gift Family Offers About Events Fans of M.O. Members Luxury Retails Sustainability Gallery All Destinations Asia-Pacific Bangkok Beijing - Qianmen Beijing - Wangfujing Desaru Coast Guangzhou Hangzhou (Opening Spring 2027) Hong Kong - Mandarin Oriental Hong Kong - The Landmark Jakarta Kuala Lumpur Macau Manila - Makati (Opening November 2026) Sanya Shanghai – Pudong Shenzhen Singapore Suzhou (Opening 2027) Taipei Tokyo Europe Amsterdam Barcelona Bodrum Cortina (Opening 2027) Costa Navarino Geneva Istanbul Lake Como London - Hyde Park London – Mayfair Luzern Madrid Mallorca Milan Munich Paris Paris - Lutetia Prague Vienna Zurich The Americas Boston Canouan Miami (Reopening 2030) New York Santiago Middle East & Africa Abu Dhabi Aswan - Old Cataract Doha Dubai - Downtown Dubai - Jumeira Beach Marrakech Muscat Riyadh Stay Dine Wellness Explore Celebrate Meet Gift Family Offers About Events Fans of M.O. Members Luxury Retails Sustainability Gallery All Destinations Back All Accommodations Rooms Suites Villas Apartments Connecting & Family Rooms Exceptional Villas Spacious Suites Back All Dining Blue Beach Club & Bar Ferdi Baba GAIA Gigi Bodrum Hafız Mustafa 1864 Hakkasan Maison Revka Mandarin Bar Pool Bar & Restaurant ROKA Sofra Vakko L'atelier In-Room Dining Back All Wellness Spa Treatments Fitness Wellness Technology Packages and Retreats Family Schedule a Treatment Back Back Back Back Back Back Back Back Back Back Back Back Back Asia-Pacific Bangkok Beijing - Qianmen Beijing - Wangfujing Desaru Coast Guangzhou Hangzhou (Opening Spring 2027) Hong Kong - Mandarin Oriental Hong Kong - The Landmark Jakarta Kuala Lumpur Macau Manila - Makati (Opening November 2026) Sanya Shanghai – Pudong Shenzhen Singapore Suzhou (Opening 2027) Taipei Tokyo Europe Amsterdam Barcelona Bodrum Cortina (Opening 2027) Costa Navarino Geneva Istanbul Lake Como London - Hyde Park London – Mayfair Luzern Madrid Mallorca Milan Munich Paris Paris - Lutetia Prague Vienna Zurich The Americas Boston Canouan Miami (Reopening 2030) New York Santiago Middle East & Africa Abu Dhabi Aswan - Old Cataract Doha Dubai - Downtown Dubai - Jumeira Beach Marrakech Muscat Riyadh Bodrum Göltürkbükü Mahallesi 314. Sokak No.10 Bodrum, Muğla 48483 mobod-reservations@mohg.com +90 252 311 18 88 Bodrum Gallery Mandarin Oriental, Bodrum Göltürkbükü Mahallesi 314. Sokak No.10, Bodrum, 48483, Türkiye +90 252 311 18 88 mobod-reservations@mohg.com Contact Us Corporate Our Company The O&MO Alliance Corporate Contacts Regional Sales Offices Sustainability Careers Fan Club Advisors Explore Gift Cards Residences Best Rate Promise Mandarin Oriental Shop Media Centre Support Fans of M.O. Login Modify/Cancel Reservation Connect Contact Us Subscribe Facebook Instagram 2026 © Mandarin Oriental Hotel Group Limited Privacy Policy Ad & Cookie Policy Legal Notices",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": []
     }
   ],
-  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41793809610"
+  "run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41793809610",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41794384775"
+  ]
 }

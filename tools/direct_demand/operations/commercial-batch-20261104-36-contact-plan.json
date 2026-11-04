@@ -1,0 +1,195 @@
+{
+  "operation": "commercial-batch36-native-primary-photo-contact",
+  "goal": "One finalgroupedpass of30differentdeclaredphotographsforbatch36tenprovenhotels",
+  "boundaries": [
+    "4readonlygroups/maxparallel2,noSSH/server/provider/DBwrites/messages",
+    "ExactactualownerdeclaredURIs only,noquerystripping/resizeguessing/redirects/guardweakening",
+    "No old35contactphotos;rolesremainseparateperhotel"
+  ],
+  "criteria": [
+    "Existingbytes/http/type/format/dimensions/hash/contactpixels guardsunchanged",
+    "Newhoststorage.kempinski.comadmittedONLYexactgallery/ownhotelimageURIs fromcurrentofficialpropertypages,notarbitraryCDN",
+    "Mandarin35313deferred beforedownload:currentSSRdeclaredimagesnotprovenproperty-specific"
+  ],
+  "risks": [
+    "Wholeheroand2distinctlowersnotguaranteed;sendreadysubsetwithoutwaiting",
+    "Hillsideversion-queryGCSURLsnotdownloadedbecauseexistingqueryguard,only2declarednoqueryimages"
+  ],
+  "groups": [
+    [
+      {
+        "hotel_id": 9322,
+        "role": "h9322_main",
+        "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-40-08pasha%20%281%29.jpg"
+      },
+      {
+        "hotel_id": 9322,
+        "role": "h9322_beach",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-14-16-PM10-8-2020-4-33-47-pm2.jpg"
+      },
+      {
+        "hotel_id": 9322,
+        "role": "h9322_family",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmidealforfamilie.jpg"
+      },
+      {
+        "hotel_id": 9322,
+        "role": "h9322_room",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-38-pmd1.jpg"
+      },
+      {
+        "hotel_id": 65895,
+        "role": "h65895_videohero",
+        "url": "https://www.palomahotels.com/Content/imgUpload/16-10-2026-15-07-45orenda-videokapak-1920x1080.jpg"
+      },
+      {
+        "hotel_id": 65895,
+        "role": "h65895_main",
+        "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-24-40orenda%20%282%29.jpg"
+      },
+      {
+        "hotel_id": 65895,
+        "role": "h65895_overview",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-27-PM10-6-2020-1-19-55-pmorenda-index1.jpg"
+      },
+      {
+        "hotel_id": 65895,
+        "role": "h65895_room",
+        "url": "https://www.palomahotels.com/Content/imgUpload/9-23-2020palomaqua-logo.png"
+      },
+      {
+        "hotel_id": 9322,
+        "role": "h9322_extra_general",
+        "url": "https://www.palomahotels.com/Content/imgUpload/image-9-12-2025-12-56-57pash.jpg"
+      },
+      {
+        "hotel_id": 65895,
+        "role": "h65895_extra_general",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-5-2020-1-15-47-PMorendabeachbanner.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 970,
+        "role": "h970_main",
+        "url": "https://www.alibey.com/content/upload/hotel-promo/alibeyresort-promo-2.jpg"
+      },
+      {
+        "hotel_id": 970,
+        "role": "h970_room",
+        "url": "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-promo-2.jpg"
+      },
+      {
+        "hotel_id": 970,
+        "role": "h970_aquapark",
+        "url": "https://www.alibey.com/content/upload/homepage-images/resort-aqua.jpg"
+      },
+      {
+        "hotel_id": 967,
+        "role": "h967_main",
+        "url": "https://www.alibey.com/content/upload/hotel-promo/alibeyclub-promo-1_1.jpg"
+      },
+      {
+        "hotel_id": 967,
+        "role": "h967_room",
+        "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg"
+      },
+      {
+        "hotel_id": 967,
+        "role": "h967_aquapark",
+        "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg"
+      },
+      {
+        "hotel_id": 968,
+        "role": "h968_main",
+        "url": "https://www.alibey.com/content/upload/hotel-promo/alibeypark-promo-2.jpg"
+      },
+      {
+        "hotel_id": 968,
+        "role": "h968_room",
+        "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg"
+      },
+      {
+        "hotel_id": 968,
+        "role": "h968_aquapark",
+        "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 2175,
+        "role": "h2175_general",
+        "url": "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg"
+      },
+      {
+        "hotel_id": 2175,
+        "role": "h2175_gallery",
+        "url": "https://www.hillsidebeachclub.com/assets/img/gallery/bg.jpg"
+      },
+      {
+        "hotel_id": 1672,
+        "role": "h1672_hotel",
+        "url": "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down/ki-cms-prod/images/2/7/2/4/764272-1-eng-GB/685581c4d1ba-74532214_4K.jpg"
+      },
+      {
+        "hotel_id": 1672,
+        "role": "h1672_gallery0",
+        "url": "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/1/1/6/1856114-1-eng-GB/6518fce3fb13-76882790_4K.jpg"
+      },
+      {
+        "hotel_id": 1672,
+        "role": "h1672_gallery1",
+        "url": "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/4/1/6/1856144-1-eng-GB/6b7d354253fd-76882792_4K.jpg"
+      },
+      {
+        "hotel_id": 1672,
+        "role": "h1672_gallery2",
+        "url": "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/2/0/6/1856024-1-eng-GB/106b967d141f-76882784_4K.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1201,
+        "role": "h1201_new_pool0",
+        "url": "https://www.gloria.com.tr/media/h1xny1al/main_pool13_gvr.jpg"
+      },
+      {
+        "hotel_id": 1201,
+        "role": "h1201_new_pool1",
+        "url": "https://www.gloria.com.tr/media/cqopblko/main_pool22_gvr.jpg"
+      },
+      {
+        "hotel_id": 1198,
+        "role": "h1198_new_view0",
+        "url": "https://www.gloria.com.tr/media/fiujysrq/mainpool.jpg"
+      },
+      {
+        "hotel_id": 1198,
+        "role": "h1198_new_view1",
+        "url": "https://www.gloria.com.tr/media/atgfu15v/general_view27_ggr-2.jpg"
+      },
+      {
+        "hotel_id": 1198,
+        "role": "h1198_new_view2",
+        "url": "https://www.gloria.com.tr/media/2eukbfxv/general_view33_ggr.jpg"
+      }
+    ]
+  ],
+  "owner_pages": [
+    "https://www.palomahotels.com/en/paloma-pasha",
+    "https://www.palomahotels.com/en/paloma-orenda",
+    "https://www.alibey.com/en/resort",
+    "https://www.alibey.com/en/club",
+    "https://www.alibey.com/en/park",
+    "https://www.hillsidebeachclub.com/en/about-the-resort",
+    "https://www.hillsidebeachclub.com/en/gallery",
+    "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/our-hotel",
+    "https://www.kempinski.com/en/hotel-barbaros-bay/gallery",
+    "https://www.mandarinoriental.com/en/bodrum/paradise-bay",
+    "https://www.palomahotels.com/en/paloma-pasha/beach-and-pool",
+    "https://www.palomahotels.com/en/paloma-orenda/beach-and-pool",
+    "https://www.mandarinoriental.com/en/bodrum/paradise-bay/gallery",
+    "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+    "https://www.hillsidebeachclub.com/en/about-the-resort/rooms"
+  ]
+}
