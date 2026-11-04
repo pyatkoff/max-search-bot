@@ -1,0 +1,58 @@
+{
+  "operation": "commercial-batch36-extra-primary-and-miniapp-code-contract-read2",
+  "goal": "Get five exactnewdeclaredowner-detailpages and establish publicMAX2ctx1contract after a newcontradictoryfact",
+  "boundaries": [
+    "NewfiveownerURLs only, no old10GETreplay",
+    "ONEpublicMAX2GET to obtain firstsanitizedcodeprojection;no signeduser/privateAPI/backend/schema/endpointcallbacks",
+    "Allliteralvalues andlongnumericIDsredactedbeforeoutput; no client/botsecrets/rawHTML retained"
+  ],
+  "criteria": [
+    "Capturecurrentexplicitparameterparse/save/redirectcontrolflowwithoutsecretvalues",
+    "UsefirstreadSHAtoidentifypublicsourcechange; no inventedserverreceiverproof",
+    "Three newredactioncases beforeGET"
+  ],
+  "risks": [
+    "Publicclientcodecannamepost_idwithoutbackendvalidation; inspectbeforeenable"
+  ],
+  "owner_urls": [
+    "https://www.palomahotels.com/en/paloma-pasha/beach-and-pool",
+    "https://www.palomahotels.com/en/paloma-orenda/beach-and-pool",
+    "https://www.mandarinoriental.com/en/bodrum/paradise-bay/gallery",
+    "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+    "https://www.hillsidebeachclub.com/en/about-the-resort/rooms"
+  ],
+  "new_miniapp_evidence": {
+    "accepted_parameter_names": [],
+    "bytes": 16574,
+    "content_type": "text/html; charset=utf-8",
+    "db_writes": 0,
+    "declared_public_sameowner_js": [],
+    "http": 200,
+    "indicators": {
+      "MAX.WebApp": false,
+      "Telegram.WebApp": false,
+      "WebApp.initData": false,
+      "ctx1": true,
+      "offer_id": true,
+      "openLink": false,
+      "post_id": true,
+      "start_param": true,
+      "startapp": true,
+      "tgWebAppStartParam": false,
+      "yclid": true
+    },
+    "inline_code_exported": false,
+    "max_requests": 1,
+    "message_sends": 0,
+    "mode": "one_public_https_html_get",
+    "new_ref_guard_cases": 3,
+    "ok": true,
+    "operation": "commercial-miniapp-public-max2-contract-read1",
+    "page_title": "TOUR MAX",
+    "provider_calls": 0,
+    "requests_attempted": 1,
+    "server_connections": 0,
+    "sha256": "5c06578f61aedb5473ce50efa29d5a9c7c0f5bf0a3109d2de3768a4f97659770",
+    "source_url": "https://tour-max.ru/new/max2/"
+  }
+}

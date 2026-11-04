@@ -1,0 +1,2562 @@
+{
+  "operation": "commercial-batch-20261104-36-primary-sources-retained",
+  "state": "TEN_NEW_OWNER_PAGES_NATIVE_READ_SUCCESS_PHOTOS_NOT_YET_ACCEPTED",
+  "pages": [
+    {
+      "source_url": "https://www.palomahotels.com/en/paloma-pasha",
+      "final_url": "https://www.palomahotels.com/en/paloma-pasha",
+      "page_title": "Paloma Pasha | Paloma Hotels",
+      "image_hosts": [
+        "www.palomahotels.com"
+      ],
+      "image_urls": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-pasha-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-pasha-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-40-08pasha%20%281%29.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-14-16-PM10-8-2020-4-33-47-pm2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pms1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmamazing-location.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmidealforfamilie.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-38-pmd1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-14-02-2023-17-26-19pasha%20quentine%20yeni.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-39-pmd3.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-39-pmd4.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-46-50-pmdiscover.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-49-32-pmdiscover2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-51-43-pmdiscover3.jpg",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+        "https://www.palomahotels.com/Content/images/master-logo-w.png",
+        "https://www.palomahotels.com/Content/images/down-btn.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-pasha-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-pasha-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-40-08pasha%20%281%29.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-14-16-PM10-8-2020-4-33-47-pm2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pms1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmamazing-location.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmidealforfamilie.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-38-pmd1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-14-02-2023-17-26-19pasha%20quentine%20yeni.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-39-pmd3.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-39-pmd4.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-46-50-pmdiscover.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-49-32-pmdiscover2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-51-43-pmdiscover3.jpg",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+        "https://www.palomahotels.com/Content/images/master-logo-w.png",
+        "https://www.palomahotels.com/Content/images/down-btn.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "alt": "Paloma Number"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-pasha-logo.png",
+          "alt": "Paloma Index"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "alt": "Paloma Menu"
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "alt": "Paloma Book Now Close"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/images/close-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-40-08pasha%20%281%29.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-14-16-PM10-8-2020-4-33-47-pm2.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pms1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmamazing-location.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmidealforfamilie.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-38-pmd1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-14-02-2023-17-26-19pasha%20quentine%20yeni.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-39-pmd3.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-39-pmd4.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-46-50-pmdiscover.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-49-32-pmdiscover2.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-51-43-pmdiscover3.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/master-logo-w.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/down-btn.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.palomahotels.com/en/paloma-pasha",
+        "https://www.palomahotels.com/",
+        "https://www.palomahotels.com/paloma-pasha",
+        "https://www.palomahotels.com/de/paloma-pasha",
+        "https://www.palomahotels.com/ru/paloma-pasha",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff2",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff",
+        "https://www.palomahotels.com/en",
+        "https://www.palomahotels.com/en/paloma-pasha/stay",
+        "https://www.palomahotels.com/en/paloma-pasha/tastes-of-paloma",
+        "https://www.palomahotels.com/en/paloma-pasha/beach-and-pool",
+        "https://www.palomahotels.com/en/paloma-pasha/palomotion",
+        "https://www.palomahotels.com/en/paloma-pasha/spa-and-wellness",
+        "https://www.palomahotels.com/en/paloma-pasha/mice",
+        "https://www.palomahotels.com/en/paloma-pasha/offers",
+        "https://www.palomahotels.com/en/happy-pals",
+        "https://www.palomahotels.com/loyalty-redirect",
+        "https://www.palomahotels.com/en/paloma-pasha/explore",
+        "https://www.palomahotels.com/en/Home/VacationCardPage"
+      ],
+      "public_text": "Paloma Pasha | Paloma Hotels BOOK NOW 0850 440 00 00 HOME STAY EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS MICE OFFERS PALOMA LOYALTY HAPPY PALS EARN&BURN EXPLORE BOOK NOW EN TR EN DE RU +90 850 440 00 00 HOME STAY EXPERIENCES OFFERS PALOMA LOYALTY EXPLORE EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS MICE PALOMA LOYALTY HAPPY PALS EARN&BURN Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now Hello My Name in Angel. Welcome to PALOMA! How can we help you? Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now HOME / PALOMA PASHA The Aegean, at Its Own Pace You know that feeling when the sea is just the right shade of blue, the air carries the scent of pine and there is nowhere you’d rather be? That is the Aegean at its best - and at Paloma Pasha, it comes naturally. Set along a beautiful sandy bay in Özdere, İzmir, the resort blends effortlessly into its natural surroundings - with vibrant gardens, sweeping sea views and thoughtfully designed spaces that invite you to slow down. From elegant rooms overlooking the coast to swim-up options and spacious suites with private terraces, there’s a space for every way of unwinding. The pleasures extend to the table, where fresh local ingredients inspire a variety of dining experiences. And when you feel like exploring, the rich character and history of Izmir offer plenty to discover beyond the resort. At Paloma Pasha, mornings begin with the gentle rhythm of the sea, afternoons stretch lazily beneath the Aegean sun and evenings invite you to linger a little longer. With the comfort of Luxury Ultra All Inclusive hospitality, every detail is considered, leaving you free to enjoy the beauty of doing things at your own pace. Paloma Pasha. Come for the Sea. Stay for the Feeling. IN THE SPOTLIGHT BEACH During the day, for a more casual Aegean feel, look no further than Paloma Pasha where crystal-clear turquoise sea meets fine sandy beach. AMAZING LOCATION Paloma Pasha is located at Özdere in a spectacular bay. A perfect location for Aegean lovers. Wake up to the captivated nature scenery at the Aegean, where the days start with the touch of sunshine and freshness of the air. IDEAL FOR FAMILIES Paloma Pasha is a perfect place for families with its family rooms, special kids and teenage programs, activities for all ages and spectacular entertainment shows. Make every special moment count and create everlasting memories during your unforgettable family holiday. DISCOVER ROOMS Experience pure relaxation and supreme indulgence every moment or your stay with unmatched hospitality services and attention to even the smallest of details. Paloma Pasha offers 268 Rooms with sea and land view of standard rooms, suites and terrace suites. Reserve one of our effortlessly stylish rooms, each offering an elegant taste of Aegean. DISCOVER RESTAURANTS Culinary is our passion! Fill your heart and stomach with unforgettable culinary creations with us. Delicious dishes served elegantly just for you in an amazing atmosphere. Take a pleasure of an outstanding dining experience that will delight all of your senses. DISCOVER BARS From classic and creative cocktails to fresh brewed coffees and teas, discover a world of tempting bars at Paloma Pasha. DISCOVER BEACH & POOL Escape the where sea and beach views are endless. Get together with your family and friends. Sneak away to a comfortable sunbed where views over the sparkling sea make this a refreshing escape. Hang by the pool, indulge and light up. DISCOVER ACTIVITIES There’s something for every age, dream, and ability. Whether you are looking for enjoying day activities or adventurous water sports or building muscle, toning your body, and improve your athletic performance, our trainers will tailor the workout for you, making it fun while delivering the results you want. DISCOVER POLLY KIDS & TEENAGE CLUB Kids will have fun and learn at the same time with the activities and workshops held by the trained and experienced staff of the Polly Kids’ Club while teenagers will have a taste of freedom with our Teenage Club programs. Ignite their creativity and let them make new friends on a holiday they’ll never forget. DISCOVER SPA&WELLNESS WELLBEING Experience the Aegean beauty... Achieve complete balance in our SPA center, with progressive spa therapies, professional beauty treatments, and personalized fitness, just for you. DISCOVER PALOMA PASHA | ÖZDERE - İZMİR The Hotel is located in Izmir, Özdere city centre 1 km, Kuşadası 35 km, Izmir is 55 km, 50 km to the Adnan Menderes Airport. Directly on the private beach. Hotel has a total of 268 rooms. PALOMA PASHA (Belge No: 12082) Özdere / Çukuraltı Mah. / 2100 Sk. No: 11 TR 35495 Menderes - İzmir / Türkiye +90 232 797 90 90 Information and Reservation +90 850 440 00 00 FOLLOW US © 2026 Paloma Hotels. All rights reserved.",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "tag": "img",
+          "alt": "Paloma Number",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-pasha-logo.png",
+          "tag": "img",
+          "alt": "Paloma Index",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "tag": "img",
+          "alt": "Paloma Menu",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Book Now Close",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-40-08pasha%20%281%29.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-14-16-PM10-8-2020-4-33-47-pm2.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pms1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmamazing-location.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-06-PM10-8-2020-4-35-10-pmidealforfamilie.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-38-pmd1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-14-02-2023-17-26-19pasha%20quentine%20yeni.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-39-pmd3.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM10-8-2020-4-35-39-pmd4.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-46-50-pmdiscover.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-49-32-pmdiscover2.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-15-43-PM12-8-2020-2-51-43-pmdiscover3.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/master-logo-w.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/down-btn.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.palomahotels.com/en/paloma-orenda",
+      "final_url": "https://www.palomahotels.com/en/paloma-orenda",
+      "page_title": "Paloma Orenda | Paloma Hotels",
+      "image_hosts": [
+        "www.palomahotels.com"
+      ],
+      "image_urls": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/16-10-2026-15-07-45orenda-videokapak-1920x1080.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-24-40orenda%20%282%29.jpg",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-27-PM10-6-2020-1-19-55-pmorenda-index1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-8-2020-7-22-34-pmbeach.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-6-2020-1-31-06-pmor-sli-2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-6-2020-1-34-26-pmor-sli-3.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-56-PM9-23-2020group-751.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/9-23-2020palomaqua-logo.png",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmjunior-sutes.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmgroup-735.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmgroup-339.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-40-54-pmor-dis-1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-40-54-pmor-dis-2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmorenda-index-polly.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-46-24-pmor-dis-3.jpg",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+        "https://www.palomahotels.com/Content/images/master-logo-w.png",
+        "https://www.palomahotels.com/Content/images/down-btn.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/16-10-2026-15-07-45orenda-videokapak-1920x1080.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-24-40orenda%20%282%29.jpg",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-27-PM10-6-2020-1-19-55-pmorenda-index1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-8-2020-7-22-34-pmbeach.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-6-2020-1-31-06-pmor-sli-2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-6-2020-1-34-26-pmor-sli-3.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-56-PM9-23-2020group-751.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/9-23-2020palomaqua-logo.png",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmjunior-sutes.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmgroup-735.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmgroup-339.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-40-54-pmor-dis-1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-40-54-pmor-dis-2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmorenda-index-polly.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-46-24-pmor-dis-3.jpg",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+        "https://www.palomahotels.com/Content/images/master-logo-w.png",
+        "https://www.palomahotels.com/Content/images/down-btn.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "alt": "Paloma Number"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+          "alt": "Paloma Index"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "alt": "Paloma Menu"
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "alt": "Paloma Book Now Close"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/images/close-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/16-10-2026-15-07-45orenda-videokapak-1920x1080.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-24-40orenda%20%282%29.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-27-PM10-6-2020-1-19-55-pmorenda-index1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-8-2020-7-22-34-pmbeach.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-6-2020-1-31-06-pmor-sli-2.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-6-2020-1-34-26-pmor-sli-3.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-56-PM9-23-2020group-751.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/9-23-2020palomaqua-logo.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmjunior-sutes.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmgroup-735.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmgroup-339.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-40-54-pmor-dis-1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-40-54-pmor-dis-2.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmorenda-index-polly.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-46-24-pmor-dis-3.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/master-logo-w.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/down-btn.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.palomahotels.com/en/paloma-orenda",
+        "https://www.palomahotels.com/",
+        "https://www.palomahotels.com/paloma-orenda",
+        "https://www.palomahotels.com/de/paloma-orenda",
+        "https://www.palomahotels.com/ru/paloma-orenda",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff2",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff",
+        "https://www.palomahotels.com/en",
+        "https://www.palomahotels.com/en/paloma-orenda/stay",
+        "https://www.palomahotels.com/en/paloma-orenda/tastes-of-paloma",
+        "https://www.palomahotels.com/en/paloma-orenda/beach-and-pool",
+        "https://www.palomahotels.com/en/paloma-orenda/palomotion",
+        "https://www.palomahotels.com/en/paloma-orenda/spa-and-wellness",
+        "https://www.palomahotels.com/en/paloma-orenda/offers",
+        "https://www.palomahotels.com/en/happy-pals",
+        "https://www.palomahotels.com/loyalty-redirect",
+        "https://www.palomahotels.com/en/paloma-orenda/explore",
+        "https://www.palomahotels.com/en/Home/VacationCardPage",
+        "https://www.palomahotels.com/en/paloma-orenda/mice"
+      ],
+      "public_text": "Paloma Orenda | Paloma Hotels BOOK NOW 0850 440 00 00 HOME STAY EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS OFFERS PALOMA LOYALTY HAPPY PALS EARN&BURN EXPLORE BOOK NOW EN TR EN DE RU +90 850 440 00 00 HOME STAY EXPERIENCES OFFERS PALOMA LOYALTY EXPLORE EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS MICE PALOMA LOYALTY HAPPY PALS EARN&BURN Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now Hello My Name in Angel. Welcome to PALOMA! How can we help you? Play Video Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now HOME / PALOMA ORENDA More Ways to Come Together At Paloma Orenda, a great holiday has room for everyone’s idea of fun. A morning match on the tennis court, a new adventure on the water, a long lunch that nobody wants to end - the best days are made of moments shared and stories worth telling. Set across eight hectares of gardens beside the Mediterranean in Side, Orenda pairs clean-lined, low-rise architecture with the warm hospitality of Paloma. Its 350-metre sandy beach invites you to slow down, while sports facilities ranging from tennis and padel to archery and water sports offer plenty of ways to get moving. Palomaqua Side brings another dimension to the holiday, with 19 slides and splash attractions at one of the region’s most comprehensive water parks. Palomaqua is also Türkiye’s first resort water park to receive Safe Fun safety certification. Between adventures, fresh, flavourful dining and the generous choice of Ultra All Inclusive hospitality, Orenda always offers an option you can look forward to. Active when you want it to be, wonderfully relaxed when you don’t, Orenda makes room for every kind of holiday. Paloma Orenda. Made for More Together. IN THE SPOTLIGHT BEACH Paloma Orenda excites you with its spaceless 350m golden sand beach. Stretch out in your sun-lounger or beneath private, beachside cabanas, order your favourite beachy cocktail. TENNIS & CATAMARAN Paloma Orenda offers 10 quartz and 2 clay tennis courts for you to keep you fit and bring you joyful moments during your holiday and provides various Catamaran courses for beginners as well as advanced users. Professionals with licenses can explore the wide-open sea. NEW F&B CONCEPT Our culinary team is on an innovative mission to challenge your palate with food presentations made from locally sourced highest quality ingredients and created with impeccable techniques. Limitless fun for everyone Palomaqua! The largest and most diverse water park in the region, Palomaqua consists of 19 water slides and various water courses that surprises and entertains thrill-seekers of all ages. The color scheme of the water park is designed to highlight the water slides even more. DISCOVER ROOMS Touched by contemporary sleek style, filled with the natural colors of Mediterranean. Discover our divine collection of rooms at Paloma Orenda. DISCOVER RESTAURANTS We invite you to enjoy our restaurants, all of which have a unique ambiance. A delightful journey to our culinary heritage presenting traditional dishes with a twist of modern sophistication. DISCOVER BARS Paloma Orenda's bars highlights the best of local ingredients to create our own signature beverages and cocktails. DISCOVER BEACH & POOL Paloma Orenda excites you with its turquoise pools, golden sands and deep blue sea in a charming Mediterranean environment. Select your sun-lounger and lose yourself in a day of indulgent relaxation by the beach or pool. DISCOVER ACTIVITIES You can have fun while experiencing our perfectly personalised activities that will keep you captivated. Find the most exciting sport that will relax your body and mind at Paloma Orenda. DISCOVER POLLY KIDS & TEENAGE CLUB It is crucial that your children enjoy their vacation and have fun safely. The trained and experienced staff of the Polly Kids’ Club hold activities and workshops for the kids to have fun and learn at the same time. DISCOVER SPA & WELLNESS WELLBEING Achieve complete balance in our SPA center, with progressive spa therapies, professional beauty treatments and massages, just for you. Select the treatment of your choosing to relax physically, mentally and spiritually. DISCOVER PALOMA ORENDA | SIDE - ANTALYA PALOMA Orenda is located in Manavgat, Titreyengol, about 6 km from Side city center, 75 km from Antalya Airport and 80 km from Antalya city center. It has 270 rooms. PALOMA ORENDA (Belge No: 2224) Sorgun Mah. Acısu Mevkii Sk. No:22, Manavgat/Antalya Türkiye +90 242 744 27 00 Information and Reservation +90 850 440 00 00 FOLLOW US © 2026 Paloma Hotels. All rights reserved.",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "tag": "img",
+          "alt": "Paloma Number",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+          "tag": "img",
+          "alt": "Paloma Index",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "tag": "img",
+          "alt": "Paloma Menu",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Book Now Close",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/16-10-2026-15-07-45orenda-videokapak-1920x1080.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-24-40orenda%20%282%29.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-27-PM10-6-2020-1-19-55-pmorenda-index1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-8-2020-7-22-34-pmbeach.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-6-2020-1-31-06-pmor-sli-2.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-14-PM10-6-2020-1-34-26-pmor-sli-3.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-50-56-PM9-23-2020group-751.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/9-23-2020palomaqua-logo.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmjunior-sutes.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmgroup-735.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmgroup-339.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-40-54-pmor-dis-1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-40-54-pmor-dis-2.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM9-28-2020-2-30-13-pmorenda-index-polly.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-5-53-46-PM10-6-2020-1-46-24-pmor-dis-3.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/master-logo-w.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/down-btn.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.alibey.com/en/resort",
+      "final_url": "https://www.alibey.com/en/resort",
+      "page_title": "Ali Bey Resort Sorgun Side - Ali Bey Hotels & Resorts ",
+      "image_hosts": [
+        "www.alibey.com"
+      ],
+      "image_urls": [
+        "https://www.alibey.com/content/res/images/favicon/apple-touch-icon.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-32x32.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-16x16.png",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyhotels-anasayfa-promo.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyresort-promo-2.jpg",
+        "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-promo-2.jpg",
+        "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-room-family-suit-room-mid.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Resort_Sorgun_Dubleks_Aileorta.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Sorgun_Resort_Deluks_Suit_Oda_Orta.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey-Resort-Sorgun-Aile-Odasi_2.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/Sessiz_Havuz.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-spa---.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-tennis---.jpg",
+        "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-cocuk-dunyasi-detay.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-aqua.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-resort-gurme-lezzetler.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/park.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/club.jpg",
+        "https://www.alibey.com/content/res/images/footer-logo.png",
+        "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+        "https://www.alibey.com/content/res/images/clockwork-logo.png",
+        "https://www.alibey.com/content/res/images/icons/success.png",
+        "https://www.alibey.com/content/res/images/icons/error.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.alibey.com/content/res/images/favicon/apple-touch-icon.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-32x32.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-16x16.png",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyhotels-anasayfa-promo.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyresort-promo-2.jpg",
+        "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-promo-2.jpg",
+        "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-room-family-suit-room-mid.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Resort_Sorgun_Dubleks_Aileorta.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Sorgun_Resort_Deluks_Suit_Oda_Orta.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey-Resort-Sorgun-Aile-Odasi_2.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/Sessiz_Havuz.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-spa---.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-tennis---.jpg",
+        "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-cocuk-dunyasi-detay.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-aqua.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-resort-gurme-lezzetler.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/park.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/club.jpg",
+        "https://www.alibey.com/content/res/images/footer-logo.png",
+        "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+        "https://www.alibey.com/content/res/images/clockwork-logo.png",
+        "https://www.alibey.com/content/res/images/icons/success.png",
+        "https://www.alibey.com/content/res/images/icons/error.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo/alibeyresort-promo-2.jpg",
+          "alt": "Resort Sorgun"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-promo-2.jpg",
+          "alt": "Deluxe Room"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-room-family-suit-room-mid.jpg",
+          "alt": "Family Suite"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Resort_Sorgun_Dubleks_Aileorta.jpg",
+          "alt": "Duplex Family Suite"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Sorgun_Resort_Deluks_Suit_Oda_Orta.jpg",
+          "alt": "Suite Deluxe"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey-Resort-Sorgun-Aile-Odasi_2.jpg",
+          "alt": "Family Room"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/Sessiz_Havuz.jpg",
+          "alt": "Relax in a tranquil setting away from all the noise, where you can enjoy the Sun and water peacefully. "
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-spa---.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-tennis---.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-cocuk-dunyasi-detay.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-aqua.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-resort-gurme-lezzetler.jpg",
+          "alt": "Unique flavours prepared by our master chefs, with exquisite buffets, Turkish delicacies, delicious tastes from all over the world and scrumptious deserts worth indulging in. "
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/park.jpg",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/club.jpg",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/footer-logo.png",
+          "alt": "Ali Bey Hotels & Resorts Logo"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+          "alt": "Gürok Logo"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/clockwork-logo.png",
+          "alt": "Clockwork Digital Agency"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/success.png",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/error.png",
+          "alt": "Ali Bey Hotels & Resorts"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.alibey.com/content/res/images/favicon/site.webmanifest",
+        "https://www.alibey.com/en/resort",
+        "https://www.alibey.com/ru/resort",
+        "https://www.alibey.com/de/resort",
+        "https://www.alibey.com/tr/resort",
+        "https://www.alibey.com/",
+        "https://www.alibey.com/en/otellerimiz",
+        "https://www.alibey.com/en/news",
+        "https://www.alibey.com/en/resort/rooms",
+        "https://www.alibey.com/en/resort/gourmet-tastes",
+        "https://www.alibey.com/en/resort/tennis",
+        "https://www.alibey.com/en/resort/beach-waterpark",
+        "https://www.alibey.com/en/resort/samara-spa",
+        "https://www.alibey.com/en/resort/childrens-world",
+        "https://www.alibey.com/en/resort/activities",
+        "https://www.alibey.com/en",
+        "https://www.alibey.com/en/resort/rooms/deluxe-room",
+        "https://www.alibey.com/en/resort/rooms/family-suite",
+        "https://www.alibey.com/en/resort/rooms/duplex-family-suite",
+        "https://www.alibey.com/en/resort/rooms/suite-deluxe",
+        "https://www.alibey.com/en/resort/rooms/family-room",
+        "https://www.alibey.com/en/resort/beach-waterpark/pools",
+        "https://www.alibey.com/en/resort/activities/fitness-first",
+        "https://www.alibey.com/en/park",
+        "https://www.alibey.com/en/club",
+        "https://www.alibey.com/en/corporate/about-us",
+        "https://www.alibey.com/en/corporate/history",
+        "https://www.alibey.com/en/corporate/privacy-policy",
+        "https://www.alibey.com/en/corporate/quality-and-environmental-policy",
+        "https://www.alibey.com/en/corporate/social-responsibility"
+      ],
+      "public_text": "Ali Bey Resort Sorgun Side - Ali Bey Hotels & Resorts Ali Bey Resort Sorgun etkinlik takvimi güncellendi! Homepage Hotels | News Newsletter +90 242 277 10 04 TR EN TR RU DE EN TR RU DE Newsletter Terms Dear guest, If you subscribe to our newsletter, you will receive regular emails about news, special offers and other topics regarding anything ALİ BEY HOTELS & RESORTS. If at any point you wish to unsubscribe from your newsletter, you can do so by clicking the provided unsubscribe link in the newsletter emails. We do not share our subscribers' personal information with third parties. ROOMS GOURMET TASTES TENNIS BEACH & WATERPARK SAMARA SPA KIDS ACTIVITIES RESERVATION HOTEL HOTEL + FLİGHT ROOMS GOURMET TASTES TENNIS BEACH & WATERPARK SAMARA SPA KIDS ACTIVITIES Homepage Hotels News Newsletter English Türkçe Russian Deutsch +90 242 277 10 04 Ali Bey Resort Sorgun [url omitted] +90 242 744 14 14 +90 242 744 14 24 sales@alibey.com [url omitted] Side Mahallesi Adnan Menderes Blv. 26/A Manavgat Antalya 07600 Turkey Ali Bey Resort Sorgun Luxury, Comfort And Turkish Hospitality RESERVATION Homepage A Unique Holiday Experience You will feel special every moment at Ali Bey Resort Sorgun Deluxe Room Family Suite Duplex Family Suite Suite Deluxe Family Room Quiet Pool Relax in a tranquil setting away from all the noise, where you can enjoy the Sun and water peacefully. QUIET POOL Activities Spa Tennis Fitness First Kids Aquapark Gourmet Tastes Unique flavours prepared by our master chefs, with exquisite buffets, Turkish delicacies, delicious tastes from all over the world and scrumptious deserts worth indulging in. GOURMET TASTES Discover Other Hotels Park Manavgat Club Manavgat HOTELS Ali Bey Resort Sorgun Ali Bey Club Manavgat Ali Bey Park Manavgat CORPORATE About us History Privacy Policy Quality and Environmental Policy Social Responsibility CORPORATE Human Resources Awards & Certificates Sustainability Contact THEMES Honeymoon Hygienic Measures During the Pandemic Fitness First Padel Family Hotel Early Booking Opportunities SUBSCRIBE Copyright 2018 © Ali Bey Hotels & Resorts Cookies are used on our web site to improve the browsing experience of our visitors and to provide you with a better service. If you decline cookies, you may limit the applications to work with on our web site or some features may not work as desired. For more information about our Cookie Policy please click here . Click here to learn more about our Company's Personal Data Storage and Destruction Policy Accept Newsletter Form Subscribe to newsletter Preferred Language English Türkçe Russian Deutsch I accept all messages by you to the email address that I have stated above. Your request has been received successfully. Thanks. NOT TRANSLATED !!",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo/alibeyresort-promo-2.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-promo-2.jpg",
+          "tag": "img",
+          "alt": "Deluxe Room",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/alibey-resort-sorgun-room-family-suit-room-mid.jpg",
+          "tag": "img",
+          "alt": "Family Suite",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Resort_Sorgun_Dubleks_Aileorta.jpg",
+          "tag": "img",
+          "alt": "Duplex Family Suite",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Sorgun_Resort_Deluks_Suit_Oda_Orta.jpg",
+          "tag": "img",
+          "alt": "Suite Deluxe",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey-Resort-Sorgun-Aile-Odasi_2.jpg",
+          "tag": "img",
+          "alt": "Family Room",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/Sessiz_Havuz.jpg",
+          "tag": "img",
+          "alt": "Relax in a tranquil setting away from all the noise, where you can enjoy the Sun and water peacefully. ",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-spa---.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-tennis---.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-cocuk-dunyasi-detay.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-aqua.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-resort-gurme-lezzetler.jpg",
+          "tag": "img",
+          "alt": "Unique flavours prepared by our master chefs, with exquisite buffets, Turkish delicacies, delicious tastes from all over the world and scrumptious deserts worth indulging in. ",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/park.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/club.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/footer-logo.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts Logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+          "tag": "img",
+          "alt": "Gürok Logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/clockwork-logo.png",
+          "tag": "img",
+          "alt": "Clockwork Digital Agency",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/success.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/error.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.hillsidebeachclub.com/en/gallery",
+      "final_url": "https://www.hillsidebeachclub.com/en/gallery",
+      "page_title": "Gallery | Hillside Beach Club Official Website",
+      "image_hosts": [
+        "storage.googleapis.com",
+        "www.hillsidebeachclub.com"
+      ],
+      "image_urls": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/gallery/bg.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/vlog/vlog-logo.png",
+        "https://www.hillsidebeachclub.com/assets/img/vlog/vlogPlay.png",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/gallery/bg.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/vlog/vlog-logo.png",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/vlog/image/original/5.jpg?=eee44c44d9d257ddc471ef6aa7578e54",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/vlog/image/original/1.jpg?=eee44c44d9d257ddc471ef6aa7578e54",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/vlog/image/original/3.jpg?=eee44c44d9d257ddc471ef6aa7578e54",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/vlog/image/original/2.jpg?=eee44c44d9d257ddc471ef6aa7578e54",
+        "https://www.hillsidebeachclub.com/assets/img/vlog/vlogPlay.png",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/spa.jpg?=44c622b7265d758acd40a09720d4bacb",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/activity-center.jpg?=44c622b7265d758acd40a09720d4bacb",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/beaches.jpg?=95ace536daa00b4249fc9bbdb4302f58",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/rooms.jpg?=95ace536daa00b4249fc9bbdb4302f58",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/kidside.jpg?=95ace536daa00b4249fc9bbdb4302f58",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/pool.jpg?=95ace536daa00b4249fc9bbdb4302f58",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/sport-activities.jpg?=016b61c84cf39219517a70171528cd99",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/restaurants.jpg?=016b61c84cf39219517a70171528cd99",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/outside.jpg?=016b61c84cf39219517a70171528cd99",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/bars.jpg?=016b61c84cf39219517a70171528cd99",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/water-sports.jpg?=016b61c84cf39219517a70171528cd99",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/artside.jpg?=016b61c84cf39219517a70171528cd99",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/gallery-category/image/original/honeymoon.jpg?=e832c4305aa20d25c02b859da059e8ad",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/vlog/vlog-logo.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/vlog/vlogPlay.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.hillsidebeachclub.com",
+        "https://www.hillsidebeachclub.com/en/gallery",
+        "https://www.hillsidebeachclub.com/de/galerie",
+        "https://www.hillsidebeachclub.com/ru/gallery",
+        "https://www.hillsidebeachclub.com/nl/galerij",
+        "https://www.hillsidebeachclub.com/tr/galeri",
+        "https://www.hillsidebeachclub.com/en",
+        "https://www.hillsidebeachclub.com/en/about-the-resort",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/rooms",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/restaurants",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/bars",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/pool",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/region",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/resort-map",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/meetings",
+        "https://www.hillsidebeachclub.com/en/experiences",
+        "https://www.hillsidebeachclub.com/en/experiences/water-sports",
+        "https://www.hillsidebeachclub.com/en/experiences/children-youth",
+        "https://www.hillsidebeachclub.com/en/experiences/yoga",
+        "https://www.hillsidebeachclub.com/en/experiences/sports-activities",
+        "https://www.hillsidebeachclub.com/en/experiences/excursion",
+        "https://www.hillsidebeachclub.com/en/experiences/artside",
+        "https://www.hillsidebeachclub.com/en/experiences/honeymoons",
+        "https://www.hillsidebeachclub.com/en/spa-wellness",
+        "https://www.hillsidebeachclub.com/en/feel-good-stories",
+        "https://www.hillsidebeachclub.com/en/contact",
+        "https://www.hillsidebeachclub.com/en/more",
+        "https://www.hillsidebeachclub.com/en/guest-reviews",
+        "https://www.hillsidebeachclub.com/en/featured-in"
+      ],
+      "public_text": "Gallery | Hillside Beach Club Official Website '); } ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT MORE EN TR DE RU BOOK NOW ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings All About EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons All Experiences SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT Contact Form Map App Social Media Subscribe MORE GUEST REVIEWS FEATURED-IN PRESS ROOM SEE MORE BOOK NOW GALLERY Take a quick and impressive photographic tour to better visualise Hillside Beach Club and its myriad delights. BFI x Hillside Summer Screenings Event Heaven for Kids Feel Good Week Classical Music on the Sea Click For More BFI x Hillside Summer Screenings Event Heaven for Kids Feel Good Week SPA Activity Center Beaches Rooms Kidside Pool Sport Activities Restaurants Outside Bars Water Sports Artside Honeymoons Follow us on HillsideBeachClub press room business associates awards sustainability © 2019 Hillside Beach Club. All rights reserved. Hillside Beach Club is a Alarko company. Privacy And Protection Of Personal Data Policy Hillside Beach Club Official Website",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/vlog/vlog-logo.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/vlog/vlogPlay.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/our-hotel",
+      "final_url": "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/our-hotel",
+      "page_title": "Our Hotel | Kempinski Hotel Barbaros Bay Bodrum",
+      "image_hosts": [
+        "storage.kempinski.com",
+        "www.kempinski.com"
+      ],
+      "image_urls": [
+        "https://www.kempinski.com/apple-icon-180x180.png",
+        "https://www.kempinski.com/favicon-96x96.png",
+        "https://www.kempinski.com/favicon-32x32.png",
+        "https://www.kempinski.com/favicon-16x16.png",
+        "https://www.kempinski.com/var/site/storage/images/2/7/2/4/764272-1-eng-GB/685581c4d1ba-74532214_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/2/3/3/4/764332-1-eng-GB/7a178f70f657-74532236_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/2/2/0/5/765022-1-eng-GB/7a76d18c37ef-74532366_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/7/9/1859714-1-eng-GB/d021509859cf-76882744_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/5/7/7/3/2373775-1-eng-GB/16999e0ea833-XXMAREAL-2538_1285x240_en-2-2-.jpg",
+        "https://www.kempinski.com/var/site/storage/images/3/5/5/2/19212553-1-eng-GB/8cb898d0b3e5-Join-form-image1.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image1.jpg",
+        "https://www.kempinski.com/var/site/storage/images/7/5/5/2/19212557-1-eng-GB/5ddead5b59fb-Join-form-image2.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image2.jpg",
+        "https://www.kempinski.com/var/site/storage/images/1/6/5/2/19212561-1-eng-GB/7b8656537568-Join-form-image3.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image3.jpg",
+        "https://www.kempinski.com/var/site/storage/images/5/6/5/2/19212565-1-eng-GB/ee58eda82926-Join-form-image4.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image4.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/6/5/2/19212569-1-eng-GB/c461bd8208b3-Join-form-image5.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image5.jpg",
+        "https://www.kempinski.com/var/site/storage/images/3/7/5/2/19212573-1-eng-GB/7e2ed6b9c841-Join-form-image6.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image6.jpg",
+        "https://www.kempinski.com/var/site/storage/images/7/7/5/2/19212577-1-eng-GB/2763b5269f84-Join-form-image7.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image7.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down/ki-cms-prod/images/2/7/2/4/764272-1-eng-GB/685581c4d1ba-74532214_4K.jpg",
+        "https://www.kempinski.com/apple-icon-180x180.png",
+        "https://www.kempinski.com/favicon-96x96.png",
+        "https://www.kempinski.com/favicon-32x32.png",
+        "https://www.kempinski.com/favicon-16x16.png",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/2/7/2/4/764272-1-eng-GB/685581c4d1ba-74532214_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/1/7/9/1859714-1-eng-GB/d021509859cf-76882744_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/2/7/2/4/764272-1-eng-GB/685581c4d1ba-74532214_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/2/3/3/4/764332-1-eng-GB/7a178f70f657-74532236_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/2/2/0/5/765022-1-eng-GB/7a76d18c37ef-74532366_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/2/7/2/4/764272-1-eng-GB/685581c4d1ba-74532214_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/2/3/3/4/764332-1-eng-GB/7a178f70f657-74532236_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/2/2/0/5/765022-1-eng-GB/7a76d18c37ef-74532366_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/7/9/1859714-1-eng-GB/d021509859cf-76882744_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/5/7/7/3/2373775-1-eng-GB/16999e0ea833-XXMAREAL-2538_1285x240_en-2-2-.jpg",
+        "https://www.kempinski.com/var/site/storage/images/3/5/5/2/19212553-1-eng-GB/8cb898d0b3e5-Join-form-image1.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image1.jpg",
+        "https://www.kempinski.com/var/site/storage/images/7/5/5/2/19212557-1-eng-GB/5ddead5b59fb-Join-form-image2.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image2.jpg",
+        "https://www.kempinski.com/var/site/storage/images/1/6/5/2/19212561-1-eng-GB/7b8656537568-Join-form-image3.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image3.jpg",
+        "https://www.kempinski.com/var/site/storage/images/5/6/5/2/19212565-1-eng-GB/ee58eda82926-Join-form-image4.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image4.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/6/5/2/19212569-1-eng-GB/c461bd8208b3-Join-form-image5.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image5.jpg",
+        "https://www.kempinski.com/var/site/storage/images/3/7/5/2/19212573-1-eng-GB/7e2ed6b9c841-Join-form-image6.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image6.jpg",
+        "https://www.kempinski.com/var/site/storage/images/7/7/5/2/19212577-1-eng-GB/2763b5269f84-Join-form-image7.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/Join-form-image7.jpg"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/our-hotel",
+        "https://www.kempinski.com/favicon.ico",
+        "https://www.kempinski.com/_next/static/media/HeleneHess-Regular.2173c10d.woff2",
+        "https://www.kempinski.com/",
+        "https://www.kempinski.com/en/",
+        "https://www.kempinski.com/en/about-us",
+        "https://www.kempinski.com/en/sustainability",
+        "https://www.kempinski.com/en/development",
+        "https://www.kempinski.com/en/residences",
+        "https://www.kempinski.com/en/contact-us",
+        "https://www.kempinski.com/en/press-room",
+        "https://www.kempinski.com/en/price-match-promise",
+        "https://www.kempinski.com/en/shop-kempinski",
+        "https://www.kempinski.com/en/loyalty/download-our-app",
+        "https://www.kempinski.com/en/wechat-qr-code",
+        "https://www.kempinski.com/en/legal",
+        "https://www.kempinski.com/en/privacy-policy",
+        "https://www.kempinski.com/en/imprint",
+        "https://www.kempinski.com/en/sitemap"
+      ],
+      "public_text": "Our Hotel | Kempinski Hotel Barbaros Bay Bodrum SIGN IN BOOK NOW BOOK Our Hotel Nestled in the most sophisticated spot Our Hotel WELCOME TO THE 5-STAR LUXURY KEMPINSKI HOTEL BARBAROS BAY BODRUM Welcome to the epitome of luxury at Kempinski Hotel Barbaros Bay Bodrum, a luxury 5-star resort set on the cliffs of pristine Barbaros Bay. Nestled on the stunning cliffs overlooking the azure blue Aegean Sea, our hotel offers an unparalleled retreat. Immerse yourself in opulent accommodations, each designed with meticulous attention to detail, providing a perfect blend of comfort and sophistication. Indulge in world-class dining at our diverse restaurants, offering a symphony of flavors inspired by global and local cuisines. Whether you're relaxing by the infinity pool, unwinding at the 5500 sqm Kempinski Wellness & Spa, or enjoying water sports on the private silent beach, every moment promises indulgence. Our attentive staff ensures impeccable service, creating an atmosphere of refined elegance. With the captivating beauty of Bodrum as your backdrop, Kempinski Hotel Barbaros Bay Bodrum invites you to experience a harmonious blend of luxury and natural splendor, making your stay a truly memorable escape. About Us Careers Sustainability Development Residences Contact Us Press Room Price Match Promise Shop Kempinski Download our App Sign up for offers, news and travel inspiration Legal Privacy Policy Imprint Sitemap © 2026 Kempinski Hotels",
+      "json_fact_fragments": [
+        {
+          "path": ".props.pageProps.page.metaDescription",
+          "text": "Find the details of Kempinski Hotel Barbaros Bay Bodrum what makes the building and location so unique and what you can expect to discover here."
+        },
+        {
+          "path": ".props.siteDesign.joinFormMembershipBenefits.longDescription",
+          "text": "Save up to 10% when booking direct on kempinski.com, via our app or at the hotel."
+        },
+        {
+          "path": ".props.siteDesign.joinFormMembershipBenefits.longDescription",
+          "text": "Receive up to 7% back in DISCOVERY Dollars (D$) to spend on your future getaways."
+        },
+        {
+          "path": ".props.siteDesign.joinFormMembershipBenefits.longDescription",
+          "text": "Access Local Offers and Experiences to uncover the best of your chosen destination."
+        }
+      ],
+      "album_context": [
+        "barbaros-bay/hotel-overview/hotel-information/our-hotel\",\"description\":\"WELCOME TO THE 5-STAR LUXURY KEMPINSKI HOTEL BARBAROS BAY BODRUMWelcome to the epitome of luxury at Kempinski Hotel Barbaros Bay Bodrum, a luxury 5-star resort set on the cliffs of pristine Barbaros Bay. Nestled on the stunning cliffs overlooking the azure blue Aegean Sea, our hotel offers an unparalleled retreat.&nbsp;Immerse yourself in opulent accommodations, each designed with meticulous attention to detail, providing a perfect blend of comfort and sophistication. Indulge in world-class dining at our diverse restaurants, offering a symphony of flavors inspired by globa",
+        " table-richtext theme-richtext\"><h4>WELCOME TO THE 5-STAR LUXURY KEMPINSKI HOTEL BARBAROS BAY BODRUM</h4><p style=\"text-align:justify;\">Welcome to the epitome of luxury at Kempinski Hotel Barbaros Bay Bodrum, a luxury 5-star resort set on the cliffs of pristine Barbaros Bay. Nestled on the stunning cliffs overlooking the azure blue Aegean Sea, our hotel offers an unparalleled retreat.&nbsp;</p><p style=\"text-align:justify;\">Immerse yourself in opulent accommodations, each designed with meticulous attention to detail, providing a perfect blend of comfort and sophistication. Indulge in world-class dining at our diverse restaurants, offering a sy",
+        "\\u003ch4\\u003eWELCOME TO THE 5-STAR LUXURY KEMPINSKI HOTEL BARBAROS BAY BODRUM\\u003c/h4\\u003e\\u003cp style=\\\"text-align:justify;\\\"\\u003eWelcome to the epitome of luxury at Kempinski Hotel Barbaros Bay Bodrum, a luxury 5-star resort set on the cliffs of pristine Barbaros Bay. Nestled on the stunning cliffs overlooking the azure blue Aegean Sea, our hotel offers an unparalleled retreat.\\u0026nbsp;\\u003c/p\\u003e\\u003cp style=\\\"text-align:justify;\\\"\\u003eImmerse yourself in opulent accommodations, each designed with meticulous attention to detail, providing a perfect blend of comfort and sophistication. Indulge in world-class dining at our diverse"
+      ],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://www.kempinski.com/en/hotel-barbaros-bay/gallery",
+      "final_url": "https://www.kempinski.com/en/hotel-barbaros-bay/gallery",
+      "page_title": "Photo Gallery | Kempinski Hotel Barbaros Bay Bodrum",
+      "image_hosts": [
+        "storage.kempinski.com",
+        "www.kempinski.com"
+      ],
+      "image_urls": [
+        "https://www.kempinski.com/apple-icon-180x180.png",
+        "https://www.kempinski.com/favicon-96x96.png",
+        "https://www.kempinski.com/favicon-32x32.png",
+        "https://www.kempinski.com/favicon-16x16.png",
+        "https://www.kempinski.com/var/site/storage/images/4/1/1/6/1856114-1-eng-GB/6518fce3fb13-76882790_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/4/1/6/1856144-1-eng-GB/6b7d354253fd-76882792_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/2/0/6/1856024-1-eng-GB/106b967d141f-76882784_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/9/9/5/1855994-1-eng-GB/572b481db81e-76882782_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/4/6/1856474-1-eng-GB/606735b92ddb-76882714_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/6/5/3/1863569-1-eng-GB/e85a2c820cfa-76805980_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/1/7/3/1863719-1-eng-GB/2755facf30f2-76805904_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/0/5/3/1863509-1-eng-GB/82a379a871c1-76805972_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_Grand-deluxe-bedroom-2.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/2/3/3/1863329-1-eng-GB/340728615094-76805850_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/2/5/4/1864529-1-eng-GB/a13f7ad01b8c-76805090_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/6/1/4/1864169-1-eng-GB/70aecc284a9e-76805060_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/7/6/4/1864679-1-eng-GB/7b40bf3d7d12-76805000_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/7/0/4/1864079-1-eng-GB/fda422971082-76805016_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/4/0/4/1864049-1-eng-GB/92528e691af9-76805952_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/9/8/3/1863899-1-eng-GB/00d9e670e573-76805946_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/5/5/4/1864559-1-eng-GB/754fb9f34344-76805092_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/1/6/4/1864619-1-eng-GB/b42194b37015-76805006_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/1/3/4/1864319-1-eng-GB/9134949af6ee-76805074_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/3/1/4/1864139-1-eng-GB/7ef01ec03395-76805066_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/3/5/3/1863539-1-eng-GB/2be05c2cd957-76805986_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/5/8/1858574-1-eng-GB/5259640625a2-76882834_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/3/6/8/1858634-1-eng-GB/34eb8a4bbd7a-76882848_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/0/1/0/1860104-1-eng-GB/2f9a54663b9f-76882906_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/0/0/1860074-1-eng-GB/ffe8597fdeb8-76882994_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/6/7/1857674-1-eng-GB/3f84852e6e0e-76882874_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/2/1/8/1858124-1-eng-GB/4f754a1c8264-76882804_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/5/8/7/1857854-1-eng-GB/0c7a9fd36235-76882896_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/8/4/8/1858484-1-eng-GB/ffcbc04c1228-76882838_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/9/7/1857914-1-eng-GB/90fb991ad609-76882890_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/8/1/8/1858184-1-eng-GB/389899d4077a-76882818_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Chill%20Out%20%285%29.jpg",
+        "https://www.kempinski.com/var/site/storage/images/0/3/2/4/1404230-1-eng-GB/39ecbaea54ec-75961775_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/4/6/7/1857644-1-eng-GB/b4e39b73038e-76882872_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/6/6/8/1858664-1-eng-GB/e6616c39b6cb-76882068_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/8/8/1858814-1-eng-GB/85b1ed14550d-76882078_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/4/8/8/1858844-1-eng-GB/2e35af7b1818-76882070_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/8/8/1858874-1-eng-GB/678cf1aa125d-76882072_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/0/9/8/1858904-1-eng-GB/0c5cba10f43a-76882074_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/1/9/1859114-1-eng-GB/f602c884c18c-76882918_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/1/9/1859174-1-eng-GB/9fb764d01bb1-76882912_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/0/7/4/1864709-1-eng-GB/1a03b39ece21-76805002_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/5/3/9/1859354-1-eng-GB/1b8f5aadeb33-76882924_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/5/2/0/1860254-1-eng-GB/e38770fcd4cf-76882950_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/3/0/1860374-1-eng-GB/cc9eaec37126-76882996_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/0/0/5/4/1404500-1-eng-GB/9f4d8f4f6212-75961639_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-spring-3.JPG",
+        "https://www.kempinski.com/var/site/storage/images/4/0/0/4/1964004-1-eng-GB/3b33b89678f8-76121108_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-spring-2.JPG",
+        "https://www.kempinski.com/var/site/storage/images/4/3/0/4/1964034-1-eng-GB/77533d496d98-76121100_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-spring.JPG",
+        "https://www.kempinski.com/var/site/storage/images/4/6/0/4/1964064-1-eng-GB/6cd13e3d9199-76121102_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-details.JPG",
+        "https://www.kempinski.com/var/site/storage/images/4/9/0/4/1964094-1-eng-GB/1d261c0abfd6-76121116_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-2.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/2/1/4/1964124-1-eng-GB/257968145a7f-76121118_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/5/7/7/3/2373775-1-eng-GB/16999e0ea833-XXMAREAL-2538_1285x240_en-2-2-.jpg",
+        "https://www.kempinski.com/var/site/storage/images/3/5/5/2/19212553-1-eng-GB/8cb898d0b3e5-Join-form-image1.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image1.jpg",
+        "https://www.kempinski.com/var/site/storage/images/7/5/5/2/19212557-1-eng-GB/5ddead5b59fb-Join-form-image2.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image2.jpg",
+        "https://www.kempinski.com/var/site/storage/images/1/6/5/2/19212561-1-eng-GB/7b8656537568-Join-form-image3.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image3.jpg",
+        "https://www.kempinski.com/var/site/storage/images/5/6/5/2/19212565-1-eng-GB/ee58eda82926-Join-form-image4.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image4.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/6/5/2/19212569-1-eng-GB/c461bd8208b3-Join-form-image5.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image5.jpg",
+        "https://www.kempinski.com/var/site/storage/images/3/7/5/2/19212573-1-eng-GB/7e2ed6b9c841-Join-form-image6.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image6.jpg",
+        "https://www.kempinski.com/var/site/storage/images/7/7/5/2/19212577-1-eng-GB/2763b5269f84-Join-form-image7.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image7.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://www.kempinski.com/apple-icon-180x180.png",
+        "https://www.kempinski.com/favicon-96x96.png",
+        "https://www.kempinski.com/favicon-32x32.png",
+        "https://www.kempinski.com/favicon-16x16.png",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/1/1/6/1856114-1-eng-GB/6518fce3fb13-76882790_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/4/1/6/1856144-1-eng-GB/6b7d354253fd-76882792_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/2/0/6/1856024-1-eng-GB/106b967d141f-76882784_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/9/9/5/1855994-1-eng-GB/572b481db81e-76882782_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/7/4/6/1856474-1-eng-GB/606735b92ddb-76882714_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/6/5/3/1863569-1-eng-GB/e85a2c820cfa-76805980_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/1/7/3/1863719-1-eng-GB/2755facf30f2-76805904_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/0/5/3/1863509-1-eng-GB/82a379a871c1-76805972_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/2/3/3/1863329-1-eng-GB/340728615094-76805850_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/2/5/4/1864529-1-eng-GB/a13f7ad01b8c-76805090_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/6/1/4/1864169-1-eng-GB/70aecc284a9e-76805060_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/7/6/4/1864679-1-eng-GB/7b40bf3d7d12-76805000_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/7/0/4/1864079-1-eng-GB/fda422971082-76805016_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/4/0/4/1864049-1-eng-GB/92528e691af9-76805952_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/9/9/8/3/1863899-1-eng-GB/00d9e670e573-76805946_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/7/6/7/1857674-1-eng-GB/3f84852e6e0e-76882874_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/2/1/8/1858124-1-eng-GB/4f754a1c8264-76882804_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/5/8/7/1857854-1-eng-GB/0c7a9fd36235-76882896_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/8/4/8/1858484-1-eng-GB/ffcbc04c1228-76882838_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/1/9/7/1857914-1-eng-GB/90fb991ad609-76882890_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/8/1/8/1858184-1-eng-GB/389899d4077a-76882818_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/0/3/2/4/1404230-1-eng-GB/39ecbaea54ec-75961775_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/4/6/7/1857644-1-eng-GB/b4e39b73038e-76882872_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/6/6/8/1858664-1-eng-GB/e6616c39b6cb-76882068_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/1/8/8/1858814-1-eng-GB/85b1ed14550d-76882078_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/7/5/8/1858574-1-eng-GB/5259640625a2-76882834_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/3/6/8/1858634-1-eng-GB/34eb8a4bbd7a-76882848_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/0/1/0/1860104-1-eng-GB/2f9a54663b9f-76882906_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/7/0/0/1860074-1-eng-GB/ffe8597fdeb8-76882994_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/5/2/0/1860254-1-eng-GB/e38770fcd4cf-76882950_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/7/3/0/1860374-1-eng-GB/cc9eaec37126-76882996_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/0/0/5/4/1404500-1-eng-GB/9f4d8f4f6212-75961639_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/0/0/4/1964004-1-eng-GB/3b33b89678f8-76121108_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/3/0/4/1964034-1-eng-GB/77533d496d98-76121100_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/6/0/4/1964064-1-eng-GB/6cd13e3d9199-76121102_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/9/0/4/1964094-1-eng-GB/1d261c0abfd6-76121116_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1200%2Ch=800%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/2/1/4/1964124-1-eng-GB/257968145a7f-76121118_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/1/1/6/1856114-1-eng-GB/6518fce3fb13-76882790_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/4/1/6/1856144-1-eng-GB/6b7d354253fd-76882792_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/2/0/6/1856024-1-eng-GB/106b967d141f-76882784_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/9/9/5/1855994-1-eng-GB/572b481db81e-76882782_4K.jpg",
+        "https://storage.kempinski.com/cdn-cgi/image/w=1920%2Cf=auto%2Cfit=scale-down%2Cg=auto/ki-cms-prod/images/4/7/4/6/1856474-1-eng-GB/606735b92ddb-76882714_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/1/6/1856114-1-eng-GB/6518fce3fb13-76882790_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/4/1/6/1856144-1-eng-GB/6b7d354253fd-76882792_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/2/0/6/1856024-1-eng-GB/106b967d141f-76882784_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/9/9/5/1855994-1-eng-GB/572b481db81e-76882782_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/4/6/1856474-1-eng-GB/606735b92ddb-76882714_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/6/5/3/1863569-1-eng-GB/e85a2c820cfa-76805980_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/1/7/3/1863719-1-eng-GB/2755facf30f2-76805904_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/0/5/3/1863509-1-eng-GB/82a379a871c1-76805972_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_Grand-deluxe-bedroom-2.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/2/3/3/1863329-1-eng-GB/340728615094-76805850_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/2/5/4/1864529-1-eng-GB/a13f7ad01b8c-76805090_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/6/1/4/1864169-1-eng-GB/70aecc284a9e-76805060_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/7/6/4/1864679-1-eng-GB/7b40bf3d7d12-76805000_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/7/0/4/1864079-1-eng-GB/fda422971082-76805016_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/4/0/4/1864049-1-eng-GB/92528e691af9-76805952_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/9/8/3/1863899-1-eng-GB/00d9e670e573-76805946_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/5/5/4/1864559-1-eng-GB/754fb9f34344-76805092_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/1/6/4/1864619-1-eng-GB/b42194b37015-76805006_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/1/3/4/1864319-1-eng-GB/9134949af6ee-76805074_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/3/1/4/1864139-1-eng-GB/7ef01ec03395-76805066_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/3/5/3/1863539-1-eng-GB/2be05c2cd957-76805986_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/5/8/1858574-1-eng-GB/5259640625a2-76882834_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/3/6/8/1858634-1-eng-GB/34eb8a4bbd7a-76882848_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/0/1/0/1860104-1-eng-GB/2f9a54663b9f-76882906_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/0/0/1860074-1-eng-GB/ffe8597fdeb8-76882994_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/6/7/1857674-1-eng-GB/3f84852e6e0e-76882874_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/2/1/8/1858124-1-eng-GB/4f754a1c8264-76882804_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/5/8/7/1857854-1-eng-GB/0c7a9fd36235-76882896_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/8/4/8/1858484-1-eng-GB/ffcbc04c1228-76882838_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/9/7/1857914-1-eng-GB/90fb991ad609-76882890_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/8/1/8/1858184-1-eng-GB/389899d4077a-76882818_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Chill%20Out%20%285%29.jpg",
+        "https://www.kempinski.com/var/site/storage/images/0/3/2/4/1404230-1-eng-GB/39ecbaea54ec-75961775_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/4/6/7/1857644-1-eng-GB/b4e39b73038e-76882872_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/6/6/8/1858664-1-eng-GB/e6616c39b6cb-76882068_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/8/8/1858814-1-eng-GB/85b1ed14550d-76882078_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/4/8/8/1858844-1-eng-GB/2e35af7b1818-76882070_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/8/8/1858874-1-eng-GB/678cf1aa125d-76882072_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/0/9/8/1858904-1-eng-GB/0c5cba10f43a-76882074_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/1/1/9/1859114-1-eng-GB/f602c884c18c-76882918_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/1/9/1859174-1-eng-GB/9fb764d01bb1-76882912_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/0/7/4/1864709-1-eng-GB/1a03b39ece21-76805002_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/5/3/9/1859354-1-eng-GB/1b8f5aadeb33-76882924_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/5/2/0/1860254-1-eng-GB/e38770fcd4cf-76882950_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/7/3/0/1860374-1-eng-GB/cc9eaec37126-76882996_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/0/0/5/4/1404500-1-eng-GB/9f4d8f4f6212-75961639_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-spring-3.JPG",
+        "https://www.kempinski.com/var/site/storage/images/4/0/0/4/1964004-1-eng-GB/3b33b89678f8-76121108_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-spring-2.JPG",
+        "https://www.kempinski.com/var/site/storage/images/4/3/0/4/1964034-1-eng-GB/77533d496d98-76121100_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-spring.JPG",
+        "https://www.kempinski.com/var/site/storage/images/4/6/0/4/1964064-1-eng-GB/6cd13e3d9199-76121102_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-details.JPG",
+        "https://www.kempinski.com/var/site/storage/images/4/9/0/4/1964094-1-eng-GB/1d261c0abfd6-76121116_4K.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/KIBXN_wedding-venue-2.jpg",
+        "https://www.kempinski.com/var/site/storage/images/4/2/1/4/1964124-1-eng-GB/257968145a7f-76121118_4K.jpg",
+        "https://www.kempinski.com/var/site/storage/images/5/7/7/3/2373775-1-eng-GB/16999e0ea833-XXMAREAL-2538_1285x240_en-2-2-.jpg",
+        "https://www.kempinski.com/var/site/storage/images/3/5/5/2/19212553-1-eng-GB/8cb898d0b3e5-Join-form-image1.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image1.jpg",
+        "https://www.kempinski.com/var/site/storage/images/7/5/5/2/19212557-1-eng-GB/5ddead5b59fb-Join-form-image2.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image2.jpg",
+        "https://www.kempinski.com/var/site/storage/images/1/6/5/2/19212561-1-eng-GB/7b8656537568-Join-form-image3.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image3.jpg",
+        "https://www.kempinski.com/var/site/storage/images/5/6/5/2/19212565-1-eng-GB/ee58eda82926-Join-form-image4.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image4.jpg",
+        "https://www.kempinski.com/var/site/storage/images/9/6/5/2/19212569-1-eng-GB/c461bd8208b3-Join-form-image5.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image5.jpg",
+        "https://www.kempinski.com/var/site/storage/images/3/7/5/2/19212573-1-eng-GB/7e2ed6b9c841-Join-form-image6.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image6.jpg",
+        "https://www.kempinski.com/var/site/storage/images/7/7/5/2/19212577-1-eng-GB/2763b5269f84-Join-form-image7.jpg",
+        "https://www.kempinski.com/en/hotel-barbaros-bay/Join-form-image7.jpg"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.kempinski.com/en/hotel-barbaros-bay/gallery",
+        "https://www.kempinski.com/tr/hotel-barbaros-bay/galeri",
+        "https://www.kempinski.com/favicon.ico",
+        "https://www.kempinski.com/_next/static/media/HeleneHess-Regular.2173c10d.woff2",
+        "https://www.kempinski.com/",
+        "https://www.kempinski.com/en/",
+        "https://www.kempinski.com/en/about-us",
+        "https://www.kempinski.com/en/sustainability",
+        "https://www.kempinski.com/en/development",
+        "https://www.kempinski.com/en/residences",
+        "https://www.kempinski.com/en/contact-us",
+        "https://www.kempinski.com/en/press-room",
+        "https://www.kempinski.com/en/price-match-promise",
+        "https://www.kempinski.com/en/shop-kempinski",
+        "https://www.kempinski.com/en/loyalty/download-our-app",
+        "https://www.kempinski.com/en/wechat-qr-code",
+        "https://www.kempinski.com/en/legal",
+        "https://www.kempinski.com/en/privacy-policy",
+        "https://www.kempinski.com/en/imprint",
+        "https://www.kempinski.com/en/sitemap"
+      ],
+      "public_text": "Photo Gallery | Kempinski Hotel Barbaros Bay Bodrum SIGN IN BOOK NOW BOOK Exterior Rooms & Suites Restaurants Spa Meetings & Events 1 / 5 About Us Careers Sustainability Development Residences Contact Us Press Room Price Match Promise Shop Kempinski Download our App Sign up for offers, news and travel inspiration Legal Privacy Policy Imprint Sitemap © 2026 Kempinski Hotels",
+      "json_fact_fragments": [
+        {
+          "path": ".props.pageProps.page.metaDescription",
+          "text": "View photos of Kempinski Hotel Barbaros Bay Bodrum and see for yourself the luxury and 5-star standards of our hotel and facilities. Book direct for best rates."
+        },
+        {
+          "path": ".props.siteDesign.joinFormMembershipBenefits.longDescription",
+          "text": "Save up to 10% when booking direct on kempinski.com, via our app or at the hotel."
+        },
+        {
+          "path": ".props.siteDesign.joinFormMembershipBenefits.longDescription",
+          "text": "Receive up to 7% back in DISCOVERY Dollars (D$) to spend on your future getaways."
+        },
+        {
+          "path": ".props.siteDesign.joinFormMembershipBenefits.longDescription",
+          "text": "Access Local Offers and Experiences to uncover the best of your chosen destination."
+        }
+      ],
+      "album_context": [],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://www.mandarinoriental.com/en/bodrum/paradise-bay",
+      "final_url": "https://www.mandarinoriental.com/en/bodrum/paradise-bay",
+      "page_title": " Luxury 5-Star Hotel | Mandarin Oriental, Bodrum ",
+      "image_hosts": [
+        "media.ffycdn.net",
+        "www.mandarinoriental.com"
+      ],
+      "image_urls": [
+        "https://www.mandarinoriental.com/img/icons/favicon-16x16.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-32x32.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-64x64.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-128x128.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-256x256.png",
+        "https://www.mandarinoriental.com/img/icons/android-36x36.png",
+        "https://www.mandarinoriental.com/img/icons/android-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/android-72x72.png",
+        "https://www.mandarinoriental.com/img/icons/android-96x96.png",
+        "https://www.mandarinoriental.com/img/icons/android-144x144.png",
+        "https://www.mandarinoriental.com/img/icons/android-192x192.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-60x60.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-76x76.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-120x120.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-152x152.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-167x167.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-180x180.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.mandarinoriental.com/img/icons/favicon-16x16.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-32x32.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-64x64.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-128x128.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-256x256.png",
+        "https://www.mandarinoriental.com/img/icons/android-36x36.png",
+        "https://www.mandarinoriental.com/img/icons/android-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/android-72x72.png",
+        "https://www.mandarinoriental.com/img/icons/android-96x96.png",
+        "https://www.mandarinoriental.com/img/icons/android-144x144.png",
+        "https://www.mandarinoriental.com/img/icons/android-192x192.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-60x60.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-76x76.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-120x120.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-152x152.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-167x167.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-180x180.png",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/EnNTne4iuoiLz8nfW6Po.png",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/bjqno34XYwY8nnPcgtki.jpg",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/KkeV2ndoShmTc1B42m31.jpg",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/QcZLF5YtKWtKhKm4eS5S.png",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/UQhkNjQqN2mDF8mG8zfT.png"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/zh-cn/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/tr/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/pt-br/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/fr/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/es/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/cs/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/it/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/ar-ae/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/es-es/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/de/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/el-gr/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/ru/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/ko-kr/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/th/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/ja/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/ca-es/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/id/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/zh-hk/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/nl/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/app.webmanifest",
+        "https://www.mandarinoriental.com/en",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/stay",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/dine",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/wellness",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/celebrate",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/meet",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/family",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/gallery"
+      ],
+      "public_text": "\") document.write(\" \") function OptanonWrapper() {} } else { document.write(\" \") function OptanonWrapper() {} } Luxury 5-Star Hotel | Mandarin Oriental, Bodrum Skip to Navigation Skip to Content Skip to Footer Global Home Bodrum Our Hotels & Resorts Sign In / Join Now Logout Languages Stay Dine Wellness Explore Celebrate Meet Family Gallery Gift Offers Book Book Stay Stay All Accommodations Rooms Suites Villas Apartments Connecting & Family Rooms Exceptional Villas Spacious Suites Dine All Dining Blue Beach Club & Bar Ferdi Baba GAIA Gigi Bodrum Hafız Mustafa 1864 Hakkasan Maison Revka Mandarin Bar Pool Bar & Restaurant ROKA Sofra Vakko L'atelier In-Room Dining Wellness All Wellness Spa Treatments Fitness Wellness Technology Packages and Retreats Family Schedule a Treatment Explore Celebrate Meet Gift Family Offers About Events Fans of M.O. Members Luxury Retails Sustainability Gallery All Destinations Asia-Pacific Bangkok Beijing - Qianmen Beijing - Wangfujing Desaru Coast Guangzhou Hangzhou (Opening Spring 2027) Hong Kong - Mandarin Oriental Hong Kong - The Landmark Jakarta Kuala Lumpur Macau Manila - Makati (Opening November 2026) Sanya Shanghai – Pudong Shenzhen Singapore Suzhou (Opening 2027) Taipei Tokyo Europe Amsterdam Barcelona Bodrum Cortina (Opening 2027) Costa Navarino Geneva Istanbul Lake Como London - Hyde Park London – Mayfair Luzern Madrid Mallorca Milan Munich Paris Paris - Lutetia Prague Vienna Zurich The Americas Boston Canouan Miami (Reopening 2030) New York Santiago Middle East & Africa Abu Dhabi Aswan - Old Cataract Doha Dubai - Downtown Dubai - Jumeira Beach Marrakech Muscat Riyadh Stay Dine Wellness Explore Celebrate Meet Gift Family Offers About Events Fans of M.O. Members Luxury Retails Sustainability Gallery All Destinations Back All Accommodations Rooms Suites Villas Apartments Connecting & Family Rooms Exceptional Villas Spacious Suites Back All Dining Blue Beach Club & Bar Ferdi Baba GAIA Gigi Bodrum Hafız Mustafa 1864 Hakkasan Maison Revka Mandarin Bar Pool Bar & Restaurant ROKA Sofra Vakko L'atelier In-Room Dining Back All Wellness Spa Treatments Fitness Wellness Technology Packages and Retreats Family Schedule a Treatment Back Back Back Back Back Back Back Back Back Back Back Back Back Asia-Pacific Bangkok Beijing - Qianmen Beijing - Wangfujing Desaru Coast Guangzhou Hangzhou (Opening Spring 2027) Hong Kong - Mandarin Oriental Hong Kong - The Landmark Jakarta Kuala Lumpur Macau Manila - Makati (Opening November 2026) Sanya Shanghai – Pudong Shenzhen Singapore Suzhou (Opening 2027) Taipei Tokyo Europe Amsterdam Barcelona Bodrum Cortina (Opening 2027) Costa Navarino Geneva Istanbul Lake Como London - Hyde Park London – Mayfair Luzern Madrid Mallorca Milan Munich Paris Paris - Lutetia Prague Vienna Zurich The Americas Boston Canouan Miami (Reopening 2030) New York Santiago Middle East & Africa Abu Dhabi Aswan - Old Cataract Doha Dubai - Downtown Dubai - Jumeira Beach Marrakech Muscat Riyadh Bodrum Göltürkbükü Mahallesi 314. Sokak No.10 Bodrum, Muğla 48483 mobod-reservations@mohg.com +90 252 311 18 88 Mandarin Oriental Bodrum With sweeping panoramic views over the blue Aegean Sea, Mandarin Oriental, Bodrum offers the ultimate in luxurious Mediterranean style on the Turkish Riviera. mobod-reservations@mohg.com +90 252 311 18 88 Contact Us Tennis Center Ask Away Jacquemus Beach Experience Two Cities, One Experience Discover Bodrum Event Calendar Stay View All View All Rooms Suites Villas Apartments Connecting & Family Rooms Highlights include: Avg. Rate Per Night: Details Email Introducing the Mandarin Oriental App Designed to seamlessly deliver digital self-service and inspiration while facilitating a more personal and more tailored in-person experience with every visit. Download Now Dine Imaginative cuisine, inspiring surroundings. View All Casual Dining Blue Beach Club & Bar See More Italian Gigi Bodrum See More Greek-Mediterranean GAIA See More French - Slavic Maison Revka See More Japanese Robatayaki Cuisine ROKA See More Modern Chinese Hakkasan See More Exquisite Seafood Ferdi Baba See More Turkish Delicacies Hafız Mustafa 1864 See More Cocktails and more Mandarin Bar See More Relaxed Dining Pool Bar & Restaurant See More Mediterranean Sofra See More An haute couture gastronomy experience Vakko L'atelier See More Make Your Experience Exceptional Fans of M.O. is your access to the exceptional with every visit to our hotels. From flexible privileges and personalised touches to member-exclusive experiences, your journey with Fans of M.O. unfolds with every stay, spa, and dining experience. Why Join? Become a Fan More at Mandarin Oriental, Bodrum Wellness See More Events See More Explore See More Celebrate See More Meet See More Gift See More Frequently Asked Questions See More Where is Mandarin Oriental, Bodrum located? Mandarin Oriental, Bodrum is located at Gölköy, 314 Sokak No.10, 48483 Muğla, Türkiye. What attractions are close to the hotel? Mandarin Oriental, Bodrum is ideally located near some of the region’s most renowned cultural and lifestyle attractions, including: Türkbükü – approximately 10 minutes by car Yalıkavak Marina – approximately 25–30 minutes by car Bodrum Castle – approximately 30–35 minutes by car Mausoleum at Halicarnassus – approximately 30–35 minutes by car Bodrum Harbour – approximately 35–40 minutes by car Bodrum Windmills – approximately 35–40 minutes by car The Concierge Team would be delighted to assist with transportation arrangements, personalized itineraries, and recommendations to help guests discover the very best of Bodrum. Mandarin Oriental, Bodrum Göltürkbükü Mahallesi 314. Sokak No.10, Bodrum, 48483, Türkiye +90 252 311 18 88 mobod-reservations@mohg.com Contact Us Corporate Our Company The O&MO Alliance Corporate Contacts Regional Sales Offices Sustainability Careers Fan Club Advisors Explore Gift Cards Residences Best Rate Promise Mandarin Oriental Shop Media Centre Support Fans of M.O. Login Modify/Cancel Reservation Connect Contact Us Subscribe Facebook Instagram Mobile App WeChat 2026 © Mandarin Oriental Hotel Group Limited Privacy Policy Ad & Cookie Policy Legal Notices",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://www.alibey.com/en/club",
+      "final_url": "https://www.alibey.com/en/club",
+      "page_title": "Ali Bey Club Manavgat - Ali Bey Hotels & Resorts ",
+      "image_hosts": [
+        "www.alibey.com"
+      ],
+      "image_urls": [
+        "https://www.alibey.com/content/res/images/favicon/apple-touch-icon.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-32x32.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-16x16.png",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyhotels-anasayfa-promo.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyclub-promo-1_1.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_Standart_Aile_Odas%C4%B1_dik.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_Superior_Oda_orta.jpg",
+        "https://www.alibey.com/content/upload/room-images/13042018-z.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/Spa-ali-bey-club--.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/club-tenis-detay.jpg",
+        "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-cocuk.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/Aqua---park.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-tenis-promo-2.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/park.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/resort.jpg",
+        "https://www.alibey.com/content/res/images/footer-logo.png",
+        "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+        "https://www.alibey.com/content/res/images/clockwork-logo.png",
+        "https://www.alibey.com/content/res/images/icons/success.png",
+        "https://www.alibey.com/content/res/images/icons/error.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.alibey.com/content/res/images/favicon/apple-touch-icon.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-32x32.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-16x16.png",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyhotels-anasayfa-promo.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyclub-promo-1_1.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_Standart_Aile_Odas%C4%B1_dik.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_Superior_Oda_orta.jpg",
+        "https://www.alibey.com/content/upload/room-images/13042018-z.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/Spa-ali-bey-club--.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/club-tenis-detay.jpg",
+        "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-cocuk.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/Aqua---park.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-tenis-promo-2.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/park.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/resort.jpg",
+        "https://www.alibey.com/content/res/images/footer-logo.png",
+        "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+        "https://www.alibey.com/content/res/images/clockwork-logo.png",
+        "https://www.alibey.com/content/res/images/icons/success.png",
+        "https://www.alibey.com/content/res/images/icons/error.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo/alibeyclub-promo-1_1.jpg",
+          "alt": "Club Manavgat"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg",
+          "alt": "Standard Rooms"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_Standart_Aile_Odas%C4%B1_dik.jpg",
+          "alt": "Family Rooms "
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_Superior_Oda_orta.jpg",
+          "alt": "Superior Standard Rooms"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/13042018-z.jpg",
+          "alt": "Superior Family Rooms "
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg",
+          "alt": "Get ready for a fun packed and adrenaline filled time at our waterpark built on a huge 25,000 m2 land, a 380-metre long adventure park to splash around in. "
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/Spa-ali-bey-club--.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/club-tenis-detay.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-cocuk.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/Aqua---park.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-tenis-promo-2.jpg",
+          "alt": "Make the most of your holiday with access to our tennis center which is made up of 61 tennis courts, includes recreational and children"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/park.jpg",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/resort.jpg",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/footer-logo.png",
+          "alt": "Ali Bey Hotels & Resorts Logo"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+          "alt": "Gürok Logo"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/clockwork-logo.png",
+          "alt": "Clockwork Digital Agency"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/success.png",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/error.png",
+          "alt": "Ali Bey Hotels & Resorts"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.alibey.com/content/res/images/favicon/site.webmanifest",
+        "https://www.alibey.com/en/club",
+        "https://www.alibey.com/ru/club",
+        "https://www.alibey.com/de/club",
+        "https://www.alibey.com/tr/club",
+        "https://www.alibey.com/",
+        "https://www.alibey.com/en/otellerimiz",
+        "https://www.alibey.com/en/news",
+        "https://www.alibey.com/en/club/rooms",
+        "https://www.alibey.com/en/club/unique-tastes",
+        "https://www.alibey.com/en/club/tennis",
+        "https://www.alibey.com/en/club/beach-waterpark",
+        "https://www.alibey.com/en/club/spa",
+        "https://www.alibey.com/en/club/childrens-world",
+        "https://www.alibey.com/en/club/activities",
+        "https://www.alibey.com/en",
+        "https://www.alibey.com/en/club/rooms/standard-rooms",
+        "https://www.alibey.com/en/club/rooms/family-rooms",
+        "https://www.alibey.com/en/club/rooms/superior-rooms",
+        "https://www.alibey.com/en/club/rooms/superior-family-rooms",
+        "https://www.alibey.com/en/club/activities/fitness-first",
+        "https://www.alibey.com/en/park",
+        "https://www.alibey.com/en/resort",
+        "https://www.alibey.com/en/corporate/about-us",
+        "https://www.alibey.com/en/corporate/history",
+        "https://www.alibey.com/en/corporate/privacy-policy",
+        "https://www.alibey.com/en/corporate/quality-and-environmental-policy",
+        "https://www.alibey.com/en/corporate/social-responsibility",
+        "https://www.alibey.com/en/corporate/human-resources",
+        "https://www.alibey.com/en/corporate/award-and-certificates"
+      ],
+      "public_text": "Ali Bey Club Manavgat - Ali Bey Hotels & Resorts Ali Bey Resort Sorgun etkinlik takvimi güncellendi! Homepage Hotels | News Newsletter +90 242 277 10 04 TR EN TR RU DE EN TR RU DE Newsletter Terms Dear guest, If you subscribe to our newsletter, you will receive regular emails about news, special offers and other topics regarding anything ALİ BEY HOTELS & RESORTS. If at any point you wish to unsubscribe from your newsletter, you can do so by clicking the provided unsubscribe link in the newsletter emails. We do not share our subscribers' personal information with third parties. ROOMS UNIQUE TASTES TENNIS BEACH & WATERPARK SPA KIDS ACTIVITIES RESERVATION HOTEL HOTEL + FLİGHT ROOMS UNIQUE TASTES TENNIS BEACH & WATERPARK SPA KIDS ACTIVITIES Homepage Hotels News Newsletter English Türkçe Russian Deutsch +90 242 277 10 04 Ali Bey Club Manavgat [url omitted] +90 242 748 73 73 +90 242 748 73 83 sales@alibey.com [url omitted] Kızılagac Turizm Merkezi Manavgat Antalya 07600 Turkey Ali Bey Club Manavgat The Place For A Family Holiday RESERVATION Homepage The Place For A Family Holiday An unforgettable holiday for both you and your children... Standard Rooms Family Rooms Superior Standard Rooms Superior Family Rooms Moments Filled with Excitement and Fun Get ready for a fun packed and adrenaline filled time at our waterpark built on a huge 25,000 m2 land, a 380-metre long adventure park to splash around in. MOMENTS FILLED WITH EXCITEMENT AND FUN Activities Spa Tennis Fitness First Kids Beach & Waterpark Special Services for Tennis lovers Make the most of your holiday with access to our tennis center which is made up of 61 tennis courts, includes recreational and children's courts, and is host to many national and international tournaments. SPECIAL SERVICES FOR TENNIS LOVERS Discover Other Hotels Park Manavgat Resort Sorgun HOTELS Ali Bey Resort Sorgun Ali Bey Club Manavgat Ali Bey Park Manavgat CORPORATE About us History Privacy Policy Quality and Environmental Policy Social Responsibility CORPORATE Human Resources Awards & Certificates Sustainability Contact THEMES Honeymoon Hygienic Measures During the Pandemic Fitness First Padel Family Hotel Early Booking Opportunities SUBSCRIBE Copyright 2018 © Ali Bey Hotels & Resorts Cookies are used on our web site to improve the browsing experience of our visitors and to provide you with a better service. If you decline cookies, you may limit the applications to work with on our web site or some features may not work as desired. For more information about our Cookie Policy please click here . Click here to learn more about our Company's Personal Data Storage and Destruction Policy Accept Newsletter Form Subscribe to newsletter Preferred Language English Türkçe Russian Deutsch I accept all messages by you to the email address that I have stated above. Your request has been received successfully. Thanks. NOT TRANSLATED !!",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo/alibeyclub-promo-1_1.jpg",
+          "tag": "img",
+          "alt": "Club Manavgat",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg",
+          "tag": "img",
+          "alt": "Standard Rooms",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_Standart_Aile_Odas%C4%B1_dik.jpg",
+          "tag": "img",
+          "alt": "Family Rooms ",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_Superior_Oda_orta.jpg",
+          "tag": "img",
+          "alt": "Superior Standard Rooms",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/13042018-z.jpg",
+          "tag": "img",
+          "alt": "Superior Family Rooms ",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg",
+          "tag": "img",
+          "alt": "Get ready for a fun packed and adrenaline filled time at our waterpark built on a huge 25,000 m2 land, a 380-metre long adventure park to splash around in. ",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/Spa-ali-bey-club--.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/club-tenis-detay.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-cocuk.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/Aqua---park.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-tenis-promo-2.jpg",
+          "tag": "img",
+          "alt": "Make the most of your holiday with access to our tennis center which is made up of 61 tennis courts, includes recreational and children's courts, and is host to many national and i",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/park.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/resort.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/footer-logo.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts Logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+          "tag": "img",
+          "alt": "Gürok Logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/clockwork-logo.png",
+          "tag": "img",
+          "alt": "Clockwork Digital Agency",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/success.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/error.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.alibey.com/en/park",
+      "final_url": "https://www.alibey.com/en/park",
+      "page_title": "Ali Bey Park Manavgat - Ali Bey Hotels & Resorts ",
+      "image_hosts": [
+        "www.alibey.com"
+      ],
+      "image_urls": [
+        "https://www.alibey.com/content/res/images/favicon/apple-touch-icon.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-32x32.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-16x16.png",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyhotels-anasayfa-promo.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeypark-promo-2.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Park_Manavgat_Standart_Aile_Odas%C4%B1_dik.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Park_Manavgat_Superior_Oda_Orta.jpg",
+        "https://www.alibey.com/content/upload/room-images/13042018-z.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/Spa-ali-bey-club--.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/club-tenis-detay.jpg",
+        "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-cocuk.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/Aqua---park.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-park-tenis-promo-2.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/club.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/resort.jpg",
+        "https://www.alibey.com/content/res/images/footer-logo.png",
+        "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+        "https://www.alibey.com/content/res/images/clockwork-logo.png",
+        "https://www.alibey.com/content/res/images/icons/success.png",
+        "https://www.alibey.com/content/res/images/icons/error.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.alibey.com/content/res/images/favicon/apple-touch-icon.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-32x32.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-16x16.png",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyhotels-anasayfa-promo.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeypark-promo-2.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Park_Manavgat_Standart_Aile_Odas%C4%B1_dik.jpg",
+        "https://www.alibey.com/content/upload/room-images/Alibey_Park_Manavgat_Superior_Oda_Orta.jpg",
+        "https://www.alibey.com/content/upload/room-images/13042018-z.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/Spa-ali-bey-club--.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/club-tenis-detay.jpg",
+        "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/resort-cocuk.jpg",
+        "https://www.alibey.com/content/upload/homepage-images/Aqua---park.jpg",
+        "https://www.alibey.com/content/upload/hotel-promo-area/alibey-park-tenis-promo-2.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/club.jpg",
+        "https://www.alibey.com/content/upload/hotel-images/other-hotels/resort.jpg",
+        "https://www.alibey.com/content/res/images/footer-logo.png",
+        "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+        "https://www.alibey.com/content/res/images/clockwork-logo.png",
+        "https://www.alibey.com/content/res/images/icons/success.png",
+        "https://www.alibey.com/content/res/images/icons/error.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo/alibeypark-promo-2.jpg",
+          "alt": "Park Manavgat"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg",
+          "alt": "Standard Rooms"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Park_Manavgat_Standart_Aile_Odas%C4%B1_dik.jpg",
+          "alt": "Family Rooms"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Park_Manavgat_Superior_Oda_Orta.jpg",
+          "alt": "Superior Rooms"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/13042018-z.jpg",
+          "alt": "Superior Family Rooms "
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg",
+          "alt": "Experience an unforgettable holiday with entertainment and activity options for all age groups"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/Spa-ali-bey-club--.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/club-tenis-detay.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-cocuk.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/Aqua---park.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-park-tenis-promo-2.jpg",
+          "alt": "Keep fit with a professional trainer in the fully equipped studios of Fitness First, which is represented in 17 countries and has millions of members worldwide. "
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/club.jpg",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/resort.jpg",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/footer-logo.png",
+          "alt": "Ali Bey Hotels & Resorts Logo"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+          "alt": "Gürok Logo"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/clockwork-logo.png",
+          "alt": "Clockwork Digital Agency"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/success.png",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/error.png",
+          "alt": "Ali Bey Hotels & Resorts"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.alibey.com/content/res/images/favicon/site.webmanifest",
+        "https://www.alibey.com/en/park",
+        "https://www.alibey.com/ru/park",
+        "https://www.alibey.com/de/park",
+        "https://www.alibey.com/tr/park",
+        "https://www.alibey.com/",
+        "https://www.alibey.com/en/otellerimiz",
+        "https://www.alibey.com/en/news",
+        "https://www.alibey.com/en/park/rooms",
+        "https://www.alibey.com/en/park/unique-tastes",
+        "https://www.alibey.com/en/park/tennis",
+        "https://www.alibey.com/en/park/beach-waterpark",
+        "https://www.alibey.com/en/park/spa",
+        "https://www.alibey.com/en/park/childrens-world",
+        "https://www.alibey.com/en/park/activities",
+        "https://www.alibey.com/en",
+        "https://www.alibey.com/en/park/rooms/standard-rooms",
+        "https://www.alibey.com/en/park/rooms/family-rooms",
+        "https://www.alibey.com/en/park/rooms/superior-rooms",
+        "https://www.alibey.com/en/park/rooms/superior-family-rooms",
+        "https://www.alibey.com/en/club",
+        "https://www.alibey.com/en/resort",
+        "https://www.alibey.com/en/corporate/about-us",
+        "https://www.alibey.com/en/corporate/history",
+        "https://www.alibey.com/en/corporate/privacy-policy",
+        "https://www.alibey.com/en/corporate/quality-and-environmental-policy",
+        "https://www.alibey.com/en/corporate/social-responsibility",
+        "https://www.alibey.com/en/corporate/human-resources",
+        "https://www.alibey.com/en/corporate/award-and-certificates",
+        "https://www.alibey.com/en/corporate/surdurulebilirlik"
+      ],
+      "public_text": "Ali Bey Park Manavgat - Ali Bey Hotels & Resorts Ali Bey Resort Sorgun etkinlik takvimi güncellendi! Homepage Hotels | News Newsletter +90 242 277 10 04 TR EN TR RU DE EN TR RU DE Newsletter Terms Dear guest, If you subscribe to our newsletter, you will receive regular emails about news, special offers and other topics regarding anything ALİ BEY HOTELS & RESORTS. If at any point you wish to unsubscribe from your newsletter, you can do so by clicking the provided unsubscribe link in the newsletter emails. We do not share our subscribers' personal information with third parties. ROOMS UNIQUE TASTES TENNIS BEACH & WATERPARK SPA KIDS ACTIVITIES RESERVATION HOTEL HOTEL + FLİGHT ROOMS UNIQUE TASTES TENNIS BEACH & WATERPARK SPA KIDS ACTIVITIES Homepage Hotels News Newsletter English Türkçe Russian Deutsch +90 242 277 10 04 Ali Bey Park Manavgat [url omitted] +90 242 748 73 73 +90 242 748 73 83 sales@alibey.com [url omitted] Kızılagac Turizm Merkezi Manavgat Antalya 07600 Turkey Ali Bey Park Manavgat Family Holiday Pleasure RESERVATION Homepage Family Holiday Pleasure An unforgettable holiday awaits you with all your family and friends Standard Rooms Family Rooms Superior Rooms Superior Family Rooms Unlimited Entertainment Experience an unforgettable holiday with entertainment and activity options for all age groups UNLIMITED ENTERTAINMENT Activities Spa Tennis Fitness First Kids Beach & Waterpark Stay Fit With Fitness First Keep fit with a professional trainer in the fully equipped studios of Fitness First, which is represented in 17 countries and has millions of members worldwide. STAY FIT WITH FITNESS FIRST Discover Other Hotels Club Manavgat Resort Sorgun HOTELS Ali Bey Resort Sorgun Ali Bey Club Manavgat Ali Bey Park Manavgat CORPORATE About us History Privacy Policy Quality and Environmental Policy Social Responsibility CORPORATE Human Resources Awards & Certificates Sustainability Contact THEMES Honeymoon Hygienic Measures During the Pandemic Fitness First Padel Family Hotel Early Booking Opportunities SUBSCRIBE Copyright 2018 © Ali Bey Hotels & Resorts Cookies are used on our web site to improve the browsing experience of our visitors and to provide you with a better service. If you decline cookies, you may limit the applications to work with on our web site or some features may not work as desired. For more information about our Cookie Policy please click here . Click here to learn more about our Company's Personal Data Storage and Destruction Policy Accept Newsletter Form Subscribe to newsletter Preferred Language English Türkçe Russian Deutsch I accept all messages by you to the email address that I have stated above. Your request has been received successfully. Thanks. NOT TRANSLATED !!",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo/alibeypark-promo-2.jpg",
+          "tag": "img",
+          "alt": "Park Manavgat",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Club_Manavgat_standart_oda_orta_1.jpg",
+          "tag": "img",
+          "alt": "Standard Rooms",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Park_Manavgat_Standart_Aile_Odas%C4%B1_dik.jpg",
+          "tag": "img",
+          "alt": "Family Rooms",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/Alibey_Park_Manavgat_Superior_Oda_Orta.jpg",
+          "tag": "img",
+          "alt": "Superior Rooms",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/room-images/13042018-z.jpg",
+          "tag": "img",
+          "alt": "Superior Family Rooms ",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-club-aquapark-promo-2.jpg",
+          "tag": "img",
+          "alt": "Experience an unforgettable holiday with entertainment and activity options for all age groups",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/Spa-ali-bey-club--.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/club-tenis-detay.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/overlay/resort-sorgun/fitness-big.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/resort-cocuk.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/homepage-images/Aqua---park.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-promo-area/alibey-park-tenis-promo-2.jpg",
+          "tag": "img",
+          "alt": "Keep fit with a professional trainer in the fully equipped studios of Fitness First, which is represented in 17 countries and has millions of members worldwide. ",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/club.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-images/other-hotels/resort.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/footer-logo.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts Logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+          "tag": "img",
+          "alt": "Gürok Logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/clockwork-logo.png",
+          "tag": "img",
+          "alt": "Clockwork Digital Agency",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/success.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/error.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.hillsidebeachclub.com/en/about-the-resort",
+      "final_url": "https://www.hillsidebeachclub.com/en/about-the-resort",
+      "page_title": "About the Resort | Hillside Beach Club Official Website",
+      "image_hosts": [
+        "www.hillsidebeachclub.com"
+      ],
+      "image_urls": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/beaches.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/beaches.jpg?v=4bad7ba9b35f052ce807893f78facfa9",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/rooms.jpg?v=40a0966b18e4ea8982696e968802cd05",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/restaurants.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/bars.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/pool.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/fethiye.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/map.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/meetings.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/beaches.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/beaches.jpg?v=4bad7ba9b35f052ce807893f78facfa9",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/rooms.jpg?v=40a0966b18e4ea8982696e968802cd05",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/restaurants.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/bars.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/pool.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/fethiye.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/map.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/landing-menu/about/backgrounds/meetings.jpg?v=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.hillsidebeachclub.com",
+        "https://www.hillsidebeachclub.com/en/about-the-resort",
+        "https://www.hillsidebeachclub.com/de/uber-das-hotel",
+        "https://www.hillsidebeachclub.com/ru/about-the-resort",
+        "https://www.hillsidebeachclub.com/nl/over-de-club",
+        "https://www.hillsidebeachclub.com/tr/kulup-hakkinda",
+        "https://www.hillsidebeachclub.com/en",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/rooms",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/restaurants",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/bars",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/pool",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/region",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/resort-map",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/meetings",
+        "https://www.hillsidebeachclub.com/en/experiences",
+        "https://www.hillsidebeachclub.com/en/experiences/water-sports",
+        "https://www.hillsidebeachclub.com/en/experiences/children-youth",
+        "https://www.hillsidebeachclub.com/en/experiences/yoga",
+        "https://www.hillsidebeachclub.com/en/experiences/sports-activities",
+        "https://www.hillsidebeachclub.com/en/experiences/excursion",
+        "https://www.hillsidebeachclub.com/en/experiences/artside",
+        "https://www.hillsidebeachclub.com/en/experiences/honeymoons",
+        "https://www.hillsidebeachclub.com/en/spa-wellness",
+        "https://www.hillsidebeachclub.com/en/gallery",
+        "https://www.hillsidebeachclub.com/en/feel-good-stories",
+        "https://www.hillsidebeachclub.com/en/contact",
+        "https://www.hillsidebeachclub.com/en/more",
+        "https://www.hillsidebeachclub.com/en/guest-reviews",
+        "https://www.hillsidebeachclub.com/en/featured-in"
+      ],
+      "public_text": "About the Resort | Hillside Beach Club Official Website '); } ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT MORE EN TR DE RU BOOK NOW ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings All About EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons All Experiences SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT Contact Form Map App Social Media Subscribe MORE GUEST REVIEWS FEATURED-IN PRESS ROOM SEE MORE BOOK NOW ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings Follow us on HillsideBeachClub press room business associates awards sustainability © 2019 Hillside Beach Club. All rights reserved. Hillside Beach Club is a Alarko company. Privacy And Protection Of Personal Data Policy Hillside Beach Club Official Website",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41793809610"
+}

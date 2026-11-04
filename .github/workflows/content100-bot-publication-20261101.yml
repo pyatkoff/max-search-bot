@@ -1,4 +1,4 @@
-name: Read ten batch36 owner pages and one public MAX2 route contract
+name: Read five new owner detail pages and inspect current public MAX2 code
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        media_group: [0,1,2,3]
+        media_group: [0,1]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,14 +29,14 @@ jobs:
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
         run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
-      - name: Read one exact public miniapp entry without signed user data
-        if: matrix.media_group == 3
-        run: python3 tools/direct_demand/operations/inspect-commercial-miniapp-public-max2-20261104-1.py
+      - name: Inspect first exact public receiver code after contradictory ctx1 evidence
+        if: matrix.media_group == 1
+        run: python3 tools/direct_demand/operations/inspect-commercial-miniapp-public-max2-20261104-2.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch36-primary-sources-${{ matrix.media_group }}
+          name: commercial-batch36-extra-primary-sources-${{ matrix.media_group }}
           path: |
             public-media-sources.json
-            public-miniapp-contract.json
+            public-miniapp-code-contract.json
           retention-days: 14
           if-no-files-found: error
