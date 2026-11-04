@@ -26,6 +26,56 @@
     disclosures.delete(key);disclosures.set(key,el.open);
     while(disclosures.size>100)disclosures.delete(disclosures.keys().next().value);
   },true);
+  function selectionEditorEntry(){
+    const entry=document.querySelector('meta[name="selection-editor-entry"]')?.content;
+    return entry==='https://tours.anytoour.ru/editor.php'?entry:'';
+  }
+  function selectionNavigationContext(){
+    const owner=window.WorkspaceV2Conversation;
+    if(S.authExpired||!owner?.canNavigateMessages?.())return null;
+    const target=owner.captureReplyContext?.(),conversation=S.detail?.conversation;
+    if(!target||!Number.isSafeInteger(target.managerId)||target.managerId<=0||!Number.isSafeInteger(target.conversationId)||target.conversationId<=0)return null;
+    if(target.managerId!==Number(S.manager?.id)||target.conversationId!==Number(S.current)||target.conversationId!==Number(conversation?.id)||target.authGeneration!==S.authGeneration||target.openGeneration!==owner.getOpenGeneration?.())return null;
+    return target;
+  }
+  function syncSelectionLauncher(){
+    const entry=selectionEditorEntry(),button=$('tourSelectionOpen');
+    if(button){
+      if(entry){
+        button.removeAttribute('aria-haspopup');button.removeAttribute('aria-controls');
+        button.setAttribute('aria-label','Открыть подборку в отдельной вкладке');button.title='Открыть подборку в отдельной вкладке';
+      }else{
+        button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','tourSelectionDialog');
+        button.removeAttribute('aria-label');button.removeAttribute('title');
+      }
+    }
+    let local=$('m2SelectionInPanel');
+    if(entry&&!local&&conversationMenuActions){
+      // Existing unsaved or uncertain editor work belongs to this tab. Keep an
+      // explicit route to its canonical recovery without reading/copying it.
+      local=document.createElement('button');local.id='m2SelectionInPanel';local.type='button';local.className='actionBtn';
+      local.textContent='Открыть подборку в панели';local.setAttribute('aria-haspopup','dialog');local.setAttribute('aria-controls','tourSelectionDialog');
+      conversationMenuActions.before(local);
+    }
+    if(local)local.hidden=!entry||!button||!S.manager||S.authExpired||Number(S.current)!==Number(S.detail?.conversation?.id);
+  }
+  document.addEventListener('click',event=>{
+    const button=event.target?.closest?.('#tourSelectionOpen, #m2SelectionInPanel');
+    if(!button||button!==$(button.id))return;
+    const entry=selectionEditorEntry();if(!entry)return;
+    // The primary control is owned and moved by the editor. Intercept only its
+    // admitted Manager2 navigation; the original modal remains the fallback.
+    event.preventDefault();event.stopImmediatePropagation();
+    if(!button.isConnected||button.disabled||button.hidden)return;
+    const target=selectionNavigationContext();if(!target)return;
+    const menu=button.closest('details');if(menu){menu.open=false;menu.querySelector('summary')?.focus({preventScroll:true})}
+    const current=selectionNavigationContext();
+    if(!current||['conversationId','managerId','authGeneration','openGeneration'].some(key=>current[key]!==target[key]))return;
+    if(button.id==='m2SelectionInPanel'){void window.WorkspaceV2TourSelection?.open(S.detail.conversation);return}
+    // Keep the user gesture synchronous. noopener may return null even after a
+    // successful open, so never start a second modal from that return value.
+    window.open(entry+'?conversation_id='+target.conversationId+'&editor_actor='+target.managerId,'_blank','noopener');
+  },true);
   function budgetFact(trip){
     const b=trip?.budget,amount=Number(b?.max);
     if(!b||!Number.isFinite(amount)||amount<=0)return {label:'Бюджет',value:'Пока не указан'};
@@ -210,6 +260,7 @@
   }
   function syncClientCard(){
     window.WorkspaceV2RequestProfile?.sync();syncCompactHeader();
+    syncSelectionLauncher();
     syncHeaderPin();
     const valid=!!S.manager&&!S.authExpired&&Number(S.current)>0;
     if((!valid||clientCardConversation&&clientCardConversation!==Number(S.current))&&$('workspaceRoot')?.classList.contains('m2ClientCardOpen'))$('workspaceRoot').classList.remove('m2ClientCardOpen');
@@ -317,6 +368,7 @@
     conversationMenuActions?.replaceChildren(...secondary);
     secondary.forEach(el=>el.addEventListener('click',()=>conversationMenu.open=false));
     syncConversationMenu();
+    syncSelectionLauncher();
   }
   function compactBoard(){
     $('kanbanBoard')?.querySelectorAll('.kanbanCard').forEach(card=>{
@@ -506,6 +558,7 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!e.target.closest?.('dialog'))document.querySelectorAll('.m2ConversationMenu[open]').forEach(d=>{d.open=false;d.querySelector('summary').focus()})});
     updateClock();setInterval(updateClock,60000);syncNavigation();
   }
-  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,revealInboxSearch,syncPersonalChrome};
+  window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,syncSelectionLauncher,revealInboxSearch,syncPersonalChrome};
   init();
 })();
+

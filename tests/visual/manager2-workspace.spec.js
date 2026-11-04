@@ -8,8 +8,11 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i,is_terminal:stage_key==='sold'?1:0,is_won:stage_key==='sold'?1:0}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null}={}){
   const pushProtocol=lifecycle(7);
+  // Model the existing server admission field, retaining the real shell/assets.
+  // This fixture does not claim an installed or authenticated production editor.
+  const workspaceShell=selectionEditorEntry===null?shell:shell.replace(/(<meta name="selection-editor-entry" content=")[^"]*(")/,(_match,before,after)=>before+selectionEditorEntry.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+after);
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
   let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map();
@@ -35,7 +38,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   await page.route('**/*',async route=>{
     const req=route.request(),url=new URL(req.url());
     if(url.origin!==origin){unexpected.push(req.url());return route.abort()}
-    if(req.method()==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:shell});
+    if(req.method()==='GET'&&['/manager2/','/manager2/index.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:workspaceShell});
   // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
   if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conversation(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
     if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/')){const asset=path.resolve(root,'.'+url.pathname);if(!asset.startsWith(root+path.sep))return route.abort();return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(asset)})}
@@ -150,6 +153,72 @@ async function readable(page,selector){
   if(/msgMeta|messageSender/.test(selector))expect(await page.locator(selector).first().evaluate(el=>Number(getComputedStyle(el).opacity))).toBe(1);
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
+
+async function selectionEntryDraft(page){
+  await page.locator('#replyText').fill('Ответ клиенту остаётся в переписке');
+  // Observe the actual File handed to the preview; the native picker may clear
+  // its input, so an empty FileList alone cannot prove attachment preservation.
+  await page.evaluate(()=>{const original=URL.createObjectURL;window.selectionEntryFiles=[];URL.createObjectURL=function(file){const url=original.call(this,file);selectionEntryFiles.push({file,url});return url}});
+  await page.locator('#replyFile').setInputFiles({name:'selection-entry.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGOwbvr2HwAFYgKzn+LXXwAAAABJRU5ErkJggg==','base64')});
+  expect(await page.evaluate(()=>selectionEntryFiles.length===1&&selectionEntryFiles[0].file instanceof File)).toBe(true);
+  await expect.poll(()=>page.locator('#mediaSelection img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+  await page.locator('#messages').evaluate(box=>{box.dispatchEvent(new WheelEvent('wheel',{deltaY:-900,bubbles:true}));box.scrollTop=0});
+  await expect.poll(()=>page.locator('#messages').evaluate(box=>box.scrollTop)).toBe(0);
+  await expect.poll(()=>page.evaluate(()=>WorkspaceV2Jump.isFollowingLatest())).toBe(false);
+  await page.locator('#replyText').evaluate(reply=>{
+    reply.setSelectionRange(3,11,'backward');const box=document.querySelector('#messages'),anchor=[...box.children].find(row=>row.getBoundingClientRect().bottom>box.getBoundingClientRect().top+1);
+    window.selectionEntryProof={reply,form:document.querySelector('#composer'),input:document.querySelector('#replyFile'),file:selectionEntryFiles[0].file,url:selectionEntryFiles[0].url,preview:document.querySelector('#mediaSelection .mediaSelectedItem'),anchor,offset:anchor.getBoundingClientRect().top-box.getBoundingClientRect().top,current:WorkspaceV2.S.current,auth:WorkspaceV2.S.authGeneration,open:WorkspaceV2Conversation.getOpenGeneration()};
+  });
+}
+async function retainedSelectionEntryDraft(page){
+  await expect(page.locator('#replyText')).toHaveValue('Ответ клиенту остаётся в переписке');await expect(page.locator('#mediaSelection')).toContainText('selection-entry.png');
+  const retained=await page.evaluate(()=>{
+    const p=selectionEntryProof,reply=document.querySelector('#replyText'),box=document.querySelector('#messages');
+    return {reply:reply===p.reply,form:document.querySelector('#composer')===p.form,input:document.querySelector('#replyFile')===p.input,file:selectionEntryFiles.length===1&&selectionEntryFiles[0].file===p.file&&document.querySelector('#mediaSelection img')?.src===p.url,preview:document.querySelector('#mediaSelection .mediaSelectedItem')===p.preview,selection:[reply.selectionStart,reply.selectionEnd,reply.selectionDirection],anchor:p.anchor.isConnected&&Math.abs(p.anchor.getBoundingClientRect().top-box.getBoundingClientRect().top-p.offset)<=2,current:WorkspaceV2.S.current===p.current,auth:WorkspaceV2.S.authGeneration===p.auth,open:WorkspaceV2Conversation.getOpenGeneration()===p.open};
+  });
+  expect(retained).toEqual({reply:true,form:true,input:true,file:true,preview:true,selection:[3,11,'backward'],anchor:true,current:true,auth:true,open:true});
+}
+for(const width of [390,1440])test('Manager2 standalone selection entry preserves the original conversation at '+width,async({page})=>{
+  const admitted='https://tours.anytoour.ru/editor.php',navigations=[],unexpected=[];
+  // Intercept the first popup request at context level. Only navigation is under
+  // test here; the protected editor has its own existing native fixture suite.
+  await page.context().route('https://tours.anytoour.ru/**',route=>{
+    const req=route.request(),url=new URL(req.url());
+    if(req.method()!=='GET'||url.pathname!=='/editor.php'){unexpected.push(req.method()+' '+url.pathname);return route.abort()}
+    navigations.push(url.href);return route.fulfill({contentType:'text/html',body:'<!doctype html><html><head><title>Synthetic selection entry</title><link rel="icon" href="data:,"></head><body><main>Синтетический адрес редактора</main></body></html>'});
+  });
+  await page.setViewportSize({width,height:900});const s=await setup(page,{selectionEditorEntry:admitted});await openLead(page);await selectionEntryDraft(page);
+  const primary=page.locator('#tourSelectionOpen');if(!await primary.isVisible())await page.locator('#m2ConversationMenuToggle').click();
+  await expect(primary).toHaveAttribute('aria-label',/отдельной вкладке/);await expect(primary).not.toHaveAttribute('aria-haspopup','dialog');
+  const originalUrl=page.url(),initialPages=page.context().pages().length,popupPromise=page.context().waitForEvent('page');
+  await primary.click();const popup=await popupPromise;await popup.waitForLoadState('domcontentloaded');
+  expect(popup.url()).toBe(admitted+'?conversation_id=11&editor_actor=7');expect(await popup.evaluate(()=>window.opener===null)).toBe(true);expect(page.context().pages()).toHaveLength(initialPages+1);
+  expect(navigations).toEqual([admitted+'?conversation_id=11&editor_actor=7']);expect(unexpected).toEqual([]);
+  await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(page.url()).toBe(originalUrl);
+  if(width===390){await expect(page.locator('.m2ConversationMenu')).not.toHaveAttribute('open','');await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused()}
+  await popup.close();await page.bringToFront();await retainedSelectionEntryDraft(page);
+  expect(s.calls.filter(call=>/tour-selection/.test(call.path))).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('Manager2 standalone selection entry retains an explicit same-tab editor action',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);await selectionEntryDraft(page);
+  const editorReads=[];
+  await page.route('**/manager/tour-selections-api.php',route=>{
+    const d=route.request().postDataJSON();editorReads.push(d);expect(d.action).toBe('get');expect(d.conversation_id).toBe(11);expect(d.csrf).toBe('synthetic-csrf');
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,selection:{conversation_id:11,version:0,draft:{title:'Синтетическая подборка',intro:'',offers:[]},can_edit:true,updated_at:null,updated_by_manager_id:null}})});
+  });
+  await page.evaluate(()=>{
+    // Keep the frozen core intact and delegate through a temporary call spy.
+    const core=window.WorkspaceV2TourSelection;window.selectionEntryCore=core;window.selectionPanelCalls=[];
+    window.WorkspaceV2TourSelection={...core,open(...args){selectionPanelCalls.push(args[0].id);return core.open(...args)}};
+  });
+  await page.locator('#m2ConversationMenuToggle').click();const secondary=page.getByRole('button',{name:'Открыть подборку в панели',exact:true});
+  await expect(secondary).toHaveAttribute('aria-haspopup','dialog');await expect(secondary).toHaveAttribute('aria-controls','tourSelectionDialog');
+  const pages=page.context().pages().length;await secondary.click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText('загружен');
+  expect(await page.evaluate(()=>selectionPanelCalls)).toEqual([11]);expect(editorReads).toHaveLength(1);expect(page.context().pages()).toHaveLength(pages);
+  await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused();
+  await page.evaluate(()=>{window.WorkspaceV2TourSelection=window.selectionEntryCore;delete window.selectionEntryCore});
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
 
 // Check the first rendered viewport before Playwright can scroll a button into view.
 async function exitInitiallyReachable(page){
@@ -1045,3 +1114,4 @@ for(const width of [390,1440])test('Sales uses explicit scope and saves custom c
   await page.locator('.m2BoardActions>summary').first().click();await page.locator('.kanbanStageSelect').first().selectOption('sold');await expect(page.locator('#leadOutcomeStage')).toHaveValue('sold');await expect(page.locator('#leadOutcome')).toHaveValue('won');expect(s.calls.filter(c=>['set_stage','set_outcome'].includes(c.action))).toEqual([]);
   await page.locator('#leadSaleAmount').fill('250000');await page.locator('#leadSaleDate').fill('2026-11-02');await page.locator('#saveOutcome').click();await expect.poll(()=>s.calls.filter(c=>c.action==='set_outcome').length).toBe(1);expect(s.calls.find(c=>c.action==='set_outcome')).toMatchObject({conversation_id:11,stage_key:'sold',expected_stage_key:'working',outcome:'won',sale_amount:'250000',sale_date:'2026-11-02'});expect(s.calls.filter(c=>c.action==='set_stage')).toEqual([]);await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
+

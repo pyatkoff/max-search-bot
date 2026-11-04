@@ -16,13 +16,98 @@ function harness(){
   const nav=['dialogues','tasks','sales','archive'].map(name=>({dataset:{m2Nav:name},classList:{toggle(){}},setAttribute(){},removeAttribute(){}}));
   const W={S,$:id=>elements[id],esc:String};const record=kind=>{requests.push({kind,queue:S.queue,view:S.viewMode,task:S.leadTaskFilter,filters:JSON.parse(JSON.stringify(window.Manager2Presentation?.listFilters()||null))});return new Promise(resolve=>pending.push(resolve))};
   const window={WorkspaceV2:W,WorkspaceV2Kanban:{setMode:mode=>S.viewMode=mode},WorkspaceV2Inbox:{setQueue:(queue,{reload})=>{assert.equal(reload,false);S.queue=queue;return true},load:()=>record('inbox')},WorkspaceV2Assistant:{openPlan:()=>record('plan'),close:()=>{}},WorkspaceV2Mobile:{showInbox:o=>mobile.push(o),isMobile:()=>false,getScreen:()=> 'conversation',showLead:()=>mobile.push('lead')}};
-  const document={body:{classList:{contains:()=>true,toggle(){}}},addEventListener(){},querySelector:s=>s==='.inboxHead .brand'?title:s==='.m2TaskFilters'?taskFilters:s==='.m2TaskQuickFilters'?taskQuickFilters:null,querySelectorAll:s=>s==='[data-m2-nav]'?nav:[]};
+  const documentQueries=new Map(),documentListeners=[];
+  const document={body:{classList:{contains:()=>true,toggle(){}}},addEventListener(type,listener,capture){documentListeners.push({type,listener,capture})},querySelector:s=>documentQueries.has(s)?documentQueries.get(s):s==='.inboxHead .brand'?title:s==='.m2TaskFilters'?taskFilters:s==='.m2TaskQuickFilters'?taskQuickFilters:null,querySelectorAll:s=>s==='[data-m2-nav]'?nav:[]};
   const context=vm.createContext({window,document,sessionStorage:{setItem:(k,v)=>saved.set(k,v)},Map,Number,String,Intl,console});
   vm.runInContext(filters,context);
   vm.runInContext(managerTime,context);
   // Exercise the actual exported navigation and filter owners without shell boot.
   vm.runInContext(presentation.replace('  init();',''),context);
-  return {S,elements,title,taskFilters,taskQuickFilters,requests,mobile,saved,pending,navigate:window.Manager2Presentation.navigate,presentation:window.Manager2Presentation,window,classWrites:()=>classWrites};
+  return {S,elements,title,taskFilters,taskQuickFilters,requests,mobile,saved,pending,navigate:window.Manager2Presentation.navigate,presentation:window.Manager2Presentation,window,documentQueries,documentListeners,classWrites:()=>classWrites};
+}
+function selectionEntryHarness(entry='https://tours.anytoour.ru/editor.php'){
+  const h=harness(),opens=[],panelOpens=[];
+  const state={canNavigate:true,openGeneration:5,context:{conversationId:11,managerId:7,authGeneration:1,openGeneration:5},duringClick:false,openResult:null,onFocus:null,canNavigateCalls:0,captureCalls:0,fallbackCalls:0};
+  h.S.detail={conversation:{id:11,manager_id:7,status:'manager'}};
+  h.documentQueries.set('meta[name="selection-editor-entry"]',entry===null?null:{content:entry});
+  const summary={focused:false,focus(options){assert.deepEqual(JSON.parse(JSON.stringify(options)),{preventScroll:true});this.focused=true;state.onFocus?.()}};
+  const menu={open:true,querySelector:selector=>selector==='summary'?summary:null};
+  const button=id=>({id,disabled:false,hidden:false,isConnected:true,attrs:{},closest(selector){return selector==='details'?menu:selector.split(',').some(part=>part.trim()==='#'+id)?this:null},setAttribute(key,value){this.attrs[key]=value},removeAttribute(key){delete this.attrs[key];if(key==='title')delete this.title},getAttribute(key){return this.attrs[key]??null}});
+  const primary=button('tourSelectionOpen'),secondary=button('m2SelectionInPanel');
+  h.elements.tourSelectionOpen=primary;h.elements.m2SelectionInPanel=secondary;
+  h.window.WorkspaceV2Conversation={canNavigateMessages(){state.canNavigateCalls++;return state.canNavigate},captureReplyContext(){state.captureCalls++;return state.context?{...state.context}:null},getOpenGeneration:()=>state.openGeneration};
+  h.window.WorkspaceV2TourSelection={open:conversation=>panelOpens.push(conversation)};
+  h.window.open=(...args)=>{opens.push({args,synchronous:state.duringClick});return state.openResult};
+  function click(target=primary){
+    const event={target,button:0,defaultPrevented:false,stopped:false,preventDefault(){this.defaultPrevented=true},stopImmediatePropagation(){this.stopped=true}};
+    state.duringClick=true;
+    try{for(const binding of h.documentListeners){if(binding.type==='click'&&(binding.capture===true||binding.capture?.capture)){binding.listener(event);if(event.stopped)break}}if(!event.stopped)state.fallbackCalls++;}
+    finally{state.duringClick=false}
+    return event;
+  }
+  return {...h,state,opens,panelOpens,primary,secondary,menu,summary,click};
+}
+function selectionEntryChecks(){
+  {
+    const h=selectionEntryHarness(),file={name:'keep.png'},reply={value:'Неотправленный ответ',selectionStart:4,selectionEnd:12},input={files:[file]},messages={scrollTop:137};
+    h.elements.replyText=reply;h.elements.replyFile=input;h.elements.messages=messages;
+    const original=JSON.stringify(h.S),event=h.click();
+    check('selection primary opens the admitted current client once inside the click',()=>{
+      assert.equal(event.defaultPrevented,true);assert.equal(event.stopped,true);
+      assert.deepEqual(h.opens,[{args:['https://tours.anytoour.ru/editor.php?conversation_id=11&editor_actor=7','_blank','noopener'],synchronous:true}]);
+      assert.ok(h.state.canNavigateCalls>0);assert.ok(h.state.captureCalls>0);assert.equal(h.state.fallbackCalls,0);assert.equal(h.panelOpens.length,0);
+    });
+    check('selection primary closes its menu and retains reply File scroll and current state',()=>{
+      assert.equal(h.menu.open,false);assert.equal(h.summary.focused,true);assert.equal(JSON.stringify(h.S),original);
+      assert.equal(h.elements.replyText,reply);assert.equal(reply.value,'Неотправленный ответ');assert.deepEqual([reply.selectionStart,reply.selectionEnd],[4,12]);
+      assert.equal(h.elements.replyFile,input);assert.equal(input.files[0],file);assert.equal(h.elements.messages,messages);assert.equal(messages.scrollTop,137);assert.deepEqual(h.requests,[]);
+    });
+    check('a null noopener return never starts the inline fallback',()=>{assert.equal(h.state.openResult,null);assert.equal(h.opens.length,1);assert.equal(h.state.fallbackCalls,0);assert.equal(h.panelOpens.length,0)});
+  }
+  {
+    const h=selectionEntryHarness();h.click({closest:selector=>h.primary.closest(selector)});
+    check('selection child click resolves only the canonical primary control',()=>assert.equal(h.opens.length,1));
+  }
+  for(const entry of [null,'','https://foreign.invalid/editor.php','https://tours.anytoour.ru/editor.php?conversation_id=12']){
+    const h=selectionEntryHarness(entry),event=h.click();
+    check('selection unavailable or foreign entry leaves the existing modal event intact '+String(entry),()=>{assert.equal(event.defaultPrevented,false);assert.equal(event.stopped,false);assert.equal(h.state.fallbackCalls,1);assert.deepEqual(h.opens,[]);assert.equal(h.state.captureCalls,0)});
+  }
+  for(const [name,change] of [
+    ['disabled button',h=>h.primary.disabled=true],['detached button',h=>h.primary.isConnected=false],['hidden button',h=>h.primary.hidden=true],
+    ['expired authentication',h=>h.S.authExpired=true],['missing manager',h=>h.S.manager=null],['changed actor',h=>h.S.manager.id=8],
+    ['changed current conversation',h=>h.S.current=12],['changed conversation detail',h=>h.S.detail.conversation.id=12],
+    ['changed auth generation',h=>h.S.authGeneration++],['changed open generation',h=>h.state.openGeneration++],
+    ['missing canonical context',h=>h.state.context=null],['canonical navigation refused',h=>h.state.canNavigate=false]
+  ]){
+    const h=selectionEntryHarness();change(h);const event=h.click();
+    check('selection refuses '+name+' without a modal fallback',()=>{assert.deepEqual(h.opens,[]);assert.deepEqual(h.panelOpens,[]);assert.equal(event.stopped,true);assert.equal(h.state.fallbackCalls,0)});
+  }
+  {
+    const h=selectionEntryHarness(),impostor={...h.primary};impostor.closest=()=>impostor;const event=h.click(impostor);
+    check('a copied id cannot replace the canonical selection button',()=>{assert.deepEqual(h.opens,[]);assert.equal(event.stopped,false);assert.equal(h.state.captureCalls,0)});
+    const other=h.click({closest:()=>null});check('an unrelated click retains its existing owner',()=>{assert.equal(other.stopped,false);assert.deepEqual(h.opens,[])});
+  }
+  for(const [name,change] of [
+    ['conversation',h=>{h.S.current=12;h.S.detail.conversation={id:12};h.state.context.conversationId=12}],
+    ['account',h=>{h.S.manager.id=8;h.state.context.managerId=8}],
+    ['authentication',h=>{h.S.authGeneration++;h.state.context.authGeneration++}],
+    ['same-client reopening',h=>{h.state.openGeneration++;h.state.context.openGeneration++}]
+  ]){
+    const h=selectionEntryHarness();h.state.onFocus=()=>change(h);h.click();
+    check('selection focus cannot redirect the captured '+name+' intent',()=>{assert.deepEqual(h.opens,[]);assert.deepEqual(h.panelOpens,[]);assert.equal(h.state.fallbackCalls,0)});
+  }
+  {
+    const h=selectionEntryHarness(),event=h.click(h.secondary);
+    check('selection inline recovery is an explicit call to the same current editor',()=>{assert.equal(event.stopped,true);assert.deepEqual(h.opens,[]);assert.equal(h.panelOpens.length,1);assert.equal(h.panelOpens[0],h.S.detail.conversation);assert.equal(h.state.fallbackCalls,0);assert.equal(h.menu.open,false)});
+    const denied=selectionEntryHarness();denied.state.canNavigate=false;denied.click(denied.secondary);
+    check('selection inline recovery retains the canonical navigation refusal',()=>{assert.deepEqual(denied.panelOpens,[]);assert.deepEqual(denied.opens,[]);assert.equal(denied.state.fallbackCalls,0)});
+  }
+  {
+    const h=selectionEntryHarness();h.presentation.syncSelectionLauncher();
+    check('selection primary describes a separate tab without claiming a dialog',()=>{assert.equal(h.primary.getAttribute('aria-haspopup'),null);assert.equal(h.primary.getAttribute('aria-controls'),null);assert.match(h.primary.getAttribute('aria-label'),/отдельной вкладке/);assert.equal(h.secondary.hidden,false)});
+    h.documentQueries.set('meta[name="selection-editor-entry"]',{content:''});h.presentation.syncSelectionLauncher();
+    check('selection absent admission restores dialog semantics and hides the secondary entry',()=>{assert.equal(h.primary.getAttribute('aria-haspopup'),'dialog');assert.equal(h.primary.getAttribute('aria-controls'),'tourSelectionDialog');assert.equal(h.primary.getAttribute('aria-label'),null);assert.equal(h.secondary.hidden,true)});
+  }
 }
 async function explicitDialoguesReturnCheck(){
   const settle=async(h,target)=>{const before=h.requests.length,p=h.navigate(target);assert.equal(h.requests.length,before+1,'One load per explicit destination');assert.equal(h.elements.workspaceRoot.dataset.m2Section,target,'Immediate explicit destination');h.pending[before](true);await p;assert.equal(h.elements.workspaceRoot.dataset.m2Section,target,'Settled explicit destination');};
@@ -42,6 +127,8 @@ async function explicitDialoguesReturnCheck(){
 (async()=>{
   if(process.argv.includes('--daily-flow-only')){await require('./support/manager-daily-flow-regression')(check);console.log('MANAGER DAILY FLOW: '+checks+' PASSED');return;}
   if(process.argv.includes('--dialogues-return-only')){await explicitDialoguesReturnCheck();console.log('MANAGER2 NAVIGATION TARGET: '+checks+' PASSED');return;}
+  if(process.argv.includes('--selection-entry-only')){selectionEntryChecks();console.log('MANAGER2 SELECTION ENTRY: '+checks+' PASSED');return;}
+  selectionEntryChecks();
   {
     const h=harness(),moves=[],pin={},markers={children:[pin]},identity={appendChild:node=>moves.push(node)};
     const node={querySelector:selector=>selector==='.pwRowMarkers'?markers:selector==='.leadIdentity'?identity:null};
@@ -142,3 +229,4 @@ async function explicitDialoguesReturnCheck(){
   await require('./support/manager-daily-flow-regression')(check);
   console.log('MANAGER2 NAVIGATION: '+checks+' PASSED');
 })().catch(error=>{console.error(error);process.exitCode=1});
+
