@@ -14,6 +14,7 @@ require_once __DIR__.'/ArchiveResearchMcpAdapter.php';
 require_once __DIR__.'/DevelopmentWorkMcpAdapter.php';
 require_once __DIR__.'/ModeledConversionStatusMcpAdapter.php';
 require_once __DIR__.'/ManagerHotelKnowledgeMcpAdapter.php';
+require_once __DIR__.'/DialogueReviewMcpAdapter.php';
 
 /** Authenticated preparation tools and MCP Events; never sends customer messages. */
 final class ManagerPreparationMcpService
@@ -26,7 +27,7 @@ final class ManagerPreparationMcpService
     private ?ModeledConversionStatusBudget $forecastBudget=null;
 
     /** $store is an operation/arguments adapter for isolated tests. */
-    public function __construct(?PDO $pdo = null, private $store = null, ?ManagerPreparationWebhook $webhook = null, private $clock = null, private $connectionActive = null, private $virtualStore = null, private ?ManagerSearch3CandidateReader $searchCandidates = null, private $hotelStore = null, private $hotelEvents = null, private $archiveStore = null, private $developmentStore = null, private $developmentEvents = null, private $forecastStore = null)
+    public function __construct(?PDO $pdo = null, private $store = null, ?ManagerPreparationWebhook $webhook = null, private $clock = null, private $connectionActive = null, private $virtualStore = null, private ?ManagerSearch3CandidateReader $searchCandidates = null, private $hotelStore = null, private $hotelEvents = null, private $archiveStore = null, private $developmentStore = null, private $developmentEvents = null, private $forecastStore = null, private $dialogueStore = null)
     {
         $this->pdo = $pdo ?? ConversationDb::connection();
         $this->webhook = $webhook ?? new ManagerPreparationWebhook();
@@ -35,6 +36,9 @@ final class ManagerPreparationMcpService
     public function handle(array $rpc, int $authorizedAdminId, ?string $connectionId = null, ?array $grantedScopes = null, ?ModeledConversionStatusBudget $forecastBudget=null, bool $deferPreparedReceipt=false): array
     {
         $id = $rpc['id'] ?? null;
+        $dialogueReview=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
+            &&in_array($rpc['params']['name']??null,DialogueReviewMcpAdapter::NAMES,true);
+        if($dialogueReview&&is_string($id)&&strlen($id)>128)return self::error(null,-32600,'Invalid Request');
         $forecastStatus=($rpc['method']??null)==='tools/call'&&is_array($rpc['params']??null)
             &&($rpc['params']['name']??null)===ModeledConversionStatusMcpAdapter::NAME;
         $this->forecastBudget=$forecastStatus?($forecastBudget??new ModeledConversionStatusBudget()):null;
@@ -83,6 +87,7 @@ final class ManagerPreparationMcpService
                 || in_array($params['name']??null,VirtualReplyMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,HotelWorkMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
+                || in_array($params['name']??null,DialogueReviewMcpAdapter::NAMES,true)
                 || in_array($params['name']??null,DevelopmentWorkMcpAdapter::NAMES,true)
                 || ($params['name']??null)===ModeledConversionStatusMcpAdapter::NAME
                 || ($params['name']??null)===ManagerHotelKnowledgeMcpAdapter::NAME)) {
@@ -93,6 +98,7 @@ final class ManagerPreparationMcpService
             // Bound the complete wire response, including escaping and RPC ID.
             if ($rpc['method']==='tools/call' && in_array($params['name']??null,ArchiveResearchMcpAdapter::NAMES,true)
                 && strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>262144) throw new RuntimeException();
+            if($dialogueReview&&strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>262144)throw new RuntimeException();
             if($forecastStatus&&strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>65536)throw new ModeledConversionStatusLimit('byte_limit');
             if($rpc['method']==='tools/call'&&($params['name']??null)===ManagerHotelKnowledgeMcpAdapter::NAME
                 &&strlen(json_encode($response,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>ManagerHotelDemandInventory::OUTPUT_BYTES)
@@ -195,6 +201,10 @@ final class ManagerPreparationMcpService
             ||in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)) $out=array_merge($out,DevelopmentWorkMcpAdapter::tools());
         if(array_intersect($scopes,ManagerPreparationOAuth::SUPPORTED_SCOPES)!==[])
             $out=array_merge($out,ModeledConversionStatusMcpAdapter::tools());
+        if(ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)
+            ||in_array(ManagerPreparationOAuth::FORECAST_SCOPE,$scopes,true)
+            ||in_array(ManagerPreparationOAuth::DIALOGUE_SCOPE,$scopes,true))
+            $out=array_merge($out,DialogueReviewMcpAdapter::tools());
         return $out;
     }
 
@@ -206,15 +216,16 @@ final class ManagerPreparationMcpService
         $forecast=$name===ModeledConversionStatusMcpAdapter::NAME;
         $hotel=in_array($name,HotelWorkMcpAdapter::NAMES,true);
         $archive=in_array($name,ArchiveResearchMcpAdapter::NAMES,true);
+        $dialogue=in_array($name,DialogueReviewMcpAdapter::NAMES,true);
         $development=in_array($name,DevelopmentWorkMcpAdapter::NAMES,true);
         $legacy=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES);
-        $required=$forecast?[ManagerPreparationOAuth::FORECAST_SCOPE]:($development?[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]:($hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:($archive?[ManagerPreparationOAuth::ARCHIVE_SCOPE]:ManagerPreparationOAuth::SCOPES)));
-        $stepUp=$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
+        $required=$dialogue?[ManagerPreparationOAuth::DIALOGUE_SCOPE]:($forecast?[ManagerPreparationOAuth::FORECAST_SCOPE]:($development?[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]:($hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:($archive?[ManagerPreparationOAuth::ARCHIVE_SCOPE]:ManagerPreparationOAuth::SCOPES))));
+        $stepUp=$dialogue||$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
             ||($development&&($legacy||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)||in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)));
         if ($stepUp&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
             &&$this->scopedConnectionActive($connection,$admin,$scopes)) return self::capabilityScopeChallenge($scopes,$required[0]);
         if (!ManagerPreparationOAuth::hasScopes($scopes,$required)
-            || (($forecast||$hotel||$archive||$development) && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) {
+            || (($dialogue||$forecast||$hotel||$archive||$development) && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) {
             if (in_array($name,['hotel_work_status','development_work_status'],true)) {
                 $reason=$connection===null||!$this->scopedConnectionActive($connection,$admin,$scopes)
                     ?'AUTH_CONTEXT_UNAVAILABLE':'AUTH_SCOPE_UNAVAILABLE';
@@ -222,7 +233,9 @@ final class ManagerPreparationMcpService
             }
             throw new DomainException();
         }
-        if($forecast){
+        if($dialogue){
+            $data=(new DialogueReviewMcpAdapter($this->pdo,$this->dialogueStore,$this->clock))->call($name,$args,$admin,$connection);
+        } elseif($forecast){
             if($this->forecastBudget===null)throw new RuntimeException();
             $authorize=function()use($admin,$connection,$required):void{$this->requireCurrentContext($admin,$connection,$required);};
             $data=(new ModeledConversionStatusMcpAdapter($this->pdo,$this->forecastStore))
@@ -334,6 +347,7 @@ final class ManagerPreparationMcpService
             ManagerPreparationOAuth::ARCHIVE_SCOPE=>['Explicit archive research consent is required','Подтвердите дополнительный доступ ChatGPT к сохранённым историческим диалогам AnyTour.'],
             ManagerPreparationOAuth::DEVELOPMENT_SCOPE=>['Explicit development queue consent is required','Подтвердите дополнительный доступ ChatGPT к очереди плана развития AnyTour.'],
             ManagerPreparationOAuth::FORECAST_SCOPE=>['Explicit private forecast status consent is required','Подтвердите чтение закрытого агрегированного статуса сигналов и ранних оценок AnyTour. Тексты и данные отдельных клиентов не возвращаются.'],
+            ManagerPreparationOAuth::DIALOGUE_SCOPE=>['Explicit current dialogue review consent is required','Подтвердите чтение текущих MAX и Telegram переписок AnyTour для разбора качества ответов. Сообщения клиентам не отправляются; переписки и прочитанность не изменяются.'],
             default=>throw new InvalidArgumentException(),
         };
         $challenge='Bearer resource_metadata="'.ManagerPreparationOAuth::ENDPOINT.'?action=resource", '

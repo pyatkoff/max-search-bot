@@ -781,3 +781,55 @@ for(const viewport of [{width:390,height:420},{width:430,height:900},{width:1440
  await expect(page.locator('#replyText')).toHaveValue(draft);await expect(page.locator('#mediaSelection')).toHaveText(attachment);expect(await page.evaluate(()=>document.getElementById('replyText')===dailyReplyNode&&document.getElementById('replyFile')===dailyFileNode)).toBe(true);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await expect(page.locator('#sendReply')).toBeInViewport();
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts','daily-flow-'+browserName+'-'+viewport.width+'-'+viewport.height+'.png')});expect(state.calls.some(c=>c.action==='send'||c.action==='generate')).toBe(false);clean(state);
 });
+
+for(const choice of [
+  {decision:'allow',label:'Разрешить',width:1440},
+  {decision:'deny',label:'Отмена',width:390},
+])test('Current dialogue review OAuth '+choice.decision+' keeps explicit read-only consent '+choice.width,async({browser,browserName},testInfo)=>{
+  const fixture=await startOAuthFixture(sourceRoot);
+  const context=await browser.newContext({ignoreHTTPSErrors:true,proxy:fixture.proxy,serviceWorkers:'block',viewport:{width:choice.width,height:900}});
+  let failed=false;
+  try{
+    const page=await context.newPage();
+    await page.goto(fixture.origin+'/manager/fixture-session.php?actor=1');
+    const url=new URL(fixture.authorization_path,fixture.origin);
+    url.searchParams.set('scope','dialogues:read');
+    await page.goto(url.href);
+    await expect(page.getByRole('heading',{name:'Разрешить разбор текущих диалогов AnyTour в ChatGPT?'})).toBeVisible();
+    await expect(page.locator('body')).toContainText('включая сообщения туристов, бота и менеджеров');
+    await expect(page.locator('body')).toContainText('не отмечает их прочитанными');
+    await expect(page.locator('body')).not.toContainText('Сохранение подготовленных ответов');
+    await expect(page.locator('body')).not.toContainText('гостиничных исследований');
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+    const image=testInfo.outputPath('dialogue-review-consent-'+choice.width+'-'+browserName+'.png');
+    await page.screenshot({path:image,fullPage:true});
+    await testInfo.attach('dialogue-review-consent',{body:fs.readFileSync(image),contentType:'image/png'});
+    const sent=page.waitForRequest(request=>request.method()==='POST'&&new URL(request.url()).pathname==='/manager/ai-oauth.php');
+    await page.getByRole('button',{name:choice.label,exact:true}).click({noWaitAfter:true});
+    const body=new URLSearchParams((await sent).postData());
+    expect([...body.keys()]).toEqual(['pending_id','csrf','decision']);
+    expect(body.get('decision')).toBe(choice.decision);
+    await expect.poll(()=>fixture.callbacks.length).toBe(1);
+    expect(fixture.responses.find(item=>item.method==='POST'&&item.path==='/manager/ai-oauth.php').status).toBe(303);
+    const callback=fixture.callbacks[0];
+    expect(callback.searchParams.get('iss')).toBe(fixture.issuer);
+    expect(callback.searchParams.get('state')).toBe('synthetic-state/a?b&c');
+    if(choice.decision==='allow'){
+      const code=callback.searchParams.get('code');
+      expect(code).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      const response=await context.request.post(fixture.origin+'/manager/ai-oauth.php?action=token',{maxRedirects:0,form:{
+        grant_type:'authorization_code',client_id:fixture.client_id,code,code_verifier:fixture.verifier,
+        resource:fixture.resource,redirect_uri:fixture.redirect_uri,
+      }});
+      expect(response.status()).toBe(200);
+      expect((await response.json()).scope).toBe('dialogues:read');
+    }else{
+      expect(callback.searchParams.get('error')).toBe('access_denied');
+      expect(callback.searchParams.has('code')).toBe(false);
+    }
+    expect(fixture.unexpected).toEqual([]);
+  }catch(error){failed=true;throw error;}
+  finally{
+    try{await context.close();}catch(error){if(!failed)throw error;}finally{await fixture.close();}
+  }
+});

@@ -41,7 +41,8 @@ final class ManagerPreparationOAuth
     public const DEVELOPMENT_SCOPE = 'development_work:write';
     public const ARCHIVE_SCOPE = 'archive:read';
     public const FORECAST_SCOPE = 'forecasts:read';
-    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE, self::FORECAST_SCOPE];
+    public const DIALOGUE_SCOPE = 'dialogues:read';
+    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE, self::FORECAST_SCOPE, self::DIALOGUE_SCOPE];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
     private PDO $pdo;
@@ -299,9 +300,20 @@ final class ManagerPreparationOAuth
      * access-token selection may invalidate prior cursors; no secret is added. */
     public function archiveCursorKey(string $familyId,int $adminId): string
     {
+        return $this->consentedCursorKey($familyId,$adminId,self::ARCHIVE_SCOPE,'anytour.archive-research.cursor.v1');
+    }
+
+    /** Current dialogue review is a distinct explicit grant, never archive/forecast access. */
+    public function dialogueCursorKey(string $familyId,int $adminId): string
+    {
+        return $this->consentedCursorKey($familyId,$adminId,self::DIALOGUE_SCOPE,'anytour.dialogue-review.cursor.v1');
+    }
+
+    private function consentedCursorKey(string $familyId,int $adminId,string $scope,string $domain): string
+    {
         if (ProjectConfig::projectId()!=='anytour' || $this->pdo->inTransaction()) throw new DomainException();
         $grant=$this->connectionGrant($familyId,$adminId);
-        if ($grant===null || !in_array(self::ARCHIVE_SCOPE,explode(' ',$grant['scopes']),true)) throw new DomainException();
+        if ($grant===null || !in_array($scope,explode(' ',$grant['scopes']),true)) throw new DomainException();
         $now=$this->now();
         $q=$this->pdo->prepare("SELECT t.token_hash FROM manager_preparation_oauth_tokens t
             JOIN manager_preparation_oauth_grants g ON g.grant_id=t.grant_id
@@ -315,7 +327,7 @@ final class ManagerPreparationOAuth
         if (!is_string($hash) || preg_match('/\A[a-f0-9]{64}\z/D',$hash)!==1) throw new DomainException();
         $key=hex2bin($hash);
         if ($key===false) throw new DomainException();
-        return hash_hmac('sha256',"anytour.archive-research.cursor.v1\0".$adminId."\0".$familyId,$key,true);
+        return hash_hmac('sha256',$domain."\0".$adminId."\0".$familyId,$key,true);
     }
 
     private function connectionGrant(string $familyId, int $adminId): ?array
@@ -649,7 +661,7 @@ final class ManagerPreparationOAuth
 
     private function scope($value): string
     {
-        if (!is_string($value) || strlen($value)>100) $this->fail('invalid_scope');
+        if (!is_string($value) || strlen($value)>128) $this->fail('invalid_scope');
         if ($this->profile!==self::PROFILE_LEGACY) {
             $required=self::profileDefinition($this->profile)['scopes'];
             $given=explode(' ',$value);
@@ -663,10 +675,11 @@ final class ManagerPreparationOAuth
         $development=in_array(self::DEVELOPMENT_SCOPE,$scopes,true);
         $archive=in_array(self::ARCHIVE_SCOPE,$scopes,true);
         $forecast=in_array(self::FORECAST_SCOPE,$scopes,true);
+        $dialogue=in_array(self::DIALOGUE_SCOPE,$scopes,true);
         // Reply read/write remain one capability. Hotel and development metadata
         // each require separate explicit consent; refresh never adds a scope.
-        // Archive reads and aggregate forecast status each require fresh consent.
-        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive && !$forecast)) $this->fail('invalid_scope');
+        // Archive, aggregate forecast and current-dialogue reads each require fresh consent.
+        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive && !$forecast && !$dialogue)) $this->fail('invalid_scope');
         return implode(' ',array_values(array_intersect(self::SUPPORTED_SCOPES,$scopes)));
     }
 
