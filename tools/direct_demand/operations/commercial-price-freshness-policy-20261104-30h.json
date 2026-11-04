@@ -1,0 +1,20 @@
+{
+  "operation": "commercial-price-freshness-policy-20261104-30h",
+  "state": "USER_CONFIRMED_THIRTY_HOUR_WINDOW",
+  "goal": "Apply Pavel's30hour retained-price acceptance window and reassess the existing four rows without repeatingDBreads",
+  "boundaries": [
+    "Newuserinstruction supersedes assistant'sincorrect3hour rule",
+    "Fullbasketprice/currentavailability still require justified actualization; no raw cachedpricepublication",
+    "No paidcall until exactnativeidentity/terms/fingerprint/durablequoteintent"
+  ],
+  "criteria": [
+    "RetainedpersistenceUTCage0..108000seconds eligible forquoteinspection",
+    "Originalread6artifactimmutable, original3haggregate ishistoricalnotcurrentdecision"
+  ],
+  "risks": [
+    "A30hour retainedrow isnotcurrentavailability orverifiedfinalprice"
+  ],
+  "max_retained_age_hours": 30,
+  "max_retained_age_seconds": 108000,
+  "user_statement": "У нас лимиты были от 30 часов!"
+}

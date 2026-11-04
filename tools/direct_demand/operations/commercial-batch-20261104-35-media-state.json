@@ -1,0 +1,202 @@
+{
+  "operation": "commercial-hotel-batch-20261104-35-v1",
+  "state": "TWO_COVERS_PREPARED_NATIVE_INSPECTION_PENDING_NOT_SENT",
+  "goal": "Publish both visually ready hotel candidates promptly",
+  "boundaries": [
+    "Use accepted exactprimaryrealphotos only,no repeatedclosedframes",
+    "No permanentCanvaSave;existingnativePNGguardandfreeze"
+  ],
+  "criteria": [
+    "NativePNGsbytes/chunks/SHA/dims/view",
+    "Allreadysubsetserialsend aftersource/rights/dedup"
+  ],
+  "risks": [
+    "Eightcandidates lackacceptedwholehero orphotos"
+  ],
+  "primary_runs": [
+    41765442306,
+    41787331305
+  ],
+  "primary_gets": 15,
+  "contact_run": 41787695730,
+  "photo_count": 35,
+  "byte_guard_passed": 31,
+  "rejections": [
+    {
+      "hotel_id": 2144,
+      "role": "h2144_photo_0",
+      "index": 0,
+      "error": "ValueError",
+      "stage": "dimension_guard",
+      "observed": {
+        "http_status": 200,
+        "content_type": "image/jpeg",
+        "received_prefix_bytes": 74766,
+        "format": "JPEG",
+        "width": 320,
+        "height": 320
+      }
+    },
+    {
+      "hotel_id": 2144,
+      "role": "h2144_photo_2",
+      "index": 2,
+      "error": "ValueError",
+      "stage": "dimension_guard",
+      "observed": {
+        "http_status": 200,
+        "content_type": "image/jpeg",
+        "received_prefix_bytes": 115620,
+        "format": "JPEG",
+        "width": 320,
+        "height": 320
+      }
+    },
+    {
+      "hotel_id": 2144,
+      "role": "h2144_photo_3",
+      "index": 3,
+      "error": "ValueError",
+      "stage": "dimension_guard",
+      "observed": {
+        "http_status": 200,
+        "content_type": "image/jpeg",
+        "received_prefix_bytes": 59526,
+        "format": "JPEG",
+        "width": 320,
+        "height": 320
+      }
+    },
+    {
+      "hotel_id": 9321,
+      "role": "h9321_photo_0",
+      "index": 7,
+      "error": "ValueError",
+      "stage": "byte_guard",
+      "observed": {
+        "http_status": 200,
+        "content_type": "image/jpeg",
+        "received_prefix_bytes": 9264
+      }
+    }
+  ],
+  "ready_candidate_ids": [
+    1199,
+    1464
+  ],
+  "selections": [
+    {
+      "id": 1199,
+      "roles": [
+        "h1199_photo_0",
+        "h1199_photo_2",
+        "h1199_photo_3"
+      ],
+      "design": "DAHZx_JlJEM",
+      "title": "GLORIA SERENITY",
+      "font": 56,
+      "alts": [
+        "Территория и виллы Gloria Serenity Resort",
+        "Пляж Gloria Serenity Resort",
+        "Категория Deluxe Villa в Gloria Serenity Resort"
+      ],
+      "photos": [
+        {
+          "hotel_id": 1199,
+          "role": "h1199_photo_0",
+          "index": 0,
+          "source_url": "https://www.gloria.com.tr/media/tydpqcfs/gsr_anasayfa_1920x920.jpg",
+          "format": "WEBP",
+          "width": 1920,
+          "height": 920,
+          "bytes": 496886,
+          "sha256": "f4d8b35d76636c4cf637456a1f7fe4e7426ae384260713e5d4efe8425e76f6ee"
+        },
+        {
+          "hotel_id": 1199,
+          "role": "h1199_photo_2",
+          "index": 2,
+          "source_url": "https://www.gloria.com.tr/media/vj1h32wa/beach20_gsr.jpg",
+          "format": "JPEG",
+          "width": 1200,
+          "height": 700,
+          "bytes": 171992,
+          "sha256": "aa854aad63dd7b9bdee1e69a1a5da0636d4b04791826179a51e09f4d5061f831"
+        },
+        {
+          "hotel_id": 1199,
+          "role": "h1199_photo_3",
+          "index": 3,
+          "source_url": "https://www.gloria.com.tr/media/zmjf1tpd/dlx.jpg",
+          "format": "WEBP",
+          "width": 880,
+          "height": 640,
+          "bytes": 132066,
+          "sha256": "c0408eddec29565b868b8c954c552c0de4b8d6a18c97956779e206b84113d2c4"
+        }
+      ]
+    },
+    {
+      "id": 1464,
+      "roles": [
+        "h1464_photo_0",
+        "h1464_photo_1",
+        "h1464_photo_2"
+      ],
+      "design": "DAHZx-KVGLQ",
+      "title": "ROYAL WINGS",
+      "font": 56,
+      "alts": [
+        "Корпуса и территория Royal Wings Hotel",
+        "Стандартный номер Royal Wings Hotel",
+        "Бассейн Royal Wings Hotel"
+      ],
+      "photos": [
+        {
+          "hotel_id": 1464,
+          "role": "h1464_photo_0",
+          "index": 4,
+          "source_url": "https://cdn.woxxtech.com/httpsroyalwingshotel/royal-wings-hotels-1786629517415.webp",
+          "format": "WEBP",
+          "width": 2000,
+          "height": 1510,
+          "bytes": 894990,
+          "sha256": "89af6598c19a69c7eb2abbf54083d1c4e19dd0e461cf55b6cd8353da4536768e"
+        },
+        {
+          "hotel_id": 1464,
+          "role": "h1464_photo_1",
+          "index": 5,
+          "source_url": "https://cdn.woxxtech.com/httpsroyalwingshotel/royal-wings-standard-room-09-1784809481892.webp",
+          "format": "WEBP",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 522794,
+          "sha256": "df0daa020174e0b3cfb953aa44429df27e234478e5db970e86aaaccf2ab69188"
+        },
+        {
+          "hotel_id": 1464,
+          "role": "h1464_photo_2",
+          "index": 6,
+          "source_url": "https://cdn.woxxtech.com/httpsroyalwingshotel/olanaklarmz-1786629657366.webp",
+          "format": "WEBP",
+          "width": 1333,
+          "height": 2000,
+          "bytes": 774978,
+          "sha256": "5abef9c3dff4fe17026a1799ce7739b913e2fda07519f8632e8308450c2bb65a"
+        }
+      ]
+    }
+  ],
+  "deferred": [
+    2144,
+    3469,
+    9321,
+    1201,
+    1198,
+    1543,
+    1137,
+    1459
+  ],
+  "new_posts": 0
+}
