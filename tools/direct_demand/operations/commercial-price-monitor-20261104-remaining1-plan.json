@@ -1,0 +1,46 @@
+{
+  "operation": "commercial-price-monitor-20261104-remaining1",
+  "state": "PLAN_NO_CALLS",
+  "goal": "Resolve remaining fresh retained unpriced published hotels in one finite serial pass following Pavel prices-first instruction",
+  "boundaries": [
+    "Original authenticated READ9 only; no scope DB reread, manual collector, observer/transport/budget/cron change",
+    "One selected tuple per distinct unconsumed native hotel; maximum8; no fallback quote after error",
+    "Each own operation/hash/original whole caption+cover and durable private intent before first gateway call",
+    "30h108000 UTC persistence/2A0/RUB/future/country-active-name/terms/fingerprint exact readonly revalidation per new tuple",
+    "Current f843 independently full source21/deployverify/TLS/diagnostics/hostaccepted25/runtimeclean before SSH",
+    "Private full context only authenticated artifacts; no postwrites in quote phase"
+  ],
+  "criteria": [
+    "New finite-pass dedup/consumed exclusion/max8 cases plus per-input3/PHP-l",
+    "No old native/age/updater fixtures rerun unchanged",
+    "UNKNOWN stops serial pass; original outcome resolve first; no automatic retry"
+  ],
+  "risks": [
+    "Raw observations not final price or availability; only real validated roundtrip/full basket can reach existing-post updater",
+    "A declared gateway error without flights closes that context without a price edit"
+  ],
+  "excluded_consumed_hotel_ids": [
+    233,
+    110,
+    73342,
+    13869,
+    13873,
+    109,
+    12114,
+    9432
+  ],
+  "name_review_hotel_ids": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "expected_source": "f84391d45dd9643271473cf3c325e9940e2a4593",
+  "retained_run": 41898354901,
+  "retained_artifact": 13357152456,
+  "max_age_seconds": 108000,
+  "max_hotels": 8,
+  "automatic_retry_allowed": false
+}
