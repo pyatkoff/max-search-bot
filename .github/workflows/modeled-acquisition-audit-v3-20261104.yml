@@ -1,0 +1,172 @@
+name: Audit installed modeled acquisition statistics v3
+
+on:
+  push:
+    branches: [ops/modeled-acquisition-audit-v3-20261104]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/ops/modeled-acquisition-audit-v3-20261104' && github.run_attempt == 1
+    concurrency:
+      group: anytour-modeled-acquisition-read-only-audit-v3-20261104
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      ACCEPTED_MAIN_SHA: 'fb60a495c4a8d992810aae23f00c60a5b5cd7549'
+      EXPECTED_READER_BLOB: 'd90da47fdfeeba51bea9ec849e673f230ad3a809'
+      EXPECTED_VIEW_BLOB: 'a481495f39b622db97d971c6d4e049df5e1c25ff'
+      EXPECTED_CONTROLLER_BLOB: '26f05e9d8ddfe1ddbff4dd4044856e29001bb4b0'
+      EXPECTED_OWNER_SCOPE_BLOB: '42b442b37b8e09b9e08d2c4f667440cfbd1aa6cb'
+    steps:
+      - name: Checkout this one original audit commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify repository event original attempt main ancestry and sole path
+        id: provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_EVENT_NAME" = 'push'
+          test "$GITHUB_REF" = 'refs/heads/ops/modeled-acquisition-audit-v3-20261104'
+          test "$GITHUB_RUN_ATTEMPT" = '1'
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          for value in "$ACCEPTED_MAIN_SHA" "$EXPECTED_READER_BLOB" "$EXPECTED_VIEW_BLOB" "$EXPECTED_CONTROLLER_BLOB" "$EXPECTED_OWNER_SCOPE_BLOB"; do [[ "$value" =~ ^[0-9a-f]{40}$ ]]; done
+          jq -e --arg sha "$GITHUB_SHA" '
+            .repository.full_name=="pyatkoff/max-search-bot" and
+            .ref=="refs/heads/ops/modeled-acquisition-audit-v3-20261104" and
+            .deleted==false and .forced==false and .after==$sha
+          ' "$GITHUB_EVENT_PATH" >/dev/null
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          read -r head parent extra < <(git rev-list --parents -n 1 HEAD)
+          test "$head" = "$GITHUB_SHA"
+          test "$parent" = "$ACCEPTED_MAIN_SHA"
+          test -z "$extra"
+          test "$(git diff --name-only "$ACCEPTED_MAIN_SHA" HEAD)" = '.github/workflows/modeled-acquisition-audit-v3-20261104.yml'
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:services/ModeledConversionAcquisitionStatsReader.php")" = "$EXPECTED_READER_BLOB"
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:services/ModeledConversionAcquisitionStatsView.php")" = "$EXPECTED_VIEW_BLOB"
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:manager/assigned-value.php")" = "$EXPECTED_CONTROLLER_BLOB"
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:services/InternalOwnerDialogueScope.php")" = "$EXPECTED_OWNER_SCOPE_BLOB"
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git merge-base --is-ancestor "$ACCEPTED_MAIN_SHA" refs/remotes/origin/main
+
+      - name: Prepare existing SSH credential only on the GitHub runner
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/modeled-acquisition-audit-v3-key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+
+      - name: Audit one live aggregate and its in-memory renderer without source changes
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'READ_ONLY_ACQUISITION_AUDIT'
+          import datetime as dt,json,os,pathlib,re,subprocess,urllib.error,urllib.parse,urllib.request
+          REMOTE="set -euo pipefail\nexport GIT_OPTIONAL_LOCKS=0\nroot='/var/www/anytoour/data/www/app.anytoour.ru'\ncd \"$root\"\nfence() {\n  test \"$(pwd -P)\" = \"$root\"\n  for path in services/ModeledConversionAcquisitionStatsReader.php services/ModeledConversionAcquisitionStatsView.php manager/assigned-value.php services/InternalOwnerDialogueScope.php; do\n    test -f \"$path\"\n    test ! -L \"$path\"\n  done\n  test \"$(git hash-object -- services/ModeledConversionAcquisitionStatsReader.php)\" = 'd90da47fdfeeba51bea9ec849e673f230ad3a809'\n  test \"$(git hash-object -- services/ModeledConversionAcquisitionStatsView.php)\" = 'a481495f39b622db97d971c6d4e049df5e1c25ff'\n  test \"$(git hash-object -- manager/assigned-value.php)\" = '26f05e9d8ddfe1ddbff4dd4044856e29001bb4b0'\n  test \"$(git hash-object -- services/InternalOwnerDialogueScope.php)\" = '42b442b37b8e09b9e08d2c4f667440cfbd1aa6cb'\n  git diff --quiet HEAD -- services/ModeledConversionAcquisitionStatsReader.php services/ModeledConversionAcquisitionStatsView.php manager/assigned-value.php services/InternalOwnerDialogueScope.php\n}\nfence\nresult=\"$(/usr/bin/php <<'ACQUISITION_AUDIT_PHP'\n<?php\ndeclare(strict_types=1);\nini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$root='/var/www/anytoour/data/www/app.anytoour.ru';\n$checks=array_fill_keys(['fixed_project','read_only_session','reader_available','report_contract','fence_contract',\n    'window_contract','coverage_contract','partitions','percentiles','telegram_unknown','view_accepts_report',\n    'transaction_closed','read_only_restored'],false);\n$out=['schema_version'=>1,'ok'=>false,'reason'=>'bootstrap_unavailable','checked_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),\n    'sources'=>['reader'=>'d90da47fdfeeba51bea9ec849e673f230ad3a809','view'=>'a481495f39b622db97d971c6d4e049df5e1c25ff',\n        'controller'=>'26f05e9d8ddfe1ddbff4dd4044856e29001bb4b0','owner_scope'=>'42b442b37b8e09b9e08d2c4f667440cfbd1aa6cb'],\n    'checks'=>$checks];\n$pdo=null;$priorReadOnly=null;$variable=null;$reason='bootstrap_unavailable';\n$integer=static fn($v):bool=>is_int($v)&&$v>=0&&$v<=50000;\n$moment=static function($v):?int{\n    if(!is_string($v)||strlen($v)!==20)return null;\n    $d=DateTimeImmutable::createFromFormat('!Y-m-d\\TH:i:s\\Z',$v,new DateTimeZone('UTC'));\n    return$d&&$d->format('Y-m-d\\TH:i:s\\Z')===$v?$d->getTimestamp():null;\n};\n$decimal=static fn($v):bool=>is_string($v)&&preg_match('/\\A(?:0|[1-9][0-9]{0,19})\\z/D',$v)===1;\ntry{\n    if(PHP_SAPI!=='cli'||realpath((string)getcwd())!==$root)throw new RuntimeException();\n    require_once $root.'/config.php';\n    require_once $root.'/services/ProjectAccessService.php';\n    require_once $root.'/services/ModeledConversionAcquisitionStatsReader.php';\n    require_once $root.'/services/ModeledConversionAcquisitionStatsView.php';\n    $authorize=static function()use($root):void{\n        if(PHP_SAPI!=='cli'||realpath((string)getcwd())!==$root||ProjectConfig::projectId()!=='anytour'\n            ||!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635')throw new RuntimeException();\n    };\n    $authorize();$checks['fixed_project']=true;\n    ProjectAccessService::initializeReadOnly();\n    $pdo=ConversationDb::connection();\n    if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'||$pdo->inTransaction())throw new RuntimeException();\n    $reason='read_only_unavailable';\n    foreach(['transaction_read_only','tx_read_only']as$name){\n        try{\n            $value=$pdo->query('SELECT @@SESSION.'.$name)->fetchColumn();\n            if(in_array((string)$value,['0','1'],true)){$priorReadOnly=(int)$value;$variable=$name;break;}\n        }catch(PDOException$ignored){}\n    }\n    if($priorReadOnly===null)throw new RuntimeException();\n    $pdo->exec('SET SESSION TRANSACTION READ ONLY');\n    $checks['read_only_session']=(string)$pdo->query('SELECT @@SESSION.'.$variable)->fetchColumn()==='1';\n    if(!$checks['read_only_session'])throw new RuntimeException();\n    $now=time();$out['checked_at']=gmdate('Y-m-d\\TH:i:s\\Z',$now);\n    $reason='reader_unavailable';\n    $page=(new ModeledConversionAcquisitionStatsReader($pdo,$authorize))->read([],$now);\n    $checks['reader_available']=($page['available']??null)===true;\n    if(!$checks['reader_available']){\n        $allowed=['record_limit','time_limit','byte_limit','source_shape_limit','source_changed','storage_unavailable','outer_transaction'];\n        $reason=in_array($page['reason']??null,$allowed,true)?'reader_'.$page['reason']:'reader_unavailable';\n        throw new RuntimeException();\n    }\n    $reason='invalid_report_contract';\n    $checks['report_contract']=($page['schema_version']??null)===1&&($page['meaning']??null)==='first_observed_substantive_inquiry_not_first_ever'\n        &&($page['rule_version']??null)==='saved_substantive_interest_v1'&&($page['as_of']??null)===$out['checked_at']\n        &&is_array($page['platforms']??null)&&is_array($page['sources']??null);\n    if(!$checks['report_contract'])throw new RuntimeException();\n    $source=$page['sources'];$savedFence=$source['profile_fence']??null;\n    $checks['fence_contract']=$decimal($savedFence)&&($source['history_complete']??null)===false\n        &&($source['coverage']??null)==='prospective_saved_profiles_not_full_archive';\n    $date=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('Y-m-d');\n    $start=(new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Kaliningrad')))->modify('-29 days');\n    $checks['window_contract']=($page['filters']??null)===['date'=>$date,'period'=>30,'platform'=>'all']\n        &&($page['window']['timezone']??null)==='Europe/Kaliningrad'\n        &&($page['window']['from']??null)===gmdate('Y-m-d\\TH:i:s\\Z',$start->getTimestamp())\n        &&($page['window']['until']??null)===$out['checked_at'];\n    $lo=$source['first_profile_at']??null;$hi=$source['last_profile_at']??null;$n=$source['profiles_examined']??null;\n    $profileClocks=$n===0?($lo===null&&$hi===null):($moment($lo)!==null&&$moment($hi)!==null&&$moment($lo)<=$moment($hi)&&$moment($hi)<=$now);\n    $checks['coverage_contract']=$integer($n)&&$integer($source['projected_records']??null)&&$source['projected_records']>=$n\n        &&($source['history_complete']??null)===false&&($source['coverage']??null)==='prospective_saved_profiles_not_full_archive'\n        &&($source['inquiry_time_basis']??null)==='canonical_recording_clock_not_provider_occurrence'\n        &&($source['membership_time_basis']??null)==='saved_max_membership_history_clock'\n        &&($source['join_coverage']??null)==='saved_receipts_not_full_channel'&&$profileClocks;\n    $bins=['under_1h','from_1h_to_1d','from_1d_to_7d','from_7d_to_30d','over_30d'];\n    $excluded=['join_missing','join_after_inquiry','join_ambiguous','identity_ambiguous','membership_unavailable'];\n    $partitions=true;$percentiles=true;$tgUnknown=true;\n    foreach(['max','telegram']as$key){\n        $p=$page['platforms'][$key]??null;\n        if(!is_array($p)||!$integer($p['inquiries']??null)||!$integer($p['valid_pairs']??null)\n            ||$p['valid_pairs']>$p['inquiries']||!is_array($p['bins']??null)||!is_array($p['excluded']??null)){\n            $partitions=false;break;\n        }\n        $sum=0;foreach($bins as$bin){if(!$integer($p['bins'][$bin]??null)){$partitions=false;break 2;}$sum+=$p['bins'][$bin];}\n        $omit=0;foreach($excluded as$why){if(!$integer($p['excluded'][$why]??null)){$partitions=false;break 2;}$omit+=$p['excluded'][$why];}\n        if($sum!==$p['valid_pairs']||$omit+$p['valid_pairs']!==$p['inquiries'])$partitions=false;\n        foreach(['median_seconds','p90_seconds']as$field){\n            $v=$p[$field]??null;\n            if($p['valid_pairs']===0){if($v!==null)$percentiles=false;}\n            elseif(!is_int($v)||$v<0||$v>3155760000)$percentiles=false;\n        }\n        if($p['valid_pairs']>0&&$p['median_seconds']>$p['p90_seconds'])$percentiles=false;\n        if($key==='telegram'){\n            $tgUnknown=$p['valid_pairs']===0&&($p['coverage_pct']??null)===null\n                &&$p['median_seconds']===null&&$p['p90_seconds']===null\n                &&$p['excluded']['membership_unavailable']===$p['inquiries']\n                &&($p['membership_status']??null)==='unavailable_pending_bitrix';\n        }else{\n            $ratio=$p['coverage_pct']??null;\n            if(($p['membership_status']??null)!=='saved_max_events_only')$partitions=false;\n            if($p['inquiries']===0){if($ratio!==null)$partitions=false;}\n            elseif((!is_int($ratio)&&!is_float($ratio))||!is_finite((float)$ratio)\n                ||abs($ratio-round(100*$p['valid_pairs']/$p['inquiries'],2))>0.000001)$partitions=false;\n        }\n    }\n    $checks['partitions']=$partitions;$checks['percentiles']=$percentiles;$checks['telegram_unknown']=$tgUnknown;\n    $reason='view_rejected_report';\n    $html=ModeledConversionAcquisitionStatsView::render($page,[],false);\n    $checks['view_accepts_report']=is_string($html)&&strlen($html)<=1048576\n        &&!str_contains($html,'Статистика сейчас недоступна')\n        &&str_contains($html,'id=\"channel-max\"')&&str_contains($html,'id=\"channel-telegram\"');\n    unset($html,$page,$source,$p);\n    $checks['transaction_closed']=!$pdo->inTransaction();\n    $authorize();$reason='technical_contract_failed';\n}catch(Throwable$ignored){\n    // No SQL, source text, HTML or business metrics may leave this process.\n}finally{\n    if($pdo instanceof PDO){\n        try{\n            if($pdo->inTransaction())$pdo->rollBack();\n            if($priorReadOnly!==null&&$variable!==null){\n                $pdo->exec('SET SESSION TRANSACTION READ '.($priorReadOnly===1?'ONLY':'WRITE'));\n                $checks['read_only_restored']=(string)$pdo->query('SELECT @@SESSION.'.$variable)->fetchColumn()===(string)$priorReadOnly;\n            }\n        }catch(Throwable$ignored){$checks['read_only_restored']=false;}\n    }\n}\n$out['checks']=$checks;$out['ok']=!in_array(false,$checks,true);\n$out['reason']=$out['ok']?null:$reason;\necho json_encode($out,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES),\"\\n\";\nexit(0);\nACQUISITION_AUDIT_PHP\n)\"\nfence\ntest \"$(printf '%s' \"$result\" | wc -c)\" -le 8192\nprintf '%s\\n' \"$result\"\n"
+          checks=["fixed_project","read_only_session","reader_available","report_contract","fence_contract",
+                  "window_contract","coverage_contract","partitions","percentiles","telegram_unknown",
+                  "view_accepts_report","transaction_closed","read_only_restored"]
+          expected={"reader":os.environ["EXPECTED_READER_BLOB"],"view":os.environ["EXPECTED_VIEW_BLOB"],
+                    "controller":os.environ["EXPECTED_CONTROLLER_BLOB"],"owner_scope":os.environ["EXPECTED_OWNER_SCOPE_BLOB"]}
+          out={"schema_version":1,"ok":False,"reason":"audit_transport_or_source_unavailable",
+               "checked_at":dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+               "sources":expected,"checks":dict.fromkeys(checks,False)}
+          try:
+              command=["ssh","-i",str(pathlib.Path(os.environ["RUNNER_TEMP"])/"modeled-acquisition-audit-v3-key"),
+                       "-o","BatchMode=yes","-o","StrictHostKeyChecking=no","-o","UserKnownHostsFile=/dev/null",
+                       "-o","ConnectTimeout=10",os.environ["DEPLOY_USER"]+"@"+os.environ["DEPLOY_HOST"],
+                       "timeout 25s bash -s"]
+              result=subprocess.run(command,input=REMOTE.encode("utf-8"),stdout=subprocess.PIPE,
+                                    stderr=subprocess.DEVNULL,timeout=30,check=False)
+              if result.returncode!=0 or len(result.stdout)>8192:
+                  raise ValueError("unavailable")
+              value=json.loads(result.stdout)
+              reasons={"bootstrap_unavailable","read_only_unavailable","reader_unavailable","invalid_report_contract",
+                       "view_rejected_report","technical_contract_failed",
+                       *("reader_"+k for k in ("record_limit","time_limit","byte_limit","source_shape_limit","source_changed","storage_unavailable","outer_transaction"))}
+              if not isinstance(value,dict) or set(value)!={"schema_version","ok","reason","checked_at","sources","checks"} or \
+                 value["schema_version"]!=1 or type(value["ok"]) is not bool or value["sources"]!=expected or \
+                 not isinstance(value["checks"],dict) or set(value["checks"])!=set(checks) or \
+                 any(type(v) is not bool for v in value["checks"].values()) or \
+                 not isinstance(value["checked_at"],str) or re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",value["checked_at"]) is None or \
+                 (value["ok"] and (value["reason"] is not None or not all(value["checks"].values()))) or \
+                 (not value["ok"] and value["reason"] not in reasons):
+                  raise ValueError("shape")
+              out=value
+          except Exception:
+              pass
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,*args,**kwargs):
+                  return None
+          anonymous_done=False
+          anonymous_denied=False
+          try:
+              url="https://app.anytoour.ru/manager/assigned-value.php?view=acquisition"
+              request=urllib.request.Request(url,method="GET",headers={"Accept":"text/html","Cache-Control":"no-cache"})
+              opener=urllib.request.build_opener(NoRedirect())
+              try:
+                  response=opener.open(request,timeout=10)
+              except urllib.error.HTTPError as error:
+                  response=error
+              with response:
+                  status=response.status
+                  location=response.headers.get("Location","")
+                  anonymous_done=True
+                  anonymous_denied=status in (401,403)
+                  if status in (301,302,303,307,308):
+                      target=urllib.parse.urlparse(urllib.parse.urljoin(url,location))
+                      anonymous_denied=(target.scheme=="https" and target.netloc=="app.anytoour.ru" and
+                                        re.fullmatch(r"/(?:manager2?/)?login(?:\.php)?",target.path) is not None)
+                  # Deliberately never read or print the anonymous HTTP body.
+          except Exception:
+              pass
+          out["checks"]["anonymous_request_completed"]=anonymous_done
+          out["checks"]["anonymous_access_denied"]=anonymous_denied
+          if out["ok"] and not anonymous_denied:
+              out["ok"]=False
+              out["reason"]="anonymous_access_not_denied" if anonymous_done else "anonymous_check_unavailable"
+          output=pathlib.Path(os.environ["RUNNER_TEMP"])/"modeled-acquisition-audit-v3.json"
+          output.write_text(json.dumps(out,sort_keys=True,separators=(",",":"))+"\n",encoding="utf-8")
+          output.chmod(0o600)
+          print(json.dumps(out,sort_keys=True,separators=(",",":")))
+          raise SystemExit(0 if out["ok"] else 1)
+          READ_ONLY_ACQUISITION_AUDIT
+
+      - name: Retain technical projection only
+        if: always() && steps.provenance.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modeled-acquisition-technical-audit-v3
+          path: ${{ runner.temp }}/modeled-acquisition-audit-v3.json
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Remove ephemeral SSH credential
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/modeled-acquisition-audit-v3-key"
