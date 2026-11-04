@@ -1,0 +1,18 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read13",
+  "state": "SIX_NEW_PUBLIC_PAIRS_AND_PRIVATE_MAX_BINDINGS_VERIFIED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41818905386",
+  "job_id": 126536736481,
+  "artifact_id": 13316072164,
+  "scope_hotels": 6,
+  "feed_rows": 6,
+  "private_binding_count": 6,
+  "deferred_count": 0,
+  "public_firstline_limit": 13,
+  "private_exact_url_limit": 7,
+  "previous150_pairs_read": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "private_output": "authenticatedartifact_only"
+}

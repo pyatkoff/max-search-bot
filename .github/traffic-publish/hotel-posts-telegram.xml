@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-04 08:11">
+<yml_catalog date="2026-11-04 13:18">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -1351,6 +1351,60 @@
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/1672.png</picture>
         <name>Путевки в Kempinski Hotel Barbaros Bay</name>
+        <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Бодрум</custom_label_1>
+      </offer>
+      <offer id="tg_1659">
+        <url>https://t.me/any_toour/165</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1659.png</picture>
+        <name>Путевки в TUI BLUE Sarigerme Park</name>
+        <description>Тур с перелётом. Даламан. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Даламан</custom_label_1>
+      </offer>
+      <offer id="tg_21695">
+        <url>https://t.me/any_toour/166</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/21695.png</picture>
+        <name>Путевки в TUI BLUE Seno</name>
+        <description>Тур с перелётом. Даламан. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Даламан</custom_label_1>
+      </offer>
+      <offer id="tg_28668">
+        <url>https://t.me/any_toour/167</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/28668.png</picture>
+        <name>Путевки в Rixos Premium Gocek</name>
+        <description>Тур с перелётом. Фетхие. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фетхие</custom_label_1>
+      </offer>
+      <offer id="tg_55205">
+        <url>https://t.me/any_toour/168</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/55205.png</picture>
+        <name>Путевки в Eftalia Ocean</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_1334">
+        <url>https://t.me/any_toour/169</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1334.png</picture>
+        <name>Путевки в Leodikya Kirman Premium</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_1715">
+        <url>https://t.me/any_toour/170</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/.github/traffic-publish/commercial-batch-20261104-37/1715.png</picture>
+        <name>Путевки в Voyage Torba</name>
         <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Бодрум</custom_label_1>
