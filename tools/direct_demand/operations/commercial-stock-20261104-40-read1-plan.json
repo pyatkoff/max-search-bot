@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261104-40-read1",
-  "state": "PURE_CODE_VALIDATION_ONLY_CURRENT_NEW_RELEASE_FAILED_NO_SERVER_READ",
+  "state": "CORRECTED_TEN_NEW_NAMED_GROUPS_PURE_ONLY_WAIT_CURRENT_HEALTHY_RELEASE",
   "goal": "Find ten additional distinct unpriced unpublished Turkey hotel identities for the500material goal, without retrying closed media or old stock39lookups",
   "boundaries": {
     "country_id": 4,
@@ -27,9 +27,8 @@
       "melas-holiday": [
         "melas holiday"
       ],
-      "acanthus-cennet": [
-        "acanthus cennet",
-        "akantus cennet"
+      "sunis-elita": [
+        "sunis elita beach"
       ],
       "sunis-kumkoy": [
         "sunis kumkoy beach",
@@ -78,5 +77,14 @@
   "source_stop_count": 1,
   "stock40_server_reads": 0,
   "stock40_native_cases_executed_before_source_stop": 0,
-  "full_source_gates_not_waived": true
+  "full_source_gates_not_waived": true,
+  "rejected_closed_lookup_group": {
+    "key": "acanthus-cennet",
+    "previous_reader": "read-commercial-stock-20261103-30-candidates.php",
+    "pure_stop_run": 41922240471,
+    "server_reads": 0,
+    "native_scope_cases_executed": 0,
+    "repeat_policy": "CLOSED_OLD_LOOKUP_INPUT_DEFERRED_NO_DB_REQUERY_NO_FORCE"
+  },
+  "replacement_new_group": "sunis-elita"
 }

@@ -13,7 +13,7 @@ function stock_public_match_counts(array $publications,int $id,array $aliases):a
  return $counts;
 }
 function stock40_groups_ok(array $groups):bool{
- return array_keys($groups)===['adalya-elite-lara','adalya-ocean-deluxe','adalya-resort','adalya-artside','melas-lara','melas-resort','melas-holiday','acanthus-cennet','sunis-kumkoy','sunis-evren']&&count($groups)===10;
+ return array_keys($groups)===['adalya-elite-lara','adalya-ocean-deluxe','adalya-resort','adalya-artside','melas-lara','melas-resort','melas-holiday','sunis-elita','sunis-kumkoy','sunis-evren']&&count($groups)===10;
 }
 function stock40_targeted_projection(array $ids,array $aliases):array{
  insist(count($ids)<=120&&count($aliases)<=20,'targeted_projection_scope_exceeded');

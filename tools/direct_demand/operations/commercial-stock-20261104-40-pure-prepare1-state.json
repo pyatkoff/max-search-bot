@@ -1,0 +1,18 @@
+{
+  "operation": "commercial-stock-20261104-40-pure-prepare1",
+  "state": "CLOSED_BEFORE_PHP_L_OR_SERVER_OLD_ACANTHUS_LOOKUP_INPUT_DEFERRED",
+  "run": 41922240471,
+  "job": 126897402291,
+  "source_commit": "65d4b96bafadcd419ab40917d80db29bd1eecc64",
+  "rejected_key": "acanthus-cennet",
+  "previous_closed_reader": "read-commercial-stock-20261103-30-candidates.php",
+  "source_stop": false,
+  "server_calls": 0,
+  "db_reads": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "native_scope_cases_executed": 0,
+  "replacement_new_key": "sunis-elita",
+  "ready_for_send": 0,
+  "new_posts": 0
+}

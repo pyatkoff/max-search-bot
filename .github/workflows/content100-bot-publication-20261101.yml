@@ -1,4 +1,4 @@
-name: Validate ten new stock inputs and targeted projection without a server connection
+name: Validate corrected ten new stock inputs with the closed Acanthus input excluded
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
