@@ -214,5 +214,28 @@ groups; main pushes and deployment workflows are not in those groups. Current-he
 checks still have to pass before merge. This releases runners occupied by stale
 heads without treating a cancelled run as passing evidence.
 
-Manual runs and production deployment verification retain the canonical full suite. No branch rule, application behavior, runtime
-configuration, data, migrations or authorization policy is changed.
+## Production verification critical path
+
+Production verification keeps the complete canonical catalog on PHP8.3; a
+successful PR run on PHP8.2 does not replace it. The architecture group, whose
+first command validates inventory, must succeed before the two isolated group
+runners start. One runner executes diagnostics; the other executes dialogue,
+website and manager. Each catalog group runs exactly once, including architecture.
+This allocation follows the original measured 238s of sequential group work:
+architecture 18s, diagnostics 150s and the other three groups 70s. The catalog
+coverage contract rejects missing, duplicate or unknown groups. PHP syntax runs
+alongside them.
+
+The always-running verify aggregate admits deployment only when
+inventory, syntax and both group runners succeed. Failure, cancellation, skip
+or a missing result blocks deployment. Every runner checks the same exact SHA;
+the production concurrency, current-main check and all server/post-deploy
+stages are unchanged. The standalone full-suite command remains available.
+Parallel placement reduces elapsed verification time; no test is removed,
+cached from a different source or silently marked successful. The first actual
+deployment must establish the new duration; the old timings are a baseline,
+not an end-to-end latency guarantee.
+
+Manual runs and production deployment verification retain the canonical full
+suite. No branch rule, application behavior, runtime configuration, data,
+migrations or authorization policy is changed.

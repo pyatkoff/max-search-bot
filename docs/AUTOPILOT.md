@@ -71,8 +71,26 @@ checking it again for each status update. Retry only failed/cancelled jobs on
 the same source when allowed; a new head or a new failure is new evidence.
 Keep one product WIP and preserve the normal sole-publisher/install gates.
 
-Independent source work and focused checks may proceed in parallel. Reserve
-the shared main/deploy publisher only after current-head required CI and
+Independent source work and focused checks may proceed in parallel. Before a
+rebase-only refresh or expensive final integration CI, read the existing release
+priority and current publisher. The next ready candidate under that priority
+performs the final current-main integration and selected required CI. Its CI may
+overlap the previous release's original installation, since source verification
+does not own production. Later ready packages retain their reviewed source and
+accepted evidence instead of synchronizing and repeating a full run on every
+intermediate main change. Do not create another queue, coordinator or reservation
+renewal to do this.
+
+Early focused checks that discover an actual source or fixture failure remain
+useful; fix the failing behavior and check the affected work before finalization.
+A real source/dependency change still needs the ordinary selected current-source
+checks. Preserve unchanged source reviews and original immutable artifacts; do
+not download, re-review or manually replay them just because the branch or PR
+number changed. A priority-only refusal resumes only the failed aggregate after
+actual clearance. Group the complete user-visible action and its recovery into
+one package; status reports alone do not need another release.
+
+Reserve the shared main/deploy publisher only after current-head required CI and
 artifact acceptance are complete and fresh-main admission is ready. If admission
 requires another source sync and CI before merge, release the publisher while
 those checks run so another ready direction can publish. Reacquire only after

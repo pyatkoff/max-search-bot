@@ -13,21 +13,85 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verify:
+  verify-inventory:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout exact verification SHA
         uses: actions/checkout@v4
-
+        with:
+          ref: ${{ github.sha }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring
           coverage: none
+      - name: Verify required inventory and architecture
+        run: php tests/run_required_group.php architecture
 
-      - name: Run required checks
-        run: bash tests/run_required_checks.sh
+  verify-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact verification SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+      - name: PHP syntax check
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+
+  verify-groups:
+    needs: verify-inventory
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - lane: diagnostics
+            groups: diagnostics
+          - lane: application
+            groups: dialogue website manager
+    runs-on: ubuntu-latest
+    name: verify / ${{ matrix.lane }}
+    steps:
+      - name: Checkout exact verification SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+      - name: Run every required group in this lane
+        env:
+          DEPLOY_CHECK_GROUPS: ${{ matrix.groups }}
+        run: |
+          test -n "$DEPLOY_CHECK_GROUPS"
+          for check_group in $DEPLOY_CHECK_GROUPS; do
+            php tests/run_required_group.php "$check_group"
+          done
+
+  verify:
+    if: always()
+    needs: [verify-inventory, verify-syntax, verify-groups]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the complete deployment verification
+        env:
+          INVENTORY_RESULT: ${{ needs.verify-inventory.result }}
+          SYNTAX_RESULT: ${{ needs.verify-syntax.result }}
+          CHECK_GROUPS_RESULT: ${{ needs.verify-groups.result }}
+        run: |
+          test "$INVENTORY_RESULT" = success
+          test "$SYNTAX_RESULT" = success
+          test "$CHECK_GROUPS_RESULT" = success
 
   deploy:
     needs: verify
