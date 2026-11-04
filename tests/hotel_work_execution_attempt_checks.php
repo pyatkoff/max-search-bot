@@ -189,6 +189,9 @@ function executionAttemptCoreChecks(): void {
 }
 
 function executionAttemptInvalidChecks(): void {
+    $reuse=getenv('HOTEL_WORK_NATIVE_MYSQL')==='1';
+    if ($reuse) HotelWorkTestPdo::reuseInvalidSchema(true);
+    try {
     [$pdo,$queue,$clock,$identity]=executionFixture();
     executionSameSnapshotReject($pdo,fn()=>$queue->execution_attempt_preflight(1,str_repeat('a',32),array_replace($identity,['expected_caller_connection_id'=>7])),
         'preflight_nonstring_caller_is_controlled_rejection_not_typeerror');
@@ -248,6 +251,9 @@ function executionAttemptInvalidChecks(): void {
     }
     [$pdo,$queue,$clock,$identity,$claim,$args,$permit,$entry,$bind]=executionBound();
     executionSameSnapshotReject($pdo,fn()=>$queue->bind_execution_attempt(1,str_repeat('a',32),array_replace($bind,['producer_run_id'=>'OTHER_PRODUCER4'])),'binding_conflict_cannot_add_fourth_producer');
+    } finally {
+        if ($reuse) HotelWorkTestPdo::reuseInvalidSchema(false);
+    }
 }
 
 function executionLateUnknownProducerChecks(): void {
