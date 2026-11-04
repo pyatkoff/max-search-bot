@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-miniapp-current-public-tg-read1",
+  "goal": "Resolve current Telegram client contract",
+  "boundaries": [
+    "Exactly one public HTTPS URL from current canonical AdvertisingVisitTransport source",
+    "No redirects, signed user/authcontext or server access",
+    "Redact every script literal and long numeric value before output",
+    "No source/runtime/feed/DB/messages writes"
+  ],
+  "criteria": [
+    "Actual HTTP metadata and redacted current client protocol"
+  ],
+  "risks": [
+    "Web tool did not return an HTTP result for this URL; this is first bounded native HTTP request",
+    "Public entry by itself does not establish signed routing acceptance"
+  ]
+}
