@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-price-update-20261104-4-v1",
+  "state": "PREPARING_ORIGINAL_QUOTE4_NOT_SENT",
+  "goal": "Add one verified total with real flights to the two existing posts for native13873",
+  "boundaries": [
+    "Exactly two serial existing-content edits; no new posts or gateway calls",
+    "Whole original caption/CTA/photo/button/source/logical/registry context preserved",
+    "Quote4 original private artifact only; no paid quote repeat",
+    "No price or availability changes to YML/ad copy"
+  ],
+  "criteria": [
+    "Native13873 binding through original retained candidate and unique old manifest",
+    "Real dated round trip/noPlacefalse/onDemandfalse/nonplaceholder/whole received basket/no separate fuel added",
+    "Current UTC quote age≤108000seconds and exact approved quote response binding",
+    "Three new hotel/logical/cover rejection cases; no old age/updater fixtures",
+    "Current source/full21/TLS/diagnostics/host/runtime/schema gates",
+    "Private durable intent then canonical registry/once-ledger/flock/fsync and actual provider readback"
+  ],
+  "risks": [
+    "No eligible flight or text >1024 means no edit, quote consumed",
+    "UNKNOWN existing update must be resolved from original operation before any retry"
+  ],
+  "hotel_id": 13873,
+  "quote_run": 41905271786,
+  "quote_artifact": 13359328852,
+  "max_age_seconds": 108000,
+  "max_content_edits": 2,
+  "max_new_posts": 0,
+  "max_additional_gateway_calls": 0,
+  "source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+}
