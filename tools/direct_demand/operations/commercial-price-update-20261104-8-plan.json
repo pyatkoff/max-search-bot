@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-price-update-20261104-8-v1",
+  "state": "ORIGINAL_QUOTE8_FULL_BASKET_AND_REALFLIGHTS_VALIDATION_BEFORE_TWO_EXISTING_EDITS",
+  "goal": "Add one validated received basket to the two existing native233 posts, keeping the entire original caption/context",
+  "boundaries": [
+    "Exactly2serialexistingEDITS/newposts0/additionalgateway0",
+    "Originalquote8privateartifactonly; quote7errorCONSUMED/noUPDATE7",
+    "Wholeoriginalcaption/actualclosingparagraph/photo/button/source/logical/canonicalcontext preserved",
+    "No feed/adcopy pricefields/availabilityrewrites"
+  ],
+  "criteria": [
+    "Exactnative233/uniqueoriginalmanifest/text/cover bound fromactualquote8candidate",
+    "30h108000/realfuturedatedroundtrip/noPlacesfalse/onDemandfalse/nonplaceholder/inclusionflagsfalse/fullbasketasreceived/fuelNOTadded",
+    "3newnative-logical-cover and3actualclosingparagraphcases/PHP-l;oldage/updaterfixtures0",
+    "Fullfreshcurrentf843/deploy41923173718/TLS41924297206/diagnostics41924297113/21/hostaccepted25/runtime/schema/UNKNOWN required",
+    "Durableprivateintent BEFOREEDITS; registry/newversions/onceledger/flock/fsync/nativeproviderbody-photo-button-source verification"
+  ],
+  "risks": [
+    "Invalidbasket/roundtrip/too-longcaption stopsBEFOREEDITintent, quote8remainsconsumed",
+    "Resolve UNKNOWNoriginalrunfirst/nopaidretry/newIDbypass"
+  ],
+  "hotel_id": 233,
+  "quote_run": 41925729536,
+  "quote_artifact": 13368562553,
+  "max_age_seconds": 108000,
+  "max_content_edits": 2,
+  "max_new_posts": 0,
+  "max_additional_gateway_calls": 0,
+  "source_sha": "f84391d45dd9643271473cf3c325e9940e2a4593"
+}
