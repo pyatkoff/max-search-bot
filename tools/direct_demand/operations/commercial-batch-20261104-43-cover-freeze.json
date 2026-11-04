@@ -1,0 +1,49 @@
+{
+  "operation": "commercial-batch-20261104-43-native-cover-freeze",
+  "state": "TWO_NATIVE_PNGS_VISUALLY_ACCEPTED_NOT_SENT",
+  "native_run": 41910497891,
+  "native_job": 126856456822,
+  "original_design_protected": "DAHZIISS2iY",
+  "permanent_save": false,
+  "canva_transactions": [
+    {
+      "hotel_id": 17480,
+      "design_id": "DAHZx_JlJEM",
+      "transaction_id": "8129518479355109881",
+      "cancel_after_freeze": true
+    },
+    {
+      "hotel_id": 1100,
+      "design_id": "DAHZx-KVGLQ",
+      "transaction_id": "1961838792820582138",
+      "cancel_after_freeze": true
+    }
+  ],
+  "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+  "covers": [
+    {
+      "hotel_id": 17480,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 923413,
+      "sha256": "4d9f9648a77232c9924614b096d81fcecbf9420ff49e067be5878778539770d2",
+      "file": "17480.png",
+      "path": ".github/traffic-publish/commercial-batch-20261104-43/17480.png",
+      "visual_verdict": "Whole bungalow complex and grounds aerial, two distinct grounds/pool details, legibleAnyTourlogo/title/bluebanner"
+    },
+    {
+      "hotel_id": 1100,
+      "mime": "image/png",
+      "width": 600,
+      "height": 600,
+      "bytes": 790531,
+      "sha256": "369ba914aa6a4072fecfbc8a242d07050df962865da92a354cf8762c9d4f5ab8",
+      "file": "1100.png",
+      "path": ".github/traffic-publish/commercial-batch-20261104-43/1100.png",
+      "visual_verdict": "Whole hotel buildings/grounds/beach retained by native crop; two distinct beach area lower photos, legiblelogo/title/bluebanner"
+    }
+  ],
+  "new_posts": 0,
+  "ready_native_png_count": 2
+}
