@@ -246,6 +246,67 @@ function modeledAcquisitionAssertions(PDO $pdo):int
         &&$m($r)['median_seconds']===3600,'materialized latest admission completes full below-cap history and preserves first inquiry');
     $check($scaleDigest()===$scaleBefore&&!$pdo->inTransaction(),'large full-history read preserves all fixture rows and closes transaction');
 
+    // Diverse latest scopes: recomputing all large latest packets for each page
+    // must not grow with pages x people. All identities below are synthetic.
+    $reset();$pdo->beginTransaction();$perPersonRefs=[];
+    for($customer=100;$customer<350;$customer++)$person($customer,'max');
+    for($round=0;$round<7;$round++)for($offset=0;$offset<250;$offset++){
+        $customer=100+$offset;$at=$now-14000+$round*300+$offset;$observed=$at+2;
+        $jid=(string)++$journalId;$mid=(string)++$messageId;
+        $snapshot=['source_kind'=>'message','source_id'=>$mid,'source_status'=>'present','project_key'=>'anytour',
+            'platform'=>'max','customer_key'=>$customer,'conversation_id'=>$customer,'source_timestamp_basis'=>'canonical_recording_unix_v1',
+            'source_created_at_unix'=>$at,'payload'=>['direction'=>'inbound','sender_type'=>'customer','text'=>'/synthetic_callback',
+                'metadata_json'=>$json(['type'=>'callback','_recorded_clock'=>['version'=>1,'basis'=>'server_recording_unix','unix'=>$at]])]];
+        $exec('INSERT INTO messages(id,conversation_id,channel,direction,sender_type,text) VALUES(?,?,?,?,?,?)',[$mid,$customer,'max','inbound','customer','/synthetic_callback']);
+        $exec('INSERT INTO modeled_conversion_stream_versions(id,project_key,source_kind,source_id,version_no,revision_hash,observed_at_unix,snapshot_json) VALUES(?,?,?,?,?,?,?,?)',
+            [$jid,'anytour','message',$mid,1,str_repeat('e',64),$observed,$json($snapshot)]);
+        $perPersonRefs[$customer][]=['journal_id'=>$jid,'source_kind'=>'message','source_id'=>$mid,'source_version_no'=>1,
+            'observed_at'=>$iso($observed),'progress_journal_id'=>$jid,'snapshot_sha256'=>str_repeat('f',64),'source_status'=>'present'];
+        $subject=['project_key'=>'anytour','platform'=>'max','customer_key'=>(string)$customer,'conversation_id'=>(string)$customer];
+        $historical=['subject'=>$subject,'access_status'=>'allowed','source_fence_journal_id'=>$jid,
+            'profile'=>['observation_input'=>['subject'=>$subject,'prediction_at'=>$iso($observed),'evidence'=>[]]],
+            'source_references'=>$perPersonRefs[$customer],'coverage'=>['window_limited'=>false,'source_history_complete'=>false],
+            'contextual_signals'=>['version'=>'live_contextual_ordinal_v1','extractor_version'=>'ru_archive_contextual_v2',
+                'input_cutoff_at'=>$iso($observed),'prediction_at'=>$iso($observed),'events'=>[]]];
+        $persist($customer,'max',$customer,$historical,$observed);
+    }
+    $minimumLatestBytes=PHP_INT_MAX;
+    for($offset=0;$offset<250;$offset++){
+        $customer=100+$offset;$moments=[];
+        for($i=0;$i<50;$i++)$moments[]=['at'=>$now-7200+$offset+$i,'available'=>$now-2000+$offset,
+            'goal'=>$i===0?'substantive_interest':'office_question'];
+        $latest=$packet($customer,'max',$customer,$moments,$now-1000+$offset,static function(array &$p):void{$p['coverage']['window_limited']=true;});
+        $minimumLatestBytes=min($minimumLatestBytes,strlen($json($latest)));
+        $join($customer,$now-10800+$offset,$now-30);
+    }
+    $pdo->commit();$diverseBefore=$scaleDigest();$diverseStarted=microtime(true);$r=$read(['period'=>7]);
+    $diverseElapsed=(int)round((microtime(true)-$diverseStarted)*1000);
+    echo 'ACQUISITION_DIVERSE_SCALE_FIXTURE_TECHNICAL '.json_encode(['available'=>$r['available'],'reason'=>$r['reason'],
+        'profiles_examined'=>$r['sources']['profiles_examined'],'query_count'=>$r['query_count'],'elapsed_ms'=>$diverseElapsed,
+        'fixture_customers'=>250,'smallest_latest_profile_bytes'=>$minimumLatestBytes],JSON_THROW_ON_ERROR).PHP_EOL;
+    $check($r['available']&&$minimumLatestBytes>32768&&$r['sources']['profiles_examined']===2000
+        &&$m($r)['inquiries']===250&&$m($r)['valid_pairs']===250&&$m($r)['median_seconds']===3600&&$m($r)['p90_seconds']===3600
+        &&$m($r)['valid_pairs']+array_sum($m($r)['excluded'])===250,'one admission handles 250 diverse large latest scopes and all historical versions');
+    $check($scaleDigest()===$diverseBefore&&!$pdo->inTransaction()
+        &&!str_contains(json_encode($r),'SYNTHETIC_PRIVATE_TEXT'),'diverse full-history read preserves rows and returns no private body');
+
+    // Sixty-five conversations force a person's histories across a 64-scope
+    // boundary regardless of ordering. They share the one canonical channel row.
+    $reset();$person(600,'max',6000);
+    $q=$pdo->query('SELECT external_chat_id FROM customer_channels WHERE id=6000');$sharedChat=(string)$q->fetchColumn();
+    for($i=1;$i<65;$i++)$exec('INSERT INTO conversations(id,customer_id,customer_channel_id,project_key,channel,external_chat_id,is_test,status) VALUES(?,?,?,?,?,?,?,?)',
+        [6000+$i,600,6000,'anytour','max',$sharedChat,0,'closed']);
+    for($i=0;$i<65;$i++)$packet(600,'max',6000+$i,[['at'=>$i===0?$now-20*86400:$now-3600+$i]],$now-60);
+    $reuseReader=new ModeledConversionAcquisitionStatsReader($pdo,static function():void{});
+    $r=$reuseReader->read(['period'=>7],$now);
+    $check($r['available']&&$r['sources']['profiles_examined']===65&&$m($r)['inquiries']===0,'first inquiry MIN is global across more than 64 admitted scopes before date filter');
+    $packet(600,'max',6000,[['at'=>$now-30,'goal'=>'office_question']],$now-10,static function(array &$p):void{
+        $p['access_status']='denied';$p['profile']['observation_input']['evidence']=[];$p['contextual_signals']['events']=[];
+    });
+    $r=$reuseReader->read(['period'=>7],$now);
+    $check($r['available']&&$r['sources']['profiles_examined']===64&&$m($r)['inquiries']===1&&$m($r)['valid_pairs']===0
+        &&$m($r)['excluded']['identity_ambiguous']===1&&!$pdo->inTransaction(),'reused reader rebuilds latest access admission without resurrecting denied cross-batch history');
+
     $normal();$pdo->beginTransaction();
     for($batch=0;$batch<251;$batch++){
         $parts=[];$args=[];$size=min(200,50001-$batch*200);
