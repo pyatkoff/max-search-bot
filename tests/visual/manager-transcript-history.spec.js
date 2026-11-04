@@ -728,10 +728,23 @@ for(const width of[390,430])test.describe('Short history auth boundaries '+width
  });
 });
 
+async function composerGeometryReady(page){
+ await page.locator('#composer').evaluate(async form=>{
+  const frames=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const finiteActive=()=>form.getAnimations({subtree:true}).filter(animation=>Number.isFinite(animation.effect?.getTiming().iterations)&&(animation.playState==='running'||animation.pending));
+  await frames();
+  for(let animations=finiteActive();animations.length;animations=finiteActive()){
+   await Promise.all(animations.map(animation=>animation.finished.catch(()=>{})));
+   await frames();
+  }
+ });
+}
+
 for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]])test('shown read acknowledgement preserves unread prefix and draft at '+width+'x'+height,async({page,browserName})=>{
  await page.setViewportSize({width,height});const state=await setup(page,{total:35,readAcknowledgements:true});await open(page);
  await expect.poll(()=>state.ackCalls.length).toBeGreaterThan(0);expect(state.readMarkers[11]||0).toBe(0);
  await page.locator('#replyText').fill('Черновик без отправки');await page.locator('#replyFile').setInputFiles({name:'unread.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic unread')});
+ await composerGeometryReady(page);
  await page.locator('#messages').hover();await page.mouse.wheel(0,-20000);await expect.poll(()=>page.locator('#messages').evaluate(b=>b.scrollTop)).toBe(0);
  if(height===420){await page.mouse.wheel(0,100);await expect.poll(()=>page.locator('#messages').evaluate(b=>b.scrollTop)).toBeGreaterThan(0);}
  await expect.poll(()=>state.readMarkers[11]||0).toBeGreaterThan(1);expect(state.readMarkers[11]).toBeLessThan(35);const marker=state.readMarkers[11],before=await anchor(page);
@@ -827,6 +840,7 @@ for(const width of [390,1440])test('quote original and exact return preserve his
  try{
  await page.setViewportSize({width,height:844});const state=await setup(page,{total:500,media:true,quoteTargets:true});await open(page);
  await page.locator('#replyText').fill('Черновик при чтении цитаты');await page.locator('#replyFile').setInputFiles({name:'quote-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic quote file')});
+ await composerGeometryReady(page);
  await page.locator('#messages audio').evaluate(a=>window.quoteAudio=a);const history=await page.evaluate(()=>WorkspaceV2History.getState());
  const source=page.locator('#messages [data-scroll-message-key="499"]'),quote=source.locator('[data-quote-source-id]');await quote.scrollIntoViewIfNeeded();await settled(page);const offset=await source.evaluate(n=>n.getBoundingClientRect().top-document.getElementById('messages').getBoundingClientRect().top);
  quoteDiagnostics.push({baselineOffset:Number.isFinite(offset)?offset:null,...await quoteReturnGeometry(page,'captured')});
