@@ -99,7 +99,7 @@ const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
 let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,printProposal=null,imageExport=null,imageDownload=null;
-let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null,biblioPanel=null,oneTouchPanel=null;
+let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null,biblioPanel=null,oneTouchPanel=null,appearancePanel=false;
 // View reads are cancellable independently of the durable send/save context.
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false,historyView=0;
 function capture(c){return host.capture(c)}
@@ -108,6 +108,28 @@ function key(c=context){return c?.actor&&c?.conversation?'workspaceV2.tourSelect
 function clone(value){return JSON.parse(JSON.stringify(value))}
 function id(){const data=new Uint8Array(16);crypto.getRandomValues(data);return Array.from(data,n=>n.toString(16).padStart(2,'0')).join('')}
 function empty(){return {title:'Подборка туров',intro:'',offers:[]}}
+const appearancePalettes={forest:'#087654',ocean:'#1766a1',sunset:'#a14427'};
+function appearanceSettings(value){
+  const valid=value&&['photo','compact'].includes(value.template)&&Object.hasOwn(appearancePalettes,value.palette)&&typeof value.agency_name==='string';
+  return valid?{template:value.template,palette:value.palette,agency_name:value.agency_name,accent:appearancePalettes[value.palette]}:{template:'legacy',palette:'forest',agency_name:'AnyTour',accent:appearancePalettes.forest};
+}
+function applyAppearance(root,value){
+  for(const key of ['photo','compact'])root.classList.remove('tsTemplate-'+key);
+  for(const key of Object.keys(appearancePalettes))root.classList.remove('tsPalette-'+key);
+  const a=appearanceSettings(value);if(a.template!=='legacy')root.classList.add('tsTemplate-'+a.template,'tsPalette-'+a.palette);
+}
+function showAppearance(){if(!editable()||busy||tripPanel)return;historyView++;recovery('');appearancePanel=true;render();$('tsSelectionTitle')?.focus()}
+function renderAppearance(){
+  const root=$('tsEditor'),a=appearanceSettings(draft.appearance);
+  root.innerHTML='<section class="tsAppearance"><h3>Оформление подборки</h3><p>Заголовок, вступление и оформление сохраняются вместе с версией подборки. Уже подготовленные версии не меняются.</p><label>Заголовок подборки<input id="tsSelectionTitle" maxlength="120"></label><label>Вступление для клиента<textarea id="tsSelectionIntro" rows="3" maxlength="1200"></textarea></label><label>Макет<select id="tsAppearanceTemplate"><option value="">Стандартное AnyTour</option><option value="photo">С фото</option><option value="compact">Для сравнения</option></select></label><label>Цвет<select id="tsAppearancePalette"><option value="forest">Зелёный</option><option value="ocean">Синий</option><option value="sunset">Терракотовый</option></select></label><label>Название агентства<input id="tsAppearanceAgency" maxlength="80"></label><p>Выберите макет, чтобы задать название агентства и цвет. Все фотографии, цены, условия и предупреждения сохраняются в любом макете.</p><button id="tsAppearanceBack" type="button">К вариантам</button></section>';
+  $('tsSelectionTitle').value=draft.title;$('tsSelectionIntro').value=draft.intro;$('tsAppearanceAgency').value=a.agency_name;
+  $('tsAppearanceTemplate').value=a.template==='legacy'?'':a.template;$('tsAppearancePalette').value=a.palette;
+  $('tsSelectionTitle').oninput=e=>{if(!editable()||busy)return;draft.title=e.target.value.trim()||'Подборка туров';changed()};
+  $('tsSelectionIntro').oninput=e=>{if(!editable()||busy)return;draft.intro=e.target.value;changed()};
+  const update=()=>{if(!editable()||busy)return;const template=$('tsAppearanceTemplate').value;if(!template)delete draft.appearance;else draft.appearance={template,palette:$('tsAppearancePalette').value,agency_name:$('tsAppearanceAgency').value.trim()||'AnyTour'};changed()};
+  $('tsAppearanceTemplate').onchange=()=>{update();render()};$('tsAppearancePalette').onchange=update;$('tsAppearanceAgency').oninput=update;
+  $('tsAppearanceBack').onclick=()=>{if(busy)return;appearancePanel=false;render();$('tsAppearance')?.focus()};
+}
 function stash(){
   if(!context||!draft)return;
   const data={draft:clone(draft),version,selected,dirty,rawAges:clone(rawAges),pending:pending?clone(pending):null,conflict:conflict?clone(conflict):null,comparison:comparison?clone(comparison):null,at:Date.now()};
@@ -132,8 +154,9 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){cancelImageExport();clearPrint();closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function close(){appearancePanel=false;cancelImageExport();clearPrint();closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function editCurrent(){
+  appearancePanel=false;
   cancelImageExport();historyView++;preview=false;render();recovery(conflict?'conflict':pending?'pending':'');
   status(conflict?'Есть конфликт правок. Сравните версии перед сохранением.':pending?'Результат сохранения уточняется. Сначала проверьте его.':!canEdit?'Просмотр текущего черновика. Править может ответственный менеджер или администратор.':dirty?'Текущий черновик. Есть несохранённые изменения.':'Текущий черновик. Изменения не отправляют сообщения.',!!conflict||!!pending);
 }
@@ -160,6 +183,7 @@ function ensure(){
   const collector=document.createElement('button');collector.id='tsCollector';collector.type='button';collector.textContent='Сборщик туров';collector.onclick=()=>{if(current()&&canEdit)host.openCollector(context.conversation)};actions.append(collector);
   const biblio=document.createElement('button');biblio.id='tsBiblio';biblio.type='button';biblio.textContent='Библио-Глобус';biblio.onclick=showBiblio;actions.append(biblio);
   const oneTouch=document.createElement('button');oneTouch.id='tsOneTouch';oneTouch.type='button';oneTouch.textContent='OneTouch';oneTouch.onclick=showOneTouch;actions.append(oneTouch);
+  const appearance=document.createElement('button');appearance.id='tsAppearance';appearance.type='button';appearance.textContent='Оформление';appearance.onclick=showAppearance;actions.append(appearance);
   const prices=document.createElement('button');prices.id='tsBulkPrices';prices.type='button';prices.className='tsBulkButton';prices.textContent='Цены';prices.title='Изменить несколько цен';prices.setAttribute('aria-label','Изменить несколько цен');prices.onclick=showBulkPrices;actions.append(prices);
   const bulk=document.createElement('section');bulk.id='tsBulkPrice';bulk.className='tsBulkPrice';bulk.hidden=true;bulk.setAttribute('aria-labelledby','tsBulkTitle');dialog.querySelector('.tsLayout').before(bulk);
   if(typeof host.openStandalone==='function'){const standalone=document.createElement('button');standalone.id='tsStandalone';standalone.type='button';standalone.textContent='Открыть отдельно';standalone.onclick=()=>{if(current())host.openStandalone(context.conversation)};actions.append(standalone)}
@@ -624,7 +648,7 @@ function renderPreviewIssues(){
 }
 function fixPreviewIssue(offerId,field){
   if(!editable()||busy||!previewIssues.some(x=>x.offer_id===offerId&&x.fields.includes(field))||!draft.offers.some(x=>x.id===offerId&&x.selected))return;
-  selected=offerId;offerDetailsOpen=true;render();
+  appearancePanel=false;selected=offerId;offerDetailsOpen=true;render();
   if(field==='photos'&&item().import_source&&!item().photos.length){const section=$('tsEditor').querySelector('.tsPhotoFields');section?.scrollIntoView({block:'center'});return;}
   const firstPhoto=['cover','beach','room'].find(kind=>!item().photos.some(x=>x.kind===kind))||'cover';
   const target=$(field==='photos'?'ts-photo-'+firstPhoto:field==='conditions'?'ts-hotel':'ts-'+field);for(let details=target?.closest('details');details;details=details.parentElement?.closest('details'))details.open=true;target?.focus();target?.scrollIntoView({block:'center'});
@@ -651,11 +675,14 @@ function render(){
   clearHotelKnowledge();
   if(!draft||!dialog)return;
   dialog.classList.toggle('tsBiblioMode',!!biblioPanel||!!oneTouchPanel);
+  dialog.classList.toggle('tsAppearanceMode',appearancePanel&&!preview);
+  applyAppearance($('tsEditor'),preview?publication?.appearance:null);
   if(bulkPrice){controls();return}
   if(oneTouchPanel){renderList();renderOneTouch();controls();return}
   if(biblioPanel){renderList();renderBiblio();controls();return}
   dialog.classList.toggle('tsTripMode',!!tripPanel);
   if(preview&&publication){renderPreview();controls();return}
+  if(appearancePanel){renderAppearance();controls();return}
   dialog.classList.remove('tsPreviewMode');
   if(!item())selected=draft.offers[0]?.id||'';renderList();const editor=$('tsEditor'),offer=item();
   if(tripPanel){renderTrip();controls();return}
@@ -703,6 +730,7 @@ async function readHotelKnowledge(){
 }
 function controls(){
   if(!dialog)return;const disabled=!editable();
+  $('tsAppearance').hidden=preview;$('tsAppearance').disabled=disabled||busy||!!tripPanel;
   $('tsBulkPrices').disabled=disabled||busy||!!tripPanel||!(draft?.offers.length)||invalidAges();$('tsBulkPrices').hidden=preview;
   if(bulkPrice){$('tsHistory').disabled=true;previewBulkPrices();}
   const factsButton=$('tsHotelKnowledgeRead');if(factsButton){factsButton.disabled=!canReadHotelKnowledge();factsButton.title=dirty?'Сначала сохраните изменения':'';}
@@ -726,6 +754,13 @@ function controls(){
   $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=!!photoUpload||busy});
   if(tripPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector'])$(id).disabled=true;}
   if(oneTouchPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector','tsBulkPrices','tsTripAdd','tsBiblio'])$(id).disabled=true;$('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=true});oneTouchControls();}
+  if(appearancePanel&&!preview){
+    for(const id of ['tsAdd','tsHistory','tsCollector','tsBulkPrices','tsTripAdd','tsBiblio','tsOneTouch'])$(id).disabled=true;
+    $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=true});
+    const legacy=!$('tsAppearanceTemplate')?.value;
+    for(const id of ['tsAppearanceAgency','tsAppearancePalette'])if($(id))$(id).disabled=disabled||busy||legacy;
+    if($('tsAppearanceBack'))$('tsAppearanceBack').disabled=busy;
+  }
   if(biblioPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector','tsBulkPrices','tsTripAdd'])$(id).disabled=true;$('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=true});biblioControls();}
   const cards=publication?.cards||[],unknown=cards.some(x=>['reserved','unknown'].includes(x.state)),known=cards.some(x=>x.state==='known'),remaining=cards.filter(x=>x.state!=='delivered').length;
   $('tsSend').disabled=sending||sharing||!publication?.can_send||unknown||!remaining||photoFailures>0||photoPending>0;
@@ -817,21 +852,23 @@ function exportLines(context,text,font,width){
   }
   return lines;
 }
-function drawExportImage(card,title,version,images){
-  if(typeof card.text!=='string'||card.text.length>20000||typeof title!=='string'||title.length>500||!Number.isInteger(version)||version<1)throw Error('image_export_unavailable');
+function drawExportImage(card,title,version,images,appearance=null,intro=''){
+  if(typeof card.text!=='string'||card.text.length>20000||typeof title!=='string'||title.length>500||typeof intro!=='string'||intro.length>1200||!Number.isInteger(version)||version<1)throw Error('image_export_unavailable');
   const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1;
   const context=canvas.getContext('2d');if(!context)throw Error('image_export_unavailable');
   const margin=56,width=canvas.width-margin*2,blocks=[];let y=48;
   const text=(value,font,color,lineHeight,gap=0)=>{const lines=exportLines(context,value,font,width);blocks.push({lines,font,color,lineHeight,y});y+=lines.length*lineHeight+gap;};
-  text('AnyTour','bold 28px Arial','#087654',38,12);
+  const design=appearanceSettings(appearance);
+  text(design.agency_name,'bold 28px Arial',design.accent,38,12);
   text(title,'bold 34px Arial','#18312b',44,10);
+  if(intro)text(intro,'24px Arial','#52695c',34,12);
   text('Вариант '+(card.index+1)+' · Версия подборки '+version,'24px Arial','#52695c',34,24);
-  const photoY=y,gap=14,photoWidth=(width-gap*(images.length-1))/images.length,photoHeight=images.length===1?Math.round(width*0.56):260;
+  const photoY=y,gap=14,photoWidth=(width-gap*(images.length-1))/images.length,photoHeight=design.template==='compact'?180:images.length===1?Math.round(width*0.56):260;
   y+=photoHeight+12;
   if(card.photo_layout!=='gallery-v1'&&images.length===3)text('Третье фото — пример интерьера номера.','22px Arial','#52695c',30,16);else y+=16;
   const lines=card.text.split('\n');
   text(lines[0]||'','bold 38px Arial','#18312b',48,10);
-  if(lines.length>1)text(lines[1],'bold 44px Arial','#087654',54,16);
+  if(lines.length>1)text(lines[1],'bold 44px Arial',design.accent,54,16);
   if(lines.length>2)text(lines.slice(2).join('\n'),'28px Arial','#18312b',40,24);
   text('Цена и наличие требуют подтверждения перед оформлением.','22px Arial','#52695c',32);
   const height=Math.ceil(y+48);
@@ -839,7 +876,7 @@ function drawExportImage(card,title,version,images){
   if(height>8192)throw Error('image_export_too_long');
   canvas.height=height;context.fillStyle='#f4f7f2';context.fillRect(0,0,canvas.width,height);
   context.fillStyle='#ffffff';context.fillRect(24,24,canvas.width-48,height-48);
-  context.fillStyle='#087654';context.fillRect(24,24,8,height-48);
+  context.fillStyle=design.accent;context.fillRect(24,24,8,height-48);
   context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
   images.forEach((image,index)=>{
     const scale=Math.max(photoWidth/image.naturalWidth,photoHeight/image.naturalHeight),sourceWidth=photoWidth/scale,sourceHeight=photoHeight/scale;
@@ -852,11 +889,12 @@ function drawExportImage(card,title,version,images){
 async function exportCardImage(card){
   if(imageExport||!canExportImage(card))return;
   cancelImageExport();
-  const job={card,epoch,publication,photoEpoch,version:publication.draft_version,title:publication.title,index:card.index,text:card.text,photos:card.photos.slice(),focus:document.activeElement===$('tsEditor').querySelector('[data-ts-image-export="'+card.index+'"]'),cancelled:false};imageExport=job;controls();status('Готовим изображение показанного варианта…');let canvas=null;
-  const matches=()=>!job.cancelled&&job.epoch===epoch&&job.photoEpoch===photoEpoch&&publication===job.publication&&publication.draft_version===job.version&&publication.title===job.title&&card.index===job.index&&card.text===job.text&&card.photos.length===job.photos.length&&card.photos.every((url,index)=>url===job.photos[index])&&canExportImage(card);
+  const job={card,epoch,publication,photoEpoch,version:publication.draft_version,title:publication.title,appearance:clone(publication.appearance||null),intro:publication.intro||'',index:card.index,text:card.text,photos:card.photos.slice(),focus:document.activeElement===$('tsEditor').querySelector('[data-ts-image-export="'+card.index+'"]'),cancelled:false};imageExport=job;controls();status('Готовим изображение показанного варианта…');let canvas=null;
+  const matches=()=>!job.cancelled&&job.epoch===epoch&&job.photoEpoch===photoEpoch&&publication===job.publication&&publication.draft_version===job.version&&publication.title===job.title&&JSON.stringify(publication.appearance||null)===JSON.stringify(job.appearance)&&(publication.intro||'')===job.intro&&card.index===job.index&&card.text===job.text&&card.photos.length===job.photos.length&&card.photos.every((url,index)=>url===job.photos[index])&&canExportImage(card);
   const active=()=>imageExport===job&&matches();
   try{
-    canvas=drawExportImage(card,job.title,job.version,exportImages(card));
+    if(JSON.stringify(publication.appearance||null)!==JSON.stringify(job.appearance)||(publication.intro||'')!==job.intro)throw Error('image_export_unavailable');
+    canvas=drawExportImage(card,job.title,job.version,exportImages(card),job.appearance,job.intro);
     const blob=await new Promise((resolve,reject)=>{try{canvas.toBlob(value=>value?resolve(value):reject(Error('image_export_unavailable')),'image/png')}catch(error){reject(error)}});
     if(!active())return;
     const button=$('tsEditor').querySelector('[data-ts-image-export="'+job.index+'"]');if(!button?.isConnected)throw Error('image_export_unavailable');
@@ -892,7 +930,9 @@ function printPreview(){
   // loaded images, so opening the print dialog never re-fetches private photos.
   const root=document.createElement('section');root.className='tsPrintProposal';root.setAttribute('aria-label','Подборка для печати');
   const text=(tag,value,parent=root)=>{const el=document.createElement(tag);el.textContent=value;parent.append(el);return el};
-  text('p','AnyTour').className='tsPrintBrand';text('h1',publication.title);
+  applyAppearance(root,publication.appearance);
+  text('p',appearanceSettings(publication.appearance).agency_name).className='tsPrintBrand';text('h1',publication.title);
+  if(publication.intro)text('p',publication.intro).className='tsPrintIntro';
   text('p','Версия подборки '+publication.draft_version).className='tsPrintVersion';
   printProposal={root,images:[]};
   try{
@@ -915,6 +955,14 @@ function renderPreview(){
   cancelImageExport();
   dialog.classList.add('tsPreviewMode');photoFailures=0;photoPending=publication.cards.reduce((sum,card)=>sum+card.photos.length,0);const imageRun=++photoEpoch,token=epoch,publicationId=publication.id;
   $('tsEditor').innerHTML='<div class="tsPreviewHeading"><h3>Предпросмотр подборки</h3><p>'+esc(publication.cards.some(card=>card.photo_layout==='gallery-v1')?(publication.channel==='telegram'?'Telegram — фотографии отеля с перелистыванием.':'MAX — фотографии отеля.'):(publication.channel==='telegram'?'Telegram — карусель из трёх фото.':'MAX — мозаика из трёх фото.'))+' Проверьте фото, условия и общую цену. «Нравится» сохранит именно показанный вариант.</p></div><div class="tsPreviewCards">'+publication.cards.map(card=>`<article class="tsPreviewCard" data-ts-card="${card.index}"><div class="tsPhotos tsPhotoCount${card.photos.length} ${publication.channel==='telegram'?'tsPhotoSlideshow':'tsPhotoMosaic'}" ${publication.channel==='telegram'?'tabindex="0" role="region" aria-label="Фото отеля"':''}>${card.photos.map((url,i)=>`<img src="${esc(url)}" alt="${card.photo_layout==='gallery-v1'?'Фото отеля '+(i+1):['Отель','Пляж или бассейн','Пример интерьера номера'][i]}" referrerpolicy="no-referrer">`).join('')}</div>${publication.channel==='telegram'&&card.photos.length>1?'<div class="tsPhotoNav"><button type="button" data-ts-photo-step="-1" aria-label="Предыдущее фото">←</button><span class="tsPhotoPosition" aria-live="polite">Фото 1 из 3</span><button type="button" data-ts-photo-step="1" aria-label="Следующее фото">→</button></div>':''}<p class="tsCardText">${previewCaption(card)}</p><span class="tsLikePreview">♡ Нравится</span><p class="tsDeliveryState" data-ts-state="${card.index}"></p></article>`).join('')+'</div>';
+  const heading=$('tsEditor').querySelector('.tsPreviewHeading'),design=appearanceSettings(publication.appearance);
+  if(publication.appearance||publication.title!=='Подборка туров'||publication.intro){
+    const header=document.createElement('div');header.className='tsSelectionHeading';
+    const brand=document.createElement('p');brand.className='tsSelectionBrand';brand.textContent=design.agency_name;header.append(brand);
+    const title=document.createElement('h4');title.textContent=publication.title;header.append(title);
+    if(publication.intro){const intro=document.createElement('p');intro.className='tsSelectionIntro';intro.textContent=publication.intro;header.append(intro)}
+    heading.append(header);
+  }
   $('tsEditor').scrollTop=0;
   $('tsEditor').querySelectorAll('.tsPreviewCard').forEach(card=>{
     const gallery=card.querySelector('.tsPhotoSlideshow'),nav=card.querySelector('.tsPhotoNav');if(!gallery||!nav)return;
@@ -944,7 +992,7 @@ async function showPreview(){
   historyView++;
   clearTimeout(timer);if(dirty)await save();if(dirty||busy||pending||conflict||!current())return;
   const token=epoch;busy=true;controls();status('Готовим предпросмотр…');const result=await request('prepare',{version});if(token!==epoch)return;busy=false;
-  if(result?.ok&&result.publication){previewIssues=[];publication=result.publication;preview=true;render();status('Предпросмотр готов. Проверьте подборку перед отправкой.');return}
+  if(result?.ok&&result.publication){appearancePanel=false;previewIssues=[];publication=result.publication;preview=true;render();status('Предпросмотр готов. Проверьте подборку перед отправкой.');return}
   previewIssues=result?.error==='incomplete_offers'&&Array.isArray(result.fields)?result.fields.filter(x=>draft.offers.some(o=>o.id===x.offer_id&&o.selected)&&Array.isArray(x.fields)).map(x=>({offer_id:x.offer_id,fields:x.fields.filter(f=>Object.hasOwn(previewFieldNames,f))})):[];
   renderPreviewIssues();if(previewIssues.length)$('tsPreviewIssues')?.scrollIntoView({block:'start'});
   const names=previewFieldNames;
@@ -952,12 +1000,12 @@ async function showPreview(){
   status(result?.error==='incomplete_offers'?'Заполните '+(result.fields||[]).map(x=>'в варианте '+x.position+': '+x.fields.map(f=>f==='photos'&&!draft.offers.find(o=>o.id===x.offer_id)?.import_source?'три фото':names[f]||f).join(', ')).join('; ')+'.':error(result),true);controls();
 }
 async function showHistory(){
-  if(!current()||busy||sending||bulkPrice||biblioPanel||oneTouchPanel)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open)return;busy=false;controls();
+  if(!current()||busy||sending||bulkPrice||biblioPanel||oneTouchPanel||appearancePanel)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open||appearancePanel)return;busy=false;controls();
   if(!result?.ok){status(error(result),true);return}
   const root=$('tsRecovery');root.replaceChildren();root.hidden=false;
   if(!result.publications.length){root.textContent='Пока нет подготовленных к отправке подборок.';return}
   const heading=document.createElement('p');heading.textContent='Подготовленные подборки и результаты отправки:';root.appendChild(heading);
-  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice||biblioPanel||oneTouchPanel)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open||biblioPanel||oneTouchPanel)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
+  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice||biblioPanel||oneTouchPanel||appearancePanel)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open||biblioPanel||oneTouchPanel||appearancePanel)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
 }
 async function showInterest(){
   if(!current()||busy||sending||sharing||interestLoading||!publication)return;

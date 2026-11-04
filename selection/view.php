@@ -1,8 +1,13 @@
 <?php
 declare(strict_types=1);
+$appearance=$selection['appearance']??null;
+$template=is_array($appearance)&&in_array($appearance['template']??null,['photo','compact'],true)?$appearance['template']:null;
+$palette=is_array($appearance)&&in_array($appearance['palette']??null,['forest','ocean','sunset'],true)?$appearance['palette']:null;
+$appearanceClasses=($template?' selectionTemplate-'.$template:'').($palette?' selectionPalette-'.$palette:'');
+$agency=$template&&is_string($appearance['agency_name']??null)?$appearance['agency_name']:'AnyTour';
 ?><!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title><?= $h($selection['title']??'Подборка недоступна') ?> · AnyTour</title><link rel="stylesheet" href="selection.css"></head>
-<body><main class="selection"<?= isset($interest)&&$interest?' data-selection-interest="'.$h(json_encode($interest,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)).'"':'' ?>><header class="selectionHead"><a class="brand" href="https://anytoour.ru/" rel="noreferrer">AnyTour</a>
+<body><main class="selection<?= $h($appearanceClasses) ?>"<?= isset($interest)&&$interest?' data-selection-interest="'.$h(json_encode($interest,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)).'"':'' ?>><header class="selectionHead"><a class="brand" href="https://anytoour.ru/" rel="noreferrer"><?= $h($agency) ?></a>
 <?php if (!$selection): ?><h1>Подборка сейчас недоступна</h1><p>Уточните ссылку у менеджера.</p></header>
 <?php else: ?><p class="eyebrow">Варианты для вашего путешествия</p><h1><?= $h($selection['title']) ?></h1>
 <?php if ($selection['intro']!==''): ?><p class="intro"><?= nl2br($h($selection['intro'])) ?></p><?php endif; ?>

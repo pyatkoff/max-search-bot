@@ -76,7 +76,36 @@ function automaticGalleryChecks(): void {
     } finally {$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$original);}
 }
 
+function appearanceShareChecks(): void {
+    global $pdo;$original=$pdo;$originalLog=DiagnosticLogger::filePath();
+    // A disposable DB restarts native offer IDs. Its photo cache must therefore
+    // be separate too, so it cannot pre-warm the original publication barriers.
+    $appearanceDirectory=dirname($originalLog).'/appearance-case';
+    if(!mkdir($appearanceDirectory,0700))throw new RuntimeException('Unable to isolate appearance fixture');
+    DiagnosticLogger::setFile($appearanceDirectory.'/events.log');
+    try {
+        $pdo=deliveryDb();
+        $pdo->exec('CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);
+CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version INTEGER,publication_id TEXT,is_active INTEGER,manager_id INTEGER,created_at TEXT,PRIMARY KEY(conversation_id,version));');
+        $draft=deliveryDraft();deliverySave($draft);$legacy=ManagerTourSelectionDeliveryService::prepare(7,1,1)['publication'];cachePublication($legacy['id']);
+        $share=shareCommand(7,1,0,$legacy['id'],true)['share'];$token=substr($share['path'],strlen('/selection/?t='));$old=ManagerTourSelectionShareService::read($token);
+        deliveryCheck('legacy public shape has no added appearance',!array_key_exists('appearance',$old));
+        $draft['appearance']=['template'=>'compact','palette'=>'ocean','agency_name'=>'Agency <script>alert(1)</script> & "Brand"'];
+        $draft['intro']='Synthetic <svg onload="bad"> introduction';deliverySave($draft,1);$next=ManagerTourSelectionDeliveryService::prepare(7,1,2)['publication'];cachePublication($next['id']);
+        deliveryCheck('new appearance preview cannot mutate an existing public version',ManagerTourSelectionShareService::read($token)===$old);
+        shareCommand(7,1,1,$next['id'],true);$selection=ManagerTourSelectionShareService::read($token);
+        $terms=static fn(array $offers):array=>array_map(static fn(array $offer):array=>array_intersect_key($offer,array_flip(['hotel','amount','currency','room','meal','adults','children','date_from','nights'])),$offers);
+        deliveryCheck('explicit public update exposes frozen appearance without changing terms',$selection['appearance']===$draft['appearance']&&$terms($selection['offers'])===$terms($old['offers'])&&array_map(static fn(array $o):int=>count($o['photos']),$selection['offers'])===array_map(static fn(array $o):int=>count($o['photos']),$old['offers']));
+        $h=static fn(string $v):string=>htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');ob_start();require dirname(__DIR__).'/selection/view.php';$html=ob_get_clean();
+        deliveryCheck('agency and intro remain escaped plain text in public template',str_contains($html,'&lt;script&gt;')&&str_contains($html,'&lt;svg')&&!str_contains($html,'<script>alert(1)</script>')&&!str_contains($html,'<svg'));
+        deliveryCheck('public template and palette use safe classes without inline CSS',str_contains($html,'selectionTemplate-compact')&&str_contains($html,'selectionPalette-ocean')&&!str_contains($html,'style='));
+        $changed=$draft;$changed['appearance']=['template'=>'photo','palette'=>'sunset','agency_name'=>'Another agency'];deliverySave($changed,2);ManagerTourSelectionDeliveryService::prepare(7,1,3);
+        deliveryCheck('later draft appearance never silently replaces frozen public branding',ManagerTourSelectionShareService::read($token)['appearance']===$draft['appearance']);
+        deliveryCheck('old immutable legacy publication still omits appearance',!array_key_exists('appearance',ManagerTourSelectionDeliveryService::get(7,1,$legacy['id'])['publication']));
+    } finally {DiagnosticLogger::setFile($originalLog);$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$original);}
+}
 try {
+    appearanceShareChecks();
     $draft=deliveryDraft();$draft['intro']='Комментарий для туриста <script>alert(1)</script>';
     deliverySave($draft);$prepared=ManagerTourSelectionDeliveryService::prepare(7,1,1);$id=$prepared['publication']['id'];$before=shareRows();
     deliveryCheck('share starts private and reading status creates nothing',ManagerTourSelectionShareService::get(7,1)['share']['version']===0&&(int)$pdo->query('SELECT COUNT(*) FROM manager_tour_selection_links')->fetchColumn()===0);
