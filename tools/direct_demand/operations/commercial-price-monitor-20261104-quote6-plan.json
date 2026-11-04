@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261104-quote6",
-  "state": "EXACT_NEW_CONTEXT_PREPARATION_PENDING_CURRENT_RELEASE_ACCEPTANCE",
+  "state": "APPROVED_CURRENT_RELEASE_METADATA_NATIVE_RUNTIME_GATES_REQUIRED_BEFORE_ONE_QUOTE",
   "goal": "Add one verified price to both existing posts of another unpriced published hotel from originalREAD9",
   "boundaries": [
     "OriginalREAD9 only, no157scopeDBreread; exclude13869/13873/109/12114/9432 and name-review6",
@@ -36,5 +36,12 @@
     9432
   ],
   "new_input_scope_cases": 3,
-  "old_age_and_identity_fixture_reruns": 0
+  "old_age_and_identity_fixture_reruns": 0,
+  "current_deploy_run": 41917839854,
+  "current_verify_job": 126882127040,
+  "current_deploy_job": 126884671933,
+  "current_tls_run": 41918925110,
+  "current_diagnostics_run": 41918925124,
+  "current_release_all_required_metadata_passed": true,
+  "native_source_runtime_gate_required": true
 }
