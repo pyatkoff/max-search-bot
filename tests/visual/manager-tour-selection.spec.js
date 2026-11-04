@@ -1753,6 +1753,8 @@ async function oneTouchBrowserFileFixture(page,options={}){
   }
   throw Error('Unexpected synthetic source action '+d.action);
  }});
+ // WebKit routes native Blob image loads through interception; keep these local bytes in the browser.
+ await page.route('blob:https://app.anytoour.ru/*',route=>route.continue());
  await page.route('https://app.anytoour.ru/manager/tour-selection-photo.php?**',route=>route.fulfill({contentType:'image/jpeg',body:bytes}));
  const f=s.editor;await expect(f.locator('#tsOneTouch')).toBeVisible();await f.locator('#tsOneTouch').click();
  await f.locator('#tsOneTouchFile').setInputFiles({name:'synthetic-onetouch.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(bundle))});
