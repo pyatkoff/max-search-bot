@@ -395,7 +395,297 @@ async function verifyReleasePriority() {
     'invalid_api_response', 'non-array PR list is not an empty list');
 }
 
-verifyReleasePriority().then(() => {
+
+async function verifyReleaseSlot() {
+  const { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
+    verifyConfigure, closeRelease, makeApi } = require('../tools/release_slot_close');
+  const repository = 'pyatkoff/max-search-bot';
+  const prefix = '/repos/' + repository;
+  const source = 'a'.repeat(40), head = 'b'.repeat(40), created = '2026-11-03T19:00:00Z';
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const c = { sha: source, deploy: 100, run: 200, configure: 'skipped', activation: false };
+  const env = { GITHUB_REPOSITORY: repository, GITHUB_EVENT_NAME: 'workflow_run',
+    GITHUB_REF: 'refs/heads/main', GITHUB_RUN_ID: '200', GITHUB_RUN_ATTEMPT: '1',
+    GITHUB_SHA: source, CONFIGURE_RESULT: 'skipped' };
+  const runs = REQUIRED.map(([file, event, name], i) => ({ id: 100 + i,
+    path: '.github/workflows/' + file, name, event, head_sha: source, head_branch: 'main',
+    head_repository: { full_name: repository }, run_attempt: 1, created_at: created,
+    status: 'completed', conclusion: 'success' }));
+  runs.push({ id: 200, path: CLOSER, name: 'Configure AnyTour modeled value goal',
+    event: 'workflow_run', head_sha: source, head_branch: 'main', head_repository: { full_name: repository },
+    run_attempt: 1, created_at: created, status: 'in_progress', conclusion: null });
+  const snapshot = { total_count: runs.length, workflow_runs: runs };
+  const event = { action: 'completed', repository: { full_name: repository },
+    workflow_run: { ...copy(runs[0]), head_commit: { id: source, message: 'Ordinary product release' } } };
+  const marker = { comment_id: 900, head_sha: head, owner_id: 800, updated_at: created };
+  const pr = { number: 55, state: 'closed', merged: true, merge_commit_sha: source,
+    head: { sha: head, repo: { full_name: repository } },
+    base: { ref: 'main', repo: { full_name: repository } },
+    body: '<!-- release-slot-close:v1 ' + JSON.stringify(marker) + ' -->' };
+  const b = binding(pr, source);
+  const comment = { id: 900, body: b.active, user: { id: 800 }, updated_at: created,
+    author_association: 'OWNER', issue_url: 'https://api.github.com' + prefix + '/issues/1122' };
+  const deploy = { sha: source, run_id: '100', provenance: 'success', key: 'success',
+    bundle: 'success', sync: 'success', migration: 'success', max_webhook: 'success',
+    metrika_cron: 'success', smoke: 'success', diagnostics: 'success' };
+  const ops = { sha: source, migration: 'success', snapshot: 'success', live_sessions: 'success',
+    daily_sessions: 'success', yesterday_sessions: 'success', architecture_inventory: 'success',
+    website_smoke: 'success', health: 'success' };
+  const jobs = { total_count: 2, jobs: [
+    { name: 'configure', run_id: 200, head_sha: source, status: 'completed', conclusion: 'skipped' },
+    { name: 'release-slot', run_id: 200, head_sha: source, status: 'in_progress', conclusion: null },
+  ] };
+  const rejects = async (fn, expected, label) => {
+    let actual = 'no_refusal'; try { await fn(); } catch (error) { actual = error.code; }
+    check(actual, expected, 'release slot: ' + label);
+  };
+  check(JSON.stringify(context(env, event)), JSON.stringify(c), 'release slot: exact original push context');
+  for (const [field, value] of [['GITHUB_EVENT_NAME','workflow_dispatch'], ['GITHUB_RUN_ATTEMPT','2'],
+    ['GITHUB_REF','refs/heads/foreign'], ['GITHUB_SHA','c'.repeat(40)], ['CONFIGURE_RESULT','failure']]) {
+    await rejects(() => context({ ...env, [field]: value }, event), 'untrusted_context', 'reject ' + field);
+  }
+  for (const [field, value] of [['event','workflow_dispatch'], ['run_attempt',2], ['conclusion','failure'],
+    ['head_repository',{ full_name:'foreign/repo' }], ['path','.github/workflows/other.yml']]) {
+    const e = copy(event); e.workflow_run[field] = value;
+    await rejects(() => context(env, e), 'untrusted_context', 'upstream ' + field);
+  }
+  check(binding({ ...pr, body:'No automatic closure admitted.' }, source), null, 'release slot: no opt-in stays untouched');
+  for (const body of [pr.body + '\n' + pr.body, '<!-- release-slot-close:v1 {broken} -->',
+    pr.body.replace(head, source), pr.body.replace('"owner_id":800','"owner_id":0')]) {
+    await rejects(() => binding({ ...pr, body }, source), 'invalid_binding', 'malformed or foreign binding');
+  }
+  await rejects(() => binding({ ...pr, merged:false }, source), 'untrusted_pull', 'unmerged source');
+  check(REQUIRED.filter(([file, event, name]) => file === 'modeled-conversion-monitor.yml' && event === 'workflow_run' && name === 'Monitor modeled conversion delivery').length,
+    1, 'release slot: installed canonical monitor is a mandatory original gate');
+  check(gateState(snapshot, c), 'ready', 'release slot: all original gates ready');
+  for (let i = 0; i < REQUIRED.length; i++) {
+    const missing = copy(snapshot); missing.workflow_runs.splice(i, 1); missing.total_count--;
+    if (i === 0) await rejects(() => gateState(missing,c), 'deployment_missing', 'deploy absent');
+    else check(gateState(missing,c), 'waiting', 'release slot: missing gate ' + i + ' waits');
+    for (const failure of ['failure','cancelled','skipped','timed_out',null]) {
+      const changed = copy(snapshot); changed.workflow_runs[i].conclusion = failure;
+      if (REQUIRED[i][0] === ACTIVATION.file && failure === 'skipped')
+        check(gateState(changed,c), 'ready', 'release slot: declared activation skip still requires job proof');
+      else await rejects(() => gateState(changed,c), 'required_gate_failed', 'mandatory gate ' + i + ' ' + failure);
+    }
+    const pending = copy(snapshot); pending.workflow_runs[i].status = 'in_progress'; pending.workflow_runs[i].conclusion = null;
+    check(gateState(pending,c), 'waiting', 'release slot: running gate ' + i + ' waits');
+  }
+  for (const [field, value] of [['head_sha','c'.repeat(40)], ['run_attempt',2],
+    ['head_repository',{ full_name:'foreign/repo' }], ['head_branch','feature']]) {
+    const changed = copy(snapshot); changed.workflow_runs[2][field] = value;
+    await rejects(() => gateState(changed,c), 'untrusted_run', 'reject gate ' + field);
+  }
+  const duplicate = copy(snapshot); duplicate.workflow_runs.push({ ...runs[2], id: 800 }); duplicate.total_count++;
+  await rejects(() => gateState(duplicate,c), 'ambiguous_run', 'duplicate workflow origin');
+  const manual = copy(snapshot); manual.workflow_runs[2].event = 'workflow_dispatch';
+  check(gateState(manual,c), 'waiting', 'release slot: manual success never replaces original gate');
+  const scheduled = copy(snapshot); scheduled.workflow_runs.push({ ...runs[6], event:'schedule', id:801 }); scheduled.total_count++;
+  check(gateState(scheduled,c), 'ready', 'release slot: natural later monitoring is separate');
+  await rejects(() => gateState({ ...snapshot, total_count:100 },c), 'incomplete_runs', 'pagination incomplete');
+  const unknown = copy(snapshot); unknown.workflow_runs.push({ ...runs[2], id:802, path:'.github/workflows/new-required.yml' }); unknown.total_count++;
+  await rejects(() => gateState(unknown,c), 'unclassified_gate', 'new postdeploy gate cannot be silently ignored');
+  const stale = copy(snapshot); stale.workflow_runs[2].created_at = '2026-11-03T18:59:59Z';
+  await rejects(() => gateState(stale,c), 'stale_gate', 'old postdeploy result');
+  const closer = copy(snapshot); closer.workflow_runs.at(-1).status = 'completed';
+  await rejects(() => gateState(closer,c), 'closer_not_active', 'cancelled or replayed closer');
+  check(recordState(comment,b), 'active', 'release slot: admitted exact owner and body');
+  check(recordState({ ...comment, body:b.released },b), 'released', 'release slot: terminal is idempotent');
+  for (const changed of [{ ...comment, body:'PR55: UNKNOWN' }, { ...comment, updated_at:'2026-11-03T19:00:01Z' }])
+    await rejects(() => recordState(changed,b), 'record_changed', 'owner update cannot be overwritten');
+  for (const changed of [{ ...comment, id:901 }, { ...comment, user:{id:801} },
+    { ...comment, issue_url:comment.issue_url+'1' }, { ...comment, author_association:'NONE' }])
+    await rejects(() => recordState(changed,b), 'foreign_record', 'foreign record never writable');
+  verifyTelemetry(deploy,ops,c); check(true,true,'release slot: actual installation evidence accepted');
+  for (const key of ['sha','run_id','provenance','key','bundle','sync','migration','max_webhook','metrika_cron','smoke','diagnostics'])
+    await rejects(() => verifyTelemetry({ ...deploy,[key]:'wrong' },ops,c), 'installation_unconfirmed', 'installation ' + key);
+  for (const key of Object.keys(ops))
+    await rejects(() => verifyTelemetry(deploy,{ ...ops,[key]:'wrong' },c), 'diagnostics_unconfirmed', 'diagnostics ' + key);
+  verifyConfigure(jobs,c); check(true,true,'release slot: declared configuration skip accepted');
+  const configured=copy(jobs); configured.jobs[0].conclusion='success'; verifyConfigure(configured,{...c,configure:'success'});
+  check(true,true,'release slot: actual configuration success accepted');
+  await rejects(() => verifyConfigure(configured,c), 'configuration_unconfirmed','skip cannot mask configured job');
+  function fixture(hook) {
+    let time=0, saved=copy(comment), writes=0, reads=0;
+    const calls=[];
+    const api=async(method,path,body,raw) => {
+      calls.push({method,path,body,raw});
+      const override=hook && await hook({method,path,body,raw,calls,time,writes,reads});
+      if(override !== undefined) return override;
+      if(method==='PATCH'){ writes++; saved={...saved,body:body.body}; return copy(saved); }
+      if(path.endsWith('/git/ref/heads/main')) return {object:{sha:source}};
+      if(path.includes('/commits/')) return [{number:55,state:'closed',merge_commit_sha:source}];
+      if(path.endsWith('/pulls/55')) return copy(pr);
+      if(path.includes('/issues/comments/')) { reads++; return copy(saved); }
+      if(path.includes('/actions/runs?')) return copy(snapshot);
+      const activation = runs.find(r => r.path.endsWith('/' + ACTIVATION.file));
+      if(path.includes('/actions/runs/' + activation.id + '/attempts/1/jobs?'))
+        return {total_count:1,jobs:[{name:'activate',run_id:activation.id,head_sha:source,status:'completed',conclusion:'skipped'}]};
+      if(path.includes('/attempts/1/jobs?')) return copy(jobs);
+      if(path.includes('/contents/deploy_status')) return copy(deploy);
+      if(path.includes('/contents/ops_status')) return copy(ops);
+      throw Error('unexpected synthetic request');
+    };
+    return { options:{env,event,api,now:()=>time,sleep:async(ms)=>{time+=ms;}},
+      calls, writes:()=>writes, time:()=>time };
+  }
+  let f=fixture();
+  check(await closeRelease(f.options),'released','release slot: successful original path closes');
+  check(f.writes(),1,'release slot: exactly one update, no create/dispatch');
+  check(f.calls.at(-1).method,'GET','release slot: exactly one final readback');
+  check(f.calls.filter(x=>x.method!=='GET').every(x=>x.method==='PATCH'&&x.path===prefix+'/issues/comments/900'),
+    true,'release slot: only bound record writable');
+  f=fixture(({path,reads})=>path.includes('/issues/comments/')&&reads===0?{...comment,body:b.released}:undefined);
+  check(await closeRelease(f.options),'already_released','release slot: accepted terminal never repeated');
+  check(f.writes(),0,'release slot: no repeated write');
+  f=fixture(({path,time})=>{
+    if(path.includes('/actions/runs?')&&time<40000){const v=copy(snapshot);v.workflow_runs[3].status='in_progress';v.workflow_runs[3].conclusion=null;return v;}
+  });
+  check(await closeRelease(f.options),'released','release slot: parallel original gates complete without dispatch');
+  check(f.time(),40000,'release slot: only incomplete gates wait');
+  f=fixture(({path})=>{
+    if(path.includes('/actions/runs?')) {const v=copy(snapshot);v.workflow_runs[3].status='in_progress';v.workflow_runs[3].conclusion=null;return v;}
+  });
+  await rejects(()=>closeRelease(f.options),'gate_deadline','bounded pending wait');
+  check(f.writes(),0,'release slot: timeout retains slot');
+  for (const [label, hook, code] of [
+    ['failed gate',({path})=>{if(path.includes('/actions/runs?')){const v=copy(snapshot);v.workflow_runs[3].conclusion='failure';return v;}},'required_gate_failed'],
+    ['late main change',({path,calls})=>path.endsWith('/git/ref/heads/main')&&calls.filter(x=>x.path===path).length===3?{object:{sha:head}}:undefined,'main_changed'],
+    ['late owner edit',({path,reads})=>path.includes('/issues/comments/')&&reads===1?{...comment,body:'held for repair'}:undefined,'record_changed'],
+    ['binding revoked',({path,calls})=>path.endsWith('/pulls/55')&&calls.filter(x=>x.path===path).length===2?{...pr,body:''}:undefined,'binding_changed'],
+    ['API refusal',({path})=>{if(path.includes('/actions/runs?'))throw Object.assign(Error('private'),{code:'api_http_429'});},'api_http_429'],
+  ]) {
+    f=fixture(hook);await rejects(()=>closeRelease(f.options),code,label);check(f.writes(),0,'release slot: '+label+' cannot write');
+  }
+  let attempts=0;
+  f=fixture(({method})=>{if(method==='PATCH'){attempts++;throw Error('unknown transport private');}});
+  await rejects(()=>closeRelease(f.options),'write_unknown','unknown write outcome');
+  check(attempts,1,'release slot: unknown mutation never retried');
+  f=fixture(({path,writes})=>{if(path.includes('/issues/comments/')&&writes)throw Error('readback unavailable');});
+  await rejects(()=>closeRelease(f.options),'write_unknown','unknown readback');
+  check(f.writes(),1,'release slot: unavailable readback never resends');
+  let requests=0;
+  await rejects(()=>makeApi('fixture',async()=>{requests++;return{ok:false,status:429};})('GET',prefix+'/git/ref/heads/main'),
+    'api_http_429','transport rate limit');
+  check(requests,1,'release slot: no transport retry');
+  await rejects(()=>makeApi('fixture',async()=>{throw Object.assign(Error('private token'),{code:'ECONNRESET'});})('GET',prefix+'/git/ref/heads/main'),
+    'transport_failed','private transport details sanitized');
+  await rejects(()=>makeApi('fixture')('PATCH',prefix+'/issues/1122',{body:'cannot create'}),'invalid_write_target','no new records');
+  await rejects(()=>makeApi(''),'missing_capability','no ambient fallback credential');
+}
+
+
+async function verifyReleaseSlotActivation() {
+  const { REQUIRED, CLOSER, ACTIVATION, context, gateState, verifyActivation, closeRelease } = require('../tools/release_slot_close');
+  const repository='pyatkoff/max-search-bot', source='a'.repeat(40), head='b'.repeat(40);
+  const created='2026-11-03T23:00:00Z', prefix='/repos/'+repository;
+  const copy=v=>JSON.parse(JSON.stringify(v));
+  const rejects=async(fn,code,label)=>{
+    let actual='no_refusal';try{await fn();}catch(e){actual=e.code;}
+    check(actual,code,'release activation: '+label);
+  };
+  function fixture(requested=false,hook) {
+    const runs=REQUIRED.map(([file,event,name],i)=>({id:100+i,path:'.github/workflows/'+file,
+      name,event,head_sha:source,head_branch:'main',head_repository:{full_name:repository},
+      run_attempt:1,created_at:created,status:'completed',conclusion:'success'}));
+    runs.push({id:200,path:CLOSER,name:'Configure AnyTour modeled value goal',event:'workflow_run',
+      head_sha:source,head_branch:'main',head_repository:{full_name:repository},
+      run_attempt:1,created_at:created,status:'in_progress',conclusion:null});
+    const activation=runs.find(r=>r.path.endsWith('/'+ACTIVATION.file));
+    const snapshot={total_count:runs.length,workflow_runs:runs};
+    const c={sha:source,deploy:100,run:200,configure:'skipped',activation:requested};
+    const env={GITHUB_REPOSITORY:repository,GITHUB_EVENT_NAME:'workflow_run',GITHUB_REF:'refs/heads/main',
+      GITHUB_RUN_ID:'200',GITHUB_RUN_ATTEMPT:'1',GITHUB_SHA:source,CONFIGURE_RESULT:'skipped'};
+    const event={action:'completed',repository:{full_name:repository},
+      workflow_run:{...copy(runs[0]),head_commit:{id:source,message:requested?ACTIVATION.marker:'Product release'}}};
+    const marker={comment_id:900,head_sha:head,owner_id:800,updated_at:created};
+    const pr={number:55,state:'closed',merged:true,merge_commit_sha:source,
+      head:{sha:head,repo:{full_name:repository}},base:{ref:'main',repo:{full_name:repository}},
+      body:'<!-- release-slot-close:v1 '+JSON.stringify(marker)+' -->'};
+    let record={id:900,body:'PR55: выпуск занят',user:{id:800},updated_at:created,author_association:'OWNER',
+      issue_url:'https://api.github.com'+prefix+'/issues/1122'};
+    const activationJobs={total_count:1,jobs:[{name:'activate',run_id:activation.id,head_sha:source,
+      status:'completed',conclusion:requested?'success':'skipped'}]};
+    const configJobs={total_count:1,jobs:[{name:'configure',run_id:200,head_sha:source,status:'completed',conclusion:'skipped'}]};
+    const deploy={sha:source,run_id:'100'};
+    for(const key of ['provenance','key','bundle','sync','migration','max_webhook','metrika_cron','smoke','diagnostics'])deploy[key]='success';
+    const ops={sha:source};
+    for(const key of ['migration','snapshot','live_sessions','daily_sessions','yesterday_sessions','architecture_inventory','website_smoke','health'])ops[key]='success';
+    let time=0,writes=0;const calls=[];
+    const activationPath=prefix+'/actions/runs/'+activation.id+'/attempts/1/jobs?per_page=100';
+    const api=async(method,path,body)=>{
+      calls.push({method,path,body});
+      const override=hook&&await hook({method,path,body,calls,activationPath,snapshot,activationJobs,activation,requested});
+      if(override!==undefined)return copy(override);
+      if(method==='PATCH'){writes++;record={...record,body:body.body};return copy(record);}
+      if(path.endsWith('/git/ref/heads/main'))return{object:{sha:source}};
+      if(path.includes('/commits/'))return[{number:55,state:'closed',merge_commit_sha:source}];
+      if(path.endsWith('/pulls/55'))return copy(pr);
+      if(path.includes('/issues/comments/'))return copy(record);
+      if(path.includes('/actions/runs?'))return copy(snapshot);
+      if(path===activationPath)return copy(activationJobs);
+      if(path.includes('/actions/runs/200/attempts/1/jobs?'))return copy(configJobs);
+      if(path.includes('/contents/deploy_status'))return copy(deploy);
+      if(path.includes('/contents/ops_status'))return copy(ops);
+      throw Error('unexpected synthetic activation request');
+    };
+    return{c,env,event,snapshot,activation,activationJobs,activationPath,calls,writes:()=>writes,
+      options:{env,event,api,now:()=>time,sleep:async ms=>{time+=ms;}}};
+  }
+  check(REQUIRED.filter(([file])=>file===ACTIVATION.file).length,1,'release activation: existing installed gate included once');
+  for(const requested of [false,true]){
+    const f=fixture(requested);
+    check(context(f.env,f.event).activation,requested,'release activation: bound original commit determines expected outcome');
+    check(gateState(f.snapshot,f.c),'ready','release activation: completed metadata is only preliminary readiness');
+    verifyActivation(f.activationJobs,f.activation,f.c);
+    check(await closeRelease(f.options),'released','release activation: '+(requested?'approved success':'declared job skip')+' closes');
+    check(f.writes(),1,'release activation: one existing record update only');
+    check(f.calls.filter(x=>x.path===f.activationPath).length,1,'release activation: original job read once before update');
+  }
+  for(const change of [e=>{delete e.workflow_run.head_commit;},e=>{e.workflow_run.head_commit.id=head;},
+    e=>{e.workflow_run.head_commit.message=null;},e=>{e.workflow_run.head_commit.message='x'.repeat(65537);}]){
+    const f=fixture();change(f.event);await rejects(()=>context(f.env,f.event),'untrusted_context','unknown commit cannot imply skipped activation');
+  }
+  const skippedRun=fixture();skippedRun.activation.conclusion='skipped';
+  check(gateState(skippedRun.snapshot,skippedRun.c),'ready','release activation: explicitly skipped run still needs exact job skip');
+  verifyActivation(skippedRun.activationJobs,skippedRun.activation,skippedRun.c);
+  for(const [label,requested,mutate,code] of [
+    ['missing run',false,f=>{f.snapshot.workflow_runs=f.snapshot.workflow_runs.filter(r=>r.id!==f.activation.id);f.snapshot.total_count--;},'gate_deadline'],
+    ['pending run',false,f=>{f.activation.status='in_progress';f.activation.conclusion=null;},'gate_deadline'],
+    ['failed run',false,f=>{f.activation.conclusion='failure';},'required_gate_failed'],
+    ['cancelled run',false,f=>{f.activation.conclusion='cancelled';},'required_gate_failed'],
+    ['required run skipped',true,f=>{f.activation.conclusion='skipped';},'required_gate_failed'],
+    ['unexpected activation',false,f=>{f.activationJobs.jobs[0].conclusion='success';},'activation_unconfirmed'],
+    ['required job skipped',true,f=>{f.activationJobs.jobs[0].conclusion='skipped';},'activation_unconfirmed'],
+    ['job wrong source',false,f=>{f.activationJobs.jobs[0].head_sha=head;},'activation_unconfirmed'],
+    ['job foreign run',false,f=>{f.activationJobs.jobs[0].run_id=999;},'activation_unconfirmed'],
+    ['job missing identity',false,f=>{f.activationJobs.jobs[0].name='unknown';},'activation_unconfirmed'],
+    ['job still active',false,f=>{f.activationJobs.jobs[0].status='in_progress';},'activation_unconfirmed'],
+    ['job missing',false,f=>{f.activationJobs.jobs=[];f.activationJobs.total_count=0;},'incomplete_activation_jobs'],
+    ['jobs incomplete',false,f=>{f.activationJobs.total_count=2;},'incomplete_activation_jobs'],
+    ['extra job',false,f=>{f.activationJobs.jobs.push({...f.activationJobs.jobs[0],name:'new_gate'});f.activationJobs.total_count++;},'incomplete_activation_jobs'],
+    ['rerun cannot substitute',false,f=>{f.activation.run_attempt=2;},'untrusted_run'],
+    ['duplicate origin',false,f=>{f.snapshot.workflow_runs.push({...f.activation,id:999});f.snapshot.total_count++;},'ambiguous_run'],
+  ]){
+    const f=fixture(requested);mutate(f);await rejects(()=>closeRelease(f.options),code,label);
+    check(f.writes(),0,'release activation: '+label+' retains publisher');
+  }
+  let f=fixture(false,({path,activationPath})=>{
+    if(path===activationPath)throw Object.assign(Error('unavailable'),{code:'api_http_429'});
+  });
+  await rejects(()=>closeRelease(f.options),'api_http_429','activation metadata refusal');
+  check(f.writes(),0,'release activation: refused read cannot release');
+  check(f.calls.filter(x=>x.path===f.activationPath).length,1,'release activation: refused read is not retried');
+  f=fixture(false,({path,calls,snapshot,activation})=>{
+    if(path.includes('/actions/runs?')&&calls.filter(x=>x.path===path).length===2){
+      const changed=copy(snapshot);changed.workflow_runs.find(r=>r.id===activation.id).conclusion='failure';return changed;
+    }
+  });
+  await rejects(()=>closeRelease(f.options),'required_gate_failed','late failed activation');
+  check(f.writes(),0,'release activation: late failure cannot release');
+}
+
+verifyReleasePriority().then(verifyReleaseSlot).then(verifyReleaseSlotActivation).then(() => {
   const admission = spawnSync(process.execPath, [path.resolve(__dirname, '../tools/release_priority.js'),
     '--admit', '1306', 'a'.repeat(40), 'b'.repeat(40)], {
     encoding: 'utf8', env: { GITHUB_REPOSITORY: 'pyatkoff/max-search-bot' }
@@ -405,6 +695,6 @@ verifyReleasePriority().then(() => {
   const invalid = spawnSync(process.execPath, [path.resolve(__dirname, '../tools/release_priority.js'), '--admit'],
     { encoding: 'utf8', env: {} });
   check(invalid.status, 1, 'incomplete CLI admission cannot fall back to CI success');
-  process.stdout.write('CI change scope and release priority regression: ' + assertions + ' assertions passed\n');
+  process.stdout.write('CI scope, release priority and release slot regression: ' + assertions + ' assertions passed\n');
 }).catch(error => { process.stderr.write(String(error.stack || error) + '\n'); process.exitCode = 1; });
 

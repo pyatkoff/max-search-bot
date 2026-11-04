@@ -199,4 +199,34 @@ for mode,proof,full,oauth,tour_result in [('tour-selection','false','skipped','s
     for field,values in [('CI_MODE',['','unknown','oauth']),('TOUR_PROOF',['','invalid','0','1'])]:
         for value in values:
             check(not gate_passes(visual['screenshots'],{**valid,field:value}),'malformed profile/proof may not pass')
+
+# Metadata-only release closure joins the existing post-deploy tail.
+# It must not change value operations, timers, check execution, or credentials.
+tail_workflow = load('modeled-conversion-value-export.yml')
+tail_events = tail_workflow.get('on', tail_workflow.get(True))
+check(set(tail_events) == {'workflow_run', 'workflow_dispatch'}, 'release closure adds no trigger or timer')
+check(tail_events['workflow_run'] == {'workflows':['Deploy production'], 'types':['completed']},
+      'release closure follows only existing production completion')
+check(tail_workflow['concurrency'] == {'group':'anytour-modeled-value-configuration', 'cancel-in-progress':False},
+      'existing post-deploy serialization retained')
+check(tail_workflow['permissions'] == {'contents':'read', 'actions':'read'}, 'business job permissions unchanged')
+close = tail_workflow['jobs']['release-slot']
+check(close['needs'] == 'configure', 'value operation must finish or be declared skipped before closing')
+expected_close_if = "always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.run_attempt == 1 && (needs.configure.result == 'success' || needs.configure.result == 'skipped')"
+check(close['if'] == expected_close_if, 'no failed, manual, foreign or retried release can close')
+check(close['permissions'] == {'contents':'read', 'actions':'read', 'pull-requests':'read', 'issues':'write'},
+      'comment capability belongs only to metadata closer')
+check(close['runs-on'] == 'ubuntu-latest' and close['timeout-minutes'] == 20, 'bounded existing server runner')
+check(len(close['steps']) == 2, 'no dispatch, deployment or extra acceptance in closing job')
+checkout, closing = close['steps']
+check(checkout['uses'] == 'actions/checkout@v4' and checkout['with'] == {
+    'ref':'${{ github.event.workflow_run.head_sha }}', 'persist-credentials':False},
+    'closer runs exact installed source without persisted token')
+check(closing['run'] == 'node tools/release_slot_close.js'
+      and closing['env'] == {'GITHUB_TOKEN':'${{ github.token }}','CONFIGURE_RESULT':'${{ needs.configure.result }}'}
+      and not closing.get('if') and not closing.get('continue-on-error'), 'one fail-closed canonical closure')
+check('${{ secrets.' not in json.dumps(close), 'closer never receives production credentials')
+check('release-slot-close:v1' in (root/'docs/RELEASE_PRIORITY.md').read_text(),
+      'single existing publisher opt-in is documented')
+
 print(f'PASS {checks} workflow selection and gate cases')

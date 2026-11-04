@@ -12,7 +12,7 @@
   const key=()=>`anytour.requestProfile.${actor}.${cid}`;
   function status(text,error=false){$('profileStatus').textContent=text;$('profileStatus').classList.toggle('error',error)}
   function persist(){if(!actor)return;if(dirty||pending)notifyWorkspace('editing');try{if(dirty||pending)sessionStorage.setItem(key(),JSON.stringify({at:Date.now(),draft,pending,dirty}));else sessionStorage.removeItem(key())}catch(e){}}
-  function clear(){notifyWorkspace('access-lost');epoch++;actor=0;current=draft=pending=null;$('profileFields').replaceChildren();$('profileHistory').replaceChildren();$('profileSuggestion').replaceChildren();$('profileHotelChoice').replaceChildren();$('profileHotelTerms').textContent='';$('profileHotelState').textContent='';$('profileHotelConfirm').checked=false;$('profileHotelFocus').hidden=true;$('profileLabel').value='';$('profileBoundary').replaceChildren();$('profileApp').hidden=true;$('profileRetryLoad').hidden=true;status('Доступ или аккаунт изменился. Откройте профиль из доступной переписки.',true)}
+  function clear(){notifyWorkspace('access-lost');epoch++;actor=0;current=draft=pending=null;$('profileFields').replaceChildren();$('profileHistory').replaceChildren();$('profileSuggestion').replaceChildren();$('profilePreparation').replaceChildren();$('profileHotelChoice').replaceChildren();$('profileHotelTerms').textContent='';$('profileHotelState').textContent='';$('profileHotelConfirm').checked=false;$('profileHotelFocus').hidden=true;$('profileLabel').value='';$('profileBoundary').replaceChildren();$('profileApp').hidden=true;$('profileRetryLoad').hidden=true;status('Доступ или аккаунт изменился. Откройте профиль из доступной переписки.',true)}
   async function request(action,data={}){
     const r=await http.request(action,{conversation_id:cid,...data},csrf,'request-profile-api.php');
     if(['unauthorized','csrf','forbidden'].includes(r.error)||(actor&&r.ok&&r.viewer_id!==actor)){clear();return {ok:false,error:'forbidden'}}return r;
@@ -53,7 +53,41 @@
   function summaryText(f){if(!f)return 'Пока не указано';const v=f.value;return (typeof v==='string'?v:`${v.adults} взр. · ${v.children} дет.`+(v.children?' · возрасты: '+(v.child_ages?.join(', ')||'неизвестны'):''))+' · '+({hard:'обязательное',preferred:'желательно',unknown:'важность не определена'}[f.importance]||'')}
   function updateSummaries(){for(const section of $('profileFields').children){const target=section.querySelector('[data-summary]');if(target)target.textContent=summaryText(draft.fields[section.dataset.field])}}
   function changed(){const next=collect();if(next)draft=next;dirty=true;revision++;updateSummaries();persist();buttons()}
-  function buttons(){const conflict=current&&draft&&current.profile.version!==draft.version;$('profileSave').disabled=busy||!current?.can_edit||!!pending||needsSync||conflict;$('profileRefresh').disabled=busy;$('profileReplace').hidden=!conflict;$('profileReconcile').hidden=!pending;$('profileReconcile').disabled=busy;const reconcileLabel=retryReady?'Повторить ту же запись':'Проверить сохранение';if($('profileReconcile').textContent!==reconcileLabel)$('profileReconcile').textContent=reconcileLabel;}
+  function buttons(){const conflict=current&&draft&&current.profile.version!==draft.version;$('profileSave').disabled=busy||!current?.can_edit||!!pending||needsSync||conflict;$('profileRefresh').disabled=busy;$('profileReplace').hidden=!conflict;$('profileReconcile').hidden=!pending;$('profileReconcile').disabled=busy;const reconcileLabel=retryReady?'Повторить ту же запись':'Проверить сохранение';if($('profileReconcile').textContent!==reconcileLabel)$('profileReconcile').textContent=reconcileLabel;const apply=$('profileApplyPreparation');if(apply)apply.disabled=busy||!current?.can_edit||!preparationAllowed()||Object.keys(current.preparation.fields||{}).every(key=>Object.hasOwn(draft.fields,key));}
+
+  function preparationAllowed(){
+    const p=current?.preparation,s=source(p?.source_message_id);
+    return p?.status==='proposed'&&p.base_version===current.profile.version&&draft?.version===current.profile.version
+      &&p.context_sha256===current.context_sha256&&p.latest_message_id===current.latest_message_id
+      &&s?.customer_statement_eligible&&!s.unavailable&&!s.text_truncated&&s.sha256===p.source_sha256
+      &&!pending&&!needsSync&&!draft.new_trip&&(!draft.boundary_message_id||s.id>=draft.boundary_message_id);
+  }
+  function renderPreparation(){
+    const box=$('profilePreparation');box.replaceChildren();const p=current?.preparation;
+    box.hidden=!p||p.status!=='proposed'||draft?.new_trip;if(box.hidden)return;
+    box.appendChild(node('h2','Подготовлено из сообщения туриста'));
+    box.appendChild(node('p','Это предложение, а не сохранённый профиль. Неизвестные условия не заполнены. Год и точные даты из названия праздника не определяются.'));
+    for(const [key,f] of Object.entries(p.fields||{})){
+      const line=node('p');line.appendChild(node('strong',labels[key]+': '));
+      line.appendChild(node('span',typeof f.value==='string'?f.value:summaryText(f)));box.appendChild(line);
+    }
+    const citation=node('p',source(p.source_message_id)?.text||'Источник недоступен');citation.className='profileCitation';box.appendChild(citation);
+    if(!draft.boundary_message_id)box.appendChild(node('p','Началом запроса в черновике станет это сообщение. До сохранения начало можно изменить.'));
+    const button=node('button','Добавить известное в черновик');button.type='button';button.id='profileApplyPreparation';button.className='usageReview';
+    button.disabled=busy||!current.can_edit||!preparationAllowed()||Object.keys(p.fields||{}).every(key=>Object.hasOwn(draft.fields,key));
+    button.onclick=()=>{
+      if(busy||!current.can_edit||!preparationAllowed())return;
+      const next=collect();if(!next||next.new_trip)return;let added=false;
+      for(const [key,f] of Object.entries(p.fields||{}))if(!Object.hasOwn(next.fields,key)){
+        next.fields[key]={value:clone(f.value),kind:f.kind,importance:f.importance,note:f.note,source_id:f.citation.message_id,quote:f.citation.quote};added=true;
+      }
+      if(!added)return;
+      if(!next.boundary_message_id)next.boundary_message_id=p.boundary_message_id;
+      if(!next.label)next.label='Запрос туриста';
+      draft=next;dirty=true;revision++;persist();render();status('Известные условия добавлены только в черновик. Сохранённый профиль не изменён.');
+    };box.appendChild(button);
+  }
+
   function render(){
     if(!current||!draft)return;$('profileApp').hidden=false;$('profileLabel').value=draft.label;
     const boundary=$('profileBoundary');boundary.replaceChildren(new Option('Выберите начало обсуждения','0'));for(const [id,title] of sourceOptions().slice(1))boundary.appendChild(new Option(title,id));boundary.value=String(draft.boundary_message_id);
@@ -75,6 +109,7 @@
     }
     const states={empty:'Профиль пока не создан. Выберите начало запроса и заполните известные условия.',fresh:'Профиль сверён с доступным текстовым контекстом. Цена, наличие и полнота условий этим не подтверждены.',needs_review:'После сохранения появились новые сообщения или изменился контекст. Сверьте условия перед подтверждением.',source_changed:'Изменились сообщения-основания. Старые цитаты показаны как история, их нужно проверить.'};
     $('profileState').textContent=(states[current.profile.status]||'Профиль требует проверки.')+(current.coverage_incomplete?' Показано ограниченное окно переписки; отсутствие сведений здесь не доказывает, что их не обсуждали.':'');$('profileState').classList.toggle('warn',current.profile.status!=='fresh');
+    renderPreparation();
     const suggestion=$('profileSuggestion');suggestion.replaceChildren();suggestion.hidden=!current.party_suggestion||!current.can_edit;
     if(!suggestion.hidden){suggestion.appendChild(node('p','В последнем сообщении турист явно указал состав. Можно изменить только состав в черновике; даты и остальные условия останутся на месте.'));const quote=node('p',current.party_suggestion.quote);quote.className='profileCitation';suggestion.appendChild(quote);const b=node('button','Применить состав к черновику');b.type='button';b.className='usageReview profileSuggestionButton';b.onclick=()=>{const s=current.party_suggestion;draft=collect()||draft;draft.fields.party={value:clone(s.value),kind:'customer_statement',importance:draft.fields.party?.importance||'unknown',note:'',source_id:s.source_id,quote:s.quote};dirty=true;revision++;persist();render();$('profileFields').querySelector('[data-field=party]').open=true;status('Состав обновлён в черновике. Сверьте профиль и сохраните его явно.')};suggestion.appendChild(b)}
     $('profileHistory').replaceChildren();for(const h of current.history||[]){$('profileHistory').appendChild(node('p',`Версия ${h.version} · менеджер №${h.manager_id} · ${h.created_at} UTC · ${h.changed_fields.map(k=>k==='hotel_focus'?'Предложение для поездки':labels[k]||k).join(', ')||'Повторная сверка условий'}`))}
@@ -85,7 +120,7 @@
     const ticket=++epoch,viewer=actor,editTicket=revision;rStatus('Загружаем профиль и основания…');const r=await request('get');if(ticket!==epoch||viewer!==actor)return false;
     if(!r.ok||r.conversation_id!==cid||!r.profile||!Array.isArray(r.sources)){status(current?'Не удалось проверить профиль. Ваш черновик остаётся на странице.':'Не удалось загрузить профиль. Повторите загрузку.',true);$('profileRetryLoad').hidden=!!current;buttons();return false}
     const old=draft&&current?collect():draft;current=r;
-    if(!draft||(mode==='replace'&&editTicket===revision)){draft=fromProfile(r.profile);dirty=false;needsSync=false;beforeNewTrip=null;persist()}
+    if(!draft||(!dirty&&!pending&&!draft.new_trip)||(mode==='replace'&&editTicket===revision&&!pending)){draft=fromProfile(r.profile);dirty=false;needsSync=false;beforeNewTrip=null;persist()}
     else{draft=old||draft;if(mode==='sync'&&draft.version===r.profile.version){if(draft.context_sha256!==r.context_sha256)draft.hotel_focus=null;draft.context_sha256=r.context_sha256;needsSync=false;persist()}else needsSync=draft.context_sha256!==r.context_sha256;}
     render();notifyWorkspace('loaded');status(draft.version!==r.profile.version?'Сохранённый профиль изменился. Ваш черновик сохранён; сравните его перед заменой.':needsSync?'Есть новые сообщения. Нажмите «Сверить с новыми сообщениями».':'Профиль загружен.');return true;
   }

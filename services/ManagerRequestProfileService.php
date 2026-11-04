@@ -16,7 +16,8 @@ final class ManagerRequestProfileService
             $focus=self::focus($pdo,$scope['conversation'],$row,$context,$view);
             $view['hotel_focus']=$focus['view'];
             $candidates=ManagerRequestHotelFocus::candidates($pdo,$scope['conversation'],$context,(int)($row['boundary_message_id']??0));
-            $history=self::history($pdo,$cid);$pdo->commit();
+            $history=self::history($pdo,$cid);$basis=self::basis($scope,$context);
+            $preparation=ManagerRequestProfile::preparation($context['sources'],$view,$context['latest'],$context['incomplete'],$basis);$pdo->commit();
             $after=self::scope($pdo,$actor,$cid);
             if(!$after||self::scopeKey($scope)!==self::scopeKey($after))return self::error('forbidden');
             $sources=[];foreach($context['sources'] as $s){unset($s['hotel_inquiry'],$s['hotel_readable']);$s['text_truncated']=mb_strlen($s['text'])>6000;$s['text']=mb_substr($s['text'],0,6000);$sources[]=$s;}
@@ -26,7 +27,7 @@ final class ManagerRequestProfileService
             return ['ok'=>true,'viewer_id'=>$actor,'conversation_id'=>$cid,'can_edit'=>$scope['can_edit'],
                 'context_sha256'=>self::basis($scope,$context),'latest_message_id'=>$context['latest'],
                 'sources'=>$sources,'coverage_incomplete'=>$context['incomplete'],'profile'=>$view,'history'=>$history,
-                'party_suggestion'=>$party,'field_labels'=>ManagerRequestProfile::FIELDS,'hotel_focus_candidates'=>$candidates];
+                'preparation'=>$preparation,'party_suggestion'=>$party,'field_labels'=>ManagerRequestProfile::FIELDS,'hotel_focus_candidates'=>$candidates];
         }catch(Throwable $ignored){if($pdo->inTransaction())$pdo->rollBack();return self::error('profile_unavailable');}
     }
 

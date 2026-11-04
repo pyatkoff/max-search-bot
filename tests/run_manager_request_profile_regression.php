@@ -77,6 +77,87 @@ $conversation=$p->query('SELECT * FROM conversations WHERE id=1')->fetch();$refs
 $wire=json_encode(ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($prepared['context']),$prepared['context']),ManagerRequestProfile::FLAGS);
 profileCheck('actual conditional instruction bytes cannot exceed provider cap',strlen($wire)<=ManagerDraftClient::MAX_REQUEST_BYTES);
 profileCheck('oversize optional profile is explicitly omitted without shortening transcript',!isset($prepared['context']['request_profile'])&&!empty($prepared['context']['reference_coverage']['payload_omitted'])&&$prepared['context']['messages']===ManagerAiDraftService::prepareInput($edge)['context']['messages']);
+profileCheck('near-budget AI admission is unchanged by editor-only preparation',!array_key_exists('request_profile_preparation',$refs->forContext($edge))&&!array_key_exists('request_profile_preparation',$prepared['context'])&&strlen($wire)<=ManagerDraftClient::MAX_REQUEST_BYTES);
+
+/** Preparation is a read model, not a second durable profile or a model-produced fact. */
+$prepDb=requestProfileFixture();
+requestProfileMessage($prepDb,20,'customer','Куда можно улететь на Новый год?');
+requestProfileMessage($prepDb,21,'manager','Здравствуйте! Менеджер ответит утром.');
+requestProfileMessage($prepDb,22,'ai','Летите в Таиланд в 2027 году, вдвоём, бюджет 200000 рублей.');
+$canonicalBefore=$prepDb->query('SELECT * FROM manager_request_profiles')->fetchAll();
+$messagesBefore=$prepDb->query('SELECT * FROM messages ORDER BY id')->fetchAll();
+$preparedRead=ManagerRequestProfileService::read(1,1);$proposal=$preparedRead['preparation'];
+profileCheck('raw customer question prepares quoted period and question without creating a profile',$preparedRead['profile']['version']===0&&$preparedRead['profile']['fields']===[]&&$proposal['status']==='proposed'&&array_keys($proposal['fields'])===['dates','questions']);
+profileCheck('holiday preparation never infers a year exact dates country city party or budget',$proposal['fields']['dates']['value']==='Новый год'&&$proposal['fields']['questions']['value']==='Куда можно улететь на Новый год?'&&!array_intersect(['departure','destination','party','budget'],array_keys($proposal['fields'])));
+profileCheck('proposal pins current canonical version context and literal source',$proposal['base_version']===0&&$proposal['context_sha256']===$preparedRead['context_sha256']&&$proposal['latest_message_id']===22&&$proposal['source_message_id']===20&&$proposal['fields']['dates']['citation']['message_id']===20&&$proposal['fields']['dates']['citation']['sender_type']==='customer'&&$proposal['fields']['dates']['citation']['sha256']===$proposal['source_sha256']);
+profileCheck('manager greeting and AI country list do not become tourist conditions',count($proposal['unknown_fields'])===10&&in_array('destination',$proposal['unknown_fields'],true)&&in_array('party',$proposal['unknown_fields'],true)&&in_array('budget',$proposal['unknown_fields'],true));
+profileCheck('GET preparation never inserts updates profile or transcript',$prepDb->query('SELECT * FROM manager_request_profiles')->fetchAll()===$canonicalBefore&&$prepDb->query('SELECT * FROM messages ORDER BY id')->fetchAll()===$messagesBefore);
+$preparedSnapshot=ManagerAiDraftContextService::snapshot(1,1);
+$preparedInput=ManagerAiDraftService::prepareInput($preparedSnapshot['context'],$preparedSnapshot['company_knowledge'],null,$preparedSnapshot['reference_context']);
+$literalInput=array_values(array_filter($preparedInput['context']['messages'],static fn($m)=>$m['id']===20));
+profileCheck('existing AI receives the literal request without a new proposal state owner',!isset($preparedInput['context']['request_profile_preparation'])&&!isset($preparedInput['context']['request_profile'])&&$literalInput[0]['text']==='Куда можно улететь на Новый год?');
+profileCheck('read-only editor preparation adds no provider reference or instruction layer',!array_key_exists('request_profile_preparation',$preparedSnapshot['reference_context']->forContext($preparedSnapshot['context'])));
+$oldCommand=requestProfileCommand($preparedRead);
+$prepDb->prepare('UPDATE messages SET text=? WHERE id=20')->execute(['Куда можно улететь на новогодние каникулы?']);
+$changedRead=ManagerRequestProfileService::read(1,1);
+profileCheck('source edits replace preparation pins and stale input cannot save',$changedRead['preparation']['source_sha256']!==$proposal['source_sha256']&&ManagerRequestProfileService::save(1,1,$oldCommand)['error']==='context_changed'&&$prepDb->query('SELECT COUNT(*) FROM manager_request_profiles')->fetchColumn()==0);
+$prepDb->prepare('UPDATE messages SET metadata_json=? WHERE id=20')->execute([json_encode(['linked_message'=>['type'=>'forward']])]);
+profileCheck('linked latest source cannot prepare a current customer profile',ManagerRequestProfileService::read(1,1)['preparation']===null);
+$prepDb->prepare('UPDATE messages SET metadata_json=? WHERE id=20')->execute([json_encode(['type'=>'tour_web_inquiry'])]);
+profileCheck('publication or unsupported customer metadata is not a literal request',ManagerRequestProfileService::read(1,1)['preparation']===null);
+$prepDb->exec('UPDATE messages SET metadata_json=NULL WHERE id=20');
+$prepDb->prepare('UPDATE messages SET text=? WHERE id=20')->execute(['2 взрослых']);
+profileCheck('adults alone never invent zero children',ManagerRequestProfileService::read(1,1)['preparation']===null);
+$prepDb->prepare('UPDATE messages SET text=? WHERE id=20')->execute(["Бюджет: 150000 рублей за всех\nДаты: 14.11"]);
+$labeled=ManagerRequestProfileService::read(1,1)['preparation'];
+profileCheck('explicit labeled values keep literal units and dates without normalization',$labeled['fields']['budget']['value']==='150000 рублей за всех'&&$labeled['fields']['dates']['value']==='14.11'&&!isset($labeled['fields']['party']));
+$prepDb->prepare('UPDATE messages SET text=? WHERE id=20')->execute(["Даты: июнь\nДаты: июль"]);
+profileCheck('contradictory labeled fragments remain unknown',ManagerRequestProfileService::read(1,1)['preparation']===null);
+$prepDb->prepare('UPDATE messages SET text=? WHERE id=20')->execute(['Не на Новый год, а когда-нибудь позже?']);
+$negated=ManagerRequestProfileService::read(1,1)['preparation'];
+profileCheck('negative or ambiguous holiday is not asserted as the period',!isset($negated['fields']['dates'])&&isset($negated['fields']['questions']));
+$manualDb=requestProfileFixture();$manualRead=ManagerRequestProfileService::read(1,1);
+profileCheck('synthetic manager confirmation still uses the same save owner',ManagerRequestProfileService::save(1,1,requestProfileCommand($manualRead))['ok']);
+$manualBefore=ManagerRequestProfileService::read(1,1)['profile']['fields'];
+$manualRows=$manualDb->query('SELECT * FROM manager_request_profiles')->fetchAll();
+requestProfileMessage($manualDb,20,'customer','Куда можно улететь на Новый год?');
+$manualAfter=ManagerRequestProfileService::read(1,1);
+profileCheck('new preparation preserves manager-confirmed values importance notes and citations',$manualAfter['profile']['fields']===$manualBefore&&!isset($manualAfter['preparation']['fields']['dates'])&&isset($manualAfter['preparation']['fields']['questions'])&&$manualDb->query('SELECT * FROM manager_request_profiles')->fetchAll()===$manualRows);
+profileCheck('profile preparation keeps existing actor and project access',ManagerRequestProfileService::read(3,1)['error']==='forbidden'&&ManagerRequestProfileService::read(4,1)['error']==='forbidden');
+
+
+$ackDb=requestProfileFixture();
+requestProfileMessage($ackDb,20,'customer','Куда можно улететь на Новый год?');
+requestProfileMessage($ackDb,21,'customer','Спасибо');
+$ackView=ManagerRequestProfileService::read(1,1);$ackProposal=$ackView['preparation'];
+profileCheck('short acknowledgement preserves the last substantive quoted request',$ackProposal['source_message_id']===20&&$ackProposal['latest_message_id']===21&&$ackProposal['fields']['dates']['value']==='Новый год'&&$ackProposal['fields']['questions']['citation']['message_id']===20);
+requestProfileMessage($ackDb,22,'customer','На Новый год не поеду');
+profileCheck('new contradiction cannot revive a positive holiday period',ManagerRequestProfileService::read(1,1)['preparation']===null);
+requestProfileMessage($ackDb,23,'customer','Спасибо!');
+profileCheck('acknowledgement after contradiction cannot fall through to the older request',ManagerRequestProfileService::read(1,1)['preparation']===null);
+$unknownDb=requestProfileFixture();
+requestProfileMessage($unknownDb,20,'customer','Куда можно улететь на Новый год?');
+requestProfileMessage($unknownDb,21,'customer','На троих');
+requestProfileMessage($unknownDb,22,'customer','Спасибо');
+profileCheck('acknowledgement after unknown substantive input does not restore an older guess',ManagerRequestProfileService::read(1,1)['preparation']===null);
+$linkedAckDb=requestProfileFixture();
+requestProfileMessage($linkedAckDb,20,'customer','Куда можно улететь на Новый год?');
+requestProfileMessage($linkedAckDb,21,'customer','Спасибо');
+$linkedAckDb->prepare('UPDATE messages SET metadata_json=? WHERE id=21')->execute([json_encode(['linked_message'=>['type'=>'forward']])]);
+profileCheck('a linked acknowledgement never grants fallback to an older request',ManagerRequestProfileService::read(1,1)['preparation']===null);
+
+
+foreach(['В публикации тур на Новый год за 150000 рублей.','Ездили на Новый год в Турцию.'] as $reportedText){
+    $reportedDb=requestProfileFixture();requestProfileMessage($reportedDb,20,'customer',$reportedText);
+    profileCheck('reported offer or past trip cannot become a current period: '.$reportedText,ManagerRequestProfileService::read(1,1)['preparation']===null);
+}
+$quotedQuestionDb=requestProfileFixture();
+requestProfileMessage($quotedQuestionDb,20,'customer','В публикации тур на Новый год. Куда можно улететь?');
+$quotedQuestion=ManagerRequestProfileService::read(1,1)['preparation'];
+profileCheck('a question about a quoted offer keeps the question without inheriting offer terms',array_keys($quotedQuestion['fields'])===['questions']&&!isset($quotedQuestion['fields']['dates'])&&!isset($quotedQuestion['fields']['budget']));
+$mealAbbreviationDb=requestProfileFixture();requestProfileMessage($mealAbbreviationDb,20,'customer','Питание: AI');
+profileCheck('literal AI meal code is not mistaken for an AI-generated condition',ManagerRequestProfileService::read(1,1)['preparation']['fields']['room_meal']['value']==='AI');
+
 require_once __DIR__.'/hotel_current_trip_focus_checks.php';
 hotelCurrentTripFocusChecks();
 echo 'TOTAL '.$passed.' | PASS '.$passed.' | FAIL 0'."\n";
