@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-price-monitor-20261104-read10-unselected9-inspection1",
+  "goal": "Classify why the9 previously unquoted retained hotels did not admit an exact approved price context, without blocking the already delivered19 or repeating any paid call",
+  "source_run": 41934633857,
+  "source_artifact": 13372822872,
+  "original_quote_run": 41935232491,
+  "expected_unquoted_hotels": 9,
+  "boundaries": [
+    "Only original read10 historical artifact and original28quote index; no new DB/source/provider/readback/edits",
+    "Address only unquoted9 nativeIDs; privatefullcontexts notprinted",
+    "Reasons are inputadmission facts, not absence of prices or permission to force identities/oldcaptions"
+  ],
+  "criteria": [
+    "Exactly9originalunquotedhotels",
+    "Compare the originalloggedselectionclock and current72h/futureconditions",
+    "Report missingroom/nativecountry/name/manifest/closing/dashadmission reasons without inventing source facts"
+  ],
+  "risks": [
+    "An unchanged originalcaption must not be rewritten merely to fit a parser",
+    "No consumed28quote retries or providerreadbacks"
+  ],
+  "source_gets": 0,
+  "db_calls": 0,
+  "gateway_calls": 0,
+  "price_edits": 0
+}

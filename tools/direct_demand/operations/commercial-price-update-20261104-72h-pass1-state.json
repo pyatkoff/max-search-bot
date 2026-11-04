@@ -1,0 +1,230 @@
+{
+  "operation": "commercial-price-update-20261104-72h-pass1",
+  "state": "CLOSED_ACTUAL_19_HOTELS_38_EXISTING_PRICE_EDITS_VERIFIED",
+  "goal": "Apply all accepted new72h prices from the one completed28-hotel quote pass to both existing posts",
+  "max_age_seconds": 259200,
+  "quote_run": 41935232491,
+  "quote_intent_artifact": 13373552472,
+  "quote_result_artifact": 13372294643,
+  "quoted_catalog_ids": [
+    382,
+    253,
+    98723,
+    165,
+    389,
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    1983,
+    264,
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    1543,
+    1582,
+    27316,
+    3405,
+    1449,
+    1199,
+    246
+  ],
+  "nonerror_flight_catalog_ids": [
+    253,
+    165,
+    389,
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264,
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "max_hotels": 28,
+  "max_existing_edits": 38,
+  "max_gateway_calls": 0,
+  "max_new_posts": 0,
+  "expected_source": "704ab1c4b0ee17fec46c471180fe7cfb0a6a5711",
+  "boundaries": [
+    "Only original28newexact72h quote contexts, no provideractualization or tuplefallback",
+    "Declarederrors/HTTP404/placeholder/invalidbasket/caption are closednoedit; UNKNOWN stops",
+    "Exactnative/logical/cover/wholeoriginalcaption/actualclosingparagraph beforedurableperhotelintent",
+    "Fullrealroundtrip/noPlaces/onDemandfalse/inclusionflags/fullbasketasreceived/fuelNOTadded",
+    "One existing registry/onceledger/flock/fsync serialupdater operation peradmittedhotel, originalphoto/button/source/token/contextpreserved, verifybothactualedits",
+    "Current sourcefresh/full21/deploy/TLS/diagnostics/hostaccepted25/runtimeclean/schema/rights mandatory",
+    "Photo-ID sourcehint evaluated offline only fromretainedpublicsource, no image/sourceGET or publishingphoto permission"
+  ],
+  "criteria": [
+    "New6native/logical/cover/closingparagraphinputcases peracceptedhotel/PHP-l beforeSSH",
+    "72h259200binding, oldage/updaterfixtures0",
+    "All38possibleedits individualconfirmed ororiginalfailure resolvedbeforeanynextaction"
+  ],
+  "risks": [
+    "Retainedflight option notyetfinaladmission; priceunitsfornewexternalYMLstillawaituseranswer but theseDBnativequotes are separatelyfullbasketverified",
+    "Operationmustnotrerunconsumedproviderquotes or acceptedexistingpostreadbacks"
+  ],
+  "original_quote_installed_source": "0a80b95fa31e3a90267daa8984adae24d6aaa6bb",
+  "execution_approval": true,
+  "source_stop_count": 1,
+  "stopped_actual_attempt": {
+    "run": 41935948717,
+    "job": 126944297117,
+    "reason": "approved_source_not_current",
+    "before_preparer_or_intents_or_ssh_or_edits": true
+  },
+  "accepted_catalog_ids": [
+    253,
+    165,
+    389,
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264,
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "prepared_run": 41936372259,
+  "prepared_job": 126945721283,
+  "prepared_artifact": 13374246397,
+  "prepared_closed_case_count_per_hotel": 6,
+  "prepared_case_reruns_on_actual": 0,
+  "updater_template_sha256": "34fd3712684141fa80adcbf9377a94cd3cae0d35bf2956dfa1c162dd30979046",
+  "current_deploy_run": 41935813006,
+  "current_verify_job": 126945123369,
+  "current_deploy_job": 126945162105,
+  "current_tls_run": 41936630136,
+  "current_diagnostics_run": 41936630240,
+  "source_diff_review": [
+    "services/MaxTrackerLookupRepository.php",
+    "tests/run_max_attribution_http.py",
+    "tests/test_max_tracker_mysql.php",
+    "tools/install_max_attribution_lookup.py"
+  ],
+  "publishing21_unchanged": true,
+  "actual_edits_so_far": 0,
+  "run": 41936908706,
+  "job": 126947548339,
+  "source_commit": "ab797ac2bfe0e311014776ace19f375f4b68a46e",
+  "installed_source": "704ab1c4b0ee17fec46c471180fe7cfb0a6a5711",
+  "execution_intent_artifact": 13375095722,
+  "execution_intent_created_at": "2026-11-04T23:51:11Z",
+  "result_artifact": 13373534632,
+  "result_created_at": "2026-11-04T23:54:26Z",
+  "updated_hotels": 19,
+  "actual_content_edit_attempts": 38,
+  "verified_existing_edits": 38,
+  "new_posts": 0,
+  "additional_gateway_calls": 0,
+  "button_only_updates": 0,
+  "registry_versions_and_onceledger_updated": true,
+  "all_original_caption_photo_button_source_token_context_preserved": true,
+  "full_baskets_as_received": true,
+  "fuel_separately_added": false,
+  "checked_times": [
+    {
+      "hotel_id": 253,
+      "checked_epoch_utc": 1793835492
+    },
+    {
+      "hotel_id": 165,
+      "checked_epoch_utc": 1793835508
+    },
+    {
+      "hotel_id": 389,
+      "checked_epoch_utc": 1793835511
+    },
+    {
+      "hotel_id": 57028,
+      "checked_epoch_utc": 1793835516
+    },
+    {
+      "hotel_id": 278,
+      "checked_epoch_utc": 1793835536
+    },
+    {
+      "hotel_id": 260,
+      "checked_epoch_utc": 1793835548
+    },
+    {
+      "hotel_id": 163,
+      "checked_epoch_utc": 1793835553
+    },
+    {
+      "hotel_id": 281,
+      "checked_epoch_utc": 1793835556
+    },
+    {
+      "hotel_id": 293,
+      "checked_epoch_utc": 1793835560
+    },
+    {
+      "hotel_id": 245,
+      "checked_epoch_utc": 1793835563
+    },
+    {
+      "hotel_id": 393,
+      "checked_epoch_utc": 1793835570
+    },
+    {
+      "hotel_id": 465,
+      "checked_epoch_utc": 1793835577
+    },
+    {
+      "hotel_id": 264,
+      "checked_epoch_utc": 1793835584
+    },
+    {
+      "hotel_id": 107965,
+      "checked_epoch_utc": 1793835589
+    },
+    {
+      "hotel_id": 125,
+      "checked_epoch_utc": 1793835594
+    },
+    {
+      "hotel_id": 1451,
+      "checked_epoch_utc": 1793835605
+    },
+    {
+      "hotel_id": 1100,
+      "checked_epoch_utc": 1793835615
+    },
+    {
+      "hotel_id": 21477,
+      "checked_epoch_utc": 1793835618
+    },
+    {
+      "hotel_id": 246,
+      "checked_epoch_utc": 1793835634
+    }
+  ],
+  "old_fixture_reruns": 0,
+  "do_not_repeat_updates_or_provider_readbacks": true
+}
