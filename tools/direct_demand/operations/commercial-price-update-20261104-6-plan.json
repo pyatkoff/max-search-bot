@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-price-update-20261104-6-v1",
+  "state": "PREPARED_ORIGINAL_QUOTE6_NOT_EDITED",
+  "goal": "Add one validated received whole tour basket and real flights to two existing native73342 posts",
+  "boundaries": [
+    "Exactly2serialexistingcontentedits; newposts0/additionalgateway0",
+    "Only originalquote6privateartifact41919284078; paidquote6consumedneverrepeat",
+    "Preserve whole originalcaption/actualclosingparagraph/photo/button/source/logical/canonicalcontext",
+    "No YML/adcopypricefields/availabilitychanges"
+  ],
+  "criteria": [
+    "Exactnative73342/uniqueoriginalmanifest/text/cover binding from actualquote6candidate",
+    "30h108000/realfuturedates/realroundtrip/noPlacesfalse/onDemandfalse/nonplaceholder/allinclusionflagsfalse/fullbasketasreceived/fuelNOTadded",
+    "ActualSHA-verified originalclosingparagraph, nohardcodedprevioushoteltext",
+    "3newnative/logical/coverbindingcases+3actualclosingparagraphcases/PHP-l; oldage/updatercases0",
+    "Fullfreshcurrent2f7/deploy41917839854/TLS41918925110/diagnostics41918925124/21/hostaccepted25/runtimeclean/schema beforeSSH",
+    "Durableprivateintent beforetwoEDITS; registry/onceledger/flock/fsync/nativebody/photo/button/sourceverified"
+  ],
+  "risks": [
+    "No validroundtrip/fullbasket/≤1024caption means noedit, quote6remainsconsumed",
+    "Resolve UNKNOWNoriginalupdate before anyretry/newoperationID"
+  ],
+  "hotel_id": 73342,
+  "quote_run": 41919284078,
+  "quote_artifact": 13366286602,
+  "max_age_seconds": 108000,
+  "max_content_edits": 2,
+  "max_new_posts": 0,
+  "max_additional_gateway_calls": 0,
+  "source_sha": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d"
+}

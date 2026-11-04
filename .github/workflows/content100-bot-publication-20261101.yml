@@ -1,4 +1,4 @@
-name: Check one new retained price after the current healthy release
+name: Add verified quote6 price while preserving its exact original hotel caption
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -57,27 +57,27 @@ jobs:
           PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-read9
+          name: commercial-price-monitor-20261104-quote6
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41898354901
-          path: ${{ runner.temp }}/retained-read9
-      - name: Bind one exact new retained candidate and original whole caption
+          run-id: 41919284078
+          path: ${{ runner.temp }}/quote6
+      - name: Verify exact real flights and full basket then prepare two existing edits
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 tools/direct_demand/operations/prepare-commercial-price-20261104-quote6.py
+          python3 tools/direct_demand/operations/prepare-commercial-price-update-20261104-6.py
           php -l "$RUNNER_TEMP/channel-preflight.php"
-          ANYTOUR_QUOTE6_INPUT_FIXTURE=1 php "$RUNNER_TEMP/channel-preflight.php"
-      - name: Retain durable private intent before the one gateway request
+      - name: Retain durable private exact edit intent before channel writes
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-quote6-intent
+          name: commercial-price-update-20261104-6-intent
           path: |
-            ${{ runner.temp }}/quote-intent.json
-            ${{ runner.temp }}/quote6-candidate.json
+            ${{ runner.temp }}/price-update6-intent.json
+            ${{ runner.temp }}/price-update6-manifest.json
+            ${{ runner.temp }}/price-update6-approval.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -118,7 +118,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Make the one justified existing gateway actualization
+      - name: Apply one serial bounded update to the two existing posts
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -129,28 +129,32 @@ jobs:
           probe_status=0
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
-          import json,os,pathlib
+          import json,pathlib,os
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1])
-          assert d['operation']=='commercial-price-monitor-20261104-quote6' and d['mode']=='one_existing_gateway_quote_contract'
-          assert d['db_writes']==d['message_sends']==d['price_block_updates']==0 and d['gateway_requests_attempted']<=1
-          safe={k:d.get(k) for k in ['operation','ok','error','catalog_id','gateway_requests_attempted','quote_state','http_status','response_bytes','request_started_epoch_utc','response_received_epoch_utc','automatic_retry_allowed','full_total_verified','current_availability_verified']}
-          print(json.dumps(safe,sort_keys=True))
-          assert d['ok'] is True
+          summary={k:d.get(k) for k in ['operation','mode','ok','error','post_write_attempts','content_edit_attempts','price_block_updates','commercial_text_updates','button_only_updates','new_posts_created']}
+          summary['catalog_ids']=[73342]
+          summary['verified_existing_posts']=sum(p.get('body_photo_button_verified') is True for p in d.get('posts',[]))
+          summary['additional_gateway_calls']=0
+          print(json.dumps(summary,sort_keys=True))
+          assert d['operation']=='commercial-price-update-20261104-6-v1' and d['ok'] is True
+          assert d['new_posts_created']==0 and d['price_block_updates']==d['commercial_text_updates']==2
+          assert d['content_edit_attempts']==2 and summary['verified_existing_posts']==2
+          assert {p['platform'] for p in d['posts']}=={'telegram','max'}
           PY
           test "$probe_status" = 0
-      - name: Retain bounded route evidence
+      - name: Retain authenticated exact existing-post edit receipts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-quote6
+          name: commercial-price-update-20261104-6
           path: |
             ${{ runner.temp }}/channel-preflight.json
-            ${{ runner.temp }}/quote-intent.json
-            ${{ runner.temp }}/quote6-candidate.json
+            ${{ runner.temp }}/price-update6-manifest.json
+            ${{ runner.temp }}/price-update6-approval.json
+            ${{ runner.temp }}/price-update6-intent.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection and script files
+      - name: Remove ephemeral update input and connection files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/quote-intent.json" "$RUNNER_TEMP/quote6-candidate.json"
-
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/price-update6-manifest.json" "$RUNNER_TEMP/price-update6-approval.json" "$RUNNER_TEMP/price-update6-intent.json" "$RUNNER_TEMP/current-diagnostics-run.json"
