@@ -1,0 +1,62 @@
+{
+  "operation": "commercial-price-monitor-20261104-price-focus",
+  "state": "REMAINING_RETAINED_PASS_CLOSED_NEEDS_GENUINELY_NEW_SOURCE_INPUT",
+  "user_priority": "Pavel: я все с ценами хочу решить вопрос. Prices in existing posts take priority over further covers.",
+  "goal": "Obtain real currently checked whole-basket tour prices in the existing published posts and continue processing new eligible inputs in finite serial passes.",
+  "facts": {
+    "published_hotels": 159,
+    "hotels_with_prices": 7,
+    "prices_within_30h": 6,
+    "older_than_30h_price_hotels": [
+      12114
+    ],
+    "monitor_configured_hotels": 672,
+    "actual_normal672_collection_observed": false,
+    "collector_workflow_state": "active",
+    "collector_declared_schedule": "12 minutes past each hour",
+    "new_collector_runs_in_created_window_after_211816_before_2253": 0
+  },
+  "closed_original_remaining_pass": {
+    "run": 41930421093,
+    "hotels": 6,
+    "distinct_gateway_calls": 6,
+    "automatic_retries": 0,
+    "new_accepted_prices": 0,
+    "declared_errors_zero_flights": [
+      56092,
+      83105,
+      250,
+      132
+    ],
+    "http500": [
+      32575
+    ],
+    "nonadmissible_flight_numbers": [
+      235
+    ],
+    "update_validation_run": 41930792634,
+    "existing_edits": 0,
+    "inspection2_run": 41931308134
+  },
+  "diagnosis_limits": [
+    "Configured monitor count is not a count of verified prices.",
+    "All eligible remaining original READ9 hotels have now been consumed in this series; other tuple for the same hotel is not a retry route.",
+    "The collector workflow is active; absence of a recently observed run does not establish why GitHub has not delivered a new scheduled run.",
+    "Four declared gateway errors plus one HTTP500 and one rejected flight number contract do not yield publishable prices.",
+    "Do not label every gateway error as expired tours; exact supplier root cause has not been established."
+  ],
+  "next_authorized_actions": [
+    "On a genuinely new scheduled collector, inspect the original completed job once and record actual sourcecalls/observations/UTC start before new scope read.",
+    "Then new READ10 scoped159 with original157prefix and native17480/1100 preserved, all approved sources scheduled_monitor/user_search/hot_tours, 2A0/RUB/future/UTCpersistence30h. No old READ8/9/coverage query repetition.",
+    "Bind new exact contexts and actual current captions/closing paragraphs, then bounded serial quote passes, durable per-context intents, one justified existing flights call each, no paidretry.",
+    "Only validated real roundtrip/fullbasket reaches existing-post updater; preserve exact original context/photo/button/source/registry/ledger and verify both edits.",
+    "Refresh older priced hotels only from genuinely new exact tuples and exact current caption/known prior price receipt binding; do not reuse consumed old quote/fingerprint or rewrite blindly."
+  ],
+  "boundaries": [
+    "No manual collector, observer/transport/budget/cron changes or foreign release fix/rerun.",
+    "Existing cloud GitHub/GHA only; no Mac/files/Node/CUA/agents/peoplemessages/newworkers/queues/controllers.",
+    "Current main independently fresh-gated before future SSH; d13 is lastaccepted, not forever.",
+    "Continue original500pairs/3feeds/miniapps goal; retain only own15min automationACTIVE."
+  ],
+  "unresolved": "Fresh eligible source coverage for the remaining unpriced published hotels; full price coverage has not been achieved."
+}

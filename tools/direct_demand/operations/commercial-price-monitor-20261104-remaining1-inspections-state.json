@@ -1,0 +1,44 @@
+{
+  "operation": "commercial-price-monitor-20261104-remaining1-inspections",
+  "state": "CLOSED_ORIGINAL235_CONTRACT_AND_COLLECTOR_METADATA_INSPECTED_NO_PROVIDER_CALLS",
+  "inspection1_run": 41931056252,
+  "inspection1_job": 126927742685,
+  "inspection1_artifact": 13371457494,
+  "inspection2_run": 41931308134,
+  "inspection2_job": 126928599313,
+  "inspection2_reason": "Correct pure inspector whitespace normalization; original updater normalization was already correct",
+  "outcome": {
+    "operation": "commercial-price-monitor-20261104-remaining1-inspection2",
+    "hotel_id": 235,
+    "catalog_name": "GRAND RESORT HURGHADA",
+    "gateway_calls": 0,
+    "db_calls": 0,
+    "edits": 0,
+    "gateway_declared_error": false,
+    "surcharge_present": false,
+    "inclusion_flags_exact": true,
+    "options": [
+      {
+        "index": 0,
+        "currency_rub": true,
+        "dates_match_retained": true,
+        "forward_segment_count": 1,
+        "backward_segment_count": 1,
+        "noPlaces_false_for_all": true,
+        "onDemand_false_for_all": true,
+        "nonplaceholder_numbers": false
+      }
+    ],
+    "original_caption_utf16_length": 361,
+    "real_number_check_corrected_whitespace_normalization": true
+  },
+  "collector_workflow": {
+    "id": 346454799,
+    "state": "active",
+    "path": ".github/workflows/collect-anytour-tours.yml"
+  },
+  "collector_root_cause_not_established": true,
+  "server_db_gateway_edits": 0,
+  "old_fixtures_rerun": 0,
+  "repeat_same_inspections": false
+}

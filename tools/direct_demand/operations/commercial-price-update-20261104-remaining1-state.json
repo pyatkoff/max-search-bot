@@ -1,0 +1,109 @@
+{
+  "operation": "commercial-price-update-20261104-remaining1",
+  "state": "CLOSED_ALL_SIX_CONTEXTS_NO_ACCEPTED_REAL_FLIGHT_PRICE_NO_EDIT",
+  "goal": "Finish all accepted price contexts from the one finite remaining quote pass in both existing channels",
+  "boundaries": [
+    "Only original results of41930421093, no gateway requests in updater",
+    "At most one operation per unconsumed hotel and two existing content edits each; no newposts",
+    "All private exact original-caption/closingparagraph/cover/logical/quote/basket bindings before durable intents and SSH",
+    "Preserve full existing caption/CTA/photo/button/source/token/publication/canonical registry/newversions/onceledger/flock/fsync",
+    "30h108000, real dated roundtrip, noPlaces/onDemand false, inclusionflags false, whole basket asreceived, separatefuel notadded",
+    "Declared gateway error/zero flights or rejectedbasket/caption means closed noedit, never price invention/retry",
+    "Currentd13/full21/source/deployverify/TLS/diagnostics/hostaccepted25/runtimeclean/schema/rights required"
+  ],
+  "criteria": [
+    "Six new actual native/logical/cover/closingparagraph cases per accepted input and PHP-l",
+    "Three new finite-pass uniquehotel/blocked exclusion/partition counts cases",
+    "No unchanged oldage/updater fixtures rerun",
+    "2 verified actual existing edits and preservedcontext per acceptedhotel; UNKNOWN stops the serial pass"
+  ],
+  "risks": [
+    "Transport or registry unknown requires resolving original operation; never new operation bypass",
+    "Completing retained contexts does not establish finalprices for all159/672"
+  ],
+  "quote_run": 41930421093,
+  "expected_source": "d13f5cf94960bef206fe47b872c88f034c76c04f",
+  "max_age_seconds": 108000,
+  "max_hotels": 8,
+  "max_existing_edits": 2,
+  "max_gateway_calls": 0,
+  "max_new_posts": 0,
+  "automatic_retry_allowed": false,
+  "excluded_hotel_ids": [
+    233,
+    110,
+    73342,
+    13869,
+    13873,
+    109,
+    12114,
+    9432,
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "quote_intent_artifact": 13371900942,
+  "quote_result_artifact": 13372051273,
+  "exact_quoted_native_ids": [
+    56092,
+    32575,
+    83105,
+    250,
+    132,
+    235
+  ],
+  "only_potential_edit_hotel_ids": [
+    235
+  ],
+  "remaining_five_closed_without_edit": true,
+  "run": 41930792634,
+  "job": 126926852815,
+  "source_commit": "ff69e5b6e6f2892d0630c7d9d689948f02c64ff0",
+  "accepted_hotels": 0,
+  "existing_content_edit_intents_created": 0,
+  "existing_edits_attempted": 0,
+  "verified_existing_edits": 0,
+  "provider_or_gateway_calls": 0,
+  "new_posts": 0,
+  "closed_no_edit": [
+    {
+      "hotel_id": 56092,
+      "state": "DECLARED_ERROR_OR_ZERO_FLIGHTS_NO_PRICE_EDIT",
+      "gateway_retries": 0
+    },
+    {
+      "hotel_id": 32575,
+      "state": "DECLARED_ERROR_OR_ZERO_FLIGHTS_NO_PRICE_EDIT",
+      "gateway_retries": 0
+    },
+    {
+      "hotel_id": 83105,
+      "state": "DECLARED_ERROR_OR_ZERO_FLIGHTS_NO_PRICE_EDIT",
+      "gateway_retries": 0
+    },
+    {
+      "hotel_id": 250,
+      "state": "DECLARED_ERROR_OR_ZERO_FLIGHTS_NO_PRICE_EDIT",
+      "gateway_retries": 0
+    },
+    {
+      "hotel_id": 132,
+      "state": "DECLARED_ERROR_OR_ZERO_FLIGHTS_NO_PRICE_EDIT",
+      "gateway_retries": 0
+    },
+    {
+      "hotel_id": 235,
+      "state": "FULL_BASKET_OR_ORIGINAL_CAPTION_CONTRACT_NOT_ACCEPTED_NO_EDIT",
+      "gateway_retries": 0
+    }
+  ],
+  "original_quote_outcomes_all_resolved": true,
+  "do_not_rerun_validation_or_quotes": true,
+  "inspection1_run": 41931056252,
+  "inspection2_corrected_number_classification_run": 41931308134,
+  "hotel235_rejection": "NONPLACEHOLDER_FLIGHT_NUMBER_CONTRACT_FALSE",
+  "original_existing_caption_unchanged": true
+}
