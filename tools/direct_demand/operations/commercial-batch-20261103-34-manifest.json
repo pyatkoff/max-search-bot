@@ -1,0 +1,100 @@
+{
+  "operation": "commercial-hotel-batch-20261103-34-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish both ready whole hotel materials in both existing channels in one serial run",
+  "boundaries": [
+    "Existingchannels/bots/registry/once/serialapprovedpublisher only",
+    "Exact current source/verify/TLS/fulltree21blobs beforeSSH/provider; unchangedruntime/rights/dedupguards",
+    "NoMac/newworkers/queues/runtime/ads/customer messages/paidcalls"
+  ],
+  "criteria": [
+    "Two600pxnativePNGsbytes/chunks/SHA/dimensions/nativeviewaccepted",
+    "Exactly4verified body/photo/button/source posts or explicitstop"
+  ],
+  "risks": [
+    "Eightunresolvedcandidatesmustnotdelaytwoready",
+    "IfmainchangesstopbeforeSSH/provider;after2sourcestopsconcretereleasewait"
+  ],
+  "baseline_logical_materials": 144,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 1417,
+      "hotel": "Paloma Grida",
+      "key": "paloma-grida",
+      "aliases": [
+        "PALOMA GRIDA"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/paloma-grida"
+      ],
+      "text": "✈️ Туры в Paloma Grida с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж с Голубым флагом.\n💦 Аквапарк Palomaqua Belek на территории, горки и водная зона для детей.\n👧 Детский клуб Polly.\n🧖 Спа и фитнес.\n\n💡 Lake Suites предназначены для взрослых, а Lagoon Suites для семей. Прямой выход к бассейну предусмотрен в этих отдельных категориях.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Grida.",
+      "logical_id": "commercial-paloma-grida-1417-v1",
+      "text_sha256": "595e3bef3f9dfcf99b09801285f36c529564dfe411748d86df2dec026a6acf84",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3c389a2638ae14233374cc66a75475727453fa07/.github/traffic-publish/commercial-batch-20261103-34/1417.png",
+      "photo_sha256": "cc2def40c868b593b7f1f4959f197b5b93388b9734ac632cf3479d2f2f430800",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1348,
+      "hotel": "Seven Seas Hotel Life",
+      "key": "seven-seas-hotel-life",
+      "aliases": [
+        "SEVEN SEAS HOTEL LIFE (EX. OTIUM HOTEL LIFE)"
+      ],
+      "sources": [
+        "https://sevenseashotels.com/hotels/seven-seas-hotel-life?openGallery=true"
+      ],
+      "text": "✈️ Туры в Seven Seas Hotel Life с перелётом\n📍 Гёйнюк, Кемер, Турция.\n\n🏖 Отель на побережье Средиземного моря.\n🌿 Территория площадью 35 000 м².\n🛏 Номера в основном корпусе, бунгало и здании Residence.\n👨‍👩‍👧 Есть семейные номера с двумя спальнями.\n\n💡 Вид на море и дополнительные привилегии Residence зависят от выбранной категории номера.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Seven Seas Hotel Life.",
+      "logical_id": "commercial-seven-seas-hotel-life-1348-v1",
+      "text_sha256": "f06dbc373f6de8ff7592bb2fd425553682837dadb07b6bb6686095e3c145da28",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3c389a2638ae14233374cc66a75475727453fa07/.github/traffic-publish/commercial-batch-20261103-34/1348.png",
+      "photo_sha256": "1dc009d626cd38550f323aa262a94cae92e9c9baed82d4a5acda8512ebb90373",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 2,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 2,
+  "approved_live_send_count": 2,
+  "public_png_frozen_count": 2,
+  "native_inspection_state": "TWO_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41744772563"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1416,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1491,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 65782,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 15879,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 55828,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1035,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 109655,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1338,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    }
+  ]
+}
