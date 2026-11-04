@@ -1,0 +1,36 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote5",
+  "state": "ONE_NEW_RETAINED_CONTEXT_PLAN_NOT_CALLED",
+  "goal": "Actualize one more unpriced already published hotel from originalREAD9 without repeat scope DBreads or consumed hotel quotes",
+  "boundaries": [
+    "One exact new private context/native identity/manifest logical+text+cover binding",
+    "Exclude13873/109/12114/9432 and name-review6",
+    "30h108000 UTCpersistence,2A0emptychildsig/RUB/future/sourceuser_search+hot_tours unchanged",
+    "Onegatewayrequest only after own durableintent; no automaticretry or postwrites in quotephase",
+    "Privatefulltuple/fingerprint/response only authenticatedartifact"
+  ],
+  "criteria": [
+    "Pin originalREAD9 installedsource9678, not falsely relabelartifact as626",
+    "Current626 healthyrelease and reviewed5CI-only changes/publishing21 unchanged; fullfreshsource/TLS/diagnostics/host/runtime21 gates",
+    "Revalidate only one exact observation/nativecountry/name/active/terms/fingerprint beforeprovider",
+    "Original caption/closingparagraph prepared for preservation, no guessed legacyCTA",
+    "Three new exclusion-input cases/PHP-l; oldnativeagefixtures0"
+  ],
+  "risks": [
+    "UnknownHTTP attempt must be resolved from originaloperation, never re-quote/newIDbypass",
+    "Only validated realflights/fullreceivedbasket may be edited into existingposts"
+  ],
+  "retained_run": 41898354901,
+  "retained_artifact": 13357152456,
+  "retained_source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "expected_source": "626aac0471f9209e08d7ccf6f76988a019cb3e00",
+  "max_age_seconds": 108000,
+  "max_gateway_requests": 1,
+  "automatic_retry_allowed": false,
+  "excluded_consumed_hotel_ids": [
+    13873,
+    109,
+    12114,
+    9432
+  ]
+}
