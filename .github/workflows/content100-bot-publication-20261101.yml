@@ -1,4 +1,4 @@
-name: Inspect retained Moscow feed price terms without another source request
+name: Bind retained Moscow price-feed filters to native names without new searches
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -28,17 +28,23 @@ jobs:
           repository: pyatkoff/max-search-bot
           run-id: 41932708020
           path: ${{ runner.temp }}/moscow-source
-      - name: Inspect only retained public source terms and destination classes
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261104-read9
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41898354901
+          path: ${{ runner.temp }}/retained-read9
+      - name: Compare only original public feed filters and retained native-name proofs
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/inspect-retained-moscow-yml-terms-20261104.py
-      - name: Retain original public source privately with bounded schema evidence
+          python3 tools/direct_demand/operations/bind-retained-moscow-yml-20261104.py
+      - name: Retain safe bounded crosswalk summary
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-source-20261104-moscow-yml-inspection2
-          path: |
-            ${{ runner.temp }}/moscow-yml-inspection2-summary.json
+          name: commercial-price-source-20261104-moscow-yml-binding1
+          path: ${{ runner.temp }}/moscow-yml-binding-summary.json
           retention-days: 14
           if-no-files-found: warn

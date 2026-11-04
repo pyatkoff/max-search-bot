@@ -1,0 +1,23 @@
+{
+  "operation": "commercial-price-source-20261104-moscow-yml-binding1",
+  "goal": "Use the supplied source constructively by checking actual search filters and potential exact native-name correspondences without new queries",
+  "boundaries": [
+    "Original107596byte source artifact13372830921 plus originalREAD9 only; sourceGET0/DB0/provider0/edits0",
+    "Potential exact-name match is not final native country/sourceID/product or tour binding",
+    "AnyTour source hotel/country IDs not native IDs; do not coerce numbers",
+    "Preserve typed15 provenance separately and name-review6 noforce"
+  ],
+  "criteria": [
+    "140offer partition hotel vs generalresort",
+    "Name-review excluded; unique normalized currentnames only",
+    "Compare actual date/night/party filter ranges as aggregate counts; no fulltuple/price/URLexport"
+  ],
+  "risks": [
+    "The source has date/night search ranges and no explicit tourId, room/meal/checkedtime fields",
+    "Only current exact native context with fullbasket/realflights can produce accepted postprice"
+  ],
+  "source_gets": 0,
+  "db_calls": 0,
+  "provider_calls": 0,
+  "price_edits": 0
+}
