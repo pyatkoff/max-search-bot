@@ -77,7 +77,11 @@ final class ModeledConversionAcquisitionStatsReader
                     $fields[]=$this->str($doc,$this->lit($path)).' AS '.$alias;
                 $fields[]=$this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited';
                 $fields[]=$this->interestPaths($doc).' AS interest_paths';
-                $page=$this->rows('SELECT '.implode(',',$fields).' '.$this->profileFrom().' WHERE '.$where.' AND p.id>? ORDER BY p.id LIMIT 128',[...$scopeArgs,$after]);
+                // Select cheap IDs first. LIMIT is a nonmergeable page boundary, so
+                // filesort/admission cannot evaluate historical JSON before the page is bounded.
+                $selected='SELECT p.id '.$this->profileFrom().' WHERE '.$where.' AND p.id>? ORDER BY p.id LIMIT 128';
+                $page=$this->rows('SELECT '.implode(',',$fields).' FROM ('.$selected.') selected_page'
+                    .' JOIN modeled_conversion_profile_versions p ON p.id=selected_page.id ORDER BY p.id',[...$scopeArgs,$after]);
                 $targets=[];$packets=[];
                 foreach($page as$p){
                     $after=(string)$p['id'];
