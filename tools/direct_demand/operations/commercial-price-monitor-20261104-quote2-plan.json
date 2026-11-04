@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote2",
+  "state": "PREPARED_PENDING_ACCEPTED_CURRENT_RELEASE",
+  "goal": "Actualize one exact retained DelphinImperial candidate admitted by Pavel's30hour window",
+  "boundaries": [
+    "ONE justified existing action=flights tourId/RUB call;no blindcalls/no retryunknown",
+    "Durable exactprivatequoteintentbeforeSSH/provider",
+    "Existing source21blobs/verifyTLS/host/cleantree/nativeidentity/fingerprint/terms/30h guards"
+  ],
+  "criteria": [
+    "Sourceoriginalretained30h1authenticatedartifactselected9432",
+    "Currentnativecountry4/activity/name and exactfullretainedfingerprint/termsbeforeonecall",
+    "Keepfullgatewayresponseonlyauthenticatedartifact;do notpublishrawprice"
+  ],
+  "risks": [
+    "Actualizedbasket/realflights/onDemand/noPlaces/inclusionflags stillneedreview before priceEDIT",
+    "Fuel reportedseparately, neverarithmeticallyadded/subtracted"
+  ],
+  "catalog_ids": [
+    9432
+  ],
+  "expected_installed_sha": "0a8f5ec6f049369e67f36372ffb8917059b9fda7",
+  "original_retained_run": 41786947561,
+  "eligibility_run": 41788687781,
+  "max_age_seconds": 108000,
+  "max_gateway_requests": 1,
+  "gateway_requests_attempted": 0,
+  "db_writes": 0,
+  "message_edits": 0
+}
