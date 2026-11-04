@@ -98,7 +98,7 @@ const $=id=>document.getElementById(id),esc=value=>{const node=document.createEl
 const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,printProposal=null;
+let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,printProposal=null,imageExport=null,imageDownload=null;
 let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null,biblioPanel=null;
 // View reads are cancellable independently of the durable send/save context.
 let publication=null,preview=false,sending=false,photoFailures=0,photoPending=0,photoEpoch=0,sharing=false,interestLoading=false,historyView=0;
@@ -132,12 +132,12 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){clearPrint();closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function close(){cancelImageExport();clearPrint();closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function editCurrent(){
-  historyView++;preview=false;render();recovery(conflict?'conflict':pending?'pending':'');
+  cancelImageExport();historyView++;preview=false;render();recovery(conflict?'conflict':pending?'pending':'');
   status(conflict?'Есть конфликт правок. Сравните версии перед сохранением.':pending?'Результат сохранения уточняется. Сначала проверьте его.':!canEdit?'Просмотр текущего черновика. Править может ответственный менеджер или администратор.':dirty?'Текущий черновик. Есть несохранённые изменения.':'Текущий черновик. Изменения не отправляют сообщения.',!!conflict||!!pending);
 }
-function suspend(){clearPrint();closeBulkPrices(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;biblioPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){cancelImageExport();clearPrint();closeBulkPrices(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;biblioPanel=null;previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend();host.activate()}
 function sync(c){
   if(context&&!current())suspend();
@@ -587,6 +587,8 @@ function controls(){
   if(bulkPrice){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
   const printLabel=printProposal?'Вернуть предпросмотр':'Печать / PDF';$('tsPrint').hidden=!preview;if($('tsPrint').textContent!==printLabel)$('tsPrint').textContent=printLabel;$('tsPrint').disabled=printProposal?!current():!canPrint();
+  for(const button of $('tsEditor')?.querySelectorAll('[data-ts-image-export]')||[]){const card=publication?.cards.find(card=>card.index===Number(button.dataset.tsImageExport));button.hidden=imageDownload?.button===button;button.disabled=!!imageExport||!canExportImage(card);button.textContent=imageExport?.card===card?'Готовим изображение…':'Подготовить картинку';}
+  if(imageDownload){imageDownload.link.setAttribute('aria-disabled',String(imageDownload.dispatched||!imageDownload.matches()));imageDownload.cancel.disabled=imageDownload.dispatched;}
   if($('tsInterest')){$('tsInterest').disabled=busy||loading||sending||sharing||interestLoading;$('tsInterest').textContent=interestLoading?'Загружаем активность…':'Активность подборки'}
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
@@ -646,9 +648,103 @@ function previewCaption(card){
   return '<strong class="tsCardTitle">'+esc(hotel)+'</strong>'+esc(lines[0].slice(hotel.length))+'\n<strong class="tsCardPrice">'+esc(lines[1])+'</strong>\n'+esc(lines.slice(2).join('\n'));
 }
 function canPrint(){
-  if(!current()||!dialog?.open||!preview||!publication?.cards.length||busy||loading||sending||sharing||photoPending||photoFailures||printProposal)return false;
+  if(!current()||!dialog?.open||!preview||!publication?.cards.length||busy||loading||sending||sharing||photoPending||photoFailures||printProposal||imageExport)return false;
   const images=Array.from($('tsEditor').querySelectorAll('.tsPhotos img'));
   return images.length===publication.cards.reduce((n,card)=>n+card.photos.length,0)&&images.every(img=>img.complete&&img.naturalWidth>0);
+}
+function cancelImageExport(){
+  if(imageExport)imageExport.cancelled=true;imageExport=null;
+  const ready=imageDownload;imageDownload=null;
+  if(ready){ready.job.cancelled=true;clearTimeout(ready.timer);ready.link.removeAttribute('href');URL.revokeObjectURL(ready.url);ready.root.remove();ready.button.hidden=false;}
+}
+function exportImages(card){
+  if(!card||!Number.isInteger(card.index)||card.index<0||card.index>=20)return [];
+  return Array.from($('tsEditor')?.querySelectorAll('[data-ts-card="'+card.index+'"] .tsPhotos img')||[]);
+}
+function canExportImage(card){
+  if(!current()||!dialog?.open||!preview||!publication?.cards.includes(card)||busy||loading||sending||sharing||printProposal||!Array.isArray(card.photos)||card.photos.length<1||card.photos.length>3)return false;
+  const images=exportImages(card);
+  return images.length===card.photos.length&&images.every((image,index)=>image.isConnected&&image.getAttribute('src')===card.photos[index]&&biblioImageReady(image));
+}
+function exportLines(context,text,font,width){
+  context.font=font;const lines=[];
+  const units=value=>typeof Intl.Segmenter==='function'?Array.from(new Intl.Segmenter('ru',{granularity:'grapheme'}).segment(value),item=>item.segment):Array.from(value);
+  for(const paragraph of text.split('\n')){
+    let line='';
+    for(const word of paragraph.split(/\s+/u).filter(Boolean)){
+      const next=line?line+' '+word:word;
+      if(context.measureText(next).width<=width){line=next;continue}
+      if(line){lines.push(line);line='';}
+      if(context.measureText(word).width<=width){line=word;continue}
+      for(const unit of units(word)){
+        if(line&&context.measureText(line+unit).width>width){lines.push(line);line='';}
+        line+=unit;
+      }
+    }
+    lines.push(line);
+  }
+  return lines;
+}
+function drawExportImage(card,title,version,images){
+  if(typeof card.text!=='string'||card.text.length>20000||typeof title!=='string'||title.length>500||!Number.isInteger(version)||version<1)throw Error('image_export_unavailable');
+  const canvas=document.createElement('canvas');canvas.width=1080;canvas.height=1;
+  const context=canvas.getContext('2d');if(!context)throw Error('image_export_unavailable');
+  const margin=56,width=canvas.width-margin*2,blocks=[];let y=48;
+  const text=(value,font,color,lineHeight,gap=0)=>{const lines=exportLines(context,value,font,width);blocks.push({lines,font,color,lineHeight,y});y+=lines.length*lineHeight+gap;};
+  text('AnyTour','bold 28px Arial','#087654',38,12);
+  text(title,'bold 34px Arial','#18312b',44,10);
+  text('Вариант '+(card.index+1)+' · Версия подборки '+version,'24px Arial','#52695c',34,24);
+  const photoY=y,gap=14,photoWidth=(width-gap*(images.length-1))/images.length,photoHeight=images.length===1?Math.round(width*0.56):260;
+  y+=photoHeight+12;
+  if(card.photo_layout!=='gallery-v1'&&images.length===3)text('Третье фото — пример интерьера номера.','22px Arial','#52695c',30,16);else y+=16;
+  const lines=card.text.split('\n');
+  text(lines[0]||'','bold 38px Arial','#18312b',48,10);
+  if(lines.length>1)text(lines[1],'bold 44px Arial','#087654',54,16);
+  if(lines.length>2)text(lines.slice(2).join('\n'),'28px Arial','#18312b',40,24);
+  text('Цена и наличие требуют подтверждения перед оформлением.','22px Arial','#52695c',32);
+  const height=Math.ceil(y+48);
+  // Never clip a room, price, disclaimer or any other immutable condition.
+  if(height>8192)throw Error('image_export_too_long');
+  canvas.height=height;context.fillStyle='#f4f7f2';context.fillRect(0,0,canvas.width,height);
+  context.fillStyle='#ffffff';context.fillRect(24,24,canvas.width-48,height-48);
+  context.fillStyle='#087654';context.fillRect(24,24,8,height-48);
+  context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
+  images.forEach((image,index)=>{
+    const scale=Math.max(photoWidth/image.naturalWidth,photoHeight/image.naturalHeight),sourceWidth=photoWidth/scale,sourceHeight=photoHeight/scale;
+    context.drawImage(image,(image.naturalWidth-sourceWidth)/2,(image.naturalHeight-sourceHeight)/2,sourceWidth,sourceHeight,margin+index*(photoWidth+gap),photoY,photoWidth,photoHeight);
+  });
+  context.textBaseline='top';
+  for(const block of blocks){context.font=block.font;context.fillStyle=block.color;block.lines.forEach((line,index)=>context.fillText(line,margin,block.y+index*block.lineHeight));}
+  return canvas;
+}
+async function exportCardImage(card){
+  if(imageExport||!canExportImage(card))return;
+  cancelImageExport();
+  const job={card,epoch,publication,photoEpoch,version:publication.draft_version,title:publication.title,index:card.index,text:card.text,photos:card.photos.slice(),focus:document.activeElement===$('tsEditor').querySelector('[data-ts-image-export="'+card.index+'"]'),cancelled:false};imageExport=job;controls();status('Готовим изображение показанного варианта…');let canvas=null;
+  const matches=()=>!job.cancelled&&job.epoch===epoch&&job.photoEpoch===photoEpoch&&publication===job.publication&&publication.draft_version===job.version&&publication.title===job.title&&card.index===job.index&&card.text===job.text&&card.photos.length===job.photos.length&&card.photos.every((url,index)=>url===job.photos[index])&&canExportImage(card);
+  const active=()=>imageExport===job&&matches();
+  try{
+    canvas=drawExportImage(card,job.title,job.version,exportImages(card));
+    const blob=await new Promise((resolve,reject)=>{try{canvas.toBlob(value=>value?resolve(value):reject(Error('image_export_unavailable')),'image/png')}catch(error){reject(error)}});
+    if(!active())return;
+    const button=$('tsEditor').querySelector('[data-ts-image-export="'+job.index+'"]');if(!button?.isConnected)throw Error('image_export_unavailable');
+    const root=document.createElement('div'),link=document.createElement('a'),cancel=document.createElement('button'),url=URL.createObjectURL(blob);
+    const ready={job,root,link,cancel,url,button,matches,dispatched:false,timer:0,focus:job.focus};
+    try{
+      root.className='tsImageReady';link.className='tsImageDownload';link.dataset.tsImageDownload=String(job.index);link.href=url;link.download='AnyTour-v'+job.version+'-variant-'+(job.index+1)+'.png';link.textContent='Скачать картинку';link.setAttribute('aria-label','Скачать картинку варианта '+(job.index+1)+' версии '+job.version);
+      // The second, ordinary user click keeps the native download gesture in
+      // protected browser frames. Never dispatch an asynchronous link.click().
+      link.onclick=event=>{
+        if(imageDownload!==ready||ready.dispatched||!matches()||!link.isConnected){event.preventDefault();return;}
+        ready.dispatched=true;controls();status('Браузеру передан запрос на скачивание картинки.');
+        ready.timer=setTimeout(()=>{if(imageDownload===ready){cancelImageExport();controls();}},1000);
+      };
+      cancel.type='button';cancel.textContent='Отменить';cancel.onclick=()=>{if(imageDownload!==ready)return;const same=matches();cancelImageExport();controls();if(same){status('Подготовленная картинка закрыта.');if(button.isConnected)button.focus();}};
+      root.append(link,cancel);button.after(root);imageDownload=ready;button.hidden=true;
+    }catch(error){link.removeAttribute('href');URL.revokeObjectURL(url);root.remove();throw error;}
+    status('Картинка варианта '+(job.index+1)+' готова. Нажмите «Скачать картинку».');
+  }catch(error){if(active())status(error.message==='image_export_too_long'?'Условий слишком много для одной картинки. Используйте Печать / PDF — текст не будет обрезан.':'Не удалось подготовить изображение с этими фото. Используйте Печать / PDF или попробуйте ещё раз.',true);}
+  finally{if(canvas){canvas.width=0;canvas.height=0;}if(imageExport===job){imageExport=null;controls();if(imageDownload?.job===job&&imageDownload.focus&&matches()&&[document.body,imageDownload.button].includes(document.activeElement))imageDownload.link.focus({preventScroll:true});}}
 }
 function clearPrint(){
   if(!printProposal)return;
@@ -684,6 +780,7 @@ function printPreview(){
   }catch(_error){clearPrint();controls();status('Не удалось открыть печать. Версия подборки сохранена, попробуйте ещё раз.',true)}
 }
 function renderPreview(){
+  cancelImageExport();
   dialog.classList.add('tsPreviewMode');photoFailures=0;photoPending=publication.cards.reduce((sum,card)=>sum+card.photos.length,0);const imageRun=++photoEpoch,token=epoch,publicationId=publication.id;
   $('tsEditor').innerHTML='<div class="tsPreviewHeading"><h3>Предпросмотр подборки</h3><p>'+esc(publication.cards.some(card=>card.photo_layout==='gallery-v1')?(publication.channel==='telegram'?'Telegram — фотографии отеля с перелистыванием.':'MAX — фотографии отеля.'):(publication.channel==='telegram'?'Telegram — карусель из трёх фото.':'MAX — мозаика из трёх фото.'))+' Проверьте фото, условия и общую цену. «Нравится» сохранит именно показанный вариант.</p></div><div class="tsPreviewCards">'+publication.cards.map(card=>`<article class="tsPreviewCard" data-ts-card="${card.index}"><div class="tsPhotos tsPhotoCount${card.photos.length} ${publication.channel==='telegram'?'tsPhotoSlideshow':'tsPhotoMosaic'}" ${publication.channel==='telegram'?'tabindex="0" role="region" aria-label="Фото отеля"':''}>${card.photos.map((url,i)=>`<img src="${esc(url)}" alt="${card.photo_layout==='gallery-v1'?'Фото отеля '+(i+1):['Отель','Пляж или бассейн','Пример интерьера номера'][i]}" referrerpolicy="no-referrer">`).join('')}</div>${publication.channel==='telegram'&&card.photos.length>1?'<div class="tsPhotoNav"><button type="button" data-ts-photo-step="-1" aria-label="Предыдущее фото">←</button><span class="tsPhotoPosition" aria-live="polite">Фото 1 из 3</span><button type="button" data-ts-photo-step="1" aria-label="Следующее фото">→</button></div>':''}<p class="tsCardText">${previewCaption(card)}</p><span class="tsLikePreview">♡ Нравится</span><p class="tsDeliveryState" data-ts-state="${card.index}"></p></article>`).join('')+'</div>';
   $('tsEditor').scrollTop=0;
@@ -696,6 +793,7 @@ function renderPreview(){
     gallery.addEventListener('scroll',update,{passive:true});update();
   });
   const active=()=>imageRun===photoEpoch&&token===epoch&&preview&&publication?.id===publicationId&&current();
+  for(const card of publication.cards){const article=$('tsEditor').querySelector('[data-ts-card="'+card.index+'"]');if(!article)continue;const button=document.createElement('button');button.type='button';button.className='tsExportImage';button.dataset.tsImageExport=String(card.index);button.textContent='Подготовить картинку';button.onclick=()=>{if(active()&&button.isConnected)void exportCardImage(card)};article.querySelector('.tsLikePreview').before(button);}
   $('tsEditor').querySelectorAll('img').forEach(img=>{
     img.addEventListener('load',()=>{if(active()){photoPending--;controls()}},{once:true});
     img.addEventListener('error',()=>{if(!active())return;photoPending--;photoFailures++;img.classList.add('tsPhotoFailed');controls();status('Не удалось загрузить фото. Вернитесь к редактированию и проверьте прямую ссылку.',true)},{once:true});
