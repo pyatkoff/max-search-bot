@@ -2,8 +2,8 @@ import hashlib,json,os,pathlib,urllib.request,xml.etree.ElementTree as ET
 class NoRedirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_public_feed_redirect')
 opener=urllib.request.build_opener(NoRedirect())
-report={'operation':'commercial-channel-hotel-feeds-20261104-update8','mode':'public_https_exact_yml_readback','provider_calls':0,'message_sends':0,'files':[]}
-for platform,rows in [('telegram',146),('max',146),('all',292)]:
+report={'operation':'commercial-channel-hotel-feeds-20261104-update9','mode':'public_https_exact_yml_readback','provider_calls':0,'message_sends':0,'files':[]}
+for platform,rows in [('telegram',148),('max',148),('all',296)]:
  name='hotel-posts-'+platform+'.xml';url='https://app.anytoour.ru/feed/'+name
  req=urllib.request.Request(url,headers={'Cache-Control':'no-cache','User-Agent':'AnyTour-Public-Hotel-Feed-Verify/1.0'})
  with opener.open(req,timeout=30) as response:

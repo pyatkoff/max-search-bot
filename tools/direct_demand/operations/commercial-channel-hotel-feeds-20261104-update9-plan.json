@@ -1,0 +1,39 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update9",
+  "goal": "Keep the existing three publishedpost catalogs complete for148realpairedhotels while the clarified miniapp entryroute is investigated",
+  "boundaries": [
+    "Preserve previous146offerblocksbyteidentically; acceptedgenericdescription unchanged",
+    "Onlytwo newcanonicalpublicdestinations/acceptedfrozenPNGs",
+    "Existing3staticXMLwriter/source/root/host/exactprevioushashguards; no installedruntime/DB/provider/messages/ads/import",
+    "Miniappdesiredroute notclaimedimplemented; no guessedstartappURL"
+  ],
+  "criteria": [
+    "148/148/296 exactunion/name-descriptioncounts/limits",
+    "Durableexactintent beforeatomicreplacement;3newappendcases/PHP-l before server",
+    "One exactpublicHTTPSbytes/SHAreadback"
+  ],
+  "risks": [
+    "DirectpostURLroute isstilltheexistingroute and needs actualreceiverintegration beforeminiappreplacement",
+    "Twoexplicitimagegaps381/469preserved; no inventedprice/availability"
+  ],
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 148,
+      "expected_previous_sha256": "bf5322827d432d43d7da47305553cbfe433f6e71c57a4cb520b0c2c3635d4b23",
+      "sha256": "f78eadd677d8d5363701792d6d3466142e7958518a9c3eed2b8a33385ee171bd"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 148,
+      "expected_previous_sha256": "96799bf246a72512e2c90818d6fc496318ac8a58e9e5d44fcd2945c321050dba",
+      "sha256": "2cfbb3b62220da8ab65aaf7d9936372bed6d80322b498634e75c4214ce9f6010"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 296,
+      "expected_previous_sha256": "946b4c5835949f4ef2dad62aa56ec563afbbddff58ce010c0bf79c1459da4837",
+      "sha256": "9cd5c64149a0a729885133e7f516cebaf26c2fc4080d38d88073a2eedebdb635"
+    }
+  ]
+}
