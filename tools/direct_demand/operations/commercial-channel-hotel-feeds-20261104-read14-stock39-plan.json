@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read14-stock39",
+  "goal": "Read only newly accepted Susesi publicpair/privateMAXbinding plus10newfiniteTurkeyidentitygroups",
+  "boundaries": {
+    "old156_pairs_read": 0,
+    "public_firstline_limit": 3,
+    "private_exact_url_limit": 2,
+    "stock_groups": 10,
+    "stock_country": 4,
+    "max_stock_matches_per_group": 12,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "message_sends": 0,
+    "private_output": "authenticatedartifactonly"
+  },
+  "criteria": [
+    "ActualsentSusesipair/source/channel/postbotbindingexact",
+    "3newone-scopefixtures/stocknewinputassertions/PHP-lbeforeSSH"
+  ],
+  "risks": [
+    "Stockidentitynotreadiness/price/delivery",
+    "Ambiguous/missing/alreadypublishedcandidatesnotforced"
+  ],
+  "hotel_ids": [
+    1543
+  ],
+  "baseline_logical_materials": 157
+}
