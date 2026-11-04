@@ -1,0 +1,19 @@
+{
+  "operation": "commercial-price-freshness-20261104-user72h-policy",
+  "state": "USER_EXPLICITLY_APPROVED_MAXIMUM_72_HOURS_FOR_FUTURE_PRICE_INPUTS",
+  "user_message": "автоматически, пусть свежесть у нас будет до 3 дней возможна",
+  "max_age_hours": 72,
+  "max_age_seconds": 259200,
+  "supersedes_previous_future_30h_limit": true,
+  "source_feed_updates_automatically_user_confirmed": true,
+  "scope": "Future admissible price/source inputs and displayed checked-time freshness; do not relabel historical30h executions or source timestamps",
+  "boundaries": [
+    "Historical READ8/9/quotes/updates retain their actual108000 assertions and source provenance",
+    "No consumed quote, samefingerprint paidretry or originaloperation bypass merely because freshness window widened",
+    "Final basket, real dated flights, exact hotel/country/product/party/terms binding and existing-post context preservation still required",
+    "Feed HTTP LastModified is sourcefile modification provenance, not per-tour verifiedcheckedtime or UTCdatabasepersistence",
+    "No automatic permission for manualcollector, cron, budgets, observer, transport or runtimechanges"
+  ],
+  "new_input": "A genuinely new72h historical retained slice or suppliedfeed exact binding may be prepared; do not repeat the closed30h scope unchanged",
+  "pending_user_photo_id_hint": "User suggests Tourvisor ID in picture URL; inspect metadata and exact native/name correspondence, no photoGET or assumption from an arbitrary number"
+}

@@ -18,7 +18,7 @@
   "read15_run": 41911857350,
   "new_post_sends": 4,
   "price_hotels_total": 7,
-  "all_prices_fresh": false,
+  "all_prices_fresh": true,
   "monitor_configured_targets": 672,
   "normal672_collection_verified": false,
   "current_stock_identities": 25,
@@ -86,5 +86,10 @@
   "price_focus_priority": true,
   "remaining_original_read9_eligible_unconsumed_hotel_contexts": 0,
   "open_canva_transactions": 0,
-  "latest_media_pass45_state": "CLOSED_REJECTED_NATIVE_COVER_NO_READY_MATERIAL_NO_SEND"
+  "latest_media_pass45_state": "CLOSED_REJECTED_NATIVE_COVER_NO_READY_MATERIAL_NO_SEND",
+  "configured_price_max_age_seconds": 259200,
+  "configured_price_max_age_hours": 72,
+  "price_checked_times_all_within_configured_window": true,
+  "price_freshness_definition": "Last checked times are within user72h window; no new provider availability guarantee",
+  "user_prices_first": true
 }
