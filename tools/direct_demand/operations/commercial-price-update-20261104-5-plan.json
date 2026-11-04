@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-price-update-20261104-5-v1",
+  "state": "PREPARING_ORIGINAL_QUOTE5_NOT_SENT",
+  "goal": "Add one verified full tour basket with real flights to the two existing native13869 posts",
+  "boundaries": [
+    "Exactly2serialexistingcontentedits, no newpost or additionalgatewaycall",
+    "Whole original caption/actualclosingparagraph/photo/button/source/logical/canonicalcontextpreserved",
+    "Only originalquote5privateartifact, neverpaidrerun",
+    "No YML/ad copy pricefields or availabilitychanges"
+  ],
+  "criteria": [
+    "Exactnative13869/uniqueoriginalmanifest/text/cover binding from actual quote5candidate",
+    "30h108000/realdates/realroundtrip/noPlacefalse/onDemandfalse/nonplaceholder/inclusionflags/fullbasketasreceived/fuelNOTadded",
+    "Originalclosingparagraph derived from originalSHA-verified wholecaption, not quote4legacytext",
+    "3newnative/logical/covercases and3actualclosingparagraphcases/PHP-l/nooldfixtures",
+    "Fullcurrent626release/TLS/diagnostics/21/host/runtimeclean/schema and durableprivateintent beforeEDITS",
+    "Registry/onceledger/flock/fsync andactualbody/photo/button/source verification"
+  ],
+  "risks": [
+    "No validflight or >1024 means noedit, quote5remainsconsumed",
+    "UNKNOWNoriginalupdate must be resolved without newoperationbypass"
+  ],
+  "hotel_id": 13869,
+  "quote_run": 41915511385,
+  "quote_artifact": 13363918786,
+  "max_age_seconds": 108000,
+  "max_content_edits": 2,
+  "max_new_posts": 0,
+  "max_additional_gateway_calls": 0,
+  "source_sha": "626aac0471f9209e08d7ccf6f76988a019cb3e00"
+}

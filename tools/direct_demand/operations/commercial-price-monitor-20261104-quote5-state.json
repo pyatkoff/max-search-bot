@@ -1,0 +1,43 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote5",
+  "state": "CLOSED_ONE_GATEWAY_RESPONSE_RETAINED_PENDING_PRICE_EDIT_VALIDATION",
+  "run": 41915511385,
+  "job": 126873978112,
+  "artifact": 13363918786,
+  "intent_artifact": 13363224960,
+  "intent_created_utc": "2026-11-04T21:22:48Z",
+  "result_created_utc": "2026-11-04T21:22:56Z",
+  "source_commit": "138bf007f0fda0488f01e874d99179e810ef4658",
+  "catalog_id": 13869,
+  "summaries": [
+    {
+      "operation": "commercial-price-monitor-20261104-quote5",
+      "selected_catalog_id": 13869,
+      "new_eligible_contexts": 13,
+      "max_gateway_requests": 1,
+      "provider_calls_so_far": 0
+    },
+    {
+      "automatic_retry_allowed": false,
+      "catalog_id": 13869,
+      "current_availability_verified": false,
+      "error": null,
+      "full_total_verified": false,
+      "gateway_requests_attempted": 1,
+      "http_status": 200,
+      "ok": true,
+      "operation": "commercial-price-monitor-20261104-quote5",
+      "quote_state": "RESPONSE_RETAINED_AMOUNT_CONTRACT_REQUIRES_REVIEW",
+      "request_started_epoch_utc": 1793827372,
+      "response_bytes": 1497,
+      "response_received_epoch_utc": 1793827375
+    }
+  ],
+  "new_input_scope_cases": 3,
+  "old_native_identity_and_age_cases_rerun": 0,
+  "db_writes": 0,
+  "message_edits": 0,
+  "new_posts": 0,
+  "automatic_retry_allowed": false,
+  "repeat_policy": "CONSUMED: use only original private response for strict edit validation; never repeat quote5."
+}
