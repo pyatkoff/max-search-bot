@@ -1,0 +1,37 @@
+{
+  "operation": "commercial-price-monitor-20261104-coverage1",
+  "state": "PREPARED_NEW_AGGREGATE_DIAGNOSTIC_NOT_RAW_PRICE_REREAD",
+  "goal": "Diagnose the real gap between5399new normal670observations and zero eligiblecontexts in the157publishedhotel read",
+  "boundaries": {
+    "hotel_scope": 157,
+    "persistence_cutoff": "max(1793812524,runtimeUTCepoch-108000)",
+    "max_age_seconds": 108000,
+    "new_aggregate_queries": 2,
+    "max_party_aggregate_groups": 10,
+    "raw_tour_ids_returned": 0,
+    "raw_fingerprints_returned": 0,
+    "raw_prices_returned": 0,
+    "customer_data": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "quotes": 0,
+    "message_edits": 0,
+    "new_posts": 0,
+    "collector_budget_order_transport_changes": 0
+  },
+  "criteria": [
+    "Same existing exactsource/full21/TLS/currentdiagnostics/host/runtime/cleantrackedtree/schema/read-onlyconnection",
+    "Do not repeat READ8predicate query; count all newly persisted scoped hotel observations then partition standardparty/currency/date/source aggregates",
+    "Two aggregates only with exact157placeholders and no rawcontextselection",
+    "NativePHP-l/exactinputs beforeSSH and runtimeparty partition invariant; priorpurecases notrerun",
+    "Counts do not prove availability or verified final tour total"
+  ],
+  "risks": [
+    "Normal collector batches may cover otherhotels, or party/currency/dates may exclude eligiblecontexts",
+    "Data may change afterREAD8; a positive newaggregate is newrelatedinput, not permission to claim quotes",
+    "No manuallegacycollector or budget/order/cron changes implied"
+  ],
+  "source": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "old_read8_fixture_reruns": 0,
+  "old14gates_or8updaters_rerun": 0
+}
