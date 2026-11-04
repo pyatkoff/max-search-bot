@@ -62,5 +62,16 @@
   "current_tls_run": 41918925110,
   "current_diagnostics_run": 41918925124,
   "new_materials_this_price6_stage": 0,
-  "new_price_edits_this_stage": 2
+  "new_price_edits_this_stage": 2,
+  "current_main_not_accepted": "2dfd5249aba1419966c35f40961e650d2e982099",
+  "current_main_release_accepted": false,
+  "current_failed_verify_run": 41921002397,
+  "last_price_attempt_run": 41920783291,
+  "last_price_attempt_catalog_id": 110,
+  "last_price_attempt_state": "CLOSED_GATEWAY_DECLARED_ERROR_ZERO_FLIGHTS_NO_EDIT_NO_RETRY",
+  "new_materials_this_pass": 0,
+  "new_price_edits_this_pass": 0,
+  "stock40_lookup_groups_prepared_not_identities": 10,
+  "stock40_native_identities_proven": 0,
+  "stock40_native_db_read_pending": true
 }
