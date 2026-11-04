@@ -1,0 +1,52 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read10",
+  "goal": "Read canonical public post destinations only for two newly verified pairs and ten fresh native stock groups",
+  "boundaries": [
+    "Read-onlycatalog/registry and limitedpublicprojection, nofullsnapshot/buttons/privateIDs/receipts",
+    "No rereadprevious144pairs/provider/DBwrites/messages/newruntime"
+  ],
+  "criteria": [
+    "Two exactfirstlines/LIMIT5; unique TG/MAXpublicpair",
+    "Tennewfixedcountry4groups,max12matches,ambiguitynotforced"
+  ],
+  "risks": [
+    "Identities/readinessnotdelivery"
+  ],
+  "hotel_ids": [
+    1417,
+    1348
+  ],
+  "stock_groups": {
+    "d-maris-bay": [
+      "d maris bay"
+    ],
+    "d-resort-gocek": [
+      "d resort gocek",
+      "d-resort gocek"
+    ],
+    "club-marvy": [
+      "club marvy"
+    ],
+    "gloria-serenity": [
+      "gloria serenity"
+    ],
+    "gloria-verde": [
+      "gloria verde"
+    ],
+    "gloria-golf": [
+      "gloria golf"
+    ],
+    "susesi-luxury": [
+      "susesi luxury"
+    ],
+    "cornelia-diamond": [
+      "cornelia diamond"
+    ],
+    "royal-wings": [
+      "royal wings"
+    ],
+    "royal-dragon": [
+      "royal dragon"
+    ]
+  }
+}

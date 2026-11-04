@@ -1,0 +1,16 @@
+[
+  {
+    "hotel_id": 1417,
+    "name": "Paloma Grida",
+    "accepted_first_line": "✈️ Туры в Paloma Grida с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3c389a2638ae14233374cc66a75475727453fa07/.github/traffic-publish/commercial-batch-20261103-34/1417.png",
+    "image_sha256": "cc2def40c868b593b7f1f4959f197b5b93388b9734ac632cf3479d2f2f430800"
+  },
+  {
+    "hotel_id": 1348,
+    "name": "Seven Seas Hotel Life",
+    "accepted_first_line": "✈️ Туры в Seven Seas Hotel Life с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3c389a2638ae14233374cc66a75475727453fa07/.github/traffic-publish/commercial-batch-20261103-34/1348.png",
+    "image_sha256": "1dc009d626cd38550f323aa262a94cae92e9c9baed82d4a5acda8512ebb90373"
+  }
+]
