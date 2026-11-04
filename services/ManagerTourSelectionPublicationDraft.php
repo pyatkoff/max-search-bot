@@ -51,6 +51,7 @@ final class ManagerTourSelectionPublicationDraft
         }
         if ($errors!==[]) return ['ok'=>false,'error'=>'incomplete_offers','fields'=>$errors];
         if ($offers===[]) return ['ok'=>false,'error'=>'empty_selection'];
-        return ['ok'=>true,'title'=>$draft['title'],'intro'=>$draft['intro'],'offers'=>$offers];
+        return ['ok'=>true,'title'=>$draft['title'],'intro'=>$draft['intro'],'offers'=>$offers,
+            ...(isset($draft['appearance'])?['appearance'=>$draft['appearance']]:[])];
     }
 }
