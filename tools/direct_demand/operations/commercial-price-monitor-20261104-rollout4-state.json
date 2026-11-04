@@ -1,0 +1,91 @@
+{
+  "operation": "commercial-price-monitor-20261104-rollout4",
+  "state": "ACTUAL657_COLLECTION_COMPLETED_MONTHLY_AND_ROLLUPS_WITH_TERMINAL_FAILURE",
+  "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41753225610",
+  "source": "3e2536d93f62abf3923ea8cd7b5a2954e2064aa8",
+  "validate_job": 126323103500,
+  "collect_job": 126323155140,
+  "validate_conclusion": "success",
+  "collect_conclusion": "failure",
+  "monthly": {
+    "processed": 64,
+    "page_gap_processed": 0,
+    "failed": 1,
+    "partial": 0,
+    "observations_written": 3025,
+    "fresh_targets": 235,
+    "pending_targets": 3541,
+    "complete": false,
+    "months": {
+      "2026-11": {
+        "total": 320,
+        "fresh": 54,
+        "pending": 266
+      },
+      "2026-12": {
+        "total": 320,
+        "fresh": 18,
+        "pending": 302
+      },
+      "2027-01": {
+        "total": 320,
+        "fresh": 19,
+        "pending": 301
+      },
+      "2027-02": {
+        "total": 256,
+        "fresh": 18,
+        "pending": 238
+      },
+      "2027-03": {
+        "total": 320,
+        "fresh": 18,
+        "pending": 302
+      },
+      "2027-04": {
+        "total": 320,
+        "fresh": 18,
+        "pending": 302
+      },
+      "2027-05": {
+        "total": 320,
+        "fresh": 18,
+        "pending": 302
+      },
+      "2027-06": {
+        "total": 320,
+        "fresh": 18,
+        "pending": 302
+      },
+      "2027-07": {
+        "total": 320,
+        "fresh": 18,
+        "pending": 302
+      },
+      "2027-08": {
+        "total": 320,
+        "fresh": 18,
+        "pending": 302
+      },
+      "2027-09": {
+        "total": 320,
+        "fresh": 18,
+        "pending": 302
+      },
+      "2027-10": {
+        "total": 320,
+        "fresh": 0,
+        "pending": 320
+      }
+    }
+  },
+  "monthly_done_utc": "2026-11-04T01:29:29Z",
+  "daily_rollup_utc": "2026-11-04T01:30:22Z",
+  "exact_rollup_utc": "2026-11-04T01:35:16Z",
+  "terminal_exit_code": 2,
+  "observed_failed_task": "TourvisorHTTP404ononeexistingresumedtarget",
+  "underlying_cause_guessed": false,
+  "source_calls_and_db_writes_occurred": true,
+  "our_reruns": 0,
+  "fresh_price_read_justified_by_new3025_observations": true
+}
