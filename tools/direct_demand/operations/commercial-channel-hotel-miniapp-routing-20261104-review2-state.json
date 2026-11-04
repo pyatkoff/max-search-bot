@@ -30,5 +30,26 @@
   "feed_route_replacements": 0,
   "publications_held_for_this": 0,
   "provider_calls": 0,
-  "message_sends": 0
+  "message_sends": 0,
+  "current_public_client_source_note": "PR46andPR211areolderthanobservedclient; do notusehistoricalpackage tooverwritecurrentruntime",
+  "tg_source_discovery": {
+    "repository": "pyatkoff/tour-max",
+    "branch": "audit/tgmini-identity-20261025",
+    "commit": "3968913c63954ad06e51a6a28353b405110ab888",
+    "source_inventory_path": "audit/tgmini-identity-source.py",
+    "declared_roots": [
+      "tour-max.ru",
+      "tg.rhat.ru",
+      "tgz.ru"
+    ],
+    "declared_files": [
+      "tgmini/index.php",
+      "tgmini/save.php",
+      "tgmini/bot_webhook.php"
+    ],
+    "actual_canonical_tg_owner_domain_verified": false,
+    "server_or_private_configuration_read": false
+  },
+  "feed_logical_hotels_each_channel": 150,
+  "feed_url_replacements": 0
 }
