@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-04 08:11">
+<yml_catalog date="2026-11-04 09:41">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -17,7 +17,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_241">
-        <url>https://max.ru/channel_anytour/AaGa3GMLV1E</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYWY3ZjZkZmQyNzNkNjJjNzk3Y2VlMjBiZDQwMjlmZGIiLCJvZmZlcl9pZCI6Im1heF8yNDEifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/makadi.png</picture>
         <name>Туры в Pickalbatros Makadi Resort</name>
@@ -35,7 +35,7 @@
         <custom_label_1>Дахаб</custom_label_1>
       </offer>
       <offer id="max_240">
-        <url>https://max.ru/channel_anytour/AaGa3G0Ba0I</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTg1YjVmMjgyN2ZlOGUzYmQxMDFkNWFkMjJjYzQ1NGEiLCJvZmZlcl9pZCI6Im1heF8yNDAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/happy-life.png</picture>
         <name>Туры в Happy Life Village Dahab</name>
@@ -53,7 +53,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_268">
-        <url>https://max.ru/channel_anytour/AaGa3Hb2aNA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWUyZmM0N2Y1ZmZhMDQwNDQzMTcyN2NmZjUyNDE1YTUiLCJvZmZlcl9pZCI6Im1heF8yNjgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/632a52081dc4dd904115564099d6b89f8554a054/.github/traffic-publish/commercial-next-three-20261102/jaz-saraya.png</picture>
         <name>Туры в JAZ Makadi Saraya Resort</name>
@@ -71,7 +71,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_12111">
-        <url>https://max.ru/channel_anytour/AaGa-JTILig</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTVjY2Y4NDI3MjlhMTZlNGY3ZGI1NDg0MWI2ZTdkNWYiLCJvZmZlcl9pZCI6Im1heF8xMjExMSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/movenpick-sharm.png</picture>
         <name>Туры в Mövenpick Sharm El Sheikh</name>
@@ -89,7 +89,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_1981">
-        <url>https://max.ru/channel_anytour/AaGa-J63PEo</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOGMzMDA4YzI2MWNmMzlhNGQyNjI4MDRiZDYyZmJmMTAiLCJvZmZlcl9pZCI6Im1heF8xOTgxIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/jaz-neo-naama.png</picture>
         <name>Туры в JAZ Neo Naama Bay</name>
@@ -107,7 +107,7 @@
         <custom_label_1>Сиде</custom_label_1>
       </offer>
       <offer id="max_28666">
-        <url>https://max.ru/channel_anytour/AaGa-Ki6FG0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTcwNTlhNjVlYTkyOWIzNDQ2ZTI4NDZjYmI2MTBmYzAiLCJvZmZlcl9pZCI6Im1heF8yODY2NiJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5299afdd511d63124a4dc3094934bed3d5a943ad/.github/traffic-publish/commercial-three-20261102-2/hane-family.png</picture>
         <name>Туры в Hane Family Resort</name>
@@ -125,7 +125,7 @@
         <custom_label_1>Сиде</custom_label_1>
       </offer>
       <offer id="max_46672">
-        <url>https://max.ru/channel_anytour/AaGbPGTLPAI</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjk3YTM0ZGZkMjAwYWI4YzE1MjJjMjFhNjliM2E3OTIiLCJvZmZlcl9pZCI6Im1heF80NjY3MiJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/jadore-deluxe.png</picture>
         <name>Туры в J&apos;adore Deluxe Hotel &amp; Spa</name>
@@ -143,7 +143,7 @@
         <custom_label_1>Сиде</custom_label_1>
       </offer>
       <offer id="max_109900">
-        <url>https://max.ru/channel_anytour/AaGbPG9QBVI</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODgyZTAwN2ZiY2ZmNGM2ZDRiZjFlYmJiYjcxNmEyZmEiLCJvZmZlcl9pZCI6Im1heF8xMDk5MDAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/dream-fun-world.png</picture>
         <name>Туры в Dream Fun World</name>
@@ -161,7 +161,7 @@
         <custom_label_1>Сиде</custom_label_1>
       </offer>
       <offer id="max_111129">
-        <url>https://max.ru/channel_anytour/AaGbPHjzPRg</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTRkMzQ0MDYyOWExYzQ3NzdlMjYwMDkwMzZiZmVhYzUiLCJvZmZlcl9pZCI6Im1heF8xMTExMjkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a011287435ba7ce32781a71ae0ed81e6c4d8f1d9/.github/traffic-publish/commercial-three-20261102-3/side-moon-palace.png</picture>
         <name>Туры в Side Moon Palace</name>
@@ -179,7 +179,7 @@
         <custom_label_1>Сиде</custom_label_1>
       </offer>
       <offer id="max_111045">
-        <url>https://max.ru/channel_anytour/AaGbWS7jGsU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZmEwN2IzZThiNGFkZmIwMDY1NmE0ZjFlYTdmYWFmZGIiLCJvZmZlcl9pZCI6Im1heF8xMTEwNDUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/vox-maris.png</picture>
         <name>Туры в Vox Maris Resort</name>
@@ -197,7 +197,7 @@
         <custom_label_1>Аланья</custom_label_1>
       </offer>
       <offer id="max_1077">
-        <url>https://max.ru/channel_anytour/AaGbWTjVf-Y</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZGFmZGI1ZmRkODZkNjdjY2IxZDgwYzg4MTVlYWVhOGIiLCJvZmZlcl9pZCI6Im1heF8xMDc3In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/club-aqua-plaza.png</picture>
         <name>Туры в Club Aqua Plaza</name>
@@ -215,7 +215,7 @@
         <custom_label_1>Анталья</custom_label_1>
       </offer>
       <offer id="max_1146">
-        <url>https://max.ru/channel_anytour/AaGbWUKzSyY</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTg2NWQ2YzZkMGRlMzNmZTEyMmIyMDgwMTM3ZWFjOTAiLCJvZmZlcl9pZCI6Im1heF8xMTQ2In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5f5a0504a74d22f5e6b167a01a36d9be8edf4a8f/.github/traffic-publish/commercial-three-20261102-4/akra-antalya.png</picture>
         <name>Туры в Akra Antalya</name>
@@ -233,7 +233,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_9374">
-        <url>https://max.ru/channel_anytour/AaGbng1eNs0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDNmYzFjYTI5N2I3ZDIyZTAzZGE5ZTVkY2NmY2I5ZmMiLCJvZmZlcl9pZCI6Im1heF85Mzc0In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/sunrise-arabian.png</picture>
         <name>Туры в Sunrise Arabian Beach Resort</name>
@@ -251,7 +251,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_498">
-        <url>https://max.ru/channel_anytour/AaGbnheCU9w</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGM3NWFhZWI5MGQzOTMxOWRkMzYwMzQ4NmVhMDg4YWYiLCJvZmZlcl9pZCI6Im1heF80OTgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/titanic-beach.png</picture>
         <name>Туры в Titanic Beach Spa &amp; Aqua Park</name>
@@ -269,7 +269,7 @@
         <custom_label_1>Сиде</custom_label_1>
       </offer>
       <offer id="max_157359">
-        <url>https://max.ru/channel_anytour/AaGbniGlG9w</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMTA0YTUxMWRiN2QzMTE4OThhZTFmOTQ2YWM5YjdhZjUiLCJvZmZlcl9pZCI6Im1heF8xNTczNTkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/772ac7fe301468ab8649834e4d6c8b278fe4c2f0/.github/traffic-publish/commercial-three-20261102-5/avia-resort.png</picture>
         <name>Туры в Avia Resort Hotel &amp; Spa</name>
@@ -287,7 +287,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_482">
-        <url>https://max.ru/channel_anytour/AaGb6MRjHEM</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTA0YWJiZjNkNjc5NGZkNDU1NzFlOWU5ZjRjNjFjNGEiLCJvZmZlcl9pZCI6Im1heF80ODIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/mamlouk-palace.png</picture>
         <name>Туры в Sunrise Mamlouk Palace Resort</name>
@@ -305,7 +305,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_476">
-        <url>https://max.ru/channel_anytour/AaGb6M5sOTU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGI3ZDc3Mzk2M2M5MTQ3MDI2ZWYzMjcyZGNhMmM3NmIiLCJvZmZlcl9pZCI6Im1heF80NzYifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/garden-beach.png</picture>
         <name>Туры в Sunrise Garden Beach Resort</name>
@@ -323,7 +323,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_81173">
-        <url>https://max.ru/channel_anytour/AaGb6NgvJvM</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYWFiMzliMjdjZmM3YTYyNTA0MzZjZTUxN2Q1ODc4ZWEiLCJvZmZlcl9pZCI6Im1heF84MTE3MyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e54b08b752d613893294503ed3d802001ef5620/.github/traffic-publish/commercial-three-20261102-6/white-hills.png</picture>
         <name>Туры в White Hills Resort</name>
@@ -341,7 +341,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_9373">
-        <url>https://max.ru/channel_anytour/AaGcCWXVRrY</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYjUzZDdkYjUyMzAxOTFmYjVlM2JkMWMzNzY5MjYzYzUiLCJvZmZlcl9pZCI6Im1heF85MzczIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-diamond-beach.png</picture>
         <name>Туры в Sunrise Diamond Beach Resort</name>
@@ -359,7 +359,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_32577">
-        <url>https://max.ru/channel_anytour/AaGcCXAYYwg</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzc4M2FiYTI1OTkyZGIzMGQ0MTYyNzA1NTk1MmJkNjciLCJvZmZlcl9pZCI6Im1heF8zMjU3NyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/sunrise-montemare.png</picture>
         <name>Туры в Sunrise Montemare Resort</name>
@@ -377,7 +377,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_4191">
-        <url>https://max.ru/channel_anytour/AaGcCXoMBpM</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzdjOTIyZTFiZGIyMzNiMTIzYWExMDIzM2QxZTU3ZGYiLCJvZmZlcl9pZCI6Im1heF80MTkxIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4e94c65ace4f6886bb9986c70645e3d72a625aed/.github/traffic-publish/commercial-three-20261102-7/tropitel-sahl-hasheesh.png</picture>
         <name>Туры в Tropitel Sahl Hasheesh</name>
@@ -395,7 +395,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_416">
-        <url>https://max.ru/channel_anytour/AaGck-F7KJ4</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMTAyZTJhMWM3OGZiODE0YjIyNzRmYmZhZDhhNDdiNWEiLCJvZmZlcl9pZCI6Im1heF80MTYifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-crystal-bay.png</picture>
         <name>Туры в Sunrise Crystal Bay Resort</name>
@@ -413,7 +413,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_12112">
-        <url>https://max.ru/channel_anytour/AaGck-ufUS0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNjE4NDIxZmIwZWE2OTM3ZWY1YjNkNTgyNWZjZDI4NWMiLCJvZmZlcl9pZCI6Im1heF8xMjExMiJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-aqua-joy.png</picture>
         <name>Туры в Sunrise Aqua Joy Resort</name>
@@ -431,7 +431,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_478">
-        <url>https://max.ru/channel_anytour/AaGck_VyAZM</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzQ5ZjU1ZDdkOWY5MGUyYTZiZWIyODRkNzY0NmNjNzAiLCJvZmZlcl9pZCI6Im1heF80NzgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b30693513125825518d856e4fc972bd42d3cd550/.github/traffic-publish/commercial-three-20261102-8/sunrise-holidays.png</picture>
         <name>Туры в Sunrise Holidays Resort</name>
@@ -449,7 +449,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_77914">
-        <url>https://max.ru/channel_anytour/AaGc6ZyuFlA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDY0ZTRjZTFjNGE0NzZkOWY4YTliN2UxZmIzZGFkNGEiLCJvZmZlcl9pZCI6Im1heF83NzkxNCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/tucana.png</picture>
         <name>Туры в Sunrise Tucana Resort</name>
@@ -467,7 +467,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_237">
-        <url>https://max.ru/channel_anytour/AaGc6aZ6D-s</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTUyMmQxYmJiNGE4ZDY4MTJkNzZiZWE5MjJjN2IwMWUiLCJvZmZlcl9pZCI6Im1heF8yMzcifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/alma-bay.png</picture>
         <name>Туры в Sunrise Alma Bay Resort</name>
@@ -485,7 +485,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_32575">
-        <url>https://max.ru/channel_anytour/AaGc6bA5buw</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGE0NmJlZTY5YTIzYjVkNGU0YWI0MjllZTlhNDNhMjQiLCJvZmZlcl9pZCI6Im1heF8zMjU3NSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/alora.png</picture>
         <name>Туры в Sunrise Alora Aqua Park Resort</name>
@@ -503,7 +503,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_112914">
-        <url>https://max.ru/channel_anytour/AaGc6bnrGPE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfM2QyZjZiNjUxM2VkNDk0NjhlOGRkNWJkMDEwOTUwOGQiLCJvZmZlcl9pZCI6Im1heF8xMTI5MTQifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/anjum.png</picture>
         <name>Туры в Sunrise Anjum Resort</name>
@@ -521,7 +521,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_64895">
-        <url>https://max.ru/channel_anytour/AaGc6cPhfeQ</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDI3OWVhMGUwYmY5NTA1MGJhZGEwZWQzYWEwN2EwMzQiLCJvZmZlcl9pZCI6Im1heF82NDg5NSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/meraki.png</picture>
         <name>Туры в Meraki Resort Hurghada</name>
@@ -539,7 +539,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_262">
-        <url>https://max.ru/channel_anytour/AaGc6c3UfW4</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGVjMjk5ZGYxZmVjZjQ1YTUzOWMwY2VlNGM4MDAxZDkiLCJvZmZlcl9pZCI6Im1heF8yNjIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/jaz-aquamarine.png</picture>
         <name>Туры в JAZ Aquamarine</name>
@@ -557,7 +557,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_12117">
-        <url>https://max.ru/channel_anytour/AaGc6ddcado</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTIzNWM0ZWVkZDJhMjQ2NzU0MmI3YWFjYmVlNWYwZjEiLCJvZmZlcl9pZCI6Im1heF8xMjExNyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/jaz-bluemarine.png</picture>
         <name>Туры в JAZ Bluemarine</name>
@@ -575,7 +575,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_12119">
-        <url>https://max.ru/channel_anytour/AaGc6eEdZ9U</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzFiODhmZjgwZDk3MDcxNjM0ZGY4MjQ5YjA1ZTdkZjIiLCJvZmZlcl9pZCI6Im1heF8xMjExOSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-aldau.png</picture>
         <name>Туры в Steigenberger ALDAU Beach</name>
@@ -593,7 +593,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_26044">
-        <url>https://max.ru/channel_anytour/AaGc6erBIjc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOWQ0MTM5Njk2YzI5ZDlkMzdlMmY3NjA4MzlkNWExZjYiLCJvZmZlcl9pZCI6Im1heF8yNjA0NCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-aqua-magic.png</picture>
         <name>Туры в Steigenberger Aqua Magic</name>
@@ -611,7 +611,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_66150">
-        <url>https://max.ru/channel_anytour/AaGc6fSGB3c</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZGY4YzhhMGNjMzczOTgxNDBlNGEwNGRmN2I5MTYwZjUiLCJvZmZlcl9pZCI6Im1heF82NjE1MCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4972b2e41225698f4193a17ba8a477b820fb4728/.github/traffic-publish/commercial-batch-20261102-9/steigenberger-pure.png</picture>
         <name>Туры в Steigenberger Pure Lifestyle</name>
@@ -629,7 +629,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_232">
-        <url>https://max.ru/channel_anytour/AaGdPOgkYvU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTQxYmIwNGI0MDljYzFjNjljZjkxMjMxOGZlZjcxNjYiLCJvZmZlcl9pZCI6Im1heF8yMzIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-beach.png</picture>
         <name>Туры в JAZ Elite Casa del Mar Beach</name>
@@ -647,7 +647,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_233">
-        <url>https://max.ru/channel_anytour/AaGdPPHyfR0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOWFkNzgzMGMxOWE1OGYwNmQ3YTgyNzhiN2Q2NDkyYmMiLCJvZmZlcl9pZCI6Im1heF8yMzMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-casa-resort.png</picture>
         <name>Туры в JAZ Casa del Mar Resort</name>
@@ -665,7 +665,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_13872">
-        <url>https://max.ru/channel_anytour/AaGdPPvxQRQ</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYjkxNGNkMjJlNzY2ZWRkOTI1NmIwNzY0ZGM2NDY5NTciLCJvZmZlcl9pZCI6Im1heF8xMzg3MiJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadina.png</picture>
         <name>Туры в JAZ Makadina</name>
@@ -683,7 +683,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_13873">
-        <url>https://max.ru/channel_anytour/AaGdPQXeYgY</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODM5MzhkMDhiOWY2MmMwYTFkY2ZiODUxYzA0OGU3NzIiLCJvZmZlcl9pZCI6Im1heF8xMzg3MyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-oasis.png</picture>
         <name>Туры в JAZ Makadi Oasis Resort &amp; Club</name>
@@ -701,7 +701,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_280">
-        <url>https://max.ru/channel_anytour/AaGdPQ-jO1I</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDUzYjRjYTI4ODkxMDZmYTk1MWQ0ZDRmOWMzMzRjNmUiLCJvZmZlcl9pZCI6Im1heF8yODAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-makadi-star.png</picture>
         <name>Туры в JAZ Makadi Star &amp; Spa</name>
@@ -719,7 +719,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_456">
-        <url>https://max.ru/channel_anytour/AaGdPRlhGzs</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDJlYjY2YjIwMzg1MGUwOTQ0ZTVkNzFiODMzMDJiMTQiLCJvZmZlcl9pZCI6Im1heF80NTYifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-dar-el-madina.png</picture>
         <name>Туры в JAZ Neo Dar El Madina</name>
@@ -737,7 +737,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_265">
-        <url>https://max.ru/channel_anytour/AaGdPSMVMqc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYmJhYjI3MzU5NWJlNjg3Nzc4ZjgxNjRmMzhlZjFkYjIiLCJvZmZlcl9pZCI6Im1heF8yNjUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-lamaya.png</picture>
         <name>Туры в JAZ Lamaya Resort</name>
@@ -755,7 +755,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_454">
-        <url>https://max.ru/channel_anytour/AaGdPS0HPCo</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTQ4M2E1YTAzMWEwMTAyNjQ5NTNlOWM2NWYxMmUwYmEiLCJvZmZlcl9pZCI6Im1heF80NTQifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/jaz-solaya.png</picture>
         <name>Туры в JAZ Solaya</name>
@@ -773,7 +773,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_21475">
-        <url>https://max.ru/channel_anytour/AaGdPTaZQts</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODBkNjQ5YmQzYjZjZTU3YmQyNDA0NDlmNzNmOWZmMjgiLCJvZmZlcl9pZCI6Im1heF8yMTQ3NSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-palace.png</picture>
         <name>Туры в Baron Palace Sahl Hasheesh</name>
@@ -791,7 +791,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_1963">
-        <url>https://max.ru/channel_anytour/AaGdPUBAMI8</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDk2MTNiYjljMWEzY2VmOGYzN2ExOThiMjkwYzhlMzgiLCJvZmZlcl9pZCI6Im1heF8xOTYzIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/53403578accaf818720b895e74454447ec7736a5/.github/traffic-publish/commercial-batch-20261102-10/baron-resort.png</picture>
         <name>Туры в Baron Resort Sharm El Sheikh</name>
@@ -809,7 +809,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_358">
-        <url>https://max.ru/channel_anytour/AaGd4bFlag4</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODQxNzBkMGI4NDYyNmIwNWU0ZjgyZTc5OGVmNTc4MjAiLCJvZmZlcl9pZCI6Im1heF8zNTgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/358.png</picture>
         <name>Туры в Rixos Sharm El Sheikh</name>
@@ -827,7 +827,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_37668">
-        <url>https://max.ru/channel_anytour/AaGd4buFOdw</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWQwNjMzODFhMmZkMjJjNmM0NGQ2MzVhOTJlMjAwMjQiLCJvZmZlcl9pZCI6Im1heF8zNzY2OCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/37668.png</picture>
         <name>Туры в Rixos Premium Seagate</name>
@@ -845,7 +845,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_174">
-        <url>https://max.ru/channel_anytour/AaGd4cUkZFY</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjJmY2Y1YzM1ZTNlYWEzZGViZTljYzE3NjdmMmY0Y2YiLCJvZmZlcl9pZCI6Im1heF8xNzQifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/174.png</picture>
         <name>Туры в Pickalbatros Dana Beach Resort</name>
@@ -863,7 +863,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_55574">
-        <url>https://max.ru/channel_anytour/AaGd4c7dGwc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDZjZmYzMWFkZjc3ZmUzNTI1MDkwYWZlMTg4ZDcxMTgiLCJvZmZlcl9pZCI6Im1heF81NTU3NCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7bc700a98e8388be2d64a99433fa46ea90b996c4/.github/traffic-publish/commercial-batch-20261102-11/55574.png</picture>
         <name>Туры в Pickalbatros White Beach Resort</name>
@@ -881,7 +881,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_383">
-        <url>https://max.ru/channel_anytour/AaGd_x9bEBA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODk0YzE5NjJhYjRlZDYwNWY5NDNjZTc3ZWEzN2IxZDgiLCJvZmZlcl9pZCI6Im1heF8zODMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/383.png</picture>
         <name>Туры в JAZ Grand Marsa</name>
@@ -899,7 +899,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_108090">
-        <url>https://max.ru/channel_anytour/AaGd_yj7K2Y</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDA0NTlkOGRlNTcxZDVhY2ZmMDQyMmNhZmU5ZGM2ZTgiLCJvZmZlcl9pZCI6Im1heF8xMDgwOTAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/3d8d1803364d1fecdf777629924664496f6f629d/.github/traffic-publish/commercial-batch-20261102-12/108090.png</picture>
         <name>Туры в JAZ Elite Amara</name>
@@ -917,7 +917,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_150">
-        <url>https://max.ru/channel_anytour/AaGeHm38ACE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDQ1ODNkZWMyNGE3NDdmYjQ0ZWE5YmRmNGMyZmJjMWEiLCJvZmZlcl9pZCI6Im1heF8xNTAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/150.png</picture>
         <name>Туры в Pickalbatros Citadel</name>
@@ -935,7 +935,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_172">
-        <url>https://max.ru/channel_anytour/AaGeHnfcJ9s</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWUzODA1OTk4MDIxZDE4NjQ0YjRlMjk5Y2MwZDhlZmUiLCJvZmZlcl9pZCI6Im1heF8xNzIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/172.png</picture>
         <name>Туры в Pickalbatros Sands Port Ghalib</name>
@@ -953,7 +953,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_275">
-        <url>https://max.ru/channel_anytour/AaGeHoHUT8w</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTVjMzk0N2ExMzViZmY0NzgyM2JhODZiOTZmZWIyNWMiLCJvZmZlcl9pZCI6Im1heF8yNzUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/275.png</picture>
         <name>Туры в Pickalbatros The Palace Port Ghalib</name>
@@ -971,7 +971,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_173">
-        <url>https://max.ru/channel_anytour/AaGeHovGaCQ</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWY0MDhlYmVkMjVkYzcwOGQ4NDA2YTIzYjAyMmExNDMiLCJvZmZlcl9pZCI6Im1heF8xNzMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/173.png</picture>
         <name>Туры в Pickalbatros Oasis Port Ghalib</name>
@@ -989,7 +989,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_110">
-        <url>https://max.ru/channel_anytour/AaGeHpWbLtA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzJhZTMzZmYxNzdkNjM2NGNkMmVlN2MwYTM4NDIzNzUiLCJvZmZlcl9pZCI6Im1heF8xMTAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/110.png</picture>
         <name>Туры в Pickalbatros Jungle Aqua Park</name>
@@ -1007,7 +1007,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_57028">
-        <url>https://max.ru/channel_anytour/AaGeHp92NlE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGU2Njg4NDQ3YThkNzZjOTQ2ODY4YjJkMDQyMjRmZDgiLCJvZmZlcl9pZCI6Im1heF81NzAyOCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/57028.png</picture>
         <name>Туры в Pickalbatros Aqua Park Sharm</name>
@@ -1025,7 +1025,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_125">
-        <url>https://max.ru/channel_anytour/AaGeHqk9YVc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjZjMmJhYTYyMWY2ZTQ0NmU0MTU2ZDE1ZmYwZjJjNTQiLCJvZmZlcl9pZCI6Im1heF8xMjUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/125.png</picture>
         <name>Туры в Pickalbatros Aqua Blu Sharm</name>
@@ -1043,7 +1043,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_132">
-        <url>https://max.ru/channel_anytour/AaGeHrVUSL0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTAxMmIwOThhN2Y0YTAyNzQzMjczNzhmOWMyZWExYjEiLCJvZmZlcl9pZCI6Im1heF8xMzIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/132.png</picture>
         <name>Туры в Beach Albatros Resort</name>
@@ -1061,7 +1061,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_178">
-        <url>https://max.ru/channel_anytour/AaGeHr8-UCw</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfM2ZmZDNiOGFiNjg5OWVmMTFjOGIxZDNjODAzOTNlYjYiLCJvZmZlcl9pZCI6Im1heF8xNzgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/178.png</picture>
         <name>Туры в Desert Rose</name>
@@ -1079,7 +1079,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_371">
-        <url>https://max.ru/channel_anytour/AaGeHsjldCE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODc4NWE4NWEzNWJkZGFlOWNiOTYwM2I3MzJlNTdhMDAiLCJvZmZlcl9pZCI6Im1heF8zNzEifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/fb6ff0d5c43fbcfa60e8a8b71ee419bc90a2e581/.github/traffic-publish/commercial-batch-20261102-13/371.png</picture>
         <name>Туры в Reef Oasis Beach Resort</name>
@@ -1097,7 +1097,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_389">
-        <url>https://max.ru/channel_anytour/AaGePCsUN8U</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNWU0Yjk2N2FmMTlmZWU0OTdmNzMwNTU1MWIyMTJmNTIiLCJvZmZlcl9pZCI6Im1heF8zODkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/389.png</picture>
         <name>Туры в Pickalbatros Royal Moderna</name>
@@ -1115,7 +1115,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_109">
-        <url>https://max.ru/channel_anytour/AaGePDTZCUk</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTA0ZWVkZWZmN2U3MGUxOGY0MWI0MmEyMDgxODY4YmUiLCJvZmZlcl9pZCI6Im1heF8xMDkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/109.png</picture>
         <name>Туры в Pickalbatros Aqua Vista</name>
@@ -1133,7 +1133,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_293">
-        <url>https://max.ru/channel_anytour/AaGePD60KYU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzE5MzRkYWMyZTQ2NGUzMjE2MjA2YzVjZTdjZDU3MzEiLCJvZmZlcl9pZCI6Im1heF8yOTMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/293.png</picture>
         <name>Туры в Pickalbatros Laguna Vista</name>
@@ -1151,7 +1151,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_107965">
-        <url>https://max.ru/channel_anytour/AaGePEiAVwQ</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNWQ3NjJkNTY1YjVmZTU5YjExM2RjM2M0ZGIxN2Y5ZGUiLCJvZmZlcl9pZCI6Im1heF8xMDc5NjUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/107965.png</picture>
         <name>Туры в Pickalbatros Laguna Club</name>
@@ -1169,7 +1169,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_393">
-        <url>https://max.ru/channel_anytour/AaGePFLGSr0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOGZhM2RjOGUzY2ZjNmI2NmRmNTUwNzc5NmY2ZjY4MjAiLCJvZmZlcl9pZCI6Im1heF8zOTMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/393.png</picture>
         <name>Туры в Pickalbatros Royal Grand</name>
@@ -1187,7 +1187,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_78898">
-        <url>https://max.ru/channel_anytour/AaGePFyOTCg</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYWFiYWQ3MTBiODE2OWFkZGJhYzRiNzJhOTgwNzlmM2QiLCJvZmZlcl9pZCI6Im1heF83ODg5OCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/78898.png</picture>
         <name>Туры в Pickalbatros Blu Spa</name>
@@ -1205,7 +1205,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_83105">
-        <url>https://max.ru/channel_anytour/AaGePGaqRfA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTUzMTUxOTI0NThjZjRkNzdjM2I0MzI2ZjE0MmQzNzYiLCJvZmZlcl9pZCI6Im1heF84MzEwNSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/83105.png</picture>
         <name>Туры в Pickalbatros Vita Resort Portofino</name>
@@ -1223,7 +1223,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_69155">
-        <url>https://max.ru/channel_anytour/AaGePHAgePE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGFhY2EzZGRmODBiN2QxOTUyMTgwNmRjMzdkOTgxN2MiLCJvZmZlcl9pZCI6Im1heF82OTE1NSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69155.png</picture>
         <name>Туры в Steigenberger Resort Alaya</name>
@@ -1241,7 +1241,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_69409">
-        <url>https://max.ru/channel_anytour/AaGePHnuApk</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODcyODRmOGQxN2E0YTE1YWRkNmI3OTY4ZGZkYzA3NzQiLCJvZmZlcl9pZCI6Im1heF82OTQwOSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/69409.png</picture>
         <name>Туры в Steigenberger Resort Ras Soma</name>
@@ -1259,7 +1259,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_263">
-        <url>https://max.ru/channel_anytour/AaGePIPBMYk</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZGU4NmI5ZDI2YmEwZjQ5NjNiOWZiZTRkYWQxMWYwNmYiLCJvZmZlcl9pZCI6Im1heF8yNjMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/9ecdb099ff62ebb76366596a824203cb1f35cb13/.github/traffic-publish/commercial-batch-20261102-14/263.png</picture>
         <name>Туры в Steigenberger Coraya Beach</name>
@@ -1277,7 +1277,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_43204">
-        <url>https://max.ru/channel_anytour/AaGeYQXUTJs</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfY2FiNGQ5Zjc2NTAyNzg5YzFhNzVkNWQ2ZTkzNTVmMTkiLCJvZmZlcl9pZCI6Im1heF80MzIwNCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/43204.png</picture>
         <name>Туры в Steigenberger Alcazar</name>
@@ -1295,7 +1295,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_13870">
-        <url>https://max.ru/channel_anytour/AaGeYQ9sC-o</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGUwYmE5YjU1YmYwODZlM2ZhMDU5ZTJkNDU5ZGEyN2UiLCJvZmZlcl9pZCI6Im1heF8xMzg3MCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/13870.png</picture>
         <name>Туры в Steigenberger Makadi 16+</name>
@@ -1313,7 +1313,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_1983">
-        <url>https://max.ru/channel_anytour/AaGeYRkIc6E</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTA3N2U5NGZjN2Q4MTc0ZWIzMWViMjAxNDEzNTZjMDUiLCJvZmZlcl9pZCI6Im1heF8xOTgzIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/1983.png</picture>
         <name>Туры в JAZ Neo Sharks Bay</name>
@@ -1331,7 +1331,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_111801">
-        <url>https://max.ru/channel_anytour/AaGeYSK7AH0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNWExMWIxMGEyMGNmMjY3NzQ2YWY3M2JkZGVkMjJlODUiLCJvZmZlcl9pZCI6Im1heF8xMTE4MDEifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4d4b1ec194d8a078ccb827772908dcfd55cb792a/.github/traffic-publish/commercial-batch-20261103-15/111801.png</picture>
         <name>Туры в JAZ Elite Asteria</name>
@@ -1349,7 +1349,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_287">
-        <url>https://max.ru/channel_anytour/AaGeijVYf9w</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzhiNWEyYWZmZTJlODJlMDAxZDI3YWZkNTI3OTg4YzQiLCJvZmZlcl9pZCI6Im1heF8yODcifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/287.png</picture>
         <name>Туры в Kempinski Hotel Soma Bay</name>
@@ -1367,7 +1367,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_435">
-        <url>https://max.ru/channel_anytour/AaGeij7eOTo</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTE2OWFlNjlhZTZkMWM1ZDlkNzk0ZjAwODgyODA2Y2EiLCJvZmZlcl9pZCI6Im1heF80MzUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/435.png</picture>
         <name>Туры в Sheraton Soma Bay Resort</name>
@@ -1385,7 +1385,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_109149">
-        <url>https://max.ru/channel_anytour/AaGeikjzceE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTFlOWVhZDM1MWM3MzBlMGRlZDIxOTY1MDdkMmI5YjYiLCJvZmZlcl9pZCI6Im1heF8xMDkxNDkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/109149.png</picture>
         <name>Туры в The Breakers Soma Bay</name>
@@ -1403,7 +1403,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_79059">
-        <url>https://max.ru/channel_anytour/AaGeilKiHDY</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWVlYzU3ZGZkY2RjNDI2MmQ4OGFiNjM1MTdiOTllNzUiLCJvZmZlcl9pZCI6Im1heF83OTA1OSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/79059.png</picture>
         <name>Туры в Pickalbatros Water Valley Resort</name>
@@ -1421,7 +1421,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_56092">
-        <url>https://max.ru/channel_anytour/AaGeilyCad0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjhhNjQ5NjRmYWZiMTAyYTZmMGM4MjcwMzIwNWY5YjIiLCJvZmZlcl9pZCI6Im1heF81NjA5MiJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/56092.png</picture>
         <name>Туры в Gravity Hotel &amp; Aqua Park Hurghada</name>
@@ -1439,7 +1439,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_115918">
-        <url>https://max.ru/channel_anytour/AaGeimaBEmc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGM3MjgyN2Q0MWYyNWU3OTUyZDA5NzdhMzg0MzU0ZWIiLCJvZmZlcl9pZCI6Im1heF8xMTU5MTgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/115918.png</picture>
         <name>Туры в Rixos Radamis</name>
@@ -1457,7 +1457,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_269">
-        <url>https://max.ru/channel_anytour/AaGeinA7LaI</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNjY1ZDg2YjQxMmNjZTU0MzViOTdlZTNiOTNiMDQ3MmYiLCJvZmZlcl9pZCI6Im1heF8yNjkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/549675505dae8eeccf1fab86cf3a2779927b08ad/.github/traffic-publish/commercial-batch-20261103-16/269.png</picture>
         <name>Туры в TUI BLUE Samaya</name>
@@ -1475,7 +1475,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_80964">
-        <url>https://max.ru/channel_anytour/AaGeinoRLSQ</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDQxNjI1OGRiZTExZWQyZGQ4MDZlZGExMTlkNWY3OTIiLCJvZmZlcl9pZCI6Im1heF84MDk2NCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ea5fb18274f9da4b0d78dcf476ddc7a72fbdd20c/.github/traffic-publish/commercial-batch-20261103-16/80964.png</picture>
         <name>Туры в Meraki Sharm 16+</name>
@@ -1493,7 +1493,7 @@
         <custom_label_1>Дахаб</custom_label_1>
       </offer>
       <offer id="max_264">
-        <url>https://max.ru/channel_anytour/AaGgW95NR9s</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNWNmODc5MDNlMGZhYTZjYjU3YjFhNTU1YzA1NDQ2MTIiLCJvZmZlcl9pZCI6Im1heF8yNjQifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/264.png</picture>
         <name>Туры в JAZ Dahabeya</name>
@@ -1511,7 +1511,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_73342">
-        <url>https://max.ru/channel_anytour/AaGgW-hKRzw</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNWE0NmM3NDU1MGJjYTg3MTFkOTU1YjI0OGY4ODI2YzYiLCJvZmZlcl9pZCI6Im1heF83MzM0MiJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/73342.png</picture>
         <name>Туры в JAZ Soma Beach</name>
@@ -1529,7 +1529,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_278">
-        <url>https://max.ru/channel_anytour/AaGgW_MKZBk</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNjQyYThmYjY2YTI1Mjc5NmFmZTY5NjE5MjQ3ODA3NjMiLCJvZmZlcl9pZCI6Im1heF8yNzgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/278.png</picture>
         <name>Туры в JAZ Belvedere</name>
@@ -1547,7 +1547,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_246">
-        <url>https://max.ru/channel_anytour/AaGgW_zLBIc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMWEzNmNjODdkYWU2ZTc5NjIwYTU0ZjIxMWYzMTljODciLCJvZmZlcl9pZCI6Im1heF8yNDYifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b991533a27dd4eaf06566d61ab50c378ac6ef3/.github/traffic-publish/commercial-batch-20261103-17/246.png</picture>
         <name>Туры в JAZ Fayrouz</name>
@@ -1565,7 +1565,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_245">
-        <url>https://max.ru/channel_anytour/AaGgXAZ5Tak</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGMyZTYyMzdhYzNiODMzYTU4ZGU5N2RkODcyZmZlZmUiLCJvZmZlcl9pZCI6Im1heF8yNDUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/245.png</picture>
         <name>Туры в JAZ Sharm Dreams</name>
@@ -1583,7 +1583,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_13869">
-        <url>https://max.ru/channel_anytour/AaGgXBBBOgA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDMxZDYwNDlhZWEzYzIxZDVkM2EyNTYzZTc2M2M3OWUiLCJvZmZlcl9pZCI6Im1heF8xMzg2OSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/13869.png</picture>
         <name>Туры в JAZ Neo Saraya Palms</name>
@@ -1601,7 +1601,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_267">
-        <url>https://max.ru/channel_anytour/AaGgXBr6OgI</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzFiMDVjOGMwNzc4NDlmYTJjYTkwOTRiNDY0NGI0MTMiLCJvZmZlcl9pZCI6Im1heF8yNjcifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/267.png</picture>
         <name>Туры в Iberotel Makadi Beach</name>
@@ -1619,7 +1619,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_12114">
-        <url>https://max.ru/channel_anytour/AaGgXCTyDEg</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDI3ZDk4NDQzZTI2MTA0NWUyNmM1YWM5ZTlmNDYwMDUiLCJvZmZlcl9pZCI6Im1heF8xMjExNCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/94257c246f0fa86a4a4b52a37d99dac08564554f/.github/traffic-publish/commercial-batch-20261103-17/12114.png</picture>
         <name>Туры в JAZ Elite Palace 16+</name>
@@ -1637,7 +1637,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_384">
-        <url>https://max.ru/channel_anytour/AaGgkHXqIM0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfM2ViMzAyYWYwODFmMmJmOTc4NWJhZGNlMmI4ZTk4MjUiLCJvZmZlcl9pZCI6Im1heF8zODQifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/384.png</picture>
         <name>Туры в JAZ Neo Reef Marsa</name>
@@ -1655,7 +1655,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_281">
-        <url>https://max.ru/channel_anytour/AaGgkH_KGNw</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDYxOWYwMDdiY2RiYjZiMjI3MGQ3ZDg4NjAzZjI0ODQiLCJvZmZlcl9pZCI6Im1heF8yODEifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/281.png</picture>
         <name>Туры в JAZ Mirabel Beach</name>
@@ -1673,7 +1673,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_75725">
-        <url>https://max.ru/channel_anytour/AaGgkInWb2E</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDM5ZTY1YTMwNDljYWQyZGZiZjYwMTNiMDQxNDNhNTYiLCJvZmZlcl9pZCI6Im1heF83NTcyNSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/50596593234befa16109a8430a7587a73b86f247/.github/traffic-publish/commercial-batch-20261103-18/75725.png</picture>
         <name>Туры в JAZ Costa Mares 16+</name>
@@ -1691,7 +1691,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_249">
-        <url>https://max.ru/channel_anytour/AaGg3NUaRFA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMWQ5YTc5ZmRlNzJlNDVkOGNhOTE4YjViNGEwMmRlMmIiLCJvZmZlcl9pZCI6Im1heF8yNDkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/249.png</picture>
         <name>Туры в Hilton Hurghada Plaza</name>
@@ -1709,7 +1709,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_315">
-        <url>https://max.ru/channel_anytour/AaGg3N8BQdQ</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTQxNmIxN2VmYmRkY2Y3ZWFmMDk1NDQ4MzU3OGMzMTIiLCJvZmZlcl9pZCI6Im1heF8zMTUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/315.png</picture>
         <name>Туры в Hurghada Marriott Beach Resort</name>
@@ -1727,7 +1727,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_465">
-        <url>https://max.ru/channel_anytour/AaGg3OiTOJ4</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDcxOGRkZjgzZGZhYTZhMjZlMDg0YWI3Y2RmZjYwZDAiLCJvZmZlcl9pZCI6Im1heF80NjUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/465.png</picture>
         <name>Туры в Stella Di Mare Beach Hotel &amp; Spa</name>
@@ -1745,7 +1745,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_272">
-        <url>https://max.ru/channel_anytour/AaGg3PJKAB8</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzlmNTM1MjVkYjdkZWZlMzRjYzBiMzg2YjAxOTVlMzciLCJvZmZlcl9pZCI6Im1heF8yNzIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/272.png</picture>
         <name>Туры в Continental Hotel Hurghada</name>
@@ -1763,7 +1763,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_260">
-        <url>https://max.ru/channel_anytour/AaGg3Pv9dF8</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDJiZGU5MDM2NjkyN2Y4MzQyNzFiYjJlNWE0Mzc2YTIiLCJvZmZlcl9pZCI6Im1heF8yNjAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/260.png</picture>
         <name>Туры в Park Regency Sharm El Sheikh</name>
@@ -1781,7 +1781,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_273">
-        <url>https://max.ru/channel_anytour/AaGg3QWNRxc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOWFkY2ZiM2U2NTU2Y2I1YzU2MjliYmZmMzRjOGRmYTciLCJvZmZlcl9pZCI6Im1heF8yNzMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4daf5a926a75e58235980ac66de5938722dfe980/.github/traffic-publish/commercial-batch-20261103-19/273.png</picture>
         <name>Туры в Palm Royale Soma Bay</name>
@@ -1798,7 +1798,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_469">
-        <url>https://max.ru/channel_anytour/AaF5iOO-R8w</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDliYzAyNmRiN2FiMWU3YThjMzYyZjMzNmZiMmQxZWIiLCJvZmZlcl9pZCI6Im1heF80NjkifQ]]></url>
         <categoryId>1</categoryId>
         <name>Туры в Sultan Gardens Resort</name>
         <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
@@ -1814,7 +1814,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_381">
-        <url>https://max.ru/channel_anytour/AaF5iPYSJTA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZmIwMGE3MmYxN2M2NTUxNzNlNjI1Njg3ZWIxNDNlMTMiLCJvZmZlcl9pZCI6Im1heF8zODEifQ]]></url>
         <categoryId>1</categoryId>
         <name>Туры в Rehana Royal Beach Resort Aqua Park &amp; Spa</name>
         <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
@@ -1831,7 +1831,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_408">
-        <url>https://max.ru/channel_anytour/AaGhJ7JODvU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNmVmNDZhNTcyNzA3ZmM2ZGQwNjQzZjYxNDQ2MTU5YjciLCJvZmZlcl9pZCI6Im1heF80MDgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/298de73457d875d29e45797453dded34c1d7f99b/.github/traffic-publish/commercial-batch-20261103-20/408.png</picture>
         <name>Туры в Savoy Sharm El Sheikh</name>
@@ -1849,7 +1849,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_441">
-        <url>https://max.ru/channel_anytour/AaGhSGS2Sy4</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWM5MmQzNDk0OWZkZjJjNDM1MmUwMjVlMThjZDUwMTIiLCJvZmZlcl9pZCI6Im1heF80NDEifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/80c4c292ee78c7eb208aeda7659f0bea71f70d76/.github/traffic-publish/commercial-batch-20261103-21/441.png</picture>
         <name>Туры в Siva Grand Beach</name>
@@ -1867,7 +1867,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_21477">
-        <url>https://max.ru/channel_anytour/AaGheEQaaTs</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjZmNWE0ODFiZjYyNGU4YmU1ZDEyZDlkMjdjMmE4MzciLCJvZmZlcl9pZCI6Im1heF8yMTQ3NyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/21477.png</picture>
         <name>Туры в Mövenpick Waterpark Resort &amp; Spa Soma Bay</name>
@@ -1885,7 +1885,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_60589">
-        <url>https://max.ru/channel_anytour/AaGheE3NWPA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfN2JjNjJkMjkyNGM3ZmQ4YTc0NmUzZDE0NzE4YjAwOTUiLCJvZmZlcl9pZCI6Im1heF82MDU4OSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f2b59582a43aa5aae57173ce5f36cb1a593aa223/.github/traffic-publish/commercial-batch-20261103-22/60589.png</picture>
         <name>Туры в JAZ Neo Ivory</name>
@@ -1903,7 +1903,7 @@
         <custom_label_1>Эль Гуна</custom_label_1>
       </offer>
       <offer id="max_328">
-        <url>https://max.ru/channel_anytour/AaGh9vEJfqU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDY0NGFlNzBiYjllZjAwOWM0YmMwZGM1MmYyZWQ0NGQiLCJvZmZlcl9pZCI6Im1heF8zMjgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/856ad1c1edf8ae6be9583897f435f7e509d1b660/.github/traffic-publish/commercial-batch-20261103-23/328.png</picture>
         <name>Туры в Mövenpick El Gouna</name>
@@ -1921,7 +1921,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_282">
-        <url>https://max.ru/channel_anytour/AaGiIcOYXpU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMThiODRmN2YwNmZlNDc3NjMzOTNhMWU2M2NhMjJiMGUiLCJvZmZlcl9pZCI6Im1heF8yODIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/282.png</picture>
         <name>Туры в JAZ Mirabel Club</name>
@@ -1939,7 +1939,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_235">
-        <url>https://max.ru/channel_anytour/AaGiIc2caEQ</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZmQ3NDk1ZjdiMzU3YTAwYWYwZDMwNzFlZGNmOGRhNjUiLCJvZmZlcl9pZCI6Im1heF8yMzUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/235.png</picture>
         <name>Туры в The Grand Resort</name>
@@ -1957,7 +1957,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_382">
-        <url>https://max.ru/channel_anytour/AaGiIddbVWk</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjQwOTZkYzdlYzc2YzE3ZTk3ZjE5NTkxMjM1ZTI1MmUiLCJvZmZlcl9pZCI6Im1heF8zODIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/382.png</picture>
         <name>Туры в Renaissance Golden View Beach</name>
@@ -1975,7 +1975,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_250">
-        <url>https://max.ru/channel_anytour/AaGiIeE0Lts</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYmZiOGNlZDUyNmVhMTIwNDdjZTZmNDgyY2IxYzdlYzQiLCJvZmZlcl9pZCI6Im1heF8yNTAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6508a9ee1f0ced32bc03bef61d3869b44764c9f8/.github/traffic-publish/commercial-batch-20261103-24/250.png</picture>
         <name>Туры в Swiss Inn Resort Hurghada</name>
@@ -1993,7 +1993,7 @@
         <custom_label_1>Эль Гуна</custom_label_1>
       </offer>
       <offer id="max_464">
-        <url>https://max.ru/channel_anytour/AaGiW44QeSI</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDA1MWYzNWFmYTBmZDEwMzllYzlmNmY3YjY2ODU4MjciLCJvZmZlcl9pZCI6Im1heF80NjQifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/464.png</picture>
         <name>Туры в Steigenberger Golf Resort El Gouna</name>
@@ -2011,7 +2011,7 @@
         <custom_label_1>Эль Гуна</custom_label_1>
       </offer>
       <offer id="max_103021">
-        <url>https://max.ru/channel_anytour/AaGiW5fUUg0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTRlYTM2YjFkNDA1Yjc3MTQ1MGZjOTZmZDA0ZDU0MDciLCJvZmZlcl9pZCI6Im1heF8xMDMwMjEifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/42f64c23041106e34e477c95c668e182ebbb874c/.github/traffic-publish/commercial-batch-20261103-25/103021.png</picture>
         <name>Туры в The Chedi El Gouna</name>
@@ -2029,7 +2029,7 @@
         <custom_label_1>Эль Гуна</custom_label_1>
       </offer>
       <offer id="max_129">
-        <url>https://max.ru/channel_anytour/AaGihSzeSiA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzgwNWM1YTIyYjc1Yzg1MDUzMzZhOTFhNTBhMzZhZmEiLCJvZmZlcl9pZCI6Im1heF8xMjkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5763bc42519d4ca3745f24220c3853147c03ae02/.github/traffic-publish/commercial-batch-20261103-26/129.png</picture>
         <name>Туры в Cook&apos;s Club El Gouna 16+</name>
@@ -2047,7 +2047,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_165">
-        <url>https://max.ru/channel_anytour/AaGishvPGJA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMmM3ZmNhNTA0MmFhZTBlZjk1NWNlMzcyNzgxYTRmYWEiLCJvZmZlcl9pZCI6Im1heF8xNjUifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/165.png</picture>
         <name>Туры в Coral Sea Water World</name>
@@ -2065,7 +2065,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_12116">
-        <url>https://max.ru/channel_anytour/AaGisiXvJds</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjJiNDZhNTY5NTI2MzY1NjA4OTg5MmJkNzBjYWM0YTMiLCJvZmZlcl9pZCI6Im1heF8xMjExNiJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/12116.png</picture>
         <name>Туры в Coral Sea Aqua Club</name>
@@ -2083,7 +2083,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_111">
-        <url>https://max.ru/channel_anytour/AaGisi-ve3Q</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYjI1ZmVmMDJiMDg0MjY1OWQzZGEzZGJlMTJlNjZmNzYiLCJvZmZlcl9pZCI6Im1heF8xMTEifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/111.png</picture>
         <name>Туры в Pickalbatros Palace Resort Hurghada</name>
@@ -2101,7 +2101,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_163">
-        <url>https://max.ru/channel_anytour/AaGisjnCN7c</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTlkNDE2YmI1YTJkNTQ5OTliMjg0NjM2ZTg4OTAyYTAiLCJvZmZlcl9pZCI6Im1heF8xNjMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b6e6ad3d06b6c0cdef1cd2822560bd5f5abcccec/.github/traffic-publish/commercial-batch-20261103-27/163.png</picture>
         <name>Туры в Coral Sea Holiday Resort &amp; Aqua Park</name>
@@ -2119,7 +2119,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_310">
-        <url>https://max.ru/channel_anytour/AaF5iNrwGdY</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzgxOWU1NzdhMWIxNjhiMDllNjEyNTYwODg3NWFkNTAiLCJvZmZlcl9pZCI6Im1heF8zMTAifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://image-tc.galaxy.tf/wijpeg-bunhs9glqpbhgr07p92hv73nb/028-ls-landscape-104108318.jpg</picture>
         <name>Туры в Pickalbatros Golf Beach Resort</name>
@@ -2137,7 +2137,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_67910">
-        <url>https://max.ru/channel_anytour/AaF5iOyMXHU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGZmMmVhYWI3Yjc5YTE2ZDBjNzVjNzI1ZmEwMGFkYzIiLCJvZmZlcl9pZCI6Im1heF82NzkxMCJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://www.ahstatic.com/photos/b6f4_ho_00_p_1024x768.jpg</picture>
         <name>Туры в Rixos Premium Magawish Suites &amp; Villas</name>
@@ -2155,7 +2155,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_68323">
-        <url>https://max.ru/channel_anytour/AaF5iP7mCB0</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzczNmQ1YjIwZjk0Y2Y0NzhiYmZmNjBhMjQzZjg0OTgiLCJvZmZlcl9pZCI6Im1heF82ODMyMyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://d1wo7kaelp5eck.cloudfront.net/sunrise-resorts.com-1611976553/cms/cache/v2/67f3ffae5a3de.jpg/1200x630/fit/80/238e6a950d96e74d0cac4d2e2d44f808.jpg</picture>
         <name>Туры в Sunrise Solara Aqua Park Resort</name>
@@ -2173,7 +2173,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_1971">
-        <url>https://max.ru/channel_anytour/AaF5iQf-GJ4</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTU3OTRmZjQwOGRhYWViN2UwN2VmNDliZTBkZjY2MzUiLCJvZmZlcl9pZCI6Im1heF8xOTcxIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://image-tc.galaxy.tf/wijpeg-43nq1ttkef5hcqekzjvfa0g4j/over-view.jpg</picture>
         <name>Туры в Pickalbatros Palace Resort Sharm El Sheikh</name>
@@ -2191,7 +2191,7 @@
         <custom_label_1>Эль Гуна</custom_label_1>
       </offer>
       <offer id="max_56091">
-        <url>https://max.ru/channel_anytour/AaGi7ekZJf4</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjVmZWRhNGY5YTk5MzRmNzQwYTFiNzc2MTViNDYxNTkiLCJvZmZlcl9pZCI6Im1heF81NjA5MSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/56091.png</picture>
         <name>Туры в Ancient Sands Golf Resort &amp; Residences</name>
@@ -2209,7 +2209,7 @@
         <custom_label_1>Люксор</custom_label_1>
       </offer>
       <offer id="max_103124">
-        <url>https://max.ru/channel_anytour/AaGi7fLNILc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODBjNmY5ZmZjMzI5ZGRjZmJjYzRhNWI3Mzg3ZDg5M2QiLCJvZmZlcl9pZCI6Im1heF8xMDMxMjQifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/103124.png</picture>
         <name>Туры в Iberotel Luxor by JAZ</name>
@@ -2227,7 +2227,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_488">
-        <url>https://max.ru/channel_anytour/AaGi7fyyXBA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfN2FjMjRiODczNTAwYjNhZWNiOGE3ZThkOTAyZGIyMjUiLCJvZmZlcl9pZCI6Im1heF80ODgifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef112c3b171544ab5a836876f91cbb762f77ee88/.github/traffic-publish/commercial-batch-20261103-28/488.png</picture>
         <name>Туры в Three Corners Fayrouz Plaza Beach Resort</name>
@@ -2245,7 +2245,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_98723">
-        <url>https://max.ru/channel_anytour/AaGjHFTqWDo</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTM5M2Q3ZWQzM2UxOWE4ZDFhZTU4Y2UwMjIzYzdkMzQiLCJvZmZlcl9pZCI6Im1heF85ODcyMyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/98723.png</picture>
         <name>Туры в Cleopatra Luxury Resort Sharm Adults Only</name>
@@ -2263,7 +2263,7 @@
         <custom_label_1>Марса Алам</custom_label_1>
       </offer>
       <offer id="max_139">
-        <url>https://max.ru/channel_anytour/AaGjHF7dGOQ</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGRkOGU3OWViNTlkN2MwNGE4ZWJiYTEyMzg0ZmQ5ZjgiLCJvZmZlcl9pZCI6Im1heF8xMzkifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/139.png</picture>
         <name>Туры в Brayka Bay Resort</name>
@@ -2281,7 +2281,7 @@
         <custom_label_1>Хургада</custom_label_1>
       </offer>
       <offer id="max_342">
-        <url>https://max.ru/channel_anytour/AaGjHGjBODk</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWM2YThhMWI3MTZlZmFiYjc3ZDYzNzUzOGQ5YjQ0YjUiLCJvZmZlcl9pZCI6Im1heF8zNDIifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/05941effa615a17c9a8906c52cdaf14ff5b406a9/.github/traffic-publish/commercial-batch-20261103-29/342.png</picture>
         <name>Туры в The Oberoi Beach Resort Sahl Hasheesh</name>
@@ -2326,7 +2326,7 @@
         <custom_label_1>Фетхие</custom_label_1>
       </offer>
       <offer id="max_1291">
-        <url>https://max.ru/channel_anytour/AaGjSZmnI2w</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZGI4YTU0N2I0NjE2MzQ4ZDgzYWYzYWZjYjBjZTFjZTYiLCJvZmZlcl9pZCI6Im1heF8xMjkxIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/1291.png</picture>
         <name>Туры в Akra Kemer</name>
@@ -2335,7 +2335,7 @@
         <custom_label_1>Кемер</custom_label_1>
       </offer>
       <offer id="max_15869">
-        <url>https://max.ru/channel_anytour/AaGjSaPBcNU</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODMxNzUzNTk3MjJlOWJjOTI0NTE3NmE1NTI5MDJiNzciLCJvZmZlcl9pZCI6Im1heF8xNTg2OSJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/15869.png</picture>
         <name>Туры в Akra Sorgun TUI Blue Sensatori</name>
@@ -2344,7 +2344,7 @@
         <custom_label_1>Сиде</custom_label_1>
       </offer>
       <offer id="max_253">
-        <url>https://max.ru/channel_anytour/AaGjSa3TJ40</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGIyNWQyYTE1ZmQyY2FmNzViZTI5M2M0MDZiZmJiNTIiLCJvZmZlcl9pZCI6Im1heF8yNTMifQ]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/253.png</picture>
         <name>Туры в Safir Sharm Waterfalls Resort</name>
@@ -2353,7 +2353,7 @@
         <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
       <offer id="max_75377">
-        <url>https://max.ru/channel_anytour/AaGjSbf0FXs</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNmExZmI3M2RmYzQyYWQ1NGMyZTIwOWY1MGM1ZDY1ZGEiLCJvZmZlcl9pZCI6Im1heF83NTM3NyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4dff8a584b431a173d6f9dab9de7df3c22f3f2e3/.github/traffic-publish/commercial-batch-20261103-30/75377.png</picture>
         <name>Туры в Liberty Fabay</name>
@@ -2380,7 +2380,7 @@
         <custom_label_1>Белек</custom_label_1>
       </offer>
       <offer id="max_74503">
-        <url>https://max.ru/channel_anytour/AaGjdIJ3D9s</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNjk5MmU0M2ZiZDkwN2RmMzMyN2U2OWU5MzRhNmRmNjMiLCJvZmZlcl9pZCI6Im1heF83NDUwMyJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e9aa17d09d0499ffd3c40c3c335318d02bfde06/.github/traffic-publish/commercial-batch-20261103-31/74503.png</picture>
         <name>Туры в NG Phaselis Bay</name>
@@ -2389,7 +2389,7 @@
         <custom_label_1>Кемер</custom_label_1>
       </offer>
       <offer id="max_1582">
-        <url>https://max.ru/channel_anytour/AaGjdIwhKPk</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZGE0NzVmMTMwMTNjZGE4N2JiZGE2MzllYmNjM2JiNzkiLCJvZmZlcl9pZCI6Im1heF8xNTgyIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/5e9aa17d09d0499ffd3c40c3c335318d02bfde06/.github/traffic-publish/commercial-batch-20261103-31/1582.png</picture>
         <name>Туры в Voyage Belek Golf &amp; Spa</name>
@@ -2452,7 +2452,7 @@
         <custom_label_1>Сиде</custom_label_1>
       </offer>
       <offer id="max_1449">
-        <url>https://max.ru/channel_anytour/AaGjniTUaqA</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTNiZGUyYzY0ZjI1Yzg2OWVkNGRmMjg5ODc0MjliZTciLCJvZmZlcl9pZCI6Im1heF8xNDQ5In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1449.png</picture>
         <name>Туры в Rixos Premium Belek</name>
@@ -2461,7 +2461,7 @@
         <custom_label_1>Белек</custom_label_1>
       </offer>
       <offer id="max_1453">
-        <url>https://max.ru/channel_anytour/AaGjni6yLtM</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzliZGY2MDk5YTk1NjBhZmFlNDIwMjBlMzNhMDc2OWQiLCJvZmZlcl9pZCI6Im1heF8xNDUzIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1453.png</picture>
         <name>Туры в Rixos Premium Tekirova</name>
@@ -2470,7 +2470,7 @@
         <custom_label_1>Кемер</custom_label_1>
       </offer>
       <offer id="max_9432">
-        <url>https://max.ru/channel_anytour/AaGjnjiiMnM</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZmUyNjQ5NWU1ZjFmYzc2NTI1NmMyNmI0ZjliODYwOGQiLCJvZmZlcl9pZCI6Im1heF85NDMyIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/9432.png</picture>
         <name>Туры в Delphin Imperial Lara</name>
@@ -2479,7 +2479,7 @@
         <custom_label_1>Анталья</custom_label_1>
       </offer>
       <offer id="max_1451">
-        <url>https://max.ru/channel_anytour/AaGjnkJTK1U</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDg0OTUxNjU5N2RmNjUzZGEwYjA4ZDc4YWIyNjNlNmIiLCJvZmZlcl9pZCI6Im1heF8xNDUxIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1451.png</picture>
         <name>Туры в Delphin BE Grand Resort</name>
@@ -2488,7 +2488,7 @@
         <custom_label_1>Анталья</custom_label_1>
       </offer>
       <offer id="max_1151">
-        <url>https://max.ru/channel_anytour/AaGjnkw2DwE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTEzOGZmMGY5ZGY2NWZhZDhhMWYzYThhOTcyZjI3NGIiLCJvZmZlcl9pZCI6Im1heF8xMTUxIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1151.png</picture>
         <name>Туры в Delphin Palace</name>
@@ -2497,7 +2497,7 @@
         <custom_label_1>Анталья</custom_label_1>
       </offer>
       <offer id="max_1583">
-        <url>https://max.ru/channel_anytour/AaGjnlYMF6c</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTUyYzVkMDA0NTA2ZDFlMjc2M2Q2OGIzNzJhMjk5YzYiLCJvZmZlcl9pZCI6Im1heF8xNTgzIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2c7aadb0eafce5c1dc5ca8d23f10a22c0e90cfdc/.github/traffic-publish/commercial-batch-20261103-32/1583.png</picture>
         <name>Туры в Voyage Sorgun</name>
@@ -2551,7 +2551,7 @@
         <custom_label_1>Белек</custom_label_1>
       </offer>
       <offer id="max_1379">
-        <url>https://max.ru/channel_anytour/AaGjuHn3Xps</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDM2M2FiMTYxNDU4NDliM2Y5OGY4YTEzNmNjMWU5MzMiLCJvZmZlcl9pZCI6Im1heF8xMzc5In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/1379.png</picture>
         <name>Туры в Miracle Resort</name>
@@ -2560,7 +2560,7 @@
         <custom_label_1>Анталья</custom_label_1>
       </offer>
       <offer id="max_1133">
-        <url>https://max.ru/channel_anytour/AaGjuIOyGyI</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOWU0YzRhYTEzMjUzZGYyOGJmOGYyNjY0YzQ4OTgwNzIiLCJvZmZlcl9pZCI6Im1heF8xMTMzIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/1133.png</picture>
         <name>Туры в Concorde De Luxe Resort</name>
@@ -2569,7 +2569,7 @@
         <custom_label_1>Анталья</custom_label_1>
       </offer>
       <offer id="max_27316">
-        <url>https://max.ru/channel_anytour/AaGjuI2pXao</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMTMwZDAwNTJjMjUxZjMxNTY0ZDYxYjQ5OTFmZGFiN2UiLCJvZmZlcl9pZCI6Im1heF8yNzMxNiJ9]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/27316.png</picture>
         <name>Туры в Regnum Carya</name>
@@ -2578,7 +2578,7 @@
         <custom_label_1>Белек</custom_label_1>
       </offer>
       <offer id="max_1559">
-        <url>https://max.ru/channel_anytour/AaGjuJd4ON4</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzhkOWYwNTQyNjU4MzI1YzY5NjU2MTNmMjBmNmFlZDEiLCJvZmZlcl9pZCI6Im1heF8xNTU5In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/1559.png</picture>
         <name>Туры в Titanic Deluxe Lara</name>
@@ -2587,7 +2587,7 @@
         <custom_label_1>Анталья</custom_label_1>
       </offer>
       <offer id="max_3405">
-        <url>https://max.ru/channel_anytour/AaGjuKF0FLE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDI5NGYxM2VhMWE1NTIzMjM0ZTY3OTFkNGIzYzFlYjUiLCJvZmZlcl9pZCI6Im1heF8zNDA1In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/e271d7f69a4942e1281bd273c3866f0c9a7de41e/.github/traffic-publish/commercial-batch-20261103-33/3405.png</picture>
         <name>Туры в Maxx Royal Belek</name>
@@ -2614,7 +2614,7 @@
         <custom_label_1>Кемер</custom_label_1>
       </offer>
       <offer id="max_1417">
-        <url>https://max.ru/channel_anytour/AaGj5sgZdbc</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNmUyNTJjODZjMjE0NDhjYWNmMmQ0ODU5YmQ3MmExNGIiLCJvZmZlcl9pZCI6Im1heF8xNDE3In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/3c389a2638ae14233374cc66a75475727453fa07/.github/traffic-publish/commercial-batch-20261103-34/1417.png</picture>
         <name>Туры в Paloma Grida</name>
@@ -2623,7 +2623,7 @@
         <custom_label_1>Белек</custom_label_1>
       </offer>
       <offer id="max_1348">
-        <url>https://max.ru/channel_anytour/AaGj5tI6HDg</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDMyNzcwNjQwMjAzZWJmMmFkMDBmZWNkMzM5MzI2YTciLCJvZmZlcl9pZCI6Im1heF8xMzQ4In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/3c389a2638ae14233374cc66a75475727453fa07/.github/traffic-publish/commercial-batch-20261103-34/1348.png</picture>
         <name>Туры в Seven Seas Hotel Life</name>
@@ -2650,7 +2650,7 @@
         <custom_label_1>Анталья</custom_label_1>
       </offer>
       <offer id="max_1199">
-        <url>https://max.ru/channel_anytour/AaGlZGZhNVE</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTVmMjNlY2QxNjY2NjIyYWFkNzkxZTJhNmYzM2Y2MjUiLCJvZmZlcl9pZCI6Im1heF8xMTk5In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4c5d31f2bc8ef21ed929422edb658361c4f0c7c9/.github/traffic-publish/commercial-batch-20261104-35/1199.png</picture>
         <name>Туры в Gloria Serenity Resort</name>
@@ -2659,7 +2659,7 @@
         <custom_label_1>Белек</custom_label_1>
       </offer>
       <offer id="max_1464">
-        <url>https://max.ru/channel_anytour/AaGlZHE1b30</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjFkZWE2YTBlZTkyNGIyZTY5YmFiZTRkNjMxOTIxZjgiLCJvZmZlcl9pZCI6Im1heF8xNDY0In0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/4c5d31f2bc8ef21ed929422edb658361c4f0c7c9/.github/traffic-publish/commercial-batch-20261104-35/1464.png</picture>
         <name>Туры в Royal Wings Hotel</name>
@@ -2686,7 +2686,7 @@
         <custom_label_1>Бодрум</custom_label_1>
       </offer>
       <offer id="max_9322">
-        <url>https://max.ru/channel_anytour/AaGll1jFUrM</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzRlNzllNGM3MzUzMGEzNzFjOTgwMDkwY2Q5ZDA1ZjgiLCJvZmZlcl9pZCI6Im1heF85MzIyIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/9322.png</picture>
         <name>Туры в Paloma Pasha</name>
@@ -2695,7 +2695,7 @@
         <custom_label_1>Измир</custom_label_1>
       </offer>
       <offer id="max_1672">
-        <url>https://max.ru/channel_anytour/AaGll2IjOh8</url>
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTJkZGIzMWRmN2U5MDEwYjM2YzEyMDc3Y2Y0NDY2NzgiLCJvZmZlcl9pZCI6Im1heF8xNjcyIn0]]></url>
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/1672.png</picture>
         <name>Туры в Kempinski Hotel Barbaros Bay</name>

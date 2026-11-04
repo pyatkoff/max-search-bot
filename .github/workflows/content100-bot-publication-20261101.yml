@@ -1,4 +1,4 @@
-name: Read exact canonical bindings for all150 hotel miniapp routes
+name: Route all150 MAX feed offers through the verified MAX miniapp
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,7 +10,7 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 300fcabd2277f337755f0e41fc74851491cf3dc7
+  EXPECTED_PRODUCTION_SHA: dddd20b04d32873a7095764c41d1166ae625d1cf
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -25,6 +25,7 @@ jobs:
             /tools/direct_demand/operations/
             /.github/traffic-publish/hotel-posts-telegram.xml
             /.github/traffic-publish/hotel-posts-max.xml
+            /.github/traffic-publish/hotel-posts-all.xml
           sparse-checkout-cone-mode: false
       - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
@@ -36,51 +37,71 @@ jobs:
           evidence="$RUNNER_TEMP/commercial-source-evidence"
           mkdir -p "$evidence"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41803690611 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/41803690611/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41804747539 > "$evidence/tls_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41807028681 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/41807028681/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41808119993 > "$evidence/tls_run.json"
           gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Validate finite canonical scope and private projection before server connection
+      - uses: actions/download-artifact@v4
+        with:
+          repository: pyatkoff/tour-max
+          run-id: 41806673259
+          name: commercial-max150-public-alias-candidate-v1
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/max150-approved
+      - uses: actions/download-artifact@v4
+        with:
+          repository: pyatkoff/tour-max
+          run-id: 41809034251
+          name: commercial-max150-public-alias-install2-result
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/max150-installed
+      - name: Require actual native MAX150 installed result before feed replacement
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib
+          d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'max150-installed'/'max150-install-result.json').read_text())
+          assert d['operation']=='commercial-max150-public-alias-route-20261104-install2' and d['state']=='INSTALLED_AND_NATIVE_VERIFIED' and d['ok']
+          assert d['candidate_lib_sha256']=='2574585eaaef169e671966931c59bfe1b2bdf0e38d345c3d06a140c11dc65795'
+          assert d['checks']['exact_routes_verified']==150 and d['checks']['private_projection_http_status']==404
+          assert d['checks']['project_active'] and d['checks']['counter_config_matches'] and d['checks']['required_post_fields_ready']
+          assert d['provider_calls']==d['db_writes']==d['message_sends']==d['feed_writes']==0
+          print('MAX150_ACTUAL_INSTALLED_NATIVE_RESULT_ACCEPTED natural_user_launch_not_claimed=1')
+          PY
+      - name: Validate native Direct YML cases and prepare three bounded static files
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          MINIAPP_BINDING_FIXTURE=1 php tools/direct_demand/operations/read-commercial-miniapp-canonical-150-20261104-1.php
+          python3 tools/direct_demand/operations/verify-commercial-max150-feed-routes-20261104.py
           python3 - <<'PY'
-          import pathlib,hashlib,json,os,base64,re,xml.etree.ElementTree as ET
-          root=pathlib.Path('.github/traffic-publish')
-          rows=[]
-          expected={'telegram':('tg','807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70'),'max':('max','a0599641898a173c2286e65d9c1ac15cfd138c2e3cf5934367e3ac2d096229f5')}
-          scope={}
-          for platform,(prefix,digest) in expected.items():
-              raw=(root/('hotel-posts-'+platform+'.xml')).read_bytes()
-              assert hashlib.sha256(raw).hexdigest()==digest
-              offers=ET.fromstring(raw).findall('.//offer');assert len(offers)==150
-              ids=[]
-              for offer in offers:
-                  m=re.fullmatch(prefix+r'_([1-9][0-9]*)',offer.attrib['id']);assert m
-                  hotel_id=int(m[1]);url=offer.findtext('url')
-                  assert isinstance(url,str) and url.startswith('https://')
-                  rows.append({'hotel_id':hotel_id,'platform':platform,'post_url':url});ids.append(hotel_id)
-              scope[platform]=ids
-          assert scope['telegram']==scope['max'] and len(set(scope['max']))==150
-          raw=json.dumps(rows,ensure_ascii=False,separators=(',',':')).encode()
-          src=pathlib.Path('tools/direct_demand/operations/read-commercial-miniapp-canonical-150-20261104-1.php').read_text()
-          prefix="<?php\ndeclare(strict_types=1);\n";assert src.startswith(prefix)
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const MINIAPP_BINDING_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"+"const MINIAPP_BINDING_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\n"
-          pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.php').write_text(header+src[len(prefix):])
-          intent={'operation':'commercial-miniapp-canonical-150-bindings-read1','mode':'bounded_read_only','logical_hotels':150,'expected_bindings':300,'input_sha256':hashlib.sha256(raw).hexdigest(),'provider_calls':0,'runtime_writes':0}
-          pathlib.Path(os.environ['RUNNER_TEMP'],'miniapp-binding-intent.json').write_text(json.dumps(intent,sort_keys=True))
-          print('MINIAPP150_EXACT_CURRENT_FEED_SCOPE_OK private_projection_to_authenticated_artifact=1')
+          import base64,hashlib,json,os,pathlib
+          base=pathlib.Path('.github/traffic-publish')
+          names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']
+          files=[]
+          previous_hashes={"hotel-posts-telegram.xml":"807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70","hotel-posts-max.xml":"a0599641898a173c2286e65d9c1ac15cfd138c2e3cf5934367e3ac2d096229f5","hotel-posts-all.xml":"69bf1431c18d3857e2331e90a874e49f0623824b518b0a3c181b895840700250"}
+          for name,rows in zip(names,[150,150,300]):
+              raw=(base/name).read_bytes()
+              files.append({'name':name,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'rows':rows,'expected_previous_sha256':previous_hashes[name],'content_base64':base64.b64encode(raw).decode()})
+          data={'schema_version':2,'operation':'commercial-channel-hotel-feeds-20261104-update11','files':files}
+          raw=(json.dumps(data,separators=(',',':'))+'\n').encode()
+          source=pathlib.Path('tools/direct_demand/operations/publish-commercial-channel-hotel-feeds-20261103-1.php').read_text()
+          prefix="<?php\ndeclare(strict_types=1);\n"
+          assert source.startswith(prefix)
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const PUBLIC_STATIC_FEED_OPERATION=\'commercial-channel-hotel-feeds-20261104-update11\';\n"+"const PUBLIC_STATIC_FEED_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"+"const PUBLIC_STATIC_FEED_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\n"
+          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          (temp/'channel-preflight.php').write_text(header+source[len(prefix):])
+          intent={'operation':data['operation'],'state':'EXACT_THREE_PUBLIC_DIRECT_YML_FILES_INTENT_BEFORE_WRITE','source':os.environ['EXPECTED_PRODUCTION_SHA'],'files':[{k:v for k,v in f.items() if k!='content_base64'} for f in files]}
+          (temp/'static-feed-intent.json').write_text(json.dumps(intent,indent=2)+'\n')
           PY
           php -l "$RUNNER_TEMP/channel-preflight.php"
-      - uses: actions/upload-artifact@v4
+      - name: Retain exact static publication intent before any server write
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-miniapp-canonical-150-bindings-read1-intent
-          path: ${{ runner.temp }}/miniapp-binding-intent.json
+          name: commercial-channel-hotel-feeds-20261104-update11-intent
+          path: ${{ runner.temp }}/static-feed-intent.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -121,7 +142,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read exact current registry bindings without bodies buttons or provider receipts
+      - name: Publish only the three approved public static Direct YML files
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -131,24 +152,28 @@ jobs:
           umask 077
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
-          import json,pathlib,os
+          import json,os,pathlib
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1])
-          safe={k:d.get(k) for k in ['operation','ok','error','scope_hotels','binding_count','installed_sha','provider_calls','db_writes','message_sends','runtime_writes']}
-          print(json.dumps(safe,sort_keys=True))
-          assert d['ok'] and d['operation']=='commercial-miniapp-canonical-150-bindings-read1' and d['scope_hotels']==150 and d['binding_count']==300
-          assert all(d[k]==0 for k in ['provider_calls','db_writes','message_sends','runtime_writes'])
-          assert {r['platform'] for r in d['bindings']}=={'telegram','max'}
-          assert len({r['public_route_alias'] for r in d['bindings']})==300
+          print(json.dumps(d,sort_keys=True))
+          assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261104-update11'
+          assert len(d['files'])==3 and [r['rows'] for r in d['files']]==[150,150,300]
+          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
           PY
           test "${probe_status:-0}" = 0
-      - uses: actions/upload-artifact@v4
+      - name: Verify all three permanent YML URLs by exact public HTTPS bytes
+        shell: bash
+        run: python3 tools/direct_demand/operations/verify-commercial-max-miniapp-feeds-public-20261104.py
+      - name: Retain bounded static publication and public readback
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-miniapp-canonical-150-bindings-read1
-          path: ${{ runner.temp }}/channel-preflight.json
+          name: commercial-channel-hotel-feeds-20261104-update11
+          path: |
+            ${{ runner.temp }}/channel-preflight.json
+            ${{ runner.temp }}/public-feed-readback.json
           retention-days: 14
-          if-no-files-found: error
-      - name: Remove ephemeral connection and private projection files
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and input files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/miniapp-binding-intent.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/static-feed-intent.json" "$RUNNER_TEMP/public-feed-readback.json"
