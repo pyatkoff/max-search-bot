@@ -15,10 +15,9 @@
   "read14_run": 41901350165,
   "published_pairs_added_this_pass": 0,
   "new_post_sends": 0,
-  "new_price_quotes": 0,
-  "new_price_edits": 0,
-  "price_hotels_total": 3,
-  "all_three_prices_fresh": false,
+  "new_price_quotes": 1,
+  "new_price_edits": 2,
+  "price_hotels_total": 4,
   "monitor_targets": 670,
   "current_stock_identities": 25,
   "additional_proven_unpublished_identities": 46,
@@ -51,5 +50,10 @@
       "rows": 314,
       "sha256": "331ecc6c64189d6e8478aed61cd0f85ed02d412b966a0c6f5c3aa6015b5b63f8"
     }
-  ]
+  ],
+  "all_prices_fresh": false,
+  "last_price_hotel_id": 13873,
+  "last_price_update_run": 41906507292,
+  "last_quote_run": 41905271786,
+  "last_price_checked_utc": "2026-11-04T20:18:34.000Z"
 }
