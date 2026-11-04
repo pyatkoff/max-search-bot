@@ -1,0 +1,158 @@
+{
+  "operation": "commercial-batch38-bounded-primary-contact-inspection",
+  "goal": "One finite grouped inspection of20different actualdeclaredownerphotographs fromtenprovenretainedcandidates",
+  "boundaries": [
+    "Unchangedrawimageguards/noquerystrip/noguessedvariants",
+    "Exact6knownowner/CDNhosts only; eachURIdeclaredinexactretainedtargetpage",
+    "ClosedURLs+basenamesfiltered;4readonlygroups/maxparallel2/server/provider/DBwrites/messages0"
+  ],
+  "criteria": [
+    "Nativebytes/hash/dimensions/contactpixels beforecoverreadiness",
+    "Do not useoffsitePalomaexploreimages/Selectum0refs ashotelphotography"
+  ],
+  "risks": [
+    "Amenitiesmaynotshowwholehotelhero",
+    "Fourdeferredcandidatesdonotdelayready subset"
+  ],
+  "groups": [
+    [
+      {
+        "hotel_id": 15879,
+        "role": "h15879_new38_0",
+        "url": "https://www.belazur.com.tr/image/icerik/pools-waterpark-6_63510794cf960.jpg",
+        "primary_source_url": "https://www.belazur.com.tr/en/pools-waterparks.html"
+      },
+      {
+        "hotel_id": 15879,
+        "role": "h15879_new38_1",
+        "url": "https://www.belazur.com.tr/image/icerik/pools-waterpark-6_63510794d3d21.jpg",
+        "primary_source_url": "https://www.belazur.com.tr/en/pools-waterparks.html"
+      },
+      {
+        "hotel_id": 15879,
+        "role": "h15879_new38_2",
+        "url": "https://www.belazur.com.tr/image/icerik/pools-waterpark-10_635107a27e7d3.jpg",
+        "primary_source_url": "https://www.belazur.com.tr/en/pools-waterparks.html"
+      },
+      {
+        "hotel_id": 2144,
+        "role": "h2144_new38_3",
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001061_d-maris-bay_natural-park-scenery.png",
+        "primary_source_url": "https://dmarisbay.com/en/nature"
+      },
+      {
+        "hotel_id": 2144,
+        "role": "h2144_new38_4",
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001062_557x371-2.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/nature"
+      }
+    ],
+    [
+      {
+        "hotel_id": 2144,
+        "role": "h2144_new38_5",
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000002628_5.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/nature"
+      },
+      {
+        "hotel_id": 3469,
+        "role": "h3469_new38_6",
+        "url": "https://fs.dresortgocek.com/cdn/uploads/000000467_beach-hero.jpg",
+        "primary_source_url": "https://www.dresortgocek.com/en/beaches/beach-pool"
+      },
+      {
+        "hotel_id": 3469,
+        "role": "h3469_new38_7",
+        "url": "https://fs.dresortgocek.com/cdn/uploads/000000712_plajhavuz_galeri_1_1520x844.jpg",
+        "primary_source_url": "https://www.dresortgocek.com/en/beaches/beach-pool"
+      },
+      {
+        "hotel_id": 3469,
+        "role": "h3469_new38_8",
+        "url": "https://fs.dresortgocek.com/cdn/uploads/000000714_plajhavuz_galeri_2_1520x844.jpg",
+        "primary_source_url": "https://www.dresortgocek.com/en/beaches/beach-pool"
+      },
+      {
+        "hotel_id": 3469,
+        "role": "h3469_new38_9",
+        "url": "https://fs.dresortgocek.com/cdn/uploads/000000718_plajhavuz_galeri_4_1520x844.jpg",
+        "primary_source_url": "https://www.dresortgocek.com/en/beaches/beach-pool"
+      }
+    ],
+    [
+      {
+        "hotel_id": 9321,
+        "role": "h9321_new38_10",
+        "url": "https://www.clubmarvy.com/adminweb/images_gallery/marvy_marvytime_1600x1200-08_ahkp4c3a.jpg",
+        "primary_source_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/photos"
+      },
+      {
+        "hotel_id": 9321,
+        "role": "h9321_new38_11",
+        "url": "https://www.clubmarvy.com/adminweb/images_gallery/marvy_marvytime_1600x1200-32_txw4ro4x.jpg",
+        "primary_source_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/photos"
+      },
+      {
+        "hotel_id": 9321,
+        "role": "h9321_new38_12",
+        "url": "https://www.clubmarvy.com/adminweb/images_gallery/marvy_marvytime_1600x1200-14_pput5mq5.jpg",
+        "primary_source_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/photos"
+      },
+      {
+        "hotel_id": 9321,
+        "role": "h9321_new38_13",
+        "url": "https://www.clubmarvy.com/adminweb/images_gallery/marvy_marvytime_1600x1200-11_kvt2m8eb.jpg",
+        "primary_source_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/photos"
+      },
+      {
+        "hotel_id": 1543,
+        "role": "h1543_new38_14",
+        "url": "https://www.susesihotel.com/media/n1ljsio2/susesi-hotels-plaj-ve-havuzlar-banner-v4.jpg",
+        "primary_source_url": "https://www.susesihotel.com/en/experiences/beach-pools/"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1543,
+        "role": "h1543_new38_15",
+        "url": "https://www.susesihotel.com/media/ecgna5jq/susesi-hotels-plaj-ve-havuzlar-galeri.jpg",
+        "primary_source_url": "https://www.susesihotel.com/en/experiences/beach-pools/"
+      },
+      {
+        "hotel_id": 1543,
+        "role": "h1543_new38_16",
+        "url": "https://www.susesihotel.com/media/ou3lchiw/susesi-hotels-plaj-ve-havuzlar-ana-havuz-card.jpg",
+        "primary_source_url": "https://www.susesihotel.com/en/experiences/beach-pools/"
+      },
+      {
+        "hotel_id": 1137,
+        "role": "h1137_new38_17",
+        "url": "https://www.corneliaresort.com/uploads/640px/CORNELIA-DIAMOND-MAIN-VIEW-2.jpg",
+        "primary_source_url": "https://www.corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/photos-and-videos"
+      },
+      {
+        "hotel_id": 1137,
+        "role": "h1137_new38_18",
+        "url": "https://www.corneliaresort.com/uploads/640px/diamond-8.jpg",
+        "primary_source_url": "https://www.corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/photos-and-videos"
+      },
+      {
+        "hotel_id": 1137,
+        "role": "h1137_new38_19",
+        "url": "https://www.corneliaresort.com/uploads/640px/FOTORAF---VIDEO-SLIDER-01.jpg",
+        "primary_source_url": "https://www.corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/photos-and-videos"
+      }
+    ]
+  ],
+  "photo_count": 20,
+  "allowed_hosts": [
+    "www.belazur.com.tr",
+    "fs.dmarisbay.com",
+    "fs.dresortgocek.com",
+    "www.clubmarvy.com",
+    "www.susesihotel.com",
+    "www.corneliaresort.com"
+  ],
+  "baseline_hotels_each_channel": 156,
+  "new_posts": 0
+}
