@@ -1,0 +1,65 @@
+{
+  "operation": "commercial-production-recovery-20261104-price1",
+  "state": "CURRENT_SOURCE_TECHNICAL_GATES_RECOVERED_NO_PRICE_EDIT_YET",
+  "goal": "Restore healthy current deployment and execute the prepared bounded price read so verified prices can be added to existing posts",
+  "boundaries": [
+    "Current explicit Pavel request authorizes investigation and repair of this server deployment failure",
+    "No source/runtime/config/schema/budget/cron/message changes",
+    "Original current-source deployment retry2 was already successful when inspected; do not claim agent performed that retry",
+    "Only the failed diagnostics job was rerun once after explicit encrypted diagnostics authorization; private evidence not read or exported into this state",
+    "Next price read remains read-only with157scope,30h,2A0children,RUB,and all source/host/runtime/schema gates"
+  ],
+  "criteria": [
+    "Same currentmain9678 as successful originaldeployment/TLS/webhooks/productiondiagnostics",
+    "Full remote21publishingblobs still required in native price-read source gate",
+    "No cached price considered final total or current availability",
+    "No paid quote before exact private context,dedup and durablequoteintent"
+  ],
+  "risks": [
+    "External network failure can recur; no guard weakened or transport changed",
+    "Prices still only2oldposts until eligible data, actualquote and verifiededits",
+    "Prior automatic reviewer rejection was insufficient authorization for encrypted private capture; user explicitly granted this one repeat before the successful original-job rerun"
+  ],
+  "current_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "initial_failure": {
+    "deploy_run": 41870011689,
+    "job": 126717296318,
+    "failed_gate": "TELEGRAM SMOKE: Telegram API and configured webhook healthy",
+    "get_me_http": 0,
+    "get_webhook_info_http": 200,
+    "transport_cause": "Not specified by original log; do not infer a current webhook500 rootcause"
+  },
+  "successful_original_deploy": {
+    "run": 41870011689,
+    "attempt": 2,
+    "jobs": [
+      126803672818,
+      126803674804
+    ]
+  },
+  "fresh_followups": {
+    "strict_tls": 41895849007,
+    "max_webhook": 41895848868,
+    "telegram_webhook": 41895848938,
+    "live_sessions": 41895848851
+  },
+  "diagnostic_failure": {
+    "run": 41895848933,
+    "job": 126805013509,
+    "step": "Upload encrypted dialogue evidence",
+    "error": "Failed to CreateArtifact: Unable to make request: ECONNRESET"
+  },
+  "diagnostic_recovery": {
+    "user_authorization": "Да, разрешаю этот повтор с зашифрованной диагностикой",
+    "rerun_action": "Original failed job126805013509 once",
+    "run": 41895848933,
+    "attempt": 2,
+    "job": 126807656250,
+    "conclusion": "success",
+    "private_capture_contents_read_by_agent": false
+  },
+  "new_posts": 0,
+  "new_quotes": 0,
+  "new_price_edits": 0,
+  "server_source_edits": 0
+}

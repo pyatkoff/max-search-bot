@@ -1,0 +1,43 @@
+{
+  "operation": "commercial-price-monitor-20261104-read8-execution",
+  "state": "SUBMITTED_NEW_CURRENT_SOURCE_EXECUTION_NOT_DB_COMPLETION",
+  "goal": "Read eligible new observations from the confirmed5399 normal670input for157 actuallypublishedhotels, then evaluate exact new price context",
+  "boundaries": {
+    "scope_hotels": 157,
+    "new_input_run": 41875623362,
+    "source_cutoff_epoch_utc": 1793812524,
+    "max_age_seconds": 108000,
+    "max_rows_per_hotel": 2,
+    "adults": 2,
+    "children": 0,
+    "currency": "RUB",
+    "source": "scheduled_monitor",
+    "departure_from": "2026-11-04",
+    "departure_through": "2027-02-02",
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_edits": 0,
+    "new_posts": 0,
+    "full_private_output": "authenticatedartifactonly",
+    "console": "aggregatecountsandUTCageonly"
+  },
+  "criteria": [
+    "Current source9678/originalDeploy41870011689attempt2/verifySuccess/strictTLS41895849007/nativefull21publishingblobs",
+    "Fresh successful productiondiagnostics41895848933attempt2 before priceSSH",
+    "Strict existing hoststepBYTEIDENTICALaccepted25,cleantrackedtree/installedSHA/schema/readonlytransaction",
+    "PHPscope unchanged and purecases previouslypassed41884146734, do not rerunoldfixtures",
+    "NativePHP-l and exactexecutioninputassertions before SSH",
+    "Retained price is not final basket or availability; nativeidentity/currentname/party/terms/fingerprint/dedup/durablequoteintent must precede one justifiedexistinggatewaycall"
+  ],
+  "risks": [
+    "May return no eligible publishedhotel rows despite5399rawobservations",
+    "Currentmain can change and stop before SSH; no blindrepin",
+    "No new quote/edit or availability credit until actualresults"
+  ],
+  "approved_current_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "validated_reader_code_commit": "1da8c65f3dc43d84ebede2c15ba00735be932f17",
+  "native_code_body_unchanged": true,
+  "old_scope_age_updater_cases_rerun": 0,
+  "full21_source_gate_retained": true,
+  "hoststep_byteidentical": true
+}
