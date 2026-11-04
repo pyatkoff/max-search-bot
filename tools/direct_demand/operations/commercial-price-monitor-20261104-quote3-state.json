@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261104-quote3",
-  "state": "CLOSED_ONE_GATEWAY_RESPONSE_RETAINED_PENDING_PRICE_EDIT_VALIDATION",
+  "state": "CLOSED_ONE_GATEWAY_QUOTE_CONSUMED_BY_VERIFIED_TWO_POST_EDITS",
   "run": 41899336954,
   "job": 126817250936,
   "artifact": 13357487690,
@@ -37,5 +37,7 @@
   "message_edits": 0,
   "new_posts": 0,
   "automatic_retry_allowed": false,
-  "repeat_policy": "ONEactualcallHTTP200; neverrerunthisquote. Reuseoriginalauthenticatedresult for strictflight/basketinspection and existingpriceedit."
+  "repeat_policy": "ONEactualcallHTTP200; neverrerunthisquote. Reuseoriginalauthenticatedresult for strictflight/basketinspection and existingpriceedit.",
+  "consumed_by_operation": "commercial-price-update-20261104-3-v1",
+  "consumed_by_run": 41900165853
 }

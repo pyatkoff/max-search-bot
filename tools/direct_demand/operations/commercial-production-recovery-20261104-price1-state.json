@@ -1,6 +1,6 @@
 {
   "operation": "commercial-production-recovery-20261104-price1",
-  "state": "CURRENT_SOURCE_TECHNICAL_GATES_RECOVERED_NO_PRICE_EDIT_YET",
+  "state": "CLOSED_RELEASE_HEALTH_RECOVERED_AND_NEW_PRICE_POSTED",
   "goal": "Restore healthy current deployment and execute the prepared bounded price read so verified prices can be added to existing posts",
   "boundaries": [
     "Current explicit Pavel request authorizes investigation and repair of this server deployment failure",
@@ -61,5 +61,26 @@
   "new_posts": 0,
   "new_quotes": 0,
   "new_price_edits": 0,
-  "server_source_edits": 0
+  "server_source_edits": 0,
+  "completed_at_utc": "2026-11-04 19:49:22 UTC",
+  "actual_new_quotes": 1,
+  "actual_existing_post_edits": 2,
+  "actual_new_posts": 0,
+  "price_consumer_diagnosis": {
+    "read8_scheduled_only_rows": 0,
+    "coverage_recent_scope_hotels": 13,
+    "coverage_recent_scope_rows": 16,
+    "coverage_scheduled_rows": 0,
+    "observer_supported_retained_sources": [
+      "user_search",
+      "hot_tours"
+    ],
+    "read9_eligible_contexts": 16,
+    "read9_hotels": 13,
+    "policy": "Appropriatefreshretainedtuple is authorized priceinput;30h/nativeidentity/party/terms/dedup unchanged, no collector/schema/observer/budget/order/cron edits"
+  },
+  "actual_price_update_run": 41900165853,
+  "server_production_code_changes": 0,
+  "original_release_rerun_by_agent": false,
+  "diagnostic_job_rerun_by_agent_after_explicit_authorization": true
 }

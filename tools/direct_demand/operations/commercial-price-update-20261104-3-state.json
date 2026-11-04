@@ -1,0 +1,88 @@
+{
+  "operation": "commercial-price-update-20261104-3-v1",
+  "state": "CLOSED_TWO_EXISTING_POST_PRICE_EDITS_VERIFIED",
+  "completed_at_utc": "2026-11-04 19:49:22 UTC",
+  "catalog_ids": [
+    109
+  ],
+  "hotel": "PICKALBATROS AQUA VISTA RESORT",
+  "run_id": 41900165853,
+  "job_id": 126820120413,
+  "source_commit": "d903596e852ad9f09c9dfa576433263d493075e6",
+  "intent_artifact": 13358085259,
+  "result_artifact": 13356294211,
+  "intent_created_at": "2026-11-04T19:46:34Z",
+  "result_created_at": "2026-11-04T19:46:48Z",
+  "verified_quote": {
+    "operation": "commercial-price-monitor-20261104-quote3",
+    "run_id": 41899336954,
+    "result_artifact": 13357487690,
+    "intent_artifact": 13357293162,
+    "gateway_requests": 1,
+    "http_status": 200,
+    "response_bytes": 1497,
+    "checked_epoch_utc": 1793821296,
+    "selected_option_index": 0,
+    "real_roundtrip_options": 1,
+    "full_basket_as_received": true,
+    "fuel_separately_added": false
+  },
+  "summaries": [
+    {
+      "operation": "commercial-price-update-20261104-3-v1",
+      "catalog_id": 109,
+      "valid_real_roundtrip_options": 1,
+      "rejected_options": 0,
+      "selected_option_index": 0,
+      "verified_total_as_received": true,
+      "separate_fuel_added": false,
+      "existing_posts_to_edit": 2,
+      "new_posts": 0,
+      "new_binding_cases_passed": 3,
+      "old8updater_cases_rerun": 0,
+      "additional_gateway_calls": 0
+    },
+    {
+      "additional_gateway_calls": 0,
+      "button_only_updates": 0,
+      "catalog_ids": [
+        109
+      ],
+      "commercial_text_updates": 2,
+      "content_edit_attempts": 2,
+      "error": null,
+      "mode": "update_existing_hotel_price_block",
+      "new_posts_created": 0,
+      "ok": true,
+      "operation": "commercial-price-update-20261104-3-v1",
+      "post_write_attempts": 2,
+      "price_block_updates": 2,
+      "verified_existing_posts": 2
+    }
+  ],
+  "actual_content_edits": 2,
+  "verified_existing_posts": 2,
+  "new_posts_created": 0,
+  "old_caption_photo_button_source_preserved": true,
+  "canonical_registry_and_once_ledger_updated": true,
+  "additional_gateway_calls": 0,
+  "new_binding_cases_passed": 3,
+  "old8_updater_cases_rerun": 0,
+  "max_age_seconds": 108000,
+  "all_source_tls_diagnostics_full21_host_schema_rights_and_live_guards_passed": true,
+  "repeat_policy": "Quote3 and update3 are CONSUMED/CLOSED. Do not rerun quote, update, providerreadback, or reconstructacceptedcaption. Fullprivateinputs/receipts remain in originalauthenticatedartifacts/canonicalregistry/onceledger.",
+  "baseline": {
+    "published_each_channel": 157,
+    "live_yml": [
+      156,
+      156,
+      312
+    ],
+    "max_aliases": 156,
+    "monitor_hotel_count": 670,
+    "hotels_with_price_in_both_posts": 3
+  },
+  "price_freshness_note": "New109checked04Nov19:41:36UTC;9432checked04Nov07:16UTC;12114checked03Nov09:12UTC isolderthan30h and not a freshlyverifiedprice.",
+  "next_prices": "Reuse originalread9artifact13357152456 and verifiedtrustedsourcecontract for remaining exactnewcontexts. Exclude consumed109/12114/9432 and name-review IDs. No repeatDBscopewithoutNEWrelatedinput, no blind paidrecalc.",
+  "next_original_goal": "Healthycurrent9678 nowallows one new READ14only1543+stock39 attempt with fullgates, thenMAX157immutablemap thenYMLupdate13. Goal500stillactive."
+}
