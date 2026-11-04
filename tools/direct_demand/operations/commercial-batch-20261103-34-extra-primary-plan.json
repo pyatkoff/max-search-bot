@@ -1,0 +1,19 @@
+{
+  "operation": "commercial-batch34-two-newly-declared-galleries",
+  "goal": "Resolve exact photo URIs from two galleries actually declared by successful owner pages",
+  "boundaries": [
+    "Two new GETs only, no repeated roots/closedframes",
+    "Same metadata/no redirects/size/publicURL guards, purecloud/no server/provider/messages"
+  ],
+  "criteria": [
+    "Selectum only targetproperty gallery",
+    "Belazur exactcurrentgallery, real pixels inspected with all other photos in one following finite contactpass"
+  ],
+  "risks": [
+    "Extensionless or unsupported format URIs may yield no acceptable pictures; do not delay ready hotels"
+  ],
+  "urls": [
+    "https://luxuryresortbelek.selectumhotels.com/en/gallery",
+    "https://www.belazur.com.tr/en/gallery"
+  ]
+}
