@@ -1,0 +1,34 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read15",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Bind only the two newly published batch43 pairs to private MAX routes and threefeeds",
+  "boundaries": {
+    "hotel_ids": [
+      17480,
+      1100
+    ],
+    "previous157_read": 0,
+    "public_firstline_queries": 2,
+    "public_query_limit_each": 3,
+    "private_exact_url_queries": 2,
+    "private_query_limit_each": 2,
+    "stock_queries": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0
+  },
+  "criteria": [
+    "Actualsender41911131131verified4 posts",
+    "ExactapprovedwholefirstlinesandimmutableacceptedPNG inputs",
+    "SingletonLIMIT3/LIMIT2 queryfunctions byteidentical toacceptedREAD14",
+    "Three new2scopecases/PHP-l; no oldfixtures rerun",
+    "Fullcurrentrelease/TLS/diagnostics/source21/host/runtimeclean/readonlygates"
+  ],
+  "risks": [
+    "Missingorambiguouscanonicalpairmuststop; never rereadold157",
+    "Privatebindings onlyauthenticatedartifact, consolecounts"
+  ],
+  "actual_sender_run": 41911131131,
+  "actual_sender_artifact": 13362158991,
+  "expected_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+}

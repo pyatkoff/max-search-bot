@@ -1,0 +1,16 @@
+[
+  {
+    "hotel_id": 17480,
+    "name": "TUI BLUE Palm Garden",
+    "accepted_first_line": "✈️ Туры в TUI BLUE Palm Garden с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b16bbce1f3306fb3e5a030398cc328168bc225d3/.github/traffic-publish/commercial-batch-20261104-43/17480.png",
+    "image_sha256": "4d9f9648a77232c9924614b096d81fcecbf9420ff49e067be5878778539770d2"
+  },
+  {
+    "hotel_id": 1100,
+    "name": "Club Hotel Sera",
+    "accepted_first_line": "✈️ Туры в Club Hotel Sera с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b16bbce1f3306fb3e5a030398cc328168bc225d3/.github/traffic-publish/commercial-batch-20261104-43/1100.png",
+    "image_sha256": "369ba914aa6a4072fecfbc8a242d07050df962865da92a354cf8762c9d4f5ab8"
+  }
+]
