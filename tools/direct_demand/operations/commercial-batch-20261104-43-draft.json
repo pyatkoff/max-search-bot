@@ -1,0 +1,32 @@
+{
+  "operation": "commercial-hotel-batch-20261104-43-v1",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41911131131",
+  "job_id": 126858653909,
+  "authenticated_artifact": 13362158991,
+  "sender_commit": "8f442822c0e40860ee6464bc3a45d4edb26b8efe",
+  "installed_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "approved_manifest_sha256": "4df0ffa5b33df2418780fb39531fd5cd47a5b4a31d92f754c93d75d490a7bd24",
+  "hotel_ids": [
+    17480,
+    1100
+  ],
+  "logical_hotels_new": 2,
+  "logical_hotels_total_each_channel": 159,
+  "new_posts": 4,
+  "post_write_attempts": 4,
+  "reused_existing": 0,
+  "body_photo_button_source_verified": 4,
+  "whole_ready_subset_sent": true,
+  "private_receipts_in_public_state": false,
+  "canva_transactions_open": 0,
+  "native_png_freeze_commit": "b16bbce1f3306fb3e5a030398cc328168bc225d3",
+  "monitor_append_pending_actual_dedup": true,
+  "live_yml_counts_still": [
+    157,
+    157,
+    314
+  ],
+  "max_native_routes_still": 157,
+  "not_complete_goal500": true
+}
