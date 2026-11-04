@@ -1,30 +1,46 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-stock40-prelookup-eight-new-owner-pages'
-pages=["https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/","https://www.adalyahotels.com/en/our-hotels/adalya-art-side/","https://www.adalyahotels.com/en/our-hotels/","https://www.melashotels.com/en/melas-lara-hotel","https://www.melashotels.com/en/melas-resort-hotel","https://www.melashotels.com/en","https://www.elitabeachresort.com/","https://www.kumkoybeachresort.com/"]
+operation='commercial-stock40-three-new-declared-property-pages'
+pages=["https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/","https://www.adalyahotels.com/en/our-hotels/adalya-bliss/","https://www.melashotels.com/en/club-melas-prive"]
 all_pages=list(pages)
-plan=json.loads(Path('tools/direct_demand/operations/commercial-stock-20261104-40-primary-preparation1-plan.json').read_text())
-assert all_pages==[s['url'] for s in plan['sources']] and len(all_pages)==len(set(all_pages))==8
+base=Path('tools/direct_demand/operations')
+plan=json.loads((base/'commercial-stock-20261104-40-primary-preparation2-plan.json').read_text())
+assert all_pages==[s['url'] for s in plan['sources']] and len(all_pages)==len(set(all_pages))==3
 assert all(urllib.parse.urlsplit(u).scheme=='https' and not urllib.parse.urlsplit(u).query and urllib.parse.urlsplit(u).hostname in plan['explicit_new_page_hosts'] for u in all_pages)
-closed_hits=[]
+native=json.loads(Path(os.environ['RUNNER_TEMP'],'stock40-native-projection.json').read_text())
+by_key={r['key']:r for r in native['new_native_identities']}
+parents=json.loads((base/'commercial-stock-20261104-40-primary-preparation1-retained.json').read_text())['pages']
+parent_by_url={p['source_url']:p for p in parents}
+for s in plan['sources']:
+ assert by_key[s['key']]['hotel_id']==s['hotel_id']
+ assert s['url'] in parent_by_url[s['declared_by']]['website_links']
 def source_key(u):
  p=urllib.parse.urlsplit(u)
  return (p.hostname,(p.path or '/').rstrip('/'),p.query)
-def walk_urls(x):
- if isinstance(x,str):return [x] if x.startswith('https://') else []
- if isinstance(x,dict):return [u for v in x.values() for u in walk_urls(v)]
- if isinstance(x,list):return [u for v in x for u in walk_urls(v)]
- return []
-for path in Path('tools/direct_demand/operations').glob('*.json'):
- if '20261104-40-primary-preparation1' in path.name or '20261104-40-owner' in path.name:continue
+def actual_sources(x):
+ out=[]
+ if isinstance(x,dict):
+  for k,v in x.items():
+   if k in ('source_url','final_url','source') and isinstance(v,str) and v.startswith('https://'):out.append(v)
+   elif k=='sources' and isinstance(v,list) and ('text' in x or 'hotel_id' in x or 'catalog_id' in x):out.extend(u for u in v if isinstance(u,str) and u.startswith('https://'))
+   else:out.extend(actual_sources(v))
+ elif isinstance(x,list):
+  for v in x:out.extend(actual_sources(v))
+ return out
+fixture={'source_url':'https://owner.example/old','website_links':['https://owner.example/new']}
+assert actual_sources(fixture)==['https://owner.example/old']
+assert actual_sources({'source':'https://owner.example/old','new_declared_owner_hrefs':{'url':'https://owner.example/new'}})==['https://owner.example/old']
+assert source_key('https://owner.example/old/')==source_key(actual_sources(fixture)[0])
+closed_hits=[]
+for path in base.glob('*.json'):
+ if '20261104-40-primary-preparation2' in path.name or '20261104-40-owner' in path.name:continue
  if not ('primary-sources-retained' in path.name or 'primary-preparation1-retained' in path.name or 'source-notes' in path.name):continue
- d=json.loads(path.read_text())
- old_keys={source_key(u) for u in walk_urls(d)}
+ d=json.loads(path.read_text());old_keys={source_key(u) for u in actual_sources(d)}
  for u in all_pages:
   if source_key(u) in old_keys:closed_hits.append((u,path.name))
-assert not closed_hits,('CLOSED_OWNER_SOURCE_ALREADY_RETAINED',closed_hits)
-print('STOCK40_NEW_OWNER_INPUTS_OK new_cases=3 old_parser_fixtures_rerun=0 source_repeats=0 raw_photo_gets=0 server_calls=0')
+assert not closed_hits,('ACTUAL_OWNER_SOURCE_ALREADY_FETCHED',closed_hits)
+print('STOCK40_NEW_DECLARED_PROPERTY_SCOPE_OK new_provenance_cases=3 old_parser_fixtures_rerun=0 raw_photo_gets=0 server_calls=0')
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1,2,3)
 pages=pages[group*3:group*3+3]

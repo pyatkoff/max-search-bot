@@ -1,4 +1,4 @@
-name: Read ten new targeted catalogue groups after the current passing release
+name: Check a different retained hotel price with consumed quote7 excluded
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -24,6 +24,27 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-stock-20261104-40-read1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41924993837
+          path: ${{ runner.temp }}/stock40-original
+      - name: Project exact original stock40 native identities without another DB read
+        run: python3 tools/direct_demand/operations/project-commercial-stock-20261104-40-original.py
+      - name: Read only three new owner property hrefs actually declared by retained directories
+        env:
+          MEDIA_GROUP: 0
+        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commercial-stock40-native-projection-and-primary2
+          path: |
+            ${{ runner.temp }}/stock40-native-projection.json
+            public-media-sources.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -55,14 +76,31 @@ jobs:
           assert d['status']=='completed' and d['conclusion']=='success'
           print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
           PY
-      - name: Prepare ten distinct named stock lookups and targeted public projection
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261104-read9
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41898354901
+          path: ${{ runner.temp }}/retained-read9
+      - name: Bind one exact new retained candidate and original whole caption
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 tools/direct_demand/operations/prepare-commercial-stock-20261104-40.py
+          python3 tools/direct_demand/operations/prepare-commercial-price-20261104-quote8.py
           php -l "$RUNNER_TEMP/channel-preflight.php"
+          ANYTOUR_QUOTE8_INPUT_FIXTURE=1 php "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain durable private intent before the one gateway request
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-price-monitor-20261104-quote8-intent
+          path: |
+            ${{ runner.temp }}/quote-intent.json
+            ${{ runner.temp }}/quote8-candidate.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Prepare existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -101,7 +139,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read only ten new named catalogue groups and their targeted registry matches
+      - name: Make the one justified existing gateway actualization
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -110,27 +148,34 @@ jobs:
           set -euo pipefail
           umask 077
           probe_status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/stock40-readback.json" || probe_status=$?
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
           import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'stock40-readback.json').read_text().splitlines()[-1])
-          assert d['operation']=='commercial-stock-20261104-40-read1' and d['db_writes']==d['provider_calls']==d['message_sends']==0
-          groups=[]
-          for g in d.get('candidates',[]):
-           eligible=[h['id'] for h in g['matches'] if len(g['matches'])==1 and int(h['is_active'])==1 and int(h['country_id'])==4 and h['existing_registry_matches']=={'telegram':0,'max':0}]
-           groups.append({'key':g['key'],'match_count':len(g['matches']),'new_unique_unpublished_native_ids':eligible})
-          print(json.dumps({'operation':d['operation'],'ok':d['ok'],'error':d.get('error'),'lookup_groups':len(d.get('candidates',[])),'targeted_registry_rows':d.get('targeted_registry_rows'),'whole_previous159_registry_read':d.get('whole_previous159_registry_read'),'groups':groups,'provider_calls':0,'db_writes':0,'message_sends':0,'ready_for_send':0,'new_posts':0}))
-          assert d['ok'] is True and len(d['candidates'])==10 and d['whole_previous159_registry_read'] is False
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1])
+          assert d['operation']=='commercial-price-monitor-20261104-quote8' and d['mode']=='one_existing_gateway_quote_contract'
+          assert d['db_writes']==d['message_sends']==d['price_block_updates']==0 and d['gateway_requests_attempted']<=1
+          safe={k:d.get(k) for k in ['operation','ok','error','catalog_id','gateway_requests_attempted','quote_state','http_status','response_bytes','request_started_epoch_utc','response_received_epoch_utc','automatic_retry_allowed','full_total_verified','current_availability_verified']}
+          response=d.get('gateway_response')
+          safe['retained_declared_error']=isinstance(response,dict) and response.get('error') not in (None,False,0,'')
+          safe['retained_flight_options']=len(response.get('flights',[])) if isinstance(response,dict) and isinstance(response.get('flights'),list) else 0
+          safe['price_contract_state']='DECLARED_ERROR_NO_EDIT' if safe['retained_declared_error'] else ('NO_FLIGHTS_NO_EDIT' if safe['retained_flight_options']==0 else 'FULL_BASKET_REVIEW_REQUIRED')
+          print(json.dumps(safe,sort_keys=True))
+          assert d['ok'] is True
           PY
           test "$probe_status" = 0
-      - uses: actions/upload-artifact@v4
+      - name: Retain bounded route evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-stock-20261104-40-read1
-          path: ${{ runner.temp }}/stock40-readback.json
+          name: commercial-price-monitor-20261104-quote8
+          path: |
+            ${{ runner.temp }}/channel-preflight.json
+            ${{ runner.temp }}/quote-intent.json
+            ${{ runner.temp }}/quote8-candidate.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and script files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/stock40-readback.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/quote-intent.json" "$RUNNER_TEMP/quote8-candidate.json"
+

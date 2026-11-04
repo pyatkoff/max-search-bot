@@ -1,0 +1,58 @@
+{
+  "operation": "commercial-stock-20261104-40-primary-preparation2",
+  "state": "THREE_NEW_ACTUALLY_DECLARED_OWNER_PROPERTIES_NOT_PHOTOS_NOT_READY",
+  "goal": "Read the actual newlydeclared Ocean/Bliss/ClubMelasPrive links after native10 stock proof, preserving the two legacyproduct identity questions",
+  "boundaries": {
+    "new_owner_html_gets": 3,
+    "readonly_groups": 1,
+    "max_parallel": 2,
+    "raw_photo_gets": 0,
+    "server_calls": 0,
+    "db_reads": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "ready_for_send": 0,
+    "new_posts": 0
+  },
+  "criteria": [
+    "EachactualURIdeclaredbyalreadyretainedprimary1directory, not guessed/stripped Oceanquery",
+    "BeforeGETmatch nativeprojection originalstock40artifact and exactparenthref; dedupactualfetchedsourceURLs, not unrequestedwebsite_links",
+    "Parserfunctionality unchanged, oldHTMLparserfixtures0,3newactual-versus-declaredsourceprovenancecases",
+    "LegacyBliss/ResortandPrive/Holidaynotforce until exactcurrentnative/producttext binding",
+    "No photo import forSunisElita/Kumkoy ownernocopynotice or anyownerrestriction"
+  ],
+  "risks": [
+    "Threeownerpages notthreeREADYhotels; no nativeidentity/deliverydoublecount",
+    "403/challenge/redirectclosednoretry/bypass"
+  ],
+  "sources": [
+    {
+      "key": "adalya-ocean-deluxe",
+      "hotel_id": 21642,
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+      "declared_by": "https://www.adalyahotels.com/en/our-hotels/",
+      "binding_state": "NATIVE_GROUP_AND_EXACT_OWNER_PRODUCT_NAME"
+    },
+    {
+      "key": "adalya-resort",
+      "hotel_id": 948,
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+      "declared_by": "https://www.adalyahotels.com/en/our-hotels/",
+      "binding_state": "NATIVE_ID_PROVEN_BUT_LEGACY_RESORT_VS_CURRENT_BLISS_OWNER_PRODUCT_BINDING_PENDING"
+    },
+    {
+      "key": "melas-holiday",
+      "hotel_id": 1368,
+      "url": "https://www.melashotels.com/en/club-melas-prive",
+      "declared_by": "https://www.melashotels.com/en",
+      "binding_state": "NATIVE_ID_PROVEN_BUT_HOLIDAY_VS_CURRENT_PRIVE_OWNER_PRODUCT_BINDING_PENDING"
+    }
+  ],
+  "explicit_new_page_hosts": [
+    "www.adalyahotels.com",
+    "www.melashotels.com"
+  ],
+  "parser_functionality_unchanged": true,
+  "new_source_provenance_cases": 3,
+  "old_parser_fixtures_rerun": 0
+}

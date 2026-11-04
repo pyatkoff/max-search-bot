@@ -1,0 +1,48 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote8",
+  "state": "ONE_DIFFERENT_RETAINED_CONTEXT_PLAN_NOT_CALLED_CURRENT_RELEASE_METADATA_PASSED",
+  "goal": "Add one verified price to both existing posts of another unpriced published hotel from originalREAD9",
+  "boundaries": [
+    "OriginalREAD9 only, no157scopeDBreread; exclude110/73342/13869/13873/109/12114/9432 and name-review6",
+    "OriginalREAD9 source9678 pinned truthfully; currentproduction independently checked",
+    "30h108000/UTCpersistence/2A0/emptychildsig/RUB/future/sourceuser_search+hot_tours preserved",
+    "One exact readonly native observation+country+active+name+terms+fingerprint revalidation",
+    "One justified existingflights only after own durableintent; automaticretryfalse",
+    "Privatefulltuple/fingerprint/quote only authenticatedartifact; no posts in quotephase"
+  ],
+  "criteria": [
+    "Currentf843/deploy41923173718 verify126900619273/deploy126903187731/TLS41924297206/diagnostics41924297113 metadata PASS; fullfreshnative21/currentmain/host/runtime/schema stillrequired",
+    "Diff2f7→f843 only5outsidepublishing21paths; NOforeignfix/rerun",
+    "Exactnewnative observation/context/hash/originalcaption/closingparagraph/cover proof",
+    "3newexclusioninputcases/PHP-l; oldnative/agefixtures0"
+  ],
+  "risks": [
+    "Unknownoriginalgatewayoutcome must resolve from originaloperation; nevernewIDbypass",
+    "Cachedprice is notfinaltotal/availability, edit only after realroundtrip/fullbasketreceivedvalidated"
+  ],
+  "retained_run": 41898354901,
+  "retained_artifact": 13357152456,
+  "retained_source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "expected_source": "f84391d45dd9643271473cf3c325e9940e2a4593",
+  "max_age_seconds": 108000,
+  "max_gateway_requests": 1,
+  "automatic_retry_allowed": false,
+  "excluded_consumed_hotel_ids": [
+    110,
+    73342,
+    13869,
+    13873,
+    109,
+    12114,
+    9432
+  ],
+  "new_input_scope_cases": 3,
+  "old_age_and_identity_fixture_reruns": 0,
+  "current_deploy_run": 41923173718,
+  "current_verify_job": 126900619273,
+  "current_deploy_job": 126903187731,
+  "current_tls_run": 41924297206,
+  "current_diagnostics_run": 41924297113,
+  "current_release_all_required_metadata_passed": true,
+  "native_source_runtime_gate_required": true
+}
