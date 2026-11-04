@@ -40,6 +40,54 @@ final class ManagerRequestProfile
         return ['adults'=>$adults,'children'=>1,'child_ages'=>$ages];
     }
 
+
+    /** Literal, unsaved preparation from one current customer message, never a second profile owner. */
+    public static function preparation(array $sources,array $profile,int $latest,bool $incomplete,string $basis): ?array
+    {
+        $customers=[];foreach($sources as $source)if(($source['sender_type']??null)==='customer')$customers[$source['id']]=$source;
+        krsort($customers,SORT_NUMERIC);$last=null;$boundary=(int)($profile['boundary_message_id']??0);
+        foreach($customers as $source){
+            if($source['id']<$boundary||empty($source['customer_statement_eligible'])||!empty($source['unavailable'])
+                ||!self::text($source['text']??null,600,false))return null;
+            // Only an explicit short acknowledgement may preserve the prior request.
+            // Unknown, linked, unavailable or contradictory input never permits fallback.
+            if(preg_match('/\A\s*(?:спасибо(?:\s+большое)?|большое\s+спасибо|благодарю(?:\s+вас)?)[.!]*\s*\z/ui',$source['text'])===1)continue;
+            $last=$source;break;
+        }
+        if(!$last)return null;
+        $text=trim($last['text']);$candidates=[];$ambiguous=[];
+        $add=static function(string $key,$value,string $quote)use(&$candidates,&$ambiguous,$profile,$last):void{
+            if(isset($profile['fields'][$key])||isset($ambiguous[$key]))return;
+            if(isset($candidates[$key])&&$candidates[$key]['value']!==$value){unset($candidates[$key]);$ambiguous[$key]=true;return;}
+            $candidates[$key]=['value'=>$value,'kind'=>'customer_statement','importance'=>'unknown','note'=>'','source_id'=>$last['id'],'quote'=>$quote];
+        };
+        // Reported offers and past trips are not current-trip criteria.
+        $reported=preg_match('/(?:публикаци|реклам|тариф|\b(?:в|из|по)\s+пост[а-яё]*\b|\b(?:бот|AI|ИИ)\s+(?:написал|ответил|предложил)\b|\b(?:ездил[а-яё]*|летал[а-яё]*|отдыхал[а-яё]*|были|был[аи]?|прошл[а-яё]*|позапрошл[а-яё]*)\b)/ui',$text)===1;
+        if(!$reported){
+            // Labeled customer fragments stay literal, including currency, units and negation.
+            $labels=['departure'=>'город вылета|вылет из','destination'=>'направление|страна|курорт',
+                'dates'=>'даты|период','nights'=>'ночей|длительность','budget'=>'бюджет',
+                'hotel'=>'отель|критерии отеля','room_meal'=>'номер и питание|питание|номер',
+                'must_have'=>'обязательные условия','tradeoffs'=>'компромиссы','rejections'=>'отказы','questions'=>'вопрос'];
+            foreach(preg_split('/\R/u',$text) as $line)foreach($labels as $key=>$label){
+                if(preg_match('/\A\s*(?:'.$label.')\s*:\s*(.+?)\s*\z/ui',$line,$match)===1&&self::text($match[1],400,false))$add($key,$match[1],trim($line));
+            }
+            // No calendar normalization, inferred year or destination from a holiday question.
+            if(preg_match('/(?:\bне\b|\bесли\b|\bили\b|\bлибо\b|вместо|прошл|позапрошл)/ui',$text)!==1){
+                if(preg_match_all('/\bна\s+(Новый\s+год|новогодние\s+каникулы)\b/ui',$text,$periods)===1)$add('dates',$periods[1][0],$text);
+                if(preg_match_all('/\b[0-9]{1,2}(?:\s*[-–—]\s*[0-9]{1,2})?\s+ноч(?:ь|и|ей)\b/ui',$text,$nights)===1)$add('nights',$nights[0][0],$text);
+            }
+            $party=self::explicitParty($text);if($party!==null)$add('party',$party,$text);
+        }
+        if(str_contains($text,'?')&&self::text($text,400,false))$add('questions',$text,$text);
+        if(!$candidates)return null;
+        $fields=self::normalize($candidates,[$last['id']=>$last],$boundary?:$last['id']);
+        return ['status'=>'proposed','base_version'=>(int)($profile['version']??0),'context_sha256'=>$basis,
+            'latest_message_id'=>$latest,'boundary_message_id'=>$boundary?:$last['id'],'source_message_id'=>$last['id'],
+            'source_sha256'=>$last['sha256'],'coverage_incomplete'=>$incomplete,'fields'=>$fields,
+            'unknown_fields'=>array_values(array_diff(array_keys(self::FIELDS),array_keys($profile['fields']??[]),array_keys($fields)))];
+    }
+
     /** Every citation is checked against server-owned, unchanged text. */
     public static function normalize(array $fields,array $sources,int $boundary): array
     {

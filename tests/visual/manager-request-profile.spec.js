@@ -171,3 +171,56 @@ test('hotel focus same hotel and room never silently substitutes a second native
   await page.locator('#profileHotelChoice').selectOption('15');await expect(page.locator('#profileHotelConfirm')).not.toBeChecked();await expect(page.locator('#profileHotelTerms')).toContainText('185000');await expect(page.locator('#profileHotelTerms')).toContainText('Другой перелёт');await expect(page.locator('#profileHotelTerms')).toContainText('Актуальность не подтверждена');
   await page.locator('#profileHotelConfirm').check();await save(page);const final=await hotelRead(page);expect(final.profile.hotel_focus.status).toBe('confirmed');expect(final.profile.hotel_focus.message_id).toBe(15);expect(final.profile.fields.party.value.child_ages).toEqual([12]);
 });
+
+async function emptyPreparedRequest(page){
+  app=await setupRequestProfile(page);await ready(page);
+  app.mutate("DELETE FROM manager_request_profiles; DELETE FROM messages WHERE id>11; INSERT INTO messages(id,conversation_id,direction,sender_type,text,created_at,channel) VALUES(20,1,'inbound','customer','Куда можно улететь на Новый год?','2026-10-30 11:00:00','telegram')");
+  await page.locator('#profileRefresh').click();await expect(page.locator('#profilePreparation')).toBeVisible();
+  await expect(page.locator('#profileLabel')).toBeEmpty();
+}
+for(const width of [390,1440])test(`literal request preparation stays unsaved and source-bound at ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:420});await emptyPreparedRequest(page);
+  await expect(page.locator('#profileState')).toContainText('Профиль пока не создан');
+  await expect(page.locator('#profilePreparation')).toContainText('Новый год');
+  await expect(field(page,'dates').locator('[data-value=text]')).toBeEmpty();
+  await expect(field(page,'budget').locator('[data-value=text]')).toBeEmpty();
+  await page.locator('#profileApplyPreparation').click();
+  await expect(field(page,'dates').locator('[data-value=text]')).toHaveValue('Новый год');
+  await expect(field(page,'questions').locator('[data-value=text]')).toHaveValue('Куда можно улететь на Новый год?');
+  await expect(field(page,'dates').locator('[data-source]')).toHaveValue('20');
+  await expect(field(page,'destination').locator('[data-value=text]')).toBeEmpty();
+  await expect(field(page,'party').locator('[data-value=adults]')).toBeEmpty();
+  await expect(field(page,'budget').locator('[data-value=text]')).toBeEmpty();
+  await expect(page.locator('#profileState')).toContainText('Профиль пока не создан');
+  await expect(page.locator('#profileStatus')).toContainText('только в черновик');
+  expect(app.calls.filter(c=>c.action==='save')).toHaveLength(0);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+});
+test('preparation refresh preserves dirty fields pending commands and a new-trip draft',async({page})=>{
+  await emptyPreparedRequest(page);
+  await editField(page,'dates');await field(page,'dates').locator('[data-value=text]').fill('Ручной период');
+  await page.locator('#profileLabel').fill('Мой несохранённый запрос');
+  await page.locator('#profileRefresh').click();
+  await expect(field(page,'dates').locator('[data-value=text]')).toHaveValue('Ручной период');
+  await expect(page.locator('#profileLabel')).toHaveValue('Мой несохранённый запрос');
+  await page.locator('#profileApplyPreparation').click();
+  await expect(field(page,'dates').locator('[data-value=text]')).toHaveValue('Ручной период');
+  await expect(field(page,'questions').locator('[data-value=text]')).toHaveValue('Куда можно улететь на Новый год?');
+  app.queue({action:'save',abort:true});await page.locator('#profileSave').click();
+  await expect(page.locator('#profileReconcile')).toBeVisible();
+  await page.locator('#profileRefresh').click();
+  await expect(page.locator('#profileReconcile')).toBeVisible();
+  await expect(page.locator('#profileApplyPreparation')).toBeDisabled();
+  await expect(field(page,'dates').locator('[data-value=text]')).toHaveValue('Ручной период');
+  expect(app.calls.filter(c=>c.action==='save')).toHaveLength(1);
+});
+test('new-trip choice never imports a proposal from the previous trip',async({page})=>{
+  await emptyPreparedRequest(page);await page.locator('#profileNewTrip').check();
+  await page.locator('#profileLabel').fill('Другая поездка');
+  await page.locator('#profileRefresh').click();
+  await expect(page.locator('#profileNewTrip')).toBeChecked();
+  await expect(page.locator('#profileLabel')).toHaveValue('Другая поездка');
+  await expect(page.locator('#profilePreparation')).toBeHidden();
+  await expect(field(page,'dates').locator('[data-value=text]')).toBeEmpty();
+  expect(app.calls.filter(c=>c.action==='save')).toHaveLength(0);
+});
