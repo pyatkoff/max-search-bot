@@ -1,0 +1,42 @@
+{
+  "operation": "commercial-batch34-ten-fixed-primary-owner-pages",
+  "goal": "One finite owner HTML pass for seven new exact properties and retained captions for three candidates",
+  "boundaries": [
+    "Pure cloud, no Mac/server/provider/DB/messages/ads",
+    "No repeated closed owner GETs or photo variants",
+    "Same no-redirects,metadata size,exact owner and safe public reference guards"
+  ],
+  "criteria": [
+    "10fixed pages,4readonlygroups,maxparallel2",
+    "Retain exact current body/photo/page refs; photographs later require native bytes/hash/pixels",
+    "Readiness separate from proven native identity, send ready subset without waiting retained hard cases"
+  ],
+  "risks": [
+    "Shared group navigation can reference sister properties",
+    "Current concept photos can be renders; no image inferred by URL/name alone"
+  ],
+  "hotel_ids": [
+    1416,
+    1491,
+    65782,
+    1417,
+    1348,
+    15879,
+    55828,
+    1035,
+    109655,
+    1338
+  ],
+  "urls": [
+    "https://www.palomahotels.com/en/paloma-oceana",
+    "https://www.palomahotels.com/en/paloma-perissia",
+    "https://www.palomahotels.com/en/finesse-side",
+    "https://www.palomahotels.com/en/finesse-side/beach-and-pool",
+    "https://www.palomahotels.com/en/paloma-grida",
+    "https://sevenseashotels.com/hotels/seven-seas-hotel-life?openGallery=true",
+    "https://sevenseashotels.com/media",
+    "https://www.belazur.com.tr/en",
+    "https://www.belazur.com.tr/en/rooms",
+    "https://luxuryresortbelek.selectumhotels.com/en"
+  ]
+}

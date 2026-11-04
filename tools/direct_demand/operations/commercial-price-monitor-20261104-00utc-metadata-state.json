@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-price-monitor-20261104-00utc-metadata",
+  "state": "NO_NEW_TOUR_COLLECTOR_IN_BOUNDED_METADATA_WINDOW",
+  "created_lower_bound_utc": "2026-11-03T23:45:00Z",
+  "runs": [
+    {
+      "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41743115346",
+      "name": "Build AnyTour hot inventory",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "retained_reads": 0,
+  "quotes": 0,
+  "edits": 0,
+  "scope_note": "Hot inventory is not Collect AnyTour tour observations. No assertion about all raw observations."
+}
