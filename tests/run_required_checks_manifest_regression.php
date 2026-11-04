@@ -47,6 +47,18 @@ manifestCheck('group runner records per-check duration and machine-readable resu
 manifestCheck('PR workflow has matrix groups', strpos($workflow, 'matrix:') !== false && strpos($workflow, 'group: [architecture, dialogue, website, manager, diagnostics]') !== false);
 manifestCheck('PR workflow executes group runner', strpos($workflow, 'php tests/run_required_group.php "${{ matrix.group }}"') !== false);
 manifestCheck('PR workflow preserves all final regression gates including native MySQL', strpos($workflow, 'regression:') !== false && strpos($workflow, 'name: regression') !== false && strpos($workflow, 'needs: [change-scope, inventory, php-syntax, required, prepared-mysql, oauth]') !== false && strpos($workflow, 'test "$PREPARED_MYSQL_RESULT" = success') !== false);
+$deployWorkflow = (string)file_get_contents($root . '/.github/workflows/deploy.yml');
+manifestCheck('deployment verifies syntax and all five groups independently',
+    str_contains($deployWorkflow, 'verify-syntax:')
+    && str_contains($deployWorkflow, 'verify-required:')
+    && str_contains($deployWorkflow, 'group: [architecture, dialogue, website, manager, diagnostics]')
+    && str_contains($deployWorkflow, 'php tests/run_required_group.php "${{ matrix.group }}"')
+    && str_contains($deployWorkflow, "find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l"));
+manifestCheck('deployment waits for the complete successful verification aggregate',
+    str_contains($deployWorkflow, "  verify:\n    if: always()\n    needs: [verify-syntax, verify-required]")
+    && str_contains($deployWorkflow, 'test "$SYNTAX_RESULT" = success')
+    && str_contains($deployWorkflow, 'test "$REQUIRED_RESULT" = success')
+    && str_contains($deployWorkflow, "  deploy:\n    needs: verify"));
 manifestCheck('PR workflow persists required-check timing artifacts', strpos($workflow, 'REQUIRED_CHECK_REPORT:') !== false && strpos($workflow, 'actions/upload-artifact@v4') !== false && strpos($workflow, 'required-check-report-') !== false);
 
 $total = $passed + $failed;
