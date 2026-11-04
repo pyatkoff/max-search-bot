@@ -1,0 +1,14 @@
+{
+  "operation": "commercial-price-source-20261104-moscow-yml-inspection2-prepare1",
+  "state": "CLOSED_WRONG_INPUT_ARTIFACT_NAME_BEFORE_INSPECTION_NO_SOURCE_GET",
+  "run": 41932928665,
+  "job": 126934109725,
+  "wrong_requested_artifact_name": "commercial-price-source-20261104-moscow-yml-inspection2",
+  "actual_original_artifact_name": "commercial-price-source-20261104-moscow-yml-inspection1",
+  "original_run": 41932708020,
+  "source_gets": 0,
+  "db_calls": 0,
+  "gateway_calls": 0,
+  "edits": 0,
+  "correction": "Fix exactly the input artifact block; keep distinct output name inspection2; no source download from URL again"
+}
