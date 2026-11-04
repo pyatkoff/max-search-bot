@@ -1,0 +1,142 @@
+{
+  "operation": "commercial-batch-20261104-41-contact",
+  "state": "PREPARED_NOT_EXECUTED_NOT_DELIVERED",
+  "goal": "Inspect ten never previously requested declared gallery photographs across two hotels within the ten proven retained candidates; prepare every actual ready cover without holding it for deferred candidates",
+  "boundaries": {
+    "baseline_published_per_channel": 157,
+    "baseline_live_feed_offers": [
+      156,
+      156,
+      312
+    ],
+    "proven_scope_hotel_ids": [
+      1416,
+      1491,
+      55828,
+      2144,
+      3469,
+      9321,
+      1201,
+      1198,
+      970,
+      967
+    ],
+    "new_primary_page_gets": 0,
+    "raw_photo_requests": 10,
+    "photo_hotel_ids": [
+      2144,
+      9321
+    ],
+    "readonly_groups": 2,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "old_photo_url_or_basename_repeats": 0,
+    "canva_transactions_opened": 0
+  },
+  "criteria": [
+    "Exact already retained official gallery URLs only; native roles remain distinct",
+    "All requested URLs and decoded basenames excluded against addressed contactplans34/35/36/37/38/39/40:168unique oldURLs",
+    "Actual declared 716x537/568x424 files are used exactly as declared; no larger version guessed or query removed",
+    "Rawguards and query policy unchanged; explicit only fs.dmarisbay.com and www.clubmarvy.com",
+    "BOM on every log line, timestamps, complete contact chunks, independently decoded byte count and SHA256, native pixels before any acceptance",
+    "Photographic whole complex or grounds hero plus two different exact property lower photographs and unchanged complete retained caption before cover readiness",
+    "Club Marvy slider references are unaccepted candidates; text banners, promotions, category-only scenes and one pool cannot qualify as whole property hero"
+  ],
+  "risks": [
+    "Some gallery files may be interiors, one pool, promotional banners or smaller than guards; no fallback URL or resize bypass",
+    "New pixel inspection and cover preparation are not publication delivery",
+    "Current production9678failed/TLSskipped prevents send/SSH/provider/DB; prepare independently only",
+    "Remaining eight candidates stay deferred; Selectumgallery0refs not reread, known rejected photographs remain closed"
+  ],
+  "source_retained_file": "commercial-batch-20261104-39-primary-sources-retained.json",
+  "source_run": 41876362524,
+  "allowed_exact_hosts": [
+    "fs.dmarisbay.com",
+    "www.clubmarvy.com"
+  ],
+  "new_input_scope_cases": 3,
+  "old_guard_fixtures_rerun": 0,
+  "groups": [
+    [
+      {
+        "hotel_id": 2144,
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001601_2_716x537.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/gallery",
+        "role": "h2144_new41_0"
+      },
+      {
+        "hotel_id": 2144,
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001612_3_568x424.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/gallery",
+        "role": "h2144_new41_1"
+      },
+      {
+        "hotel_id": 2144,
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001570_568x424_2.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/gallery",
+        "role": "h2144_new41_2"
+      },
+      {
+        "hotel_id": 2144,
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001575_716x537_2.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/gallery",
+        "role": "h2144_new41_3"
+      },
+      {
+        "hotel_id": 2144,
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001577_568x424_4.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/gallery",
+        "role": "h2144_new41_4"
+      }
+    ],
+    [
+      {
+        "hotel_id": 2144,
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001578_568x424_5.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/gallery",
+        "role": "h2144_new41_5"
+      },
+      {
+        "hotel_id": 2144,
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000002629_6.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/gallery",
+        "role": "h2144_new41_6"
+      },
+      {
+        "hotel_id": 2144,
+        "url": "https://fs.dmarisbay.com/cdn/uploads/000001509_night.jpg",
+        "primary_source_url": "https://dmarisbay.com/en/gallery",
+        "role": "h2144_new41_7"
+      },
+      {
+        "hotel_id": 9321,
+        "url": "https://www.clubmarvy.com/AdminWeb/images_pages/MARVYSLIDER_ENG_wo34glnp.jpg",
+        "primary_source_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/home",
+        "role": "h9321_new41_8"
+      },
+      {
+        "hotel_id": 9321,
+        "url": "https://www.clubmarvy.com/AdminWeb/images_pages/RastgeleSofrasi_Web_Slider_EN_y8rw537h.jpg",
+        "primary_source_url": "https://www.clubmarvy.com/en/beach-club-resort-turkey/home",
+        "role": "h9321_new41_9"
+      }
+    ]
+  ],
+  "retained_wholecaptions_file": "commercial-stock-20261104-41-source-notes.json",
+  "deferred_hotel_ids": [
+    1416,
+    1491,
+    55828,
+    3469,
+    1201,
+    1198,
+    970,
+    967
+  ],
+  "publication_ready_count": 0,
+  "new_posts": 0
+}
