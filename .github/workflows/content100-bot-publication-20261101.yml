@@ -1,4 +1,4 @@
-name: Bind retained Moscow price-feed filters to native names without new searches
+name: Inspect Moscow picture ID metadata and validate the new 72h historical price slice
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -39,12 +39,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/bind-retained-moscow-yml-20261104.py
+          python3 tools/direct_demand/operations/inspect-moscow-picture-ids-20261104.py
+          python3 tools/direct_demand/operations/validate-read10-72h-scope-20261104.py
+          php -l tools/direct_demand/operations/read-commercial-price-monitor-20261104-read10-72h.php
+          ANYTOUR_PRICE72_NEW_EXTENSION_FIXTURE=1 php tools/direct_demand/operations/read-commercial-price-monitor-20261104-read10-72h.php
       - name: Retain safe bounded crosswalk summary
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-source-20261104-moscow-yml-binding1
-          path: ${{ runner.temp }}/moscow-yml-binding-summary.json
+          name: commercial-price-source-20261104-moscow-picture-id-inspection1
+          path: ${{ runner.temp }}/moscow-picture-id-summary.json
           retention-days: 14
           if-no-files-found: warn

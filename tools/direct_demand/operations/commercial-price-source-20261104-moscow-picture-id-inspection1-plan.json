@@ -1,0 +1,15 @@
+{
+  "operation": "commercial-price-source-20261104-moscow-picture-id-inspection1",
+  "goal": "Check Pavel hypothesis that supplied picture URL carries Tourvisor ID",
+  "boundaries": [
+    "Original publicYML artifact only; no source/imageGET, DB, provider, edits",
+    "Print first10publicimagepath samples and schema counts; redactquery presence only, never export access-token query",
+    "Arbitrary numeric URL member is not nativehotelidentityproof"
+  ],
+  "criteria": [
+    "Inspect actualURLstructure, compare numericmembers to knownnativeIDs and currentnames before binding",
+    "No image import or hotelphoto rights inferred from source metadata"
+  ],
+  "source_gets": 0,
+  "photo_gets": 0
+}
