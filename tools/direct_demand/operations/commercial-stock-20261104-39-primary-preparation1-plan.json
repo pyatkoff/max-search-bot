@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-stock-20261104-39-primary-preparation1",
+  "state": "PRELOOKUP_PRIMARY_SOURCE_PREPARATION_NOT_NATIVE_IDENTITY_PROOF",
+  "goal": "Prepare official source facts and declared media references for the ten already fixed pending stock39 lookup groups while the production gate remains closed",
+  "baseline_published_per_channel": 157,
+  "baseline_live_offers": [
+    156,
+    156,
+    312
+  ],
+  "boundaries": {
+    "new_property_owner_page_requests": 9,
+    "reused_retained_owner_source30": 1,
+    "readonly_groups": 3,
+    "max_parallel": 2,
+    "old_owner_page_get_repeats": 0,
+    "raw_photo_gets": 0,
+    "canva_transactions": 0,
+    "server_connections": 0,
+    "database_reads": 0,
+    "database_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "new_native_ids_confirmed": 0,
+    "new_hotels_counted": 0,
+    "publication_ready_count": 0,
+    "new_publication_batches": 0
+  },
+  "criteria": [
+    "Exact official property URLs only; explicit three new owner hosts, not arbitraryCDNadmission",
+    "Fabay original ownerroot was read in30; retain it without a repeated GET",
+    "Every nativeID/country/active/name/product/registry0both binding remains pending the ORIGINAL fixed stock39 lookup after healthyrelease",
+    "No photo imports/covers/manifests/publications/monitor append until exact native identity is proven",
+    "FamilyLibertyLykia and AdultsOnly remain separate products; no sisterhotel/category/seasonalrights transfer",
+    "Source metadata is preparation and adds no ready material or deliverycredit"
+  ],
+  "risks": [
+    "Catalog lookups may be zero/ambiguous; source pages do not resolve native identity",
+    "GranadaOkurcalar2026summerPDF ended31Oct and gives no currentwinter/2027rights",
+    "No currentavailability/prices/roomcategoryuniversalrights inferred",
+    "Currentbot9678failed/TLSskipped still prohibits botSSH/provider/DBactions"
+  ],
+  "parser_functionality_unchanged": true,
+  "old_parser_fixtures_rerun": 0,
+  "new_owner_hosts_explicit": [
+    "www.guralpremier.com",
+    "clubhotelsera.com.tr",
+    "www.orangecounty.com.tr"
+  ],
+  "candidates": [
+    {
+      "key": "gural-belek",
+      "hotel": "Gural Premier Belek",
+      "url": "https://www.guralpremier.com/en/belek",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "gural-tekirova",
+      "hotel": "Gural Premier Tekirova",
+      "url": "https://www.guralpremier.com/en/tekirova",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "nirvana-dolce",
+      "hotel": "Nirvana Dolce Vita",
+      "url": "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "nirvana-cosmopolitan",
+      "hotel": "Nirvana Cosmopolitan",
+      "url": "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "liberty-fabay",
+      "hotel": "Liberty Fabay",
+      "url": "https://www.libertyhotels.com/en/hotels/liberty-fabay/",
+      "reuse_retained_source30": true,
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "liberty-lykia",
+      "hotel": "Liberty Lykia",
+      "url": "https://www.libertyhotels.com/en/hotels/liberty-lykia/",
+      "separate_adults_only_product_excluded": true,
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "tui-blue-palm",
+      "hotel": "TUI BLUE Palm Garden",
+      "url": "https://www.tui-blue.com/en/en/hotels/tui-blue-palm-garden/",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "club-hotel-sera",
+      "hotel": "Club Hotel Sera",
+      "url": "https://clubhotelsera.com.tr/en/",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "orange-kemer",
+      "hotel": "Orange County Kemer",
+      "url": "https://www.orangecounty.com.tr/kemer/en",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    },
+    {
+      "key": "granada-okurcalar",
+      "hotel": "Granada Luxury Okurcalar",
+      "url": "https://granada.com.tr/en/our-hotels/granada-luxury-okurcalar/",
+      "expired_summer2026_pdf_not_current_rights": true,
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding"
+    }
+  ]
+}
