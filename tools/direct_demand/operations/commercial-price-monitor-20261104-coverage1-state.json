@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-price-monitor-20261104-coverage1",
+  "state": "CLOSED_NEW_AGGREGATES_PROVE_DIFFERENT_FRESH_SOURCES",
+  "run": 41897913904,
+  "job": 126812274452,
+  "source_commit": "1beda4eb74b6e092fd64827bed404d902dedc03e",
+  "summary": {
+    "contains_tour_ids_or_fingerprints_or_prices": false,
+    "counts": {
+      "dates_outside_window_rows": 0,
+      "last_persisted_epoch_utc": 1793819004,
+      "nonpositive_rows": 0,
+      "nonstandard_party_rows": 0,
+      "other_currency_rows": 0,
+      "recent_scope_hotels": 13,
+      "recent_scope_rows": 16,
+      "scheduled_future_rub_positive_rows": 0,
+      "scheduled_recent_rows": 0,
+      "standard_party_rows": 0
+    },
+    "created_after_persistence_epoch_utc": 1793812524,
+    "current_availability_verified": false,
+    "db_writes": 0,
+    "final_total_verified": false,
+    "installed_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+    "max_age_seconds": 108000,
+    "message_sends": 0,
+    "mode": "read_published_scope_price_coverage_aggregates",
+    "ok": true,
+    "operation": "commercial-price-monitor-20261104-coverage1",
+    "party_aggregate_groups": [],
+    "provider_calls": 0,
+    "readback_epoch_utc": 1793820762,
+    "scope_hotels": 157
+  },
+  "raw_tour_ids_or_fingerprints_or_prices_returned": false,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_edits": 0,
+  "next_new_input": "16freshpersistedrows13publishedhotels; separateexactwhitelisteduser_search/hot_tours retainedread9, same30h/2A0/future/RUB guards"
+}

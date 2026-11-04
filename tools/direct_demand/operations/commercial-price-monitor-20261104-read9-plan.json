@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-price-monitor-20261104-read9",
+  "state": "PREPARED_NEW_FRESH_RETAINED_SOURCE_SCOPE",
+  "goal": "Use the newly proven16fresh observations across13publishedhotels from other trusted observer sources; verify exact eligible retained contexts before quotes",
+  "boundaries": {
+    "scope_hotels": 157,
+    "source_allowlist": [
+      "user_search",
+      "hot_tours"
+    ],
+    "new_input_coverage_run": 41897913904,
+    "new_input_recent_rows": 16,
+    "new_input_recent_hotels": 13,
+    "persistence_cutoff": "max(1793812524,runtimeUTCepoch-108000)",
+    "max_age_seconds": 108000,
+    "adults": 2,
+    "children": 0,
+    "child_signature": "",
+    "currency": "RUB",
+    "departure_from": "2026-11-04",
+    "departure_through": "2027-02-02",
+    "max_rows_per_hotel": 2,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_edits": 0,
+    "new_posts": 0,
+    "collector_or_observer_changes": 0,
+    "private_context": "authenticatedartifactonly"
+  },
+  "criteria": [
+    "Actual price-observer-v1.php at8b37744 whitelists user_search/scheduled_monitor/hot_tours and persists trusted tour search context; do not change observer",
+    "Newcoverage proves scheduled_recent_rows0 but scoped_recent_rows16 after17:15; this is newappropriatefreshretainedinput, not repeating oldzeroquery",
+    "Unchanged157identityscope/typed15/native7/name-review safeguards; newsourceperrow recorded and allowlistverified",
+    "Native3newsourcecases+PHP-l beforeSSH; no unchangedoldage/scope/updater/gatecasesrerun",
+    "All currentmain/deploy/TLS/diagnostics/full21/host/installedclean/schema/readonlygates remain",
+    "Exact currentnativeidentity/name/party/terms/fingerprint/age/dedup and durableintent before one justified quote; no rawprice treatedfinaltotal/availability"
+  ],
+  "risks": [
+    "The fresh rows may not match2A0children or the date/currencyterms; no forcedselection",
+    "Usersearch observations are publiccatalogue observations only; no customer/dialogue/orderdata read",
+    "Provider price may differ or lack actual flights; do not edit until verified"
+  ],
+  "source_contract_evidence": "pyatkoff/poisk-turov-test@8b37744b5f7d86d761d37551452b0be931e48024/v2/data/price-observer-v1.php",
+  "approved_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+}
