@@ -90,7 +90,7 @@ DialogueView::managerRequest(15,'Pavel',true);
 dvCheck('manager after tours back',$m->sent[5]['back']??null,'tours_checked');
 
 DialogueView::managerRequest(17,'Pavel',false,true);
-dvCheck('outside-hours manager uses owner morning copy',strpos($m->sent[6]['text']??'','Он ответит вам утром в этом чате.')!==false,true);
+dvCheck('outside-hours manager uses Moscow working-hours copy',strpos($m->sent[6]['text']??'','Он ответит в этом чате в рабочее время: с 11:00 до 21:00 МСК.')!==false,true);
 $deletesBeforeFallback=MaxSearchApi::$deletes;
 DialogueView::managerPhoneFallback(18,true);
 dvCheck('fallback uses delayed response copy',strpos($m->sent[7]['text']??'','не успел ответить')!==false,true);

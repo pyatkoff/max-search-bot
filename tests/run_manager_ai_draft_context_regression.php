@@ -261,6 +261,30 @@ if (($argv[1]??'')==='--hotel-knowledge-http') {
 
 try {
     $pdo = draftContextFixture();
+    $unmarkedClock = draftContextCapture($pdo);
+    $clockReceipt = json_encode(ConversationRecordClock::stamp(['type'=>'message'], strtotime('2026-11-04T07:26:00Z')), JSON_THROW_ON_ERROR);
+    $pdo->prepare('UPDATE messages SET created_at=?,metadata_json=? WHERE id=1')->execute(['2026-11-04 10:26:00',$clockReceipt]);
+    $pdo->prepare('UPDATE messages SET created_at=?,metadata_json=? WHERE id=2')->execute(['2026-11-04 07:26:00',$clockReceipt]);
+    $clockRows = $pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();
+    $clocked = draftContextCapture($pdo);
+    draftContextCheck('reply context uses explicit server instants independent of bare SQL clock base',
+        $clocked['ok'] && array_column($clocked['context']['messages'],'created_at') === ['2026-11-04T07:26:00Z','2026-11-04T07:26:00Z']
+        && draftContextIds($clocked) === [1,2] && $clocked['revision'] !== $unmarkedClock['revision']
+        && $pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll() === $clockRows
+        && (int)$pdo->query('SELECT last_read_message_id FROM manager_conversation_reads')->fetchColumn() === 1
+        && !str_contains(json_encode($clocked['context']),'_recorded_clock'));
+    $pdo->exec("UPDATE messages SET created_at='2026-11-04 09:26:00' WHERE id=1");
+    $sameInstant = draftContextCapture($pdo);
+    draftContextCheck('raw source edits still invalidate context despite identical display instants',
+        $sameInstant['context']['messages'] === $clocked['context']['messages'] && $sameInstant['revision'] !== $clocked['revision']);
+    $invalidClock = json_encode(['type'=>'message','_recorded_clock'=>['version'=>1,'basis'=>'server_recording_unix','unix'=>'1793777160']], JSON_THROW_ON_ERROR);
+    $pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=1')->execute([$invalidClock]);
+    $pdo->exec('UPDATE messages SET metadata_json=NULL WHERE id=2');
+    $unknownClock = draftContextCapture($pdo);
+    draftContextCheck('unmarked and malformed clocks remain unguessed in reply context',
+        array_column($unknownClock['context']['messages'],'created_at') === ['2026-11-04 09:26:00','2026-11-04 07:26:00']);
+
+    $pdo = draftContextFixture();
     $before = $pdo->query('SELECT * FROM projects')->fetchAll();
     $first = draftContextCapture($pdo);
     draftContextCheck('owned visible conversation returns a chronological complete snapshot', $first['ok'] && draftContextIds($first) === [1,2] && $first['latest_message_id'] === 2 && !$first['history_incomplete'] && $first['context']['as_of_message_id'] === 2);

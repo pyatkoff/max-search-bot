@@ -2,6 +2,7 @@
 require_once __DIR__ . '/DialogueView.php';
 require_once __DIR__ . '/MissingFieldQuestionService.php';
 require_once __DIR__ . '/OptionalBudgetPromptService.php';
+require_once __DIR__ . '/SourceHandlingService.php';
 
 /**
  * Canonical progression boundary after trip-need state has been mutated.
@@ -19,6 +20,11 @@ class NeedProgressionService
             : [];
 
         if (empty($missing)) {
+            $qualification=SourceHandlingService::completeQualification($chatId,$questionOptions);
+            if($qualification!==null){
+                if(!$qualification)DialogueView::sourceQualificationStart($chatId,[],false);
+                return ['complete'=>true,'missing'=>[],'next_field'=>null];
+            }
             // The optional budget clarification belongs to the first completed
             // check of the current start-session only. Reusing the existing
             // statusCheck row avoids a second prompt after later corrections
