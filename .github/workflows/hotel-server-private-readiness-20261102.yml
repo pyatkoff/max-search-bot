@@ -1,4 +1,4 @@
-name: Apply the canonical hotel catalog projection schema once
+name: Verify fixed accepted hotel catalog delivery once through the existing private channel
 on:
   push:
     branches: [ops/hotel-server-private-activation-20261102]
@@ -6,13 +6,12 @@ on:
 permissions:
   contents: read
   actions: read
-  issues: read
 concurrency:
   group: hotel-server-private-activation
   cancel-in-progress: false
 jobs:
-  private_schema_setup:
-    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '93b47285c645e1179f49be74408733c2125f8790' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+  private_observation:
+    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '4be9516b0871bee9aa337a1120178f3f20533acb' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -28,8 +27,8 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib,re
           root=pathlib.Path(os.environ['RUNNER_TEMP'])
-          operator_blob = '03e5c0eaab19a0c795dd9ffb0247e636863a91e1'
-          operator_sha = '317cb305895b5f50a2171792a99b4c345e910706f514288493d9388f49a71363'
+          operator_blob = '2d70345f424542b0f6b0ddf426a121a913ee0d66'
+          operator_sha = '1d93c8aa8d2ff7511b7a4085fa8c5c69154a4d3d25365ab1fc0209ba3a24516f'
           builder_blob = '3f1f772991e633438fb7f78ec0aab5c5e71503a2'
           builder_sha = 'f46e24b7d298891ab06bc61c675afe0867f7a34f79432406b4b25affc512e38f'
           for input_name,output_name,expected_blob,expected_sha,limit in [
@@ -61,41 +60,37 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_handoff_refusal.json').read_text())
-          assert d=={'operation':'hotel-server-private-correction-v1','state':'HOLD','reason':'target_unconfirmed','operator_provider_calls':0}
+          assert d=={'operation':'hotel-server-private-incident-v1','state':'HOLD','reason':'target_unconfirmed','operator_provider_calls':0}
           PY
       - name: Verify local diagnostic encryption before loading server credentials
         shell: bash
         run: |
           set -euo pipefail
           python3 -B "$RUNNER_TEMP/build_hotel_server_handoff.py" --check-runner-diagnostics "$RUNNER_TEMP/hotel_handoff.php"
-      - name: Verify the original probe and admitted existing publisher before credentials
+      - name: Verify the original schema installation and exact installed release before credentials
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          gh api 'repos/pyatkoff/max-search-bot/actions/runs/41847768588' >"$RUNNER_TEMP/hotel_catalog_predecessor.json"
-          gh api 'repos/pyatkoff/max-search-bot/actions/runs/41845980299' >"$RUNNER_TEMP/hotel_catalog_deploy.json"
+          gh api 'repos/pyatkoff/max-search-bot/actions/runs/41850853997' >"$RUNNER_TEMP/hotel_catalog_predecessor.json"
+          gh api 'repos/pyatkoff/max-search-bot/actions/runs/41851487224' >"$RUNNER_TEMP/hotel_catalog_deploy.json"
           gh api 'repos/pyatkoff/max-search-bot/git/ref/heads/main' >"$RUNNER_TEMP/hotel_catalog_main.json"
-          gh api 'repos/pyatkoff/max-search-bot/issues/comments/6608084807' >"$RUNNER_TEMP/hotel_catalog_publisher.json"
           python3 - <<'PY'
           import os,json,pathlib
           root=pathlib.Path(os.environ['RUNNER_TEMP'])
           original=json.loads((root/'hotel_catalog_predecessor.json').read_text())
           deploy=json.loads((root/'hotel_catalog_deploy.json').read_text())
           main=json.loads((root/'hotel_catalog_main.json').read_text())
-          publisher=json.loads((root/'hotel_catalog_publisher.json').read_text())
-          assert original['id']==41847768588 and original['head_sha']=='93b47285c645e1179f49be74408733c2125f8790'
+          assert original['id']==41850853997 and original['head_sha']=='4be9516b0871bee9aa337a1120178f3f20533acb'
           assert original['event']=='push' and original['run_attempt']==1
           assert original['status']=='completed' and original['conclusion']=='success'
-          assert deploy['id']==41845980299 and deploy['head_sha']=='5f959c91ced2c19c74f3aaabee986963d79942a4'
+          assert deploy['id']==41851487224 and deploy['head_sha']=='08f821759be6f63c324d5419c3104551313c1e79'
           assert deploy['path']=='.github/workflows/deploy.yml' and deploy['event']=='push' and deploy['run_attempt']==1
           assert deploy['status']=='completed' and deploy['conclusion']=='success'
-          assert main['object']['sha']=='5f959c91ced2c19c74f3aaabee986963d79942a4'
-          assert publisher['id']==6608084807 and publisher['user']['id']==226193297
-          assert publisher['body']=='PR1329: выпуск занят' and publisher['updated_at']=='2026-11-04T14:43:21Z'
-          print('{"original_predecessor":"closed","installed_release":"success","existing_publisher":"confirmed","maximum_ddl_statements":1,"provider_calls":0}')
+          assert main['object']['sha']=='08f821759be6f63c324d5419c3104551313c1e79'
+          print('{"original_schema_installation":"closed","installed_release":"success","observation":"read_only","provider_calls":0}')
           PY
       - name: Prepare the existing administrator connection and approved host continuity
         env:
@@ -129,7 +124,7 @@ jobs:
           assert approved,'Existing host continuity mismatch; STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_handoff_hosts').write_text('\n'.join(approved)+'\n')
           PY
-      - name: Apply one exact canonical catalog CREATE statement or observe compatible no-op
+      - name: Read fixed accepted receipts after natural catalog delivery without dispatch
         id: handoff
         env:
           CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -147,22 +142,22 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib,sys
           root=pathlib.Path(os.environ['RUNNER_TEMP']);ok=False;status=int(os.environ['HOTEL_HANDOFF_STATUS'])
-          safe={'operation':'hotel-server-private-correction-v1','state':'HOLD','reason':'schema_setup_result_unconfirmed','operator_provider_calls':0}
+          safe={'operation':'hotel-server-private-incident-v1','state':'HOLD','reason':'readback_result_unconfirmed','operator_provider_calls':0}
           try:
               p=root/'hotel_handoff_raw.private';assert 0<p.stat().st_size<=786432
               d=json.loads(p.read_text());assert type(d) is dict
-              assert d['operation']=='hotel-server-private-correction-v1' and type(d['operator_provider_calls']) is int and d['operator_provider_calls']==0
+              assert d['operation']=='hotel-server-private-incident-v1' and type(d['operator_provider_calls']) is int and d['operator_provider_calls']==0
               if d['state']=='sealed':
                   assert set(d)=={'operation','state','operator_provider_calls','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256'}
                   assert d['algorithm']=='RSA-OAEP-SHA1+A256GCM' and d['recipient_sha256']=='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d'
-                  assert d['aad']=='hotel-server-private-correction-v1|5f959c91ced2c19c74f3aaabee986963d79942a4|e18b91adecaf204373ee8604b8e201923bcc6ded9ca64a5a421c7e1571591dbb'
+                  assert d['aad']=='hotel-server-private-incident-v1|08f821759be6f63c324d5419c3104551313c1e79|86e350b2136ddd050a254da79b1c0b57ebc57a1990609ec1b308ccbb93d5a21c'
                   decoded={k:base64.b64decode(d[k],validate=True) for k in ['key','nonce','tag','ciphertext']}
                   assert len(decoded['key'])==384 and len(decoded['nonce'])==12 and len(decoded['tag'])==16
                   assert 0<len(decoded['ciphertext'])<=524288 and hashlib.sha256(decoded['ciphertext']).hexdigest()==d['ciphertext_sha256']
                   safe=d;ok=True
               else:
                   assert status!=0 and set(d)=={'operation','state','reason','operator_provider_calls'} and d['state']=='HOLD'
-                  assert d['reason'] in {'target_unconfirmed','sealed_apply_result_unconfirmed'}
+                  assert d['reason'] in {'target_unconfirmed','sealed_readback_result_unconfirmed'}
                   safe=d
           except Exception:pass
           (root/'hotel_handoff_sealed.json').write_text(json.dumps(safe,sort_keys=True)+'\n')
@@ -172,7 +167,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hotel-server-private-catalog-schema-setup-sealed
+          name: hotel-server-private-catalog-delivery-sealed
           path: ${{ runner.temp }}/hotel_handoff_sealed.json
           retention-days: 7
           if-no-files-found: ignore
@@ -217,7 +212,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always() && steps.runner_diagnostic.outcome == 'success' && steps.runner_diagnostic.outputs.sealed == 'true'
         with:
-          name: hotel-server-private-catalog-schema-setup-diagnostic
+          name: hotel-server-private-catalog-delivery-diagnostic
           path: ${{ runner.temp }}/hotel_handoff_runner_diagnostic.sealed.json
           retention-days: 7
           if-no-files-found: ignore
@@ -225,5 +220,5 @@ jobs:
         if: always()
         shell: bash
         run: |
-          rm -f "$RUNNER_TEMP/hotel_catalog_predecessor.json" "$RUNNER_TEMP/hotel_catalog_deploy.json" "$RUNNER_TEMP/hotel_catalog_main.json" "$RUNNER_TEMP/hotel_catalog_publisher.json" "$RUNNER_TEMP/hotel_handoff_source.json" "$RUNNER_TEMP/hotel_handoff_builder.json" "$RUNNER_TEMP/build_hotel_server_handoff.py" "$RUNNER_TEMP/hotel_boundary_fixture.php" "$RUNNER_TEMP/hotel_handoff.php" "$RUNNER_TEMP/hotel_handoff_refusal.json" "$RUNNER_TEMP/hotel_handoff_key" "$RUNNER_TEMP/hotel_handoff_hosts" "$RUNNER_TEMP/hotel_handoff_raw.private" "$RUNNER_TEMP/hotel_handoff_stderr.private" "$RUNNER_TEMP/hotel_handoff_status.private" "$RUNNER_TEMP/hotel_handoff_sealed.json" "$RUNNER_TEMP/hotel_handoff_runner_diagnostic.sealed.json"
+          rm -f "$RUNNER_TEMP/hotel_catalog_predecessor.json" "$RUNNER_TEMP/hotel_catalog_deploy.json" "$RUNNER_TEMP/hotel_catalog_main.json" "$RUNNER_TEMP/hotel_handoff_source.json" "$RUNNER_TEMP/hotel_handoff_builder.json" "$RUNNER_TEMP/build_hotel_server_handoff.py" "$RUNNER_TEMP/hotel_boundary_fixture.php" "$RUNNER_TEMP/hotel_handoff.php" "$RUNNER_TEMP/hotel_handoff_refusal.json" "$RUNNER_TEMP/hotel_handoff_key" "$RUNNER_TEMP/hotel_handoff_hosts" "$RUNNER_TEMP/hotel_handoff_raw.private" "$RUNNER_TEMP/hotel_handoff_stderr.private" "$RUNNER_TEMP/hotel_handoff_status.private" "$RUNNER_TEMP/hotel_handoff_sealed.json" "$RUNNER_TEMP/hotel_handoff_runner_diagnostic.sealed.json"
 
