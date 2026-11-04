@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-price-update-20261104-2-v1",
+  "goal": "Add actualized wholebasket726423RUB to the two existing DelphinImperialLara posts",
+  "boundaries": [
+    "Existingcanonicalregistry/once/flock/fsync/updater, no newposts/photo/button/source replacement",
+    "Quote2 onegatewaycall alreadycompleted; fullquote/manifest/receipts onlyauthenticatedartifacts",
+    "Exactdurableintent andcurrentSource21/TLS/host/schema/identity/liveguard beforeedits",
+    "Pavel's30hour108000secondwindow; no old1houror3hourrestriction"
+  ],
+  "criteria": [
+    "Quote2selectedindex1 real2S142/2S011,noPlacesfalse/onDemandfalse,05Nov..16Nov2026/11n/2A/UAI/exactroom",
+    "Finalbasketwhole726423RUB,fuelnotadded; quotecheck04Nov07:16UTC",
+    "Both existingbodiesedited andphotos/buttons/source/versioncontext verified;newposts0"
+  ],
+  "risks": [
+    "No automaticretry ifunknown providerwrite; reconcileoriginaloperation",
+    "Finalquote ishistoricalchecktime,notapriceguarantee"
+  ],
+  "catalog_ids": [
+    9432
+  ],
+  "expected_installed_sha": "0a8f5ec6f049369e67f36372ffb8917059b9fda7",
+  "quote_original_run": 41791108063,
+  "quote_review_run": 41791986800,
+  "max_age_seconds": 108000,
+  "max_content_edits": 2,
+  "new_posts": 0
+}
