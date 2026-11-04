@@ -1,0 +1,25 @@
+{
+  "operation": "commercial-batch38-covers-20261104-read1",
+  "goal": "Verify single ready Susesi cover native PNG before immutablefreeze andpairedpublication; do not holdfornineunresolved candidates",
+  "boundaries": {
+    "server_connections": 0,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "message_sends": 0,
+    "permanent_canva_saves": 0
+  },
+  "criteria": [
+    "ExactnativePNGbytes/chunks/SHA/dimensions/visualhotelgrounds+branding+title",
+    "Stopifhero cropdoesnotclearlyshowtargethotelterritory"
+  ],
+  "risks": [
+    "Aerialframecontainslargewaterarea",
+    "Preparationnotdelivery"
+  ],
+  "hotel_ids": [
+    1543
+  ],
+  "state": "PREPARED_NOT_SENT",
+  "baseline_logical_hotels": 156,
+  "canva_transaction_id": "5435239988274163195"
+}
