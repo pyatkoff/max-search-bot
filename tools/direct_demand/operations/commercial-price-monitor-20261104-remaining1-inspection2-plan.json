@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-price-monitor-20261104-remaining1-inspection2",
+  "goal": "Determine precisely why the only nonerror remaining quote did not admit a price edit, and verify declared scheduled collector workflow state",
+  "boundaries": [
+    "Original authenticated result235 and declared-error categories from same original pass only; no repeat gateway, DB, SSH or edits",
+    "Console booleans/counts/nativeID/name only; no full private error, amount, tuple, flightnumbers, publicationdata",
+    "Read public GitHub collector workflow state only; no dispatch, enable, cron or budget modification"
+  ],
+  "criteria": [
+    "Report exact noPlaces/onDemand/nonplaceholder/date/inclusion contract booleans",
+    "No old unchanged fixture reruns",
+    "Unsupported connector workflow-state endpoint is a capability limitation; use existing GHA read-only GitHub API route without export of tokens"
+  ],
+  "risks": [
+    "Reported keyword indicators are not an established supplier root cause",
+    "Workflow active state alone does not prove an actual scheduled production collection"
+  ],
+  "quote_run": 41930421093,
+  "hotel_id": 235,
+  "max_gateway_calls": 0,
+  "max_server_calls": 0,
+  "max_db_calls": 0,
+  "max_edits": 0,
+  "reason": "Correct over-escaped whitespace normalization in pure inspection classifier; original actual updater uses correct normalization and has not edited anything",
+  "only_original_hotel_id": 235,
+  "repeated_collector_metadata_calls": 0,
+  "repeated_other_error_category_reads": 0,
+  "server_calls": 0,
+  "gateway_calls": 0,
+  "edits": 0
+}

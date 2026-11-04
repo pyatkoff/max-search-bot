@@ -1,4 +1,4 @@
-name: Inspect the rejected remaining price contract and scheduled collector state without server calls
+name: Verify exact rejected flight number classification without any new quote
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -33,26 +33,12 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/direct_demand/operations/inspect-commercial-price-20261104-remaining1.py
-      - name: Read the declared collector workflow state without dispatching or modifying it
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh api repos/pyatkoff/poisk-turov-test/actions/workflows/collect-anytour-tours.yml > "$RUNNER_TEMP/collector-workflow-metadata.json"
-          python3 - <<'PY'
-          import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'collector-workflow-metadata.json').read_text())
-          assert d['path']=='.github/workflows/collect-anytour-tours.yml'
-          print(json.dumps({k:d.get(k) for k in ['id','name','path','state','updated_at']}))
-          PY
       - name: Retain safe bounded inspection evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-remaining1-inspection1
+          name: commercial-price-monitor-20261104-remaining1-inspection2
           path: |
             ${{ runner.temp }}/price-focus-inspection.json
-            ${{ runner.temp }}/collector-workflow-metadata.json
           retention-days: 14
           if-no-files-found: warn
