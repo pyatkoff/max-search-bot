@@ -16,9 +16,9 @@
     "Unknownexistinghash/sourcechange muststop",
     "Naturalpaiduserlaunchstillunobserved/TGdirectpendingPavelfiles"
   ],
-  "source_sha": "fb60a495c4a8d992810aae23f00c60a5b5cd7549",
-  "source_deploy": 41842067565,
-  "source_tls": 41843167599,
+  "source_sha": "08f821759be6f63c324d5419c3104551313c1e79",
+  "source_deploy": 41851487224,
+  "source_tls": 41852814369,
   "files": [
     {
       "name": "hotel-posts-telegram.xml",
@@ -43,5 +43,7 @@
     }
   ],
   "precommit_source_change_count": 1,
-  "previous_writer_attempts": 0
+  "previous_writer_attempts": 1,
+  "previous_attempt_stopped_before_intent_ssh_or_write": true,
+  "concrete_release_wait_closed": "Original08fdeployverify/deployandTLSsuccess"
 }
