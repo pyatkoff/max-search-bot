@@ -119,10 +119,10 @@ jobs:
             tests/mysql/development-work-events.php; do
             start=$SECONDS
             if php "$test"; then
-              printf 'MYSQL_TEST_TIMING test=%s seconds=%d status=success\\n' "$test" "$((SECONDS-start))"
+              printf 'MYSQL_TEST_TIMING test=%s seconds=%d status=success\n' "$test" "$((SECONDS-start))"
             else
               result=$?
-              printf 'MYSQL_TEST_TIMING test=%s seconds=%d status=failure exit=%d\\n' "$test" "$((SECONDS-start))" "$result"
+              printf 'MYSQL_TEST_TIMING test=%s seconds=%d status=failure exit=%d\n' "$test" "$((SECONDS-start))" "$result"
               exit "$result"
             fi
           done
