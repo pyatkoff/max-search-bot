@@ -15,6 +15,7 @@ final class ModeledConversionAcquisitionStatsReader
     private float $deadline;
     private int $records=0,$bytes=0,$queries=0;
     private array $sources=[];
+    private string $admittedScopeSql='';
     public function __construct(private PDO $pdo,callable $authorize)
     {
         $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
@@ -24,7 +25,7 @@ final class ModeledConversionAcquisitionStatsReader
     public function read(array $input,int $now):array
     {
         $this->auth();$filters=$this->filters($input,$now);
-        $this->deadline=microtime(true)+self::MAX_SECONDS;$this->records=$this->bytes=$this->queries=0;
+        $this->deadline=microtime(true)+self::MAX_SECONDS;$this->records=$this->bytes=$this->queries=0;$this->admittedScopeSql='';
         $this->sources=['profile_fence'=>'0','profiles_examined'=>0,'projected_records'=>0,
             'first_profile_at'=>null,'last_profile_at'=>null,'missing_clock'=>0,'revised_sources'=>0,
             'unusable_semantic_candidates'=>0,'profiles_without_usable_packet'=>0,'limited_profile_windows'=>0,
@@ -54,7 +55,8 @@ final class ModeledConversionAcquisitionStatsReader
                 .($filters['platform']==='all'?'':" AND platform='".$filters['platform']."' AND HEX(platform)=HEX('".$filters['platform']."')");
             $inputCount=$this->rows('SELECT COUNT(*) AS n FROM modeled_conversion_profile_versions WHERE '.$potential.' AND id<=? AND observed_at_unix<=?',[$fence,$now])[0];
             if((int)$inputCount['n']>self::MAX_RECORDS)throw new ModeledConversionAcquisitionReadFailure('record_limit');
-            $where=$this->profileScope($filters['platform']).$this->latestBarrier($fence,$now).' AND p.id<=? AND p.observed_at_unix<=?';
+            $this->admittedScopeSql=$this->admittedScopes($filters['platform'],$fence,$now);
+            $where=$this->profileScope($filters['platform']).' AND p.id<=? AND p.observed_at_unix<=?';
             $scopeArgs=[$fence,$now];
             $meta=$this->rows('SELECT COUNT(*) AS n,MIN(p.observed_at_unix) AS lo,MAX(p.observed_at_unix) AS hi '.$this->profileFrom().' WHERE '.$where,$scopeArgs)[0];
             $count=(int)$meta['n'];$this->sources['profiles_examined']=$count;
@@ -242,7 +244,10 @@ final class ModeledConversionAcquisitionStatsReader
     }
     private function profileFrom():string
     {
-        return ' FROM modeled_conversion_profile_versions p JOIN conversations c ON c.id=CAST(p.conversation_id AS '.($this->mysql?'UNSIGNED':'INTEGER').') AND c.customer_id=CAST(p.customer_key AS '.($this->mysql?'UNSIGNED':'INTEGER').') AND HEX(CAST(c.id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(p.conversation_id) AND HEX(CAST(c.customer_id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(p.customer_key) AND c.project_key=p.project_key AND c.channel=p.platform AND HEX(c.project_key)=HEX(p.project_key) AND HEX(c.channel)=HEX(p.platform)'
+        return ' FROM modeled_conversion_profile_versions p JOIN ('.$this->admittedScopeSql.') admitted'
+            .' ON admitted.project_key=p.project_key AND admitted.platform=p.platform AND admitted.customer_key=p.customer_key AND admitted.conversation_id=p.conversation_id'
+            .' AND HEX(admitted.project_key)=HEX(p.project_key) AND HEX(admitted.platform)=HEX(p.platform) AND HEX(admitted.customer_key)=HEX(p.customer_key) AND HEX(admitted.conversation_id)=HEX(p.conversation_id)'
+            .' JOIN conversations c ON c.id=CAST(p.conversation_id AS '.($this->mysql?'UNSIGNED':'INTEGER').') AND c.customer_id=CAST(p.customer_key AS '.($this->mysql?'UNSIGNED':'INTEGER').') AND HEX(CAST(c.id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(p.conversation_id) AND HEX(CAST(c.customer_id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(p.customer_key) AND c.project_key=p.project_key AND c.channel=p.platform AND HEX(c.project_key)=HEX(p.project_key) AND HEX(c.channel)=HEX(p.platform)'
             .' JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel)';
     }
     private function profileScope(string $platform):string
@@ -250,12 +255,23 @@ final class ModeledConversionAcquisitionStatsReader
         return "p.project_key='anytour' AND HEX(p.project_key)=HEX('anytour') AND p.platform IN ('max','telegram') AND HEX(p.platform) IN (HEX('max'),HEX('telegram')) AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')
             .($platform==='all'?'':" AND HEX(p.platform)=HEX('".$platform."')");
     }
-    private function latestBarrier(string $fence,int $now):string
+    private function admittedScopes(string $platform,string $fence,int $now):string
     {
         if(!preg_match('/\A[0-9]{1,20}\z/D',$fence))throw new ModeledConversionAcquisitionReadFailure('source_changed');
-        $equal="lp.project_key=p.project_key AND lp.platform=p.platform AND lp.customer_key=p.customer_key AND lp.conversation_id=p.conversation_id AND HEX(lp.project_key)=HEX(p.project_key) AND HEX(lp.platform)=HEX(p.platform) AND HEX(lp.customer_key)=HEX(p.customer_key) AND HEX(lp.conversation_id)=HEX(p.conversation_id)";
-        $same="n.project_key=p.project_key AND n.platform=p.platform AND n.customer_key=p.customer_key AND n.conversation_id=p.conversation_id AND HEX(n.project_key)=HEX(p.project_key) AND HEX(n.platform)=HEX(p.platform) AND HEX(n.customer_key)=HEX(p.customer_key) AND HEX(n.conversation_id)=HEX(p.conversation_id)";
-        return " AND EXISTS (SELECT 1 FROM modeled_conversion_profile_versions lp WHERE $equal AND lp.id=(SELECT n.id FROM modeled_conversion_profile_versions n WHERE $same AND n.id<=$fence AND n.observed_at_unix<=$now ORDER BY n.id DESC LIMIT 1) AND HEX(".$this->str($this->safe('lp.profile_json'),$this->lit('$.access_status')).")=HEX('allowed'))";
+        $keys=['project_key','platform','customer_key','conversation_id'];
+        $inner='SELECT '.implode(',',array_map(static fn(string $k):string=>'n.'.$k,$keys)).',MAX(n.id) AS latest_id'
+            ." FROM modeled_conversion_profile_versions n WHERE n.project_key='anytour' AND HEX(n.project_key)=HEX('anytour')"
+            ." AND n.platform IN ('max','telegram') AND HEX(n.platform) IN (HEX('max'),HEX('telegram'))"
+            .($platform==='all'?'':" AND n.platform='".$platform."' AND HEX(n.platform)=HEX('".$platform."')")
+            ." AND n.id<=$fence AND n.observed_at_unix<=$now GROUP BY ".implode(',',array_map(static fn(string $k):string=>'n.'.$k,$keys));
+        $columns=implode(',',array_map(static fn(string $k):string=>'g.'.$k,$keys));
+        $equal=implode(' AND ',array_map(static fn(string $k):string=>'lp.'.$k.'=g.'.$k.' AND HEX(lp.'.$k.')=HEX(g.'.$k.')',$keys));
+        // Both grouped derived tables are deliberate materialization boundaries.
+        // MAX sees every version before access admission; latest denial cannot revive older facts.
+        // Access JSON is evaluated once per latest scope, never correlated to each historical row.
+        return 'SELECT '.$columns.' FROM ('.$inner.') g JOIN modeled_conversion_profile_versions lp ON lp.id=g.latest_id AND '.$equal
+            .' WHERE HEX('.$this->str($this->safe('lp.profile_json'),$this->lit('$.access_status')).")=HEX('allowed')"
+            .' GROUP BY '.$columns;
     }
     private function interestPaths(string $doc):string
     {

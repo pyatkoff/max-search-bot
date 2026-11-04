@@ -192,6 +192,51 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     foreach([['date'=>'2026-02-30'],['date'=>'2026-11-05'],['period'=>8],['period'=>'30'],['platform'=>'other']]as$invalid){
         $rejected=false;try{$read($invalid);}catch(InvalidArgumentException $e){$rejected=true;}$check($rejected,'invalid filter remains rejected '.json_encode($invalid));
     }
+    // The live failure was below the work cap: latest allowed JSON was revisited
+    // for every historical version. Build a real-shaped service-only history and
+    // one latest 50-message packet, rather than testing only the >50k early exit.
+    $reset();$person(10,'max');$historyRefs=[];
+    $subject=['project_key'=>'anytour','platform'=>'max','customer_key'=>'10','conversation_id'=>'10'];
+    $pdo->beginTransaction();
+    for($i=0;$i<1999;$i++){
+        $at=$now-14000+$i;$observed=$at+2;$jid=(string)++$journalId;$mid=(string)++$messageId;
+        $snapshot=['source_kind'=>'message','source_id'=>$mid,'source_status'=>'present','project_key'=>'anytour',
+            'platform'=>'max','customer_key'=>10,'conversation_id'=>10,'source_timestamp_basis'=>'canonical_recording_unix_v1',
+            'source_created_at_unix'=>$at,'payload'=>['direction'=>'inbound','sender_type'=>'customer','text'=>'/synthetic_callback',
+                'metadata_json'=>$json(['type'=>'callback','_recorded_clock'=>['version'=>1,'basis'=>'server_recording_unix','unix'=>$at]])]];
+        $exec('INSERT INTO messages(id,conversation_id,channel,direction,sender_type,text) VALUES(?,?,?,?,?,?)',[$mid,10,'max','inbound','customer','/synthetic_callback']);
+        $exec('INSERT INTO modeled_conversion_stream_versions(id,project_key,source_kind,source_id,version_no,revision_hash,observed_at_unix,snapshot_json) VALUES(?,?,?,?,?,?,?,?)',
+            [$jid,'anytour','message',$mid,1,str_repeat('e',64),$observed,$json($snapshot)]);
+        $historyRefs[]=['journal_id'=>$jid,'source_kind'=>'message','source_id'=>$mid,'source_version_no'=>1,
+            'observed_at'=>$iso($observed),'progress_journal_id'=>$jid,'snapshot_sha256'=>str_repeat('f',64),'source_status'=>'present'];
+        $historyRefs=array_slice($historyRefs,-50);
+        $historical=['subject'=>$subject,'access_status'=>'allowed','source_fence_journal_id'=>$jid,
+            'profile'=>['observation_input'=>['subject'=>$subject,'prediction_at'=>$iso($observed),'evidence'=>[]]],
+            'source_references'=>$historyRefs,'coverage'=>['window_limited'=>$i>=50,'source_history_complete'=>false],
+            'contextual_signals'=>['version'=>'live_contextual_ordinal_v1','extractor_version'=>'ru_archive_contextual_v2',
+                'input_cutoff_at'=>$iso($observed),'prediction_at'=>$iso($observed),'events'=>[]]];
+        $persist(10,'max',10,$historical,$observed);
+    }
+    $largeMoments=[];for($i=0;$i<50;$i++)$largeMoments[]=['at'=>$now-7200+$i,'goal'=>$i===0?'substantive_interest':'office_question'];
+    $large=$packet(10,'max',10,$largeMoments,$now-60);$largeBytes=strlen($json($large));
+    $join(10,$now-10800,$now-30);$pdo->commit();
+    $check($largeBytes>32768&&count($large['source_references'])===50,'below-cap scale uses a genuine 50-source large latest profile');
+    $scaleDigest=static function()use($pdo):string{
+        $hash=hash_init('sha256');
+        foreach(['modeled_conversion_profile_versions','modeled_conversion_stream_versions','messages','conversation_events']as$table){
+            $statement=$pdo->query('SELECT * FROM '.$table.' ORDER BY id');
+            while($row=$statement->fetch(PDO::FETCH_ASSOC))hash_update($hash,json_encode($row,JSON_THROW_ON_ERROR));
+        }
+        return hash_final($hash);
+    };
+    $scaleBefore=$scaleDigest();$scaleStarted=microtime(true);$r=$read();$scaleElapsed=(int)round((microtime(true)-$scaleStarted)*1000);
+    echo 'ACQUISITION_SCALE_FIXTURE_TECHNICAL '.json_encode(['available'=>$r['available'],'reason'=>$r['reason'],
+        'profiles_examined'=>$r['sources']['profiles_examined'],'query_count'=>$r['query_count'],
+        'elapsed_ms'=>$scaleElapsed,'largest_profile_bytes'=>$largeBytes],JSON_THROW_ON_ERROR).PHP_EOL;
+    $check($r['available']&&$r['sources']['profiles_examined']===2000&&$m($r)['inquiries']===1&&$m($r)['valid_pairs']===1
+        &&$m($r)['median_seconds']===3600,'materialized latest admission completes full below-cap history and preserves first inquiry');
+    $check($scaleDigest()===$scaleBefore&&!$pdo->inTransaction(),'large full-history read preserves all fixture rows and closes transaction');
+
     $normal();$pdo->beginTransaction();
     for($batch=0;$batch<251;$batch++){
         $parts=[];$args=[];$size=min(200,50001-$batch*200);
