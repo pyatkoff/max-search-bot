@@ -114,7 +114,7 @@ try {
             if (in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)) $rights[]='очередь плана развития';
             if (in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)) $rights[]='чтение сохранённых исторических Telegram-диалогов для исследования';
             if (in_array(ManagerPreparationOAuth::FORECAST_SCOPE,$scopes,true)) $rights[]='закрытый агрегированный статус сигналов и ранних оценок';
-            $html.='<form method="post" action="/manager/ai-oauth.php?action=connections"><p>Подключено '.gmdate('d.m.Y H:i',(int)$connection['created_at']).' UTC: '.preparationOAuthEscape(implode('; ',$rights)).'</p><input type="hidden" name="csrf" value="'.preparationOAuthEscape($csrf).'"><input type="hidden" name="grant_id" value="'.preparationOAuthEscape($connection['grant_id']).'"><button type="submit">Отключить</button></form>';
+            $html.='<form method="post" action="/manager/ai-oauth.php?action=connections"><p>Подключено '.(new DateTimeImmutable('@'.(int)$connection['created_at']))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('d.m.Y H:i').' МСК: '.preparationOAuthEscape(implode('; ',$rights)).'</p><input type="hidden" name="csrf" value="'.preparationOAuthEscape($csrf).'"><input type="hidden" name="grant_id" value="'.preparationOAuthEscape($connection['grant_id']).'"><button type="submit">Отключить</button></form>';
         }
         preparationOAuthHtml('Подключения ChatGPT',$html);
     }

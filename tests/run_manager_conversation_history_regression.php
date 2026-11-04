@@ -179,6 +179,33 @@ $pdo=fixture(501);$denied=ManagerConversationService::detail(1,2);$messageQuerie
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1]);check('actual API returns latest page and suppresses false first-reply summary outside tail',$response['status']===200&&$response['body']['has_manager_reply']&&ids($response['body'])===range(302,501)&&cursor($pdo)===0);
 check('latest replied detail explicitly clears panel-only context',array_key_exists('handoff_context',$response['body'])&&$response['body']['handoff_context']===null);
 $pageQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,direction,sender_type,text,created_at FROM messages'));$hydrateQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'));check('API fetches one bounded page and one bounded hydration query',count($pageQueries)===1&&count($hydrateQueries)===1&&count(array_values($hydrateQueries)[0]['args'])===200);
+
+// The same server receipt must display the same instant despite mixed DB wall clocks.
+$pdo=fixture(6);
+$recordedUnix=(new DateTimeImmutable('2026-11-04T07:26:00Z'))->getTimestamp();
+$clock=['version'=>1,'basis'=>'server_recording_unix','unix'=>$recordedUnix];
+$clockCases=[
+    1=>['2026-11-04 07:26:00',json_encode(['_recorded_clock'=>$clock,'private_marker'=>'private-clock-marker'],JSON_THROW_ON_ERROR)],
+    2=>['2026-11-04 10:26:00',json_encode(['_recorded_clock'=>$clock],JSON_THROW_ON_ERROR)],
+    3=>['2026-11-04 10:26:00',json_encode(['_recorded_clock'=>array_replace($clock,['unix'=>(string)$recordedUnix])],JSON_THROW_ON_ERROR)],
+    4=>['2026-11-04 10:26:00',json_encode(['_recorded_clock'=>array_replace($clock,['basis'=>'provider_timestamp'])],JSON_THROW_ON_ERROR)],
+    5=>['2026-11-04 10:26:00',null],
+    6=>['2026-11-04 10:26:00','{malformed'],
+];
+$update=$pdo->prepare('UPDATE messages SET created_at=?,metadata_json=? WHERE id=?');
+foreach($clockCases as $id=>[$wall,$metadata])$update->execute([$wall,$metadata,$id]);
+$pdo->exec("UPDATE messages SET direction='outbound',sender_type='ai' WHERE id=2");
+$storedClockRows=$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();$pdo->executed=[];
+$response=apiDetail(['conversation_id'=>1]);$clockMessages=array_column($response['body']['messages'],null,'id');
+check('plain bot message uses its server recording instant with explicit UTC',$response['status']===200&&$clockMessages[2]['created_at']==='2026-11-04T07:26:00Z');
+check('equal receipts override different database wall clocks equally',$clockMessages[1]['created_at']===$clockMessages[2]['created_at']);
+foreach([3,4,5,6] as $id)check('unknown or invalid recording clock is not guessed #'.$id,$clockMessages[$id]['created_at']===$clockCases[$id][0]);
+check('recording projection retains page order and does not acknowledge display',ids($response['body'])===range(1,6)&&cursor($pdo)===0&&$pdo->readWrites===0);
+check('recording projection never rewrites stored messages',$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll()===$storedClockRows);
+check('recording projection exposes no raw metadata',!str_contains(json_encode($clockMessages,JSON_THROW_ON_ERROR),'private-clock-marker')&&!str_contains(json_encode($clockMessages,JSON_THROW_ON_ERROR),'_recorded_clock'));
+$clockHydrationQueries=array_filter($pdo->executed,static fn($query)=>str_starts_with($query['sql'],'SELECT id,channel,direction,metadata_json'));
+check('recording projection reuses the one bounded hydration query',count($clockHydrationQueries)===1&&count(array_values($clockHydrationQueries)[0]['args'])===6);
+
 $pdo=fixture(501);$pdo->afterPage=static fn($db)=>$db->exec("INSERT INTO messages VALUES(502,1,'inbound','customer','Arrived during HTTP request','2026-10-14 00:00:01','telegram',NULL)");$response=apiDetail(['conversation_id'=>1]);check('actual API cannot mark newly arrived unseen message',ids($response['body'])===range(302,501)&&cursor($pdo)===0);
 $pdo=fixture(501);$pdo->failHydration=true;$response=apiDetail(['conversation_id'=>1]);check('hydration failure is explicit and writes no read marker',$response['status']===500&&$response['body']===['ok'=>false,'error'=>'conversation_load_failed']&&cursor($pdo)===0&&$pdo->readWrites===0);
 $pdo=fixture(501);$response=apiDetail(['conversation_id'=>1],2);check('denied API returns 404 without read write',$response['status']===404&&$response['body']['error']==='not_found'&&$pdo->readWrites===0);

@@ -90,11 +90,11 @@ if($action==='list'){
     $queue=(string)($data['queue']??'waiting');
     if(!$isAdmin&&$queue==='all'&&!ManagerAvailabilityService::isWorking((int)$m['id'])) {
         $rows=ManagerConversationService::list((int)$m['id'],'mine',100,(string)($data['project_key']??'*'));
-        out(['ok'=>true,'conversations'=>ManagerAiInboxStatusService::decorate($rows,(int)$m['id'])]);
+        out(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,(int)$m['id']))]);
     }
     $rows=ManagerConversationService::list((int)$m['id'],$queue,100,(string)($data['project_key']??'*'),$isAdmin?(string)($data['manager_filter']??''):'');
     $rows=ManagerQueueProjectionService::actionableRows($queue,$rows);
-    out(['ok'=>true,'conversations'=>ManagerAiInboxStatusService::decorate($rows,(int)$m['id'])]);
+    out(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,(int)$m['id']))]);
 }
 if($action==='counts'){
     $projectKey=(string)($data['project_key']??'*');

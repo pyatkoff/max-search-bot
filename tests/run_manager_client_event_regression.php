@@ -65,6 +65,31 @@ $byKind=[];foreach ($all['items'] as $item) $byKind[$item['kind']][]=$item;
 ceCheck('actual stage and working-name history expose explicit before and after',$byKind['stage'][0]['details'][0]['value']==='Новый → Подбор'&&$byKind['name'][0]['details'][1]['value']==='Рабочее имя');
 ceCheck('mutable notes tasks are current records not invented edit events',$byKind['note'][0]['current_record']&&$byKind['note'][0]['details'][0]['value']==='Заметка удалена'&&$byKind['note'][1]['updated_at']==='2026-10-14 12:00:00'&&$byKind['task'][0]['details'][1]['value']==='Выполнена'&&$byKind['task'][0]['due_at']==='2026-10-20 09:00:00');
 ceCheck('active actor ordinary visibility project and source grants protect all reads',ceList([],0)['error']==='unauthorized'&&ceList([],10)['error']==='unauthorized'&&ceList([],7,3)['error']==='forbidden'&&ceList([],7,4)['error']==='forbidden');
+
+// The receipt fixes display without reinterpreting mixed historical DATETIME
+// values used by the five-source sort and pagination contract.
+$clockBefore=ceList();$pdo->queries=0;$clockPageBefore=ceList(['page_size'=>1]);$clockQueries=$pdo->queries;
+$clockUnix=(new DateTimeImmutable('2026-10-14 07:00:00',new DateTimeZone('UTC')))->getTimestamp();
+$clockWrite=$pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=2');
+$clockWrite->execute([json_encode(ConversationRecordClock::stamp(['secret'=>'CLOCK_PAYLOAD_MUST_STAY_PRIVATE'],$clockUnix),JSON_THROW_ON_ERROR)]);
+$clockSnapshot=ceSnapshot();$pdo->queries=0;$clockPage=ceList(['page_size'=>1]);$clockStampedQueries=$pdo->queries;
+$clockAll=ceList();$clockItems=array_column($clockAll['items'],null,'key');
+ceCheck('valid server recording receipt exposes an explicit UTC instant only for its event',$clockItems['event:2']['created_at']==='2026-10-14T07:00:00Z'&&$clockItems['event:1']['created_at']==='2026-10-14 09:00:00');
+ceCheck('display projection preserves every mixed-source ordering key',array_column($clockAll['items'],'key')===array_column($clockBefore['items'],'key'));
+ceCheck('other event sources keep their original timestamps and view fields',array_values(array_filter($clockAll['items'],static fn(array $item):bool=>$item['kind']!=='event'))===array_values(array_filter($clockBefore['items'],static fn(array $item):bool=>$item['kind']!=='event')));
+$clockCursor=json_decode(base64_decode(strtr($clockPage['history']['cursor'],'-_','+/'),true),true,8,JSON_THROW_ON_ERROR);
+ceCheck('event cursor keeps raw database time rank and id after display conversion',$clockPage['history']['cursor']===$clockPageBefore['history']['cursor']&&$clockCursor['at']==='2026-10-14 10:00:00'&&$clockCursor['rank']===5&&$clockCursor['id']===2);
+$clockRest=ceList(['page_size'=>50,'cursor'=>$clockPage['history']['cursor']]);
+ceCheck('stamped event pagination loses no tied rows and introduces no duplicate',array_merge(array_column($clockPage['items'],'key'),array_column($clockRest['items'],'key'))===array_column($clockBefore['items'],'key'));
+$clockJson=json_encode($clockAll,JSON_THROW_ON_ERROR);
+ceCheck('receipt projection exposes neither private payload nor receipt metadata',!str_contains($clockJson,'CLOCK_PAYLOAD_MUST_STAY_PRIVATE')&&!str_contains($clockJson,'payload_json')&&!str_contains($clockJson,'_recorded_clock'));
+ceCheck('recording-clock display is read-only and adds no receipt lookup queries',ceSnapshot()===$clockSnapshot&&$clockStampedQueries===$clockQueries);
+foreach (['malformed JSON'=>'{broken','string timestamp'=>json_encode(['_recorded_clock'=>['version'=>1,'basis'=>'server_recording_unix','unix'=>(string)$clockUnix]],JSON_THROW_ON_ERROR),'unsupported receipt'=>json_encode(['_recorded_clock'=>['version'=>2,'basis'=>'server_recording_unix','unix'=>$clockUnix]],JSON_THROW_ON_ERROR)] as $clockCase=>$clockPayload) {
+    $clockWrite->execute([$clockPayload]);$clockSnapshot=ceSnapshot();$clockFallback=ceList(['page_size'=>1]);
+    ceCheck($clockCase.' preserves legacy event display without changing storage',$clockFallback['items'][0]['created_at']==='2026-10-14 10:00:00'&&ceSnapshot()===$clockSnapshot);
+}
+$clockWrite->execute([null]);
+
 $page=ceList(['page_size'=>2]);$keys=[];$pages=0;
 do {foreach ($page['items'] as $item)$keys[]=$item['key'];$pages++;$cursor=$page['history']['cursor'];if (!$page['history']['has_more'])break;$page=ceList(['page_size'=>2,'cursor'=>$cursor]);}while ($pages<10);
 ceCheck('timestamp ties across all tables page without duplicates or omissions',$pages===4&&$keys===array_column($all['items'],'key')&&count($keys)===count(array_unique($keys)));

@@ -16,16 +16,17 @@ mpfCheck('scheduler reports disabled policy',ManagerPhoneFallbackService::runDue
 mpfCheck('disabled candidate discovery touches no runtime database',ManagerPhoneFallbackService::dueCandidates(time()),[]);
 mpfCheck('already selected candidates cannot send after policy change',ManagerPhoneFallbackService::processCandidate(['conversation_id'=>1,'external_chat_id'=>'synthetic']), 'skipped');
 
-$tz = new DateTimeZone(ManagerAvailabilityService::BUSINESS_TIMEZONE);
+$tz = new DateTimeZone('UTC');
 $at = static function(string $value) use ($tz): int { return (new DateTimeImmutable($value,$tz))->getTimestamp(); };
-mpfCheck('before 10 is outside working hours',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 09:59:59')),false);
-mpfCheck('10 starts working hours',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 10:00:00')),true);
-mpfCheck('19:59 remains working hours',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 19:59:59')),true);
-mpfCheck('20:00 ends working hours',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 20:00:00')),false);
+mpfCheck('working-hour presentation uses Moscow',ManagerAvailabilityService::BUSINESS_TIMEZONE,'Europe/Moscow');
+mpfCheck('10:59 Moscow stays outside the existing working interval',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 07:59:59')),false);
+mpfCheck('11:00 Moscow starts at the same 08:00 UTC instant',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 08:00:00')),true);
+mpfCheck('20:59 Moscow remains inside the existing working interval',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 17:59:59')),true);
+mpfCheck('21:00 Moscow ends at the same 18:00 UTC instant',ManagerAvailabilityService::withinWorkingHours($at('2026-08-27 18:00:00')),false);
 mpfCheck('fallback delay is exactly five minutes',ManagerPhoneFallbackService::DELAY_SECONDS,300);
 mpfCheck('fallback copy explains manager has not replied',strpos(ManagerRequestService::fallbackMessageText(),'не успел ответить')!==false,true);
 mpfCheck('fallback copy offers phone without claiming it is mandatory',strpos(ManagerRequestService::fallbackMessageText(),'можете оставить номер')!==false,true);
-mpfCheck('outside-hours copy promises a morning reply',strpos(ManagerRequestService::outsideHoursMessageText(),'Он ответит вам утром в этом чате.')!==false,true);
+mpfCheck('outside-hours copy states Moscow hours without a relative morning promise',strpos(ManagerRequestService::outsideHoursMessageText(),'Он ответит в этом чате в рабочее время: с 11:00 до 21:00 МСК.')!==false,true);
 mpfCheck('outside-hours copy confirms handoff',strpos(ManagerRequestService::outsideHoursMessageText(),'Запрос передан менеджеру')!==false,true);
 
 // Fresh private evidence showed an ordinary chat sentence after the optional
