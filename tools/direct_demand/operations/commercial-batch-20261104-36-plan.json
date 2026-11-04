@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-batch-20261104-36-v1",
+  "state": "TEN_PROVEN_IDENTITIES_PLAN_NOT_SENT",
+  "goal": "Prepare ten proven hotel materials together and send all ready subset through one existingserialjob",
+  "boundaries": [
+    "Nativeidentityisnotready; acceptedprimarytexts/photos reused onlyforcorrecthotel",
+    "Onefinitegroupednewphotopass/severalCanvacovers;no oldfailedURLreruns",
+    "RoyalDragonrobots/Andizspecificprivacy andallotherguards preserved"
+  ],
+  "criteria": [
+    "Wholehotelcaption+3differentactualprimaryphotos+acceptednativePNG/source/dedup before send",
+    "Newposts countedonlyactualpairedverifieddelivery"
+  ],
+  "risks": [
+    "PrimarycurrentownerURLs for eightnewhotels stillneedactualdiscovery",
+    "AliBeyClub/Park sameownerbrandmustnotsharecategoryrightswithoutproof"
+  ],
+  "baseline_logical_hotels": 148,
+  "hotel_ids": [
+    9322,
+    65895,
+    970,
+    967,
+    968,
+    2175,
+    1672,
+    35313,
+    1201,
+    1198
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

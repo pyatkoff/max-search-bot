@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-channel-hotel-miniapp-routing-20261104-review1",
+  "state": "CURRENT_DIRECT_POST_URLS_CONFIRMED_DESIRED_MINIAPP_TO_EXACT_POST_ROUTE_REQUIRES_RECEIVER_INTEGRATION",
+  "goal": "Resolve Pavel's clarified advertising route: per-platform miniapp entry then exact canonical hotel post",
+  "boundaries": [
+    "No feed URL replacement until actual existing receiver supports exact target, attribution and platform validation",
+    "No arbitrary publication IDs/button tokens/private receipts in publicfeed",
+    "Keep description discussion unchanged; no ad imports/launch/budget changes",
+    "Continue independent publication and one justified price actualization"
+  ],
+  "criteria": [
+    "Telegram and MAX route each correct existing miniapp to the exact known public hotel post",
+    "Preserve advertising click attribution and match channel/platform",
+    "Malformed or foreign target fails closed; no arbitrary URL redirect",
+    "State current direct-post URLs honestly until replacement is actually verified"
+  ],
+  "risks": [
+    "Botrepository's ctx1 transport explicitly documents receiver integration as not enabled",
+    "tour-max repository is audit metadata, not evidence of installed miniapp receiver source"
+  ],
+  "catalog_logical_hotels": 148,
+  "hosted_feed_offers_each_channel_before_pending_update": 146,
+  "published_feed_route": "direct_canonical_channel_post",
+  "desired_feed_route": "platform_specific_miniapp_then_exact_canonical_hotel_post",
+  "evidence": [
+    "Botprojectproject.phpseparatesminiappbotsfromchannelpostbots",
+    "docs/ADVERTISING_FUNNEL_ENTRY.md current0a8 explicitlystatesctx1notenabledinproductionreceiver andsignedroundtripnotproved",
+    "Currenttour-maxrepositorycontainsauditdocs/workflows,notdeployedminiappreceiversource"
+  ],
+  "feed_url_replacements": 0,
+  "ad_imports": 0,
+  "post_sends_for_routing": 0
+}

@@ -1,0 +1,19 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read11",
+  "state": "TWO_NEW_CANONICAL_PUBLIC_PAIRS_VERIFIED",
+  "scope_hotels": 2,
+  "ready": 2,
+  "deferred": 0,
+  "catalog_ids": [
+    1199,
+    1464
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41791409190",
+  "job_id": 126445413138,
+  "authenticated_artifact_id": 13302744936,
+  "previous146reread": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "server_connections": 2
+}

@@ -1,0 +1,24 @@
+{
+  "operation": "commercial-stock-20261104-36-read1",
+  "state": "EIGHT_UNIQUE_NATIVE_IDENTITIES_PROVEN_NOT_READY",
+  "groups": 10,
+  "unique_active_unpublished": 8,
+  "catalog_ids": [
+    9322,
+    65895,
+    970,
+    967,
+    968,
+    2175,
+    1672,
+    35313
+  ],
+  "deferred_multiple_match_groups": [
+    "hillside-su",
+    "rixos-bodrum"
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41791409190",
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0
+}
