@@ -1,0 +1,29 @@
+{
+  "operation": "commercial-batch36-covers-20261104-read1",
+  "state": "TWO_NATIVE_CANVA_PNG_COVERS_VISUALLY_ACCEPTED_NOT_SENT",
+  "catalog_ids": [
+    9322,
+    1672
+  ],
+  "native_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41796406693",
+  "native_job_id": 126461439202,
+  "files": [
+    {
+      "hotel_id": 9322,
+      "width": 600,
+      "height": 600,
+      "bytes": 761446,
+      "sha256": "aa9915b8ad9036c16803256e7c0e2758ca77fa1471e9ab54772729b2bb7395b8"
+    },
+    {
+      "hotel_id": 1672,
+      "width": 600,
+      "height": 600,
+      "bytes": 887802,
+      "sha256": "894adffcd6c46a580aec53fd63b2c2a13562d118667cb46ee4ce3a5926b6ff5f"
+    }
+  ],
+  "title_logo_blue_banner_readable": true,
+  "hero_whole_hotel_photography": true,
+  "permanent_canva_save": false
+}
