@@ -1723,3 +1723,5 @@ test('hotel knowledge editor read-only access and changed-version refusal',async
  await expect(f.locator('#tsSave')).toBeDisabled();await f.locator('#tsHotelKnowledgeRead').click();await expect(f.locator('#tsHotelKnowledge')).toContainText(reference.facts[0].text);
  s.setFail('hotel_version');await f.locator('#tsHotelKnowledgeRead').click();await expect(f.locator('#tsHotelKnowledge')).toContainText('не подтверждены');await expect(f.locator('#tsHotelKnowledge')).not.toContainText(reference.facts[0].text);expect(s.calls.some(x=>['save','send','publish'].includes(x.action))).toBe(false);expect(s.errors).toEqual([]);
 });
+
+require('./manager-one-touch-source.cases');

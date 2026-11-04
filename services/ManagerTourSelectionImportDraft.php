@@ -8,6 +8,11 @@ final class ManagerTourSelectionImportDraft
     public static function normalize($input): ?array
     {
         if (!is_array($input) || array_diff(array_keys($input),['adapter','url','observed_at','quote_id','keys','offer','raw','photos'])) return null;
+        if (($input['adapter']??null)==='onetouch-public-v1') {
+            require_once __DIR__.'/ManagerTourSelectionOneTouchImportDraft.php';
+            $normalized=ManagerTourSelectionOneTouchImportDraft::normalize($input);
+            return $normalized===null?null:self::withPhotos($input,$normalized);
+        }
         if (($input['adapter']??null)==='biblio-public-v1') {
             require_once __DIR__.'/ManagerTourSelectionBiblioImportDraft.php';
             $normalized=ManagerTourSelectionBiblioImportDraft::normalize($input);
@@ -108,6 +113,11 @@ final class ManagerTourSelectionImportDraft
                 if (($p['host']??'')!=='files.anextour.ru' || !preg_match('~\A/hotel/hotels/[a-z0-9_/-]+/o[1-9][0-9]*\z~D',$p['path']??'')) return null;
                 // The observed CDN explicitly binds each image to its source hotel.
                 if (!preg_match('/\A&?hotelCode='.preg_quote($normalized['keys']['hotel'],'/').'\z/D',$p['query']??'')) return null;
+            } elseif ($normalized['adapter']==='onetouch-public-v1') {
+                if (!ManagerTourSelectionOneTouchImportDraft::photoUrl($url)) return null;
+                $prefix=substr($url,0,strrpos($url,'/'));
+                if ($group!==null && $group!==$prefix) return null;
+                $group=$prefix;
             } elseif ($normalized['adapter']==='biblio-public-v1') {
                 if (!ManagerTourSelectionBiblioImportDraft::photoUrl($url)) return null;
             } else {
@@ -126,6 +136,7 @@ final class ManagerTourSelectionImportDraft
     public static function source(array $input): array
     {
         $fields=array_intersect_key($input['offer'],array_flip(['hotel','destination','departure','date_from','nights','adults','child_ages','room','meal','amount','currency','stars']));
+        if (isset($input['offer']['price_qualifier'])) $fields['price_qualifier']=$input['offer']['price_qualifier'];
         $source=['adapter'=>$input['adapter'],'url'=>$input['url'],'observed_at'=>$input['observed_at'],'quote_id'=>$input['quote_id'],'keys'=>$input['keys'],'fields'=>$fields,'raw'=>$input['raw']];
         if (isset($input['photos'])) $source['photos']=$input['photos'];
         return $source;
@@ -134,6 +145,10 @@ final class ManagerTourSelectionImportDraft
     public static function fingerprint(array $source,bool $withPrice=true): string
     {
         $data=['keys'=>$source['keys'],'fields'=>$source['fields'],'raw_alternatives'=>$source['raw']['flight_alternatives']??'','tariff'=>$source['raw']['tariff']??''];
+        if (($source['adapter']??null)==='onetouch-public-v1') {
+            $data['source_conditions']=array_intersect_key($source['raw'],array_flip(['tour','transport','tariff','availability','hotel_url']));
+            if ($withPrice) $data['base_price']=[$source['raw']['base_price'],$source['raw']['base_currency']];
+        }
         if (($source['adapter']??null)==='tourvisor-snapshot-v1') {
             $data['price_basis']=$source['raw']['price_basis'];
             if ($withPrice) $data['shown_price_parts']=[$source['raw']['base_price'],$source['raw']['fuel_price']];

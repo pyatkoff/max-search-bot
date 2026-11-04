@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "anytour-selection-public",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "contract": "selection-php-view-v1",
   "files": {
     "view.php": "selection/view.php",
@@ -20,6 +20,13 @@
     "services/ManagerTourSelectionPublicationDraft.php",
     "services/ManagerTourSelectionDeliveryService.php",
     "services/ManagerTourSelectionService.php",
-    "services/TourChoiceService.php"
+    "services/TourChoiceService.php",
+    "services/ManagerTourSelectionOneTouchSource.php",
+    "services/ManagerTourSelectionOneTouchImportDraft.php",
+    "services/ManagerTourSelectionOneTouchIntake.php",
+    "services/ManagerTourSelectionOneTouchCapture.php",
+    "services/ManagerTourSelectionDraft.php",
+    "services/ManagerTourSelectionImportDraft.php",
+    "services/TourOfferCardRenderer.php"
   ]
 }

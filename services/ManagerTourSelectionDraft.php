@@ -69,6 +69,12 @@ final class ManagerTourSelectionDraft
         if (!is_string($amount) || ($amount!=='' && (!preg_match('/\A(?:0|[1-9][0-9]{0,8})(?:\.[0-9]{1,2})?\z/D',$amount) || (float)$amount<=0))) return null;
         if (!in_array($input['currency']??'RUB',['RUB','EUR','USD'],true)) return null;
         $out['amount']=$amount; $out['currency']=$input['currency']??'RUB';
+        // Absent on legacy drafts: no old snapshot/hash changes. A manual price
+        // adjustment alone never upgrades a source minimum to a fixed quote.
+        if (array_key_exists('price_qualifier',$input)) {
+            if (!in_array($input['price_qualifier'],['from','fixed'],true)) return null;
+            $out['price_qualifier']=$input['price_qualifier'];
+        }
         $out['source_url']=self::url($input['source_url']??'',$stored);
         if ($out['source_url']===null) return null;
         $observed=$input['observed_at']??'';
@@ -94,6 +100,7 @@ final class ManagerTourSelectionDraft
             ]);
             if ($import===null) return null;
             $out['import_source']=ManagerTourSelectionImportDraft::source($import);
+            if (($out['import_source']['fields']['price_qualifier']??null)==='from' && !isset($out['price_qualifier'])) return null;
         }
         // Do not silently accept a forged verification/identity/publication flag.
         if (array_diff(array_keys($input),array_keys($out))) return null;

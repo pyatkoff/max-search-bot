@@ -40,6 +40,7 @@ final class ManagerTourSelectionReferenceContext
                 if(is_array($source)){
                     $observed=['adapter'=>$source['adapter'],'observed_at'=>$source['observed_at'],'fields'=>self::terms($source['fields'])];
                     foreach(self::TERMS as $key)if($offer[$key]!==$source['fields'][$key])$edits[]=$key;
+                    if((array_key_exists('price_qualifier',$offer)||array_key_exists('price_qualifier',$source['fields']))&&($offer['price_qualifier']??'fixed')!==($source['fields']['price_qualifier']??'fixed'))$edits[]='price_qualifier';
                 }
                 $offers[]=['variant'=>$index+1]+$fields+['source_observation'=>$observed,'source_condition_edits'=>$edits,
                     'photos_unread'=>!empty($offer['photos'])||!empty($source['photos'])];
@@ -61,6 +62,7 @@ final class ManagerTourSelectionReferenceContext
     {
         $result=[];
         foreach(self::TERMS as $key)$result[$key]=self::value($key,$offer[$key]);
+        if(array_key_exists('price_qualifier',$offer))$result['price_qualifier']=$offer['price_qualifier'];
         return $result;
     }
 
