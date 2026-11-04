@@ -1,0 +1,75 @@
+{
+  "operation": "commercial-hotel-batch-20261104-35-v1",
+  "state": "PRIMARY_DISCOVERY_ONLY_NOT_NATIVE_PHOTO_ACCEPTANCE",
+  "sources": [
+    {
+      "hotel_id": 2144,
+      "urls": [
+        "https://dmarisbay.com/en/accommodation"
+      ],
+      "notes": "Exact owner accommodation; privateVilla/boat/paidrestaurant rights notuniversal"
+    },
+    {
+      "hotel_id": 3469,
+      "urls": [
+        "https://www.dresortgocek.com/en"
+      ],
+      "notes": "Currentowner root and beach/pool/Wellness;PoolAccess categoryonly. Old2023brochurewinterclosures notcurrent2026proof"
+    },
+    {
+      "hotel_id": 9321,
+      "urls": [
+        "https://www.clubmarvy.com/en/beach-club-resort-turkey/rooms"
+      ],
+      "notes": "Ownercurrentrooms;AdultsOnly certainPremium categories, notwholehotel; old2024factsheetnotfresh"
+    },
+    {
+      "hotel_id": 1199,
+      "urls": [
+        "https://www.gloria.com.tr/en/hotels/gloria-serenity-resort/"
+      ],
+      "notes": "Actualownerlink fromGloriahome; notVerde/Golf/SportsArena/sharedrights"
+    },
+    {
+      "hotel_id": 1201,
+      "urls": [
+        "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/"
+      ],
+      "notes": "Actualownerlink; otherGloriasisterrights notuniversal"
+    },
+    {
+      "hotel_id": 1198,
+      "urls": [
+        "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/"
+      ],
+      "notes": "Actualownerlink; golfcourse includedrights notassumed"
+    },
+    {
+      "hotel_id": 1543,
+      "urls": [
+        "https://www.susesihotel.com/en"
+      ],
+      "notes": "Actualowner;privatepool/transfer/butler tiedtocategories, notallrooms"
+    },
+    {
+      "hotel_id": 1137,
+      "urls": [
+        "https://corneliaresort.com/EN/Cornelia-Diamond-Luxury-Golf-Resort-Spa-Hotel-Belek-Antalya/dining",
+        "https://www.corneliaresort.com/TR/Cornelia-Diamond-Luks-Golf-Resort-Spa-Oteli-Belek-Antalya/genel-gorunum-galeri"
+      ],
+      "notes": "KnownownerCorneliaresort, notunprovedcorneliahotelsbelek.com; oldNov2025..May2026heatclosure isnotcurrentwinter; packagesnotAnyTourincluded"
+    },
+    {
+      "hotel_id": 1464,
+      "urls": [
+        "https://www.royalwingshotel.com/en"
+      ],
+      "notes": "OwnerRoyalGroupactualpropertylink redirects tothisnewownerURL, exactfinaldiscovered. No needGEToldredirectpath;currentownerCDNwoxxtechmetadata notautomaticallyapprovedimage"
+    },
+    {
+      "hotel_id": 1459,
+      "urls": [],
+      "notes": "Currentprimarypathunresolved;stonegroup.com.trwebrobotsNONRETRYABLE,donotbypassviaGHA/alternateaccess. royaldragonhotelside.com/hotelroyaldragon.comnotprovenowner,Macauwronghotel;old2024/25ownerPDFshistoricalnotcurrent. Do notholdothers."
+    }
+  ]
+}

@@ -1,0 +1,214 @@
+{
+  "operation": "commercial-hotel-batch-20261104-35-v1",
+  "state": "PREPARATION_STARTED_NOT_SENT",
+  "baseline_logical_materials": 146,
+  "goal": "Prepare ten newly proven native hotels as one batch, finiteowner/photo inspection and serialreadysubset",
+  "boundaries": [
+    "Onlyexactownerrealphotos,noguessedURLs/variants,retainedsources reused",
+    "Existingtemplates/channels/source/dedup/rights guards, noMac/newruntime/ads/paidcalls"
+  ],
+  "criteria": [
+    "TenprovenIDs,readinessseparatefromidentity",
+    "Severalreadycoversandoneserialsubsetsend,donotdelayforRoyalDragon"
+  ],
+  "risks": [
+    "RoyalDragoncurrentownerHTMLunresolved and knownrobotsnotbypass",
+    "GroupGloriarights/photoidentitymuststaypropertyspecific"
+  ],
+  "hotel_ids": [
+    2144,
+    3469,
+    9321,
+    1199,
+    1201,
+    1198,
+    1543,
+    1137,
+    1464,
+    1459
+  ],
+  "candidates": [
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 2144,
+      "is_active": 1,
+      "name": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "rating": "4.80",
+      "region": "Мармарис",
+      "region_id": 26,
+      "key": "d-maris-bay",
+      "hotel_id": 2144,
+      "hotel": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 3469,
+      "is_active": 1,
+      "name": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "rating": "4.40",
+      "region": "Фетхие",
+      "region_id": 27,
+      "key": "d-resort-gocek",
+      "hotel_id": 3469,
+      "hotel": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 9321,
+      "is_active": 1,
+      "name": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "rating": "4.60",
+      "region": "Измир",
+      "region_id": 306,
+      "key": "club-marvy",
+      "hotel_id": 9321,
+      "hotel": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1199,
+      "is_active": 1,
+      "name": "GLORIA SERENITY RESORT",
+      "rating": "4.70",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "gloria-serenity",
+      "hotel_id": 1199,
+      "hotel": "GLORIA SERENITY RESORT",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1201,
+      "is_active": 1,
+      "name": "GLORIA VERDE RESORT",
+      "rating": "4.80",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "gloria-verde",
+      "hotel_id": 1201,
+      "hotel": "GLORIA VERDE RESORT",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1198,
+      "is_active": 1,
+      "name": "GLORIA GOLF RESORT",
+      "rating": "4.70",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "gloria-golf",
+      "hotel_id": 1198,
+      "hotel": "GLORIA GOLF RESORT",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1543,
+      "is_active": 1,
+      "name": "SUSESI LUXURY RESORT",
+      "rating": "4.70",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "susesi-luxury",
+      "hotel_id": 1543,
+      "hotel": "SUSESI LUXURY RESORT",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1137,
+      "is_active": 1,
+      "name": "CORNELIA DIAMOND GOLF RESORT & SPA",
+      "rating": "4.70",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "cornelia-diamond",
+      "hotel_id": 1137,
+      "hotel": "CORNELIA DIAMOND GOLF RESORT & SPA",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1464,
+      "is_active": 1,
+      "name": "ROYAL WINGS HOTEL",
+      "rating": "4.60",
+      "region": "Анталья",
+      "region_id": 20,
+      "key": "royal-wings",
+      "hotel_id": 1464,
+      "hotel": "ROYAL WINGS HOTEL",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1459,
+      "is_active": 1,
+      "name": "ROYAL DRAGON",
+      "rating": "4.50",
+      "region": "Сиде",
+      "region_id": 23,
+      "key": "royal-dragon",
+      "hotel_id": 1459,
+      "hotel": "ROYAL DRAGON",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    }
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

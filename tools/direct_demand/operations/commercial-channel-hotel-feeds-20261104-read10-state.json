@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read10",
+  "state": "TWO_NEW_CANONICAL_PUBLIC_PAIRS_ACCEPTED",
+  "hotel_ids": [
+    1417,
+    1348
+  ],
+  "scope_hotels": 2,
+  "feed_rows": 2,
+  "deferred_count": 0,
+  "bounded_public_query_limit": 5,
+  "bound_first_lines": 2,
+  "fields": "platform/firstline/publicpostURL only",
+  "previous144_pairs_read": false,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "existing_server_connections_used": true,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41745632950",
+  "artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41745632950/artifacts/13284060684"
+}

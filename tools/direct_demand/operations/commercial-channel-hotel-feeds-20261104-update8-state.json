@@ -1,0 +1,73 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update8",
+  "state": "THREE_PUBLIC_DIRECT_YML_FEEDS_UPDATED_TO146_HOTELS_HTTPS_BYTES_VERIFIED",
+  "goal": "Append both newly verified batch34 pairs to same three hosted DirectYMLfeeds",
+  "boundaries": [
+    "Preserve144acceptedofferblocksbyteidentically;genericapproveddescription/TGПутевки/MAXТуры",
+    "Onlyfinite2newcanonicalpublicdestinations andfrozenacceptedPNGs",
+    "Existing3fileephemeralwriter/source/root/stricthost/exactprevioushashguards;no runtime/ads/DB/provider/messages"
+  ],
+  "criteria": [
+    "146/146/292 exactunion/name-descriptioncounts/limits",
+    "Durableexactintent beforeatomicreplacement;3newappendcases/PHP-l before server",
+    "One exactpublicHTTPSbytes/SHAreadback"
+  ],
+  "risks": [
+    "No inventedprice/availability;imagegaps381/469explicit",
+    "Descriptiondiscussionunresolved,no rewrites"
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41746047796",
+  "intent_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41746047796/artifacts/13283142531",
+  "result_artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41746047796/artifacts/13282924342",
+  "source_xml_commit": "42fd43db289b98aad6637822929b24d94ddba153",
+  "expected_installed_sha": "117d884bef3174b7dd5976b5e354811f3edc8e83",
+  "files": [
+    {
+      "bytes": 94705,
+      "content_type": "application/xml",
+      "description_count": 146,
+      "http": 200,
+      "name": "hotel-posts-telegram.xml",
+      "name_count": 146,
+      "offers": 146,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+      "sha256": "bf5322827d432d43d7da47305553cbfe433f6e71c57a4cb520b0c2c3635d4b23"
+    },
+    {
+      "bytes": 95666,
+      "content_type": "application/xml",
+      "description_count": 146,
+      "http": 200,
+      "name": "hotel-posts-max.xml",
+      "name_count": 146,
+      "offers": 146,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+      "sha256": "96799bf246a72512e2c90818d6fc496318ac8a58e9e5d44fcd2945c321050dba"
+    },
+    {
+      "bytes": 189998,
+      "content_type": "application/xml",
+      "description_count": 292,
+      "http": 200,
+      "name": "hotel-posts-all.xml",
+      "name_count": 292,
+      "offers": 292,
+      "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+      "sha256": "946b4c5835949f4ef2dad62aa56ec563afbbddff58ce010c0bf79c1459da4837"
+    }
+  ],
+  "previous144_offer_blocks_byteidentical": true,
+  "combined_exact_union": true,
+  "description_rewrites": 0,
+  "image_hotel_count": 144,
+  "explicit_image_gap_hotel_ids": [
+    381,
+    469
+  ],
+  "price_fields": 0,
+  "availability_fields": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "ads_imports": 0
+}

@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-stock-20261104-35-read1",
+  "state": "TEN_NEW_UNIQUE_ACTIVE_NATIVE_IDENTITIES_NOT_READY",
+  "country_id": 4,
+  "group_count": 10,
+  "unique_catalog_ids": [
+    2144,
+    3469,
+    9321,
+    1199,
+    1201,
+    1198,
+    1543,
+    1137,
+    1464,
+    1459
+  ],
+  "registry_matches_telegram": 0,
+  "registry_matches_max": 0,
+  "current_stock_identities": 25,
+  "current_stock_ready": 0,
+  "additional_proven_identities": 31,
+  "new_pairs": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "existing_server_connections_used": true,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41745632950",
+  "artifact_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41745632950/artifacts/13284060684"
+}

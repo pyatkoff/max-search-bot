@@ -27,6 +27,12 @@
   "sender_source": "896ad7a3ee2490f953d3906d79fa572a48b52f51",
   "expected_installed_sha": "117d884bef3174b7dd5976b5e354811f3edc8e83",
   "source_stops": 0,
-  "canonical_public_feed_update_pending": true,
-  "standalone_private_receipts_exported": false
+  "canonical_public_feed_update_pending": false,
+  "standalone_private_receipts_exported": false,
+  "feed_logical_hotels": 146,
+  "three_feed_offers": [
+    146,
+    146,
+    292
+  ]
 }

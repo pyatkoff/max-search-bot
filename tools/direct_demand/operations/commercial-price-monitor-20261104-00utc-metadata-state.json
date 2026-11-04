@@ -1,17 +1,13 @@
 {
   "operation": "commercial-price-monitor-20261104-00utc-metadata",
-  "state": "NO_NEW_TOUR_COLLECTOR_IN_BOUNDED_METADATA_WINDOW",
-  "created_lower_bound_utc": "2026-11-03T23:45:00Z",
-  "runs": [
-    {
-      "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/41743115346",
-      "name": "Build AnyTour hot inventory",
-      "status": "completed",
-      "conclusion": "success"
-    }
-  ],
+  "state": "NO_NEW_TOUR_COLLECTOR_IN_BOUNDED_NEW_WINDOW",
+  "query_created_lower_bound_utc": "2026-11-04T00:00:00Z",
+  "schedule_runs": 0,
   "retained_reads": 0,
   "quotes": 0,
   "edits": 0,
-  "scope_note": "Hot inventory is not Collect AnyTour tour observations. No assertion about all raw observations."
+  "scope_note": "No assertion about absence of all raw observations or availability",
+  "previous_read5": "CLOSED144scope0matchingrows;do not repeat without new related input",
+  "priced_hotels": 1,
+  "published_hotels": 146
 }
