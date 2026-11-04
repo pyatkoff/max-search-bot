@@ -1,0 +1,103 @@
+{
+  "operation": "commercial-hotel-batch-20261104-43-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish the complete actual ready subset2 from ten proven candidates in both existingchannels, preserving agreed fullhotelphoto/caption/button/source",
+  "boundaries": [
+    "Existingserialpublisher/registry/onceonly",
+    "Exactly currentmain/verify/deploy/TLS/currentdiagnostics/full21/nativeinstalledclean/host/schema/dedup beforeprovider",
+    "NoMac/newworkers/queues/ads/customer messages/pricecalls",
+    "Do not hold these2ready hotels for other8deferred cases"
+  ],
+  "criteria": [
+    "Two actual600x600PNGs/fullchunks/decodedbytes/SHA/nativevisualaccepted/frozen andTXcancelled",
+    "Exactly4verifiedbody/photo/button/sourceposts or stop; UNKNOWNoriginalresolvefirst",
+    "NewactualpublishedIDs only then monitorappend/canonicalbindings/MAXnewmap/threefeedappend"
+  ],
+  "risks": [
+    "Currentproductionchange or unknown existingoutcome muststop before furtherprovider writes",
+    "Feed157 remains until newcanonicalbindings+MAX159 nativeextension+update14actualHTTPS; do notclaimlive159early"
+  ],
+  "baseline_logical_materials": 157,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 17480,
+      "hotel": "TUI BLUE Palm Garden",
+      "key": "tui-blue-palm-garden",
+      "aliases": [
+        "TUI BLUE PALM GARDEN"
+      ],
+      "sources": [
+        "https://www.tui-blue.com/en/en/hotels/tui-blue-palm-garden/"
+      ],
+      "text": "✈️ Туры в TUI BLUE Palm Garden с перелётом\n📍 Манавгат, Сиде, Турция.\n\n🏖 Песчано галечный пляж.\n🏊 Три бассейна и водные горки.\n🌴 Бунгало среди пальм на территории 80 000 м².\n👧 Семейный формат и занятия для детей.\n\n💡 Невысокая застройка и большая зелёная территория у моря.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в TUI BLUE Palm Garden.",
+      "logical_id": "commercial-tui-blue-palm-garden-17480-v1",
+      "text_sha256": "694fc7459ae82ca16ae64db68ec6c4a85069afa01e933bd17b07c376c50f54f1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b16bbce1f3306fb3e5a030398cc328168bc225d3/.github/traffic-publish/commercial-batch-20261104-43/17480.png",
+      "photo_sha256": "4d9f9648a77232c9924614b096d81fcecbf9420ff49e067be5878778539770d2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1100,
+      "hotel": "Club Hotel Sera",
+      "key": "club-hotel-sera",
+      "aliases": [
+        "CLUB HOTEL SERA"
+      ],
+      "sources": [
+        "https://clubhotelsera.com.tr/en/"
+      ],
+      "text": "✈️ Туры в Club Hotel Sera с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Отель на берегу моря с отдельной защищённой детской пляжной зоной.\n🏊 Бассейн Perge с морской водой и крытый бассейн.\n🍽 Два основных ресторана.\n🏛 Размещение в корпусах Elegance, Club и Park.\n\n💡 Корпуса отличаются расположением на территории, это важно при выборе номера.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Club Hotel Sera.",
+      "logical_id": "commercial-club-hotel-sera-1100-v1",
+      "text_sha256": "e9a780e7bee4420f3500c31ec4183d5d6e7cd85bef486659d3e96fb23fcd425b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b16bbce1f3306fb3e5a030398cc328168bc225d3/.github/traffic-publish/commercial-batch-20261104-43/1100.png",
+      "photo_sha256": "369ba914aa6a4072fecfbc8a242d07050df962865da92a354cf8762c9d4f5ab8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 2,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 2,
+  "approved_live_send_count": 0,
+  "public_png_frozen_count": 2,
+  "native_inspection_state": "TWO_NATIVE_600_PNG_VISUALLY_ACCEPTED_EXACT_TX_CANCELLED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41909526392",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41910497891"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1074,
+      "state": "NOT_READY_NO_ACCEPTED_WHOLE_HOTEL_COVER"
+    },
+    {
+      "hotel_id": 969,
+      "state": "NOT_READY_NO_ACCEPTED_WHOLE_HOTEL_COVER"
+    },
+    {
+      "hotel_id": 975,
+      "state": "NOT_READY_NO_ACCEPTED_WHOLE_HOTEL_COVER"
+    },
+    {
+      "hotel_id": 1294,
+      "state": "NOT_READY_NO_ACCEPTED_WHOLE_HOTEL_COVER"
+    },
+    {
+      "hotel_id": 1402,
+      "state": "NOT_READY_NO_ACCEPTED_WHOLE_HOTEL_COVER"
+    },
+    {
+      "hotel_id": 62505,
+      "state": "NOT_READY_NO_ACCEPTED_WHOLE_HOTEL_COVER"
+    },
+    {
+      "hotel_id": 968,
+      "state": "NOT_READY_NO_ACCEPTED_WHOLE_HOTEL_COVER"
+    },
+    {
+      "hotel_id": 65782,
+      "state": "NOT_READY_NO_ACCEPTED_WHOLE_HOTEL_COVER"
+    }
+  ]
+}
