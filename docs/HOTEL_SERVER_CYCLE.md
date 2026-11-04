@@ -376,3 +376,59 @@ delete rejection triggers. Deploying this source does not apply a correction or
 change any live campaign. Existing cron health and `verify-cron` remain outside
 this change; data correction completion is established by the new receipt, not
 inferred from an unrelated successful deploy or worker heartbeat.
+
+## One bounded continuation after a nonfinal correction
+
+`HotelServerCycle::correctRejectedStage(campaignId, correction, authorized)` also
+accepts `hotel-server-correction-v2` for a known rejected nonfinal stage. The v1
+document and `correctRejectedFinalStage` entry point retain their final-only,
+network-free behavior, including correction after the deadline. V2 retains the
+same exact answer-only proposal, independent review and original negative-review
+checks. It adds one strict `continuation_admission` object alongside them. The
+authenticated caller must authorize both the correction and that concrete
+continuation; the independent answer review alone does not authorize spending.
+
+The admission has schema `hotel-server-continuation-admission-v1` and fields
+`proposal_sha256`, `budget_attestation`, `previous_policy`, `policy`, `profile`
+and `instruction_sha256` (producer/reviewer instruction hashes). The separate
+budget document has schema `hotel-server-continuation-budget-v1` and fields:
+
+- `campaign_id`, `bootstrap_sha256`, `plan_sha256`, `correction_stage_index`;
+- `consumed` and `remaining`, each containing exact `calls`, `tokens`, `micros`;
+- `limits`, byte-equivalent canonical JSON to the original plan limits;
+- `valid_from`, `valid_until` and `authorization_ref`.
+
+This is the unused remainder of the original two-calls-per-stage budget. It
+cannot increase any cap or reset a reservation. Its window starts at or after the
+expired original deadline and ends no later than the earliest retained-source
+expiry among the remaining stages, using the unchanged source-age policy. The
+new provider policy differs only in `valid_until` and
+`budget_attestation_sha256`, which hashes the separate budget document. This
+avoids a circular policy/admission hash. Original provider results and principals
+must prove the supplied previous policy, profile and instruction revisions.
+
+One transaction appends the whole v2 document to the existing immutable
+`hotel_server_corrections` row, credits the corrected stage and inserts exactly
+one pending next-producer outbox. No new table or campaign is created. Plan,
+bootstrap, inputs, original attempts/results and reserved counters stay unchanged.
+Only one v2 admission is permitted per campaign; it cannot be appended later to
+an existing correction, renewed, or replaced. A later known rejected final stage
+may still use v1 without another provider call or admission.
+
+The writer has no provider requirement and makes no send. A private operator may
+CAS the existing runtime policy while the campaign is still HOLD, then apply the
+correction. The ordinary tick verifies both effective provider principal revisions
+against the immutable admission before reservation/send. A missing, expired or
+different runtime policy cannot dispatch. Provider preflight still checks the
+unchanged model/profile/source-age rules. Every new attempt keeps the original
+`limits` and adds `continuation_admission_sha256`; the core uses the separately
+admitted deadline without rewriting the bootstrap-bound plan. UNKNOWN retains the
+existing no-resend behavior.
+
+Acceptance and subsequent readers verify that admission hash and provider
+lineage without comparing the historical proof to the current clock. Exact
+correction replay remains a no-op after later stages progress or the window
+expires: it verifies the committed correction and its ancestor baseline, returns
+the original receipt and never re-enqueues or re-credits. Conflicting evidence
+still refuses. Source deployment alone neither authorizes nor applies any live
+correction, runtime policy update or continuation.
