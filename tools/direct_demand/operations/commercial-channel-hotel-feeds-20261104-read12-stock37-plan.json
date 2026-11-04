@@ -1,0 +1,52 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read12-stock37",
+  "goal": "Read only two newlypublishedcanonicalpublicpairs andtennewproven-candidatecataloguegroups",
+  "boundaries": [
+    "Previous148pairs/providerreceiptsnotreread",
+    "Existingstrictsource21/TLS/hostroute,readonlylimitedplatform+firstline+publicURL only",
+    "Tennewcountry4groupsmax12matches;no old0aliasesrepeat/forcedambiguities"
+  ],
+  "criteria": [
+    "IDs9322/1672exactfirstlines/LIMIT5;two completepublicpairbindings",
+    "NativeIDsnotreadiness,fullsnapshot/privateIDs/buttons/receiptsnotexported"
+  ],
+  "risks": [
+    "No quote/provider/messages/DBwrites"
+  ],
+  "hotel_ids": [
+    9322,
+    1672
+  ],
+  "stock_groups": {
+    "hilton-dalaman": [
+      "hilton dalaman"
+    ],
+    "tui-blue-sarigerme": [
+      "tui blue sarigerme"
+    ],
+    "tui-blue-seno": [
+      "tui blue seno"
+    ],
+    "rixos-gocek": [
+      "rixos premium gocek"
+    ],
+    "granada-belek": [
+      "granada luxury belek"
+    ],
+    "eftalia-ocean": [
+      "eftalia ocean"
+    ],
+    "kirman-leodikya": [
+      "kirman leodikya"
+    ],
+    "crystal-flora": [
+      "crystal flora"
+    ],
+    "voyage-torba": [
+      "voyage torba"
+    ],
+    "nirvana-mediterranean": [
+      "nirvana mediterranean"
+    ]
+  }
+}

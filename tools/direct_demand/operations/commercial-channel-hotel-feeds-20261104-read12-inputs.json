@@ -1,0 +1,16 @@
+[
+  {
+    "hotel_id": 9322,
+    "name": "Paloma Pasha",
+    "accepted_first_line": "✈️ Туры в Paloma Pasha с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/9322.png",
+    "image_sha256": "aa9915b8ad9036c16803256e7c0e2758ca77fa1471e9ab54772729b2bb7395b8"
+  },
+  {
+    "hotel_id": 1672,
+    "name": "Kempinski Hotel Barbaros Bay",
+    "accepted_first_line": "✈️ Туры в Kempinski Hotel Barbaros Bay с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/1672.png",
+    "image_sha256": "894adffcd6c46a580aec53fd63b2c2a13562d118667cb46ee4ce3a5926b6ff5f"
+  }
+]
