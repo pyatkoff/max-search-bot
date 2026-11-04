@@ -1,18 +1,17 @@
-name: Prepare a scoped fresh price collection proposal without source calls
+name: Inspect Pavel supplied Moscow YML once without searches or price edits
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,24 +20,20 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-price-monitor-20261104-read9
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41898354901
-          path: ${{ runner.temp }}/retained-read9
-      - name: Prepare exact public native scope and finite search limits without making searches
+      - name: Read the exact newly supplied public feed once with a strict size and time limit
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/prepare-published-price-refresh-proposal-20261104.py
-      - name: Retain safe bounded inspection evidence
+          umask 077
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          python3 tools/direct_demand/operations/inspect-pavel-moscow-yml-20261104.py
+      - name: Retain original public source privately with bounded schema evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-published-refresh-proposal1
+          name: commercial-price-source-20261104-moscow-yml-inspection1
           path: |
-            ${{ runner.temp }}/published-price-refresh-proposal.json
+            ${{ runner.temp }}/moscow_any.source.xml
+            ${{ runner.temp }}/moscow-yml-inspection-summary.json
           retention-days: 14
           if-no-files-found: warn

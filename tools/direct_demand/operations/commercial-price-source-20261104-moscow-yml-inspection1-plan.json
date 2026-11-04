@@ -1,0 +1,27 @@
+{
+  "operation": "commercial-price-source-20261104-moscow-yml-inspection1",
+  "state": "NEW_USER_SUPPLIED_SOURCE_ONE_BOUNDED_GET_PLAN",
+  "source_url": "http://77.246.158.183:8081/exports/moscow_any.yml",
+  "goal": "Assess Pavel supplied feed as new price-source input before any publication",
+  "boundaries": [
+    "Exact user supplied address, one public GET, no redirects or retry, timeout50seconds/max25MiB",
+    "Read schema/counts/currency and producer timestamp metadata only into console; whole source privately authenticated artifact",
+    "No supplier search, flights gateway, DB, SSH, existingpost readback, edits, feedwrites or runtimechanges",
+    "Built-in web open could not accept numeric IP:port; existing cloud GHA reads exact public source without local Mac/Node/files"
+  ],
+  "criteria": [
+    "Parse XML safely with declared entities rejected",
+    "Determine required hotel identity, party, dates, meal, room, tour/fingerprint, timestamp provenance and basket/flight information from actual fields",
+    "Never infer final tour price/availability or UTC persistence merely from feed price or download time"
+  ],
+  "risks": [
+    "Feed price may be from-price or partial amount, not final tour basket",
+    "Raw producer date may lack timezone and is not database UTC persistence",
+    "Source hotel identifiers may differ from nativecatalog; exact binding needed"
+  ],
+  "source_get_attempts": 1,
+  "max_source_gets": 1,
+  "max_provider_calls": 0,
+  "max_db_calls": 0,
+  "max_edits": 0
+}
