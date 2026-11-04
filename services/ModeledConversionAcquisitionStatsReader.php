@@ -66,22 +66,38 @@ final class ModeledConversionAcquisitionStatsReader
             $people=[];$after='0';
             do{
                 $doc=$this->safe('p.profile_json');
-                $fields=['p.id','p.platform','p.customer_key','p.conversation_id','p.observed_at_unix'];
-                foreach(['access'=>'$.access_status','project'=>'$.subject.project_key','platform_json'=>'$.subject.platform',
+                $native=['p.id','p.platform','p.customer_key','p.conversation_id','p.observed_at_unix'];
+                $paths=['access'=>'$.access_status','project'=>'$.subject.project_key','platform_json'=>'$.subject.platform',
                     'customer_json'=>'$.subject.customer_key','conversation_json'=>'$.subject.conversation_id',
                     'input_project'=>'$.profile.observation_input.subject.project_key','input_platform'=>'$.profile.observation_input.subject.platform',
                     'input_customer'=>'$.profile.observation_input.subject.customer_key','input_conversation'=>'$.profile.observation_input.subject.conversation_id',
                     'context_version'=>'$.contextual_signals.version','extractor_version'=>'$.contextual_signals.extractor_version',
                     'cutoff'=>'$.contextual_signals.input_cutoff_at','input_prediction'=>'$.profile.observation_input.prediction_at',
-                    'context_prediction'=>'$.contextual_signals.prediction_at','fence'=>'$.source_fence_journal_id']as$alias=>$path)
-                    $fields[]=$this->str($doc,$this->lit($path)).' AS '.$alias;
-                $fields[]=$this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited';
-                $fields[]=$this->interestPaths($doc).' AS interest_paths';
-                // Select cheap IDs first. LIMIT is a nonmergeable page boundary, so
-                // filesort/admission cannot evaluate historical JSON before the page is bounded.
+                    'context_prediction'=>'$.contextual_signals.prediction_at','fence'=>'$.source_fence_journal_id'];
+                // Select cheap IDs first; JSON work cannot move before this bounded page.
                 $selected='SELECT p.id '.$this->profileFrom().' WHERE '.$where.' AND p.id>? ORDER BY p.id LIMIT 128';
-                $page=$this->rows('SELECT '.implode(',',$fields).' FROM ('.$selected.') selected_page'
-                    .' JOIN modeled_conversion_profile_versions p ON p.id=selected_page.id ORDER BY p.id',[...$scopeArgs,$after]);
+                $pageFrom=' FROM ('.$selected.') selected_page JOIN modeled_conversion_profile_versions p ON p.id=selected_page.id';
+                if($this->mysql){
+                    // Parse the large historical document once for these fixed, mandatory paths.
+                    // A second LIMIT prevents derived merging from repeating the parse per field.
+                    $packed=[...$native,'JSON_EXTRACT('.$doc.','.implode(',',array_map(fn(string $path):string=>$this->lit($path),array_values($paths))).') AS metadata_values',
+                        $this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited',
+                        $this->interestPaths($doc).' AS interest_paths'];
+                    $bounded='SELECT '.implode(',',$packed).$pageFrom.' ORDER BY p.id LIMIT 128';
+                    // Multi-path extraction omits absent paths. Every one is already mandatory
+                    // in validPacket: reject the entire short array rather than shift identities.
+                    $small="CASE WHEN JSON_TYPE(p.metadata_values)='ARRAY' AND JSON_LENGTH(p.metadata_values)=15 THEN p.metadata_values ELSE '{}' END";
+                    $fields=$native;$index=0;
+                    foreach($paths as$alias=>$unused)$fields[]=$this->str($small,$this->lit('$['.$index++.']')).' AS '.$alias;
+                    $fields[]='p.limited';$fields[]='p.interest_paths';
+                    $page=$this->rows('SELECT '.implode(',',$fields).' FROM ('.$bounded.') p ORDER BY p.id',[...$scopeArgs,$after]);
+                }else{
+                    $fields=$native;
+                    foreach($paths as$alias=>$path)$fields[]=$this->str($doc,$this->lit($path)).' AS '.$alias;
+                    $fields[]=$this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited';
+                    $fields[]=$this->interestPaths($doc).' AS interest_paths';
+                    $page=$this->rows('SELECT '.implode(',',$fields).$pageFrom.' ORDER BY p.id',[...$scopeArgs,$after]);
+                }
                 $targets=[];$packets=[];
                 foreach($page as$p){
                     $after=(string)$p['id'];

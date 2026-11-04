@@ -154,6 +154,15 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     $check($m($r)['inquiries']===1,'canonical extraction one second after cutoff remains admitted');
     $reset();$person(10,'max');$packet(10,'max',10,[['at'=>$now-3600]],$now-60,static function(array &$p)use($iso,$now):void{$p['contextual_signals']['input_cutoff_at']=$iso($now-59);});$r=$read();
     $check($m($r)['inquiries']===0,'prediction earlier than input cutoff is rejected');
+    $reset();$person(10,'max');$packet(10,'max',10,[['at'=>$now-3600]],$now-60,static function(array &$p):void{
+        unset($p['profile']['observation_input']['subject']['platform']);
+    });$r=$read();
+    $check($m($r)['inquiries']===0&&$r['sources']['profiles_without_usable_packet']===1,'missing middle metadata path cannot shift multipath slots into an admitted identity');
+    $reset();$person(10,'max');$packet(10,'max',10,[['at'=>$now-3600]],$now-60,static function(array &$p):void{
+        $p['profile']['observation_input']['subject']['platform']=['private'=>'SYNTHETIC_PRIVATE_METADATA_DO_NOT_PROJECT'];
+    });$r=$read();
+    $check($m($r)['inquiries']===0&&$r['sources']['profiles_without_usable_packet']===1
+        &&!str_contains(json_encode($r),'SYNTHETIC_PRIVATE_METADATA'),'nested wrong-type metadata is rejected and its private body never reaches aggregate output');
     $normal();$exec('UPDATE messages SET conversation_id=999 WHERE id=10001');$r=$read();
     $check($m($r)['inquiries']===0,'historical profile cannot resurrect moved native message ownership');
     $normal();$exec('DELETE FROM messages WHERE id=10001');$r=$read();
