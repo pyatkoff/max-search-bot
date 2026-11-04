@@ -84,6 +84,11 @@ v2aCheck(
 v2aCheck('explicit operator wording detected', V2EarlyActionHandler::isExplicitManagerRequest('Можно оператора?'), true);
 v2aCheck('ordinary tour request not treated as manager request', V2EarlyActionHandler::isExplicitManagerRequest('Турция на 7 ночей'), false);
 
+$fixtureOutput = []; $fixtureCode = 0;
+exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/dialogue_manager_interrupt.php').' 2>&1', $fixtureOutput, $fixtureCode);
+echo implode(PHP_EOL, $fixtureOutput).PHP_EOL;
+v2aCheck('real controller manager interruption and quiet ownership', $fixtureCode, 0);
+
 $total = $passed + $failed;
 echo "\n--------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";

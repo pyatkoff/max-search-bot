@@ -56,6 +56,7 @@ final class ManagerAiDraftService
         $normalized['verified_company_facts'] = $knowledge?->facts() ?? [];
         $hotelReference = null;
         $workingSelection = null;
+        $search3Inquiry = null;
         if ($references !== null) {
             $extra = $references->forContext($normalized);
             if ($extra === null) return ['error'=>'invalid_context'];
@@ -63,7 +64,8 @@ final class ManagerAiDraftService
             // cannot evict posts/routes, selection observations or photo evidence.
             $hotelReference = $extra['hotel_reference'] ?? null;
             $workingSelection = $extra['working_selection'] ?? null;
-            unset($extra['hotel_reference'], $extra['working_selection']);
+            $search3Inquiry = $extra['search3_inquiry'] ?? null;
+            unset($extra['hotel_reference'], $extra['working_selection'], $extra['search3_inquiry']);
             $plain = $normalized;
             $normalized += $extra;
             try {
@@ -124,8 +126,26 @@ final class ManagerAiDraftService
         if (is_array($workingSelection)) {
             [$normalized, $workingAdmission] = self::admitWorkingSelection($normalized, $workingSelection);
         }
+        $search3Admission = null;
+        if (is_array($search3Inquiry)) {
+            [$normalized, $search3Admission] = self::admitSearch3Inquiry($normalized, $search3Inquiry);
+        }
         return ['context'=>$normalized,'preflight'=>null,'images'=>$images,'hotel_reference_admission'=>$hotelAdmission]
-            + ($workingAdmission===null?[]:['working_selection_admission'=>$workingAdmission]);
+            + ($workingAdmission===null?[]:['working_selection_admission'=>$workingAdmission])
+            + ($search3Admission===null?[]:['search3_inquiry_admission'=>$search3Admission]);
+    }
+
+    /** A new optional observation cannot evict the transcript or existing evidence. */
+    private static function admitSearch3Inquiry(array $baseline, array $search3): array
+    {
+        try {
+            $raw=json_encode($search3,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+            if(strlen($raw)>ManagerSearch3ReferenceContext::MAX_EVIDENCE_BYTES)return [$baseline,['status'=>'omitted','reason'=>'evidence_budget']];
+            $candidate=$baseline+['search3_inquiry'=>$search3];
+            $encoded=json_encode(ManagerDraftClient::requestBody(self::instructions($candidate),$candidate),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+            if(strlen($encoded)>ManagerDraftClient::MAX_REQUEST_BYTES)return [$baseline,['status'=>'omitted','reason'=>'request_budget']];
+            return [$candidate,['status'=>'available','reason'=>null]];
+        }catch(Throwable $ignored){return [$baseline,['status'=>'omitted','reason'=>'evidence_unavailable']];}
     }
 
     /** Optional working variants are last and can never displace existing evidence. */
@@ -233,7 +253,9 @@ PROMPT;
             . (($context['hotel_reference']['status'] ?? null) === 'available'
             ? "\n\n".ManagerHotelKnowledge::instructions() : '')
             . (($context['working_selection']['status'] ?? null) === 'available'
-            ? "\n\n".ManagerTourSelectionReferenceContext::instructions() : '');
+            ? "\n\n".ManagerTourSelectionReferenceContext::instructions() : '')
+            . (($context['search3_inquiry']['status'] ?? null) === 'available'
+            ? "\n\n".ManagerSearch3ReferenceContext::instructions() : '');
     }
 
     public static function responseSchema(): array

@@ -8,6 +8,7 @@ require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/ManagerHotelReferenceContext.php';
 require_once __DIR__.'/ManagerTourSelectionReferenceContext.php';
 require_once __DIR__.'/ManagerRequestProfileService.php';
+require_once __DIR__.'/ManagerSearch3ReferenceContext.php';
 
 /** Server-owned, bounded source evidence. No HTTP, provider calls or writes. */
 final class ManagerAiDraftReferenceContext
@@ -52,6 +53,8 @@ final class ManagerAiDraftReferenceContext
         $profile=ManagerRequestProfileService::forContext($pdo,$conversation,$context,$focusReference);
         if($focusReference!==null&&($hotel['status']??null)!=='available')$data['hotel_reference']=$focusReference;
         if($profile!==null)$data['request_profile']=$profile;
+        $search3=ManagerSearch3ReferenceContext::capture($pdo,$conversation,$context);
+        if($search3!==null)$data['search3_inquiry']=$search3;
         return new self(self::binding($context), $data);
     }
 

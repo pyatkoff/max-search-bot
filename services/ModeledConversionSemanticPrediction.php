@@ -12,6 +12,13 @@ final class ModeledConversionSemanticPrediction
     public const ASSUMPTIONS_VERSION='illustrative_funnel_2026_11_02_v1';
     public const HORIZON_SECONDS=2592000;
     public const MAX_BYTES=16384;
+    /** Continuity policy is part of this model's source digest, never customer evidence. */
+    public const OBSERVATIONAL_EVENT_TARGETS=[
+        'metrika_max_bot_activity_start'=>'max_bot_activity_start',
+        'metrika_max_manager_request'=>'max_manager_request',
+        'metrika_max_manager_reply'=>'max_manager_reply',
+        'metrika_max_customer_reply_after_manager'=>'max_customer_reply_after_manager',
+    ];
     private const POSITIVE_GOALS=['substantive_interest','general_purchase_intent','agency_purchase_intent'];
     private const OUTCOME_GOALS=['payment_self_report','manager_payment_ack','booking_confirmation',
         'purchase_supported_candidate','payment_cancellation','booking_cancellation','refund_report',
@@ -154,7 +161,7 @@ final class ModeledConversionSemanticPrediction
         // Known operational outcomes are a conservative global exclusion, never bank truth.
     }
 
-    /** A verified service reply or handoff receipt may preserve, never establish or refresh, recent customer meaning. */
+    /** A verified service reply or receipt may preserve, never establish or refresh, recent customer meaning. */
     public function canPreserveCustomerContext(int $occurred):bool
     {
         return $this->anchor!==null&&$this->lastMeaningfulAt!==null

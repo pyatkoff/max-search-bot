@@ -102,13 +102,15 @@ final class ModeledConversionEarlyForecast
                 $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
-                $serviceKind=null;
+                $serviceKind=null;$observationalBridge=false;
                 if(!$denied&&!$clockUnresolved&&!$longGap){
                     if(self::knownServiceReply($row,$subject,$requested))$serviceKind='preserved_ai_replies';
                     elseif(self::knownServiceEvent($row,$subject,$requested))$serviceKind='preserved_handoff_receipts';
+                    $observationalBridge=self::knownObservationalEvent($row,$subject,$requested)
+                        &&$predictive->canPreserveCustomerContext((int)$item['at']);
                 }
                 $serviceBridge=$serviceKind!==null&&$predictive->canPreserveCustomerContext((int)$item['at']);
-                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
+                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
                     $predictive->barrier();
                     $reason=$clockUnresolved?'unresolved_clock_barriers':($longGap?'long_gap_barriers':
                         match($row['source_kind']??null){'message'=>'unavailable_message_barriers','event'=>'unavailable_event_barriers',default=>'other_source_barriers'});
@@ -312,6 +314,25 @@ final class ModeledConversionEarlyForecast
         $available=$row['observed_at_unix']??null;
         return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff
             &&($s['source_created_at_unix']??null)===$at;
+    }
+
+    /** Exact bookkeeping receipts from MetrikaConversionGoalService::emitOnce contain no customer meaning. */
+    private static function knownObservationalEvent(array $row,array $subject,int $cutoff):bool
+    {
+        $s=$row['snapshot']??null;
+        if(($row['source_kind']??null)!=='event'||($row['source_version_no']??null)!==1||!is_array($s)
+            ||($s['source_kind']??null)!=='event'||($s['source_status']??null)!=='present'
+            ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+            ||(string)($s['source_id']??'')!==(string)($row['source_id']??'')
+            ||($s['source_clock']??null)!=='database_persistence_not_provider_occurrence'
+            ||($s['source_timestamp_basis']??null)!=='database_session_timezone_to_unix')return false;
+        $p=$s['payload']??null;$type=is_array($p)?($p['event_type']??null):null;
+        $target=is_string($type)?(ModeledConversionSemanticPrediction::OBSERVATIONAL_EVENT_TARGETS[$type]??null):null;
+        if($target===null||($p['actor_type']??null)!=='system'
+            ||($p['payload_json']??null)!==json_encode(['target'=>$target],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES))return false;
+        // Retain the stream's normalized recording clock; do not reinterpret native DATETIME as UTC or occurrence time.
+        $at=$s['source_created_at_unix']??null;$available=$row['observed_at_unix']??null;
+        return is_int($at)&&is_int($available)&&$at>=946684800&&$at<=$available&&$available<=$cutoff;
     }
 
     /** A known closed operational assertion is an exclusion, never payment proof. */
