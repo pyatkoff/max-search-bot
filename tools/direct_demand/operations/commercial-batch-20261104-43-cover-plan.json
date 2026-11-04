@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-batch-20261104-43-cover-preparation",
+  "state": "TWO_NATIVE_COVER_CANDIDATES_NOT_PUBLISHED",
+  "goal": "Prepare two branded covers from six accepted exact owner photographs without permanent Canva edits",
+  "boundaries": [
+    "Reuse two existing approved pool designs, protect originalDAHZIISS2iY",
+    "Maximum2 simultaneous transactions/imports; each object sequential",
+    "No publication or provider calls until accepted frozen native PNG and strict source/runtime gates",
+    "Cancel exact transactions only after accepted freeze; no permanentSave/reexport/reupload"
+  ],
+  "criteria": [
+    "Whole complex hero visible after final crop, 2distinct lower photos, readableAnyTourlogo and blue banner, shortsinglelinehotelname",
+    "Fresh actual page and element IDs",
+    "Each thumbnail shown in chat, native PNG bytes/dimensions/SHA/pixels inspected",
+    "Deliver actual ready subset serially; do not hold TUI for Sera crop difficulty"
+  ],
+  "risks": [
+    "Sera vertical photo may crop out hotel; reject cover if whole property is not retained",
+    "No cover readiness or delivery credit from photo pass/caption/import alone"
+  ],
+  "candidates": [
+    {
+      "hotel_id": 17480,
+      "hotel": "TUI BLUE Palm Garden",
+      "design_id": "DAHZx_JlJEM",
+      "photo_roles": [
+        "h17480_new43_13",
+        "h17480_new43_12",
+        "h17480_new43_14"
+      ],
+      "visual_constraints": "Whole bungalow complex, grounds and coast in one aerial; distinct pool/grounds aerial and palm-lined architecture lower photos"
+    },
+    {
+      "hotel_id": 1100,
+      "hotel": "Club Hotel Sera",
+      "design_id": "DAHZx-KVGLQ",
+      "photo_roles": [
+        "h1100_new43_15",
+        "h1100_new43_16",
+        "h1100_new43_17"
+      ],
+      "visual_constraints": "Whole hotel beachfront and buildings in vertical seaward view; cover crop must retain buildings and grounds; two distinct beach area views below"
+    }
+  ]
+}

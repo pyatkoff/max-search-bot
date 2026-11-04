@@ -1,0 +1,61 @@
+{
+  "operation": "commercial-batch-20261104-43-contact",
+  "state": "CLOSED_21_DIFFERENT_OWNER_PHOTOS_NATIVE_REVIEWED_TWO_COVER_CANDIDATES_NOT_READY",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41909526392",
+  "source_commit": "06712277a4311bc9eec857212c2414f4485b0344",
+  "jobs": [
+    {
+      "id": 126853068681,
+      "group": 0,
+      "conclusion": "success"
+    },
+    {
+      "id": 126853068932,
+      "group": 1,
+      "conclusion": "success"
+    },
+    {
+      "id": 126853069003,
+      "group": 2,
+      "conclusion": "success"
+    },
+    {
+      "id": 126853068798,
+      "group": 3,
+      "conclusion": "success"
+    }
+  ],
+  "actual_raw_photo_gets": 21,
+  "byte_format_dimension_passes": 13,
+  "dimension_rejects": 5,
+  "http200_html_decode_rejects": 3,
+  "http403": 0,
+  "all_contacts_fullchunks_decodedbytes_sha_nativepixels_verified": true,
+  "rawguards_querypolicy_unchanged": true,
+  "new_input_scope_cases": 3,
+  "old_guard_fixtures_rerun": 0,
+  "first_preparation_failure_run": 41909237918,
+  "first_preparation_actual_photo_gets": 0,
+  "first_preparation_error": "PIL dependency missing before all HTTP; fixed by accepted41 ephemeral dependency step",
+  "whole_caption_count": 10,
+  "cover_candidate_native_ids": [
+    17480,
+    1100
+  ],
+  "new_canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "verdicts": {
+    "969": "People, one pool with cropped roof edges, aquapark detail; no whole hotel hero.",
+    "975": "Two property experience strips HTTP200JPEG704x176/1070x176 dimension rejects; no larger variants guessed.",
+    "1074": "Dusk one pool with limited distant roofs, food and people; no whole hotel hero. Family room HTTP200JPEG390x275 dimension reject.",
+    "1100": "Vertical whole beachfront/hotel buildings candidate; native cover crop must keep hotel visible, not beach alone.",
+    "1294": "Two property experience strips HTTP200JPEG704x176/1070x176 dimension rejects; no larger variants guessed.",
+    "1402": "Three declared .webp requests returned HTTP200HTML, not photos and not403. No redirects/alternatepaths/query/header/Canva bypass.",
+    "17480": "Whole grounds/buildings aerial accepted as hero; two distinct property lower photos accepted for cover preparation."
+  },
+  "server_connections": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0
+}
