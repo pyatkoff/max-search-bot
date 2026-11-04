@@ -194,13 +194,19 @@ final class ModeledConversionAcquisitionStatsReader
     private function candidateRows(array $targets):array
     {
         if(!$targets)return[];
+        $targetCount=count($targets);
+        if($targetCount>128)throw new ModeledConversionAcquisitionReadFailure('source_shape_limit');
+        $materialize=$this->mysql?' LIMIT '.$targetCount:'';
         $parts=[];$args=[];
         foreach($targets as[$id,$path]){$parts[]='SELECT ? AS pid,? AS ep';$args[]=$id;$args[]=$path;}
         $doc=$this->safe('p.profile_json');
-        $base='SELECT p.id AS pid,t.ep,'.$doc.' AS doc FROM ('.implode(' UNION ALL ',$parts).') t JOIN modeled_conversion_profile_versions p ON p.id=t.pid';
+        // Keep the private document as native binary JSON inside MySQL only.
+        // No document/body is returned by the final closed scalar projection.
+        if($this->mysql)$doc='CAST('.$doc.' AS JSON)';
+        $base='SELECT p.id AS pid,t.ep,'.$doc.' AS doc FROM ('.implode(' UNION ALL ',$parts).') t JOIN modeled_conversion_profile_versions p ON p.id=t.pid'.$materialize;
         $a='SELECT z.*,'.$this->str('z.doc',$this->cat('z.ep',$this->lit('.source_ref'))).' AS ref,'
-            .$this->str('z.doc',$this->cat('z.ep',$this->lit('.goal'))).' AS goal FROM ('.$base.') z';
-        $b='SELECT a.*,'.$this->findPath('a.doc','a.ref',false).' AS epath,'.$this->findPath('a.doc','a.ref',true).' AS spath FROM ('.$a.') a';
+            .$this->str('z.doc',$this->cat('z.ep',$this->lit('.goal'))).' AS goal FROM ('.$base.') z'.$materialize;
+        $b='SELECT a.*,'.$this->findPath('a.doc','a.ref',false).' AS epath,'.$this->findPath('a.doc','a.ref',true).' AS spath FROM ('.$a.') a'.$materialize;
         $fields=['b.pid','b.ref','b.goal','b.epath','b.spath'];
         foreach(['kind'=>'.kind','eid'=>'.id','eat'=>'.at','eavailable'=>'.available_at',
             'eproject'=>'.subject.project_key','eplatform'=>'.subject.platform','ecustomer'=>'.subject.customer_key','econversation'=>'.subject.conversation_id',
