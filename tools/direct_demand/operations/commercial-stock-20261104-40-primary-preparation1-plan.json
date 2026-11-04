@@ -1,0 +1,114 @@
+{
+  "operation": "commercial-stock-20261104-40-primary-preparation1",
+  "state": "PRELOOKUP_NEW_OWNER_HTML_ONLY_NATIVE_IDENTITY_PENDING",
+  "goal": "Prepare exact owner facts and declared property links for the alreadyfixed ten new stock40groups while currentrelease acceptance is pending",
+  "boundaries": {
+    "new_owner_html_requests": 8,
+    "readonly_groups": 3,
+    "max_parallel": 2,
+    "raw_photo_gets": 0,
+    "old_source_repeated_gets": 0,
+    "server_calls": 0,
+    "db_reads": 0,
+    "provider_calls": 0,
+    "canva_transactions": 0,
+    "message_sends": 0,
+    "new_native_identities_proven": 0,
+    "ready_for_send": 0,
+    "new_posts": 0
+  },
+  "criteria": [
+    "Exact8querylessofficialURIs from closednewdiscovery, beforeGETmatch against olderretainedsource/source-notesfiles",
+    "Parserfunctionality unchanged; explicitlyallowfourfixednewownerhosts forPAGESonly,notarbitraryCDNphotos",
+    "OceanqueryURI notGET/strip; brandindexmaydeclareactualcanonicalpropertyhref",
+    "CurrentBlissvsResort/ClubMelasPrivevsHoliday remainunresolveduntilnativecurrentnamebinding; genericnavnotphotoownership",
+    "3newinput/dedupassertions beforeHTTP,oldparserfixtures0",
+    "Fullpublictext retainedonlynativeartifact; publicprojection/notesexcludeverbatimpublictext"
+  ],
+  "risks": [
+    "Sourcesnotnativeidentity/readiness/photoacceptance, countsunchanged",
+    "Challenge/403/redirect staysclosed/no alternatewww/header/cookie/query/Canvabypass",
+    "Seasonal/roomcategory/inclusion/mixedpropertyfragmentsnotuniversalrights"
+  ],
+  "sources": [
+    {
+      "key": "adalya-elite-lara",
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "native_catalog_id": null,
+      "owner_uri_proof": "Exact queryless official URI actually returned in closed ownerDiscovery1",
+      "ready_for_send": false
+    },
+    {
+      "key": "adalya-artside",
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "native_catalog_id": null,
+      "owner_uri_proof": "Exact queryless official URI actually returned in closed ownerDiscovery1",
+      "ready_for_send": false
+    },
+    {
+      "key": "adalya-owner-index",
+      "url": "https://www.adalyahotels.com/en/our-hotels/",
+      "purpose": "Resolve actual declared canonical Ocean URI/current Bliss pointer, not guessed querystrip",
+      "native_catalog_id": null,
+      "owner_uri_proof": "Exact queryless official URI actually returned in closed ownerDiscovery1",
+      "ready_for_send": false
+    },
+    {
+      "key": "melas-lara",
+      "url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "native_catalog_id": null,
+      "owner_uri_proof": "Exact queryless official URI actually returned in closed ownerDiscovery1",
+      "ready_for_send": false
+    },
+    {
+      "key": "melas-resort",
+      "url": "https://www.melashotels.com/en/melas-resort-hotel",
+      "native_catalog_id": null,
+      "owner_uri_proof": "Exact queryless official URI actually returned in closed ownerDiscovery1",
+      "ready_for_send": false
+    },
+    {
+      "key": "melas-owner-index",
+      "url": "https://www.melashotels.com/en",
+      "purpose": "Resolve actual declared ClubMelasPrive pointer without forcing Holidayidentity",
+      "native_catalog_id": null,
+      "owner_uri_proof": "Exact queryless official URI actually returned in closed ownerDiscovery1",
+      "ready_for_send": false
+    },
+    {
+      "key": "sunis-elita",
+      "url": "https://www.elitabeachresort.com/",
+      "native_catalog_id": null,
+      "owner_uri_proof": "Exact queryless official URI actually returned in closed ownerDiscovery1",
+      "ready_for_send": false
+    },
+    {
+      "key": "sunis-kumkoy",
+      "url": "https://www.kumkoybeachresort.com/",
+      "native_catalog_id": null,
+      "owner_uri_proof": "Exact queryless official URI actually returned in closed ownerDiscovery1",
+      "ready_for_send": false
+    }
+  ],
+  "lookup_groups": [
+    "adalya-elite-lara",
+    "adalya-ocean-deluxe",
+    "adalya-resort",
+    "adalya-artside",
+    "melas-lara",
+    "melas-resort",
+    "melas-holiday",
+    "sunis-elita",
+    "sunis-kumkoy",
+    "sunis-evren"
+  ],
+  "explicit_new_page_hosts": [
+    "www.adalyahotels.com",
+    "www.melashotels.com",
+    "www.elitabeachresort.com",
+    "www.kumkoybeachresort.com"
+  ],
+  "parser_functionality_unchanged": true,
+  "old_parser_fixtures_rerun": 0,
+  "new_input_scope_cases": 3
+}

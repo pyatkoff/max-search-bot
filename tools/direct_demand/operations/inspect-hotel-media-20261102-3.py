@@ -1,18 +1,35 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch42-three-new-declared-owner-pages'
-pages=["https://mice.robinson.com/en/clubs/soma-bay/","https://www.alibey.com/en/park/beach-waterpark","https://www.palomahotels.com/en/finesse-side/mice"]
-assert len(pages)==3 and len(set(pages))==3
-assert all(urllib.parse.urlsplit(u).scheme=='https' and not urllib.parse.urlsplit(u).query and not urllib.parse.urlsplit(u).fragment for u in pages)
-closed_roots={'https://www.alibey.com/en/park','https://www.palomahotels.com/en/finesse-side','https://www.palomahotels.com/en/finesse-side/beach-and-pool','https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/'}
-assert not set(pages)&closed_roots
-print('BATCH42_NEW_DECLARED_SOURCE_SCOPE_OK new_input_cases=3 old_parser_fixtures_rerun=0 http_calls=0',flush=True)
+operation='commercial-stock40-prelookup-eight-new-owner-pages'
+pages=["https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/","https://www.adalyahotels.com/en/our-hotels/adalya-art-side/","https://www.adalyahotels.com/en/our-hotels/","https://www.melashotels.com/en/melas-lara-hotel","https://www.melashotels.com/en/melas-resort-hotel","https://www.melashotels.com/en","https://www.elitabeachresort.com/","https://www.kumkoybeachresort.com/"]
+all_pages=list(pages)
+plan=json.loads(Path('tools/direct_demand/operations/commercial-stock-20261104-40-primary-preparation1-plan.json').read_text())
+assert all_pages==[s['url'] for s in plan['sources']] and len(all_pages)==len(set(all_pages))==8
+assert all(urllib.parse.urlsplit(u).scheme=='https' and not urllib.parse.urlsplit(u).query and urllib.parse.urlsplit(u).hostname in plan['explicit_new_page_hosts'] for u in all_pages)
+closed_hits=[]
+def source_key(u):
+ p=urllib.parse.urlsplit(u)
+ return (p.hostname,(p.path or '/').rstrip('/'),p.query)
+def walk_urls(x):
+ if isinstance(x,str):return [x] if x.startswith('https://') else []
+ if isinstance(x,dict):return [u for v in x.values() for u in walk_urls(v)]
+ if isinstance(x,list):return [u for v in x for u in walk_urls(v)]
+ return []
+for path in Path('tools/direct_demand/operations').glob('*.json'):
+ if '20261104-40-primary-preparation1' in path.name or '20261104-40-owner' in path.name:continue
+ if not ('primary-sources-retained' in path.name or 'primary-preparation1-retained' in path.name or 'source-notes' in path.name):continue
+ d=json.loads(path.read_text())
+ old_keys={source_key(u) for u in walk_urls(d)}
+ for u in all_pages:
+  if source_key(u) in old_keys:closed_hits.append((u,path.name))
+assert not closed_hits,('CLOSED_OWNER_SOURCE_ALREADY_RETAINED',closed_hits)
+print('STOCK40_NEW_OWNER_INPUTS_OK new_cases=3 old_parser_fixtures_rerun=0 source_repeats=0 raw_photo_gets=0 server_calls=0')
 group=int(os.environ['MEDIA_GROUP'])
-assert group==0
+assert group in (0,1,2,3)
 pages=pages[group*3:group*3+3]
-assert len(pages)==3
-hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com","www.akrahotels.com","baruthemera.com","barutarum.com","bayouacanthus.com","barutandiz.com","www.libertyhotels.com","ngphaselisbay.com","www.voyagehotel.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net","api.baruthotelsgroup.com","voyagecdn.blob.core.windows.net","www.baruthemera.com","www.barutarum.com","www.bayouacanthus.com","www.barutandiz.com","www.ngphaselisbay.com","all.accor.com","bayoulara.com","www.bayoulara.com","www.delphinhotel.com","delphinhotel.com","lujohotel.com","www.lujohotel.com","barutlara.com","www.barutlara.com","miraclehotel.com","www.miraclehotel.com","concordehotels.com","www.concordehotels.com","www.limakhotels.com","limakhotels.com","trendy.com.tr","www.trendy.com.tr","www.titanic.com.tr","titanic.com.tr","www.regnumhotels.com","regnumhotels.com","www.maxxroyal.com","maxxroyal.com","www.palomahotels.com","palomahotels.com","sevenseashotels.com","www.sevenseashotels.com","www.belazur.com.tr","belazur.com.tr","luxuryresortbelek.selectumhotels.com","dmarisbay.com","www.dmarisbay.com","www.dresortgocek.com","dresortgocek.com","www.clubmarvy.com","clubmarvy.com","www.gloria.com.tr","gloria.com.tr","www.susesihotel.com","susesihotel.com","corneliaresort.com","www.corneliaresort.com","www.royalwingshotel.com","royalwingshotel.com","www.alibey.com","www.hillsidebeachclub.com","www.kempinski.com","www.mandarinoriental.com","photos.mandarinoriental.com","www.tui-blue.com","tui-blue.com","granada.com.tr","www.granada.com.tr","eftaliahotels.com","www.eftaliahotels.com","www.kirmanpremium.com","kirmanpremium.com","crystalhotels.com.tr","www.crystalhotels.com.tr","www.nirvanahotels.com.tr","nirvanahotels.com.tr","www.guralpremier.com","clubhotelsera.com.tr","www.orangecounty.com.tr","mice.robinson.com"])
+assert 1<=len(pages)<=3
+hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com","www.akrahotels.com","baruthemera.com","barutarum.com","bayouacanthus.com","barutandiz.com","www.libertyhotels.com","ngphaselisbay.com","www.voyagehotel.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net","api.baruthotelsgroup.com","voyagecdn.blob.core.windows.net","www.baruthemera.com","www.barutarum.com","www.bayouacanthus.com","www.barutandiz.com","www.ngphaselisbay.com","all.accor.com","bayoulara.com","www.bayoulara.com","www.delphinhotel.com","delphinhotel.com","lujohotel.com","www.lujohotel.com","barutlara.com","www.barutlara.com","miraclehotel.com","www.miraclehotel.com","concordehotels.com","www.concordehotels.com","www.limakhotels.com","limakhotels.com","trendy.com.tr","www.trendy.com.tr","www.titanic.com.tr","titanic.com.tr","www.regnumhotels.com","regnumhotels.com","www.maxxroyal.com","maxxroyal.com","www.palomahotels.com","palomahotels.com","sevenseashotels.com","www.sevenseashotels.com","www.belazur.com.tr","belazur.com.tr","luxuryresortbelek.selectumhotels.com","dmarisbay.com","www.dmarisbay.com","www.dresortgocek.com","dresortgocek.com","www.clubmarvy.com","clubmarvy.com","www.gloria.com.tr","gloria.com.tr","www.susesihotel.com","susesihotel.com","corneliaresort.com","www.corneliaresort.com","www.royalwingshotel.com","royalwingshotel.com","www.alibey.com","www.hillsidebeachclub.com","www.kempinski.com","www.mandarinoriental.com","photos.mandarinoriental.com","www.tui-blue.com","tui-blue.com","granada.com.tr","www.granada.com.tr","eftaliahotels.com","www.eftaliahotels.com","www.kirmanpremium.com","kirmanpremium.com","crystalhotels.com.tr","www.crystalhotels.com.tr","www.nirvanahotels.com.tr","nirvanahotels.com.tr","www.guralpremier.com","clubhotelsera.com.tr","www.orangecounty.com.tr","www.adalyahotels.com","www.melashotels.com","www.elitabeachresort.com","www.kumkoybeachresort.com"])
 class Redirect(urllib.request.HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ValueError('unexpected_primary_source_redirect')
 opener=urllib.request.build_opener(Redirect())
