@@ -1870,3 +1870,75 @@ test('OneTouch lost add response permits only receipt read then missing private 
  await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect.poll(()=>s.snapshot().draft.offers[1]?.photos.length).toBe(1);
  expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(1);expect(s.snapshot().draft.offers).toHaveLength(2);expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
+
+for(const width of [390,430,768,1440])test('offer conditions comparison is readonly with exact different trips '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const original=completeDraft();
+ original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Синтетический <svg>',date_from:'2027-06-12',nights:10,adults:1,child_ages:[11],room:'Номер <img>',meal:'Завтрак',amount:'1000',currency:'EUR',price_qualifier:'from',constraints:'Доплата за трансфер\nБагаж уточняется',inclusions:''});
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls);
+ await f.locator('#tsCompareOffers').click();const panel=f.locator('#tsOfferCompare'),scroll=f.locator('#tsCompareScroll');await expect(panel).toBeVisible();await expect(panel.locator('thead th')).toHaveCount(3);
+ await expect(panel.getByRole('row',{name:/Цена за весь состав/})).toContainText(/240\s000/);await expect(panel.getByRole('row',{name:/Цена за весь состав/})).toContainText(/от\s1\s000/);
+ await expect(panel.getByRole('row',{name:/Дата вылета/})).toContainText('2027-06-05');await expect(panel.getByRole('row',{name:/Дата вылета/})).toContainText('2027-06-12');
+ await expect(panel.getByRole('row',{name:/Состав/})).toContainText('дети: 4, 4');await expect(panel.getByRole('row',{name:/Состав/})).toContainText('дети: 11');
+ await expect(panel.getByRole('row',{name:/Номер/})).toContainText('Номер <img>');await expect(panel.getByRole('row',{name:/Питание/})).toContainText('Завтрак');await expect(panel.getByRole('row',{name:/Важные условия/})).toContainText('Багаж уточняется');
+ await expect(panel.locator('caption')).toContainText('Различаются валюта, даты, длительность или состав');await expect(panel.locator('img,svg,script')).toHaveCount(0);
+ expect(await f.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);expect(await panel.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);expect(await f.locator('#tsCompareBack').evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ if(width<600){await scroll.focus();await scroll.press('ArrowRight');await expect.poll(()=>scroll.evaluate(el=>el.scrollLeft)).toBeGreaterThan(0);await scroll.evaluate(el=>{el.scrollLeft=0;el.scrollTop=0})}
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`selection-offer-comparison-${browserName}-${width}.png`),animations:'disabled'});
+ if([390,1440].includes(width)){await panel.getByRole('row',{name:/Цена за весь состав/}).scrollIntoViewIfNeeded();await page.screenshot({path:path.join(root,'manager2-artifacts',`selection-offer-comparison-price-${browserName}-${width}.png`),animations:'disabled'});}
+ await page.setViewportSize({width,height:420});await expect(f.locator('#tsCompareBack')).toBeInViewport();await expect(f.locator('#tsClose')).toBeInViewport();expect(await scroll.evaluate(el=>el.clientHeight)).toBeGreaterThan(50);
+ await scroll.focus();await scroll.press('Escape');await expect(panel).toBeHidden();await expect(f.locator('#tourSelectionDialog')).toBeVisible();await expect(f.locator('#tsCompareOffers')).toBeFocused();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison caps four choices and does not include an excluded offer',async({page})=>{
+ const original=completeDraft();for(let i=1;i<5;i++)original.offers.push({...copy(original.offers[0]),id:String.fromCharCode(97+i).repeat(32),hotel:'Синтетический вариант '+(i+1),selected:i!==4});
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls);await f.locator('#tsCompareOffers').click();await f.locator('#tsCompareChooser > summary').click();
+ const choices=f.locator('#tsCompareChoices input');await choices.nth(2).check();await choices.nth(3).check();await expect(choices.nth(4)).toBeDisabled();await expect(f.locator('#tsCompareChoices input:checked')).toHaveCount(4);await expect(f.locator('#tsCompareScroll thead th')).toHaveCount(5);
+ await choices.nth(1).uncheck();await choices.nth(4).check();await expect(f.locator('#tsCompareScroll thead')).toContainText('Не включён в подборку');await expect(choices.nth(1)).toBeDisabled();
+ await f.locator('#tsCompareBack').click();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.snapshot().draft.offers[4].selected).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison keeps original source prices separate from manual prices',async({page})=>{
+ const original=mixedPhotoDraft();for(const offer of original.offers)offer.photos=[];original.offers[0].amount='190000';
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls);await f.locator('#tsCompareOffers').click();
+ await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Цена за весь состав/})).toContainText(/190\s000/);await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Исходная цена/})).toContainText(/200\s000/);await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Цена получена/})).toContainText(original.offers[0].import_source.observed_at);
+ await f.locator('#tsCompareChooser > summary').click();await f.locator('#tsCompareChoices input').nth(1).uncheck();await f.locator('#tsCompareChoices input').nth(2).check();await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Исходная цена/})).toContainText('за номер');
+ await f.locator('#tsCompareBack').click();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison preserves invalid unsaved ages and price without making a quote',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант'});const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');
+ await f.locator('#tsOfferDetails > summary').click();await f.locator('#ts-child_ages').fill('7,x');await f.locator('#ts-amount').fill('1e5');const before=copy(s.snapshot()),calls=copy(s.calls);await f.locator('#tsCompareOffers').click();
+ await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Состав/})).toContainText('Возраст детей требует исправления: 7,x');await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Цена за весь состав/})).toContainText('Проверьте цену: 1e5');await expect(f.locator('#tsCompareScroll caption')).toContainText('несохранёнными правками');
+ await f.locator('#tsCompareBack').click();await expect(f.locator('#ts-child_ages')).toHaveValue('7,x');await expect(f.locator('#ts-amount')).toHaveValue('1e5');await expect(f.locator('#tsSave')).toBeDisabled();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('readonly actor can compare and navigate without acquiring edit rights',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант'});const s=await privateEditor(page,{draft:original,readOnly:true}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('Просмотр');const before=copy(s.snapshot()),calls=copy(s.calls);
+ await expect(f.locator('#tsCompareOffers')).toBeEnabled();await f.locator('#tsCompareOffers').click();await f.locator('[data-ts-compare-open]').nth(1).click();await expect(f.locator('#tsOfferCompare')).toBeHidden();await expect(f.locator('#ts-hotel')).toHaveValue('Другой синтетический вариант');await expect(f.locator('#ts-hotel')).toBeDisabled();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison treats equivalent child ages as the same party without rewriting raw input',async({page})=>{
+ const original=completeDraft();original.offers[0].child_ages=[4,4,11];original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант',child_ages:[11,4,4]});
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls);await f.locator('#tsOfferDetails > summary').click();
+ // Dispatch the edit and open the view in one task so this checks raw input,
+ // independently of the existing 900ms autosave delay on a loaded CI worker.
+ await f.locator('#ts-child_ages').evaluate(input=>{input.value='04, 4, 11';input.dispatchEvent(new Event('input',{bubbles:true}));input.closest('dialog').querySelector('#tsCompareOffers').click()});
+ await expect(f.locator('#tsOfferCompare')).toBeVisible();await expect(f.locator('#tsCompareScroll caption')).not.toContainText('Различаются');await expect(f.locator('#tsCompareScroll caption')).toContainText('несохранёнными правками');await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Состав/})).toContainText('дети: 04, 4, 11');await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Состав/})).toContainText('дети: 11, 4, 4');
+ await f.locator('#tsClose').click();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison rejects actual stored publish and revoke handlers',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант'});const s=await privateEditor(page,{draft:original}),f=s.editor;await appearancePrivatePreview(page,s);const writes=[];
+ const share={version:1,active:true,path:'/selection/?t='+'a'.repeat(64),publication_id:'e'.repeat(32),can_revoke:true};
+ await page.route('https://app.anytoour.ru/manager/tour-selection-editor-api.php',async route=>{const d=route.request().postDataJSON();if(d.action==='share')return route.fulfill({json:{ok:true,share}});if(['publish','revoke'].includes(d.action)){writes.push(copy(d));return route.fulfill({json:{ok:true,share}})}return route.fallback()});
+ await f.locator('#tsPreview').click();await expect(f.locator('.tsPreviewCard')).toHaveCount(2);await f.locator('#tsShare').click();await expect(f.locator('#tsPublish')).toBeEnabled();await expect(f.locator('#tsRevoke')).toBeEnabled();await f.locator('#tsPublish').evaluate(button=>window.comparisonOldPublish=button.onclick);await f.locator('#tsRevoke').evaluate(button=>window.comparisonOldRevoke=button.onclick);await f.locator('#tsEdit').click();const before=copy(s.snapshot());await f.locator('#tsCompareOffers').click();
+ await f.locator('body').evaluate(async()=>{await window.comparisonOldPublish();await window.comparisonOldRevoke()});await expect(f.locator('#tsOfferCompare')).toBeVisible();expect(writes).toEqual([]);expect(s.calls.filter(call=>['save','send','publish','revoke'].includes(call.action))).toEqual([]);expect(s.snapshot()).toEqual(before);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison rejects late history and a stored send handler',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант'});const s=await privateEditor(page,{draft:original}),f=s.editor,frozen=await appearancePrivatePreview(page,s);await f.locator('#tsPreview').click();await expect(f.locator('.tsPreviewCard')).toHaveCount(2);await expect(f.locator('#tsSend')).toBeEnabled();await f.locator('#tsSend').evaluate(el=>window.comparisonOldSend=el.onclick);await f.locator('#tsEdit').click();
+ let release=null,publicationReads=0;await page.route('https://app.anytoour.ru/manager/tour-selection-editor-api.php',async route=>{const d=route.request().postDataJSON();if(d.action==='history')return route.fulfill({json:{ok:true,publications:[{publication_id:'f'.repeat(32),draft_version:1,created_at:'2077-01-01 00:00:00'}]}});if(d.action==='publication'){publicationReads++;await new Promise(resolve=>release=resolve);return route.fulfill({json:{ok:true,publication:frozen()}})}return route.fallback()});
+ await f.locator('#tsHistory').click();const old=f.locator('#tsRecovery button').first();await expect(old).toBeVisible();await old.evaluate(el=>window.detachedCompareHistory=el);await old.click();await expect.poll(()=>!!release).toBe(true);const before=copy(s.snapshot());await f.locator('#tsCompareOffers').click();await expect(f.locator('#tsSend')).toBeDisabled();await f.locator('body').evaluate(()=>{window.detachedCompareHistory.click();return window.comparisonOldSend()});
+ const response=page.waitForResponse(result=>result.url().includes('/manager/tour-selection-editor-api.php')&&result.request().postDataJSON().action==='publication');release();await response;await f.locator('body').evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await expect(f.locator('#tsOfferCompare')).toBeVisible();await expect(f.locator('.tsPreviewCard')).toHaveCount(0);await expect(f.locator('#tsSend')).toBeHidden();expect(publicationReads).toBe(1);expect(s.snapshot()).toEqual(before);expect(s.calls.filter(x=>['save','send','publish','revoke'].includes(x.action))).toEqual([]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
