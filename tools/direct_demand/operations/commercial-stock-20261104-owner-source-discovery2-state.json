@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-stock-20261104-owner-source-discovery2",
+  "state": "CLOSED_BOUNDED_OWNER_URI_DISCOVERY_NO_READY_MATERIAL",
+  "checked_at_utc": "2026-11-04 18:51:36 UTC",
+  "goal": "Find exact owner source pointers for ten already proven deferred candidates while current production remains unaccepted",
+  "boundaries": {
+    "proven_candidate_scope": [
+      473,
+      231,
+      75571,
+      102774,
+      67897,
+      15693,
+      102031,
+      62505,
+      432,
+      68907
+    ],
+    "search_calls": 4,
+    "search_queries": 15,
+    "additional_owner_index_page_open": 1,
+    "new_native_identity_reads": 0,
+    "new_native_owner_page_workflow_requests": 0,
+    "raw_photo_requests": 0,
+    "canva_imports": 0,
+    "canva_transactions": 0,
+    "server_connections": 0,
+    "database_reads": 0,
+    "database_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "new_workflows": 0,
+    "new_publication_batches": 0
+  },
+  "criteria": [
+    "Retain only exact returned owner URIs and proven native candidate identities",
+    "Do not turn an owner hotel code into a guessed property URL or native ID",
+    "Closed timeout,403,challenge or previously inspected media requests remain closed; discovery does not authorize another GET",
+    "Check addressed retained source and photo URL plus basename exclusions before any future finite primary or contact pass",
+    "Whole property hero and two exact property lower photos plus complete factual caption remain required"
+  ],
+  "risks": [
+    "Owner URI discovery and indexed text are not accepted photographs or delivery",
+    "Search zero or secondary results do not prove absence of owner photos",
+    "Expired Accor campaign table can distinguish chain property codes but does not prove current offers or give an exact current property href",
+    "Sheraton Miramar Chile results are a different hotel and must be rejected",
+    "No new native primary pass is authorized by this state until source URL and prior closed-input dedup are concrete"
+  ],
+  "queries": [
+    "Sunny Days El Palacio official hotel gallery",
+    "Grand Makadi official Red Sea Hotels gallery",
+    "Sofitel Winter Palace Luxor official gallery [domains all.accor.com,sofitel.accor.com]",
+    "site:sunnydaysegypt.com \"El Palacio\"",
+    "site:sofitel.accor.com \"Winter Palace\" Luxor hotel",
+    "site:hilton.com \"Hilton Luxor\" \"Gallery\"",
+    "site:robinson.com \"SOMA BAY\" hotel club",
+    "site:amarinaabousoma.com gallery",
+    "site:hrewards.com \"Nile Palace\" gallery Luxor",
+    "site:redseahotels.com \"Makadi Spa\" gallery",
+    "site:marriott.com \"Sheraton Miramar\" photos",
+    "\"Sofitel Winter Palace Luxor\" site:all.accor.com/hotel",
+    "\"Sunny Days El Palacio\" official hotel sunnydaysegypt",
+    "\"Steigenberger Nile Palace\" site:hrewards.com/en/",
+    "\"Amarina Abu Soma\" official hotel gallery"
+  ],
+  "candidates": [
+    {
+      "hotel_id": 473,
+      "state": "EXACT_OWNER_PROPERTY_HREF_UNRESOLVED",
+      "note": "Secondary fact sheets mention sunnydaysegypt.com; no guessed property URI or owner photo admitted"
+    },
+    {
+      "hotel_id": 231,
+      "owner_uri": "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/",
+      "state": "OWNER_URI_RETURNED_PRIOR_SOURCE_DEDUP_REQUIRED",
+      "note": "Indexed food section labels another Makadi product; no sister restaurant rights inferred"
+    },
+    {
+      "hotel_id": 75571,
+      "owner_identity_source": "https://all.accor.com/a/en/information/member-guest-star-participating-hotels.html",
+      "state": "CHAIN_CODE_DISTINGUISHED_EXACT_CURRENT_PROPERTY_HREF_UNRESOLVED",
+      "note": "Owner table distinguishes H1661 Sofitel Winter Palace Luxor and H1662 Pavillon Winter Luxor. No guessed1661property URL; table stay dates are historical"
+    },
+    {
+      "hotel_id": 102774,
+      "owner_uri": "https://www.hilton.com/en-gb/hotels/luxhitw-hilton-luxor-resort-and-spa/gallery/",
+      "state": "INDEXED_URI_RETAINED_PRIOR_TIMEOUT_CLOSED_NO_REPEAT_GET"
+    },
+    {
+      "hotel_id": 67897,
+      "owner_uri": "https://partner.jazhotels.com/hotel/64",
+      "state": "RETAINED_SOURCE_ONLY_NO_NEW_QUERY_OR_GET",
+      "note": "Shoreline factual conflict still unresolved"
+    },
+    {
+      "hotel_id": 15693,
+      "state": "NO_NEW_SELECTED_OWNER_URI",
+      "note": "Age16versus18 conflict remains; query result not absence proof"
+    },
+    {
+      "hotel_id": 102031,
+      "owner_uri": "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+      "state": "OWNER_URI_RETURNED_RETAINED_SOURCE_DEDUP_REQUIRED",
+      "note": "Old one pool image and >5MB PNG remain closed"
+    },
+    {
+      "hotel_id": 62505,
+      "owner_uri": "https://mice.robinson.com/en/clubs/soma-bay/",
+      "state": "OWNER_MICE_POINTER_RETAINED_PRIOR_SOURCE_DEDUP_REQUIRED",
+      "note": "Family property; event boats and activities not universal included holiday rights"
+    },
+    {
+      "hotel_id": 432,
+      "owner_uri": "https://www.marriott.com/en-us/hotels/hrgsi-sheraton-miramar-resort-el-gouna/photos/",
+      "state": "EXACT_EGYPT_PROPERTY_RETAINED_NO_OLD_GALLERY_REPEAT",
+      "note": "knasi Chile photos rejected; refurbishment notice and old rejected frames remain unchanged"
+    },
+    {
+      "hotel_id": 68907,
+      "owner_uri": "https://www.amarinagroup.com/media/gallery",
+      "additional_owner_uri": "https://www.amarinagroup.com/amarina-hotels-resorts/amarina-abu-soma-resort",
+      "state": "OWNER_POINTERS_RETAINED_PROPERTY_MEMBERSHIP_AND_OLD_INPUT_DEDUP_REQUIRED",
+      "note": "Only AbuSoma category1; no Queen/Jannah or shared category rights"
+    }
+  ],
+  "accepted_owner_photos": 0,
+  "ready_materials": 0,
+  "new_posts": 0,
+  "new_quotes": 0,
+  "new_price_edits": 0,
+  "baseline": {
+    "published_per_channel": 157,
+    "live_feed_offers": [
+      156,
+      156,
+      312
+    ],
+    "max_runtime_aliases": 156,
+    "monitor_hotel_count": 670,
+    "current_stock_ready": 0
+  },
+  "production_observation": {
+    "checked_at_utc": "2026-11-04 18:39:55 UTC",
+    "current_main": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+    "original_deploy_run": 41870011689,
+    "status": "completed",
+    "conclusion": "failure",
+    "run_attempt": 1,
+    "updated_at": "2026-11-04T16:49:17Z",
+    "new_jobs_or_tls_reads": 0,
+    "new_logs_read": 0,
+    "action": "WAIT_NEW_PASSING_CURRENT_RELEASE"
+  },
+  "next_priority": "After genuinely healthy current release: READ14only1543+originalstock39, then immutableMAX157extension, then YMLupdate13; READ8pendingactualserverexecution with all existing gates",
+  "repeat_policy": "Do not repeat these exact search queries or the opened owner table without new relevant input; no source/media acceptance or GET permission is implied",
+  "unchanged_existing_workflow": "CLOSED41887486411publicprelookupowner-sourcepreparation1; not sender or server reader"
+}
