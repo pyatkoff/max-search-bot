@@ -1,0 +1,187 @@
+{
+  "operation": "commercial-batch34-bounded-primary-contact-inspection",
+  "goal": "One finite grouped contact inspection for the ten proven candidate batch",
+  "boundaries": [
+    "Only actual owner-declared public target photo URIs",
+    "Unchanged HTTPS/no redirect/5MB/format/dimension guards",
+    "Pure cloud; server/provider/DBwrites/messages0"
+  ],
+  "criteria": [
+    "Four readonly groups,maxparallel2",
+    "Realbytes/chunks/SHA/contact pixels before any cover",
+    "Ready subset sent together without waiting four deferred candidates"
+  ],
+  "risks": [
+    "PalomaGrida recent concept may include renders",
+    "Some carousels may be close pools/rooms instead of wholehotelheroes"
+  ],
+  "hotel_ids": [
+    1416,
+    1491,
+    65782,
+    1417,
+    1348,
+    15879,
+    55828,
+    1035,
+    109655,
+    1338
+  ],
+  "groups": [
+    [
+      {
+        "hotel_id": 1416,
+        "role": "h1416_photo_0",
+        "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-36-00oceana%20%281%29.jpg"
+      },
+      {
+        "hotel_id": 1416,
+        "role": "h1416_photo_1",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-31-34-PM10-9-2020-10-58-49-am2.jpg"
+      },
+      {
+        "hotel_id": 1416,
+        "role": "h1416_photo_2",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-32-44-PM10-9-2020-10-59-41-amd2.jpg"
+      },
+      {
+        "hotel_id": 1416,
+        "role": "h1416_photo_3",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-32-44-PM10-13-2020-10-47-29-amoceanabeach1.jpg"
+      },
+      {
+        "hotel_id": 1491,
+        "role": "h1491_photo_0",
+        "url": "https://www.palomahotels.com/Content/imgUpload/10-06-2024-15-34-21perissia%20%281%29.jpg"
+      },
+      {
+        "hotel_id": 1491,
+        "role": "h1491_photo_1",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-13-38-PM10-8-2020-12-33-43-pmperissia-aerial-4-copy_edit.jpg"
+      },
+      {
+        "hotel_id": 1491,
+        "role": "h1491_photo_2",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-12-55-PM10-8-2020-12-33-13-pmdji_0274_edit.jpg"
+      },
+      {
+        "hotel_id": 1491,
+        "role": "h1491_photo_3",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-7-14-25-PM10-8-2020-12-34-19-pmstandard-sea_edit.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 65782,
+        "role": "h65782_photo_0",
+        "url": "https://www.palomahotels.com/Content/imgUpload/19-01-2026-11-16-22finesse-web-anaslider%20%282%29.jpg"
+      },
+      {
+        "hotel_id": 65782,
+        "role": "h65782_photo_1",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-31-25-PM10-10-2020-9-02-32-pminfess.jpg"
+      },
+      {
+        "hotel_id": 65782,
+        "role": "h65782_photo_2",
+        "url": "https://www.palomahotels.com/Content/imgUpload/12-20-2020-8-30-29-PM12-12-2020-12-57-54-pmspotlight-room.jpg"
+      },
+      {
+        "hotel_id": 65782,
+        "role": "h65782_photo_3",
+        "url": "https://www.palomahotels.com/Content/imgUpload/image-1-6-2021-10-52-38-AMfinessepool.jpg"
+      },
+      {
+        "hotel_id": 1417,
+        "role": "h1417_photo_0",
+        "url": "https://www.palomahotels.com/Content/imgUpload/18-08-2025-10-38-19pg_otel_ana_sayfa_ana_fotograf_foto1.jpg"
+      },
+      {
+        "hotel_id": 1417,
+        "role": "h1417_photo_1",
+        "url": "https://www.palomahotels.com/Content/imgUpload/18-08-2025-10-38-19pg_otel_ana_sayfa_ana_fotograf_foto2.jpg"
+      },
+      {
+        "hotel_id": 1417,
+        "role": "h1417_photo_2",
+        "url": "https://www.palomahotels.com/Content/imgUpload/18-08-2025-10-38-19pg_otel_ana_sayfa_ana_fotograf_foto3.jpg"
+      },
+      {
+        "hotel_id": 1417,
+        "role": "h1417_photo_3",
+        "url": "https://www.palomahotels.com/Content/imgUpload/image-18-08-2025-10-01-37pg_palomaqua.jpg"
+      },
+      {
+        "hotel_id": 1417,
+        "role": "h1417_photo_4",
+        "url": "https://www.palomahotels.com/Content/imgUpload/image-18-08-2025-10-05-32pg_lake_suite.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 1348,
+        "role": "h1348_photo_0",
+        "url": "https://fileservice.sevenseashotels.com/files/md/resources/img/ad1d1cb8-3dec-4fbb-b174-a41e6ec3edc5.jpg"
+      },
+      {
+        "hotel_id": 1348,
+        "role": "h1348_photo_1",
+        "url": "https://fileservice.sevenseashotels.com/files/md/resources/img/9708b25a-113f-4bea-8fbd-f916cb6ba03a.jpg"
+      },
+      {
+        "hotel_id": 1348,
+        "role": "h1348_photo_2",
+        "url": "https://fileservice.sevenseashotels.com/files/md/resources/img/87e247b1-61d2-4c4e-9c87-d3746281fa96.jpg"
+      },
+      {
+        "hotel_id": 1348,
+        "role": "h1348_photo_3",
+        "url": "https://fileservice.sevenseashotels.com/files/md/resources/img/efdef9e6-d3bb-4b4a-a9ec-3a57d15df0c4.jpg"
+      },
+      {
+        "hotel_id": 1348,
+        "role": "h1348_photo_4",
+        "url": "https://fileservice.sevenseashotels.com/files/md/resources/img/bfbbcbc6-4ede-4ea7-9784-2e3dacede681.jpg"
+      }
+    ],
+    [
+      {
+        "hotel_id": 15879,
+        "role": "h15879_photo_0",
+        "url": "https://www.belazur.com.tr/image/manset/693017858ed9e.jpg"
+      },
+      {
+        "hotel_id": 15879,
+        "role": "h15879_photo_1",
+        "url": "https://www.belazur.com.tr/image/manset/685d3e321de1d.jpg"
+      },
+      {
+        "hotel_id": 15879,
+        "role": "h15879_gallery_0",
+        "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg"
+      },
+      {
+        "hotel_id": 15879,
+        "role": "h15879_gallery_1",
+        "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg"
+      },
+      {
+        "hotel_id": 15879,
+        "role": "h15879_gallery_2",
+        "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg"
+      },
+      {
+        "hotel_id": 15879,
+        "role": "h15879_room",
+        "url": "https://www.belazur.com.tr/image/icerik/standard-land-view-room_668d43f717b6e.jpg"
+      }
+    ]
+  ],
+  "photo_count": 28,
+  "explicit_deferred": {
+    "1035": "No different declared owner wholehero",
+    "1338": "Three403frames closed, no alternate sameframe",
+    "55828": "Root and actual gallery expose no accepted extension photo refs; do not delay others",
+    "109655": "No different owner wholehero; previous closewalkway rejected"
+  }
+}

@@ -17,7 +17,8 @@
     "Current concept photos can be renders; no image inferred by URL/name alone"
   ],
   "runs": [
-    "https://github.com/pyatkoff/max-search-bot/actions/runs/41743633833"
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41743633833",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41743870371"
   ],
   "pages": [
     {
@@ -4399,6 +4400,595 @@
           "url": "https://www.belazur.com.tr/image/icerik/renewable-energy-3_63986973dfcf9.jpg",
           "tag": "img",
           "alt": "SUSTAINABLE UNIVERSE",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/manset/apple.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/manset/android.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/assets/img/concept.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://luxuryresortbelek.selectumhotels.com/en/gallery",
+      "final_url": "https://luxuryresortbelek.selectumhotels.com/en/gallery",
+      "page_title": "Gallery | Selectum Luxury Resort Belek",
+      "image_hosts": [],
+      "image_urls": [],
+      "declared_public_image_references": [],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://luxuryresortbelek.selectumhotels.com/",
+        "https://luxuryresortbelek.selectumhotels.com/en/rooms/luxury-rooms",
+        "https://luxuryresortbelek.selectumhotels.com/en/culinary/restaurants",
+        "https://luxuryresortbelek.selectumhotels.com/en/pool-and-beach/pools",
+        "https://luxuryresortbelek.selectumhotels.com/en/spa",
+        "https://luxuryresortbelek.selectumhotels.com/en/kids",
+        "https://luxuryresortbelek.selectumhotels.com/en/activities",
+        "https://luxuryresortbelek.selectumhotels.com/en/pure-sports-academy",
+        "https://luxuryresortbelek.selectumhotels.com/en/meeting-and-events",
+        "https://luxuryresortbelek.selectumhotels.com/en/contact-us",
+        "https://luxuryresortbelek.selectumhotels.com/en/certificates-and-awards/certificates",
+        "https://luxuryresortbelek.selectumhotels.com/en/contract-of-service",
+        "https://luxuryresortbelek.selectumhotels.com/en/privacy-policy",
+        "https://luxuryresortbelek.selectumhotels.com/en/sustainability",
+        "https://luxuryresortbelek.selectumhotels.com/en/feedback",
+        "https://luxuryresortbelek.selectumhotels.com/en/for-agencies"
+      ],
+      "public_text": "Gallery | Selectum Luxury Resort Belek Pre Check-in +90 (242) 722 42 00 en ROOMS CULINARY POOL & BEACH SPA KIDS ACTIVITIES PURE SPORTS MEETING & EVENTS CONTACT US ROOMS CULINARY POOL & BEACH SPA KIDS ACTIVITIES PURE SPORTS MEETING & EVENTS CONTACT US Download All Gallery CULINARY GENERAL POOLS ROOMS SPA Need Help? Touch Assistant Selectum Hotels Rooms Culinary Pool & Beach Spa Kids Activites Pure Sports Academy Meeting & Events Certificates & Awards Contract of Service Privacy Policy Integrated Management System Policy Information Security Policy Sustainability Data Owner Application Form Feedback For Agencies © 2026 Selectum Hotels Date Adults/Children 2 Adults, 0 Children Search RESERVATION",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://www.belazur.com.tr/en/gallery",
+      "final_url": "https://www.belazur.com.tr/en/gallery",
+      "page_title": "PHOTO GALLERY - Kirman Belazur Resort & Spa",
+      "image_hosts": [
+        "www.belazur.com.tr"
+      ],
+      "image_urls": [
+        "https://www.belazur.com.tr/assets/images/favicon.png",
+        "https://www.belazur.com.tr/assets/img/stickylogo.png",
+        "https://www.belazur.com.tr/assets/img/left-icon.png",
+        "https://www.belazur.com.tr/assets/img/right-icon.png",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg",
+        "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg",
+        "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff692360237.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg",
+        "https://www.belazur.com.tr/image/manset/apple.png",
+        "https://www.belazur.com.tr/image/manset/android.png",
+        "https://www.belazur.com.tr/assets/img/concept.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.belazur.com.tr/assets/images/favicon.png",
+        "https://www.belazur.com.tr/assets/img/stickylogo.png",
+        "https://www.belazur.com.tr/assets/img/left-icon.png",
+        "https://www.belazur.com.tr/assets/img/right-icon.png",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg",
+        "https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg",
+        "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg",
+        "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff692360237.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg",
+        "https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg",
+        "https://www.belazur.com.tr/image/manset/apple.png",
+        "https://www.belazur.com.tr/image/manset/android.png",
+        "https://www.belazur.com.tr/assets/img/concept.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.belazur.com.tr/assets/img/left-icon.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.belazur.com.tr/assets/img/right-icon.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg",
+          "alt": "PHOTO GALLERY"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff692360237.jpg",
+          "alt": "Instagram"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg",
+          "alt": "Instagram"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg",
+          "alt": "Instagram"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg",
+          "alt": "Instagram"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg",
+          "alt": "Instagram"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg",
+          "alt": "instagram"
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/manset/apple.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/manset/android.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.belazur.com.tr/assets/img/concept.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.belazur.com.tr/en/h",
+        "https://www.belazur.com.tr",
+        "https://www.belazur.com.tr/en/rooms",
+        "https://www.belazur.com.tr/en/taste-festival",
+        "https://www.belazur.com.tr/en/bars",
+        "https://www.belazur.com.tr/en/spa-wellnes.html",
+        "https://www.belazur.com.tr/en/all-day-all-inclusive-3.html",
+        "https://www.belazur.com.tr/en/kichi-kids-club-3.html",
+        "https://www.belazur.com.tr/en/activities",
+        "https://www.belazur.com.tr/en/gallery",
+        "https://www.belazur.com.tr/en/contact",
+        "https://www.belazur.com.tr/tr",
+        "https://www.belazur.com.tr/ru",
+        "https://www.belazur.com.tr/en",
+        "https://www.belazur.com.tr/de",
+        "https://www.belazur.com.tr/en/belazur-kichi-kids-club-2.html",
+        "https://www.belazur.com.tr/en/pdpl.html",
+        "https://www.belazur.com.tr/en/sustainable-tourism.html",
+        "https://www.belazur.com.tr/en/our-certificates-and-awards.html",
+        "https://www.belazur.com.tr/en/cookie-policy.html"
+      ],
+      "public_text": "PHOTO GALLERY - Kirman Belazur Resort & Spa HOME PAGE ROOMS RESTAURANTS BARS Spa & Wellness SIGNATURE KICHI KIDS CLUB ACTIVITIES GALLERY CONTACT US © Copyright Kirman Hotels info@belazur.com.tr +90 242 731 03 03 Kirman Belazur Resort, located in Antalya's Belek Boğazkent, offers an unforgettable holiday experience to our valued guests with its Ultra All Inclusive concept. Book EN TR RU EN DE KİRMAN BELAZUR HOTEL PHOTO GALLERY INSTAGRAM \"Signature\". This unique experience is full of personalised privileges! Phone: +90 242 731 03 03 Whatsapp : +90 541 739 03 03 Email : info@belazur.com.tr Hotels Restaurants BARS Spa & Wellness Kichi Kids Club GALLERY Corporate CONTACT US Factsheet PDPL Sustainable Tourism Our Certificates and Awards Cookie Policy Cookie Settings Sign up on our newsletter to receive special offers, news and events. Copyright 2025 Kirman Belazur Resort & Spa Book +90 242 731 03 03 Request to be Called Name * Your Email Address * Phone When Should We Call You? When Should We Call You? Select a Time 09:00 - 12:00 12:00 - 15:00 15:00 - 18:00 18:00 - 21:00 Your message Send Book Now CHECK-IN CHECK-OUT Adult Child",
+      "json_fact_fragments": [],
+      "album_context": [
+        "con.png\" alt=\"\"></span></div>\r\n\t\t<h1>PHOTO GALLERY</h1>\r\n\t</div>\r\n\t<div class=\"container mt-4\">\r\n\t\t\r\n\t\t<div class=\"row grid mt-5\">\r\n\t\t\t<div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg\" data-lightbox=\"image-991\" data-title=\"",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"c",
+        "ol-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg\" data-lightbox=\"image-991\" data-",
+        "lazy\" src=\"https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" da",
+        " col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg\" data-lightbox=\"image-991",
+        "rc=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div><div class=\"col-xl-3 col-lg-3 col-md-6 col-sm-6 col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div>\t\t</div>\r\n\t\t<div class=\"container mt-1\">\r\n\t\t\t<div class=\"instagram mb-3\">\r\n\t\t\t\t<div cla",
+        " col-6 mb-3 grid-item cphoto-gallery\" data-category=\"cphoto-gallery\">\r\n\t\t\t\t\t\t\t\t <div class=\"gal-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg\" data-lightbox=\"image-991\" data-title=\"PHOTO GALLERY\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg\" alt=\"PHOTO GALLERY\"></a>\r\n\t\t\t\t\t\t\t\t </div>\r\n\t\t\t\t\t\t\t  </div>\t\t</div>\r\n\t\t<div class=\"container mt-1\">\r\n\t\t\t<div class=\"instagram mb-3\">\r\n\t\t\t\t<div class=\"instagram-title mb-3\">\r\n\t\t\t\t\t<span class=\"p-3\">INSTAGRAM</span>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"instagram-slider\">\r\n\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n",
+        "AM</span>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"instagram-slider\">\r\n\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff692360237.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff692360237.jpg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg\" alt=\"Instagram\"></",
+        "pg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg\" alt=\"Instagram\"></",
+        "pg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg\" alt=\"Instagram\"></",
+        "pg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg\" alt=\"Instagram\"></",
+        "pg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg\" data-lightbox=\"image-3\" data-title=\"Instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg\" data-lightbox=\"image-3\" data-title=\"instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg\" alt=\"instagram\"></",
+        "pg\" alt=\"Instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t<div class=\"p-2\">\r\n\t\t\t\t\t\t\t\t<div class=\"instagram-img\">\r\n\t\t\t\t\t\t\t\t\t<a href=\"https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg\" data-lightbox=\"image-3\" data-title=\"instagram\"><img class=\"lazy\" src=\"https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg\" alt=\"instagram\"></a>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n</section><footer class=\"mt-5 p-3\">\n\t<div class=\"container\">\n\t\t<div class=\"row\">\n\t\t\t<div class=\"col-xl-4 col-lg-4 col-md-12\">\n\t\t\t\t<div class=\"footer-logo\"><img src=\"https://www.belazur.com.tr/image/icerik/_687deebd2d69c.svg\" alt=\"kirman"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.belazur.com.tr/assets/img/left-icon.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/assets/img/right-icon.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed2e37.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed32df.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed379d.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed40ac.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4550.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc673ed4b92.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d27d493.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d2828dc.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72d283017.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/galeri_65cc72dacc5c8.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d82918.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/icerik/photo-gallery_686d336d839bc.jpg",
+          "tag": "img",
+          "alt": "PHOTO GALLERY",
+          "categories": [
+            {
+              "data-category": "cphoto-gallery"
+            }
+          ]
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff692360237.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff692360237.jpg",
+          "tag": "img",
+          "alt": "Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff692ea7ed0.jpg",
+          "tag": "img",
+          "alt": "Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff693527b4d.jpg",
+          "tag": "img",
+          "alt": "Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff6939f144d.jpg",
+          "tag": "img",
+          "alt": "Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff694d96966.jpg",
+          "tag": "img",
+          "alt": "Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.belazur.com.tr/image/alan/_63ff69548ca96.jpg",
+          "tag": "img",
+          "alt": "instagram",
           "categories": []
         },
         {

@@ -1,0 +1,137 @@
+{
+  "operation": "commercial-hotel-batch-20261103-34-v1",
+  "state": "PRIMARY_WHOLE_CAPTIONS_RETAINED_PHOTOS_PENDING",
+  "captions": [
+    {
+      "hotel_id": 1416,
+      "hotel": "Paloma Oceana",
+      "key": "paloma-oceana",
+      "aliases": [
+        "PALOMA OCEANA RESORT"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/paloma-oceana"
+      ],
+      "text": "✈️ Туры в Paloma Oceana с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж прямо у отеля.\n👧 Детский клуб Polly с играми и занятиями.\n🧘 Фитнес, йога и теннис.\n🧖 Спа на территории.\n\n💡 Аквапарк Palomaqua расположен отдельно от отеля. К нему организован трансфер. Виллы с собственным бассейном относятся к отдельной категории.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Oceana."
+    },
+    {
+      "hotel_id": 1491,
+      "hotel": "Paloma Perissia",
+      "key": "paloma-perissia",
+      "aliases": [
+        "PALOMA PERISSIA"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/paloma-perissia"
+      ],
+      "text": "✈️ Туры в Paloma Perissia с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж длиной 200 метров.\n👧 Детский клуб Polly.\n🧖 Спа и спортивные занятия.\n🚶 Прогулочная дорога вдоль моря ведёт к старому Сиде.\n\n💡 Аквапарк Palomaqua находится в 10 км от отеля. До него ходит трансфер.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Perissia."
+    },
+    {
+      "hotel_id": 65782,
+      "hotel": "Paloma Finesse Side",
+      "key": "paloma-finesse-side",
+      "aliases": [
+        "PALOMA FINESSE SIDE"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/finesse-side"
+      ],
+      "text": "✈️ Туры в Paloma Finesse Side с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж длиной 350 метров.\n🏊 Большой основной бассейн и отдельный детский.\n👧 Детский клуб The Play House.\n💦 Аквапарк Palomaqua рядом с отелем.\n\n💡 Прямой выход к бассейну есть в отдельных категориях номеров. Пляжные кабаны оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Finesse."
+    },
+    {
+      "hotel_id": 1417,
+      "hotel": "Paloma Grida",
+      "key": "paloma-grida",
+      "aliases": [
+        "PALOMA GRIDA"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/paloma-grida"
+      ],
+      "text": "✈️ Туры в Paloma Grida с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж с Голубым флагом.\n💦 Аквапарк Palomaqua Belek на территории, горки и водная зона для детей.\n👧 Детский клуб Polly.\n🧖 Спа и фитнес.\n\n💡 Lake Suites предназначены для взрослых, а Lagoon Suites для семей. Прямой выход к бассейну предусмотрен в этих отдельных категориях.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Grida."
+    },
+    {
+      "hotel_id": 1348,
+      "hotel": "Seven Seas Hotel Life",
+      "key": "seven-seas-hotel-life",
+      "aliases": [
+        "SEVEN SEAS HOTEL LIFE (EX. OTIUM HOTEL LIFE)"
+      ],
+      "sources": [
+        "https://sevenseashotels.com/hotels/seven-seas-hotel-life?openGallery=true"
+      ],
+      "text": "✈️ Туры в Seven Seas Hotel Life с перелётом\n📍 Гёйнюк, Кемер, Турция.\n\n🏖 Отель на побережье Средиземного моря.\n🌿 Территория площадью 35 000 м².\n🛏 Номера в основном корпусе, бунгало и здании Residence.\n👨‍👩‍👧 Есть семейные номера с двумя спальнями.\n\n💡 Вид на море и дополнительные привилегии Residence зависят от выбранной категории номера.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Seven Seas Hotel Life."
+    },
+    {
+      "hotel_id": 15879,
+      "hotel": "Kirman Belazur Resort & Spa",
+      "key": "kirman-belazur",
+      "aliases": [
+        "KIRMAN BELAZUR RESORT & SPA"
+      ],
+      "sources": [
+        "https://www.belazur.com.tr/en"
+      ],
+      "text": "✈️ Туры в Kirman Belazur Resort & Spa с перелётом\n📍 Богазкент, Белек, Турция.\n\n🏖 Пляж и пирс у отеля.\n💦 Бассейны и аквапарк.\n👧 Детский клуб Kichi.\n🏋️ Спортивные занятия в Healthy Sports Club.\n\n💡 Есть семейные номера площадью 39 м². Вид на море, бассейн или территорию зависит от категории размещения.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Kirman Belazur."
+    },
+    {
+      "hotel_id": 55828,
+      "hotel": "Selectum Luxury Resort Belek",
+      "key": "selectum-luxury-belek",
+      "aliases": [
+        "SELECTUM LUXURY RESORT BELEK"
+      ],
+      "sources": [
+        "https://luxuryresortbelek.selectumhotels.com/en"
+      ],
+      "text": "✈️ Туры в Selectum Luxury Resort Belek с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж у Средиземного моря.\n💦 Аквапарк, крытые и открытые бассейны.\n👧 Детский клуб Puppies’ World.\n🏋️ Занятия в Pure Sports Academy и вечерние шоу.\n\n💡 В отеле есть разные категории номеров с классической мебелью и бассейн с морской водой.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Selectum Luxury Resort Belek."
+    },
+    {
+      "hotel_id": 1035,
+      "hotel": "Lara Barut Collection",
+      "key": "lara-barut-collection",
+      "aliases": [
+        "LARA BARUT COLLECTION",
+        "BAYOU LARA"
+      ],
+      "sources": [
+        "https://bayoulara.com/en"
+      ],
+      "text": "✈️ Туры в Lara Barut Collection с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Пляж с Голубым флагом.\n🏊 На территории есть аквапарк.\n🧘 Открытая студия йоги и дорожка для пробежек.\n🧖 Спа с турецким хаммамом.\n\n💡 Виллы с собственным бассейном представлены отдельной категорией. Их особенности не относятся ко всем номерам.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Lara Barut Collection."
+    },
+    {
+      "hotel_id": 109655,
+      "hotel": "Liberty Signa",
+      "key": "liberty-signa",
+      "aliases": [
+        "LIBERTY SIGNA"
+      ],
+      "sources": [
+        "https://www.libertyhotels.com/en/hotels/liberty-signa/"
+      ],
+      "text": "✈️ Туры в Liberty Signa с перелётом\n📍 Фетхие, Турция.\n\n🏖 Пляж и бассейны у Средиземного моря.\n👧 Детский клуб Libby & Berty с играми и занятиями.\n🛏 Есть семейные номера площадью 50 м² и смежные номера 66 м².\n🍽 На территории работают рестораны и бары.\n\n💡 Прямой выход к бассейну и собственный бассейн предусмотрены в отдельных категориях номеров и сьютов.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Liberty Signa."
+    },
+    {
+      "hotel_id": 1338,
+      "hotel": "Limak Lara De Luxe Hotel & Resort",
+      "key": "limak-lara-de-luxe",
+      "aliases": [
+        "LIMAK LARA DE LUXE HOTEL & RESORT",
+        "LIMAK LARA"
+      ],
+      "sources": [
+        "https://www.limakhotels.com/lara"
+      ],
+      "text": "✈️ Туры в Limak Lara De Luxe с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Песчаный пляж у Средиземного моря.\n🏊 Бассейны на территории.\n🛏 В семейных номерах есть гостиная, спальня и две ванные комнаты.\n🍽 Рестораны с турецкой и международной кухней.\n\n💡 Архитектура и оформление отеля вдохновлены Азией.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Limak Lara."
+    }
+  ],
+  "facts_notes": [
+    "Oceana/Perissia Palomaqua is offsite with shuttle; Perissia owner10km",
+    "Finesse beach350m/cabanaextra/SwimUp categoryrights; Palomaqua nextdoor, notGridaBelek",
+    "Grida currentrenewedconcept, Lakeadultcategory and Lagoonfamilycategory; photographsmustbereal",
+    "SevenSeasResidenceprivilegescategoryonly; Goynuk notsisterproperties",
+    "Belazur notsisterKirman; family39sqm/viewcategory",
+    "SelectumLuxuryBelek notSelectumFamily; noacceptedphotorefs"
+  ],
+  "new_posts": 0
+}
