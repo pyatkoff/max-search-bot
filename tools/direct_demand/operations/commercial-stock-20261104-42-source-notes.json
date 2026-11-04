@@ -1,0 +1,84 @@
+{
+  "operation": "commercial-stock-20261104-42-source-notes",
+  "state": "PRIMARY_FACTS_PREPARED_NO_PHOTO_OR_COVER_READY",
+  "proven_hotel_scope": [
+    62505,
+    968,
+    65782,
+    1032,
+    1035,
+    15693,
+    231,
+    67897,
+    473,
+    468
+  ],
+  "unchanged_retained_wholecaptions": [
+    {
+      "hotel_id": 65782,
+      "hotel": "Paloma Finesse Side",
+      "key": "paloma-finesse-side",
+      "aliases": [
+        "PALOMA FINESSE SIDE"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/finesse-side"
+      ],
+      "text": "✈️ Туры в Paloma Finesse Side с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж длиной 350 метров.\n🏊 Большой основной бассейн и отдельный детский.\n👧 Детский клуб The Play House.\n💦 Аквапарк Palomaqua рядом с отелем.\n\n💡 Прямой выход к бассейну есть в отдельных категориях номеров. Пляжные кабаны оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Finesse."
+    },
+    {
+      "hotel_id": 231,
+      "hotel": "The Grand Makadi",
+      "sources": [
+        "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/"
+      ],
+      "text": "✈️ Туры в The Grand Makadi с перелётом\n📍 Макади Бэй, Египет.\n\n🏖 Собственный пляж и зелёная территория у моря.\n🏊 Открытый бассейн, сезонный подогрев.\n👧 Детский клуб и игровая площадка.\n👨‍👩‍👧‍👦 В категории Family Room две спальни с соединяющей дверью.\n\n💡 К домашнему рифу ведёт пирс.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в The Grand Makadi."
+    }
+  ],
+  "facts": [
+    {
+      "hotel_id": 62505,
+      "source_url": "https://mice.robinson.com/en/clubs/soma-bay/",
+      "facts": [
+        "Official ROBINSON MICE page names SomaBay Egypt and long sandy beach",
+        "It lists water sports, golf and WellFitSpa; no universal included lessons or golf rights inferred",
+        "It gives grounds120000m² and348rooms; conference/excursion/boat offerings are event context, not standard AnyTour package inclusions"
+      ],
+      "constraints": [
+        "Property remains family, not adultsonly; acceptedROBY3+constraint unchanged",
+        "New public image references are exact SomaBay gallery candidates, no native pixels accepted yet",
+        "Whole caption for future publication still needs full retained scope verification"
+      ]
+    },
+    {
+      "hotel_id": 968,
+      "source_url": "https://www.alibey.com/en/park/beach-waterpark",
+      "facts": [
+        "Exact Park property page describes25000m² waterpark",
+        "It lists25slides:12adult and13children/toddler slides",
+        "Pools for adults,children and babies and a beachfront are described",
+        "Beach pavilions are explicitly paid with reservation"
+      ],
+      "constraints": [
+        "No universal pavilion,waiter,lunch or roompool entitlement",
+        "Do not use shared Alibey_Resort_Sorgun_Plajlar_13.jpg for Park despite incorrect alt",
+        "Park root and old3photos remain closed; only exact newly declared Park members may be considered"
+      ]
+    },
+    {
+      "hotel_id": 65782,
+      "source_url": "https://www.palomahotels.com/en/finesse-side/mice",
+      "facts": [
+        "Exact Finesse MICE page primarily describes meeting rooms,equipment,eventspace and fees"
+      ],
+      "constraints": [
+        "No photoGET for known conference/interior/table/villa-category refs merely to increase counts",
+        "Oceana meeting-table image and generic villa nav are not exact wholehotelhero proof",
+        "Retained wholecaption from34 unchanged; photo readiness not improved by this source page"
+      ]
+    }
+  ],
+  "ready_for_send": 0,
+  "canva_transactions": 0,
+  "new_posts": 0
+}

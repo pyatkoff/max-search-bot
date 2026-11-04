@@ -1,0 +1,82 @@
+{
+  "operation": "commercial-batch-20261104-42-primary",
+  "state": "CLOSED_THREE_NEW_EXACT_OWNER_PAGES_NO_PHOTO_ACCEPTANCE",
+  "run_id": 41894932206,
+  "job_id": 126801801560,
+  "source_commit": "65539d56e2853f30b99607c244ffc720a782cdbd",
+  "new_owner_page_gets": 3,
+  "readable_property_pages": 3,
+  "http403_pages": 0,
+  "new_input_scope_cases_passed": 3,
+  "old_parser_fixtures_rerun": 0,
+  "parser_functionality_unchanged": true,
+  "log_leading_bom_removed_each_line": true,
+  "timestamps_removed_after_bom": true,
+  "native_output_complete": true,
+  "source_urls": [
+    "https://mice.robinson.com/en/clubs/soma-bay/",
+    "https://www.alibey.com/en/park/beach-waterpark",
+    "https://www.palomahotels.com/en/finesse-side/mice"
+  ],
+  "proven_scope": [
+    62505,
+    968,
+    65782,
+    1032,
+    1035,
+    15693,
+    231,
+    67897,
+    473,
+    468
+  ],
+  "declared_photo_references": [
+    {
+      "source_url": "https://mice.robinson.com/en/clubs/soma-bay/",
+      "count": 30
+    },
+    {
+      "source_url": "https://www.alibey.com/en/park/beach-waterpark",
+      "count": 28
+    },
+    {
+      "source_url": "https://www.palomahotels.com/en/finesse-side/mice",
+      "count": 39
+    }
+  ],
+  "raw_photo_gets": 0,
+  "accepted_photographs": 0,
+  "canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "new_quotes": 0,
+  "new_price_edits": 0,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "repeat_policy": "All three source GETs are CLOSED. Do not repeat them. Retained exact metadata is for future finite photo selection after complete oldURL+basename exclusion through41; unknownCDNor sharednav is not permission.",
+  "baseline_unchanged": {
+    "published_each_channel": 157,
+    "live_yml": [
+      156,
+      156,
+      312
+    ],
+    "max_aliases": 156,
+    "monitor_hotel_count": 670
+  },
+  "user_price_status_checked_at_utc": "2026-11-04 19:15:49UTC",
+  "production_wait": {
+    "current_main": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+    "deploy_run": 41870011689,
+    "conclusion": "failure",
+    "attempt": 1,
+    "updated_at": "2026-11-04T16:49:17Z",
+    "jobs_logs_tls_rereads": 0,
+    "ssh_provider_db_actions": 0
+  },
+  "price_work_state": "Normal670collector5399observations confirmed; READ8scope157purevalidated but actual serverread still0; no new price added afterQuote2",
+  "next_step": "Link priority remains READ14new1543+stock39→MAX157→YMLupdate13 after genuine passingcurrentrelease. READ8 then may select eligible private contexts within30h for justified quote and post edits. Independently select different newly retained property photos only after oldinputdedup."
+}

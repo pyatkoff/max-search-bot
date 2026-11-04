@@ -1,0 +1,1221 @@
+{
+  "operation": "commercial-batch-20261104-42-primary",
+  "state": "NATIVE_THREE_NEW_OWNER_PAGES_RETAINED_NOT_PHOTO_ACCEPTANCE",
+  "source_run": 41894932206,
+  "source_commit": "65539d56e2853f30b99607c244ffc720a782cdbd",
+  "page_count": 3,
+  "old_get_repeats": 0,
+  "server_connections": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "pages": [
+    {
+      "source_url": "https://mice.robinson.com/en/clubs/soma-bay/",
+      "final_url": "https://mice.robinson.com/en/clubs/soma-bay/",
+      "page_title": "Soma Bay — ROBINSON MICE",
+      "image_hosts": [
+        "mice.robinson.com"
+      ],
+      "image_urls": [
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/favicon.png",
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/apple-touch-icon-57-precomposed.png",
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/apple-touch-icon-72-precomposed.png",
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/apple-touch-icon-114-precomposed.png",
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/apple-touch-icon-144-precomposed.png",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9851.jpg",
+        "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Icons/robinson-papagei-weiss.png",
+        "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Icons/english/Robinson_Icons_Soma_Bay_._Red_See.png",
+        "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Maps/robinson-mice-club-RC_GJK_SomaBay_en.png",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9840_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9918_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm96__7342.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9850_Personal_Training_Insel.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9878_WOL__1_.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm96__7323_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9896.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9961_Robinsonaden.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9871_Yoga_Halle_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9973_Geniesserrestaurant.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9902_Spezi_Aussenterasse_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9848Au%C3%9Fenterasse_Spezialit%C3%A4tenrestaurant.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9949.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9977.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_10993_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm96__7334.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9860_Klassik_Oase.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9914.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9816_Gala_Night.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9990_DZX1_DSX1_DZE1_WOL.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/favicon.png",
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/apple-touch-icon-57-precomposed.png",
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/apple-touch-icon-72-precomposed.png",
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/apple-touch-icon-114-precomposed.png",
+        "https://mice.robinson.com/typo3conf/ext/robinson/Resources/Public/Images/apple-touch-icon-144-precomposed.png",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9851.jpg",
+        "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Icons/robinson-papagei-weiss.png",
+        "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Icons/english/Robinson_Icons_Soma_Bay_._Red_See.png",
+        "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Maps/robinson-mice-club-RC_GJK_SomaBay_en.png",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9840_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9918_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm96__7342.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9850_Personal_Training_Insel.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9878_WOL__1_.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm96__7323_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9896.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9961_Robinsonaden.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9871_Yoga_Halle_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9973_Geniesserrestaurant.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9902_Spezi_Aussenterasse_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9848Au%C3%9Fenterasse_Spezialit%C3%A4tenrestaurant.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9949.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9977.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_10993_WOL.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm96__7334.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9860_Klassik_Oase.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9914.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9816_Gala_Night.jpg",
+        "https://mice.robinson.com/fileadmin/user_upload/sm58_9990_DZX1_DSX1_DZE1_WOL.jpg"
+      ],
+      "image_details": [
+        {
+          "url": "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Icons/robinson-papagei-weiss.png",
+          "alt": ""
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Icons/english/Robinson_Icons_Soma_Bay_._Red_See.png",
+          "alt": "Robinson_Icons_Soma_Bay_._Red_See.png "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Maps/robinson-mice-club-RC_GJK_SomaBay_en.png",
+          "alt": "robinson-mice-club-RC_GJK_SomaBay_en.png "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9840_WOL.jpg",
+          "alt": "sm58_9840_WOL.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9918_WOL.jpg",
+          "alt": "sm58_9918_WOL.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+          "alt": "RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm96__7342.jpg",
+          "alt": "sm96__7342.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9850_Personal_Training_Insel.jpg",
+          "alt": "sm58_9850_Personal_Training_Insel.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9878_WOL__1_.jpg",
+          "alt": "sm58_9878_WOL__1_.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm96__7323_WOL.jpg",
+          "alt": "sm96__7323_WOL.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9896.jpg",
+          "alt": "sm58_9896.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9961_Robinsonaden.jpg",
+          "alt": "sm58_9961_Robinsonaden.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9871_Yoga_Halle_WOL.jpg",
+          "alt": "sm58_9871_Yoga_Halle_WOL.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9973_Geniesserrestaurant.jpg",
+          "alt": "sm58_9973_Geniesserrestaurant.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9902_Spezi_Aussenterasse_WOL.jpg",
+          "alt": "sm58_9902_Spezi_Aussenterasse_WOL.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9848Au%C3%9Fenterasse_Spezialit%C3%A4tenrestaurant.jpg",
+          "alt": "sm58_9848Außenterasse_Spezialitätenrestaurant.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9949.jpg",
+          "alt": "sm58_9949.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9977.jpg",
+          "alt": "sm58_9977.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_10993_WOL.jpg",
+          "alt": "sm58_10993_WOL.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm96__7334.jpg",
+          "alt": "sm96__7334.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9860_Klassik_Oase.jpg",
+          "alt": "sm58_9860_Klassik_Oase.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9914.jpg",
+          "alt": "sm58_9914.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9816_Gala_Night.jpg",
+          "alt": "sm58_9816_Gala_Night.jpg "
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9990_DZX1_DSX1_DZE1_WOL.jpg",
+          "alt": "sm58_9990_DZX1_DSX1_DZE1_WOL.jpg "
+        }
+      ],
+      "document_urls": [
+        "https://mice.robinson.com/fileadmin/robinson-mice/Infos/SM_240425_Setcards_MICE_A4_EN_low.pdf"
+      ],
+      "website_links": [
+        "https://mice.robinson.com/en/clubs/soma-bay/",
+        "https://mice.robinson.com/clubs/soma-bay/",
+        "https://mice.robinson.com/en/contact/",
+        "https://mice.robinson.com/en/robinson-incentives-meetings/",
+        "https://mice.robinson.com/en/clubs/",
+        "https://mice.robinson.com/en/clubs/agadir/",
+        "https://mice.robinson.com/en/clubs/alpenrose-zuers/",
+        "https://mice.robinson.com/en/clubs/amade/",
+        "https://mice.robinson.com/en/clubs/apulia/",
+        "https://mice.robinson.com/en/clubs/cabo-verde/",
+        "https://mice.robinson.com/en/clubs/cala-serena/",
+        "https://mice.robinson.com/en/clubs/camyuva/",
+        "https://mice.robinson.com/en/clubs/cyprus/",
+        "https://mice.robinson.com/en/clubs/daidalos/",
+        "https://mice.robinson.com/en/clubs/djerba-bahia/",
+        "https://mice.robinson.com/en/clubs/esquinzo-playa/",
+        "https://mice.robinson.com/en/clubs/fleesensee-1/",
+        "https://mice.robinson.com/en/clubs/fleesensee/",
+        "https://mice.robinson.com/en/clubs/ierapetra/",
+        "https://mice.robinson.com/en/clubs/jandia-playa/",
+        "https://mice.robinson.com/en/clubs/khao-lak/",
+        "https://mice.robinson.com/en/clubs/kyllini-beach/",
+        "https://mice.robinson.com/en/clubs/landskorn/",
+        "https://mice.robinson.com/en/clubs/maldives/",
+        "https://mice.robinson.com/en/clubs/nam-hoi-an/",
+        "https://mice.robinson.com/en/clubs/nobilis/",
+        "https://mice.robinson.com/en/clubs/noonu/",
+        "https://mice.robinson.com/en/clubs/pamfilya/",
+        "https://mice.robinson.com/en/clubs/quinta-daria/",
+        "https://mice.robinson.com/en/clubs/sarigerme-park/"
+      ],
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Icons/robinson-papagei-weiss.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Icons/english/Robinson_Icons_Soma_Bay_._Red_See.png",
+          "tag": "img",
+          "alt": "Robinson_Icons_Soma_Bay_._Red_See.png ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/robinson-mice/Clubs/Maps/robinson-mice-club-RC_GJK_SomaBay_en.png",
+          "tag": "img",
+          "alt": "robinson-mice-club-RC_GJK_SomaBay_en.png ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9840_WOL.jpg",
+          "tag": "img",
+          "alt": "sm58_9840_WOL.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9918_WOL.jpg",
+          "tag": "img",
+          "alt": "sm58_9918_WOL.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg",
+          "tag": "img",
+          "alt": "RCso16_Club_Soma_Bay_sm96_7320_1_RGB.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm96__7342.jpg",
+          "tag": "img",
+          "alt": "sm96__7342.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9850_Personal_Training_Insel.jpg",
+          "tag": "img",
+          "alt": "sm58_9850_Personal_Training_Insel.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9878_WOL__1_.jpg",
+          "tag": "img",
+          "alt": "sm58_9878_WOL__1_.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm96__7323_WOL.jpg",
+          "tag": "img",
+          "alt": "sm96__7323_WOL.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9896.jpg",
+          "tag": "img",
+          "alt": "sm58_9896.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9961_Robinsonaden.jpg",
+          "tag": "img",
+          "alt": "sm58_9961_Robinsonaden.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9871_Yoga_Halle_WOL.jpg",
+          "tag": "img",
+          "alt": "sm58_9871_Yoga_Halle_WOL.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9973_Geniesserrestaurant.jpg",
+          "tag": "img",
+          "alt": "sm58_9973_Geniesserrestaurant.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9902_Spezi_Aussenterasse_WOL.jpg",
+          "tag": "img",
+          "alt": "sm58_9902_Spezi_Aussenterasse_WOL.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9848Au%C3%9Fenterasse_Spezialit%C3%A4tenrestaurant.jpg",
+          "tag": "img",
+          "alt": "sm58_9848Außenterasse_Spezialitätenrestaurant.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9949.jpg",
+          "tag": "img",
+          "alt": "sm58_9949.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9977.jpg",
+          "tag": "img",
+          "alt": "sm58_9977.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_10993_WOL.jpg",
+          "tag": "img",
+          "alt": "sm58_10993_WOL.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm96__7334.jpg",
+          "tag": "img",
+          "alt": "sm96__7334.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9860_Klassik_Oase.jpg",
+          "tag": "img",
+          "alt": "sm58_9860_Klassik_Oase.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9914.jpg",
+          "tag": "img",
+          "alt": "sm58_9914.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9816_Gala_Night.jpg",
+          "tag": "img",
+          "alt": "sm58_9816_Gala_Night.jpg ",
+          "categories": []
+        },
+        {
+          "url": "https://mice.robinson.com/fileadmin/user_upload/sm58_9990_DZX1_DSX1_DZE1_WOL.jpg",
+          "tag": "img",
+          "alt": "sm58_9990_DZX1_DSX1_DZE1_WOL.jpg ",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.alibey.com/en/park/beach-waterpark",
+      "final_url": "https://www.alibey.com/en/park/beach-waterpark",
+      "page_title": "Beach & Waterpark - Ali Bey Park Manavgat - Side, Antalya, Turkey",
+      "image_hosts": [
+        "www.alibey.com"
+      ],
+      "image_urls": [
+        "https://www.alibey.com/content/res/images/favicon/apple-touch-icon.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-32x32.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-16x16.png",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyhotels-anasayfa-promo.jpg",
+        "https://www.alibey.com/content/upload/hotel-page-promo/alibey-park-aqaupark.jpg",
+        "https://www.alibey.com/content/upload/page-icons/havuz.png",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-2.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-3.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-4.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-5.jpg",
+        "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_2.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_2.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_3.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_2.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_3.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_4.jpg",
+        "https://www.alibey.com/content/upload/content-slider/Alibey_Resort_Sorgun_Plajlar_13.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_plajlar_1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_plajlar_3.jpg",
+        "https://www.alibey.com/content/res/images/footer-logo.png",
+        "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+        "https://www.alibey.com/content/res/images/clockwork-logo.png",
+        "https://www.alibey.com/content/res/images/icons/success.png",
+        "https://www.alibey.com/content/res/images/icons/error.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.alibey.com/content/res/images/favicon/apple-touch-icon.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-32x32.png",
+        "https://www.alibey.com/content/res/images/favicon/favicon-16x16.png",
+        "https://www.alibey.com/content/upload/hotel-promo/alibeyhotels-anasayfa-promo.jpg",
+        "https://www.alibey.com/content/upload/hotel-page-promo/alibey-park-aqaupark.jpg",
+        "https://www.alibey.com/content/upload/page-icons/havuz.png",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-2.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-3.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-4.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-5.jpg",
+        "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_2.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_2.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_3.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_2.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_3.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_4.jpg",
+        "https://www.alibey.com/content/upload/content-slider/Alibey_Resort_Sorgun_Plajlar_13.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_plajlar_1.jpg",
+        "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_plajlar_3.jpg",
+        "https://www.alibey.com/content/res/images/footer-logo.png",
+        "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+        "https://www.alibey.com/content/res/images/clockwork-logo.png",
+        "https://www.alibey.com/content/res/images/icons/success.png",
+        "https://www.alibey.com/content/res/images/icons/error.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-page-promo/alibey-park-aqaupark.jpg",
+          "alt": "Beach & Waterpark - Ali Bey Park Manavgat - Side, Antalya, Turkey"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/page-icons/havuz.png",
+          "alt": "Beach & Waterpark - Ali Bey Park Manavgat - Side, Antalya, Turkey"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-2.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-3.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-4.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-5.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_1.jpg",
+          "alt": "Ali Bey Park Manavgat Aquapark-3"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_2.jpg",
+          "alt": "Ali Bey Park Manavgat Aquapark-4"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_1.jpg",
+          "alt": "Ali Bey Park Manavgat Aquapark Slides"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_2.jpg",
+          "alt": "Ali Bey Park Manavgat Aquapark Slides-1"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_3.jpg",
+          "alt": "Ali Bey Park Manavgat Aquapark Slides-2"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_2.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_3.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_4.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/Alibey_Resort_Sorgun_Plajlar_13.jpg",
+          "alt": "alibey_park_Manavgat_Beach_3"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_plajlar_1.jpg",
+          "alt": "alibey_park_Manavgat_Beach_4"
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_plajlar_3.jpg",
+          "alt": "alibey_park_Manavgat_Beach_5"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/footer-logo.png",
+          "alt": "Ali Bey Hotels & Resorts Logo"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+          "alt": "Gürok Logo"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/clockwork-logo.png",
+          "alt": "Clockwork Digital Agency"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/success.png",
+          "alt": "Ali Bey Hotels & Resorts"
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/error.png",
+          "alt": "Ali Bey Hotels & Resorts"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.alibey.com/content/res/images/favicon/site.webmanifest",
+        "https://www.alibey.com/en/park/beach-waterpark",
+        "https://www.alibey.com/ru/park/beach-waterpark",
+        "https://www.alibey.com/de/park/beach-waterpark",
+        "https://www.alibey.com/tr/park/plaj-aquapark",
+        "https://www.alibey.com/",
+        "https://www.alibey.com/en/otellerimiz",
+        "https://www.alibey.com/en/news",
+        "https://www.alibey.com/en/park",
+        "https://www.alibey.com/en/park/rooms",
+        "https://www.alibey.com/en/park/unique-tastes",
+        "https://www.alibey.com/en/park/tennis",
+        "https://www.alibey.com/en/park/spa",
+        "https://www.alibey.com/en/park/childrens-world",
+        "https://www.alibey.com/en/park/activities",
+        "https://www.alibey.com/en",
+        "https://www.alibey.com/en/park/beach-waterpark/alibey-park-plaj-pavilion",
+        "https://www.alibey.com/en/park/beach-waterpark/waterpark",
+        "https://www.alibey.com/en/park/beach-waterpark/slides",
+        "https://www.alibey.com/en/park/beach-waterpark/pools",
+        "https://www.alibey.com/en/park/beach-waterpark/beach",
+        "https://www.alibey.com/en/resort",
+        "https://www.alibey.com/en/club",
+        "https://www.alibey.com/en/corporate/about-us",
+        "https://www.alibey.com/en/corporate/history",
+        "https://www.alibey.com/en/corporate/privacy-policy",
+        "https://www.alibey.com/en/corporate/quality-and-environmental-policy",
+        "https://www.alibey.com/en/corporate/social-responsibility",
+        "https://www.alibey.com/en/corporate/human-resources",
+        "https://www.alibey.com/en/corporate/award-and-certificates"
+      ],
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.alibey.com/content/upload/hotel-page-promo/alibey-park-aqaupark.jpg",
+          "tag": "img",
+          "alt": "Beach & Waterpark - Ali Bey Park Manavgat - Side, Antalya, Turkey",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/page-icons/havuz.png",
+          "tag": "img",
+          "alt": "Beach & Waterpark - Ali Bey Park Manavgat - Side, Antalya, Turkey",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-2.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-3.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-4.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibeycluc-pavillion-slider-5.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_1.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Park Manavgat Aquapark-3",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/Alibey_Park_Manavgat_Plaj-aquapark_Aquapark_2.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Park Manavgat Aquapark-4",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_1.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Park Manavgat Aquapark Slides",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_2.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Park Manavgat Aquapark Slides-1",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_kyd%C4%B1raklar_3.jpg",
+          "tag": "img",
+          "alt": "Ali Bey Park Manavgat Aquapark Slides-2",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_2.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_3.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_Havuzlar_4.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/Alibey_Resort_Sorgun_Plajlar_13.jpg",
+          "tag": "img",
+          "alt": "alibey_park_Manavgat_Beach_3",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_plajlar_1.jpg",
+          "tag": "img",
+          "alt": "alibey_park_Manavgat_Beach_4",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/upload/content-slider/alibey_park_Manavgat_plajlar_3.jpg",
+          "tag": "img",
+          "alt": "alibey_park_Manavgat_Beach_5",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/footer-logo.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts Logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/Gurok_Brandmark_Artwork_RGB_Horizontal.png",
+          "tag": "img",
+          "alt": "Gürok Logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/clockwork-logo.png",
+          "tag": "img",
+          "alt": "Clockwork Digital Agency",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/success.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        },
+        {
+          "url": "https://www.alibey.com/content/res/images/icons/error.png",
+          "tag": "img",
+          "alt": "Ali Bey Hotels & Resorts",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.palomahotels.com/en/finesse-side/mice",
+      "final_url": "https://www.palomahotels.com/en/finesse-side/mice",
+      "page_title": "MICE | Paloma Finesse",
+      "image_hosts": [
+        "www.palomahotels.com"
+      ],
+      "image_urls": [
+        "https://www.palomahotels.com/Content/images/paloma-logo.png",
+        "https://www.palomahotels.com/Content/images/paloma-finesse-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-finesse-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/Group%20370.png",
+        "https://www.palomahotels.com/en/finesse-side/~/Content/FinesseContent/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/finesse-side/~/Content/FinesseContent/images/close-dark.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/close.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/Group%20376.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/9-12-2021-14-35-1412-18-2020-3-38-08-pmmeetingslider.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3702.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3703.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3704.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3705.jpg",
+        "https://www.palomahotels.com/images/oceana-meeting-table.jpg",
+        "https://www.palomahotels.com/Content/images/meeting-popup-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/image-17-07-2026-13-30-02room-1.jpg",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+        "https://www.palomahotels.com/Content/imgUpload/image-17-07-2026-13-30-34room-2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-9-12-2021-17-19-30image-10-12-2021-3-45-06-pm02.jpg",
+        "https://www.palomahotels.com/Content/images/villa-finesse-image1.jpg",
+        "https://www.palomahotels.com/Content/images/footer-visa.png",
+        "https://www.palomahotels.com/Content/images/footer-master.png",
+        "https://www.palomahotels.com/Content/images/footer-secured.png",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+        "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+        "https://www.palomahotels.com/Content/images/footer-app.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.palomahotels.com/Content/images/paloma-logo.png",
+        "https://www.palomahotels.com/Content/images/paloma-finesse-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-finesse-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/Group%20370.png",
+        "https://www.palomahotels.com/en/finesse-side/~/Content/FinesseContent/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/finesse-side/~/Content/FinesseContent/images/close-dark.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/close.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/Group%20376.png",
+        "https://www.palomahotels.com/Content/FinesseContent/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/9-12-2021-14-35-1412-18-2020-3-38-08-pmmeetingslider.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3702.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3703.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3704.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3705.jpg",
+        "https://www.palomahotels.com/images/oceana-meeting-table.jpg",
+        "https://www.palomahotels.com/Content/images/meeting-popup-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/image-17-07-2026-13-30-02room-1.jpg",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+        "https://www.palomahotels.com/Content/imgUpload/image-17-07-2026-13-30-34room-2.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/image-9-12-2021-17-19-30image-10-12-2021-3-45-06-pm02.jpg",
+        "https://www.palomahotels.com/Content/images/villa-finesse-image1.jpg",
+        "https://www.palomahotels.com/Content/images/footer-visa.png",
+        "https://www.palomahotels.com/Content/images/footer-master.png",
+        "https://www.palomahotels.com/Content/images/footer-secured.png",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+        "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+        "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+        "https://www.palomahotels.com/Content/images/footer-app.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "alt": "Paloma Number"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-finesse-logo.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "alt": "Paloma Menu"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/Group%20370.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/en/finesse-side/~/Content/FinesseContent/images/live-chat-dark.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/en/finesse-side/~/Content/FinesseContent/images/close-dark.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/live-chat-dark.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/close.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/Group%20376.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/Group%20376.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/send-icon.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/9-12-2021-14-35-1412-18-2020-3-38-08-pmmeetingslider.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3702.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3703.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3704.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3705.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/images/oceana-meeting-table.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/meeting-popup-icon.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-17-07-2026-13-30-02room-1.jpg",
+          "alt": "First slide"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/meeting-popup-icon.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-17-07-2026-13-30-34room-2.jpg",
+          "alt": "First slide"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/meeting-popup-icon.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-9-12-2021-17-19-30image-10-12-2021-3-45-06-pm02.jpg",
+          "alt": "First slide"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villa-finesse-image1.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villa-finesse-image1.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-visa.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-master.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-secured.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "alt": "Paloma Youtube"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "alt": "Paloma Twitter"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "alt": "Paloma Facebook"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "alt": "Paloma Instagram"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "alt": "Paloma Linkedin"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-app.png",
+          "alt": "Alternate Text"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.palomahotels.com/en/finesse-side/mice",
+        "https://www.palomahotels.com/",
+        "https://www.palomahotels.com/finesse-side/toplanti",
+        "https://www.palomahotels.com/de/finesse-side/mice",
+        "https://www.palomahotels.com/ru/finesse-side/mice",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff2",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff",
+        "https://www.palomahotels.com/en/finesse-side",
+        "https://www.palomahotels.com/en",
+        "https://www.palomahotels.com/en/finesse-side/stay",
+        "https://www.palomahotels.com/en/finesse-side/fine-kitchen",
+        "https://www.palomahotels.com/en/finesse-side/chefs-kitchen",
+        "https://www.palomahotels.com/en/finesse-side/finesse-gastro-gateway",
+        "https://www.palomahotels.com/en/finesse-side/beach-and-pool",
+        "https://www.palomahotels.com/en/finesse-side/the-team",
+        "https://www.palomahotels.com/en/finesse-side/the-play-house",
+        "https://www.palomahotels.com/en/finesse-side/fae-spa",
+        "https://www.palomahotels.com/en/finesse-side/offers",
+        "https://www.palomahotels.com/en/happy-pals",
+        "https://www.palomahotels.com/loyalty-redirect",
+        "https://www.palomahotels.com/en/finesse-side/explore",
+        "https://www.palomahotels.com/finesse-side",
+        "https://www.palomahotels.com/paloma-orenda",
+        "https://www.palomahotels.com/paloma-perissia",
+        "https://www.palomahotels.com/paloma-oceana",
+        "https://www.palomahotels.com/paloma-grida",
+        "https://www.palomahotels.com/paloma-sencia",
+        "https://www.palomahotels.com/paloma-pasha",
+        "https://www.palomahotels.com/paloma-marina-suites",
+        "https://www.palomahotels.com/en/palomaqua"
+      ],
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "tag": "img",
+          "alt": "Paloma Number",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-finesse-logo.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "tag": "img",
+          "alt": "Paloma Menu",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/Group%20370.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/live-chat-dark.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/close.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/Group%20376.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/FinesseContent/images/send-icon.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/9-12-2021-14-35-1412-18-2020-3-38-08-pmmeetingslider.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3702.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3703.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3704.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-08-2021-14-34-3705.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/meeting-popup-icon.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-17-07-2026-13-30-02room-1.jpg",
+          "tag": "img",
+          "alt": "First slide",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-17-07-2026-13-30-34room-2.jpg",
+          "tag": "img",
+          "alt": "First slide",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-9-12-2021-17-19-30image-10-12-2021-3-45-06-pm02.jpg",
+          "tag": "img",
+          "alt": "First slide",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-visa.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-master.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-secured.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "tag": "img",
+          "alt": "Paloma Youtube",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "tag": "img",
+          "alt": "Paloma Twitter",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "tag": "img",
+          "alt": "Paloma Facebook",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "tag": "img",
+          "alt": "Paloma Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "tag": "img",
+          "alt": "Paloma Linkedin",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-1.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-2.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-3.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/foot-bot-5.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-googleplay.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/footer-app.png",
+          "tag": "img",
+          "alt": "Alternate Text",
+          "categories": []
+        }
+      ]
+    }
+  ]
+}
