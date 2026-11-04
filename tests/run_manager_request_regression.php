@@ -45,7 +45,7 @@ mrCheck('handoff text does not raise phone capture',strpos($model['online_text']
 mrCheck('working wait text confirms handoff',strpos($model['working_wait_text'],'Запрос передан менеджеру')!==false,true);
 mrCheck('working wait text does not raise phone capture',strpos($model['working_wait_text'],'телефон')===false,true);
 mrCheck('fallback text available after no reply',strpos($model['fallback_text'],'не успел ответить')!==false,true);
-mrCheck('outside-hours text promises a morning reply in this chat',strpos($model['outside_hours_text'],'Он ответит вам утром в этом чате.')!==false,true);
+mrCheck('outside-hours text states Moscow working hours in this chat',strpos($model['outside_hours_text'],'Он ответит в этом чате в рабочее время: с 11:00 до 21:00 МСК.')!==false,true);
 
 MaxSearchApi::$claim = null;
 MaxSearchApi::$saveCalls = 0;
@@ -150,7 +150,7 @@ mrCheck('bounded media retains newest originals without synthetic IDs',array_col
 
 mrCheck('channel entry uses owner greeting and invites the question',ManagerRequestService::sourceEntryMessageText(true),"Здравствуйте! 👋\nМенеджер скоро присоединится к вам и с удовольствием ответит.\nПока можете написать ваш вопрос ниже");
 mrCheck('night channel entry avoids soon promise',strpos(ManagerRequestService::sourceEntryMessageText(false),'скоро')===false,true);
-mrCheck('night channel entry uses the owner morning greeting',ManagerRequestService::sourceEntryMessageText(false),"Здравствуйте! 👋\nМенеджер ответит вам утром.\nПока можете написать ваш вопрос ниже");
+mrCheck('night channel entry states Moscow working hours',ManagerRequestService::sourceEntryMessageText(false),"Здравствуйте! 👋\nМенеджер ответит в рабочее время: с 11:00 до 21:00 МСК.\nПока можете написать ваш вопрос ниже");
 mrCheck('night channel entry invites the question now',strpos(ManagerRequestService::sourceEntryMessageText(false),'Пока можете написать ваш вопрос ниже')!==false,true);
 mrCheck('regular handoff invites additions rather than repeating the request',strpos($model['online_text'],'Если хотите что-то добавить, напишите здесь.')!==false,true);
 mrCheck('night handoff does not raise phone capture',strpos($model['outside_hours_text'],'телефон')===false,true);

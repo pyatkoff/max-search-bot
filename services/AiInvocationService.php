@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/ai/AiRouter.php';
 require_once __DIR__ . '/AiRuntimeLogger.php';
+require_once __DIR__ . '/SourceHandlingService.php';
 
 class AiInvocationService
 {
@@ -17,6 +18,9 @@ class AiInvocationService
             $pageContext = WebsitePageContextService::forChat((int)$chatId);
             if ($pageContext) $aiCurrent['_page_context'] = $pageContext;
         } catch (\Throwable $ignored) {}
+
+        $sourcePost=SourceHandlingService::sourcePostContext($chatId);
+        if($sourcePost)$aiCurrent['_source_post']=$sourcePost;
 
         AiRuntimeLogger::debug(
             "\n" . date('d.m.Y H:i:s') . "--- chat=" . $chatId . " ---\n" .

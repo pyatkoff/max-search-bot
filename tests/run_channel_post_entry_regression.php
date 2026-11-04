@@ -78,7 +78,8 @@ try {
     $user = 98773101; $payload = $publications['max']['start_payload'];
     cpeStartMax($user, $payload);
     $new = cpeConversation('max', $user);
-    cpeCheck('new MAX post entry creates canonical manager queue', $new['status'] ?? null, 'waiting_manager');
+    cpeCheck('new MAX post entry qualifies before manager queue', $new['status'] ?? null, 'ai');
+    cpeCheck('new MAX post entry creates no premature handoff', cpeEventCount((int)$new['id'],'manager_request'), 0);
     cpeCheck('new MAX post entry binds post source', (int)($new['source_id'] ?? 0), 2);
     cpeCheck('new MAX post entry records immutable version pointer', $registry->managerContext((int)$new['id'], 'anytour')['current']['version_id'] ?? null, $publications['max']['version_id']);
     cpeCheck('MAX start event creates no invented customer message', count(array_filter(cpeMessages((int)$new['id']), static fn($m) => $m['direction'] === 'inbound')), 0);
@@ -88,10 +89,94 @@ try {
     $appsBefore = count($applicationMessages);
     cpeStartTelegram($user, $payload, $dispatcher, $messenger, 2);
     $new = cpeConversation('telegram', $user);
-    cpeCheck('new TG post entry creates canonical manager queue', $new['status'] ?? null, 'waiting_manager');
+    cpeCheck('new TG post entry qualifies before manager queue', $new['status'] ?? null, 'ai');
+    cpeCheck('new TG post entry creates no premature handoff', cpeEventCount((int)$new['id'],'manager_request'), 0);
     cpeCheck('new TG post entry binds post source', (int)($new['source_id'] ?? 0), 4);
-    cpeCheck('new TG post entry does not fall through to AI', count($applicationMessages), $appsBefore);
+    cpeCheck('new TG post start is consumed without invented tourist words', count($applicationMessages), $appsBefore);
     cpeCheck('new TG post entry records immutable version pointer', $registry->managerContext((int)$new['id'], 'anytour')['current']['version_id'] ?? null, $publications['telegram']['version_id']);
+
+    // Real entry/source/application/progression/handoff owners, with only the
+    // existing legacy need-storage and transport boundaries replaced by fixtures.
+    foreach(['max','telegram'] as $index=>$platform){
+        $user=98778000+$index;$chat=$platform==='max'?-$user:$user;
+        $known=['city'=>'Казань','country'=>'Турция','adults'=>2,'children'=>0,'nights'=>'7'];
+        MaxSearchApi::$needContexts[$chat]=$known;MaxSearchApi::$missingNeeds[$chat]=['date'];
+        $sendBefore=count($sent);$resetsBefore=count(MaxSearchApi::$resets);
+        if($platform==='max')cpeStartMax($user,$publications[$platform]['start_payload'],400+$index);
+        else cpeStartTelegram($user,$publications[$platform]['start_payload'],$dispatcher,$messenger,400+$index);
+        $before=cpeConversation($platform,$user);$id=(int)$before['id'];
+        cpeCheck('qualification asks the one missing date: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','дата вылета'),true);
+        cpeCheck('qualification does not promise a manager before needs: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','Менеджер'),false);
+        cpeCheck('qualification preserves current collected needs: '.$platform,MaxSearchApi::$needContexts[$chat],$known);
+        cpeCheck('qualification leaves canonical ownership unqueued: '.$platform,[$before['status'],cpeEventCount($id,'manager_request')],['ai',0]);
+        $sendBefore=count($sent);
+        if($platform==='max')cpeStartMax($user,$publications[$platform]['start_payload'],410+$index);
+        else cpeStartTelegram($user,$publications[$platform]['start_payload'],$dispatcher,$messenger,410+$index);
+        cpeCheck('qualification reentry is silent and does not reset: '.$platform,[count($sent),count(MaxSearchApi::$resets)],[$sendBefore,$resetsBefore]);
+        $postSeen=[];
+        $qualApplication=new DialogueApplication(static function($message,$incoming)use(&$postSeen,$chat):void{
+            $postSeen=SourceHandlingService::sourcePostContext($chat);
+            AiNeedCompletionService::applyAndAdvance($chat,['date'=>'10.01.2027'],['source_need_fields'=>['date']]);
+        });
+        $qualDispatcher=new CpeDispatcher($qualApplication);
+        MaxSearchApi::$missingAfterApply[$chat]=[];
+        IntegrationRegistry::useMessenger($platform==='max'?$maxMessenger:$messenger);
+        $incoming=['platform'=>$platform,'type'=>'message','source_key'=>$before['entry_channel'],'message_id'=>'fixture.qualified.'.$user,'text'=>'10 января 2027',
+            'user'=>['chat_id'=>$chat,'external_user_id'=>$user,'first_name'=>'Fixture']];
+        $qualDispatcher->dispatch($incoming);
+        $after=cpeConversation($platform,$user);
+        cpeCheck('real reply completes needs and queues exactly once: '.$platform,[$after['status'],cpeEventCount($id,'manager_request')],['waiting_manager',1]);
+        cpeCheck('qualification preserves exact post context for the collector: '.$platform,[$postSeen['publication_id']??null,$postSeen['version_id']??null,$postSeen['text']??null],[$publications[$platform]['publication_id'],$publications[$platform]['version_id'],$platform.' исходный тур']);
+        cpeCheck('qualification context has no invented media or live price: '.$platform,[isset($postSeen['media_url']),isset($postSeen['price']),$postSeen['historical_publication']??false],[false,false,true]);
+        cpeCheck('qualification preserves routing source at handoff: '.$platform,$after['source_id'],$before['source_id']);
+        $sendBefore=count($sent);$incoming['message_id'].='.next';$incoming['text']='Спасибо';$qualDispatcher->dispatch($incoming);
+        cpeCheck('after qualification bot remains quiet with existing owner: '.$platform,[count($sent),cpeEventCount($id,'manager_request')],[$sendBefore,1]);
+
+        $oldUser=$user+10;$oldChat=$platform==='max'?-$oldUser:$oldUser;
+        MaxSearchApi::$needContexts[$oldChat]=$known+['date'=>'10.01.2027'];MaxSearchApi::$missingNeeds[$oldChat]=[];
+        if($platform==='max')cpeStartMax($oldUser,$publications[$platform]['start_payload'],420+$index);
+        else cpeStartTelegram($oldUser,$publications[$platform]['start_payload'],$dispatcher,$messenger,420+$index);
+        $old=cpeConversation($platform,$oldUser);
+        cpeCheck('empty start never adopts old complete trip: '.$platform,[$old['status'],cpeEventCount((int)$old['id'],'manager_request')],['ai',0]);
+        $faq=['platform'=>$platform,'type'=>'message','text'=>'Есть ли песчаный вход?','user'=>['chat_id'=>$oldChat,'external_user_id'=>$oldUser]];
+        cpeCheck('hotel question remains with canonical text interpretation: '.$platform,SourceHandlingService::handle($faq),false);
+        cpeCheck('unchanged old trip cannot complete from a hotel question: '.$platform,SourceHandlingService::completeQualification($oldChat),false);
+        MaxSearchApi::$rejectNeedApplication[$oldChat]=true;
+        AiNeedCompletionService::applyAndAdvance($oldChat,['date'=>'invalid'],['source_need_fields'=>['date']]);
+        cpeCheck('rejected need cannot authorize a handoff: '.$platform,cpeConversation($platform,$oldUser)['status'],'ai');
+        unset(MaxSearchApi::$rejectNeedApplication[$oldChat]);
+        SourceHandlingService::handle($faq);
+        MaxSearchApi::$rejectedNeedFields[$oldChat]=['nights'];
+        AiNeedCompletionService::applyAndAdvance($oldChat,['nights'=>'invalid','city'=>'Москва'],['source_need_fields'=>['nights']]);
+        cpeCheck('unrelated default cannot validate a rejected raw need: '.$platform,
+            [MaxSearchApi::$needContexts[$oldChat]['city'],cpeConversation($platform,$oldUser)['status']],['Москва','ai']);
+        unset(MaxSearchApi::$rejectedNeedFields[$oldChat]);
+
+        // Explicit text continues through the canonical manager-intent owner.
+        // The source policy itself must not treat a mention or refusal as a call.
+        foreach(['менеджер, не нужен','менеджер не нужен','Позовите менеджера, я ему расскажу'] as $phrase){
+            $faq['text']=$phrase;
+            cpeCheck('source policy defers text intent without premature queue: '.$platform.' / '.$phrase,SourceHandlingService::handle($faq),false);
+        }
+        IntegrationRegistry::useMessenger($platform==='max'?$maxMessenger:$messenger);
+        V2FeatureGate::resetForTests(['ai_v2'=>['manager_request'=>true]]);
+        $managerShadow=['decision'=>['action'=>RulesEngine::MANAGER],'extracted'=>['intent'=>'manager_request'],'new_state'=>[]];
+        $managerMessage=DialogueController::messageEnvelope($faq);
+        V2EarlyActionHandler::handle($oldChat,$managerMessage,$managerShadow);
+        cpeCheck('canonical manager request keeps actual messenger: '.$platform,cpeConversation($platform,$oldUser)['status'],'waiting_manager');
+        V2FeatureGate::resetForTests(null);
+    }
+
+    $normalMaxMessenger=$maxMessenger;
+    $maxMessenger=new MaxMessengerAdapter(static fn(...$args):bool=>false,static fn(...$args):bool=>false,'system');
+    cpeStartMax(98778100,$publications['max']['start_payload'],450);
+    $failedIntro=cpeConversation('max',98778100);
+    cpeCheck('failed qualification greeting leaves needs active without queue',$failedIntro['status'],'ai');
+    $maxMessenger=$normalMaxMessenger;$sendBefore=count($sent);
+    cpeStartMax(98778100,$publications['max']['start_payload'],451);
+    cpeCheck('fresh start recovers an undelivered first question',count($sent),$sendBefore+1);
+    cpeStartMax(98778100,$publications['max']['start_payload'],452);
+    cpeCheck('successful recovered question is not repeated',count($sent),$sendBefore+1);
 
     $event = 20;
     foreach (['max', 'telegram'] as $platform) foreach (['manager', 'waiting_manager', 'ai'] as $status) {
@@ -167,7 +252,11 @@ try {
         if ($platform === 'max') cpeStartMax($user, $publications[$platform]['start_payload'], $event++);
         else cpeStartTelegram($user, $publications[$platform]['start_payload'], $dispatcher, $messenger, $event++);
         $before = cpeConversation($platform, $user); $id = (int)$before['id'];
-        cpeCheck('paired post entry enters canonical queue: ' . $platform . ' / ' . $status, $before['status'], 'waiting_manager');
+        cpeCheck('paired post entry starts qualification: ' . $platform . ' / ' . $status, $before['status'], 'ai');
+        IntegrationRegistry::useMessenger($platform==='max'?$maxMessenger:$messenger);
+        $dispatcher->dispatch(['platform'=>$platform,'type'=>'callback','callback_data'=>'source_choice_manager',
+            'user'=>['chat_id'=>$platform==='max'?-$user:$user,'external_user_id'=>$user]]);
+        cpeCheck('explicit manager choice bypasses remaining needs: ' . $platform,cpeConversation($platform,$user)['status'],'waiting_manager');
         if ($status === 'manager') $pdo->prepare("UPDATE conversations SET status='manager',manager_id=7 WHERE id=?")->execute([$id]);
         $before = cpeConversation($platform, $user);
         $postContext = $registry->managerContext($id, 'anytour');
@@ -205,6 +294,9 @@ try {
         $resumeDispatcher = new CpeDispatcher($resumeApplication);
         if ($platform === 'max') cpeStartMax($user, $publications[$platform]['start_payload'], $event++);
         else cpeStartTelegram($user, $publications[$platform]['start_payload'], $resumeDispatcher, $messenger, $event++);
+        IntegrationRegistry::useMessenger($platform==='max'?$maxMessenger:$messenger);
+        $resumeDispatcher->dispatch(['platform'=>$platform,'type'=>'callback','callback_data'=>'source_choice_manager',
+            'user'=>['chat_id'=>$platform==='max'?-$user:$user,'external_user_id'=>$user]]);
         $before = cpeConversation($platform, $user); $id = (int)$before['id'];
         $postContext = $registry->managerContext($id, 'anytour'); $sendCount = count($sent);
         $incoming = ['platform' => $platform, 'type' => 'callback', 'callback_data' => $payload,
@@ -251,7 +343,7 @@ try {
         if ($platform === 'max') cpeStartMax($user, $publications[$platform]['start_payload'], $event++);
         else cpeStartTelegram($user, $publications[$platform]['start_payload'], $dispatcher, $messenger, $event++);
         $after = cpeConversation($platform, $user);
-        cpeCheck('explicit post overrides old self-service choice: ' . $platform, $after['status'], 'waiting_manager');
+        cpeCheck('explicit post begins fresh qualification without queue: ' . $platform, $after['status'], 'ai');
         cpeCheck('explicit post rebinds unowned source: ' . $platform, (int)$after['source_id'], $platform === 'max' ? 2 : 4);
         cpeCheck('explicit post does not dispatch AI application: ' . $platform, count($applicationMessages), $appsBefore);
     }

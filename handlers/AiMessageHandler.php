@@ -11,6 +11,7 @@ require_once(__DIR__ . '/../services/AiRuntimeLogger.php');
 require_once(__DIR__ . '/../services/AiDateContextService.php');
 require_once(__DIR__ . '/../services/AiNeedCompletionService.php');
 require_once(__DIR__ . '/../services/DepartureCityResolver.php');
+require_once(__DIR__ . '/../services/SourceHandlingService.php');
 
 class AiMessageHandler
 {
@@ -25,6 +26,7 @@ class AiMessageHandler
 
                 $current = MaxSearchApi::getAiSearchContext($chat_id);
                 $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
+                $sourceQualification=SourceHandlingService::qualifyingTurn($chat_id);
 
                 // Короткий ответ на ранее названный месяц: "начало", "середина", "конец", "14".
                 if (in_array('date', $missingNow, true)) {
@@ -91,6 +93,10 @@ class AiMessageHandler
                     $ai = AiInvocationService::invoke('RICH_AI', $chat_id, $userText, $current);
                 } else {
                     $localParams = LocalAiFallbackService::parameters($userText, $current);
+                    // A post can name a different departure. Do not persist the
+                    // local Moscow default before the existing router sees it.
+                    // Explicit departures have already been applied by the controller.
+                    if($sourceQualification&&empty($current['city']))unset($localParams['city']);
 
                     // Stateful month-only/date clarification policy lives behind one boundary.
                     $localDate = AiDateContextService::resolveLocal($chat_id, $userText);
@@ -112,7 +118,7 @@ class AiMessageHandler
                     $missingLocal=MaxSearchApi::getAiMissingFields($chat_id);
                     $simpleLocal = !empty($route['simple']);
 
-                    if ($simpleLocal && empty($missingLocal) && $hadCurrentBeforeLocal && !empty($appliedLocal)) {
+                    if (!$sourceQualification && $simpleLocal && empty($missingLocal) && $hadCurrentBeforeLocal && !empty($appliedLocal)) {
                         NeedProgressionService::advance($chat_id);
                         return;
                     }
@@ -120,7 +126,10 @@ class AiMessageHandler
                     // Короткие ответы с курортом/регионом (например, "Алания") должны один раз
                     // пройти через AI, если local parser не смог определить страну.
                     $unresolvedDestination = LocalAiFallbackService::unresolvedDestination($missingNow, $missingLocal);
-                    if ($simpleLocal && !empty($missingLocal) && !$unresolvedDestination) {
+                    // A short post reply can combine a need with a hotel question
+                    // ("На двоих, бассейн есть?"). Keep source turns with the same
+                    // router; strict scalar answers were handled earlier already.
+                    if (!$sourceQualification && $simpleLocal && !empty($missingLocal) && !$unresolvedDestination) {
                         MissingFieldQuestionService::sendForMissing(
                             $chat_id,
                             $missingLocal,
@@ -135,8 +144,19 @@ class AiMessageHandler
                 // $ai уже получен либо через RICH_AI, либо через SHORT_AI.
                 // Ни local fallback, ни второй AiRouter здесь повторно не запускаются.
 
+                $sourceNeedFields=[];
+                $sourceNeedPreapplied=false;
+                $sourceRawParams=is_array($ai['parameters']??null)?$ai['parameters']:[];
+                if($sourceQualification&&is_array($ai)&&in_array((string)($ai['intent']??''),['search','correction'],true)){
+                    $sourceNeedPreapplied=SourceHandlingService::qualificationNeedsChanged($chat_id);
+                    foreach(['city','country','adults','children','child_ages','nights','date'] as $field){
+                        $value=$ai['parameters'][$field]??null;
+                        if($value!==null&&$value!==''&&$value!==[])$sourceNeedFields[]=$field;
+                    }
+                }
                 if (is_array($ai)) {
                     $ai = AiBusinessDefaultsService::apply($ai, $userText, $current);
+                    if($sourceQualification&&empty($sourceRawParams['city'])&&empty($current['city']))unset($ai['parameters']['city']);
                 }
 
                 if (!is_array($ai) || !empty($ai['_error'])) {
@@ -150,11 +170,29 @@ class AiMessageHandler
                 $params = is_array($ai['parameters'] ?? null) ? $ai['parameters'] : [];
                 $params = AiDateContextService::applyAiGuard($chat_id, $userText, $params);
 
+                // A hotel FAQ or refusal is not completion of a trip merely
+                // because a previous saved context happens to be complete.
+                // Keep interpretation in the same router and mutations in Need*.
+                if($sourceQualification&&in_array((string)($ai['intent']??''),['question','stop'],true)){
+                    $stopped=($ai['intent']??'')==='stop';
+                    $questionParams=AiDateContextService::applyAiGuard($chat_id,$userText,$sourceRawParams);
+                    if(!$stopped&&$questionParams)NeedApplicationService::applyParameters($chat_id,$questionParams);
+                    $reply=trim((string)($ai['reply']??''));
+                    if($reply==='')$reply=$stopped?'Хорошо.':'Точного ответа в доступных данных у меня сейчас нет.';
+                    MissingFieldQuestionService::sendText($chat_id,$reply);
+                    return;
+                }
+
                 AiRuntimeLogger::debug("ROUTE AFTER AI: APPLY_PARAMETERS\n");
+                $questionOptions=['country_explicit'=>true];
+                if($sourceQualification){
+                    $questionOptions['source_need_fields']=$sourceNeedFields;
+                    $questionOptions['source_need_preapplied']=$sourceNeedPreapplied;
+                }
                 $completion = AiNeedCompletionService::applyAndAdvance(
                     $chat_id,
                     $params,
-                    ['country_explicit'=>true]
+                    $questionOptions
                 );
                 $appliedResult = $completion['applied'];
                 $missing = $completion['missing'];

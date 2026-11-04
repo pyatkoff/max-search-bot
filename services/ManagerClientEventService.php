@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/ManagerConversationService.php';
+require_once __DIR__.'/ConversationRecordClock.php';
 
 /** Read-only view of existing records. Never a second event or audit store. */
 final class ManagerClientEventService
@@ -81,7 +82,7 @@ final class ManagerClientEventService
     {
         $types=implode(',',array_map(static fn(string $type):string=>"'".$type."'",array_keys(self::EVENTS)));
         return [
-            'event'=>['select'=>'SELECT e.id,e.created_at,e.actor_type,e.actor_id,e.event_type FROM conversation_events e','where'=>'e.conversation_id=? AND e.event_type IN ('.$types.')','params'=>[$conversationId],'id'=>'e.id','time'=>'e.created_at','from'=>'conversation_events e'],
+            'event'=>['select'=>'SELECT e.id,e.created_at,e.actor_type,e.actor_id,e.event_type,e.payload_json FROM conversation_events e','where'=>'e.conversation_id=? AND e.event_type IN ('.$types.')','params'=>[$conversationId],'id'=>'e.id','time'=>'e.created_at','from'=>'conversation_events e'],
             'stage'=>['select'=>'SELECT h.id,h.created_at,h.changed_by_manager_id AS actor_id,h.from_stage_key,h.to_stage_key,fs.display_name AS from_name,ts.display_name AS to_name FROM lead_stage_history h LEFT JOIN lead_stages fs ON fs.stage_key=h.from_stage_key LEFT JOIN lead_stages ts ON ts.stage_key=h.to_stage_key','where'=>'h.conversation_id=?','params'=>[$conversationId],'id'=>'h.id','time'=>'h.created_at','from'=>'lead_stage_history h'],
             'name'=>['select'=>'SELECT h.version AS id,h.created_at,h.actor_manager_id AS actor_id,h.before_name,h.after_name FROM manager_customer_name_history h','where'=>'h.customer_id=? AND h.conversation_id=?','params'=>[$customerId,$conversationId],'id'=>'h.version','time'=>'h.created_at','from'=>'manager_customer_name_history h'],
             'note'=>['select'=>'SELECT n.id,n.created_at,n.author_manager_id AS actor_id,n.body,n.updated_at,n.deleted_at FROM manager_internal_notes n','where'=>'n.conversation_id=?','params'=>[$conversationId],'id'=>'n.id','time'=>'n.created_at','from'=>'manager_internal_notes n'],
@@ -106,8 +107,12 @@ final class ManagerClientEventService
         $kind=$row['_kind'];$type=(string)($row['actor_type']??'manager');$actorId=(string)($row['actor_id']??'');
         $who=$type==='customer'?'Клиент':($type==='manager'?($actorId===(string)$actor?'Вы':($names[(int)$actorId]??'Менеджер')):'Система');
         $view=['key'=>$kind.':'.(int)$row['id'],'kind'=>$kind,'created_at'=>(string)$row['created_at'],'actor'=>$who,'title'=>'','details'=>[]];
-        if ($kind==='event') $view['title']=self::EVENTS[$row['event_type']];
-        elseif ($kind==='stage') {
+        if ($kind==='event') {
+            $view['title']=self::EVENTS[$row['event_type']];
+            // Display only: the raw database time already owns ordering and cursor.
+            $recordedAt=ConversationRecordClock::read($row['payload_json']??null);
+            if ($recordedAt!==null) $view['created_at']=gmdate('Y-m-d\TH:i:s\Z',$recordedAt);
+        } elseif ($kind==='stage') {
             $view['title']='Изменён этап работы';
             $view['details'][]=['label'=>'Этап','value'=>(string)($row['from_name']?:$row['from_stage_key']?:'Не указан').' → '.(string)($row['to_name']?:$row['to_stage_key'])];
         } elseif ($kind==='name') {

@@ -47,10 +47,12 @@ handoffInventoryCheck(($policy['outside_hours_queue_waiting'] ?? null) === true,
 $at = static function (string $local): int {
     return (new DateTimeImmutable($local, new DateTimeZone(ManagerAvailabilityService::BUSINESS_TIMEZONE)))->getTimestamp();
 };
-handoffInventoryCheck(!ManagerAvailabilityService::withinWorkingHours($at('2026-09-04 09:59:59')), 'golden case: one second before 10:00 is outside hours');
-handoffInventoryCheck(ManagerAvailabilityService::withinWorkingHours($at('2026-09-04 10:00:00')), 'golden case: 10:00 starts the working window');
-handoffInventoryCheck(ManagerAvailabilityService::withinWorkingHours($at('2026-09-04 19:59:59')), 'golden case: one second before 20:00 is inside hours');
-handoffInventoryCheck(!ManagerAvailabilityService::withinWorkingHours($at('2026-09-04 20:00:00')), 'golden case: 20:00 starts outside-hours behavior');
+handoffInventoryCheck(!ManagerAvailabilityService::withinWorkingHours($at('2026-09-04 10:59:59')), 'golden case: one second before 11:00 Moscow is outside hours');
+handoffInventoryCheck(ManagerAvailabilityService::withinWorkingHours($at('2026-09-04 11:00:00')), 'golden case: 11:00 Moscow starts the working window');
+handoffInventoryCheck(ManagerAvailabilityService::withinWorkingHours($at('2026-09-04 20:59:59')), 'golden case: one second before 21:00 Moscow is inside hours');
+handoffInventoryCheck(!ManagerAvailabilityService::withinWorkingHours($at('2026-09-04 21:00:00')), 'golden case: 21:00 Moscow starts outside-hours behavior');
+handoffInventoryCheck($at('2026-09-04 11:00:00') === (new DateTimeImmutable('2026-09-04T08:00:00Z'))->getTimestamp()
+    && $at('2026-09-04 21:00:00') === (new DateTimeImmutable('2026-09-04T18:00:00Z'))->getTimestamp(), 'golden case: Moscow hours preserve the existing 08:00-18:00 UTC interval');
 handoffInventoryCheck(ManagerHandoffDispatchService::shouldQueueWaiting(true, true), 'golden case: a sent working-hours request enters waiting_manager');
 handoffInventoryCheck(ManagerHandoffDispatchService::shouldQueueWaiting(true, false), 'golden case: an outside-hours request enters waiting_manager');
 

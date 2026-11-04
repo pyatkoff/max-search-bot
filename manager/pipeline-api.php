@@ -67,7 +67,7 @@ if($action==='list'){
     if($queue==='mine')$rows=ManagerLeadInboxService::sortMine($rows);
     foreach($rows as &$row)$row['can_edit_pipeline']=ManagerHttp::canEditConversation($row,$m);
     unset($row);
-    ManagerHttp::respond(['ok'=>true,'conversations'=>array_slice($rows,0,100)]);
+    ManagerHttp::respond(['ok'=>true,'conversations'=>ManagerConversationService::displayRows(array_slice($rows,0,100))]);
 }
 
 $id=(int)($data['conversation_id']??0);
