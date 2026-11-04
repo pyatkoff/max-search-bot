@@ -1725,6 +1725,84 @@ test('hotel knowledge editor read-only access and changed-version refusal',async
 });
 
 const oneTouchBrowserSha=x=>require('node:crypto').createHash('sha256').update(x).digest('hex');
+// The new appearance uses the shipped protected core and real PHP publication
+// builder. Only HTTP/session data and image files are synthetic.
+async function appearancePrivatePreview(page,s){
+ let frozen=null;
+ await page.route('**/manager/tour-selection-editor-api.php',async route=>{
+  const d=route.request().postDataJSON();
+  if(!['prepare','publication','history'].includes(d.action))return route.fallback();
+  expect(d.csrf).toBe('private-csrf');expect(d.editor_actor).toBe(7);expect(d.conversation_id).toBe(11);
+  if(d.action==='history')return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,publications:[{publication_id:frozen.id,draft_version:frozen.draft_version,created_at:'2026-11-04 00:00:00'}]})});
+  if(d.action==='prepare'){
+   const built=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionPublicationDraft.php';$b=ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true));foreach($b['offers'] as &$o)$o['card']=TourOfferCardRenderer::render($o['snapshot'],$o['presentation'],'tour_like_1_'.str_repeat('a',24));echo json_encode($b,JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(s.snapshot().draft),encoding:'utf8'}));expect(built.ok).toBe(true);
+   frozen={id:'f'.repeat(32),draft_version:d.version,title:built.title,intro:built.intro,...(built.appearance?{appearance:copy(built.appearance)}:{}),channel:'telegram',can_send:true,cards:built.offers.map((o,index)=>({index,state:'pending',text:o.card.plain_text,snapshot:o.snapshot,photos:o.presentation.photos.map((_,i)=>'https://app.anytoour.ru/manager/tour-selection-photo.php?publication_id='+'f'.repeat(32)+'&card='+index+'&photo='+i)}))};
+  }
+  return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,publication:copy(frozen)})});
+ });
+ await page.route('https://app.anytoour.ru/manager/tour-selection-photo.php?**',route=>route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))}));
+ return()=>copy(frozen);
+}
+for(const template of ['photo','compact'])for(const width of [390,1440])test('selection appearance frozen protected preview '+template+' '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const original=completeDraft();const second=copy(original.offers[0]);second.id='b'.repeat(32);second.hotel='Second synthetic hotel';original.offers.push(second);
+ const s=await privateEditor(page,{draft:original}),f=s.editor,frozen=await appearancePrivatePreview(page,s),agency='Synthetic "Agency" <img src=x>',intro='Synthetic introduction <svg> without markup';
+ await expect(f.locator('#tsStatus')).toContainText('загружен');expect(await f.locator('#tsAppearance').evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);expect(await f.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);await f.getByRole('button',{name:'Оформление',exact:true}).click();
+ await f.locator('#tsAppearanceTemplate').selectOption(template);await f.locator('#tsAppearancePalette').selectOption('ocean');await f.locator('#tsAppearanceAgency').fill(agency);await f.locator('#tsSelectionTitle').fill('Synthetic selection title');await f.locator('#tsSelectionIntro').fill(intro);
+ await expect.poll(()=>s.snapshot().draft.appearance?.agency_name).toBe(agency);await expect.poll(()=>s.snapshot().draft.intro).toBe(intro);await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');expect(s.snapshot().draft.offers).toEqual(original.offers);
+ await expect(f.locator('.tsAppearance img,.tsAppearance svg,.tsAppearance script')).toHaveCount(0);expect(await f.locator('#tsAppearanceAgency').getAttribute('onfocus')).toBe(null);
+ for(const id of ['tsAppearanceTemplate','tsAppearancePalette','tsAppearanceAgency','tsSelectionTitle','tsAppearanceBack'])expect(await f.locator('#'+id).evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ expect(await f.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});
+ if(template==='photo')await page.screenshot({path:path.join(root,'manager2-artifacts',`selection-appearance-settings-${browserName}-${width}.png`),animations:'disabled'});
+ await f.locator('#tsAppearanceBack').click();await f.locator('#tsPreview').click();await expect(f.locator('.tsSelectionBrand')).toHaveText(agency);await expect(f.locator('.tsSelectionBrand')).toHaveCSS('color','rgb(23, 102, 161)');await expect(f.locator('.tsSelectionIntro')).toHaveText(intro);await expect(f.locator('#tsEditor')).toHaveClass(new RegExp('tsTemplate-'+template));
+ await expect(f.locator('.tsExportImage').first()).toBeEnabled();await page.screenshot({path:path.join(root,'manager2-artifacts',`selection-appearance-preview-${template}-${browserName}-${width}.png`),animations:'disabled'});
+ const publication=frozen();expect(publication.appearance).toEqual({template,palette:'ocean',agency_name:agency});expect(publication.cards).toHaveLength(2);
+ if(width===1440){
+  await f.locator('#tsEdit').click();await f.locator('#tsAppearance').click();await f.locator('#tsAppearanceAgency').fill('LATER WORKING DRAFT');await f.locator('#tsAppearancePalette').selectOption('sunset');await expect.poll(()=>s.snapshot().draft.appearance?.agency_name).toBe('LATER WORKING DRAFT');await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');await f.locator('#tsAppearanceBack').click();
+  await f.locator('#tsHistory').click();await f.getByRole('button',{name:new RegExp('Версия '+publication.draft_version+' ·')}).click();await expect(f.locator('.tsSelectionBrand')).toHaveText(agency);await expect(f.locator('.tsSelectionBrand')).toHaveCSS('color','rgb(23, 102, 161)');
+  const frame=page.frames().find(x=>x.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));await observeImageExport(frame);
+  await frame.evaluate(()=>{window.appearanceInk=[];const original=CanvasRenderingContext2D.prototype.fillText;CanvasRenderingContext2D.prototype.fillText=function(text,...args){appearanceInk.push({text,color:this.fillStyle});return original.call(this,text,...args)}});
+  await f.locator('.tsExportImage').first().click();await expect(f.locator('[data-ts-image-download]')).toBeVisible();const ink=await frame.evaluate(()=>appearanceInk);expect(ink.find(x=>x.text===agency)?.color).toBe('#1766a1');expect(ink.map(x=>x.text).join(' ')).toContain(intro);expect(ink.map(x=>x.text).join(' ')).not.toContain('LATER WORKING DRAFT');
+  // Inspect only the new encoder's frozen design. No native download is needed.
+  await f.getByRole('button',{name:'Отменить',exact:true}).click();await frame.evaluate(()=>{window.print=()=>{}});await f.locator('#tsPrint').click();await expect(f.locator('.tsPrintProposal .tsPrintBrand')).toHaveText(agency);await expect(f.locator('.tsPrintProposal .tsPrintIntro')).toHaveText(intro);await expect(f.locator('.tsPrintProposal')).toHaveClass(/tsPalette-ocean/);await f.locator('#tsPrint').click();expect(frozen()).toEqual(publication);
+ }
+ expect(s.calls.some(c=>['send','publish','biblio_add','onetouch_add','collector_import'].includes(c.action))).toBe(false);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('selection appearance respects read-only actor and legacy shape',async({page})=>{
+ const original=completeDraft(),s=await privateEditor(page,{draft:original,readOnly:true}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('Просмотр');await expect(f.locator('#tsAppearance')).toBeDisabled();expect(s.snapshot().draft).toEqual(original);expect(s.calls.some(c=>c.action==='save')).toBe(false);
+});
+test('appearance preview issue opens and focuses the actual incomplete offer field',async({page})=>{
+ const original=completeDraft();original.offers[0].room='';original.appearance={template:'compact',palette:'ocean',agency_name:'Synthetic agency'};
+ const s=await privateEditor(page,{draft:original}),f=s.editor;
+ await page.route('**/manager/tour-selection-editor-api.php',async route=>{
+  const d=route.request().postDataJSON();if(d.action!=='prepare')return route.fallback();expect(d.csrf).toBe('private-csrf');expect(d.editor_actor).toBe(7);expect(d.conversation_id).toBe(11);
+  const result=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionPublicationDraft.php';echo json_encode(ManagerTourSelectionPublicationDraft::build(json_decode(stream_get_contents(STDIN),true)),JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(s.snapshot().draft),encoding:'utf8'}));expect(result.error).toBe('incomplete_offers');
+  return route.fulfill({status:422,contentType:'application/json',body:JSON.stringify(result)});
+ });
+ await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsAppearance').click();await f.locator('#tsPreview').click();await f.getByRole('button',{name:'Вариант 1: номер',exact:true}).click();
+ await expect(f.locator('#ts-room')).toBeVisible();await expect(f.locator('#ts-room')).toBeFocused();await expect(f.locator('#ts-room')).toHaveValue('');await expect(f.locator('.tsAppearance')).toHaveCount(0);expect(s.snapshot().draft).toEqual(original);expect(s.calls.some(c=>['save','send','publish','collector_import'].includes(c.action))).toBe(false);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('appearance editing rejects a late historical response and detached history button',async({page})=>{
+ const original=completeDraft();original.appearance={template:'photo',palette:'ocean',agency_name:'Synthetic agency'};const s=await privateEditor(page,{draft:original}),f=s.editor,frozen=await appearancePrivatePreview(page,s);
+ await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsPreview').click();await expect(f.locator('.tsPreviewCard')).toHaveCount(1);await f.locator('#tsEdit').click();await f.locator('#tsHistory').click();
+ let release,done,publicationReads=0;const finished=new Promise(resolve=>done=resolve);
+ await page.route('**/manager/tour-selection-editor-api.php',async route=>{if(route.request().postDataJSON().action!=='publication')return route.fallback();publicationReads++;const old=frozen();await new Promise(resolve=>release=resolve);await route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,publication:old})});done()});
+ const button=f.getByRole('button',{name:new RegExp('Версия '+frozen().draft_version+' ·')});await button.evaluate(el=>{window.detachedAppearanceHistoryButton=el});await button.click();await expect.poll(()=>!!release).toBe(true);
+ await f.locator('#tsAppearance').click();await f.locator('#tsAppearanceAgency').fill('EDIT AFTER HISTORY');const frame=page.frames().find(x=>x.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));await frame.evaluate(()=>detachedAppearanceHistoryButton.click());release();await finished;
+ await expect.poll(()=>s.snapshot().draft.appearance?.agency_name).toBe('EDIT AFTER HISTORY');await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));await expect(f.locator('#tsAppearanceAgency')).toBeVisible();await expect(f.locator('#tsAppearanceAgency')).toHaveValue('EDIT AFTER HISTORY');await expect(f.locator('.tsPreviewCard')).toHaveCount(0);await expect(f.locator('#tsSend')).toBeHidden();await expect(f.locator('#tsShare')).toBeHidden();expect(publicationReads).toBe(1);expect(s.snapshot().draft.offers).toEqual(original.offers);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+for(const template of ['photo','compact'])for(const width of [390,1440])test('public selection appearance geometry '+template+' '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const requests=[],agency='A'.repeat(80),palette=template==='photo'?'forest':'sunset';
+ const offer={index:0,hotel:'Synthetic public hotel',destination:'Synthetic destination',departure:'Москва',date_from:'2077-01-07',nights:7,adults:2,children:0,room:'Synthetic room',meal:'BB',amount:'123456',currency:'RUB',price_qualifier:'from',rationale:'Synthetic explanation',compromise:'Synthetic compromise',flights:'Flights require verification',inclusions:'Package requires verification',constraints:'Price and availability require verification',observed_at:'2077-01-01T00:00:00Z',photos:[0,1,2].map(i=>'photo.php?card=0&photo='+i),photo_layout:'gallery-v1',bot_links:[]};
+ const second={...copy(offer),index:1,hotel:'Second synthetic public hotel',photos:[0,1,2].map(i=>'photo.php?card=1&photo='+i)};
+ const selection={title:'Synthetic appearance selection',intro:'Synthetic introduction',version:1,updated_at:'2077-01-01 00:00:00',appearance:{template,palette,agency_name:agency},offers:[offer,second]};
+ const html=execFileSync('php',['-r',`$selection=json_decode(stream_get_contents(STDIN),true);$h=static fn(string $s):string=>htmlspecialchars($s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');require 'selection/view.php';`],{cwd:root,input:JSON.stringify(selection),encoding:'utf8'});
+ const csp=fs.readFileSync(path.join(root,'selection/index.php'),'utf8').match(/header\("Content-Security-Policy: ([^"]+)"\)/)[1];
+ await page.route('**/*',async route=>{const url=new URL(route.request().url());requests.push(url.pathname);if(url.origin!=='http://127.0.0.1:4173')throw Error('Unexpected external public appearance request');if(url.pathname==='/appearance-public/')return route.fulfill({contentType:'text/html',headers:{'Content-Security-Policy':csp},body:html});if(url.pathname==='/appearance-public/selection.css')return route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'selection/selection.css'))});if(url.pathname==='/appearance-public/photo.php')return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))});throw Error('Unexpected public appearance resource')});
+ await page.goto('http://127.0.0.1:4173/appearance-public/');await expect(page.locator('.brand')).toHaveText(agency);await expect(page.locator('.brand')).toHaveCSS('color',palette==='forest'?'rgb(8, 118, 84)':'rgb(161, 68, 39)');await expect(page.locator('.offer')).toHaveCount(2);await expect(page.locator('.photos img')).toHaveCount(6);for(const img of await page.locator('.photos img').all()){await img.scrollIntoViewIfNeeded();await expect.poll(()=>img.evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true)}
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(await page.locator('main.selection').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);await expect(page.locator('.price').first()).toContainText('от');await expect(page.locator('.offer').first()).toContainText('Price and availability require verification');
+ for(const img of await page.locator('.photos img').all())await expect(img).toBeVisible();await page.locator('.brand').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`selection-appearance-public-${template}-${browserName}-${width}.png`),fullPage:true,animations:'disabled'});expect(requests.filter(p=>p.endsWith('/photo.php'))).toHaveLength(6);
+});
 function oneTouchBrowserBaseOffer(){return{id:'b'.repeat(32),selected:true,hotel:'Синтетический сохранённый Библио-Глобус',stars:3,destination:'Турция',departure:'Москва',date_from:'2077-01-07',nights:7,adults:2,child_ages:[],room:'Standard',meal:'BB',amount:'180000',currency:'RUB',rationale:'',compromise:'',flights:'',inclusions:'',constraints:'',source_label:'Библио-Глобус · synthetic',source_url:'',observed_at:null,photos:[]}}
 async function oneTouchBrowserFileFixture(page,options={}){
  const photoEvents=[],safePhotoUrl=value=>{try{const u=new URL(value);return u.protocol==='blob:'?'blob:[local]':u.origin+u.pathname}catch{return '[invalid]'}},safePhotoText=value=>String(value??'').replace(/blob:[^\s"'<>]+/g,'blob:[local]').replace(/https?:\/\/[^\s"'<>]+/g,safePhotoUrl).slice(0,500);
@@ -1791,4 +1869,76 @@ test('OneTouch lost add response permits only receipt read then missing private 
  await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();await expect(f.locator('#tsRecovery')).toContainText('Проверить');
  await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect.poll(()=>s.snapshot().draft.offers[1]?.photos.length).toBe(1);
  expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(1);expect(s.snapshot().draft.offers).toHaveLength(2);expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const width of [390,430,768,1440])test('offer conditions comparison is readonly with exact different trips '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const original=completeDraft();
+ original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Синтетический <svg>',date_from:'2027-06-12',nights:10,adults:1,child_ages:[11],room:'Номер <img>',meal:'Завтрак',amount:'1000',currency:'EUR',price_qualifier:'from',constraints:'Доплата за трансфер\nБагаж уточняется',inclusions:''});
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls);
+ await f.locator('#tsCompareOffers').click();const panel=f.locator('#tsOfferCompare'),scroll=f.locator('#tsCompareScroll');await expect(panel).toBeVisible();await expect(panel.locator('thead th')).toHaveCount(3);
+ await expect(panel.getByRole('row',{name:/Цена за весь состав/})).toContainText(/240\s000/);await expect(panel.getByRole('row',{name:/Цена за весь состав/})).toContainText(/от\s1\s000/);
+ await expect(panel.getByRole('row',{name:/Дата вылета/})).toContainText('2027-06-05');await expect(panel.getByRole('row',{name:/Дата вылета/})).toContainText('2027-06-12');
+ await expect(panel.getByRole('row',{name:/Состав/})).toContainText('дети: 4, 4');await expect(panel.getByRole('row',{name:/Состав/})).toContainText('дети: 11');
+ await expect(panel.getByRole('row',{name:/Номер/})).toContainText('Номер <img>');await expect(panel.getByRole('row',{name:/Питание/})).toContainText('Завтрак');await expect(panel.getByRole('row',{name:/Важные условия/})).toContainText('Багаж уточняется');
+ await expect(panel.locator('caption')).toContainText('Различаются валюта, даты, длительность или состав');await expect(panel.locator('img,svg,script')).toHaveCount(0);
+ expect(await f.locator('html').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);expect(await panel.evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);expect(await f.locator('#tsCompareBack').evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ if(width<600){await scroll.focus();await scroll.press('ArrowRight');await expect.poll(()=>scroll.evaluate(el=>el.scrollLeft)).toBeGreaterThan(0);await scroll.evaluate(el=>{el.scrollLeft=0;el.scrollTop=0})}
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-offer-comparison-${browserName}-${width}.png`),animations:'disabled'});
+ if([390,1440].includes(width)){await panel.getByRole('row',{name:/Цена за весь состав/}).scrollIntoViewIfNeeded();await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-offer-comparison-price-${browserName}-${width}.png`),animations:'disabled'});}
+ await page.setViewportSize({width,height:420});await expect(f.locator('#tsCompareBack')).toBeInViewport();await expect(f.locator('#tsClose')).toBeInViewport();expect(await scroll.evaluate(el=>el.clientHeight)).toBeGreaterThan(50);
+ await scroll.focus();await scroll.press('Escape');await expect(panel).toBeHidden();await expect(f.locator('#tourSelectionDialog')).toBeVisible();await expect(f.locator('#tsCompareOffers')).toBeFocused();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison caps four choices and does not include an excluded offer',async({page})=>{
+ const original=completeDraft();for(let i=1;i<5;i++)original.offers.push({...copy(original.offers[0]),id:String.fromCharCode(97+i).repeat(32),hotel:'Синтетический вариант '+(i+1),selected:i!==4});
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls);await f.locator('#tsCompareOffers').click();await f.locator('#tsCompareChooser > summary').click();
+ const choices=f.locator('#tsCompareChoices input');await choices.nth(2).check();await choices.nth(3).check();await expect(choices.nth(4)).toBeDisabled();await expect(f.locator('#tsCompareChoices input:checked')).toHaveCount(4);await expect(f.locator('#tsCompareScroll thead th')).toHaveCount(5);
+ await choices.nth(1).uncheck();await choices.nth(4).check();await expect(f.locator('#tsCompareScroll thead')).toContainText('Не включён в подборку');await expect(choices.nth(1)).toBeDisabled();
+ await f.locator('#tsCompareBack').click();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.snapshot().draft.offers[4].selected).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison keeps original source prices separate from manual prices',async({page})=>{
+ const original=mixedPhotoDraft();for(const offer of original.offers)offer.photos=[];original.offers[0].amount='190000';
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls);await f.locator('#tsCompareOffers').click();
+ await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Цена за весь состав/})).toContainText(/190\s000/);await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Исходная цена/})).toContainText(/200\s000/);await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Цена получена/})).toContainText(original.offers[0].import_source.observed_at);
+ await f.locator('#tsCompareChooser > summary').click();await f.locator('#tsCompareChoices input').nth(1).uncheck();await f.locator('#tsCompareChoices input').nth(2).check();await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Исходная цена/})).toContainText('за номер');
+ await f.locator('#tsCompareBack').click();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison preserves invalid unsaved ages and price without making a quote',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант'});const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');
+ await f.locator('#tsOfferDetails > summary').click();await f.locator('#ts-child_ages').fill('7,x');await f.locator('#ts-amount').fill('1e5');const before=copy(s.snapshot()),calls=copy(s.calls);await f.locator('#tsCompareOffers').click();
+ await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Состав/})).toContainText('Возраст детей требует исправления: 7,x');await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Цена за весь состав/})).toContainText('Проверьте цену: 1e5');await expect(f.locator('#tsCompareScroll caption')).toContainText('несохранёнными правками');
+ await f.locator('#tsCompareBack').click();await expect(f.locator('#ts-child_ages')).toHaveValue('7,x');await expect(f.locator('#ts-amount')).toHaveValue('1e5');await expect(f.locator('#tsSave')).toBeDisabled();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('readonly actor can compare and navigate without acquiring edit rights',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант'});const s=await privateEditor(page,{draft:original,readOnly:true}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('Просмотр');const before=copy(s.snapshot()),calls=copy(s.calls);
+ await expect(f.locator('#tsCompareOffers')).toBeEnabled();await f.locator('#tsCompareOffers').click();await f.locator('[data-ts-compare-open]').nth(1).click();await expect(f.locator('#tsOfferCompare')).toBeHidden();await expect(f.locator('#ts-hotel')).toHaveValue('Другой синтетический вариант');await expect(f.locator('#ts-hotel')).toBeDisabled();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison treats equivalent child ages as the same party without rewriting raw input',async({page})=>{
+ const original=completeDraft();original.offers[0].child_ages=[4,4,11];original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант',child_ages:[11,4,4]});
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');const before=copy(s.snapshot()),calls=copy(s.calls);await f.locator('#tsOfferDetails > summary').click();
+ // Dispatch the edit and open the view in one task so this checks raw input,
+ // independently of the existing 900ms autosave delay on a loaded CI worker.
+ await f.locator('#ts-child_ages').evaluate(input=>{input.value='04, 4, 11';input.dispatchEvent(new Event('input',{bubbles:true}));input.closest('dialog').querySelector('#tsCompareOffers').click()});
+ await expect(f.locator('#tsOfferCompare')).toBeVisible();await expect(f.locator('#tsCompareScroll caption')).not.toContainText('Различаются');await expect(f.locator('#tsCompareScroll caption')).toContainText('несохранёнными правками');await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Состав/})).toContainText('дети: 04, 4, 11');await expect(f.locator('#tsCompareScroll').getByRole('row',{name:/Состав/})).toContainText('дети: 11, 4, 4');
+ await f.locator('#tsClose').click();expect(s.snapshot()).toEqual(before);expect(s.calls).toEqual(calls);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison rejects actual stored publish and revoke handlers',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант'});const s=await privateEditor(page,{draft:original}),f=s.editor;await appearancePrivatePreview(page,s);const writes=[];
+ const share={version:1,active:true,path:'/selection/?t='+'a'.repeat(64),publication_id:'e'.repeat(32),can_revoke:true};
+ await page.route('https://app.anytoour.ru/manager/tour-selection-editor-api.php',async route=>{const d=route.request().postDataJSON();if(d.action==='share')return route.fulfill({json:{ok:true,share}});if(['publish','revoke'].includes(d.action)){writes.push(copy(d));return route.fulfill({json:{ok:true,share}})}return route.fallback()});
+ await f.locator('#tsPreview').click();await expect(f.locator('.tsPreviewCard')).toHaveCount(2);await f.locator('#tsShare').click();await expect(f.locator('#tsPublish')).toBeEnabled();await expect(f.locator('#tsRevoke')).toBeEnabled();await f.locator('#tsPublish').evaluate(button=>window.comparisonOldPublish=button.onclick);await f.locator('#tsRevoke').evaluate(button=>window.comparisonOldRevoke=button.onclick);await f.locator('#tsEdit').click();const before=copy(s.snapshot());await f.locator('#tsCompareOffers').click();
+ await f.locator('body').evaluate(async()=>{await window.comparisonOldPublish();await window.comparisonOldRevoke()});await expect(f.locator('#tsOfferCompare')).toBeVisible();expect(writes).toEqual([]);expect(s.calls.filter(call=>['save','send','publish','revoke'].includes(call.action))).toEqual([]);expect(s.snapshot()).toEqual(before);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('offer comparison rejects late history and a stored send handler',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),hotel:'Другой синтетический вариант'});const s=await privateEditor(page,{draft:original}),f=s.editor,frozen=await appearancePrivatePreview(page,s);await f.locator('#tsPreview').click();await expect(f.locator('.tsPreviewCard')).toHaveCount(2);await expect(f.locator('#tsSend')).toBeEnabled();await f.locator('#tsSend').evaluate(el=>window.comparisonOldSend=el.onclick);await f.locator('#tsEdit').click();
+ let release=null,publicationReads=0;await page.route('https://app.anytoour.ru/manager/tour-selection-editor-api.php',async route=>{const d=route.request().postDataJSON();if(d.action==='history')return route.fulfill({json:{ok:true,publications:[{publication_id:'f'.repeat(32),draft_version:1,created_at:'2077-01-01 00:00:00'}]}});if(d.action==='publication'){publicationReads++;await new Promise(resolve=>release=resolve);return route.fulfill({json:{ok:true,publication:frozen()}})}return route.fallback()});
+ await f.locator('#tsHistory').click();const old=f.locator('#tsRecovery button').first();await expect(old).toBeVisible();await old.evaluate(el=>window.detachedCompareHistory=el);await old.click();await expect.poll(()=>!!release).toBe(true);const before=copy(s.snapshot());await f.locator('#tsCompareOffers').click();await expect(f.locator('#tsSend')).toBeDisabled();await f.locator('body').evaluate(()=>{window.detachedCompareHistory.click();return window.comparisonOldSend()});
+ const response=page.waitForResponse(result=>result.url().includes('/manager/tour-selection-editor-api.php')&&result.request().postDataJSON().action==='publication');release();await response;await f.locator('body').evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await expect(f.locator('#tsOfferCompare')).toBeVisible();await expect(f.locator('.tsPreviewCard')).toHaveCount(0);await expect(f.locator('#tsSend')).toBeHidden();expect(publicationReads).toBe(1);expect(s.snapshot()).toEqual(before);expect(s.calls.filter(x=>['save','send','publish','revoke'].includes(x.action))).toEqual([]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });

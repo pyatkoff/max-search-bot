@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "policy": {
-    "timezone": "Europe/Kaliningrad",
-    "working_start_hour": 10,
-    "working_end_hour": 20,
+    "timezone": "Europe/Moscow",
+    "working_start_hour": 11,
+    "working_end_hour": 21,
     "phone_fallback_delay_seconds": 300,
     "outside_hours_queue_waiting": true,
     "automatic_phone_fallback_enabled": false
@@ -174,9 +174,9 @@
       "classification": "decision",
       "responsibility": "Canonical business timezone, working window and project/routing-aware manager availability.",
       "required_markers": [
-        "WORKDAY_START_HOUR = 10",
-        "WORKDAY_END_HOUR = 20",
-        "BUSINESS_TIMEZONE = 'Europe/Kaliningrad'",
+        "WORKDAY_START_HOUR = 11",
+        "WORKDAY_END_HOUR = 21",
+        "BUSINESS_TIMEZONE = 'Europe/Moscow'",
         "is_working=1"
       ]
     },

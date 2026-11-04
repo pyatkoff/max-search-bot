@@ -10,6 +10,15 @@ final class HotelWorkTestStatement extends PDOStatement
 final class HotelWorkTestPdo extends PDO
 {
     public array $writes=[];
+    // Opt-in only for sequential negative-case fixtures. Never reuse a schema
+    // across migration verification or concurrent child processes.
+    private static bool $reuseInvalidSchema = false;
+    private static bool $invalidSchemaReady = false;
+    public static function reuseInvalidSchema(bool $enabled): void
+    {
+        self::$reuseInvalidSchema = $enabled;
+        if (!$enabled) self::$invalidSchemaReady = false;
+    }
     public function __construct(?string $sqliteFile=null,bool $reset=true)
     {
         $options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_STRINGIFY_FETCHES=>false];
@@ -21,8 +30,17 @@ final class HotelWorkTestPdo extends PDO
             parent::__construct($dsn,getenv('PREPARED_REPLY_MYSQL_USER')?:null,getenv('PREPARED_REPLY_MYSQL_PASS')?:null,$options);
             if (parent::query('SELECT DATABASE()')->fetchColumn()!==$m[1]) throw new RuntimeException('unsafe_hotel_fixture_database');
             if ($reset) {
-                foreach (['hotel_work_execution_attempt_associations','hotel_work_execution_attempt_entries','hotel_work_execution_attempts','hotel_work_consumer_delivery_repairs','hotel_work_research_skips','hotel_work_delivery_recoveries','hotel_work_resolutions','hotel_work_connection_handoffs','hotel_work_receipts','hotel_work_queues','hotel_work_lane'] as $table) parent::exec('DROP TABLE IF EXISTS '.$table);
-                foreach (['070_hotel_work_queue.sql','072_hotel_work_recovery.sql','073_hotel_work_delivery_recoveries.sql','076_hotel_work_research_skips.sql','077_hotel_work_consumer_delivery_repairs.sql','078_hotel_work_execution_attempts.sql'] as $migration) foreach (explode(';',(string)file_get_contents(dirname(__DIR__,2).'/migrations/'.$migration)) as $sql) if (trim($sql)!=='') parent::exec($sql);
+                $tables=['hotel_work_execution_attempt_associations','hotel_work_execution_attempt_entries','hotel_work_execution_attempts','hotel_work_consumer_delivery_repairs','hotel_work_research_skips','hotel_work_delivery_recoveries','hotel_work_resolutions','hotel_work_connection_handoffs','hotel_work_receipts','hotel_work_queues','hotel_work_lane'];
+                if (self::$reuseInvalidSchema && self::$invalidSchemaReady) {
+                    // The exact same schema; delete every synthetic row rather
+                    // than repeatedly rebuilding six immutable migrations.
+                    foreach ($tables as $table) parent::exec('DELETE FROM '.$table);
+                    parent::exec("INSERT INTO hotel_work_lane (lane_key,queue_id) VALUES ('HOTEL',NULL)");
+                } else {
+                    foreach ($tables as $table) parent::exec('DROP TABLE IF EXISTS '.$table);
+                    foreach (['070_hotel_work_queue.sql','072_hotel_work_recovery.sql','073_hotel_work_delivery_recoveries.sql','076_hotel_work_research_skips.sql','077_hotel_work_consumer_delivery_repairs.sql','078_hotel_work_execution_attempts.sql'] as $migration) foreach (explode(';',(string)file_get_contents(dirname(__DIR__,2).'/migrations/'.$migration)) as $sql) if (trim($sql)!=='') parent::exec($sql);
+                    if (self::$reuseInvalidSchema) self::$invalidSchemaReady=true;
+                }
             }
         } else {
             parent::__construct($sqliteFile===null?'sqlite::memory:':'sqlite:'.$sqliteFile,null,null,$options);

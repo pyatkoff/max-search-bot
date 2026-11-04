@@ -37,6 +37,17 @@ tsCheck('visible colleague has read-only selection',!ManagerTourSelectionService
 $offer=['id'=>str_repeat('a',32),'selected'=>true,'hotel'=>'Synthetic Grand Hotel','departure'=>'Москва','room'=>'Стандартный','meal'=>'Всё включено','amount'=>'240000.00','currency'=>'RUB','date_from'=>'2027-06-05','nights'=>7,'adults'=>2,'child_ages'=>[0,4,4],'source_url'=>'https://example.invalid/tour?id=77','rationale'=>'Близко к пляжу','compromise'=>'Небольшой номер'];
 $draft=['title'=>'Летний отдых','intro'=>'Выбрали варианты у моря','offers'=>[$offer]];
 $normalized=ManagerTourSelectionDraft::normalize($draft);
+$legacyShape=json_encode($normalized,JSON_THROW_ON_ERROR);
+$appearanceDraft=$draft;$appearanceDraft['appearance']=['template'=>'compact','palette'=>'ocean','agency_name'=>'  Synthetic agency <&>  '];
+$appearanceNormalized=ManagerTourSelectionDraft::normalize($appearanceDraft);
+tsCheck('appearance uses strict fixed choices and normalized plain agency text',$appearanceNormalized['appearance']===['template'=>'compact','palette'=>'ocean','agency_name'=>'Synthetic agency <&>']&&$appearanceNormalized['offers']===$normalized['offers']);
+tsCheck('legacy appearance absence leaves canonical draft bytes untouched',!array_key_exists('appearance',$normalized)&&json_encode(ManagerTourSelectionDraft::normalize($draft),JSON_THROW_ON_ERROR)===$legacyShape);
+foreach ([null,[],['template'=>'photo','palette'=>'ocean'],['template'=>'script','palette'=>'forest','agency_name'=>'Agency'],['template'=>'photo','palette'=>'url(https://foreign.invalid)','agency_name'=>'Agency'],['template'=>'photo','palette'=>'forest','agency_name'=>"Agency\nInjected"],['template'=>'photo','palette'=>'forest','agency_name'=>''],['template'=>'photo','palette'=>'forest','agency_name'=>str_repeat('x',81)],['template'=>'photo','palette'=>'forest','agency_name'=>'Agency','logo_url'=>'https://foreign.invalid/logo']] as $badAppearance) {
+    $invalid=$draft;$invalid['appearance']=$badAppearance;
+    tsCheck('malformed or executable appearance rejected',ManagerTourSelectionDraft::normalize($invalid)===null);
+}
+// Existing CI uses no selector and continues through all previous cases.
+if(in_array('--appearance-only',$argv,true)){echo "TOTAL {$passed} | PASS {$passed} | FAIL 0\n";exit;}
 tsCheck('complete draft preserves repeated child ages and infant',$normalized!==null&&$normalized['offers'][0]['child_ages']===[0,4,4]);
 $first=tsSave($draft,0,8,1,'selection-create-stable-001');
 tsCheck('assigned manager creates server draft version1',$first['ok']&&$first['saved_version']===1&&$first['selection']['draft']===$normalized);

@@ -5,7 +5,7 @@ class TouristExtractorV2
 {
     public static function extract(string $message, array $tripState = []): array
     {
-        $today = date('d.m.Y');
+        $today = (new DateTimeImmutable('now', new DateTimeZone('Europe/Moscow')))->format('d.m.Y');
         $instructions = <<<PROMPT
 Ты — модуль извлечения параметров поездки для турагентства. Ты НЕ общаешься с туристом и НЕ выбираешь действие системы.
 Сегодня: {$today}.

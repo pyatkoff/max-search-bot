@@ -5,11 +5,22 @@ declare(strict_types=1);
 final class MaxSearchApi
 {
     public static array $greetings = [], $resets = [], $cancelled = [], $editModes = [], $funnel = [], $goals = [], $deletedMessages = [], $statusWrites = [], $searchIntros = [];
+    public static array $needContexts = [], $missingNeeds = [], $missingAfterApply = [], $needApplications = [], $rejectNeedApplication = [], $rejectedNeedFields = [];
     public static int $statusStart = 64, $statusPhone = 75, $statusCheck = 76, $statusAi = 79;
     public static function getTrafficMeta($chat): array { return TrafficAttributionService::get(dirname(__DIR__, 2), $chat); }
     public static function getCurentStatus($chat): int { return 0; }
     public static function getLastClaimForChat($chat): array { return ['CODE' => 'fixture-existing-claim']; }
     public static function getSavedData($chat): array { return ['NAME' => 'Fixture Tourist', 'ADULTS' => '2']; }
+    public static function getAiSearchContext($chat): array { return self::$needContexts[$chat] ?? []; }
+    public static function getAiMissingFields($chat): array { return self::$missingNeeds[$chat] ?? ['city','country','adults','children','nights','date']; }
+    public static function applyAiParameters($chat,array $params): array {
+        self::$needApplications[]=[$chat,$params];
+        if(!empty(self::$rejectNeedApplication[$chat]))return [];
+        $params=array_diff_key($params,array_fill_keys(self::$rejectedNeedFields[$chat]??[],true));
+        self::$needContexts[$chat]=array_merge(self::$needContexts[$chat]??[],$params);
+        if(array_key_exists($chat,self::$missingAfterApply))self::$missingNeeds[$chat]=self::$missingAfterApply[$chat];
+        return array_fill_keys(array_keys($params),true);
+    }
     public static function saveClaim(...$args): bool { throw new RuntimeException('unexpected_claim_write'); }
     public static function deletePrevMessage($chat): void { self::$deletedMessages[] = $chat; }
     public static function addYclid(...$args): void { throw new RuntimeException('unexpected_yclid_mirror'); }

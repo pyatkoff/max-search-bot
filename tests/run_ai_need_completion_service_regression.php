@@ -109,7 +109,8 @@ aiCompletionCheck('multi-field entry point shares applied map contract', $direct
 aiCompletionCheck('multi-field entry point advances exactly once', count(MaxSearchApi::$missingCalls), 1);
 
 aiCompletionCheck('handler uses canonical AI completion boundary', strpos($handler, 'AiNeedCompletionService::applyAndAdvance') !== false);
-aiCompletionCheck('final AI branch no longer applies parameters directly', substr_count($handler, 'NeedApplicationService::applyParameters($chat_id, $params)') === 0);
+$finalBranch=substr($handler,(int)strpos($handler,'AiRuntimeLogger::debug("ROUTE AFTER AI: APPLY_PARAMETERS'));
+aiCompletionCheck('final progressing AI branch uses only the completion boundary', strpos($finalBranch, 'NeedApplicationService::applyParameters') === false);
 aiCompletionCheck('final AI branch no longer advances directly after AI application', strpos($handler, "NeedProgressionService::advance(\n                    \$chat_id,\n                    ['country_explicit'=>true]") === false);
 aiCompletionCheck('completion service owns application', strpos($service, 'NeedApplicationService::applyParameters($chatId, $params)') !== false);
 aiCompletionCheck('completion service owns progression', strpos($service, 'NeedProgressionService::advance($chatId, $questionOptions)') !== false);
@@ -121,12 +122,103 @@ aiCompletionCheck('handler no longer directly advances child age branch', strpos
 aiCompletionCheck('completion service resolves field through application boundary', strpos($service, 'NeedApplicationService::resolveAndApply($chatId, $field, $text, $context)') !== false);
 aiCompletionCheck('resolved completion advances only after recognized applied value', strpos($service, "if (empty(\$resolution['recognized']) || empty(\$resolution['applied']))") !== false && strpos($service, "'advanced' => false") !== false && strpos($service, "['advanced' => true]") !== false);
 aiCompletionCheck('child-age caller remains compatible through advanced flag', strpos($handler, "if (!empty(\$ageResult['advanced']))") !== false);
-$localCompletionBranch = "if (\$simpleLocal && empty(\$missingLocal) && \$hadCurrentBeforeLocal && !empty(\$appliedLocal)) {";
+$localCompletionBranch = "if (!\$sourceQualification && \$simpleLocal && empty(\$missingLocal) && \$hadCurrentBeforeLocal && !empty(\$appliedLocal)) {";
 $localCompletionOffset = strpos($handler, $localCompletionBranch);
 aiCompletionCheck('simple local completion branch still exists', $localCompletionOffset !== false);
-$localCompletionSlice = $localCompletionOffset === false ? '' : substr($handler, $localCompletionOffset, 260);
+$localCompletionSlice = $localCompletionOffset === false ? '' : substr($handler, $localCompletionOffset, 600);
 aiCompletionCheck('simple local completion uses canonical progression', strpos($localCompletionSlice, 'NeedProgressionService::advance($chat_id);') !== false);
 aiCompletionCheck('simple local completion no longer bypasses progression to check view', strpos($localCompletionSlice, 'DialogueView::check($chat_id);') === false);
+
+// Execute the real handler with a deterministic router response. Only external
+// storage, transport and model boundaries are replaced; no provider call occurs.
+$sourceTmp=sys_get_temp_dir().'/source-qualification-ai-'.bin2hex(random_bytes(6));
+mkdir($sourceTmp,0700);mkdir($sourceTmp.'/handlers',0700);mkdir($sourceTmp.'/services',0700);
+$sourceBootstrap= <<<'PHP'
+<?php
+class MaxSearchApi {
+    public static array $context=[], $before=[]; public static int $statusAi=79;
+    public static function getAiSearchContext($chat){return self::$context;}
+    public static function getAiMissingFields($chat){$missing=[];foreach(['city','country','adults','children','nights','date'] as $key)if(!array_key_exists($key,self::$context))$missing[]=$key;return $missing;}
+    public static function funnelLog(...$args){} public static function setStatus(...$args){}
+}
+class SourceHandlingService {
+    public static function qualifyingTurn($chat){return true;}
+    public static function qualificationNeedsChanged($chat){return MaxSearchApi::$context!==MaxSearchApi::$before;}
+}
+class NeedApplicationService {
+    public static function applyParameters($chat,array $params){MaxSearchApi::$context=array_merge(MaxSearchApi::$context,$params);return array_fill_keys(array_keys($params),true);}
+}
+class NeedProgressionService {
+    public static array $calls=[];
+    public static function advance($chat,array $options=[]){self::$calls[]=$options;return ['complete'=>!MaxSearchApi::getAiMissingFields($chat),'missing'=>MaxSearchApi::getAiMissingFields($chat),'next_field'=>null];}
+}
+class AiInvocationService {
+    public static array $answer=[], $calls=[];
+    public static function invoke($route,$chat,$text,$current){self::$calls[]=$route;return self::$answer;}
+}
+class MissingFieldQuestionService {
+    public static array $sent=[];
+    public static function sendText($chat,$text){self::$sent[]=$text;return true;}
+    public static function sendForMissing($chat,$missing,$options=[]){self::$sent[]='UNEXPECTED_MISSING_QUESTION';return true;}
+}
+class AiDateHandler {public static function resolvePendingShortDate(...$args){return '';}}
+class AiDateContextService {
+    public static function resolveLocal($chat,$text){return ['date'=>$text==='15 января'?'15.01.2027':''];}
+    public static function applyAiGuard($chat,$text,$params){return $params;}
+}
+class AiBusinessDefaultsService {public static function apply($ai,...$args){return $ai;}}
+class AiRuntimeLogger {public static function debug(...$args){} public static function error(...$args){}}
+class DepartureCityResolver {public static function resolveAndStore(...$args){return null;}}
+class DialogueView {}
+function put_log_out(...$args){}
+PHP;
+file_put_contents($sourceTmp.'/bootstrap.php',$sourceBootstrap);
+foreach(['MissingFieldQuestionService','DialogueView','NeedApplicationService','NeedProgressionService','AiBusinessDefaultsService','AiInvocationService','AiRuntimeLogger','AiDateContextService','DepartureCityResolver','SourceHandlingService'] as $name){
+    file_put_contents($sourceTmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
+}
+file_put_contents($sourceTmp.'/handlers/AiDateHandler.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
+file_put_contents($sourceTmp.'/services/LocalAiFallbackService.php','<?php require_once '.var_export(dirname(__DIR__).'/services/LocalAiFallbackService.php',true).';');
+copy(dirname(__DIR__).'/handlers/AiMessageHandler.php',$sourceTmp.'/handlers/AiMessageHandler.php');
+copy(dirname(__DIR__).'/services/AiNeedCompletionService.php',$sourceTmp.'/services/AiNeedCompletionService.php');
+$sourceCases= <<<'PHP'
+<?php
+require __DIR__.'/handlers/AiMessageHandler.php';
+$base=['city'=>'Казань','country'=>'Турция'];$out=[];
+$cases=[
+ ['faq','Есть ли бассейн?',$base,['intent'=>'question','parameters'=>[],'reply'=>'В публикации указан бассейн.']],
+ ['mixed','На двоих, бассейн есть?',$base+['nights'=>'7','date'=>'15.01.2027'],['intent'=>'question','parameters'=>['adults'=>2,'children'=>0],'reply'=>'В публикации указан бассейн.']],
+ ['stop','хватит',$base,['intent'=>'stop','parameters'=>[],'reply'=>'Хорошо.']],
+ ['date_last','15 января',$base+['adults'=>2,'children'=>0,'nights'=>'7'],['intent'=>'search','parameters'=>[],'reply'=>'']],
+];
+foreach($cases as [$key,$text,$context,$answer]){
+ MaxSearchApi::$context=MaxSearchApi::$before=$context;AiInvocationService::$answer=$answer;AiInvocationService::$calls=[];NeedProgressionService::$calls=[];MissingFieldQuestionService::$sent=[];
+ AiMessageHandler::handle(['text'=>$text],42);
+ $out[$key]=['router'=>AiInvocationService::$calls,'progress'=>NeedProgressionService::$calls,'sent'=>MissingFieldQuestionService::$sent,'context'=>MaxSearchApi::$context];
+}
+echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+PHP;
+file_put_contents($sourceTmp.'/run.php',$sourceCases);
+try{
+    $pipes=[];$process=proc_open([PHP_BINARY,$sourceTmp.'/run.php'],[1=>['pipe','w'],2=>['pipe','w']],$pipes);
+    if(!is_resource($process))throw new RuntimeException('source_fixture_process_unavailable');
+    $sourceOutput=stream_get_contents($pipes[1]);$sourceError=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$sourceExit=proc_close($process);
+    $sourceResults=json_decode($sourceOutput,true);
+    aiCompletionCheck('source handler fixture runs without external model calls',$sourceExit===0&&is_array($sourceResults));
+    if($sourceExit!==0)echo $sourceError."\n";
+    foreach(['faq','mixed','stop'] as $case){
+        aiCompletionCheck('source '.$case.' reaches existing router',count($sourceResults[$case]['router']??[])===1);
+        aiCompletionCheck('source '.$case.' never completes from stale needs',($sourceResults[$case]['progress']??null)===[]);
+    }
+    aiCompletionCheck('short hotel FAQ answers before asking more needs',($sourceResults['faq']['sent']??null)===['В публикации указан бассейн.']);
+    aiCompletionCheck('mixed party and hotel question retains the party',[$sourceResults['mixed']['context']['adults']??null,$sourceResults['mixed']['context']['children']??null]===[2,0]);
+    aiCompletionCheck('short stop receives only its acknowledgement',($sourceResults['stop']['sent']??null)===['Хорошо.']);
+    aiCompletionCheck('final local date survives empty model parameters',($sourceResults['date_last']['context']['date']??null)==='15.01.2027');
+    aiCompletionCheck('final local date qualifies through canonical completion',($sourceResults['date_last']['progress'][0]['source_need_applied']??false)===true);
+}catch(Throwable $error){aiCompletionCheck('source handler fixture completed',false);echo $error->getMessage()."\n";}
+finally{
+    foreach(['handlers','services'] as $dir){foreach(glob($sourceTmp.'/'.$dir.'/*')?:[] as $file)unlink($file);rmdir($sourceTmp.'/'.$dir);}
+    foreach(glob($sourceTmp.'/*')?:[] as $file)unlink($file);rmdir($sourceTmp);
+}
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);

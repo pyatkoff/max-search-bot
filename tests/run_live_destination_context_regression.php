@@ -13,7 +13,7 @@ ldcCheck(
     && strpos($service,"in_array('country', \$missingBefore, true)")!==false
     && strpos($service,"in_array('country', \$missingAfter, true)")!==false
 );
-ldcCheck('simple unresolved destination does not return through repeated prompt branch',strpos($source,'if ($simpleLocal && !empty($missingLocal) && !$unresolvedDestination)')!==false);
+ldcCheck('simple unresolved destination does not return through repeated prompt branch',strpos($source,'if (!$sourceQualification && $simpleLocal && !empty($missingLocal) && !$unresolvedDestination)')!==false);
 $guardPos=strpos($source,'$unresolvedDestination =');
 $shortAiPos=strpos($source,"AiInvocationService::invoke('SHORT_AI'",$guardPos===false?0:$guardPos);
 ldcCheck('unresolved destination falls through to SHORT_AI',$guardPos!==false && $shortAiPos!==false && $shortAiPos>$guardPos);

@@ -29,11 +29,14 @@ try {
     $app=new DialogueApplication();$dispatcher=new IncomingUpdateDispatcher($app);$checks=0;$missing=[];$ownershipFailures=[];
     foreach(['max','telegram'] as $channel)foreach(['manager','waiting_manager'] as $status)foreach([['ask',true],['manager',true],['ask',false]] as [$mode,$hasChoice]){
         $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
-        $pdo->exec('CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,channel TEXT,external_chat_id TEXT,status TEXT,source_id INTEGER)');
-        $pdo->exec('CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,handling_mode TEXT)');
+        // Match the canonical source/owner projection; a missing column must not
+        // make SourceHandlingService silently fall through its exception guard.
+        $pdo->exec('CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key TEXT,channel TEXT,external_chat_id TEXT,status TEXT,source_id INTEGER,manager_id INTEGER)');
+        $pdo->exec('CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,handling_mode TEXT,source_key TEXT)');
         $pdo->exec('CREATE TABLE conversation_events(id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT,payload_json TEXT)');
-        $q=$pdo->prepare('INSERT INTO conversations VALUES(17,?,?,?,?,1)');$q->execute(['anytour',$channel,'77',$status]);
-        $q=$pdo->prepare('INSERT INTO conversation_sources VALUES(1,?)');$q->execute([$mode]);
+        $managerId=$status==='manager'?9:0;
+        $q=$pdo->prepare('INSERT INTO conversations(id,project_key,channel,external_chat_id,status,source_id,manager_id) VALUES(17,?,?,?,?,1,?)');$q->execute(['anytour',$channel,'77',$status,$managerId?:null]);
+        $q=$pdo->prepare('INSERT INTO conversation_sources(id,handling_mode,source_key) VALUES(1,?,?)');$q->execute([$mode,'fixture_ordinary_source']);
         $q=$pdo->prepare('INSERT INTO conversation_events VALUES(1,17,?,?)');
         $q->execute($hasChoice?['source_handling_choice','{"choice":"manager"}']:['source_handling_prompted','{"mode":"ask"}']);
         ConversationDb::$pdo=$pdo;
@@ -42,7 +45,7 @@ try {
         $before=count($app->calls);$pushes=count(ManagerPushService::$calls);
         if(!$dispatcher->dispatch($incoming)||count($app->calls)!==$before+1||end($app->calls)!==$incoming)$missing[]=$channel.'/'.$status.'/'.$mode.'/'.($hasChoice?'manager-choice':'prompted');
         if(ConversationControlService::$status!==$status||count(ManagerPushService::$calls)!==$pushes)throw new RuntimeException('Choice changed ownership or emitted generic push');
-        if($pdo->query('SELECT status FROM conversations')->fetchColumn()!==$status||(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()!==1||IntegrationRegistry::$calls||ManagerHandoffDispatchService::$calls)throw new RuntimeException('Choice changed source/routing state or called a provider');
+        if($pdo->query('SELECT status FROM conversations')->fetchColumn()!==$status||(int)$pdo->query('SELECT manager_id FROM conversations')->fetchColumn()!==$managerId||(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()!==1||IntegrationRegistry::$calls||ManagerHandoffDispatchService::$calls)throw new RuntimeException('Choice changed source/routing state or called a provider');
         $cases=[
             ['type'=>'callback','callback_data'=>'owner_preview_like_20261021'],
             ['type'=>'message','text'=>'Нравится','message_id'=>'synthetic-like-text'],
@@ -63,6 +66,7 @@ try {
                 $ownershipFailures[]=$channel.'/'.$status.'/'.$mode.'/'.($hasChoice?'manager-choice':'prompted').'/'.($case['callback_data']??$case['type'].':'.$case['message_id']);
             }
             if(ConversationControlService::$status!==$status||$pdo->query('SELECT status FROM conversations')->fetchColumn()!==$status
+                ||(int)$pdo->query('SELECT manager_id FROM conversations')->fetchColumn()!==$managerId
                 ||(int)$pdo->query('SELECT source_id FROM conversations')->fetchColumn()!==1
                 ||(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()!==1
                 ||IntegrationRegistry::$calls||ManagerHandoffDispatchService::$calls)throw new RuntimeException('Owned input changed source/routing or called a provider');
@@ -73,7 +77,8 @@ try {
     // existing manager/ask policy must still consume an owned ordinary message.
     $websiteChecks=0;
     foreach(['manager','waiting_manager'] as $status)foreach([['ask',true],['manager',true],['ask',false]] as [$mode,$hasChoice]){
-        $q=$pdo->prepare('UPDATE conversations SET channel=?,status=? WHERE id=17');$q->execute(['website',$status]);
+        $managerId=$status==='manager'?9:0;
+        $q=$pdo->prepare('UPDATE conversations SET channel=?,status=?,manager_id=? WHERE id=17');$q->execute(['website',$status,$managerId?:null]);
         $q=$pdo->prepare('UPDATE conversation_sources SET handling_mode=? WHERE id=1');$q->execute([$mode]);
         $pdo->exec('DELETE FROM conversation_events');
         $q=$pdo->prepare('INSERT INTO conversation_events VALUES(1,17,?,?)');
@@ -85,6 +90,7 @@ try {
         if(count($app->calls)!==$before||count(ManagerPushService::$calls)!==$pushes
             ||array_slice(DiagnosticLogger::$events,$events)!==['source_handling']
             ||ConversationControlService::$status!==$status||$pdo->query('SELECT status FROM conversations')->fetchColumn()!==$status
+            ||(int)$pdo->query('SELECT manager_id FROM conversations')->fetchColumn()!==$managerId
             ||(int)$pdo->query('SELECT source_id FROM conversations')->fetchColumn()!==1
             ||(int)$pdo->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()!==1
             ||IntegrationRegistry::$calls||ManagerHandoffDispatchService::$calls)throw new RuntimeException('Website source handling changed: '.$status.'/'.$mode.'/'.(int)$hasChoice);

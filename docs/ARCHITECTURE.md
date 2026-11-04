@@ -144,7 +144,7 @@ The long-term direction is a coherent manager API surface for conversations, mes
 ## Handoff rules
 
 Canonical product policy:
-- working hours: 10:00–20:00 Europe/Kaliningrad;
+- working hours: 11:00–21:00 Europe/Moscow;
 - reachable eligible manager available → live handoff, phone is optional;
 - no manager reply after 5 minutes → offer phone capture once, idempotently;
 - outside working hours → self-service tours/site first, optional phone with truthful next-working-period expectation.
@@ -258,7 +258,7 @@ Production/live defects always outrank cleanup.
 
 ## Owner correction — 2026-09-29
 
-Every explicit manager request (button, recognized text or manager-first source) enters `waiting_manager` at any hour, before attempting a customer confirmation. Night hours affect response expectations only; phone is optional. Already waiting/manager-owned conversations keep ownership and do not receive duplicate queue events or push. Operator shifts and routing eligibility remain unchanged. This supersedes the older outside-hours self-service-only policy above.
+Every explicit manager request (button or recognized text), and a non-hotel manager-first source, enters `waiting_manager` at any hour, before attempting a customer confirmation. Night hours affect response expectations only; phone is optional. Already waiting/manager-owned conversations keep ownership and do not receive duplicate queue events or push. Operator shifts and routing eligibility remain unchanged. This supersedes the older outside-hours self-service-only policy above.
 
 
 ## Owner correction — quiet manager waiting (2026-09-29)
@@ -269,6 +269,25 @@ After the initial manager-entry greeting, ordinary customer messages go to the e
 ## Owner correction — one greeting per handoff (2026-09-29)
 
 A manager-source entry sends the initial concise greeting only when it creates a new handoff. Reopening a source link while already waiting or assigned is silent, including after a manager has replied. Preserve the genuine `bot_started` recovery event and entry attribution without changing ownership, queue or transcript. This supersedes the earlier acknowledgement on every source reentry. Night entry retains truthful working-hours wording.
+
+
+## Owner correction — hotel-channel needs first and Moscow time (2026-11-04)
+
+Hotel-channel and feed entries first establish the missing trip needs through the
+existing dialogue flow. They do not, by themselves, promise a manager or enter
+`waiting_manager`. Use the related publication as context, preserve the tourist's
+explicit conditions and ask only useful missing questions. A direct request for a
+manager still uses the existing immediate handoff; a waiting or assigned dialogue
+keeps its owner and quiet reentry behavior. When enough conditions are available,
+the qualifying flow uses the canonical manager handoff before confirming it.
+
+Manager-facing dates, task calendar days and user-visible event times use
+`Europe/Moscow`. Project a validated server recording receipt as an explicit instant
+when available; historical bare DATETIME values have mixed bases and must not be
+bulk-shifted or silently declared UTC. Preserve stored values and the original
+physical working interval, now expressed as 11:00–21:00 Moscow time. This does not
+change operator shifts, runtime server clocks or local travel departure/arrival times.
+
 
 ## Owner-authorized Manager2 presentation
 

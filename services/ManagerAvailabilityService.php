@@ -6,9 +6,10 @@ require_once __DIR__ . '/AuditLogService.php';
 
 class ManagerAvailabilityService
 {
-    public const WORKDAY_START_HOUR = 10;
-    public const WORKDAY_END_HOUR = 20;
-    public const BUSINESS_TIMEZONE = 'Europe/Kaliningrad';
+    // Keep the existing physical working interval; express it in Moscow time.
+    public const WORKDAY_START_HOUR = 11;
+    public const WORKDAY_END_HOUR = 21;
+    public const BUSINESS_TIMEZONE = 'Europe/Moscow';
 
     public static function ensureSchema(): void
     {

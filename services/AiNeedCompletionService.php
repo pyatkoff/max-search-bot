@@ -19,6 +19,11 @@ class AiNeedCompletionService
     public static function applyAndAdvance($chatId, array $params, array $questionOptions = []): array
     {
         $applied = NeedApplicationService::applyParameters($chatId, $params);
+        if(array_key_exists('source_need_fields',$questionOptions)){
+            $rawFields=array_intersect((array)$questionOptions['source_need_fields'],['city','country','adults','children','child_ages','nights','date']);
+            $questionOptions['source_need_applied']=!empty($questionOptions['source_need_preapplied'])
+                ||!empty(array_intersect_key($applied,array_fill_keys($rawFields,true)));
+        }
         $progress = NeedProgressionService::advance($chatId, $questionOptions);
 
         return self::result($applied, $progress);

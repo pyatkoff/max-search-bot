@@ -10,16 +10,19 @@ require_once __DIR__.'/HotelServerInputs.php';
 final class HotelServerCatalogProjector
 {
     public function __construct(private PDO $app,private PDO $hotels,private HotelServerLane $lane,private $fault=null)
-    { if ($app===$hotels || $app!==$lane->connection()) throw new InvalidArgumentException('separate_catalog_PDO_required'); }
+    {
+        if ($app===$hotels || $app!==$lane->connection()) throw new InvalidArgumentException('separate_catalog_PDO_required');
+        if ($hotels->getAttribute(PDO::ATTR_ERRMODE)!==PDO::ERRMODE_EXCEPTION) throw new InvalidArgumentException('catalog_exception_mode_required');
+    }
 
     public function project(string $campaign,string $receipt): array
     {
         HotelServerInputs::sha($receipt);
-        $s=$this->app->prepare('SELECT * FROM hotel_server_catalog_outbox WHERE campaign_id=? AND receipt_sha256=?'); $s->execute([$campaign,$receipt]); $out=$s->fetch(PDO::FETCH_ASSOC);
-        $s->closeCursor();
-        if (!$out) throw new DomainException('catalog_outbox_required');
-        $hash=hash('sha256',$out['payload_bytes']);
         if ($this->hotels->inTransaction()) throw new LogicException('foreign_projection_transaction');
+        // Verify acceptance/correction evidence before any catalogue row can become visible.
+        // Release the operational lock before opening the separate catalogue transaction.
+        $out=$this->lane->projectionPayload($campaign,$receipt);
+        $hash=$out['payload_sha256'];
         $this->hotels->beginTransaction();
         try {
             $s=$this->hotels->prepare('SELECT * FROM hotel_server_catalog_documents WHERE receipt_sha256=?'); $s->execute([$receipt]); $old=$s->fetch(PDO::FETCH_ASSOC);

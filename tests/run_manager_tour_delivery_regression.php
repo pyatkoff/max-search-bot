@@ -1,6 +1,23 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/support/manager-tour-selection.php';
+function appearanceDeliveryChecks(): void {
+    $pdo=deliveryDb();$draft=deliveryDraft();$draft['intro']='Synthetic frozen introduction';
+    $draft['appearance']=['template'=>'compact','palette'=>'ocean','agency_name'=>'Synthetic agency'];
+    $save=deliverySave($draft);$first=ManagerTourSelectionDeliveryService::prepare(7,1,1);$oldId=$first['publication']['id'];
+    deliveryCheck('canonical prepare returns frozen appearance and introduction',$save['ok']&&$first['publication']['appearance']===$draft['appearance']&&$first['publication']['intro']===$draft['intro']);
+    $next=$draft;$next['appearance']=['template'=>'photo','palette'=>'sunset','agency_name'=>'Different agency'];
+    $changed=deliverySave($next,1);$second=ManagerTourSelectionDeliveryService::prepare(7,1,2);
+    deliveryCheck('changing only appearance creates another immutable publication',$changed['ok']&&$second['publication']['id']!==$oldId&&$second['publication']['appearance']===$next['appearance']);
+    $historical=ManagerTourSelectionDeliveryService::get(7,1,$oldId)['publication'];
+    deliveryCheck('historical appearance and terms survive later draft changes',$historical['appearance']===$draft['appearance']&&$historical['intro']===$draft['intro']&&$historical['cards']===$first['publication']['cards']);
+    deliveryCheck('appearance changes retain existing optimistic version guard',deliverySave($draft,1)['error']==='conflict'&&ManagerTourSelectionService::get(7,1)['selection']['draft']['appearance']===$next['appearance']);
+    deliveryCheck('appearance preview never creates a customer message',(int)$pdo->query('SELECT COUNT(*) FROM messages WHERE direction="outbound"')->fetchColumn()===0);
+}
+appearanceDeliveryChecks();
+// Normal CI runs every existing case below. This explicit local selector runs
+// only the new in-memory contract where POSIX photo-mode tests are unavailable.
+if(in_array('--appearance-only',$argv,true)){echo "TOTAL {$checks} | PASS {$checks} | FAIL 0\n";exit;}
 $pdo=deliveryDb();$draft=deliveryDraft();deliverySave($draft);
 $preview=ManagerTourSelectionDeliveryService::prepare(7,1,1);$id=$preview['publication']['id'];
 deliveryCheck('preview is a complete frozen selection without customer creation',$preview['ok']&&$preview['publication']['cards'][0]['state']==='pending'&&(int)$pdo->query('SELECT COUNT(*) FROM messages WHERE direction="outbound"')->fetchColumn()===0);

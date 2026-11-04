@@ -26,6 +26,9 @@ try {
     error_log('MANAGER_PERSONAL_WORKSPACE_FAILURE '.get_class($e));
     ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);
 }
+if($action==='list'&&!empty($result['ok'])&&is_array($result['conversations']??null)){
+    $result['conversations']=ManagerConversationService::displayRows($result['conversations']);
+}
 $status=!empty($result['ok'])?200:match($result['error']??'') {
     'unauthorized'=>401,'forbidden'=>403,'not_found'=>404,
     'conflict','operation_mismatch'=>409,'unknown_action'=>400,default=>422,

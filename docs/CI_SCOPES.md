@@ -61,7 +61,14 @@ owners listed in `TOUR_SELECTION_PATHS`:
   `ManagerTourSelectionDeliveryService`, `ManagerTourSelectionShareService` and
   the private `TourSelectionPhotoStore`;
 - the three dedicated PHP regressions, their private fixture, the single
-  `manager-tour-selection.spec.js` and the dedicated selection document.
+  `manager-tour-selection.spec.js` and the dedicated selection document;
+- `modules/tour-selections/editor-tours.php` and
+  `tests/visual/fixtures/selection-private-editor.js`, which renders that standalone wrapper
+  and is imported only by the complete selection spec. A wrapper-only change
+  explicitly triggers visual QA and the existing editor-module package/host/
+  installation/private-HTTP gate. This is not a `modules/**` or fixture-directory
+  exemption: `editor-app.php`, shared host/auth/bootstrap, other fixtures, new
+  files, removals, renames and mode changes keep full coverage.
 
 The audited collector family uses the same component runner:
 
@@ -93,6 +100,14 @@ owner shared with bot callbacks are also outside this scope. A change to shared
 setup, auth, shell, shared callbacks, another feature, migrations, an unaudited
 new file, mode or CI rules takes `full`. A combined OAuth/selection diff is also full.
 The selector does not infer dependencies from broad directory globs.
+
+The whole diff matters: an editor-only package with its version-only manifest,
+standalone wrapper, private fixture and complete component spec remains in the
+selection scope. Adding the shared `tests/run_manager_prepared_reply_regression.php`
+still selects full coverage, even for a diagnostic edit. Its reusable fixture
+interface is not an unreviewed test-only exemption. The rule does not retroactively
+replace accepted evidence or cancel the current required checks. The CI-rule
+change itself retains full and scoped commissioning before it can be adopted.
 
 The standalone editor release manifest `modules/tour-selections/editor.json`
 may accompany the component only when the selector reads both exact Git

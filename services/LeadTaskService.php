@@ -28,14 +28,14 @@ class LeadTaskService
         return (string)($outcome['outcome']??'open')==='open';
     }
 
-    /** Canonical business classification for task urgency in Europe/Kaliningrad. */
+    /** Canonical business classification for task urgency in Europe/Moscow. */
     public static function dueState($dueAtUtc,bool $overdue=false,?DateTimeImmutable $nowUtc=null): string
     {
         $dueAtUtc=trim((string)($dueAtUtc??''));
         if($dueAtUtc==='')return'unscheduled';
         if($overdue)return'overdue';
         try{
-            $utc=new DateTimeZone('UTC');$local=new DateTimeZone('Europe/Kaliningrad');
+            $utc=new DateTimeZone('UTC');$local=new DateTimeZone('Europe/Moscow');
             $due=new DateTimeImmutable($dueAtUtc,$utc);$now=$nowUtc?:new DateTimeImmutable('now',$utc);
             return$due->setTimezone($local)->format('Y-m-d')===$now->setTimezone($local)->format('Y-m-d')?'today':'upcoming';
         }catch(Throwable $ignored){return'upcoming';}

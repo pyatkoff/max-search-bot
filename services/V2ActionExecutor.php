@@ -33,6 +33,8 @@ class V2ActionExecutor
         $state = (array)($shadowResult['new_state'] ?? []);
         $decision = (array)($shadowResult['decision'] ?? []);
         $userContext = ['chat_id'=>$chatId];
+        $platform=strtolower(trim((string)($message['_platform']??'')));
+        if(in_array($platform,['max','telegram','website'],true))$userContext['platform']=$platform;
 
         if ($action === RulesEngine::MANAGER) {
             $name = self::messageUserName($message);

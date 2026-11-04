@@ -10,6 +10,8 @@ $filters=(string)file_get_contents($root.'/manager/assets/workspace-v2-filters.j
 $pipeline=(string)file_get_contents($root.'/manager/assets/workspace-v2-pipeline.js');
 $bootstrap=(string)file_get_contents($root.'/manager/assets/workspace-v2-bootstrap.js');
 $pipelineApi=(string)file_get_contents($root.'/manager/pipeline-api.php');
+$managerApi=(string)file_get_contents($root.'/manager/api.php');
+$personalApi=(string)file_get_contents($root.'/manager/personal-workspace-api.php');
 $filterService=(string)file_get_contents($root.'/services/ManagerWorkspaceFilterService.php');
 $leadInbox=(string)file_get_contents($root.'/services/ManagerLeadInboxService.php');
 $conversationService=(string)file_get_contents($root.'/services/ManagerConversationService.php');
@@ -42,7 +44,8 @@ inboxCheck('filter directory exposes managers only to admins',strpos($filterServ
 inboxCheck('lead cards use compact identity trip preview action hierarchy',strpos($js,'leadPrimary')!==false&&strpos($js,'leadAvatar')!==false&&strpos($js,'leadTrip')!==false&&strpos($js,'leadPreview')!==false&&strpos($js,'leadActionRow')!==false);
 inboxCheck('lead cards keep urgency unread stage outcome and task evidence',strpos($js,'unreadBadge')!==false&&strpos($js,'leadStageCompact')!==false&&strpos($js,'leadTaskCompact')!==false&&strpos($js,'leadWaitCompact')!==false&&strpos($js,'leadOutcomeCompact')!==false);
 inboxCheck('lead cards expose responsible manager or explicit unassigned owner',strpos($js,"manager||'Не назначен'")!==false&&strpos($js,'leadManagerSignal')!==false&&strpos($js,"?'':' unassigned'")!==false);
-inboxCheck('lead cards expose last activity without another backend projection',strpos($js,'function formatLastActivity')!==false&&strpos($js,"c.last_message_at||c.started_at||''")!==false&&strpos($js,'leadActivityTime')!==false&&strpos($js,'Последняя активность')!==false);
+inboxCheck('lead cards expose the response activity timestamp through the existing field',strpos($js,'function formatLastActivity')!==false&&strpos($js,"c.last_message_at||c.started_at||''")!==false&&strpos($js,'leadActivityTime')!==false&&strpos($js,'Последняя активность')!==false);
+inboxCheck('all inbox responses project display clocks after internal list processing',substr_count($managerApi,'ManagerConversationService::displayRows(ManagerAiInboxStatusService::decorate($rows,')===2&&str_contains($pipelineApi,'ManagerConversationService::displayRows(array_slice($rows,0,100))')&&str_contains($personalApi,"ManagerConversationService::displayRows(\$result['conversations'])"));
 inboxCheck('AI preview formatting uses exact sender metadata while every preview remains escaped',strpos($conversationService,'AS last_sender_type')!==false&&strpos($js,"messagePreview(c.last_text||'Нет последнего сообщения',c.last_sender_type,c.last_preview_text)")!==false&&strpos($js,'<div class="leadPreview">${esc(preview)}</div>')!==false);
 inboxCheck('activity formatting uses the shared compact Moscow clock',inboxAssetLoaded($page,'manager-time.js')&&strpos($js,"function formatLastActivity(value){return window.ManagerTime.format(value,{separator:' · '})}")!==false);
 inboxCheck('opened conversations clear local unread and invalidate only an actually removed badge projection',strpos($js,'function markRead(id=S.current)')!==false&&strpos($js,"const badge=el.querySelector('.unreadBadge');if(!badge)return")!==false&&strpos($js,'if(view)view.signature=null;badge.remove()')!==false&&strpos($js,'markRead,autoRefresh')!==false);
@@ -60,6 +63,21 @@ inboxCheck('mobile inbox has dedicated compact treatment',strpos($css,'@media(ma
 inboxCheck('redesign does not mutate shifts metrika or routing bonuses',stripos($js.$filters.$pipeline.$pipelineApi.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'set_working')===false&&stripos($js.$filters.$pipeline.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'metrika')===false&&stripos($js.$filters.$pipeline.$filterService.$leadInbox.$bootstrap.$conversationService.$css,'yclid')===false&&stripos($filterService.$leadInbox.$conversationService,'bonus')===false);
 
 require_once $root.'/services/ManagerConversationService.php';
+$recordedUnix=(new DateTimeImmutable('2026-11-04T07:26:00Z'))->getTimestamp();
+$clockRow=['id'=>501,'last_text'=>'Синтетическое сообщение','last_direction'=>'outbound','last_sender_type'=>'ai',
+    'last_message_at'=>'2026-11-04 10:26:00','started_at'=>'2026-11-04 10:25:00',
+    'last_metadata_json'=>json_encode(ConversationRecordClock::stamp(['private_marker'=>'private-clock-marker'],$recordedUnix),JSON_THROW_ON_ERROR)];
+$internalClockRows=ManagerConversationService::decorateLastMessagePreviews([$clockRow]);
+$beforeClockDisplay=$internalClockRows;
+$displayClockRows=ManagerConversationService::displayRows($internalClockRows);
+inboxCheck('internal inbox clock retains its raw routing and sorting value',$internalClockRows[0]['last_message_at']==='2026-11-04 10:26:00'&&$internalClockRows[0]['last_message_recorded_at']==='2026-11-04T07:26:00Z');
+inboxCheck('browser inbox uses the recorded instant without changing internal rows',$displayClockRows[0]['last_message_at']==='2026-11-04T07:26:00Z'&&$internalClockRows===$beforeClockDisplay&&$displayClockRows[0]['id']===501&&$displayClockRows[0]['started_at']===$clockRow['started_at']);
+inboxCheck('inbox response omits intermediate clock and private metadata',!array_key_exists('last_message_recorded_at',$displayClockRows[0])&&!array_key_exists('last_metadata_json',$displayClockRows[0])&&!str_contains(json_encode($displayClockRows,JSON_THROW_ON_ERROR),'private-clock-marker'));
+foreach([null,'{malformed',json_encode(['_recorded_clock'=>['version'=>1,'basis'=>'server_recording_unix','unix'=>(string)$recordedUnix]],JSON_THROW_ON_ERROR)] as $invalidClock){
+    $unknownClockRow=array_replace($clockRow,['last_metadata_json'=>$invalidClock]);
+    $unknownClockDisplay=ManagerConversationService::displayRows(ManagerConversationService::decorateLastMessagePreviews([$unknownClockRow]));
+    inboxCheck('unmarked or invalid inbox clock is not guessed',$unknownClockDisplay[0]['last_message_at']===$unknownClockRow['last_message_at']&&!array_key_exists('last_message_recorded_at',$unknownClockDisplay[0]));
+}
 $raw='g1_1234abcd_show_tours';
 $buttonRow=['id'=>1,'last_text'=>$raw,'last_direction'=>'inbound','last_sender_type'=>'customer','last_metadata_json'=>'{"type":"callback","username":"private-test"}'];
 $label='Нажата кнопка «Показать туры»';
