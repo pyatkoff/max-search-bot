@@ -11,6 +11,7 @@ on:
       - 'services/ManagerTourSelection*.php'
       - 'services/TourSelectionPhotoStore.php'
       - 'modules/tour-selections/editor.json'
+      - 'modules/tour-selections/editor-tours.php'
       - 'tests/run_manager_tour_*_regression.php'
       - 'tests/support/manager-tour-selection.php'
       - 'tests/support/manager-tour-collector.php'
