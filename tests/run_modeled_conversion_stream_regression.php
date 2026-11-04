@@ -454,6 +454,85 @@ function modeledHandoffProfileAssertions(PDO $p,callable $check):void
         &&$paid['contextual_signals']['goal_counts']['manager_payment_ack']>0
         &&$paid['prediction_followup']['status']!=='observed'
         &&$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
+    modeledObservationalProfileAssertions($p,$check);
+}
+
+/** Real emitOnce envelopes pass through the existing source journal and immutable profile writer. */
+function modeledObservationalProfileAssertions(PDO $p,callable $check):void
+{
+    require_once dirname(__DIR__).'/services/MetrikaConversionGoalService.php';
+    modeledStreamSchema($p);modeledProfileSchema($p);$now=1793002000;
+    $p->exec('ALTER TABLE conversations ADD external_chat_id VARCHAR(40)');
+    $p->exec("UPDATE conversations SET external_chat_id='9011' WHERE id=11");
+    $p->exec('DROP TABLE conversation_events');
+    $id=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?'BIGINT PRIMARY KEY AUTO_INCREMENT':'INTEGER PRIMARY KEY AUTOINCREMENT';
+    $p->exec('CREATE TABLE conversation_events (id '.$id.',conversation_id BIGINT,event_type VARCHAR(64),actor_type VARCHAR(16),payload_json TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+    modeledStreamMessage($p,10,11);$source->start($now);
+    modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых.');
+    $source->tick($now+1);$profiles->start();$profiles->tick($now+2);
+    $baseline=modeledProfileLatest($p);$prediction=$baseline['semantic_prediction'];$previous=$prediction;
+    $firstId=(int)$p->query('SELECT id FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
+    $firstJson=$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn();
+    $check('producer fixture starts with a numeric saved customer request',
+        $prediction['status']==='predicted'&&$prediction['estimated_probability']===0.083333);
+    // Exercise the producer's actual persistence owner, with its queue dependency confined to this fixture.
+    $connection=new ReflectionProperty(ConversationDb::class,'pdo');$previousConnection=$connection->getValue();
+    $emit=new ReflectionMethod(MetrikaConversionGoalService::class,'emitOnce');$queued=[];
+    $queue=static function(string $chat,string $target)use(&$queued):bool{$queued[]=[$chat,$target];return true;};
+    $connection->setValue(null,$p);
+    try{
+        $targets=['max_bot_activity_start','max_manager_request','max_manager_reply','max_customer_reply_after_manager','max_sale'];
+        foreach($targets as$i=>$target){
+            $at=$now+3+$i*3;
+            $check('actual producer accepts only the injected queue in this fixture '.$target,$emit->invoke(null,11,$target,$queue)===true);
+            // Fixture-only clock control; the producer's plain JSON bytes are unchanged.
+            $p->prepare('UPDATE conversation_events SET created_at=? WHERE event_type=?')->execute([gmdate('Y-m-d H:i:s',$at),'metrika_'.$target]);
+            $source->tick($at+1);
+            $snapshot=json_decode($p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='event' ORDER BY id DESC LIMIT 1")->fetchColumn(),true,128,JSON_THROW_ON_ERROR);
+            $check('actual stream retains the producer envelope and normalized recording basis '.$target,
+                $snapshot['payload']===['event_type'=>'metrika_'.$target,'actor_type'=>'system','payload_json'=>json_encode(['target'=>$target])]
+                &&$snapshot['source_timestamp_basis']==='database_session_timezone_to_unix'
+                &&$snapshot['source_clock']==='database_persistence_not_provider_occurrence'
+                &&$snapshot['source_created_at_unix']===$at);
+            $tables=['messages','conversation_events','conversations','customer_channels','advertising_visit_observations'];
+            foreach($tables as$table)$p->exec('ALTER TABLE '.$table.' RENAME TO unavailable_'.$table);
+            try{
+                $receipt=$profiles->tick($at+2);
+                $read=(new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget()))->read();
+            }finally{foreach(array_reverse($tables)as$table)$p->exec('ALTER TABLE unavailable_'.$table.' RENAME TO '.$table);}
+            $v=modeledProfileLatest($p);$current=$v['semantic_prediction'];
+            if($target==='max_sale'){
+                $check('actual sale marker remains a barrier and never supplies verified payment',
+                    $current['status']==='insufficient_context'&&$current['estimated_probability']===null
+                    &&$current['outcome_observations']===[]);
+            }else{
+                $check('actual producer-to-writer path preserves only the saved request '.$target,
+                    $receipt['profiles_written']===1&&$current['status']==='predicted'
+                    &&$current['current_request_anchor']===$prediction['current_request_anchor']
+                    &&$current['estimated_probability']===$prediction['estimated_probability']
+                    &&$current['current_customer_turn_count']===1&&$current['features']['meaningful_customer_turns']===1
+                    &&$current['outcome_observations']===[]
+                    &&$v['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+                    &&$v['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===0);
+                // Followup is anchored to the earliest saved prediction for this request, not a rolling baseline.
+                $check('followup keeps the first saved prediction despite intervening receipts '.$target,
+                    $v['prediction_followup']['prior_prediction_digest']===$prediction['prediction_digest']
+                    &&$v['prediction_followup']['prior_prediction_at']===$prediction['prediction_at']
+                    &&$v['prediction_followup']['prior_estimated_probability']===$prediction['estimated_probability']
+                    &&$v['prediction_followup']['horizon_end_at']===$prediction['horizon_end_at']
+                    &&($i===0||$v['prediction_followup']['prior_prediction_digest']!==$previous['prediction_digest']));
+                $check('private reader validates the numeric receipt without native tables '.$target,
+                    $read['window']['invalid_blocks']===0&&$read['saved']['prospective_estimates']>0
+                    &&$read['saved']['estimated_probability_range']['minimum']===0.083333);
+            }
+            $check('observational followup never rewrites the earlier saved profile '.$target,
+                $p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
+            $previous=$current;
+        }
+        $check('fixture queue contains only the explicit local calls',
+            $queued===array_map(static fn(string $target):array=>['9011',$target],$targets));
+    }finally{$connection->setValue(null,$previousConnection);}
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){

@@ -66,6 +66,20 @@ class DialogueController
         }
 
         $status = MaxSearchApi::getCurentStatus($chatId);
+        // Explicit human help can interrupt a wizard or its completed check.
+        // Keep the existing classifier, feature gate and canonical executor;
+        // ordinary field answers and other V2 actions retain their current route.
+        if ($status && !in_array((int)$status, [(int)MaxSearchApi::$statusAi, (int)MaxSearchApi::$statusStart], true)
+            && V2FeatureGate::enabled('manager_request')
+            && V2EarlyActionHandler::isExplicitManagerRequest($plainText)) {
+            $shadowV2 = AiShadowObserver::observe($chatId, $text);
+            if (V2EarlyActionHandler::interceptAction($shadowV2, $plainText) === RulesEngine::MANAGER) {
+                V2EarlyActionHandler::handle($chatId, $message, $shadowV2);
+                // A failed customer confirmation can still leave a durable queue.
+                // Do not follow a handled request with a wizard-format question.
+                return true;
+            }
+        }
         // Results preserve statusCheck; previously a help message was silent there.
         // Only self-service post-tour turns qualify. Phone collection and upstream
         // manager ownership stay untouched; help neither creates a claim nor changes state.
