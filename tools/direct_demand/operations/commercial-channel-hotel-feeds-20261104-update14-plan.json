@@ -1,0 +1,64 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update14",
+  "state": "PREPARING_NOT_WRITTEN",
+  "goal": "Append the already published batch43 twohotel pairs after native MAX159 installation",
+  "boundaries": [
+    "Only three existing public XML exports",
+    "Previous157 offer blocks and all MAX157 URLs byteidentical",
+    "No publications/quotes/provider/DB/ad copy/runtimecontroller writes",
+    "Canonicalprivateinputs only originalREAD15 artifact"
+  ],
+  "criteria": [
+    "ActualMAX159nativeinstallresultaccepted",
+    "Exact previous3SHA and two new canonical bindings",
+    "Three newappendrejectioncases/frozenbytevalidation/PHP-l/full21currentrelease/TLS/diagnostics/host/runtime/durableintentbeforewrite/HTTPSexactbytes"
+  ],
+  "risks": [
+    "Unknowncurrenthash orchangedproduction stops",
+    "Naturalpaid/signedlaunch unobserved/TGfilespendingPavel"
+  ],
+  "previous_files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 157,
+      "bytes": 101689,
+      "sha256": "d8c19b080a98a1704f991569398638fef3cd914d5b085b9d40b9ffd20618fff0"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 157,
+      "bytes": 128237,
+      "sha256": "792f392a8a514ccc3cc492e5d3d9b58aa9c52c7be3ffd862c4d429c1b4f65708"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 314,
+      "bytes": 229553,
+      "sha256": "331ecc6c64189d6e8478aed61cd0f85ed02d412b966a0c6f5c3aa6015b5b63f8"
+    }
+  ],
+  "new_hotel_ids": [
+    17480,
+    1100
+  ],
+  "new_hotel_names": [
+    {
+      "hotel_id": 17480,
+      "name": "TUI BLUE Palm Garden"
+    },
+    {
+      "hotel_id": 1100,
+      "name": "Club Hotel Sera"
+    }
+  ],
+  "target_rows": [
+    159,
+    159,
+    318
+  ],
+  "read15_run": 41911857350,
+  "read15_artifact": 13361704715,
+  "max159_install_run": 41912899171,
+  "max159_install_job": 126864824754,
+  "source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+}
