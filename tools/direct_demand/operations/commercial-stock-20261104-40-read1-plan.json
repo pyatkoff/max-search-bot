@@ -1,0 +1,75 @@
+{
+  "operation": "commercial-stock-20261104-40-read1",
+  "state": "TEN_NEW_NAMED_LOOKUP_GROUPS_NOT_NATIVE_IDENTITIES_NOT_READY",
+  "goal": "Find ten additional distinct unpriced unpublished Turkey hotel identities for the500material goal, without retrying closed media or old stock39lookups",
+  "boundaries": {
+    "country_id": 4,
+    "exact_named_groups": {
+      "adalya-elite-lara": [
+        "adalya elite lara"
+      ],
+      "adalya-ocean-deluxe": [
+        "adalya ocean deluxe"
+      ],
+      "adalya-resort": [
+        "adalya resort"
+      ],
+      "adalya-artside": [
+        "adalya artside",
+        "adalya art side"
+      ],
+      "melas-lara": [
+        "melas lara"
+      ],
+      "melas-resort": [
+        "melas resort"
+      ],
+      "melas-holiday": [
+        "melas holiday"
+      ],
+      "acanthus-cennet": [
+        "acanthus cennet",
+        "akantus cennet"
+      ],
+      "sunis-kumkoy": [
+        "sunis kumkoy beach",
+        "sunis kumköy beach"
+      ],
+      "sunis-evren": [
+        "sunis evren beach"
+      ]
+    },
+    "max_groups": 10,
+    "max_catalog_matches_per_group": 12,
+    "max_candidate_ids": 120,
+    "max_targeted_registry_rows": 240,
+    "registry_scope": "ONLYnewmatchednativeIDs ORthetennewnamedaliasgroups; no full159/old300read",
+    "server_readonly_operations": 1,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "photos": 0,
+    "canva_transactions": 0,
+    "monitor_appends": 0
+  },
+  "criteria": [
+    "Alltennewnames absent from159alreadyretainedfrozenTGfeednames; noHTTPfeedreadback",
+    "Reject a group if its exactalias occurs in older namedcandidate-reader source, beforeSSH",
+    "Country4/active1/currentcatalogname/product/exactnativeID/uniquegroup and TG0MAX0 required before addedprovenidentity",
+    "Ambiguous/0matchesnotabsence; noforceotherproduct/name-review bypass; reachingcatalog12requiresidentityresolution",
+    "NewboundedregistryprojectiononlynewIDs/names, columns platform/nativehotelID/firstline, neverpublicationIDs/fullsnapshots/customerdata/URLs",
+    "Fullfreshcurrent2f7/deploy/TLS/currentdiagnostics/fullremote21/hostaccepted25/installedclean/schema/readonlygates beforeSSH",
+    "3newscope/projectioncases+PHP-l; oldprojection6andstock39fixtures0"
+  ],
+  "risks": [
+    "Actualmatchingmayyieldfewerthan10newidentities; prepareandcountonlyactualuniqueunpublishedsubset",
+    "Catalogsourceproofnotownerfacts/photoacceptance/readiness; no newpostscredit",
+    "Rawratingreviewsnotstars; compound/sisterpropertynamesrequireexactproductproof"
+  ],
+  "existing_frozen_feed_offer_rows": 159,
+  "new_group_public_name_matches": 0,
+  "expected_source": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
+  "current_deploy_run": 41917839854,
+  "current_tls_run": 41918925110,
+  "current_diagnostics_run": 41918925124
+}

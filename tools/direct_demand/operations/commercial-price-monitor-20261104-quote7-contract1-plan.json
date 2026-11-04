@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote7-contract-inspection1",
+  "state": "ORIGINAL_PRIVATE_RESPONSE_ONLY_NO_NEW_GATEWAY_REQUEST",
+  "goal": "Resolve the100byte retained originalquote7response before any future hotelcontext, with noedit/no providerretry",
+  "boundaries": [
+    "Onlyoriginalquote7authenticatedartifact41920783291/13367181942",
+    "No DB/server/provider/edits; rawresponse neverconsole/publicGit",
+    "Native3newcontractshape cases; oldidentity/age/updatercases0"
+  ],
+  "criteria": [
+    "Exactoperationquote7/catalog110/HTTP200/oneoriginalrequest bound",
+    "Printonlyresponsefieldnames/nonemptyerrorBoolean/flightcount/category, notfullquote",
+    "Keepquote7consumed regardlessresponsecontract; nonewoperationIDbypass"
+  ],
+  "risks": [
+    "ShortHTTP200response maybe non-priceerror; neverpublishcachepriceorclaimavailability"
+  ],
+  "original_response_bytes": 100,
+  "original_quote_run": 41920783291,
+  "new_gateway_calls": 0,
+  "message_edits": 0
+}
