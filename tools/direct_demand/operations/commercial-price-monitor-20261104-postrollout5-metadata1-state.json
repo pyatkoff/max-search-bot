@@ -1,0 +1,14 @@
+{
+  "operation": "commercial-price-monitor-20261104-postrollout5-metadata1",
+  "state": "CLOSED_NEW_BOUNDED_WINDOW_NO_NEW_TOUR_COLLECTOR",
+  "created_after_utc": "2026-11-04T09:08:13Z",
+  "checked_utc": "2026-11-04T15:52:35Z",
+  "scheduled_runs_returned": 10,
+  "total_matching_metadata_runs": 10,
+  "tour_collectors": 0,
+  "retained_db_reads": 0,
+  "provider_calls": 0,
+  "quotes": 0,
+  "price_edits": 0,
+  "qualification": "No matching source collector in this exact metadata window; not absence of all raw observations or availability"
+}

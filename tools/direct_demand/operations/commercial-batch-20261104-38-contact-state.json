@@ -1,0 +1,54 @@
+{
+  "operation": "commercial-batch38-bounded-primary-contact-inspection",
+  "state": "EXACT20_INPUTS_ACCEPTED_NATIVE_RUN_QUEUED_NO_PHOTOGRAPHY_READINESS_CREDIT",
+  "goal": "Inspect twenty different owner photos together before selecting any ready covers",
+  "boundaries": {
+    "groups": 4,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "message_sends": 0
+  },
+  "criteria": [
+    "Exact20declaredURLs/6knownpropertyownerhosts;oldclosedURLs/filenamesfiltered",
+    "Unchangeddimensions/bytes/format/no redirects/queryguards",
+    "Nativecontactpixels/completechunks/decodedbytes/SHA beforecoveracceptance"
+  ],
+  "risks": [
+    "Queuednativework isnotdelivery",
+    "Do not enqueueanotherpendingworkflow beforethisfinitecontactrunstarts/finishes"
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41862151138",
+  "jobs": [
+    126686587012,
+    126686587143,
+    126686586993,
+    126686586532
+  ],
+  "source_commit": "391628cea28c27e90a655f0d133e219b91429f16",
+  "hotel_ids": [
+    1416,
+    1491,
+    65782,
+    15879,
+    55828,
+    2144,
+    3469,
+    9321,
+    1543,
+    1137
+  ],
+  "photo_hotel_ids": [
+    15879,
+    2144,
+    3469,
+    9321,
+    1543,
+    1137
+  ],
+  "native_images_accepted": 0,
+  "canva_transactions_open": 0,
+  "ready_for_send": 0,
+  "new_posts": 0
+}
