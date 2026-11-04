@@ -27,6 +27,11 @@ final class ManagerTourSelectionService
         if (!is_int($version) || $version<1 || !is_string($offer) || !preg_match('/\A[a-f0-9]{32}\z/D',$offer) || !is_string($op) || !self::validOperation($op) || !in_array($kind,['cover','beach','room'],true)) return self::error('invalid_photo');
         $current=self::view(ConversationDb::connection(),$context);
         if ($current['version']!==$version || !in_array($offer,array_column($current['draft']['offers'],'id'),true)) return self::error('draft_changed');
+        $sourceOffer=array_values(array_filter($current['draft']['offers'],static fn(array $entry):bool=>$entry['id']===$offer))[0];
+        if(array_key_exists('source_photo_url',$input)){
+            require_once __DIR__.'/ManagerTourSelectionOneTouchCapture.php';
+            if(!ManagerTourSelectionOneTouchCapture::photoBinding($sourceOffer,$input))return self::error('invalid_photo');
+        }
         if (!is_string($encoded) || strlen($encoded)>intdiv(TourSelectionPhotoStore::MAX_BYTES+2,3)*4 || !preg_match('/\A[A-Za-z0-9+\/]+={0,2}\z/D',$encoded)) return self::error('invalid_photo');
         $bytes=base64_decode($encoded,true);
         if ($bytes===false || $bytes==='' || strlen($bytes)>TourSelectionPhotoStore::MAX_BYTES) return self::error('invalid_photo');
@@ -165,6 +170,17 @@ final class ManagerTourSelectionService
         return self::importCommand($actor,$conversationId,$session,$command,false,['version'=>$ticket['version'],'context_hash'=>$ticket['context_hash'],'expires'=>$ticket['expires']]);
     }
 
+    public static function importOneTouch(int $actor,int $conversationId,string $session,array $input,bool $readOnly=false): array
+    {
+        require_once __DIR__.'/ManagerTourSelectionOneTouchIntake.php';
+        if (($input['confirm_price_from']??false)!==true) return self::error('onetouch_price_confirmation');
+        $ticket=ManagerTourSelectionOneTouchIntake::open($input['ticket']??null,$session,$actor,$conversationId,'ready',true);
+        if ($ticket===null) return self::error('onetouch_expired');
+        $command=['operation_id'=>$input['operation_id']??null,'observation'=>$ticket['observation']];
+        if(array_key_exists('manager_amount',$input))$command['manager_amount']=$input['manager_amount'];
+        return self::importCommand($actor,$conversationId,$session,$command,$readOnly,['version'=>$ticket['version'],'context_hash'=>$ticket['context_hash'],'expires'=>$ticket['expires'],'source_adapter'=>'onetouch-public-v1']);
+    }
+
     private static function importCommand(int $actor,int $conversationId,string $session,array $input,bool $readOnly,?array $direct=null): array
     {
         require_once __DIR__.'/ManagerTourSelectionImportDraft.php';
@@ -173,7 +189,8 @@ final class ManagerTourSelectionService
         if (!is_string($operation) || !self::validOperation($operation)) return self::error('invalid_operation_id');
         $import=ManagerTourSelectionImportDraft::normalize($input['observation']??null);
         if ($import===null) return self::error('invalid_import');
-        if (($import['adapter']==='biblio-public-v1')!==($direct!==null)) return self::error('invalid_import');
+        $directAdapter=$direct['source_adapter']??'biblio-public-v1';
+        if (in_array($import['adapter'],['biblio-public-v1','onetouch-public-v1'],true)!==($direct!==null) || ($direct!==null && $import['adapter']!==$directAdapter)) return self::error('invalid_import');
         $variant=$input['as_variant']??false;
         if (!is_bool($variant)) return self::error('invalid_import');
         $managerAmount=null;
@@ -186,6 +203,7 @@ final class ManagerTourSelectionService
         // Absent adjustment preserves every existing collector-v1 receipt hash.
         $intent=$managerAmount===null?['collector-v1',$conversationId,$connection,$import,$variant]:['collector-v2',$conversationId,$connection,$import,$variant,$managerAmount];
         if ($direct!==null) $intent=['biblio-editor-v1',$conversationId,$direct,$import,$managerAmount];
+        if ($direct!==null && $directAdapter==='onetouch-public-v1') $intent=['onetouch-editor-v1',$conversationId,$direct,$import,$managerAmount];
         $hash=hash('sha256',json_encode($intent,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
         $priceAck=$managerAmount===null?[]:['manager_amount'=>$managerAmount];
         $source=ManagerTourSelectionImportDraft::source($import);
@@ -216,7 +234,7 @@ final class ManagerTourSelectionService
                     $pdo->commit();return $result;
                 }
                 if ($readOnly) {$pdo->commit();return ['ok'=>true,'found'=>false,'count'=>count($current['draft']['offers'])]+$priceAck;}
-                if ($direct!==null && $direct['expires']<time()) {$pdo->rollBack();return self::error('biblio_expired');}
+                if ($direct!==null && $direct['expires']<time()) {$pdo->rollBack();return self::error($directAdapter==='onetouch-public-v1'?'onetouch_expired':'biblio_expired');}
                 if ($direct!==null && $direct['version']!==$current['version']) {$pdo->rollBack();return self::error('draft_changed');}
                 $duplicate=null;
                 foreach ($current['draft']['offers'] as $old) {
@@ -238,10 +256,13 @@ final class ManagerTourSelectionService
                 if ($duplicate===null) {
                     if (count($current['draft']['offers'])>=ManagerTourSelectionDraft::MAX_OFFERS) {$pdo->rollBack();return self::error('selection_full');}
                     $offer=$import['offer'];$offerId=bin2hex(random_bytes(16));$offer['id']=$offerId;$offer['import_source']=$source;
+                    // File-capture photos arrive through the existing private byte
+                    // owner. Never make the browser/backend refetch the source CDN.
+                    if(($source['raw']['capture_mode']??null)==='manager-file-v1')$offer['photos']=[];
                     if ($managerAmount!==null) $offer['amount']=$managerAmount;
                     $current['draft']['offers'][]=$offer;
                     $changed=true;
-                } elseif (!empty($source['photos'])) {
+                } elseif (!empty($source['photos']) && ($source['raw']['capture_mode']??null)!=='manager-file-v1') {
                     // Re-adding a legacy photo-less import enriches that same
                     // offer. Never overwrite photos already chosen by staff.
                     foreach ($current['draft']['offers'] as &$old) if ($old['id']===$duplicate && $old['photos']===[]) {
@@ -277,6 +298,7 @@ final class ManagerTourSelectionService
         [$whole,$fraction]=explode('.',$amount.'.');
         return $whole.'.'.str_pad($fraction,2,'0');
     }
+
 
     private static function context(int $actor,int $conversationId): array
     {

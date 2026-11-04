@@ -48,6 +48,12 @@ final class ModeledConversionAcquisitionStatsReader
             $this->auth();
             $f=$this->rows("SELECT (SELECT COALESCE(MAX(id),0) FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND HEX(project_key)=HEX('anytour') AND observed_at_unix<=?) AS pf,(SELECT COALESCE(MAX(id),0) FROM conversation_events) AS ef",[$now])[0];
             $fence=(string)$f['pf'];$eventFence=(string)$f['ef'];$this->sources['profile_fence']=$fence;
+            // Bound total input work before expensive native ownership/latest-version admission.
+            // This is a conservative input cap, never a cohort denominator.
+            $potential="project_key='anytour' AND HEX(project_key)=HEX('anytour') AND platform IN ('max','telegram') AND HEX(platform) IN (HEX('max'),HEX('telegram'))"
+                .($filters['platform']==='all'?'':" AND platform='".$filters['platform']."' AND HEX(platform)=HEX('".$filters['platform']."')");
+            $inputCount=$this->rows('SELECT COUNT(*) AS n FROM modeled_conversion_profile_versions WHERE '.$potential.' AND id<=? AND observed_at_unix<=?',[$fence,$now])[0];
+            if((int)$inputCount['n']>self::MAX_RECORDS)throw new ModeledConversionAcquisitionReadFailure('record_limit');
             $where=$this->profileScope($filters['platform']).$this->latestBarrier($fence,$now).' AND p.id<=? AND p.observed_at_unix<=?';
             $scopeArgs=[$fence,$now];
             $meta=$this->rows('SELECT COUNT(*) AS n,MIN(p.observed_at_unix) AS lo,MAX(p.observed_at_unix) AS hi '.$this->profileFrom().' WHERE '.$where,$scopeArgs)[0];

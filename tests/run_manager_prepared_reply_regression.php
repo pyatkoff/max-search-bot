@@ -1106,6 +1106,29 @@ try {
     }
 } catch (Throwable $error) {
     fwrite(STDERR, ($error instanceof RuntimeException && str_starts_with($error->getMessage(),'FAIL ') ? $error->getMessage() : 'FAIL synthetic prepared-reply fixture')."\n");
+    // Diagnostics stay inside this synthetic fixture; never include trace arguments or raw inputs.
+    $diagnosticMessage = substr($error->getMessage(), 0, 2048);
+    if (!($error instanceof PDOException || $error instanceof Error
+        || in_array($diagnosticMessage, ['unsafe_mysql_fixture_database','invalid_mysql_fixture_schema','missing_mysql_fixture_migration','fixture_rejected_source_write','synthetic_snapshot_failure'], true))) {
+        $diagnosticMessage = '[unrecognized message redacted]';
+    }
+    $diagnosticMessage = preg_replace(
+        ['~\b(?:mysql|pgsql|sqlite):[^\r\n]*~i','~https?://\S+~i','~\b(?:password|passwd|pwd|token|secret|authorization|dsn)\b(?:\s*[:=]\s*|\s+)\S+~i',"~'[^']*(?:'|$)|\"[^\"]*(?:\"|$)~s",'~[\x00-\x1f\x7f]~'],
+        ['[dsn]','[url]','[credential]','[quoted]',' '], $diagnosticMessage
+    ) ?? '[message redacted]';
+    $diagnosticFrames = [];
+    foreach (array_slice($error->getTrace(), 0, 4) as $diagnosticFrame) {
+        $diagnosticFrames[] = ['class'=>substr((string)($diagnosticFrame['class'] ?? ''),0,96),'function'=>substr((string)($diagnosticFrame['function'] ?? ''),0,96),
+            'file'=>substr(basename(str_replace('\\','/',(string)($diagnosticFrame['file'] ?? ''))),0,80),'line'=>(int)($diagnosticFrame['line'] ?? 0)];
+    }
+    $diagnosticPdo = $error instanceof PDOException ? $error->errorInfo : null;
+    fwrite(STDERR, 'PREPARED_REPLY_FIXTURE_EXCEPTION '.json_encode([
+        'fixture_driver'=>PreparedReplyPdo::$mysqlFixture ? 'mysql' : 'sqlite','class'=>substr($error::class,0,128),
+        'code'=>substr((string)$error->getCode(),0,32),'message'=>substr($diagnosticMessage,0,400),
+        'file'=>substr(basename(str_replace('\\','/',$error->getFile())),0,80),'line'=>$error->getLine(),
+        'sqlstate'=>isset($diagnosticPdo[0]) && preg_match('/\A[A-Z0-9]{5}\z/D',(string)$diagnosticPdo[0]) === 1 ? $diagnosticPdo[0] : null,
+        'driver_code'=>isset($diagnosticPdo[1]) && is_numeric($diagnosticPdo[1]) ? (int)$diagnosticPdo[1] : null,'frames'=>$diagnosticFrames,
+    ], JSON_UNESCAPED_SLASHES|JSON_INVALID_UTF8_SUBSTITUTE)."\n");
     exit(1);
 } finally {
     if (PreparedReplyPdo::$mysqlFixture) {

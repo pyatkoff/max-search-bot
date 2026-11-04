@@ -1,6 +1,11 @@
 const {expect}=require('@playwright/test');
 const fs=require('node:fs'),path=require('node:path'),{execFileSync}=require('node:child_process');
 const root=path.resolve(__dirname,'../../..'),copy=x=>JSON.parse(JSON.stringify(x));
+// Read the exact deployed header rather than maintaining a weaker copy.
+function shippedCsp(relative){
+ const matches=[...fs.readFileSync(path.join(root,relative),'utf8').matchAll(/header\("Content-Security-Policy: ([^"]+)"\)/g)];
+ if(matches.length!==1)throw Error('Expected one shipped CSP header: '+relative);return matches[0][1];
+}
 // Real shipped PHP views and canonical editor assets. Only private HTTP data is synthetic.
 async function privateEditor(page,options={}){
  const manifest=JSON.parse(fs.readFileSync(path.join(root,'modules/tour-selections/editor.json'))),calls=[],errors=[],unexpected=[],receipts=new Map();
@@ -13,14 +18,14 @@ async function privateEditor(page,options={}){
   if(url.origin==='https://tours.anytoour.ru'&&url.pathname==='/editor.php'){
    expect(req.method()).toBe('GET');expect(req.headers().cookie).toBeUndefined();
    const html=execFileSync('php',['-r',`$_SERVER['QUERY_STRING']=$argv[1];parse_str($argv[1],$_GET);require 'modules/tour-selections/editor-tours.php';`,url.search.slice(1)],{cwd:root,encoding:'utf8'});
-   return route.fulfill({contentType:'text/html',headers:{'Cache-Control':'private, no-store','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; frame-src https://app.anytoour.ru; frame-ancestors 'none'"},body:html});
+   return route.fulfill({contentType:'text/html',headers:{'Cache-Control':'private, no-store','Content-Security-Policy':shippedCsp('modules/tour-selections/editor-tours.php')},body:html});
   }
   if(url.origin==='https://app.anytoour.ru'&&url.pathname==='/manager/tour-selection-editor.php'){
    if(url.searchParams.has('asset')){
     const name=url.searchParams.get('asset');expect(['editor.js','editor.css','private-host.js','private-host.css','http.js','time.js']).toContain(name);
     return route.fulfill({contentType:name.endsWith('.css')?'text/css':'application/javascript',body:fs.readFileSync(path.join(root,manifest.files[name]))});
    }
-   return route.fulfill({contentType:'text/html',headers:{'Cache-Control':'private, no-store','Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: blob:; connect-src 'self'; frame-ancestors https://tours.anytoour.ru"},body:app});
+   return route.fulfill({contentType:'text/html',headers:{'Cache-Control':'private, no-store','Content-Security-Policy':shippedCsp('manager/tour-selection-editor.php')},body:app});
   }
   if(url.origin==='https://app.anytoour.ru'&&req.method()==='POST'&&['/manager/api.php','/manager/tour-selection-editor-api.php'].includes(url.pathname)){
    const d=req.postDataJSON();calls.push(copy({...d,path:url.pathname}));
@@ -31,6 +36,10 @@ async function privateEditor(page,options={}){
    expect(d.conversation_id).toBe(11);
    if(!allowed)return reply({ok:false,error:'not_found'},404);
    if(d.action==='editor_context')return reply({ok:true,context:{id:11,actor,display_name:'Синтетическая Анна',channel:'telegram',status:'manager',can_edit:!readOnly}});
+   if(options.sourceAction&&(d.action.startsWith('onetouch_')||d.editor_resource==='tour-selection-photo.php')){
+    const result=await options.sourceAction(copy(d),{snapshot,replaceDraft:next=>{draft=copy(next);version++}});
+    return result===null?route.abort('failed'):reply(result);
+   }
    if(d.editor_resource==='hotel-knowledge-api.php'){
     expect(d.action).toBe('read');expect(d.kind).toBe('working_draft');
     const viewer=actor,selection={kind:d.kind,draft_version:d.draft_version,offer_id:d.offer_id};

@@ -188,7 +188,8 @@ final class TourChoiceService
     {
         if (!$pdo->inTransaction()) throw new LogicException('Web inquiry requires native-entry transaction');
         $offer=$entry['public_offer']??null;
-        $allowed=['index','hotel','departure','date_from','nights','adults','children','room','meal','amount','currency','rationale','compromise','destination','flights','inclusions','constraints','observed_at','price_verified'];
+        $allowed=['index','hotel','departure','date_from','nights','adults','children','room','meal','amount','currency','price_qualifier','rationale','compromise','destination','flights','inclusions','constraints','observed_at','price_verified'];
+        if (is_array($offer) && isset($offer['price_qualifier']) && !in_array($offer['price_qualifier'],['from','fixed'],true)) return self::error('invalid_offer');
         if (!is_array($offer) || array_diff(array_keys($offer),$allowed) || !is_string($offer['hotel']??null) || $offer['hotel']==='' || !preg_match('/\A[a-f0-9]{64}\z/D',$entryKey)) return self::error('invalid_offer');
         $json=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?"JSON_UNQUOTE(JSON_EXTRACT(payload_json,'$.entry_key'))":"JSON_EXTRACT(payload_json,'$.entry_key')";
         $q=$pdo->prepare("SELECT id FROM conversation_events WHERE conversation_id=? AND event_type='tour_web_inquiry' AND ".$json.'=? LIMIT 1');
@@ -271,6 +272,10 @@ final class TourChoiceService
         if (!in_array($input['currency'] ?? null, ['RUB','EUR','USD'], true) || ($input['price_basis'] ?? null) !== 'party'
             || !is_bool($input['is_demo'] ?? null) || (array_key_exists('price_verified', $input) && $input['price_verified'] !== false)) return null;
         $out += ['amount'=>$amount, 'currency'=>$input['currency'], 'price_basis'=>'party', 'is_demo'=>$input['is_demo'], 'price_verified'=>false];
+        if (array_key_exists('price_qualifier',$input)) {
+            if (!in_array($input['price_qualifier'],['from','fixed'],true)) return null;
+            $out['price_qualifier']=$input['price_qualifier'];
+        }
         $flights = $input['flights'] ?? [];
         if (!is_array($flights) || count($flights) > 6 || array_values($flights) !== $flights) return null;
         $out['flights'] = [];

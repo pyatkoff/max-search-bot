@@ -28,7 +28,7 @@ final class TourOfferCardRenderer
         $heading = $title.$destination;
         $partySize = $snapshot['adults'] + count($snapshot['child_ages']);
         $basis = $partySize === 1 ? 'за одного' : ($partySize === 2 ? 'за двоих' : 'за '.$partySize.' '.self::plural($partySize, ['человек','человека','человек']));
-        $price = self::amount($snapshot['amount']).' '.['RUB'=>'₽', 'EUR'=>'€', 'USD'=>'$'][$snapshot['currency']].' '.$basis;
+        $price = (($snapshot['price_qualifier']??null)==='from'?'от ':'').self::amount($snapshot['amount']).' '.['RUB'=>'₽', 'EUR'=>'€', 'USD'=>'$'][$snapshot['currency']].' '.$basis;
         $conditions = [
             '📅 '.($compact || in_array($presentation['layout'] ?? '', ['departure-v1','gallery-v1'],true) ? 'С '.self::dates($snapshot['date_from'], $snapshot['date_from']) : self::dates($snapshot['date_from'], $snapshot['date_to'])).' · '.$snapshot['nights'].' '.self::plural($snapshot['nights'], ['ночь','ночи','ночей']),
             '✈️ '.$snapshot['departure'].' · '.self::party($snapshot),

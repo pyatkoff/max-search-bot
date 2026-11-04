@@ -201,7 +201,9 @@ function modeledAcquisitionAssertions(PDO $pdo):int
         }
         if($size)$exec('INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,input_sha256,profile_json) VALUES '.implode(',',$parts),$args);
     }
-    $pdo->commit();$r=$read();
+    $pdo->commit();$capStarted=microtime(true);$r=$read();
+    echo 'ACQUISITION_CAP_FIXTURE_TECHNICAL '.json_encode(['reason'=>$r['reason'],
+        'query_count'=>$r['query_count'],'elapsed_ms'=>(int)round((microtime(true)-$capStarted)*1000)],JSON_THROW_ON_ERROR).PHP_EOL;
     $check(!$r['available']&&$r['reason']==='record_limit'&&$r['platforms']===null,'full-history limit returns unavailable rather than silently complete recent sample');
     return$passed;
 }

@@ -728,10 +728,23 @@ for(const width of[390,430])test.describe('Short history auth boundaries '+width
  });
 });
 
+async function composerGeometryReady(page){
+ await page.locator('#composer').evaluate(async form=>{
+  const frames=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  const finiteActive=()=>form.getAnimations({subtree:true}).filter(animation=>Number.isFinite(animation.effect?.getTiming().iterations)&&(animation.playState==='running'||animation.pending));
+  await frames();
+  for(let animations=finiteActive();animations.length;animations=finiteActive()){
+   await Promise.all(animations.map(animation=>animation.finished.catch(()=>{})));
+   await frames();
+  }
+ });
+}
+
 for(const [width,height] of [[390,844],[430,844],[768,844],[1440,844],[390,420]])test('shown read acknowledgement preserves unread prefix and draft at '+width+'x'+height,async({page,browserName})=>{
  await page.setViewportSize({width,height});const state=await setup(page,{total:35,readAcknowledgements:true});await open(page);
  await expect.poll(()=>state.ackCalls.length).toBeGreaterThan(0);expect(state.readMarkers[11]||0).toBe(0);
  await page.locator('#replyText').fill('Черновик без отправки');await page.locator('#replyFile').setInputFiles({name:'unread.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic unread')});
+ await composerGeometryReady(page);
  await page.locator('#messages').hover();await page.mouse.wheel(0,-20000);await expect.poll(()=>page.locator('#messages').evaluate(b=>b.scrollTop)).toBe(0);
  if(height===420){await page.mouse.wheel(0,100);await expect.poll(()=>page.locator('#messages').evaluate(b=>b.scrollTop)).toBeGreaterThan(0);}
  await expect.poll(()=>state.readMarkers[11]||0).toBeGreaterThan(1);expect(state.readMarkers[11]).toBeLessThan(35);const marker=state.readMarkers[11],before=await anchor(page);
@@ -808,17 +821,43 @@ test('explicit latest opening keeps the unseen prefix unread without an initial 
 });
 
 
+async function quoteReturnGeometry(page,boundary){
+ try{return{boundary,...await page.evaluate(()=>{
+  const number=value=>Number.isFinite(value)?Math.round(value*100)/100:null;
+  const box=document.getElementById('messages'),source=box?.querySelector('[data-scroll-message-key="499"]'),quote=source?.querySelector('[data-quote-source-id]');
+  const rect=node=>{if(!node)return null;const r=node.getBoundingClientRect();return{top:number(r.top),bottom:number(r.bottom),width:number(r.width),height:number(r.height)}};
+  const known=new Set(['messages','composer','replyText','messageNavigationBack','messageNavigationBar']);
+  const control=node=>!node?'none':known.has(node.id)?node.id:node.matches?.('[data-quote-source-id]')?'quote':node.matches?.('.msg')?'message-row':'other';
+  const animations=(document.getElementById('conversationZone')?.getAnimations({subtree:true})||[]).filter(animation=>Number.isFinite(animation.effect?.getTiming().iterations)).slice(0,8).map(animation=>{
+   const timing=animation.effect.getTiming();return{target:control(animation.effect.target),state:['idle','running','paused','finished'].includes(animation.playState)?animation.playState:'other',currentTime:number(animation.currentTime),duration:number(timing.duration),delay:number(timing.delay),endDelay:number(timing.endDelay),iterations:number(timing.iterations)};
+  });
+  return{viewport:{width:number(innerWidth),height:number(innerHeight)},box:box?{...rect(box),scrollTop:number(box.scrollTop),clientHeight:number(box.clientHeight),scrollHeight:number(box.scrollHeight)}:null,source:rect(source),quote:rect(quote),composer:rect(document.getElementById('composer')),navigation:rect(document.getElementById('messageNavigationBar')),navigationHidden:document.getElementById('messageNavigationBar')?.hidden??null,active:control(document.activeElement),animations};
+ })}}catch{return{boundary,unavailable:true}}
+}
+
 for(const width of [390,1440])test('quote original and exact return preserve history, media, draft and File at '+width,async({page,browserName})=>{
+ const quoteDiagnostics=[];
+ try{
  await page.setViewportSize({width,height:844});const state=await setup(page,{total:500,media:true,quoteTargets:true});await open(page);
  await page.locator('#replyText').fill('Черновик при чтении цитаты');await page.locator('#replyFile').setInputFiles({name:'quote-retained.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic quote file')});
+ await composerGeometryReady(page);
  await page.locator('#messages audio').evaluate(a=>window.quoteAudio=a);const history=await page.evaluate(()=>WorkspaceV2History.getState());
  const source=page.locator('#messages [data-scroll-message-key="499"]'),quote=source.locator('[data-quote-source-id]');await quote.scrollIntoViewIfNeeded();await settled(page);const offset=await source.evaluate(n=>n.getBoundingClientRect().top-document.getElementById('messages').getBoundingClientRect().top);
- await quote.click();await expect(page.locator('#messages [data-scroll-message-key="350"]')).toHaveClass(/messageNavigationTarget/);await expect(page.locator('#messageNavigationBack')).toBeVisible();await page.locator('#messageNavigationBack').click();await settled(page);
+ quoteDiagnostics.push({baselineOffset:Number.isFinite(offset)?offset:null,...await quoteReturnGeometry(page,'captured')});
+ await quote.click();await expect(page.locator('#messages [data-scroll-message-key="350"]')).toHaveClass(/messageNavigationTarget/);await expect(page.locator('#messageNavigationBack')).toBeVisible();quoteDiagnostics.push(await quoteReturnGeometry(page,'target_open'));
+ await page.locator('#messageNavigationBack').click();
+ quoteDiagnostics.push(await quoteReturnGeometry(page,'back_clicked'));
+ await settled(page);
+ quoteDiagnostics.push(await quoteReturnGeometry(page,'settled'));
  expect(Math.abs(await source.evaluate(n=>n.getBoundingClientRect().top-document.getElementById('messages').getBoundingClientRect().top)-offset)).toBeLessThanOrEqual(2);await expect(quote).toBeFocused();
  await page.locator('#messages [data-quote-source-id="500"]').click();await expect(page.locator('#messageContextDialog')).toBeVisible();await expect(page.locator('#messageContextMessages .msg')).toHaveCount(41);await expect(page.locator('#messageContextMessages [data-scroll-message-key="50"]')).toContainText('Оригинальные условия: Турция, 2 взрослых. <img');expect(await page.locator('#messageContextMessages img').count()).toBe(0);
  await screenshot(page,browserName,width,'quote-original-context');expect(await page.evaluate(()=>WorkspaceV2History.getState())).toEqual(history);expect(state.targetCalls.map(c=>c.source_message_id)).toEqual([499,500]);expect(olderDetails(state)).toHaveLength(0);await expect(page.locator('#messages .msg')).toHaveCount(200);
  await page.locator('#messageContextBack').click();await expect(page.locator('#messageContextDialog')).not.toBeVisible();await expect(page.locator('#messages [data-quote-source-id="500"]')).toBeFocused();expect(await page.locator('#messages audio').evaluate(a=>a===window.quoteAudio)).toBe(true);
  await expect(page.locator('#replyText')).toHaveValue('Черновик при чтении цитаты');await expect(page.locator('#mediaSelection')).toContainText('quote-retained.txt');clean(state);
+ }catch(error){
+  try{console.error('QUOTE_RETURN_GEOMETRY '+JSON.stringify(quoteDiagnostics))}catch{}
+  throw error;
+ }
 });
 
 test('quote failure retries explicitly and late previous-conversation response is discarded',async({page})=>{

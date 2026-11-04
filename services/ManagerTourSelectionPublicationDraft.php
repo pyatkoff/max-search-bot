@@ -29,6 +29,7 @@ final class ManagerTourSelectionPublicationDraft
                 'date_from'=>$offer['date_from'],'date_to'=>$until,'date_to_basis'=>'lodging_estimate','nights'=>$offer['nights'],'adults'=>$offer['adults'],'child_ages'=>$offer['child_ages'],
                 'room'=>$offer['room'],'meal'=>$offer['meal'],'amount'=>$offer['amount'],'currency'=>$offer['currency'],'price_basis'=>'party',
                 'is_demo'=>false,'price_verified'=>false,'flights'=>[],
+                ...(isset($offer['price_qualifier'])?['price_qualifier'=>$offer['price_qualifier']]:[]),
                 'rationale'=>str_replace("\n",' ',$offer['rationale']),'compromise'=>str_replace("\n",' ',$offer['compromise']),
                 'quoted_details'=>array_intersect_key($offer,array_flip(['destination','source_label','source_url','observed_at','flights','inclusions','constraints','photos'])),
             ]);
