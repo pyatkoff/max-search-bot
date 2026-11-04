@@ -11,6 +11,7 @@ def build(entry):
   paths=list(folder.rglob(name));assert len(paths)==1,name
   return paths[0]
  d=json.loads(one('quote-result.json').read_text().splitlines()[-1])
+ assert d['installed_sha']=='0a80b95fa31e3a90267daa8984adae24d6aaa6bb','ORIGINAL_QUOTE_SOURCE_PROVENANCE_CHANGED'
  chosen=json.loads(one('candidate.json').read_text());h=chosen['hotel'];t=d['retained_terms'];old=chosen['original_manifest_row']
  assert int(h['local_tv_id'])==int(d['catalog_id'])==int(old['hotel_id'])==hid
  assert d['operation']==quote_op and d['ok'] is True and d['http_status']==200 and d['gateway_requests_attempted']==1

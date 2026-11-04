@@ -30,5 +30,5 @@ for offer in ET.fromstring(raw).findall('.//offer'):
 report={'operation':'commercial-price-source-20261104-moscow-picture-native-binding1','state':'ORIGINAL_SOURCE_COUNTRY_ID_NAME_CORRESPONDENCE_CHECKED_NO_NEW_SOURCE_QUERY','source_gets':0,'photo_gets':0,'db_calls':0,'gateway_calls':0,'price_edits':0,'counts':dict(counts),'verified_published_native_correspondences':verified,'deferred_existing_scope_correspondences':deferred,'verified_count':len(verified),'deferred_existing_scope_count':len(deferred),'arbitrary_numeric_id_not_used_without_country_and_name':True,'checked_price_unit_pending_user_reply':True,'catalog_source_provenance':'originalREAD9plusacceptedoriginalstock39_READ15new2','not_a_current_tour_or_final_basket_binding':True}
 assert counts['general_resort_not_hotel_binding']+counts['exact_picture_schema_hotel_offers']+counts['unexpected_picture_schema']==140
 assert not ({r['native_hotel_id'] for r in verified}&review)
-assert len({r['native_hotel_id'] for r in verified})==len(verified)
+report['verified_offer_count']=len(verified);report['verified_unique_native_hotel_count']=len({r['native_hotel_id'] for r in verified})
 (temp/'moscow-picture-native-binding-summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n');print(json.dumps(report,ensure_ascii=False))

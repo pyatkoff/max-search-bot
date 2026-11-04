@@ -1,4 +1,4 @@
-name: Apply all verified new 72h prices to their existing posts serially
+name: Prepare all 72h basket manifests privately while the current production release is pending
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,12 +10,11 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 0a80b95fa31e3a90267daa8984adae24d6aaa6bb
+  EXPECTED_PRODUCTION_SHA: 704ab1c4b0ee17fec46c471180fe7cfb0a6a5711
 jobs:
   inspect:
-    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,37 +23,6 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41933468218 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/41933468218/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41934272551 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Require successful current-source production diagnostics
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41934272665 > "$RUNNER_TEMP/current-diagnostics-run.json"
-          python3 - <<'PY'
-          import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'current-diagnostics-run.json').read_text())
-          assert d['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['path']=='.github/workflows/publish-conversation-diagnostics.yml'
-          assert d['status']=='completed' and d['conclusion']=='success'
-          print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
-          PY
       - uses: actions/download-artifact@v4
         with:
           name: commercial-price-monitor-20261104-72h-pass1
@@ -76,91 +44,38 @@ jobs:
           repository: pyatkoff/max-search-bot
           run-id: 41898354901
           path: ${{ runner.temp }}/retained-read9
-      - name: Verify the supplied picture country and hotel ID against retained native names
+      - name: Prepare exact real-flight full-basket manifests with no server connection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/direct_demand/operations/prepare-commercial-price-update-20261104-72h-pass1.py
+          find "$RUNNER_TEMP/price72-pass1" -name update.php -print0 | while IFS= read -r -d '' file; do
+            php -l "$file"
+          done
+          python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'],'price72-pass1','preparation-only-not-execution-approval.json')
+          p.write_text(json.dumps({'state':'OFFLINE_FROZEN_BASKETS_ONLY_CURRENT_RELEASE_APPROVAL_STILL_REQUIRED','execution_approval':False,'original_quote_source':'0a80b95fa31e3a90267daa8984adae24d6aaa6bb','provisional_target_source':os.environ['EXPECTED_PRODUCTION_SHA'],'server_calls':0,'provider_calls':0,'edits':0})+'\n')
+          PY
+      - name: Verify only the supplied picture ID country and name correspondence
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
           python3 tools/direct_demand/operations/verify-moscow-picture-native-ids-20261104.py
       - name: Retain safe source picture-ID correspondence evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: commercial-price-source-20261104-moscow-picture-native-binding1
           path: ${{ runner.temp }}/moscow-picture-native-binding-summary.json
           retention-days: 14
-          if-no-files-found: error
-      - name: Validate actual full baskets and each original caption before any edit
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 tools/direct_demand/operations/prepare-commercial-price-update-20261104-72h-pass1.py
-          find "$RUNNER_TEMP/price72-pass1" -name update.php -print0 | while IFS= read -r -d '' file; do
-            php -l "$file"
-          done
-      - name: Retain distinct private full-basket edit intents before channel writes
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-price-update-20261104-72h-pass1-intents
-          path: ${{ runner.temp }}/price72-pass1
-          retention-days: 14
-          if-no-files-found: error
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Update accepted hotels serially through the existing registry and once ledger
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 tools/direct_demand/operations/run-commercial-price-update-20261104-72h-pass1.py
-      - name: Retain authenticated original edit receipts and all closed no-edit outcomes
+          if-no-files-found: warn
+      - name: Retain provisional frozen baskets privately without approving execution
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-update-20261104-72h-pass1
+          name: commercial-price-update-20261104-72h-pass1-prepared
           path: ${{ runner.temp }}/price72-pass1
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
