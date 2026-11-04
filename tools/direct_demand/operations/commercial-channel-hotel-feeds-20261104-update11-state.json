@@ -1,0 +1,72 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update11",
+  "state": "MAX150_MINIAPP_URLS_AND_COMBINED_MAX150_EXACT_HTTPS_BYTES_VERIFIED_TG150_UNCHANGED_NATIVE_REUSE",
+  "goal": "MAX-only routing replacement in same three public YML feeds",
+  "boundaries": [
+    "Telegram XML remains byte-identical and reused natively; no Telegram receiver changes",
+    "All non-URL offer bytes and non-offer metadata except generated catalog date preserved",
+    "Descriptions/names/images/prices/availability unchanged; no ads/import or messages",
+    "Only same existing three-file static writer, exact previous150 SHA guards",
+    "Public route aliases carry no private canonical publication IDs; private route map only guarded server projection",
+    "Only two changed public XML URLs read back; unchanged Telegram HTTP result not repeated"
+  ],
+  "criteria": [
+    "Native3 new route/YML controls before SSH and PHP-l",
+    "Authenticated installed MAX result150 exactbindings/counter/fields/HTTP404 before feed writes",
+    "150/150/300 exact union and150 MAX launch URLs in max+combined",
+    "Durable intent before static writes; TG samehashreuse; MAX/all HTTPS exactbytes/SHA"
+  ],
+  "risks": [
+    "Live paid launch and attribution write remain unobserved until genuine Direct click; no synthetic production user written",
+    "Macro URL templates require Direct substitution and must not be presented as current real click URLs",
+    "TG remains direct while Pavel prepares current replacement files"
+  ],
+  "run_id": 41810111553,
+  "job_id": 126506964927,
+  "intent_artifact": 13311109910,
+  "result_artifact": 13311941942,
+  "source_commit": "f1bc14f830c507d44f1d37d88ff1d81dc7314d49",
+  "generated_at": "2026-11-04 09:41",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 150,
+      "expected_previous_sha256": "807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70",
+      "sha256": "807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70",
+      "write_action": "reuse",
+      "new_https_readback": false
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 150,
+      "expected_previous_sha256": "a0599641898a173c2286e65d9c1ac15cfd138c2e3cf5934367e3ac2d096229f5",
+      "sha256": "b8d5bc0b5818279dd9968e963ea6a5b91fb837bf1aa8b2b08eec3046ca1782a3",
+      "write_action": "replace",
+      "new_https_readback": true
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 300,
+      "expected_previous_sha256": "69bf1431c18d3857e2331e90a874e49f0623824b518b0a3c181b895840700250",
+      "sha256": "e392c65f507e754f6a08d83f1e5a15bc1b90ea9f7320e4b8380d4832dc6d513b",
+      "write_action": "replace",
+      "new_https_readback": true
+    }
+  ],
+  "max_urls_replaced": 150,
+  "combined_max_urls_replaced": 150,
+  "telegram_bytes_unchanged": true,
+  "non_url_offer_bytes_unchanged": true,
+  "description_rewrites": 0,
+  "price_availability_fields": 0,
+  "private_publication_ids_in_public_urls": 0,
+  "first_attempt": {
+    "run_id": 41809791482,
+    "job_id": 126505878571,
+    "state": "STOPPED_BEFORE_INTENT_SSH_WRITE",
+    "reason": "Source workflow token could not download private neighbouring-repository artifact; exact safe original result was independently read through authorized GitHub connection and supplied as reviewed nonsensitive evidence; original own canonical artifact used for aliases",
+    "server_connections": 0,
+    "writes": 0
+  },
+  "import_or_campaign_launch_performed": false
+}

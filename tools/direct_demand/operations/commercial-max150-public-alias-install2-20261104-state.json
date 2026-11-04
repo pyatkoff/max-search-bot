@@ -1,0 +1,67 @@
+{
+  "operation": "commercial-max150-public-alias-route-20261104-install2",
+  "state": "INSTALLED_AND_NATIVE_VERIFIED",
+  "goal": "MAX150 exact-public-alias miniapp post routing",
+  "boundaries": [
+    "Existing owned tour-max audit branch and pinned connection; no foreign workflow/release",
+    "Exactly three approved candidate files; no TG changes",
+    "Existing frontend/Avito/post1/script3/production.php/legacy post-routes.json unchanged",
+    "Private canonical IDs stay guarded local PHP projection and authenticated artifact",
+    "No save() call, user contexts, DB writes, provider calls, messages, ads, webhooks, subscriptions or schedules"
+  ],
+  "criteria": [
+    "One new web-owner mode/group compatibility fixture; previously accepted four transaction controls not rerun",
+    "All original exact source/candidate hashes, atomic rollback and native150postPreflight retained",
+    "Strict private PHP404 remains mandatory; no relaxed HTTPacceptance"
+  ],
+  "risks": [
+    "Real native server preflight may expose existing storage/counter readiness gaps; automatic exact rollback keeps feeds unchanged",
+    "A source change by another owner must stop or preserve UNKNOWN; never overwrite changed bytes",
+    "Synthetic signed payload tests prove code and context handling; they do not represent a real paid click"
+  ],
+  "run_id": 41809034251,
+  "job_id": 126503281893,
+  "intent_artifact": 13311745736,
+  "result_artifact": 13310294679,
+  "source_commit": "85eba72b59a3d4e9df966f80b13eeafe608eface",
+  "files": [
+    {
+      "bytes": 14050,
+      "name": "lib.php",
+      "sha256": "2574585eaaef169e671966931c59bfe1b2bdf0e38d345c3d06a140c11dc65795"
+    },
+    {
+      "bytes": 3763,
+      "name": "anytour-hotel-feed-context.php",
+      "sha256": "1e63a46c2a3394b211f03c95ea8a2b78a93e255ce999126d9622194afec92fc2"
+    },
+    {
+      "bytes": 32136,
+      "name": "anytour-hotel-feed-routes.private.php",
+      "sha256": "afb4c6a2ceac44a99286697651bcc9f91ebf3361a4dad3b4ed134154c5703ae0"
+    }
+  ],
+  "exact_routes_verified": 150,
+  "private_projection_http_status": 404,
+  "project_active": true,
+  "counter_config_matches": true,
+  "required_post_fields_ready": true,
+  "synthetic_signed_paid_context_tests": 150,
+  "natural_signed_user_launch_verified": false,
+  "actual_paid_attribution_save_observed": false,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "save_calls": 0,
+  "legacy_frontend_avito_post1_and_production_script3_routes_preserved": true,
+  "first_install_attempt": {
+    "run_id": 41808397092,
+    "job_id": 126501098036,
+    "state": "ROLLED_BACK",
+    "rollback_verified": true,
+    "error": "PRIVATE_PROJECTION_HTTP_GUARD_FAILED",
+    "original_http_status_not_recorded": true,
+    "underlying_cause_not_claimed": true
+  },
+  "install2_delta": "Use existing PHP file owner/group/mode; retain mandatory direct HTTP404 guard"
+}

@@ -1,0 +1,150 @@
+{
+  "operation": "commercial-channel-hotel-miniapp-routing-20261104-review4",
+  "state": "MAX150_RUNTIME_AND_FEED_URLS_CONFIGURED_NATIVE_VERIFIED_TG_FILES_PENDING_NATURAL_CLICK_UNOBSERVED",
+  "goal": "MAX first, then TG after Pavel sends current files; preserve500-pair task",
+  "counts": {
+    "logical_hotels_each_channel": 150,
+    "yml_telegram": 150,
+    "yml_max": 150,
+    "yml_all": 300,
+    "new_pairs_this_routing_work": 0,
+    "priced_hotels_each_channel": 2,
+    "monitor_native_ids": 663
+  },
+  "max": {
+    "operation": "commercial-max150-public-alias-route-20261104-install2",
+    "state": "INSTALLED_AND_NATIVE_VERIFIED",
+    "run_id": 41809034251,
+    "job_id": 126503281893,
+    "intent_artifact": 13311745736,
+    "result_artifact": 13310294679,
+    "source_commit": "85eba72b59a3d4e9df966f80b13eeafe608eface",
+    "files": [
+      {
+        "bytes": 14050,
+        "name": "lib.php",
+        "sha256": "2574585eaaef169e671966931c59bfe1b2bdf0e38d345c3d06a140c11dc65795"
+      },
+      {
+        "bytes": 3763,
+        "name": "anytour-hotel-feed-context.php",
+        "sha256": "1e63a46c2a3394b211f03c95ea8a2b78a93e255ce999126d9622194afec92fc2"
+      },
+      {
+        "bytes": 32136,
+        "name": "anytour-hotel-feed-routes.private.php",
+        "sha256": "afb4c6a2ceac44a99286697651bcc9f91ebf3361a4dad3b4ed134154c5703ae0"
+      }
+    ],
+    "exact_routes_verified": 150,
+    "private_projection_http_status": 404,
+    "project_active": true,
+    "counter_config_matches": true,
+    "required_post_fields_ready": true,
+    "synthetic_signed_paid_context_tests": 150,
+    "natural_signed_user_launch_verified": false,
+    "actual_paid_attribution_save_observed": false,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "message_sends": 0,
+    "save_calls": 0,
+    "legacy_frontend_avito_post1_and_production_script3_routes_preserved": true,
+    "first_install_attempt": {
+      "run_id": 41808397092,
+      "job_id": 126501098036,
+      "state": "ROLLED_BACK",
+      "rollback_verified": true,
+      "error": "PRIVATE_PROJECTION_HTTP_GUARD_FAILED",
+      "original_http_status_not_recorded": true,
+      "underlying_cause_not_claimed": true
+    },
+    "install2_delta": "Use existing PHP file owner/group/mode; retain mandatory direct HTTP404 guard"
+  },
+  "feeds": {
+    "operation": "commercial-channel-hotel-feeds-20261104-update11",
+    "state": "MAX150_MINIAPP_URLS_AND_COMBINED_MAX150_EXACT_HTTPS_BYTES_VERIFIED_TG150_UNCHANGED_NATIVE_REUSE",
+    "run_id": 41810111553,
+    "job_id": 126506964927,
+    "intent_artifact": 13311109910,
+    "result_artifact": 13311941942,
+    "source_commit": "f1bc14f830c507d44f1d37d88ff1d81dc7314d49",
+    "generated_at": "2026-11-04 09:41",
+    "files": [
+      {
+        "name": "hotel-posts-telegram.xml",
+        "rows": 150,
+        "expected_previous_sha256": "807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70",
+        "sha256": "807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70",
+        "write_action": "reuse",
+        "new_https_readback": false
+      },
+      {
+        "name": "hotel-posts-max.xml",
+        "rows": 150,
+        "expected_previous_sha256": "a0599641898a173c2286e65d9c1ac15cfd138c2e3cf5934367e3ac2d096229f5",
+        "sha256": "b8d5bc0b5818279dd9968e963ea6a5b91fb837bf1aa8b2b08eec3046ca1782a3",
+        "write_action": "replace",
+        "new_https_readback": true
+      },
+      {
+        "name": "hotel-posts-all.xml",
+        "rows": 300,
+        "expected_previous_sha256": "69bf1431c18d3857e2331e90a874e49f0623824b518b0a3c181b895840700250",
+        "sha256": "e392c65f507e754f6a08d83f1e5a15bc1b90ea9f7320e4b8380d4832dc6d513b",
+        "write_action": "replace",
+        "new_https_readback": true
+      }
+    ],
+    "max_urls_replaced": 150,
+    "combined_max_urls_replaced": 150,
+    "telegram_bytes_unchanged": true,
+    "non_url_offer_bytes_unchanged": true,
+    "description_rewrites": 0,
+    "price_availability_fields": 0,
+    "private_publication_ids_in_public_urls": 0,
+    "first_attempt": {
+      "run_id": 41809791482,
+      "job_id": 126505878571,
+      "state": "STOPPED_BEFORE_INTENT_SSH_WRITE",
+      "reason": "Source workflow token could not download private neighbouring-repository artifact; exact safe original result was independently read through authorized GitHub connection and supplied as reviewed nonsensitive evidence; original own canonical artifact used for aliases",
+      "server_connections": 0,
+      "writes": 0
+    },
+    "import_or_campaign_launch_performed": false
+  },
+  "tg": {
+    "state": "WAITING_CURRENT_INDEX_PHP_AND_SAVE_PHP_FROM_PAVEL_FOR_MANUAL_INSTALL",
+    "current_feed_route": "DIRECT_CANONICAL_PUBLIC_POST_URL",
+    "public_entry": "https://tg.rhat.ru/tgmini/",
+    "current_client_ctx1": false,
+    "server_access_attempts_stopped": true,
+    "user_will_send_later": true,
+    "repeat_question_required": false
+  },
+  "source": {
+    "accepted_installed_sha": "dddd20b04d32873a7095764c41d1166ae625d1cf",
+    "original_deploy_run": 41807028681,
+    "original_tls_run": 41808119993,
+    "full21_publishing_blob_gate_native_passed": true,
+    "source_stops_update11": 0
+  },
+  "canonical_binding_read": {
+    "run_id": 41805250929,
+    "job_id": 126490540150,
+    "private_artifact": 13310040349,
+    "binding_count": 300,
+    "logical_hotels": 150,
+    "db_readonly": true,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "source_stops": 1,
+    "first_source_stop_before_ssh": true
+  },
+  "remaining": [
+    "A genuine Direct click and signed MAX user launch with actual saved attribution have not been observed; do not claim natural/live acceptance",
+    "Pavel will later supply current Telegram files; prepare exact manual package then",
+    "For future new hotel pairs append server private MAX aliases before adding MAX miniapp URLs to feeds; preserve existing150 bindings and byte-identical old offer fields",
+    "Continue500 actual-pair objective; stock25/ready0 and45additionalproven unchanged; batch37 owner/photo reads not yet started"
+  ],
+  "future_max_append_note": "Current guarded map/module has exact150 binding assertion and its hash. Future validated append must intentionally update exact count/hash and use a new immutable private PHP map filename, then atomically switch module last; do not overwrite an active map before switching its module hash. No new controller/worker/queue."
+}
