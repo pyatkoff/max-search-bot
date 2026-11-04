@@ -1,0 +1,57 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read11-stock36-quote2inspection1",
+  "goal": "Read only the two newly published publicpostbindings and ten new nativegroups; inspect original quote2 artifact without another provider/servercall",
+  "boundaries": [
+    "Existing strict source21/TLS/host route; readonly catalog and canonicalpublicprojection",
+    "Only new1199/1464firstlines/LIMIT5; previous146pairs/providerreceipts notreread",
+    "Quote2fullresponse staysauthenticated; console onlyfieldnames/types, no retainedtuple/fingerprint/privateIDs",
+    "No description rewrite or unverified miniapp URL substitution"
+  ],
+  "criteria": [
+    "Eachnewhotel unique TG/MAXcanonicalpublicURLpair",
+    "Tenfixedcountry4groups max12matches; ambiguitynotforced",
+    "Originalquote2SHAexact andONEalreadycompletedgatewaycall; inspector additionalcalls0"
+  ],
+  "risks": [
+    "Newnativeidentities are notreadycovers or deliveredpairs",
+    "Miniappreceiverneedsverifiedtargetcontract before feed routechange"
+  ],
+  "hotel_ids": [
+    1199,
+    1464
+  ],
+  "stock_groups": {
+    "paloma-pasha": [
+      "paloma pasha"
+    ],
+    "paloma-orenda": [
+      "paloma orenda"
+    ],
+    "ali-bey-resort": [
+      "ali bey resort"
+    ],
+    "ali-bey-club": [
+      "ali bey club"
+    ],
+    "ali-bey-park": [
+      "ali bey park"
+    ],
+    "hillside-beach": [
+      "hillside beach"
+    ],
+    "hillside-su": [
+      "hillside su",
+      "hotel su"
+    ],
+    "kempinski-barbaros": [
+      "kempinski barbaros"
+    ],
+    "mandarin-bodrum": [
+      "mandarin oriental bodrum"
+    ],
+    "rixos-bodrum": [
+      "rixos premium bodrum"
+    ]
+  },
+  "quote_original_run": 41791108063
+}

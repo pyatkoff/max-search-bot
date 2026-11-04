@@ -1,0 +1,16 @@
+[
+  {
+    "hotel_id": 1199,
+    "name": "Gloria Serenity Resort",
+    "accepted_first_line": "✈️ Туры в Gloria Serenity Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4c5d31f2bc8ef21ed929422edb658361c4f0c7c9/.github/traffic-publish/commercial-batch-20261104-35/1199.png",
+    "image_sha256": "1af16fb1f3a31710b8cf26d69d6e6cc4a4cb5ff98038a25443cc344d8b738972"
+  },
+  {
+    "hotel_id": 1464,
+    "name": "Royal Wings Hotel",
+    "accepted_first_line": "✈️ Туры в Royal Wings Hotel с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4c5d31f2bc8ef21ed929422edb658361c4f0c7c9/.github/traffic-publish/commercial-batch-20261104-35/1464.png",
+    "image_sha256": "92c317930fc0ff0a6d393e45ec92ea8025ad6cbcd967402a357a76245682a8d1"
+  }
+]
