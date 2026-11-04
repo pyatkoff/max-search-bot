@@ -1,26 +1,8 @@
 {
-  "operation": "commercial-stock-20261104-37-source-notes",
-  "state": "SEVEN_WHOLE_CAPTIONS_PRIMARY_REVIEWED_SIX_PHOTO_SETS_ACCEPTED_NOT_DELIVERED",
-  "goal": "Publish wholehotel facts with readyrealphotos; do not hold6for4deferred",
-  "boundaries": [
-    "Four readonlygroups/maxparallel2; server/provider/DBwrites/messages0",
-    "29actualdeclareddifferentURLs; no guessedvariants/querystrips/retries of closed403",
-    "No beachaccess/freeisland claims forEftalia; no genericKHGphotosorunicode-mangledrefs",
-    "Nativepixels/bytes/format/dims/SHA before Canva"
-  ],
-  "criteria": [
-    "Wholecomplex hero+2different usefullowerphotos; rejectonepool/model/render/logo",
-    "Keep actual acceptedprimaryseasonality/age/categoryscope in wholecaption"
-  ],
-  "risks": [
-    "3initialownerpagesHTTP403 deferred; Nirvana only2targetlowercandidates maynotcomplete",
-    "TUISarigerme2026season ended02Nov; mustsayso; Seno16+/hillside/shuttle"
-  ],
-  "source_runs": [
-    41811362064,
-    41811835796
-  ],
-  "captions": [
+  "schema_version": 1,
+  "operation": "commercial-batch-20261104-37",
+  "state": "PRIMARY_WHOLE_CAPTIONS_REVIEWED_PHOTOGRAPHY_NATIVE_COVERS_PENDING",
+  "hotels": [
     {
       "hotel_id": 1659,
       "name": "TUI BLUE Sarigerme Park",
@@ -49,12 +31,12 @@
       "hotel_id": 28668,
       "name": "Rixos Premium Gocek",
       "cover_title": "Rixos Gocek",
-      "caption": "✈️ Туры в Rixos Premium Gocek с перелётом\n\nТур с перелётом в Гёджек, регион Фетхие, Турция.\n👤 Отель принимает гостей от 13 лет.\n🏖 Собственный пляж в уединённой бухте.\n🌲 Сосновый лес и сады вокруг комплекса.\n🧖 Спа и спортивные занятия.\n\n📌 Виллы расположены отдельно от основной территории отеля.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
+      "caption": "✈️ Туры в Rixos Premium Gocek с перелётом\n\nТур с перелётом в Гёджек, регион Фетхие, Турция.\n👤 Отель принимает гостей от 13 лет.\n🏖 Собственный пляж в уединённой бухте.\n🌲 Сосновый лес и сады вокруг комплекса.\n🧖 Спа.\n\n📌 Виллы расположены отдельно от основной территории отеля.\n\nНапишите даты отдыха и кто едет.\n✈️ Узнать стоимость тура",
       "source_urls": [
         "https://all.accor.com/hotel/B1J7/index.en.shtml"
       ],
       "material_scope": "Accorprimary13+proven; no universallyfreeboat/villa/transfer rights",
-      "utf16_units": 358,
+      "utf16_units": 337,
       "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
     },
     {
@@ -108,34 +90,5 @@
       "state": "WHOLE_HOTEL_CAPTION_PRIMARY_FACTS_REVIEWED_PHOTOGRAPHY_PENDING"
     }
   ],
-  "photo_acceptance": {
-    "operation": "commercial-batch37-photo-acceptance",
-    "state": "SIX_HOTELS_REAL_PHOTOS_ACCEPTED_NOT_PUBLISHED",
-    "native_run": 41812718954,
-    "photos_attempted": 29,
-    "byte_guard_passes": 27,
-    "rejections": 2,
-    "ready_for_canva_ids": [
-      1659,
-      21695,
-      28668,
-      55205,
-      1334,
-      1715
-    ],
-    "native_pixels_verified": true,
-    "notes": {
-      "1142": "exactownerrootHTTP403closed",
-      "1334": "wholebuilding+aquaparkgroundshero5; poollayout+familyroomlowers; norelationsisterhotelrights",
-      "1653": "exactownerpageHTTP403closed",
-      "1659": "wholegrounds/mainbuildinghero; lowerpool androom; seasonalclosurecaption retained",
-      "1715": "wholecoastalcomplexaerialhero2; room+beachlowers;notprivateproduct",
-      "21695": "wholecoastaerialhero; beach+roomlowers;16+/hillside/shuttlecaption",
-      "28327": "twoownerMEexperienceHTTP200JPEGheight176 failedunchangeddimensionguard,not403;heronoaccepted",
-      "28668": "wholecomplexmarinaaerialhero; poolcoupleloweronly+room;13+; nofreeboat/villarights",
-      "54592": "exactownerpageHTTP403closed",
-      "55205": "wholecomplex/aquaparkaerialhero; poolfront+roomlowers; nofreeisland/beachclaim"
-    }
-  },
-  "new_posts": 0
+  "delivery_credit": 0
 }

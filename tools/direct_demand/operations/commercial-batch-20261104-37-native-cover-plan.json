@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-batch37-covers-20261104-read1",
+  "goal": "Verify all six prepared native Canva PNG covers in one finite grouped run before immutable freeze and publication",
+  "boundaries": {
+    "server_connections": 0,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "message_sends": 0,
+    "permanent_canva_saves": 0,
+    "max_parallel": 2,
+    "groups": 3
+  },
+  "criteria": {
+    "exact_hotel_ids": [
+      1659,
+      21695,
+      28668,
+      55205,
+      1334,
+      1715
+    ],
+    "native_png_guards": "unchanged",
+    "full_chunks_bytes_sha_dimensions_and_visual_review_required": true
+  },
+  "risks": [
+    "Canva temporary URL expiry",
+    "caption/source identity and old thumbnail mismatch require stop before freeze"
+  ],
+  "state": "PREPARED_NOT_SENT",
+  "canva_transactions": [
+    {
+      "hotel_id": 1659,
+      "transaction_id": "7352647500292332277"
+    },
+    {
+      "hotel_id": 21695,
+      "transaction_id": "2707184484798052279"
+    },
+    {
+      "hotel_id": 28668,
+      "transaction_id": "155895297213786722"
+    },
+    {
+      "hotel_id": 55205,
+      "transaction_id": "3244238741694567913"
+    },
+    {
+      "hotel_id": 1334,
+      "transaction_id": "8042824145354202850"
+    },
+    {
+      "hotel_id": 1715,
+      "transaction_id": "2769108982880553551"
+    }
+  ],
+  "counts": {
+    "baseline_logical_hotels_each_channel": 150,
+    "new_posts": 0
+  }
+}

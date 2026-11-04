@@ -1,22 +1,23 @@
-name: Inspect29 exact new owner photos for batch37 candidates
+name: Verify six prepared batch37 native covers
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     strategy:
       fail-fast: false
       max-parallel: 2
       matrix:
-        media_group: [0,1,2,3]
+        cover_group: [0,1,2]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,20 +26,15 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Inspect only fixed public owner material without server calls
+      - name: Verify exact native PNG bytes and dimensions without server calls
         env:
-          MEDIA_GROUP: ${{ matrix.media_group }}
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq python3-pil
-          python3 -m py_compile tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
-          python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
+          COVER_GROUP: ${{ matrix.cover_group }}
+        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261102-3.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch37-primary-contact-${{ matrix.media_group }}
+          name: commercial-batch37-covers-${{ matrix.cover_group }}
           path: |
-            primary-image-inspection.json
-            contact.png
+            native-cover-receipt.json
+            covers/
           retention-days: 14
           if-no-files-found: error
