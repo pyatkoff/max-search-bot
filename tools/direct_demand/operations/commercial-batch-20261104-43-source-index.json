@@ -1,0 +1,89 @@
+{
+  "operation": "commercial-batch-20261104-43-primary",
+  "state": "EXACT_ACTUALLY_DECLARED_NEW_PROPERTY_HREFS",
+  "proven_scope": [
+    1074,
+    969,
+    975,
+    1294,
+    17480,
+    1100,
+    1402,
+    62505,
+    968,
+    65782
+  ],
+  "sources": [
+    {
+      "hotel_id": 1074,
+      "declared_by": "https://www.guralpremier.com/en/belek",
+      "url": "https://www.guralpremier.com/en/belek/aquapark",
+      "native_country_id": 4,
+      "href_proof": "Retained original41887486411 property website_links; root not requested again"
+    },
+    {
+      "hotel_id": 1074,
+      "declared_by": "https://www.guralpremier.com/en/belek",
+      "url": "https://www.guralpremier.com/en/belek/plajlar",
+      "native_country_id": 4,
+      "href_proof": "Retained original41887486411 property website_links; root not requested again"
+    },
+    {
+      "hotel_id": 969,
+      "declared_by": "https://www.guralpremier.com/en/tekirova",
+      "url": "https://www.guralpremier.com/en/tekirova/aquapark",
+      "native_country_id": 4,
+      "href_proof": "Retained original41887486411 property website_links; root not requested again"
+    },
+    {
+      "hotel_id": 969,
+      "declared_by": "https://www.guralpremier.com/en/tekirova",
+      "url": "https://www.guralpremier.com/en/tekirova/beach",
+      "native_country_id": 4,
+      "href_proof": "Retained original41887486411 property website_links; root not requested again"
+    },
+    {
+      "hotel_id": 975,
+      "declared_by": "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+      "url": "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita/galeri",
+      "native_country_id": 4,
+      "href_proof": "Retained original41887486411 property website_links; root not requested again"
+    },
+    {
+      "hotel_id": 975,
+      "declared_by": "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+      "url": "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita/aqua-life",
+      "native_country_id": 4,
+      "href_proof": "Retained original41887486411 property website_links; root not requested again"
+    },
+    {
+      "hotel_id": 1294,
+      "declared_by": "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+      "url": "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan/galeri",
+      "native_country_id": 4,
+      "href_proof": "Retained original41887486411 property website_links; root not requested again"
+    },
+    {
+      "hotel_id": 1294,
+      "declared_by": "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+      "url": "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan/aqua-life",
+      "native_country_id": 4,
+      "href_proof": "Retained original41887486411 property website_links; root not requested again"
+    }
+  ],
+  "closed_source_exclusions": [
+    "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+    "https://www.libertyhotels.com/en/hotels/liberty-lykia/",
+    "https://www.tui-blue.com/en/en/hotels/tui-blue-palm-garden/",
+    "https://clubhotelsera.com.tr/en/",
+    "https://www.orangecounty.com.tr/kemer/en",
+    "https://granada.com.tr/en/our-hotels/granada-luxury-okurcalar/",
+    "https://www.guralpremier.com/en/belek",
+    "https://www.guralpremier.com/en/tekirova",
+    "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+    "https://mice.robinson.com/en/clubs/soma-bay/",
+    "https://www.alibey.com/en/park/beach-waterpark",
+    "https://www.palomahotels.com/en/finesse-side/mice"
+  ],
+  "photo_get_permission_granted_by_metadata": false
+}

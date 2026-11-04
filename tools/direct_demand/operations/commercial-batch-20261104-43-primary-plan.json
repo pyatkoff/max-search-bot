@@ -1,0 +1,144 @@
+{
+  "operation": "commercial-batch-20261104-43-primary",
+  "state": "PREPARED_NOT_EXECUTED_NOT_READY",
+  "goal": "Prepare ten proven unposted hotels with retained owner facts and whole captions, reading eight never requested property subpages for four exact native hotels",
+  "boundaries": {
+    "baseline_published_each_channel": 157,
+    "baseline_live_yml": [
+      157,
+      157,
+      314
+    ],
+    "proven_hotel_ids": [
+      1074,
+      969,
+      975,
+      1294,
+      17480,
+      1100,
+      1402,
+      62505,
+      968,
+      65782
+    ],
+    "new_declared_owner_page_requests": 8,
+    "readonly_groups": 3,
+    "max_parallel": 2,
+    "raw_photo_gets": 0,
+    "canva_transactions": 0,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "new_native_ids": 0,
+    "new_hotels_counted": 0
+  },
+  "criteria": [
+    "All ten identities proven by retained actual native inventory; no new catalog lookup or publication credit",
+    "Each requested href actually declared by its already retained property root; roots never repeated",
+    "Source-index exact URL dedup against addressed39/40/42 and prelookup roots; photo URL+decoded-basename dedup through42 mandatory before later contact",
+    "Parser functionality and page/image reference guards unchanged; three new input-scope assertions, old parser fixtures0",
+    "Concrete property facts plus whole caption and real whole hotel hero+two distinct lower photographs before any readiness"
+  ],
+  "risks": [
+    "Shared KHG navigation is not property photograph membership",
+    "Gural room pool/villa rights are category specific; no old2020event claim",
+    "Owner galleries may lack a qualifying whole hotel hero; do not force photos or add quantity"
+  ],
+  "candidates": [
+    {
+      "hotel_id": 1074,
+      "hotel": "GURAL PREMIER BELEK",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [
+        "https://www.guralpremier.com/en/belek/aquapark",
+        "https://www.guralpremier.com/en/belek/plajlar"
+      ],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 969,
+      "hotel": "GURAL PREMIER TEKIROVA",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [
+        "https://www.guralpremier.com/en/tekirova/aquapark",
+        "https://www.guralpremier.com/en/tekirova/beach"
+      ],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 975,
+      "hotel": "NIRVANA DOLCE VITA",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita/galeri",
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita/aqua-life"
+      ],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 1294,
+      "hotel": "NIRVANA COSMOPOLITAN",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan/galeri",
+        "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan/aqua-life"
+      ],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 17480,
+      "hotel": "TUI BLUE PALM GARDEN",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 1100,
+      "hotel": "CLUB HOTEL SERA",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 1402,
+      "hotel": "ORANGE COUNTY KEMER",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 968,
+      "hotel": "ALI BEY PARK MANAVGAT",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [],
+      "publication_ready": false
+    },
+    {
+      "hotel_id": 65782,
+      "hotel": "PALOMA FINESSE SIDE",
+      "country_id": 4,
+      "native_identity_state": "PROVEN_RETAINED_NATIVE_CATALOG",
+      "new_sources": [],
+      "publication_ready": false
+    }
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
