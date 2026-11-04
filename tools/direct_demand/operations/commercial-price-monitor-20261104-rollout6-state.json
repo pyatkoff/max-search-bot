@@ -1,0 +1,96 @@
+{
+  "operation": "commercial-price-monitor-20261104-rollout6",
+  "state": "CLOSED_FIRST_NORMAL670_COLLECTOR_SUCCESS_NEW_RAW_INPUT_NOT_VERIFIED_TOUR_PRICES",
+  "run_id": 41875623362,
+  "source_sha": "8b37744b5f7d86d761d37551452b0be931e48024",
+  "validate_job_id": 126734099019,
+  "collect_job_id": 126734189810,
+  "first_monthly_start_utc": "2026-11-04T17:15:24.3722042Z",
+  "monthly_done_utc": "2026-11-04T17:22:28.4031436Z",
+  "monthly_done": {
+    "processed": 64,
+    "page_gap_processed": 5,
+    "failed": 0,
+    "partial": 0,
+    "observations_written": 5399,
+    "fresh_targets": 249,
+    "pending_targets": 3763,
+    "complete": false,
+    "months": {
+      "2026-11": {
+        "total": 340,
+        "fresh": 59,
+        "pending": 281
+      },
+      "2026-12": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-01": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-02": {
+        "total": 272,
+        "fresh": 19,
+        "pending": 253
+      },
+      "2027-03": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-04": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-05": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-06": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-07": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-08": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-09": {
+        "total": 340,
+        "fresh": 19,
+        "pending": 321
+      },
+      "2027-10": {
+        "total": 340,
+        "fresh": 0,
+        "pending": 340
+      }
+    }
+  },
+  "source_calls_occurred": true,
+  "db_observation_writes_occurred": true,
+  "artifacts": 0,
+  "priced_hotels_in_posts": 2,
+  "bot_db_reads_this_inspection": 0,
+  "quotes_this_inspection": 0,
+  "message_edits_this_inspection": 0,
+  "monitor_active_input_count": 670,
+  "ours_manual_collect_calls": 0,
+  "ours_provider_calls": 0,
+  "ours_db_reads": 0,
+  "ours_db_writes": 0,
+  "ours_message_edits": 0,
+  "next_step": "Thisactual5399observationcollection permits one new scopedRead8 after healthybotrelease/source/TLS/21blob gates. Do not reread oldzeroRead7 or rerunthiscollector/itslogs."
+}

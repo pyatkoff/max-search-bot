@@ -1,0 +1,2815 @@
+{
+  "operation": "commercial-batch-20261104-40-primary-sources-retained",
+  "state": "CLOSED_SIX_NATIVE_PAGE_READS_FIVE_PROPERTY_CONTENT_ONE_CHALLENGE",
+  "source_run": 41881413553,
+  "source_commit": "5a5dd3c30df2a923feb328b06e3b626ffe4d5fec",
+  "jobs": [
+    {
+      "id": 126754542772,
+      "conclusion": "success"
+    },
+    {
+      "id": 126754542925,
+      "conclusion": "success"
+    }
+  ],
+  "page_count": 6,
+  "old_page_get_repeats": 0,
+  "server_connections": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "notes": [
+    "TrendynewgallerytitleOne momentplease/0refs; no403inference/noattempt tobypass",
+    "Hillsideversion-query poolURI notdownloaded/guardsunchanged",
+    "Mandarin2genericFFYCDNURIs still lacktargetimageproof/notdownloaded",
+    "Hemera generalgallerynewpage mostlyrooms/gastronomy; noforcedhero",
+    "Limak6differentqueryless exteriororiginals explicitlydeclared afterold33URL+basenamesexcluded"
+  ],
+  "pages": [
+    {
+      "source_url": "https://www.hillsidebeachclub.com/en/about-the-resort/pool",
+      "final_url": "https://www.hillsidebeachclub.com/en/about-the-resort/pool",
+      "page_title": "Swimming Pools | Hillside Beach Club Official Website",
+      "image_hosts": [
+        "storage.googleapis.com",
+        "www.hillsidebeachclub.com"
+      ],
+      "image_urls": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.hillsidebeachclub.com/assets/img/default-og-image.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/logo-white.png",
+        "https://www.hillsidebeachclub.com/assets/img/schema/image.jpg",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image/original/pool.jpg?=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image_sm/990x400/pool.jpg?=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://storage.googleapis.com/hillsidebeachclub/uploads/page/image_xs/414x370/pool.jpg?=6f23f75a8708c6f0c8581715f3b8d1f1",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+        "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+        "https://www.hillsidebeachclub.com/assets/img/icons/philips.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "alt": "Hillside Beach Club Instagram"
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.hillsidebeachclub.com",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/pool",
+        "https://www.hillsidebeachclub.com/de/uber-das-hotel/pool",
+        "https://www.hillsidebeachclub.com/ru/about-the-resort/pool",
+        "https://www.hillsidebeachclub.com/nl/over-de-club/zwembad",
+        "https://www.hillsidebeachclub.com/tr/kulup-hakkinda/havuz",
+        "https://www.hillsidebeachclub.com/en",
+        "https://www.hillsidebeachclub.com/en/about-the-resort",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/beaches",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/rooms",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/restaurants",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/bars",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/region",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/resort-map",
+        "https://www.hillsidebeachclub.com/en/about-the-resort/meetings",
+        "https://www.hillsidebeachclub.com/en/experiences",
+        "https://www.hillsidebeachclub.com/en/experiences/water-sports",
+        "https://www.hillsidebeachclub.com/en/experiences/children-youth",
+        "https://www.hillsidebeachclub.com/en/experiences/yoga",
+        "https://www.hillsidebeachclub.com/en/experiences/sports-activities",
+        "https://www.hillsidebeachclub.com/en/experiences/excursion",
+        "https://www.hillsidebeachclub.com/en/experiences/artside",
+        "https://www.hillsidebeachclub.com/en/experiences/honeymoons",
+        "https://www.hillsidebeachclub.com/en/spa-wellness",
+        "https://www.hillsidebeachclub.com/en/gallery",
+        "https://www.hillsidebeachclub.com/en/feel-good-stories",
+        "https://www.hillsidebeachclub.com/en/contact",
+        "https://www.hillsidebeachclub.com/en/more",
+        "https://www.hillsidebeachclub.com/en/guest-reviews",
+        "https://www.hillsidebeachclub.com/en/featured-in"
+      ],
+      "public_text": "Swimming Pools | Hillside Beach Club Official Website '); } ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT MORE EN TR DE RU BOOK NOW ABOUT THE RESORT Beaches Rooms Restaurants Bars Pool Region Resort Map Meetings All About EXPERIENCES Water Sports Children & Youth Yoga Sports Activities Excursion Artside Honeymoons All Experiences SPA & WELLNESS GALLERY FEEL GOOD STORIES AWARDS CONTACT Contact Form Map App Social Media Subscribe MORE GUEST REVIEWS FEATURED-IN PRESS ROOM SEE MORE BOOK NOW Pool Jumping into the bright blue waters of Hillside Beach Club’s pool is a sure-fire way to get you from work to holiday mode in a flash! Leave the worries of daily life behind as you emerge and make your way to a comfy poolside lounger to bask in the Turkish sun. Read a book, listen to music, or just switch off and enjoy time to yourself whilst looking out over the Aegean Sea. When you’re too hot, do it all over again. Jump, swim, lounge, repeat. Hillside Beach Club also organises various poolside activities, such as water polo, aqua fitness and other pool games, so there’s always something to keep you busy without leaving the poolside. GALLERY Follow us on HillsideBeachClub press room business associates awards sustainability © 2019 Hillside Beach Club. All rights reserved. Hillside Beach Club is a Alarko company. Privacy And Protection Of Personal Data Policy Hillside Beach Club Official Website",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/1.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/2.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/3.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/4.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/5.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/instagram/6.jpg",
+          "tag": "img",
+          "alt": "Hillside Beach Club Instagram",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/ing-bank.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.hillsidebeachclub.com/assets/img/icons/philips.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.mandarinoriental.com/en/bodrum/paradise-bay/explore",
+      "final_url": "https://www.mandarinoriental.com/en/bodrum/paradise-bay/explore",
+      "page_title": " Hotel Experiences | Mandarin Oriental, Bodrum ",
+      "image_hosts": [
+        "media.ffycdn.net",
+        "www.mandarinoriental.com"
+      ],
+      "image_urls": [
+        "https://www.mandarinoriental.com/img/icons/favicon-16x16.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-32x32.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-64x64.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-128x128.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-256x256.png",
+        "https://www.mandarinoriental.com/img/icons/android-36x36.png",
+        "https://www.mandarinoriental.com/img/icons/android-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/android-72x72.png",
+        "https://www.mandarinoriental.com/img/icons/android-96x96.png",
+        "https://www.mandarinoriental.com/img/icons/android-144x144.png",
+        "https://www.mandarinoriental.com/img/icons/android-192x192.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-60x60.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-76x76.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-120x120.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-152x152.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-167x167.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-180x180.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.mandarinoriental.com/img/icons/favicon-16x16.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-32x32.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-64x64.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-128x128.png",
+        "https://www.mandarinoriental.com/img/icons/favicon-256x256.png",
+        "https://www.mandarinoriental.com/img/icons/android-36x36.png",
+        "https://www.mandarinoriental.com/img/icons/android-48x48.png",
+        "https://www.mandarinoriental.com/img/icons/android-72x72.png",
+        "https://www.mandarinoriental.com/img/icons/android-96x96.png",
+        "https://www.mandarinoriental.com/img/icons/android-144x144.png",
+        "https://www.mandarinoriental.com/img/icons/android-192x192.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-60x60.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-76x76.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-120x120.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-152x152.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-167x167.png",
+        "https://www.mandarinoriental.com/img/icons/apple-touch-icon-180x180.png",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/bjqno34XYwY8nnPcgtki.jpg",
+        "https://media.ffycdn.net/eu/mandarin-oriental-hotel-group/KkeV2ndoShmTc1B42m31.jpg"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/zh-cn/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/tr/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/pt-br/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/fr/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/es/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/cs/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/it/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/ar-ae/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/es-es/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/de/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/el-gr/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/ru/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/ko-kr/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/th/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/ja/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/ca-es/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/id/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/zh-hk/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/nl/bodrum/paradise-bay/explore",
+        "https://www.mandarinoriental.com/app.webmanifest",
+        "https://www.mandarinoriental.com/en",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/stay",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/dine",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/wellness",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/celebrate",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/meet",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/family",
+        "https://www.mandarinoriental.com/en/bodrum/paradise-bay/gallery"
+      ],
+      "public_text": "\") document.write(\" \") function OptanonWrapper() {} } else { document.write(\" \") function OptanonWrapper() {} } Hotel Experiences | Mandarin Oriental, Bodrum Skip to Navigation Skip to Content Skip to Footer Global Home Bodrum Sign In / Join Now Logout Languages Our Hotels & Resorts Stay Dine Wellness Explore Celebrate Meet Family Gallery Gift Offers Book Book Stay Stay All Accommodations Rooms Suites Villas Apartments Connecting & Family Rooms Exceptional Villas Spacious Suites Dine All Dining Blue Beach Club & Bar Ferdi Baba GAIA Gigi Bodrum Hafız Mustafa 1864 Hakkasan Maison Revka Mandarin Bar Pool Bar & Restaurant ROKA Sofra Vakko L'atelier In-Room Dining Wellness All Wellness Spa Treatments Fitness Wellness Technology Packages and Retreats Family Schedule a Treatment Explore Celebrate Meet Gift Family Offers About Events Fans of M.O. Members Luxury Retails Sustainability Gallery All Destinations Asia-Pacific Bangkok Beijing - Qianmen Beijing - Wangfujing Desaru Coast Guangzhou Hangzhou (Opening Spring 2027) Hong Kong - Mandarin Oriental Hong Kong - The Landmark Jakarta Kuala Lumpur Macau Manila - Makati (Opening November 2026) Sanya Shanghai – Pudong Shenzhen Singapore Suzhou (Opening 2027) Taipei Tokyo Europe Amsterdam Barcelona Bodrum Cortina (Opening 2027) Costa Navarino Geneva Istanbul Lake Como London - Hyde Park London – Mayfair Luzern Madrid Mallorca Milan Munich Paris Paris - Lutetia Prague Vienna Zurich The Americas Boston Canouan Miami (Reopening 2030) New York Santiago Middle East & Africa Abu Dhabi Aswan - Old Cataract Doha Dubai - Downtown Dubai - Jumeira Beach Marrakech Muscat Riyadh Stay Dine Wellness Explore Celebrate Meet Gift Family Offers About Events Fans of M.O. Members Luxury Retails Sustainability Gallery All Destinations Back All Accommodations Rooms Suites Villas Apartments Connecting & Family Rooms Exceptional Villas Spacious Suites Back All Dining Blue Beach Club & Bar Ferdi Baba GAIA Gigi Bodrum Hafız Mustafa 1864 Hakkasan Maison Revka Mandarin Bar Pool Bar & Restaurant ROKA Sofra Vakko L'atelier In-Room Dining Back All Wellness Spa Treatments Fitness Wellness Technology Packages and Retreats Family Schedule a Treatment Back Back Back Back Back Back Back Back Back Back Back Back Back Asia-Pacific Bangkok Beijing - Qianmen Beijing - Wangfujing Desaru Coast Guangzhou Hangzhou (Opening Spring 2027) Hong Kong - Mandarin Oriental Hong Kong - The Landmark Jakarta Kuala Lumpur Macau Manila - Makati (Opening November 2026) Sanya Shanghai – Pudong Shenzhen Singapore Suzhou (Opening 2027) Taipei Tokyo Europe Amsterdam Barcelona Bodrum Cortina (Opening 2027) Costa Navarino Geneva Istanbul Lake Como London - Hyde Park London – Mayfair Luzern Madrid Mallorca Milan Munich Paris Paris - Lutetia Prague Vienna Zurich The Americas Boston Canouan Miami (Reopening 2030) New York Santiago Middle East & Africa Abu Dhabi Aswan - Old Cataract Doha Dubai - Downtown Dubai - Jumeira Beach Marrakech Muscat Riyadh Bodrum Göltürkbükü Mahallesi 314. Sokak No.10 Bodrum, Muğla 48483 mobod-reservations@mohg.com +90 252 311 18 88 Bodrum Explore With its rich history, long beaches, and dramatic landscapes, Bodrum offers the perfect relaxing getaway. Our selection of exclusive experiences highlight the very best this beautiful Turkish port city has to offer. Activity Brochure Discover Bodrum UNFOLD Magazine Your essential guide to Bodrum See More Play Experience the Finest Leisure Activities See More UNFOLD Magazine Five locally-inspired spa treatments at Mandarin Oriental See More Make sure you see these 12 historical places in Bodrum See More UNFOLD Magazine Seven Ways to Enrich Your Bodrum Experience See More Mandarin Oriental, Bodrum Göltürkbükü Mahallesi 314. Sokak No.10, Bodrum, 48483, Türkiye +90 252 311 18 88 mobod-reservations@mohg.com Contact Us Corporate Our Company The O&MO Alliance Corporate Contacts Regional Sales Offices Sustainability Careers Fan Club Advisors Explore Gift Cards Residences Best Rate Promise Mandarin Oriental Shop Media Centre Support Fans of M.O. Login Modify/Cancel Reservation Connect Contact Us Subscribe Facebook Instagram 2026 © Mandarin Oriental Hotel Group Limited Privacy Policy Ad & Cookie Policy Legal Notices",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://baruthemera.com/en/gallery",
+      "final_url": "https://baruthemera.com/en/gallery",
+      "page_title": "Gallery  - BARUT HEMERA",
+      "image_hosts": [
+        "api.baruthotelsgroup.com",
+        "baruthemera.com"
+      ],
+      "image_urls": [
+        "https://baruthemera.com/images/favicon/apple-icon-57x57.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-60x60.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-72x72.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-76x76.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-114x114.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-120x120.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-144x144.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-152x152.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-180x180.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/android-icon-192x192.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/favicon-32x32.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/favicon-96x96.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/favicon-16x16.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/ms-icon-144x144.png?v=1.0.17",
+        "https://baruthemera.com/images/app.png",
+        "https://baruthemera.com/images/app_store.png",
+        "https://baruthemera.com/images/google_play.png",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/2b77e490198bbf71ba98694d706f3631.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/ffb3047a5891b9c877abc56449632087.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/c031027740d689b124055bae513f1a38.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7ffee7f49f42332e242e5e87246eedf.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/8aa2f5dd90253588f7070127ebc6622c.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/b8ae6cf09257b6bc20b58b4ab8e91897.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/bf211056313bb68bf208c1aefcdf7fb2.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/85d491a8294c3f6d3a33d7619a2c1041.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/e591c988de0ed882939115b8c3f16a99.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/882ef8caac3b205418109ae28a448639.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7bc93478a967317a0e60b719ab8549c.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/fa484d7624f3d856a4f4a773a1db35b0.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/df821d38ae895123c560bb296513ae84.jpeg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/3f7146fbe1b3a1db44c33e12a8e5894f.jpeg",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/5287a0f416a5fcadb0c34dfdcc2ba6ee.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/75f0218ccaca27eff1434094a8dd8a99.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a1cb036b1aeed97dea397aeb9850b23d.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/4599831a92131e991b608599e15343bd.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/f52da43e625f1af0a5841a97bb8bc641.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6599b6919443cb1639b0299eddbb95dd.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a75046b9ea6b820315def328d704ec3e.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/c80665632870573cf948b5b4403133a9.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/43487a416bca81dfc6841e707634a39c.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/1a17b97f139eb45dc51155821d9e4b62.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6a0d454ca60dfc40291d47630c2063a6.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/be8b38bf2b08f49a9e138578ecc114c8.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/e66a4d35478c7a63eb842c0f47d19736.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/aabdaca875cecca0f8a26457a0e688c7.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/6e3e5919-7d5e-1915-544b-2f05dcc1ce49/d6e2fe74932d8bcf03ac176309a19dcc.webp"
+      ],
+      "declared_public_image_references": [
+        "https://baruthemera.com/images/favicon/apple-icon-57x57.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-60x60.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-72x72.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-76x76.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-114x114.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-120x120.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-144x144.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-152x152.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/apple-icon-180x180.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/android-icon-192x192.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/favicon-32x32.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/favicon-96x96.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/favicon-16x16.png?v=1.0.17",
+        "https://baruthemera.com/images/favicon/ms-icon-144x144.png?v=1.0.17",
+        "https://baruthemera.com/images/app.png",
+        "https://baruthemera.com/images/app_store.png",
+        "https://baruthemera.com/images/google_play.png",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/2b77e490198bbf71ba98694d706f3631.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/ffb3047a5891b9c877abc56449632087.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/c031027740d689b124055bae513f1a38.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7ffee7f49f42332e242e5e87246eedf.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/8aa2f5dd90253588f7070127ebc6622c.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/b8ae6cf09257b6bc20b58b4ab8e91897.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/bf211056313bb68bf208c1aefcdf7fb2.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/85d491a8294c3f6d3a33d7619a2c1041.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/e591c988de0ed882939115b8c3f16a99.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/882ef8caac3b205418109ae28a448639.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7bc93478a967317a0e60b719ab8549c.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/fa484d7624f3d856a4f4a773a1db35b0.jpg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/df821d38ae895123c560bb296513ae84.jpeg",
+        "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/3f7146fbe1b3a1db44c33e12a8e5894f.jpeg",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/5287a0f416a5fcadb0c34dfdcc2ba6ee.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/75f0218ccaca27eff1434094a8dd8a99.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a1cb036b1aeed97dea397aeb9850b23d.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/4599831a92131e991b608599e15343bd.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/f52da43e625f1af0a5841a97bb8bc641.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6599b6919443cb1639b0299eddbb95dd.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a75046b9ea6b820315def328d704ec3e.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/c80665632870573cf948b5b4403133a9.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/43487a416bca81dfc6841e707634a39c.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/1a17b97f139eb45dc51155821d9e4b62.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6a0d454ca60dfc40291d47630c2063a6.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/be8b38bf2b08f49a9e138578ecc114c8.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/e66a4d35478c7a63eb842c0f47d19736.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/aabdaca875cecca0f8a26457a0e688c7.webp",
+        "https://api.baruthotelsgroup.com/uploads/pages/6e3e5919-7d5e-1915-544b-2f05dcc1ce49/d6e2fe74932d8bcf03ac176309a19dcc.webp"
+      ],
+      "image_details": [
+        {
+          "url": "https://baruthemera.com/images/app.png",
+          "alt": "Barut App QR Code"
+        },
+        {
+          "url": "https://baruthemera.com/images/app_store.png",
+          "alt": "App Store"
+        },
+        {
+          "url": "https://baruthemera.com/images/google_play.png",
+          "alt": "Google Play"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp",
+          "alt": "Accommodation"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/2b77e490198bbf71ba98694d706f3631.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/ffb3047a5891b9c877abc56449632087.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/c031027740d689b124055bae513f1a38.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7ffee7f49f42332e242e5e87246eedf.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/8aa2f5dd90253588f7070127ebc6622c.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/b8ae6cf09257b6bc20b58b4ab8e91897.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/bf211056313bb68bf208c1aefcdf7fb2.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/85d491a8294c3f6d3a33d7619a2c1041.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/e591c988de0ed882939115b8c3f16a99.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/882ef8caac3b205418109ae28a448639.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7bc93478a967317a0e60b719ab8549c.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/fa484d7624f3d856a4f4a773a1db35b0.jpg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/df821d38ae895123c560bb296513ae84.jpeg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/3f7146fbe1b3a1db44c33e12a8e5894f.jpeg",
+          "alt": "Gastronomy"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/5287a0f416a5fcadb0c34dfdcc2ba6ee.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/75f0218ccaca27eff1434094a8dd8a99.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a1cb036b1aeed97dea397aeb9850b23d.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/4599831a92131e991b608599e15343bd.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/f52da43e625f1af0a5841a97bb8bc641.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6599b6919443cb1639b0299eddbb95dd.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a75046b9ea6b820315def328d704ec3e.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/c80665632870573cf948b5b4403133a9.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/43487a416bca81dfc6841e707634a39c.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/1a17b97f139eb45dc51155821d9e4b62.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6a0d454ca60dfc40291d47630c2063a6.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/be8b38bf2b08f49a9e138578ecc114c8.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/e66a4d35478c7a63eb842c0f47d19736.webp",
+          "alt": "Experiences"
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/aabdaca875cecca0f8a26457a0e688c7.webp",
+          "alt": "Experiences"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://baruthemera.com/en",
+        "https://baruthemera.com/lang/tr",
+        "https://baruthemera.com/lang/en",
+        "https://baruthemera.com/lang/de",
+        "https://baruthemera.com/lang/ru",
+        "https://baruthemera.com/en/gallery",
+        "https://baruthemera.com/en/concept",
+        "https://baruthemera.com/en/stay",
+        "https://baruthemera.com/en/gastronomy",
+        "https://baruthemera.com/en/advantages-offers",
+        "https://baruthemera.com/en/kids-youth-clubs",
+        "https://baruthemera.com/en/experience",
+        "https://baruthemera.com/en/meeting-event",
+        "https://baruthemera.com/en/personal-data-processing-and-protection-policy",
+        "https://baruthemera.com/en/contact",
+        "https://baruthemera.com/cdn-cgi/l/email-protection",
+        "https://baruthemera.com/en/when-to-visit",
+        "https://baruthemera.com/en/how-to-get-there",
+        "https://baruthemera.com/en/what-to-do",
+        "https://baruthemera.com/",
+        "https://baruthemera.com/en/heritage",
+        "https://baruthemera.com/en/bayou-2027",
+        "https://baruthemera.com/en/certificates-awards",
+        "https://baruthemera.com/en/cookie-policy"
+      ],
+      "public_text": "Gallery - BARUT HEMERA EN TR EN DE RU Sign In App Our Hotels Concept Stay Gastronomy Advantages & Offers Kids Experiences Meetings & Events Gallery BOOK NOW Barut Hotel Groups Menu Concept Stay Gastronomy Advantages & Offers Kids Experiences Meetings & Events Gallery Our Policies Contact Copyright 2026, Barut Hotel Group Press ESC to close You can download it by scanning the QR code. The Barut App Information about your stay, hotel maps, and current deals are on your phone. BARUT HEMERA / Gallery GALLERY A Glimpse into the Barut World Discover the distinctive atmosphere of Barut through sunlit shores, refined architecture and thoughtfully designed experiences. Each image captures a sense of place, effortless hospitality and the memorable moments that shape every stay. All Accommodation Gastronomy Visit Page Experiences BARUT HEMERA BARUT HEMERA Side, Süleyman Demirel Blv. No:1, 07330 Manavgat/Antalya, Türkiye FAQ Does the hotel offer vegan options at breakfast? Yes, we offer a wide range of vegan and vegetarian options at our breakfast buffet, prepared with fresh, locally sourced ingredients. Is Wi-Fi available at the hotel? Complimentary high-speed Wi-Fi is available throughout the entire hotel, including all rooms, restaurants, and common areas. What facilities are available for children? We offer Kids & Youth Clubs, a children's pool, playground, and various supervised activities designed for different age groups. Is the hotel located on the beachfront? Yes, Barut Hemera is situated directly on the beachfront, offering private beach access and stunning sea views. Is airport transfer service available? Yes, we offer airport transfer services upon request. Please contact our reservations team to arrange your transfer in advance. For Reservations +90 444 96 00 [email protected] Nearby Places Side Museum 8 mins. Aspendos 32 mins. Manavgat Falls 15 mins. Perge 53 mins. A Mediterranean Destination Side wears its history lightly. An ancient theatre and the Temple of Apollo stand among its streets, the beaches run either side of the promontory, and the whole of the Pamphylian coast opens out from the hotel gate. When to Visit? How to Get There? What to Do? Mediterranean Roots Since 1971 BARUT HOTELS BARUT B SUITES BARUT GOIA BARUT HEMERA TUI BLUE BARUT ANDIZ BARUT COLLECTION ARUM BARUT COLLECTION BAYOU LUXURY RESORTS & VILLAS BAYOU ACANTHUS BAYOU ANDA BAYOU LARA About Bayou 2027 Vision Certificates & Awards Contact Our Policies Copyright 2026, Barut Hotel Group",
+      "json_fact_fragments": [],
+      "album_context": [
+        "ss=\"btn-lang\" id=\"btnLang\">\n                            EN                            <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\">\n                                <g id=\"Group_167\" data-name=\"Group 167\" transform=\"translate(12776 30)\">\n                                    <rect id=\"Rectangle_25\" data-name=\"Rectangle 25\" width=\"24\" height=\"24\"\n                                        transform=\"translate(-12776 -30)\" fill=\"none\" />\n                                    <path id=\"chevron-down\" d=\"M6,9l6,6,6-6\" transform=\"translate(-12775.5 -29.5)\"\n                                        fill=\"none\" stroke=\"currentColor\" ",
+        "/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\">\n                                <g id=\"Group_167\" data-name=\"Group 167\" transform=\"translate(12776 30)\">\n                                    <rect id=\"Rectangle_25\" data-name=\"Rectangle 25\" width=\"24\" height=\"24\"\n                                        transform=\"translate(-12776 -30)\" fill=\"none\" />\n                                    <path id=\"chevron-down\" d=\"M6,9l6,6,6-6\" transform=\"translate(-12775.5 -29.5)\"\n                                        fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\"\n                                        stroke-linejoin=\"round\" stroke-width=\"0.75\" />\n        ",
+        "=\"#\" class=\"header-link d-none\">Sign In<!-- header.singin --> <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\"\n                            height=\"24\" viewBox=\"0 0 24 24\">\n                            <g id=\"Group_169\" data-name=\"Group 169\" transform=\"translate(12479 41)\">\n                                <rect id=\"Rectangle_38\" data-name=\"Rectangle 38\" width=\"24\" height=\"24\"\n                                    transform=\"translate(-12479 -41)\" fill=\"none\" />\n                                <g id=\"clover\" transform=\"translate(-12477.87 -40.005)\">\n                                    <path id=\"Path_7\" data-name=\"Path 7\" d=\"M10.694,7.83,2,16.529\"\n         ",
+        "\"\n                            height=\"24\" viewBox=\"0 0 24 24\">\n                            <g id=\"Group_169\" data-name=\"Group 169\" transform=\"translate(12479 41)\">\n                                <rect id=\"Rectangle_38\" data-name=\"Rectangle 38\" width=\"24\" height=\"24\"\n                                    transform=\"translate(-12479 -41)\" fill=\"none\" />\n                                <g id=\"clover\" transform=\"translate(-12477.87 -40.005)\">\n                                    <path id=\"Path_7\" data-name=\"Path 7\" d=\"M10.694,7.83,2,16.529\"\n                                        transform=\"translate(4.435 -1.083)\" fill=\"none\" stroke=\"currentColor\"\n             ",
+        "                            transform=\"translate(-12479 -41)\" fill=\"none\" />\n                                <g id=\"clover\" transform=\"translate(-12477.87 -40.005)\">\n                                    <path id=\"Path_7\" data-name=\"Path 7\" d=\"M10.694,7.83,2,16.529\"\n                                        transform=\"translate(4.435 -1.083)\" fill=\"none\" stroke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0.75\" />\n                                    <path id=\"Path_8\" data-name=\"Path 8\"\n                                        d=\"M3.908,11.005A2.514,2.514,0,1,1,7.3,7.3a2.514,2.514,0,1,1",
+        "nslate(4.435 -1.083)\" fill=\"none\" stroke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0.75\" />\n                                    <path id=\"Path_8\" data-name=\"Path 8\"\n                                        d=\"M3.908,11.005A2.514,2.514,0,1,1,7.3,7.3a2.514,2.514,0,1,1,3.709-3.389A2.514,2.514,0,1,1,14.714,7.3,2.514,2.514,0,1,1,18.1,11.005a2.514,2.514,0,1,1-3.389,3.709A2.514,2.514,0,1,1,11.005,18.1,2.514,2.514,0,1,1,7.3,14.714,2.518,2.518,0,1,1,3.89,11.005\"\n                                        transform=\"translate(-0.136)\" fill=\"none\" stroke=\"currentColor\"\n                       ",
+        "m=\"translate(-0.136)\" fill=\"none\" stroke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0.75\" />\n                                    <path id=\"Path_9\" data-name=\"Path 9\" d=\"M7.83,7.83l7.91,7.92\"\n                                        transform=\"translate(-0.654 -0.536)\" fill=\"none\" stroke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0.75\" />\n                                </g>\n                            </g>\n                        </svg>\n                    </a>\n                    <a href=\"#\" class=\"header-l",
+        "#\" class=\"header-link\" id=\"btnAppLink\">App<!-- header.app --> <svg\n                            xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\">\n                            <g id=\"Group_168\" data-name=\"Group 168\" transform=\"translate(12594 38)\">\n                                <g id=\"smartphone\" transform=\"translate(-12592 -36.093)\">\n                                    <rect id=\"Rectangle_26\" data-name=\"Rectangle 26\" width=\"10\" height=\"16\" rx=\"2\"\n                                        transform=\"translate(5 2.093)\" fill=\"none\" stroke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejo",
+        "id=\"Group_168\" data-name=\"Group 168\" transform=\"translate(12594 38)\">\n                                <g id=\"smartphone\" transform=\"translate(-12592 -36.093)\">\n                                    <rect id=\"Rectangle_26\" data-name=\"Rectangle 26\" width=\"10\" height=\"16\" rx=\"2\"\n                                        transform=\"translate(5 2.093)\" fill=\"none\" stroke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0.75\" />\n                                    <path id=\"Path_3964\" data-name=\"Path 3964\" d=\"M12,18h.008\"\n                                        transform=\"translate(-2.008 -2.453)\" fi",
+        "ranslate(5 2.093)\" fill=\"none\" stroke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0.75\" />\n                                    <path id=\"Path_3964\" data-name=\"Path 3964\" d=\"M12,18h.008\"\n                                        transform=\"translate(-2.008 -2.453)\" fill=\"none\" stroke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" />\n                                </g>\n                                <rect id=\"Rectangle_38\" data-name=\"Rectangle 38\" width=\"24\" height=\"24\"\n                                    transfor",
+        "roke=\"currentColor\"\n                                        stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" />\n                                </g>\n                                <rect id=\"Rectangle_38\" data-name=\"Rectangle 38\" width=\"24\" height=\"24\"\n                                    transform=\"translate(-12594 -38)\" fill=\"none\" />\n                            </g>\n                        </svg>\n                    </a>\n                </div>\n            </div>\n        </div>\n    </div>\n    <!-- Nav Bar -->\n    <div class=\"header-nav\">\n        <div class=\"container-fluid px-4\">\n            <div class=\"header-nav-inner\">\n                <d",
+        "\n                            Our Hotels<!-- our_hotels -->                            <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\">\n                                <g id=\"Group_167\" data-name=\"Group 167\" transform=\"translate(12776 30)\">\n                                    <rect id=\"Rectangle_25\" data-name=\"Rectangle 25\" width=\"24\" height=\"24\"\n                                        transform=\"translate(-12776 -30)\" fill=\"none\" />\n                                    <path id=\"chevron-down\" d=\"M6,9l6,6,6-6\" transform=\"translate(-12775.5 -29.5)\"\n                                        fill=\"none\" stroke=\"currentColor\" ",
+        "/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\">\n                                <g id=\"Group_167\" data-name=\"Group 167\" transform=\"translate(12776 30)\">\n                                    <rect id=\"Rectangle_25\" data-name=\"Rectangle 25\" width=\"24\" height=\"24\"\n                                        transform=\"translate(-12776 -30)\" fill=\"none\" />\n                                    <path id=\"chevron-down\" d=\"M6,9l6,6,6-6\" transform=\"translate(-12775.5 -29.5)\"\n                                        fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\"\n                                        stroke-linejoin=\"round\" stroke-width=\"0.75\" />\n        ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     ",
+        "ub=\"galeri-accommodation\">\n                    <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/upl",
+        "                  <!-- <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\" data-title=\"Accommodation\" data-description=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d6",
+        "escription=\"Accommodation\"> -->\n                    <a href=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp\" class=\"glightbox gallery-card-link\" data-gallery=\"barut-gallery\">\n                        <div class=\"gallery-card-image-wrap\">\n                            <img src=\"https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp\" alt=\"Accommodation\" loading=\"lazy\">\n                            <!-- <div class=\"gallery-card-overlay\">\n                                <div class=\"gallery-card-circle-btn\">\n                     "
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://baruthemera.com/images/app.png",
+          "tag": "img",
+          "alt": "Barut App QR Code",
+          "categories": []
+        },
+        {
+          "url": "https://baruthemera.com/images/app_store.png",
+          "tag": "img",
+          "alt": "App Store",
+          "categories": []
+        },
+        {
+          "url": "https://baruthemera.com/images/google_play.png",
+          "tag": "img",
+          "alt": "Google Play",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/2ab641535418995c828ebae2feb4b588.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a3eeb75721d4463befc7ada5c2adb736.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/1a8eb12264582bb743c377d54d4de6bc.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/89e692fc6d5d26097e9b0fa83f6bc204.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/5e6b8559de36a49800f5343d0a9d0e0c.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/ccaa49ab3d6421e42ca01772ce1c44ed.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/d5837672fc74d41da409f94063687a8d.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/dc1f0f573f7e26b144e696e9377aff3f.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/0bfc3b83-5994-d618-9597-aa2b45804021/a633aa0ea0937ca6983f626651f6c3b8.webp",
+          "tag": "img",
+          "alt": "Accommodation",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/2b77e490198bbf71ba98694d706f3631.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/2b77e490198bbf71ba98694d706f3631.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/ffb3047a5891b9c877abc56449632087.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/ffb3047a5891b9c877abc56449632087.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/c031027740d689b124055bae513f1a38.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/c031027740d689b124055bae513f1a38.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7ffee7f49f42332e242e5e87246eedf.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7ffee7f49f42332e242e5e87246eedf.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/8aa2f5dd90253588f7070127ebc6622c.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/8aa2f5dd90253588f7070127ebc6622c.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/b8ae6cf09257b6bc20b58b4ab8e91897.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/b8ae6cf09257b6bc20b58b4ab8e91897.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/bf211056313bb68bf208c1aefcdf7fb2.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/bf211056313bb68bf208c1aefcdf7fb2.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/85d491a8294c3f6d3a33d7619a2c1041.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/85d491a8294c3f6d3a33d7619a2c1041.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/e591c988de0ed882939115b8c3f16a99.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/e591c988de0ed882939115b8c3f16a99.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/882ef8caac3b205418109ae28a448639.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/882ef8caac3b205418109ae28a448639.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7bc93478a967317a0e60b719ab8549c.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/a7bc93478a967317a0e60b719ab8549c.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/fa484d7624f3d856a4f4a773a1db35b0.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/fa484d7624f3d856a4f4a773a1db35b0.jpg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/df821d38ae895123c560bb296513ae84.jpeg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/df821d38ae895123c560bb296513ae84.jpeg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/3f7146fbe1b3a1db44c33e12a8e5894f.jpeg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/87878815-419d-335d-ae5c-7e1b883bf67e/3f7146fbe1b3a1db44c33e12a8e5894f.jpeg",
+          "tag": "img",
+          "alt": "Gastronomy",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/5287a0f416a5fcadb0c34dfdcc2ba6ee.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/5287a0f416a5fcadb0c34dfdcc2ba6ee.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/75f0218ccaca27eff1434094a8dd8a99.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/75f0218ccaca27eff1434094a8dd8a99.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a1cb036b1aeed97dea397aeb9850b23d.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a1cb036b1aeed97dea397aeb9850b23d.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/4599831a92131e991b608599e15343bd.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/4599831a92131e991b608599e15343bd.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/f52da43e625f1af0a5841a97bb8bc641.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/f52da43e625f1af0a5841a97bb8bc641.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6599b6919443cb1639b0299eddbb95dd.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6599b6919443cb1639b0299eddbb95dd.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a75046b9ea6b820315def328d704ec3e.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/a75046b9ea6b820315def328d704ec3e.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/c80665632870573cf948b5b4403133a9.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/c80665632870573cf948b5b4403133a9.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/43487a416bca81dfc6841e707634a39c.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/43487a416bca81dfc6841e707634a39c.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/1a17b97f139eb45dc51155821d9e4b62.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/1a17b97f139eb45dc51155821d9e4b62.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6a0d454ca60dfc40291d47630c2063a6.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/6a0d454ca60dfc40291d47630c2063a6.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/be8b38bf2b08f49a9e138578ecc114c8.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/be8b38bf2b08f49a9e138578ecc114c8.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/e66a4d35478c7a63eb842c0f47d19736.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/e66a4d35478c7a63eb842c0f47d19736.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/aabdaca875cecca0f8a26457a0e688c7.webp",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://api.baruthotelsgroup.com/uploads/pages/62ec5813-fed2-1dc5-33a1-8145206ef11f/aabdaca875cecca0f8a26457a0e688c7.webp",
+          "tag": "img",
+          "alt": "Experiences",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "final_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "page_title": "\r\n    \n    Limak Lara Deluxe Hotel & Resort | Photo Gallery\n  \r\n  ",
+      "image_hosts": [
+        "dd-cdn.multiscreensite.com",
+        "irp-cdn.multiscreensite.com",
+        "irp.cdn-website.com"
+      ],
+      "image_urls": [
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/limakhotels2-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/logonew-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan4-2-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan4-2-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan1-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan1-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%283%29-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%283%29-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan%2B7-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan%2B7-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%285%29-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%285%29-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%282%29-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%282%29-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%286%29-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%286%29-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM1-f5634947.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM1-f5634947-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM1-f5634947-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM2-5cdf4e51.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM2-5cdf4e51-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM2-5cdf4e51-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM5-5f21bd18.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM5-5f21bd18-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM5-5f21bd18-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM7-c9b31fce.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM7-c9b31fce-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM7-c9b31fce-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM6-6faec4bd.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM6-6faec4bd-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM6-6faec4bd-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/GRAND%2BSUITE%2BROOM9-10c98b6d.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM9-10c98b6d-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM9-10c98b6d-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/GRAND%2BSUITE%2BROOM8-27ab3fd5.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM8-27ab3fd5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM8-27ab3fd5-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/GRAND%2BSUITE%2BROOM10-f4642525.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM10-f4642525-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM10-f4642525-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/GRAND%2BSUITE%2BROOM3-27ff7fa9.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM3-27ff7fa9-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM3-27ff7fa9-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/STANDART%2BROOM3-61f3a14a.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM3-61f3a14a-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM3-61f3a14a-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/STANDART%2BROOM2-762f8562.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM2-762f8562-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM2-762f8562-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/STANDART%2BROOM1-6b0e0dd8.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM1-6b0e0dd8-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM1-6b0e0dd8-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte3-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte5-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte4-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar5-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/BAR1-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/BAR1-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar4-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar3-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE4-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATTISERIE6-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATTISERIE6-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE3-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE5-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Restorant-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Restorant-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant4-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant1-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant1-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU5-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU%2B2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU%2B2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU4-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU3-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU1-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU1-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA1-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA1-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/sauna-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/sauna-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/fitness-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/fitness-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/hamam-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/hamam-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub4-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub3-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/minclub2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/minclub2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon4-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon3-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite%2B1-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite%2B1-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite7-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite7-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite4-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite3-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite5-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1591085404732-90b67a0ddbb2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1591085404732-90b67a0ddbb2-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1599376871063-1b999e42afde-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1599376871063-1b999e42afde-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/l-C4-B1mak1-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/l-C4-B1mak1.png",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/LimakHotels%2B2-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/LimakHotels%2B2.png",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/DU-ZEN-01.png",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-01-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-01-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/DU-ZEN-02.png",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-02-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-02-1920w.png?jxl&v=jxl"
+      ],
+      "declared_public_image_references": [
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/limakhotels5757.png",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/limakhotels2-1920w.png?jxl&v=jxl",
+        "https://dd-cdn.multiscreensite.com/flags/flags_iso/32/us.png",
+        "https://dd-cdn.multiscreensite.com/flags/flags_iso/32/fr.png",
+        "https://dd-cdn.multiscreensite.com/flags/flags_iso/32/de.png",
+        "https://dd-cdn.multiscreensite.com/flags/flags_iso/32/ru.png",
+        "https://dd-cdn.multiscreensite.com/flags/flags_iso/32/tr.png",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/logonew-1920w.png?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/logonew.png",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Genel%2BAlan4-2.png",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan4-2-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan4-2-1920w.png?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Genel%2BAlan1.png",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan1-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan1-1920w.png?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/GENEL%2BALAN%2B%283%29.png",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%283%29-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%283%29-1920w.png?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Genel%2BAlan%2B7.png",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan%2B7-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan%2B7-1920w.png?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Genel%2BAlan2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/GENEL%2BALAN%2B%285%29.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%285%29-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%285%29-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/GENEL%2BALAN%2B%282%29.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%282%29-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%282%29-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/GENEL%2BALAN%2B%286%29.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%286%29-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%286%29-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM1-f5634947.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM1-f5634947-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM1-f5634947-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM2-5cdf4e51.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM2-5cdf4e51-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM2-5cdf4e51-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM5-5f21bd18.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM5-5f21bd18-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM5-5f21bd18-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM7-c9b31fce.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM7-c9b31fce-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM7-c9b31fce-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/FAMILY%2BROOM6-6faec4bd.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM6-6faec4bd-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM6-6faec4bd-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/GRAND%2BSUITE%2BROOM9-10c98b6d.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM9-10c98b6d-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM9-10c98b6d-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/GRAND%2BSUITE%2BROOM8-27ab3fd5.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM8-27ab3fd5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM8-27ab3fd5-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/GRAND%2BSUITE%2BROOM10-f4642525.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM10-f4642525-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM10-f4642525-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/GRAND%2BSUITE%2BROOM3-27ff7fa9.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM3-27ff7fa9-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM3-27ff7fa9-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/STANDART%2BROOM3-61f3a14a.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM3-61f3a14a-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM3-61f3a14a-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/STANDART%2BROOM2-762f8562.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM2-762f8562-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM2-762f8562-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/STANDART%2BROOM1-6b0e0dd8.jpg",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM1-6b0e0dd8-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM1-6b0e0dd8-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/alacarte3.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte3-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/alacarte5.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte5-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Alacarte2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Alacarte.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/alacarte4.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte4-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/bar5.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar5-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/BAR1.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/BAR1-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/BAR1-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/bar4.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar4-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/bar3.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar3-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/bar2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/PATISSERIE4.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE4-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/PATTISERIE6.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATTISERIE6-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATTISERIE6-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/PATISSERIE3.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE3-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/PATISSERIE2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/PATISSERIE5.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE5-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/PATISSERIE.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Restorant.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Restorant-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Restorant-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/restorant4.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant4-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/restorant2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/restorant1.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant1-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant1-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/TOPLANTI%2BSALONU5.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU5-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/TOPLANTI%2BSALONU%2B2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU%2B2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU%2B2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/TOPLANTI%2BSALONU4.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU4-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/TOPLANTI%2BSALONU3.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU3-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/TOPLANTI%2BSALONU.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/TOPLANTI%2BSALONU1.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU1-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU1-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/SPA2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/SPA1.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA1-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA1-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/SPA.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/kapal%C4%B1%2Bhavuz.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/kapal%C4%B1%2Bhavuz2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/sauna.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/sauna-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/sauna-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/fitness.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/fitness-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/fitness-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/hamam.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/hamam-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/hamam-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/miniclub4.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub4-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/miniclub3.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub3-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/miniclub.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/minclub2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/minclub2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/minclub2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/animasyon4.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon4-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/animasyon.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/animasyon3.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon3-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/animasyon2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Aktivite%2B1.png",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite%2B1-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite%2B1-1920w.png?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/aktivite7.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite7-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite7-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Aktivite4.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite4-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite4-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Aktivite3.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite3-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite3-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/aktivite5.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite5-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite5-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Aktivite2.jpg",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/md/unsplash/dms3rep/multi/photo-1591085404732-90b67a0ddbb2.jpg",
+        "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1591085404732-90b67a0ddbb2-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1591085404732-90b67a0ddbb2-1920w.jpg?jxl&v=jxl",
+        "https://irp-cdn.multiscreensite.com/md/unsplash/dms3rep/multi/photo-1599376871063-1b999e42afde.jpg",
+        "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1599376871063-1b999e42afde-640w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1599376871063-1b999e42afde-1920w.jpg?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/l-C4-B1mak1-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/l-C4-B1mak1.png",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/LimakHotels%2B2-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/LimakHotels%2B2.png",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/DU-ZEN-01.png",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-01-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-01-1920w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/DU-ZEN-02.png",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-02-640w.png?jxl&v=jxl",
+        "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-02-1920w.png?jxl&v=jxl"
+      ],
+      "image_details": [
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/logonew-1920w.png?jxl&v=jxl",
+          "alt": "A white background with a few lines on it"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan4-2-1920w.png?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan1-1920w.png?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%283%29-1920w.png?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan%2B7-1920w.png?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%285%29-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%282%29-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%286%29-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM1-f5634947-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM2-5cdf4e51-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM5-5f21bd18-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM7-c9b31fce-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM6-6faec4bd-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM9-10c98b6d-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM8-27ab3fd5-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM10-f4642525-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM3-27ff7fa9-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM3-61f3a14a-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM2-762f8562-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM1-6b0e0dd8-1920w.jpg?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte3-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte5-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte4-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar5-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/BAR1-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar4-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar3-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE4-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATTISERIE6-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE3-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE5-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Restorant-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant4-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant1-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU5-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU%2B2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU4-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU3-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU1-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA1-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/sauna-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/fitness-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/hamam-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub4-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub3-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/minclub2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon4-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon3-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite%2B1-1920w.png?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite7-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite4-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite3-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite5-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1591085404732-90b67a0ddbb2-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1599376871063-1b999e42afde-1920w.jpg?jxl&v=jxl",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/l-C4-B1mak1-1920w.png?jxl&v=jxl",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/l-C4-B1mak1.png",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/LimakHotels%2B2-1920w.png?jxl&v=jxl",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/LimakHotels%2B2.png",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-01-1920w.png?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-02-1920w.png?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/l-C4-B1mak1-1920w.png?jxl&v=jxl",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/l-C4-B1mak1.png",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/LimakHotels%2B2-1920w.png?jxl&v=jxl",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/LimakHotels%2B2.png",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo"
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-01-1920w.png?jxl&v=jxl",
+          "alt": ""
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-02-1920w.png?jxl&v=jxl",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.limakhotels.com/limak-lara-gallery",
+        "https://www.limakhotels.com/de/limak-lara-gallery",
+        "https://www.limakhotels.com/fr/limak-lara-gallery",
+        "https://www.limakhotels.com/ru/limak-lara-gallery",
+        "https://www.limakhotels.com/tr/limak-lara-gallery",
+        "https://www.limakhotels.com/feed/rss2",
+        "https://www.limakhotels.com/feed/atom",
+        "https://www.limakhotels.com/",
+        "https://www.limakhotels.com/limak-hotels-about-us",
+        "https://www.limakhotels.com/lara",
+        "https://www.limakhotels.com/atlantis",
+        "https://www.limakhotels.com/arcadia",
+        "https://www.limakhotels.com/limra",
+        "https://www.limakhotels.com/cyprus",
+        "https://www.limakhotels.com/skopje",
+        "https://www.limakhotels.com/ambassadore",
+        "https://www.limakhotels.com/personalized-services",
+        "https://www.limakhotels.com/events-for-special-occasions",
+        "https://www.limakhotels.com/spa-applications",
+        "https://www.limakhotels.com/special-for-families-in-our-resort-hotels",
+        "https://www.limakhotels.com/limak-hotels-loyalty-program",
+        "https://www.limakhotels.com/mission---vision",
+        "https://www.limakhotels.com/policies",
+        "https://www.limakhotels.com/biodiversity-policy",
+        "https://www.limakhotels.com/corporate-equality-policy",
+        "https://www.limakhotels.com/energy-policy",
+        "https://www.limakhotels.com/stakeholder-policy",
+        "https://www.limakhotels.com/csr-policy",
+        "https://www.limakhotels.com/sustainable-purchasing-policy",
+        "https://www.limakhotels.com/human-resources-policy"
+      ],
+      "public_text": "Limak Lara Deluxe Hotel & Resort | Photo Gallery Our Hotels About Us Antalya Limak Lara Deluxe Hotel & Resort Limak Atlantis Deluxe Hotel & Resort Limak Arcadia Sport Resort Hotel Limak Limra Hotel & Resort TRNC Limak Cyprus Deluxe Hotel Skopje Limak Skopje Luxury Hotel Ankara Limak Ambassadore Hotel İstanbul Limak Eurasia Luxury Hotel Yalova Limak Thermal Boutique Hotel Special Services Personalized Services Events For Special Occasions Spa Applications Special for Families in our Resort Hotels Limak Hotels Loyalty Program Mission & Vision Our Policies Biodiversity Policy Corporate Equality Policy Energy Policy Stakeholder Policy CSR Policy Sustainable Purchasing Policy Human Resources Policy Quality Policy Digitalisation and InnovationPolicy Blog Limak Career Book with the best price! CHECK AVAILABILITY English en Français fr Deutsch de русский ru Türkçe tr Our Hotels Limak Lara Deluxe Hotel & Resort Limak Limra Hotel & Resort Limak Atlantis Deluxe Hotel & Resort Limak Arcadia Sport Resort Hotel Limak Cyprus Deluxe Hotel Limak Skopje Luxury Hotel Limak Ambassadore Hotel Limak Eurasia Luxury Hotel Limak Thermal Boutique Hotel Our Hotels Home Offers Gallery Accommodation Economy Room Standard Room Family Room Junior Suite Deluxe Jacuzzi Suite Grand Suite Restaurant & Bar Spa Events Activities Contact BOOK NOW & PAY LATER English en Français fr Deutsch de русский ru Türkçe tr LİMAK LARA DELUXE HOTEL & RESORT GALLERY QUICK PREVIEW Button Button Button Button Button Button Button Button ROOMS & SUITES Button Button Button Button Button Button Button Button Button Button Button Button RESTAURANT & BAR Button Button Button Button Button Button Button Button Button Button Button Button Button Button Button Button Button Button Button Button MEETING & EVENTS Button Button Button Button Button Button SPA & FITNESS Button Button Button Button Button Button Button Button ACTIVITIES Button Button Button Button Button Button Button Button Button Button Button Button Button Button Button Button Manage Your Bookings Enter your reservation code and PIN to view or cancel your stay — quick and secure. Manage Book Now City skyline Photo By: John Doe Blurred Lines Photo by: John Doe Birthday Sparks Photo By: John Doe Fashion Magazine Photo By: John Doe City skyline Photo By: John Doe Blurred Lines Photo by: John Doe Birthday Sparks Photo By: John Doe Limak Career Sustainability Our Policies Privacy & Cookie Policy Legal Company Policy Mission & Vision Copyright ©2023 Limak International Hotels & Resorts. All Rights Reserved. Manage Your Bookings Enter your reservation code and PIN to view or cancel your stay — quick and secure. Manage City skyline Photo By: John Doe Blurred Lines Photo by: John Doe Birthday Sparks Photo By: John Doe Fashion Magazine Photo By: John Doe City skyline Photo By: John Doe Blurred Lines Photo by: John Doe Birthday Sparks Photo By: John Doe Book Now Limak Career Sustainability Our Policies Privacy & Cookie Policy Legal Company Policy Mission & Vision Sustainability Our Policies Privacy & Cookie Policy Legal Company Policy Mission & Vision Copyright ©2026 Limak International Hotels & Resorts. All Rights Reserved. Share by:",
+      "json_fact_fragments": [],
+      "album_context": [
+        "tent=\"Browse the photo gallery of Limak Lara Deluxe Hotel &amp; Resort in Antalya. Take a visual tour of our ultra-luxury facilities and exclusive amenities.\"/>\r\n  <script src=\"https://receptionist.recepai.ai/widget.js\" data-hotel=\"limak-lara-deluxe-hotel-resort\">\r\n\r\n\n\n\n\n\n  \n\n  \n\n  \r\n\r\n  </script>\r\n  <!-- Google tag (gtag.js) -->  <script async=\"\" src=\"https://www.googletagmanager.com/gtag/js?id=AW-1025245485\">\r\n\r\n\n\n\n\n\n\n\n\n  \n  \n  \n  \n  \n\n  \n\n  \n\n  \n\n  \r\n\r\n  </script>\r\n  <!-- Google Tag Manager -->  <script>\r\n\r\n\n\n\n\n\n\n\n\n(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\nnew Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\nj=d.createElement(s),dl=l!",
+        "a-element-type=\"graphic\" data-widget-type=\"graphic\" id=\"1857485584\"> <a href=\"https://www.hotellinkage.com/\" id=\"1356022373\" class=\"\" target=\"_blank\" file=\"false\" aria-label=\"Asset 2DIGIHESANS.svg\"> <svg id=\"1738458541\" data-name=\"Layer 2\" xmlns=\"http://www.w3.org/2000/svg\" viewbox=\"0 0 381.19 46.11\" class=\"svg u_1738458541\" data-icon-custom=\"true\" data-icon-name=\"Asset 2DIGIHESANS.svg\" alt=\"Powered by Hotel Linkage\" aria-labelledby=\"1245568089\"> <g id=\"Layer_1-2\" data-name=\"Layer 1\"> <g> <g> <path d=\"m139.91,10.48c0-.34.12-.62.35-.85.23-.23.52-.35.85-.35s.62.12.85.35c.23.23.35.52.35.85v21.16h9.84c.34,0,.62.12.85.35.23.23.35.52.35.85s-.12.62-.35.85c-.",
+        "tp://www.w3.org/2000/svg\" viewbox=\"0 0 381.19 46.11\" class=\"svg u_1738458541\" data-icon-custom=\"true\" data-icon-name=\"Asset 2DIGIHESANS.svg\" alt=\"Powered by Hotel Linkage\" aria-labelledby=\"1245568089\"> <g id=\"Layer_1-2\" data-name=\"Layer 1\"> <g> <g> <path d=\"m139.91,10.48c0-.34.12-.62.35-.85.23-.23.52-.35.85-.35s.62.12.85.35c.23.23.35.52.35.85v21.16h9.84c.34,0,.62.12.85.35.23.23.35.52.35.85s-.12.62-.35.85c-.23.23-.52.35-.85.35h-11.04c-.34,0-.62-.12-.85-.35-.23-.23-.35-.52-.35-.85V10.48Z\"></path> \n <path d=\"m155.76,10.48c0-.34.12-.62.35-.85.23-.23.52-.35.85-.35s.62.12.85.35c.23.23.35.52.35.85v22.36c0,.34-.12.62-.35.85-.23.23-.52.35-.85.35s-.62-.12-.85-.",
+        "a-element-type=\"graphic\" data-widget-type=\"graphic\" id=\"1493190342\"> <a href=\"https://www.hotellinkage.com/\" id=\"1569783747\" class=\"\" target=\"_blank\" file=\"false\" aria-label=\"Asset 2DIGIHESANS.svg\"> <svg id=\"1666828967\" data-name=\"Layer 2\" xmlns=\"http://www.w3.org/2000/svg\" viewbox=\"0 0 381.19 46.11\" class=\"svg u_1666828967\" data-icon-custom=\"true\" data-icon-name=\"Asset 2DIGIHESANS.svg\" alt=\"Powered by Hotel Linkage\" aria-labelledby=\"1245568089\"> <g id=\"Layer_1-2\" data-name=\"Layer 1\"> <g> <g> <path d=\"m139.91,10.48c0-.34.12-.62.35-.85.23-.23.52-.35.85-.35s.62.12.85.35c.23.23.35.52.35.85v21.16h9.84c.34,0,.62.12.85.35.23.23.35.52.35.85s-.12.62-.35.85c-.",
+        "tp://www.w3.org/2000/svg\" viewbox=\"0 0 381.19 46.11\" class=\"svg u_1666828967\" data-icon-custom=\"true\" data-icon-name=\"Asset 2DIGIHESANS.svg\" alt=\"Powered by Hotel Linkage\" aria-labelledby=\"1245568089\"> <g id=\"Layer_1-2\" data-name=\"Layer 1\"> <g> <g> <path d=\"m139.91,10.48c0-.34.12-.62.35-.85.23-.23.52-.35.85-.35s.62.12.85.35c.23.23.35.52.35.85v21.16h9.84c.34,0,.62.12.85.35.23.23.35.52.35.85s-.12.62-.35.85c-.23.23-.52.35-.85.35h-11.04c-.34,0-.62-.12-.85-.35-.23-.23-.35-.52-.35-.85V10.48Z\"></path> \n <path d=\"m155.76,10.48c0-.34.12-.62.35-.85.23-.23.52-.35.85-.35s.62.12.85.35c.23.23.35.52.35.85v22.36c0,.34-.12.62-.35.85-.23.23-.52.35-.85.35s-.62-.12-.85-."
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/logonew-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "A white background with a few lines on it",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan4-2-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan1-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%283%29-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan%2B7-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Genel%2BAlan2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%285%29-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%282%29-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/GENEL%2BALAN%2B%286%29-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Exterior",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM1-f5634947-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM2-5cdf4e51-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM5-5f21bd18-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM7-c9b31fce-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/FAMILY%2BROOM6-6faec4bd-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM9-10c98b6d-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM8-27ab3fd5-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM10-f4642525-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/GRAND%2BSUITE%2BROOM3-27ff7fa9-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM3-61f3a14a-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM2-762f8562-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/STANDART%2BROOM1-6b0e0dd8-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte3-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte5-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Alacarte-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/alacarte4-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar5-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/BAR1-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar4-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar3-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/bar2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE4-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATTISERIE6-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE3-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE5-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/PATISSERIE-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Restorant-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant4-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/restorant1-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Restaurant & Bar",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU5-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU%2B2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU4-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU3-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/TOPLANTI%2BSALONU1-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Meeting & Events",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA1-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/SPA-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/kapal%C4%B1%2Bhavuz2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/sauna-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/fitness-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/hamam-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Spa & Fitness",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub4-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub3-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/miniclub-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/minclub2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon4-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon3-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/animasyon2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite%2B1-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite7-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite4-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite3-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/aktivite5-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//11191c87/dms3rep/multi/opt/Aktivite2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1591085404732-90b67a0ddbb2-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com//md/unsplash/dms3rep/multi/opt/photo-1599376871063-1b999e42afde-1920w.jpg?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Lara Deluxe Hotel & Resort ,  Activities",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/l-C4-B1mak1-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/LimakHotels%2B2-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "Limak Arcadia Sport Resort & Hotel, Logo",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-01-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://irp.cdn-website.com/11191c87/dms3rep/multi/opt/DU-ZEN-02-1920w.png?jxl&v=jxl",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    },
+    {
+      "source_url": "https://trendy.com.tr/trendy-lara/trendy-lara-galeri/",
+      "final_url": "https://trendy.com.tr/trendy-lara/trendy-lara-galeri/",
+      "page_title": "One moment, please...",
+      "image_hosts": [],
+      "image_urls": [],
+      "declared_public_image_references": [],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [],
+      "public_text": "One moment, please... Loader Please wait while your request is being verified...",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": []
+    },
+    {
+      "source_url": "https://www.palomahotels.com/en/paloma-orenda/stay",
+      "final_url": "https://www.palomahotels.com/en/paloma-orenda/stay",
+      "page_title": "Stay | Paloma Orenda",
+      "image_hosts": [
+        "www.palomahotels.com"
+      ],
+      "image_urls": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/paloma-orenda/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/paloma-orenda/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/11-14-2020-1-52-45-PM1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-15-58-PMorenda-rooms-slider.jpg",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-22-2021-4-57-05-PMorendaodabg.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/16-12-2020-14-58-56orendaroom.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-14-2020-1-53-01-PM3.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-05-52-PMorenda-standartroom.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-14-2020-3-36-07-PMjunior-suite.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-09-35-PMorenda-familysuite.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-14-2020-3-36-34-PMfamily-room.jpg",
+        "https://www.palomahotels.com/Content/images/card-grida.jpg",
+        "https://www.palomahotels.com/Content/images/card-foresta.jpg",
+        "https://www.palomahotels.com/Content/images/card-pasha.jpg",
+        "https://www.palomahotels.com/Content/images/card-marina.jpg",
+        "https://www.palomahotels.com/Content/images/villa-finesse-image1.jpg",
+        "https://www.palomahotels.com/Content/images/villa-finesse-image2.jpg",
+        "https://www.palomahotels.com/Content/images/villa-luxury-bg.jpg",
+        "https://www.palomahotels.com/Content/images/villas-oceana-image1.jpg",
+        "https://www.palomahotels.com/Content/images/villas-oceana-image2.jpg",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+        "https://www.palomahotels.com/Content/images/master-logo-w.png",
+        "https://www.palomahotels.com/Content/images/down-btn.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.palomahotels.com/Content/images/PalomaHotelsFavicon.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo-dark.png",
+        "https://www.palomahotels.com/Content/images/headset.png",
+        "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+        "https://www.palomahotels.com/Content/images/menu-lines.png",
+        "https://www.palomahotels.com/content/images/close.png",
+        "https://www.palomahotels.com/en/paloma-orenda/images/live-chat-dark.png",
+        "https://www.palomahotels.com/en/paloma-orenda/images/close-dark.png",
+        "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+        "https://www.palomahotels.com/Content/images/close.png",
+        "https://www.palomahotels.com/Content/images/live-chat-message.png",
+        "https://www.palomahotels.com/Content/images/send-icon.png",
+        "https://www.palomahotels.com/Content/imgUpload/11-14-2020-1-52-45-PM1.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-15-58-PMorenda-rooms-slider.jpg",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+        "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+        "https://www.palomahotels.com/Content/imgUpload/image-2-22-2021-4-57-05-PMorendaodabg.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/16-12-2020-14-58-56orendaroom.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-14-2020-1-53-01-PM3.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-05-52-PMorenda-standartroom.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-14-2020-3-36-07-PMjunior-suite.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-09-35-PMorenda-familysuite.jpg",
+        "https://www.palomahotels.com/Content/imgUpload/11-14-2020-3-36-34-PMfamily-room.jpg",
+        "https://www.palomahotels.com/Content/images/card-grida.jpg",
+        "https://www.palomahotels.com/Content/images/card-foresta.jpg",
+        "https://www.palomahotels.com/Content/images/card-pasha.jpg",
+        "https://www.palomahotels.com/Content/images/card-marina.jpg",
+        "https://www.palomahotels.com/Content/images/villa-finesse-image1.jpg",
+        "https://www.palomahotels.com/Content/images/villa-finesse-image2.jpg",
+        "https://www.palomahotels.com/Content/images/villa-luxury-bg.jpg",
+        "https://www.palomahotels.com/Content/images/villas-oceana-image1.jpg",
+        "https://www.palomahotels.com/Content/images/villas-oceana-image2.jpg",
+        "https://www.palomahotels.com/Content/images/youtube.png",
+        "https://www.palomahotels.com/Content/images/twitter.png",
+        "https://www.palomahotels.com/Content/images/facebook.png",
+        "https://www.palomahotels.com/Content/images/instagram.png",
+        "https://www.palomahotels.com/Content/images/linkedin.png",
+        "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+        "https://www.palomahotels.com/Content/images/master-logo-w.png",
+        "https://www.palomahotels.com/Content/images/down-btn.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "alt": "Paloma Number"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+          "alt": "Paloma Index"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "alt": "Paloma Menu"
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "alt": "Paloma Book Now Close"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/paloma-orenda/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/en/paloma-orenda/images/close-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "alt": "Paloma Live Chat"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-14-2020-1-52-45-PM1.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-15-58-PMorenda-rooms-slider.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-22-2021-4-57-05-PMorendaodabg.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/16-12-2020-14-58-56orendaroom.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-14-2020-1-53-01-PM3.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-05-52-PMorenda-standartroom.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-14-2020-3-36-07-PMjunior-suite.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-09-35-PMorenda-familysuite.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-14-2020-3-36-34-PMfamily-room.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/card-grida.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/card-foresta.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/card-pasha.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/card-marina.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villa-finesse-image1.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villa-finesse-image2.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villa-luxury-bg.jpg",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villa-finesse-image1.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villa-finesse-image2.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villa-luxury-bg.jpg",
+          "alt": "Alternate Text"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villas-oceana-image1.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villas-oceana-image2.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villas-oceana-image1.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villas-oceana-image2.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villas-oceana-image1.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/villas-oceana-image2.jpg",
+          "alt": "..."
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "alt": ""
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/master-logo-w.png",
+          "alt": "Paloma Payment"
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/down-btn.png",
+          "alt": ""
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.palomahotels.com/en/paloma-orenda/stay",
+        "https://www.palomahotels.com/",
+        "https://www.palomahotels.com/paloma-orenda/odalar",
+        "https://www.palomahotels.com/de/paloma-orenda/stay",
+        "https://www.palomahotels.com/ru/paloma-orenda/stay",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff2",
+        "https://www.palomahotels.com/Content/font/gotham/GothamTR-Book.woff",
+        "https://www.palomahotels.com/en/paloma-orenda",
+        "https://www.palomahotels.com/en",
+        "https://www.palomahotels.com/en/paloma-orenda/tastes-of-paloma",
+        "https://www.palomahotels.com/en/paloma-orenda/beach-and-pool",
+        "https://www.palomahotels.com/en/paloma-orenda/palomotion",
+        "https://www.palomahotels.com/en/paloma-orenda/spa-and-wellness",
+        "https://www.palomahotels.com/en/paloma-orenda/offers",
+        "https://www.palomahotels.com/en/happy-pals",
+        "https://www.palomahotels.com/loyalty-redirect",
+        "https://www.palomahotels.com/en/paloma-orenda/explore",
+        "https://www.palomahotels.com/en/Home/VacationCardPage",
+        "https://www.palomahotels.com/en/paloma-orenda/mice",
+        "https://www.palomahotels.com/paloma-orenda"
+      ],
+      "public_text": "Stay | Paloma Orenda BOOK NOW 0850 440 00 00 HOME STAY EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS OFFERS PALOMA LOYALTY HAPPY PALS EARN&BURN EXPLORE BOOK NOW EN TR EN DE RU +90 850 440 00 00 HOME STAY EXPERIENCES OFFERS PALOMA LOYALTY EXPLORE EXPERIENCES TASTES OF PALOMA BEACH & POOL PALOMOTION SPA & WELLNESS MICE PALOMA LOYALTY HAPPY PALS EARN&BURN Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now Hello My Name in Angel. Welcome to PALOMA! How can we help you? STYLE MEETS UNPARALLELED COMFORT THE PERFECT BLEND OF COMFORT AND STYLE Hotels Select Hotel Paloma Finesse Side Paloma Orenda Paloma Oceana Paloma Perissia Paloma Grida Paloma Sencia Paloma Pasha Accommodation Date Room & Guest 1 Room, 2 Adult, 0 Child Rooms 1 Room Ok Promotion Code Book Now HOME / PALOMA ORENDA / Rooms PALOMA ORENDA ROOMS From the significant interiors to the captivating lobby, every corner of the hotel projects an artsy visual. On exteriors, the modest design gives way to the raw magnificence of mother nature. Discreet yet comfortable rooms follow the design theme. Aesthetics and comfort meet with the nature... Modern Design Unmatched Comfort Each of our rooms blends comfort and aesthetics in equal measure. ROOMS DETAIL Touched by contemporary sleek style, filled with the natural colors of Mediterranean – discover our divine collection of rooms at Paloma Orenda which has 270 rooms and offers the following categories: Standard Rooms, Junior Suites, Family Rooms, and Family Suites. ROOMS STANDARD ROOMS JUNIOR SUITES FAMILY SUITES FAMILY CONNECTION ROOMS PALOMA ORENDA | SIDE - ANTALYA PALOMA Orenda is located in Manavgat, Titreyengol, about 6 km from Side city center, 75 km from Antalya Airport and 80 km from Antalya city center. It has 270 rooms. PALOMA ORENDA (Belge No: 2224) Sorgun Mah. Acısu Mevkii Sk. No:22, Manavgat/Antalya Türkiye +90 242 744 27 00 Information and Reservation +90 850 440 00 00 FOLLOW US © 2026 Paloma Hotels. All rights reserved.",
+      "json_fact_fragments": [],
+      "album_context": [],
+      "gallery_memberships": [
+        {
+          "url": "https://www.palomahotels.com/Content/images/headset.png",
+          "tag": "img",
+          "alt": "Paloma Number",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/paloma-orenda-logo.png",
+          "tag": "img",
+          "alt": "Paloma Index",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/menu-lines.png",
+          "tag": "img",
+          "alt": "Paloma Menu",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Book Now Close",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-dark.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/close.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/live-chat-message.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/send-icon.png",
+          "tag": "img",
+          "alt": "Paloma Live Chat",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-14-2020-1-52-45-PM1.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-15-58-PMorenda-rooms-slider.jpg",
+          "tag": "img",
+          "alt": "...",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20637.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/Yeni%20klas%C3%B6r/Group%20638.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/image-2-22-2021-4-57-05-PMorendaodabg.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/16-12-2020-14-58-56orendaroom.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-14-2020-1-53-01-PM3.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-05-52-PMorenda-standartroom.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-14-2020-3-36-07-PMjunior-suite.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-09-35-PMorenda-familysuite.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/imgUpload/11-14-2020-3-36-34-PMfamily-room.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/youtube.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/twitter.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/facebook.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/instagram.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/linkedin.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/visa-logo-w.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/master-logo-w.png",
+          "tag": "img",
+          "alt": "Paloma Payment",
+          "categories": []
+        },
+        {
+          "url": "https://www.palomahotels.com/Content/images/down-btn.png",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "operation": "commercial-batch-20261104-40-contact",
+  "state": "EIGHT_NEW_ORIGINALS_PREPARED_NOT_NATIVE_ACCEPTED",
+  "goal": "Review different actual declared originals for a ready subset of the current ten proven candidates",
+  "boundaries": {
+    "photos": 8,
+    "hotel_ids": [
+      1338,
+      65895
+    ],
+    "readonly_groups": 2,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "old_url_or_basename_repeats": 0,
+    "raw_guards_unchanged": true,
+    "query_policy_unchanged": true
+  },
+  "criteria": [
+    "Exactqueryless original IRP11191c87URIs explicitly declared by targetLimakLaraowner gallery; not guessedoptversions/querystrips",
+    "Oldphotos30/31/33/34/35/36/37/38/39excluded byURL+basename",
+    "Nativebyte/dimensions/format/SHA/fullchunks/decodedcontactpixels then wholehotelhero+two suitable lowerphotos",
+    "Actualready subset not held for eight other unresolvedcandidates"
+  ],
+  "risks": [
+    "PNG originals can exceed5MB; no resizing/fallbackvariant bypass",
+    "PalomaOrenda rooms may not supply a generalhotelhero",
+    "No property membership inferred for sharedMandarinimages or Palomasistercards",
+    "Trendycurrentnewgallerychallenge is not hotelcontent; no further bypass/old403claim"
+  ],
+  "allowed_exact_hosts": [
+    "irp-cdn.multiscreensite.com",
+    "www.palomahotels.com"
+  ],
+  "limak_owner_scope": "https://www.limakhotels.com/limak-lara-gallery; originalIRP11191c87only",
+  "new_input_host_cases": 3,
+  "old_guard_fixtures_rerun": 0,
+  "images": [
+    {
+      "hotel_id": 1338,
+      "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Genel%2BAlan4-2.png",
+      "primary_source_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "role": "h1338_new40_0"
+    },
+    {
+      "hotel_id": 1338,
+      "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Genel%2BAlan1.png",
+      "primary_source_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "role": "h1338_new40_1"
+    },
+    {
+      "hotel_id": 1338,
+      "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/GENEL%2BALAN%2B%283%29.png",
+      "primary_source_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "role": "h1338_new40_2"
+    },
+    {
+      "hotel_id": 1338,
+      "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/Genel%2BAlan2.jpg",
+      "primary_source_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "role": "h1338_new40_3"
+    },
+    {
+      "hotel_id": 1338,
+      "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/GENEL%2BALAN%2B%285%29.jpg",
+      "primary_source_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "role": "h1338_new40_4"
+    },
+    {
+      "hotel_id": 1338,
+      "url": "https://irp-cdn.multiscreensite.com/11191c87/dms3rep/multi/GENEL%2BALAN%2B%286%29.jpg",
+      "primary_source_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "role": "h1338_new40_5"
+    },
+    {
+      "hotel_id": 65895,
+      "url": "https://www.palomahotels.com/Content/imgUpload/12-1-2020-1-15-58-PMorenda-rooms-slider.jpg",
+      "primary_source_url": "https://www.palomahotels.com/en/paloma-orenda/stay",
+      "role": "h65895_new40_6"
+    },
+    {
+      "hotel_id": 65895,
+      "url": "https://www.palomahotels.com/Content/imgUpload/16-12-2020-14-58-56orendaroom.jpg",
+      "primary_source_url": "https://www.palomahotels.com/en/paloma-orenda/stay",
+      "role": "h65895_new40_7"
+    }
+  ]
+}
