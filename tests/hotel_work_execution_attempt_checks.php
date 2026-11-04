@@ -319,6 +319,7 @@ function executionAttemptStoredStateChecks(): void {
 function executionAttemptRaceChecks(): void {
     foreach(['entry_1_first','entry_2_first','same_instance','binding_1_first','binding_2_first','actual_complete_repeat','actual_complete_conflict',
         'prepare_first','complete_first','permit_before_skip','skip_before_permit','permit_before_handoff','handoff_before_permit'] as $scenario) {
+        $scenarioStarted=microtime(true);
         $dir=sys_get_temp_dir().'/hotel-execution-race-'.bin2hex(random_bytes(8));if(!mkdir($dir,0700)) throw new RuntimeException('execution_race_directory_unavailable');
         $file=getenv('HOTEL_WORK_NATIVE_MYSQL')==='1'?'MYSQL':$dir.'/queue.sqlite';$processes=[];$pdo=null;$queue=null;
         try {
@@ -382,6 +383,7 @@ function executionAttemptRaceChecks(): void {
         }finally {
             foreach($processes as [$process,$pipes]) {foreach($pipes as $pipe) if(is_resource($pipe)) fclose($pipe);if(is_resource($process)){proc_terminate($process,9);proc_close($process);}}
             $queue=null;$pdo=null;gc_collect_cycles();foreach(glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
+            fprintf(STDERR, "HOTEL_EXECUTION_RACE_TIMING scenario=%s seconds=%.3f\n", $scenario, microtime(true)-$scenarioStarted);
         }
     }
 }
