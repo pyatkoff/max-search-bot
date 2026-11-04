@@ -1,6 +1,6 @@
 {
   "operation": "commercial-batch-20261104-45-contact",
-  "state": "CLOSED_18_NEW_EXACT_PHOTO_GETS_ONE_GENERAL_BUILDING_HERO_CANDIDATE_FINAL_CROP_PENDING_NO_READY",
+  "state": "CLOSED_ALL18_PHOTOS_NO_ACCEPTED_WHOLE_HOTEL_HERO_NATIVE_COVER_REJECTED_NO_READY",
   "run": 41927390576,
   "jobs": [
     126915237308,
@@ -22,12 +22,12 @@
   "verdicts": [
     {
       "hotel_id": 21642,
-      "state": "GENERAL_HOTEL_BUILDING_OVERVIEW_SELECTED_FINAL_CROP_REQUIRES_NATIVE_VISUAL_ACCEPTANCE",
-      "hero_role": "h21642_new45_0",
+      "state": "DEFERRED_NATIVE_COVER_REVEALS_SOURCE_RIGHT_HOTEL_WING_CLIPPED_NO_WHOLE_HOTEL_HERO",
       "details": [
-        "Wide elevated view shows whole main resort building and visible grounds, not a pool-only detail",
-        "Otherframesarepoolandfamilyroom; categoryrightsnotuniversal"
-      ]
+        "Native600PNG preserves source ratio; the originalphoto clips the right hotel wing, so the full generalhotelview criterion fails",
+        "No crop/reimport/alternatevariant can repair missing sourcebuilding; require a DIFFERENT declared wholehotelview"
+      ],
+      "all_three_photo_roles_closed": true
     },
     {
       "hotel_id": 47025,
@@ -86,5 +86,21 @@
   "canva_transactions": 0,
   "ready_for_send": 0,
   "new_posts": 0,
-  "repeat_policy": "All18URLs+decodedbasenames CLOSED. No rerun/GETsameframes/wholepassforonebadframe; one21642covermayproceedONLYif finalthumbnail preservescompletegeneralhotelbuilding. DoNOTholdactualreadyforothers."
+  "repeat_policy": "All18URLs+basenames and this rejectedCanvaPNG/TXCLOSED. No oldGET/import/reexport/reupload/closedTXreuse. Nextwholehotelphoto mustDIFFERENTactualdeclaredURL/newsourceinput; no lowerhero criterion.",
+  "canva_transactions_open": 0,
+  "canva_transactions_opened": 1,
+  "canva_imported_assets": 3,
+  "permanent_save": false,
+  "native_cover_run": 41928702299,
+  "native_cover_job": 126919795214,
+  "native_cover_hotel_id": 21642,
+  "native_cover_bytes": 763664,
+  "native_cover_sha256": "9b3845d82c33cfb260079947a608f1043852ec452a5c68289e87d22d1eabc1ee",
+  "native_cover_dimensions": [
+    600,
+    600
+  ],
+  "native_cover_state": "REJECTED_NOT_FROZEN_NOT_PUBLIC_GIT_NOT_SENT",
+  "exact_tx_cancelled": "2005748897468170417",
+  "public_png_frozen_count": 0
 }
