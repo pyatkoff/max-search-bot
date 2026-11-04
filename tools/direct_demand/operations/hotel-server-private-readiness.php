@@ -1,50 +1,55 @@
 <?php
 declare(strict_types=1);
-/*
- * One bounded observation revision of the existing private stdin incident reader.
- * Preserve the original B07 sealed bytes or named immutable phases, plus current
- * B06/B07 metadata in one READ ONLY snapshot. Never execute the original operator.
- * No provider/tick/replay, locks, file/database writes, schema initialization or
- * automatic reconciliation. Envelope structure is not decrypted outcome proof.
+/* One bounded B07 stage0 correction input preflight through the existing channel.
+ * Reads only exact original candidate/two result bytes and their current immutable
+ * bindings. No previous campaign, outcome replay, provider object, tick, correction,
+ * admission, enable, lock, schema initialization or persistent write.
  */
 const HOTEL_EXPECTED_INSTALLED_SHA='17400f819817593b3b4428b43a8dbe24b109c428';
-const HOTEL_OPERATION='f015a45bc062c4fabbfbea5948b8984449f64aeeac90c11f61a520bf6bafbf3f';
+const HOTEL_OPERATION='90b00f80c62dccb911eb4a0082c634685f2bb55155d17a10a531783cd9fbf9f8';
 const HOTEL_STATUS_KIND='hotel-server-private-incident-v1';
 const HOTEL_RECEIPT_RECIPIENT_SHA='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d';
-const HOTEL_ORIGINAL_OPERATION='5a8ea8b6732af3d32a5e9c126c65a8d58a595af587306e49590669f2e4d99022';
-const HOTEL_ORIGINAL_INSTALLED_SHA='0c3d826bc91e534c2232136df9ab9cd318d089f6';
-const HOTEL_ORIGINAL_RUN_ID='41666161566';
-const HOTEL_ORIGINAL_JOB_ID='126021928968';
-const HOTEL_ORIGINAL_KIND='hotel-server-private-forward-handoff-v2';
 const HOTEL_CAMPAIGN='HOTEL-SERVER-20261103-B07';
-const HOTEL_PREDECESSOR='HOTEL-SERVER-20261103-B06';
+const HOTEL_BOOTSTRAP_SHA='4577961cf5ab96a62df821cfc4f1d9a80b373ae07da10e3f143d7b22adeac6ed';
+const HOTEL_INPUTS_SHA='b0f093ff27ad6de311fb6eb351f194ba1b413483d4a7a336ae9aa13986f69448';
+const HOTEL_BASELINE_SHA='d0f83be35829d178473ecb4b0d5f4397786256f4a7df5c1bf691085f7d096bec';
+const HOTEL_PLAN_SHA='714315a5588f8eef7f4932ed06abf7d25107bd2d58b2799ac5a198c87d536134';
+const HOTEL_CRITERIA_SHA='bd386c46d35b2d97411c8cd5a5e8b7305ce4a3022b2b592c301bfcd2009630d7';
+const HOTEL_CANDIDATE_SHA='44596fb4cc60d4ea40635b3b44ce8f2f3cd54d0152d20827d8d8bec7361c7034';
+const HOTEL_RUNTIME_SHA='1e4abef0c4880bb1b28dfef1217938f630d5de974d44264679226df0662a2111';
+const HOTEL_POLICY_SHA='c7cc48331a83249d700cac31e2804897d35bcdd0366bdb767dd150787ef8dcbb';
+const HOTEL_PROFILE_SHA='92ae1de467574b17a77d188b2f9766d139e5ada622126a20d2fe2052f5506323';
+const HOTEL_PROVIDER_REVISION='ac6a2624c93677a9d490bc6d7b72eaf878daf1b47694df27635218330aa41aa0';
+const HOTEL_PROVIDER_SOURCE_SHA='555f21004d85d6a660633b643d0eed961fea382d60da120218e4572c1cf7f6dd';
+const HOTEL_PRODUCER_INSTRUCTIONS_SHA='c116cda921261c22f82c9547cb6e3ba865bd3b7b1bc34b14bcf290291518800b';
+const HOTEL_REVIEWER_INSTRUCTIONS_SHA='43d17a643e4f9da7adf06d0b312602683c014dc37aa2d701e2606b82d4265d5a';
 const HOTEL_CONNECTION_SOURCE_SHA='8a3c8ef5625aaa24294ba5b9799613920a51a0355c431d0d629662b887652fe1';
+const HOTEL_TARGET_SCOPE_KEY='439821589c274dc02f15575956ab6b77d9b16fa14e205fd4aa3c8ac5c499c1d3';
+const HOTEL_TARGET_CONTEXT_SHA='aeeaf8a6f12b5c483bda2f6dde509bd921cdb7c990827509870013df8282497a';
 const HOTEL_PLAIN_LIMIT=524288;
 const HOTEL_WIRE_LIMIT=786432;
-const HOTEL_CAPTURE_TOTAL_LIMIT=262144;
 ini_set('display_errors','0');ini_set('log_errors','0');
 $level=ob_get_level();ob_start(static fn(string $ignored):string=>'');
 $pdo=null;$target=false;$outputDone=false;$emergencyMemory=str_repeat('x',2097152);
-$report=['schema'=>HOTEL_STATUS_KIND,'observation_kind'=>'original_b07_files_and_metadata',
-    'operation_id'=>HOTEL_OPERATION,'campaign_operation'=>HOTEL_ORIGINAL_OPERATION,
-    'campaign_id'=>HOTEL_CAMPAIGN,'predecessor_id'=>HOTEL_PREDECESSOR,
-    'original_installed_sha'=>HOTEL_ORIGINAL_INSTALLED_SHA,
-    'original_run_id'=>HOTEL_ORIGINAL_RUN_ID,'original_job_id'=>HOTEL_ORIGINAL_JOB_ID,'original_run_attempt'=>1,
+$report=['schema'=>HOTEL_STATUS_KIND,'observation_kind'=>'b07_stage0_correction_preflight',
+    'operation_id'=>HOTEL_OPERATION,'campaign_id'=>HOTEL_CAMPAIGN,'stage_index'=>0,
     'state'=>'HOLD','phase'=>'target_check','operator_provider_calls'=>0,'database_writes'=>0,'server_file_writes'=>0,
-    'automatic_resume_authorized'=>false,'original_outcome_confirmed'=>false,
-    'snapshot_is_original_failed_invocation'=>false,'intent_is_no_effects_proof'=>false,
-    'queries_return_facts_requests_or_transcripts'=>false,'section_errors'=>[]];
+    'correction_applied'=>false,'admission_created'=>false,'automatic_resume_authorized'=>false,
+    'previous_campaign_read'=>false,'original_handoff_replayed'=>false,'section_errors'=>[]];
 
 function hotelFail(string $reason): never { throw new DomainException($reason); }
+
 function hotelKeys(array $value,array $expected): void {
     $keys=array_keys($value);sort($keys);sort($expected);
     if($keys!==$expected)hotelFail('private_shape_unconfirmed');
 }
+
 function hotelDir(string $path): void {
     clearstatcache(true,$path);
     if(is_link($path)||realpath($path)!==$path||!is_dir($path)||(fileperms($path)&0777)!==0700
         ||fileowner($path)!==posix_geteuid())hotelFail('private_directory_unconfirmed');
 }
+
 function hotelRead(string $path,int $limit,?int $size=null,?string $sha=null): string {
     clearstatcache(true,$path);$before=@lstat($path);
     if(!is_array($before)||is_link($path)||!is_file($path)||($before['mode']&0777)!==0600
@@ -66,29 +71,30 @@ function hotelRead(string $path,int $limit,?int $size=null,?string $sha=null): s
     if(($sha!==null&&!hash_equals($sha,hash('sha256',$raw))))hotelFail('private_file_changed');
     return $raw;
 }
+
 function hotelJson(string $raw): array {
     $v=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
     if(!is_array($v))hotelFail('private_shape_unconfirmed');return $v;
 }
+
 function hotelHash(mixed $value): string {
     if(!is_string($value)||!preg_match('/\A[a-f0-9]{64}\z/D',$value))hotelFail('saved_hash_unconfirmed');
     return $value;
 }
+
 function hotelInt(mixed $value,int $maximum=PHP_INT_MAX): int {
     if(is_int($value))$text=(string)$value;elseif(is_string($value))$text=$value;else hotelFail('saved_integer_unconfirmed');
     if(!preg_match('/\A(?:0|[1-9][0-9]*)\z/D',$text)||strlen($text)>strlen((string)$maximum)
         ||(strlen($text)===strlen((string)$maximum)&&strcmp($text,(string)$maximum)>0))hotelFail('saved_integer_unconfirmed');
     return (int)$text;
 }
-function hotelCampaign(mixed $id): string {
-    if(!is_string($id)||!in_array($id,[HOTEL_PREDECESSOR,HOTEL_CAMPAIGN],true))hotelFail('foreign_campaign_metadata');
-    return $id;
-}
+
 function hotelReason(Throwable $e): string {
     $message=$e->getMessage();
     return $e instanceof DomainException&&preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$message)
         ?$message:'observation_read_unconfirmed';
 }
+
 function hotelInstalled(string $app): string {
     $out=[];$code=1;exec('git -C '.escapeshellarg($app).' rev-parse HEAD 2>/dev/null',$out,$code);
     $sha=trim(implode('',$out));
@@ -96,6 +102,7 @@ function hotelInstalled(string $app): string {
         hotelFail('installed_release_unconfirmed');
     return $sha;
 }
+
 function hotelSeal(array $payload): array {
     $recipient=<<<'PUBLIC_RECEIPT_RECIPIENT'
 -----BEGIN PUBLIC KEY-----
@@ -128,200 +135,169 @@ PUBLIC_RECEIPT_RECIPIENT;
 }
 
 
-function hotelOriginalEnvelope(string $raw): array {
-    $v=hotelJson($raw);
-    hotelKeys($v,['operation','state','operator_provider_calls','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256']);
-    // Original writer emitted precisely this JSON representation, without a newline.
-    // Exact round-trip rejects duplicate keys and altered JSON representations.
-    if(json_encode($v,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)!==$raw
-        ||$v['operation']!==HOTEL_ORIGINAL_KIND||$v['state']!=='sealed'||$v['operator_provider_calls']!==0
-        ||$v['algorithm']!=='RSA-OAEP-SHA1+A256GCM'||$v['recipient_sha256']!==HOTEL_RECEIPT_RECIPIENT_SHA
-        ||$v['aad']!==HOTEL_ORIGINAL_KIND.'|'.HOTEL_ORIGINAL_INSTALLED_SHA.'|'.HOTEL_ORIGINAL_OPERATION)
-        hotelFail('original_envelope_binding_unconfirmed');
-    $parts=[];
-    foreach(['key','nonce','tag','ciphertext'] as $key){
-        if(!is_string($v[$key]))hotelFail('original_envelope_encoding_unconfirmed');
-        $decoded=base64_decode($v[$key],true);
-        if(!is_string($decoded)||base64_encode($decoded)!==$v[$key])hotelFail('original_envelope_encoding_unconfirmed');
-        $parts[$key]=$decoded;
-    }
-    if(strlen($parts['key'])!==384||strlen($parts['nonce'])!==12||strlen($parts['tag'])!==16
-        ||strlen($parts['ciphertext'])<1||strlen($parts['ciphertext'])>65536
-        ||!hash_equals(hotelHash($v['ciphertext_sha256']),hash('sha256',$parts['ciphertext'])))
-        hotelFail('original_envelope_bounds_or_hash_unconfirmed');
-    return ['shape_and_public_binding_confirmed'=>true,'cryptographically_authenticated'=>false,
-        'plaintext_not_read'=>true,'original_run_binding_requires_decryption'=>true,
-        'ciphertext_sha256'=>$v['ciphertext_sha256'],'ciphertext_bytes'=>strlen($parts['ciphertext'])];
+function hotelCanonical(mixed $value): string {
+    $sort=static function(mixed $v)use(&$sort):mixed{
+        if(!is_array($v))return $v;if(!array_is_list($v))ksort($v,SORT_STRING);
+        foreach($v as $k=>$item)$v[$k]=$sort($item);return $v;
+    };
+    return json_encode($sort($value),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
 }
-function hotelCapture(string $directory,string $name,int $limit,int &$total): array {
-    $path=$directory.'/'.$name;clearstatcache(true,$path);$st=@lstat($path);
-    if($st===false)return ['capture'=>'not_present_or_stat_unavailable','absence_is_no_effects_proof'=>false];
-    $size=is_array($st)&&isset($st['size'])&&is_int($st['size'])&&$st['size']>=0?$st['size']:null;
-    if($size===null)return ['capture'=>'unconfirmed','reason'=>'file_stat_unconfirmed'];
-    if($size>$limit||$size>HOTEL_CAPTURE_TOTAL_LIMIT-$total)
-        return ['capture'=>'omitted_by_bound','bytes_at_stat'=>$size,'per_file_limit'=>$limit,'exact_bytes_preserved'=>false];
-    try{
-        $raw=hotelRead($path,$limit,$size);$total+=strlen($raw);
-        return ['capture'=>'captured','bytes'=>strlen($raw),'sha256'=>hash('sha256',$raw),
-            'exact_bytes_base64'=>base64_encode($raw),'exact_bytes_preserved'=>true];
-    }catch(Throwable $e){
-        return ['capture'=>'unconfirmed','bytes_at_stat'=>$size,'reason'=>hotelReason($e)];
-    }
+function preflightProfile(): array {
+    return ['max_output_tokens'=>2200,'model'=>'gpt-6.1-sol','reasoning'=>['effort'=>'low'],'service_tier'=>'default','store'=>false];
 }
-function hotelOriginalFiles(string $root): array {
-    $out=['scope'=>'original_b07_directory_only','original_result_authenticated'=>false,
-        'phase_presence_is_mutation_proof'=>false,'intent_is_no_effects_proof'=>false,
-        'total_capture_limit'=>HOTEL_CAPTURE_TOTAL_LIMIT,'captured_bytes'=>0,'files'=>[]];
-    hotelDir($root);$dir=$root.'/handoff-v2-'.HOTEL_CAMPAIGN;
-    clearstatcache(true,$dir);
-    if(@lstat($dir)===false){$out['directory']='not_present_or_stat_unavailable';return $out;}
-    hotelDir($dir);$out['directory']='confirmed_private_directory';
-    $total=0;$file=hotelCapture($dir,'result.sealed.json',98304,$total);
-    $out['files']['result.sealed.json']=$file;$valid=false;
-    if(($file['capture']??null)==='captured'){
-        try{
-            $out['result_envelope']=hotelOriginalEnvelope(base64_decode($file['exact_bytes_base64'],true));$valid=true;
-        }catch(Throwable $e){$out['result_envelope']=['shape_and_public_binding_confirmed'=>false,'reason'=>hotelReason($e)];}
-    }
-    if(!$valid){
-        // Existing immutable files only. No directory enumeration, runtime.next.part,
-        // provider payload, request, public-payload, accepted baseline or input corpus.
-        $files=['preflight.sealed.json'=>98304,'launch-manifest.json'=>16384,'resolved-boundary.json'=>65536,
-            'intent.json'=>16384,'bootstrap-next.intent.json'=>16384,'bootstrap-next.readback.json'=>32768,
-            'runtime-switch.intent.json'=>8192,'runtime-switch.readback.json'=>8192,
-            'enable.intent.json'=>8192,'enable.readback.json'=>32768,'startup-observation.json'=>98304];
-        foreach($files as $name=>$limit){
-            $item=hotelCapture($dir,$name,$limit,$total);$out['files'][$name]=$item;
-            if(($item['capture']??null)!=='captured'||str_ends_with($name,'.sealed.json'))continue;
-            try{
-                $v=hotelJson(base64_decode($item['exact_bytes_base64'],true));$codes=[];
-                foreach(['state','phase','reason','observation_error'] as $key){
-                    $value=$v[$key]??null;
-                    if(is_string($value)&&preg_match('/\A[a-z][a-zA-Z0-9_]{1,100}\z/D',$value))$codes[$key]=$value;
-                }
-                if($codes)$out['files'][$name]['stored_code_fields']=$codes;
-            }catch(Throwable $ignored){}
-        }
-    }
-    $out['phase_files_requested']=!$valid;$out['captured_bytes']=$total;
-    $out['original_outcome_requires_independent_review']=true;
-    return $out;
+function preflightAttemptPins(): array {
+    return [
+        'producer'=>['attempt_id'=>'85806d12fc7b767229d042b96f378f61b25400fa29b99356ad9b68d7001cc66f',
+            'request_sha256'=>'2c7c073baca776f8e93f4adab01dd9da1024c2792843637878c8ae96e208c2eb',
+            'result_sha256'=>'4b830d18e0ce34d0bb09f7930ba8d5f9428162170c222f1fc2095109b12156be'],
+        'reviewer'=>['attempt_id'=>'588e97daa5e1c7bd282a4b9408f83533a8569713348e934d830027f6fb250aa6',
+            'request_sha256'=>'e1026048a22e10ad1954f01a30b6292aeb0101eb1c01a619a5a51e177f3c7f89',
+            'result_sha256'=>'ea730f5f878d3968989a0830bcc08207f7d94aefd88cbb3e769beef96ac14b8f']
+    ];
 }
-function hotelRuntime(string $root): array {
-    hotelDir($root);$bytes=hotelRead($root.'/runtime.json',65536);$runtime=hotelJson($bytes);
-    hotelKeys($runtime,['bootstrap_sha256','campaign_id','flags','policy','schema']);
-    if(($runtime['schema']??null)!=='hotel-server-runtime-v1'||!is_array($runtime['flags']??null)
-        ||!is_array($runtime['policy']??null))hotelFail('runtime_shape_unconfirmed');
-    hotelKeys($runtime['flags'],['dispatch_allowed','enabled','replacement_dispatch_allowed']);
-    foreach($runtime['flags'] as $flag)if(!is_bool($flag))hotelFail('runtime_flags_unconfirmed');
-    $campaign=hotelCampaign($runtime['campaign_id']??null);
-    return ['available'=>true,'configuration_sha256'=>hash('sha256',$bytes),'configuration_bytes'=>strlen($bytes),
-        'campaign_id'=>$campaign,'bootstrap_sha256'=>hotelHash($runtime['bootstrap_sha256']??null),'flags'=>$runtime['flags'],
-        'configuration_is_database_enable_proof'=>false];
+function preflightRuntime(string $app): array {
+    $root=dirname($app).'/max-search-bot-hotel-server';hotelDir($root);
+    $raw=hotelRead($root.'/runtime.json',65536,null,HOTEL_RUNTIME_SHA);$v=hotelJson($raw);
+    hotelKeys($v,['schema','campaign_id','bootstrap_sha256','flags','policy']);
+    if($v['schema']!=='hotel-server-runtime-v1'||$v['campaign_id']!==HOTEL_CAMPAIGN
+        ||$v['bootstrap_sha256']!==HOTEL_BOOTSTRAP_SHA||!is_array($v['flags'])||!is_array($v['policy']))hotelFail('preflight_runtime_cas');
+    hotelKeys($v['flags'],['enabled','dispatch_allowed','replacement_dispatch_allowed']);
+    foreach($v['flags'] as $flag)if($flag!==true)hotelFail('preflight_runtime_cas');
+    $p=$v['policy'];hotelKeys($p,['budget_attestation_sha256','input_token_ceiling','max_scopes','max_source_age_seconds',
+        'model','principals','profile_sha256','request_byte_ceiling','reserved_micros_minimum','source_mode','valid_until']);
+    hotelKeys($p['principals'],['producer','reviewer']);
+    if(hash('sha256',hotelCanonical($p))!==HOTEL_POLICY_SHA)hotelFail('original_policy_changed');
+    $profile=preflightProfile();if(hash('sha256',hotelCanonical($profile))!==HOTEL_PROFILE_SHA||$p['profile_sha256']!==HOTEL_PROFILE_SHA)hotelFail('original_profile_unconfirmed');
+    $instructions=['producer'=>HOTEL_PRODUCER_INSTRUCTIONS_SHA,'reviewer'=>HOTEL_REVIEWER_INSTRUCTIONS_SHA];
+    $revision=hash('sha256',hotelCanonical([$p,$profile,$instructions['producer'],$instructions['reviewer']]));
+    if($revision!==HOTEL_PROVIDER_REVISION)hotelFail('original_provider_revision_unconfirmed');
+    $provider=$app.'/services/HotelServerAiProvider.php';
+    if(is_link($provider)||realpath($provider)!==$provider||hash_file('sha256',$provider)!==HOTEL_PROVIDER_SOURCE_SHA)
+        hotelFail('instruction_source_unconfirmed');
+    return ['runtime_sha256'=>hash('sha256',$raw),'policy'=>$p,'policy_sha256'=>HOTEL_POLICY_SHA,'profile'=>$profile,
+        'profile_sha256'=>HOTEL_PROFILE_SHA,'instruction_sha256'=>$instructions,'provider_revision_sha256'=>$revision,
+        'profile_origin'=>'original_public_budget_profile_checked_against_saved_results',
+        'instruction_origin'=>'pinned_provider_source_public_static_strings_checked_against_saved_results',
+        'current_policy_returned_without_substitution'=>true,'credentials_or_unknown_runtime_fields_returned'=>false];
 }
-function hotelSavedHealth(string $app): array {
-    $dir=dirname($app).'/max-search-bot-private-logs';hotelDir($dir);
-    $bytes=hotelRead($dir.'/hotel_work_health.json',8192);$v=hotelJson($bytes);
-    $states=['running','ok','awaiting_connection','failed'];
-    $stages=['bootstrap','subscription','delivery','server_cycle','server_cycle_hold','complete'];
-    if(!in_array($v['state']??null,$states,true)||!in_array($v['stage']??null,$stages,true))hotelFail('health_shape_unconfirmed');
-    $out=['available'=>true,'saved_file_sha256'=>hash('sha256',$bytes),'saved_file_bytes'=>strlen($bytes),
-        'state'=>$v['state'],'stage'=>$v['stage'],'trigger'=>in_array($v['trigger']??null,['cron','manual'],true)?$v['trigger']:'unknown'];
-    foreach(['last_started_at','last_finished_at','last_success_at','last_error_at'] as $key){
-        $value=$v[$key]??null;
-        $out[$key]=is_string($value)&&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$value)?$value:null;
-    }
-    $out['last_error_stage']=in_array($v['last_error_stage']??null,$stages,true)?$v['last_error_stage']:null;
-    $at=strtotime((string)($out['state']==='running'?$out['last_started_at']:$out['last_finished_at']));
-    $age=$at===false?null:time()-$at;
-    $out['age_seconds']=$age;$out['stale']=$age===null||$age<0||$age>180;
-    $out['snapshot_is_original_failure_proof']=false;
-    return $out;
-}
-function hotelRows(PDO $pdo,string $sql,array $args,int $maximum): array {
-    if(!str_starts_with($sql,'SELECT ')||$args!==[HOTEL_PREDECESSOR,HOTEL_CAMPAIGN])hotelFail('scoped_read_only_query_required');
+function preflightRows(PDO $pdo,string $sql,array $args,int $limit): array {
+    if(!str_starts_with($sql,'SELECT ')||str_contains($sql,'FOR UPDATE')||($args[0]??null)!==HOTEL_CAMPAIGN)
+        hotelFail('preflight_read_scope_unconfirmed');
     $s=$pdo->prepare($sql);$s->execute($args);$rows=[];
-    try{while(($row=$s->fetch(PDO::FETCH_ASSOC))!==false){$rows[]=$row;if(count($rows)>$maximum)hotelFail('metadata_bounds_unconfirmed');}}
+    try{while(($row=$s->fetch(PDO::FETCH_ASSOC))!==false){$rows[]=$row;if(count($rows)>$limit)hotelFail('preflight_row_bound');}}
     finally{$s->closeCursor();}return $rows;
 }
-function hotelSnapshot(PDO $pdo,array &$out): void {
-    $args=[HOTEL_PREDECESSOR,HOTEL_CAMPAIGN];
-    $out=['state'=>'reading','scope'=>$args,'metadata_only'=>true,'consistent_read_only_snapshot'=>true,
-        'metadata_hashes_are_independent_acceptance_proof'=>false,'read_only_snapshot_rolled_back'=>false];
-    $out['campaigns']=[];
-    $plan="CASE WHEN OCTET_LENGTH(plan_bytes)<=65536 AND JSON_VALID(CONVERT(plan_bytes USING utf8mb4)) THEN CONVERT(plan_bytes USING utf8mb4) ELSE NULL END";
-    $rows=hotelRows($pdo,"SELECT campaign_id,state,enabled,stage_cursor,new_accepted,historical_accepted,baseline_sha256,inputs_sha256,bootstrap_sha256,reserved_calls,reserved_tokens,reserved_micros,JSON_UNQUOTE(JSON_EXTRACT(($plan),'$.limits.deadline')) AS plan_deadline FROM hotel_server_campaigns WHERE campaign_id IN (?,?) ORDER BY campaign_id LIMIT 3",$args,2);
-    foreach($rows as $row){
-        if(!in_array($row['state']??null,['disabled','ready','candidate','reviewed','hold','unknown','complete'],true))hotelFail('campaign_state_unconfirmed');
-        $c=['campaign_id'=>hotelCampaign($row['campaign_id']),'state'=>$row['state'],'enabled'=>hotelInt($row['enabled'],1)===1,
-            'stage_cursor'=>hotelInt($row['stage_cursor'],4),'new_accepted'=>hotelInt($row['new_accepted'],4),
-            'historical_accepted'=>hotelInt($row['historical_accepted'],1000000),
-            'baseline_sha256'=>hotelHash($row['baseline_sha256']),'inputs_sha256'=>hotelHash($row['inputs_sha256']),
-            'bootstrap_sha256'=>hotelHash($row['bootstrap_sha256']),
-            'reserved_calls'=>hotelInt($row['reserved_calls'],1000000),'reserved_tokens'=>hotelInt($row['reserved_tokens']),
-            'reserved_micros'=>hotelInt($row['reserved_micros']),'plan_deadline'=>null];
-        if($row['plan_deadline']!==null){$c['plan_deadline']=hotelInt($row['plan_deadline'],2147483647);
-            $c['deadline_reached_at_observation']=time()>=$c['plan_deadline'];}
-        $c['deadline_flag_is_original_error_proof']=false;$out['campaigns'][]=$c;
+function preflightOne(PDO $pdo,string $sql,array $args): array {
+    $rows=preflightRows($pdo,$sql,$args,1);if(count($rows)!==1)hotelFail('preflight_exact_row_required');return $rows[0];
+}
+function preflightDocument(mixed $raw,int $limit,string $hash): array {
+    if(!is_string($raw)||$raw===''||strlen($raw)>$limit||hash('sha256',$raw)!==$hash)hotelFail('preflight_exact_bytes_required');
+    $doc=hotelJson($raw);if(hotelCanonical($doc)!==$raw)hotelFail('preflight_canonical_bytes_required');return $doc;
+}
+function preflightByteEvidence(string $raw,string $hash): array {
+    return ['bytes'=>strlen($raw),'sha256'=>$hash,'exact_bytes_base64'=>base64_encode($raw),'exact_bytes_preserved'=>true];
+}
+function preflightScopeKey(array $scope): string {
+    hotelKeys($scope,['country','hotel','question','source']);
+    foreach($scope as $v)if(!is_string($v)||trim($v)!==$v||$v===''||strlen($v)>256)hotelFail('preflight_scope_shape');
+    if($scope['country']!=='EG'||$scope['hotel']!=='official_casa_cook_el_gouna')hotelFail('preflight_foreign_scope');
+    return hash('sha256',hotelCanonical($scope));
+}
+function preflightRead(PDO $pdo,array $runtime,array &$out): void {
+    $out=['state'=>'reading','consistent_read_only_snapshot'=>true,'read_only_snapshot_rolled_back'=>false,
+        'request_bytes_returned'=>false,'accepted_history_returned'=>false];
+    $c=preflightOne($pdo,'SELECT campaign_id,state,enabled,stage_cursor,new_accepted,historical_accepted,baseline_sha256,inputs_sha256,bootstrap_sha256,reserved_calls,reserved_tokens,reserved_micros,CASE WHEN OCTET_LENGTH(plan_bytes)<=65536 THEN plan_bytes ELSE NULL END AS plan_bytes FROM hotel_server_campaigns WHERE campaign_id=? LIMIT 2',[HOTEL_CAMPAIGN]);
+    if($c['campaign_id']!==HOTEL_CAMPAIGN||$c['state']!=='hold'||hotelInt($c['enabled'],1)!==1
+        ||hotelInt($c['stage_cursor'],4)!==0||hotelInt($c['new_accepted'],4)!==0||hotelInt($c['historical_accepted'],1000000)!==19
+        ||$c['baseline_sha256']!==HOTEL_BASELINE_SHA||$c['inputs_sha256']!==HOTEL_INPUTS_SHA||$c['bootstrap_sha256']!==HOTEL_BOOTSTRAP_SHA
+        ||hotelInt($c['reserved_calls'])!==2||hotelInt($c['reserved_tokens'])!==2104400||hotelInt($c['reserved_micros'])!==22000000)
+        hotelFail('preflight_campaign_cas');
+    $plan=preflightDocument($c['plan_bytes'],65536,HOTEL_PLAN_SHA);
+    if(!is_array($plan['stages']??null)||count($plan['stages'])!==4||!is_array($plan['stages'][0])||count($plan['stages'][0])!==4)
+        hotelFail('preflight_original_plan_shape');
+    $scopes=$plan['stages'][0];$scopeKeys=array_map('preflightScopeKey',$scopes);
+    if(count(array_unique($scopeKeys))!==4||!in_array(HOTEL_TARGET_SCOPE_KEY,$scopeKeys,true))hotelFail('preflight_target_scope_required');
+    $input=preflightOne($pdo,'SELECT campaign_id,inputs_sha256 FROM hotel_server_inputs WHERE campaign_id=? LIMIT 2',[HOTEL_CAMPAIGN]);
+    if($input['campaign_id']!==HOTEL_CAMPAIGN||$input['inputs_sha256']!==HOTEL_INPUTS_SHA)hotelFail('preflight_inputs_cas');
+    $out['campaign']=['campaign_id'=>HOTEL_CAMPAIGN,'state'=>'hold','enabled'=>true,'stage_index'=>0,'new_accepted'=>0,
+        'bootstrap_sha256'=>HOTEL_BOOTSTRAP_SHA,'baseline_sha256'=>HOTEL_BASELINE_SHA,'inputs_sha256'=>HOTEL_INPUTS_SHA,
+        'reserved_calls'=>2,'reserved_tokens'=>2104400,'reserved_micros'=>22000000];
+    $out['plan']=preflightByteEvidence($c['plan_bytes'],HOTEL_PLAN_SHA);$out['original_limits']=$plan['limits'];
+    $out['remaining_original_reservation']=['calls'=>6,'tokens'=>6313200,'micros'=>66000000,'renewed_deadline_admitted'=>false];
+    $candidate=preflightOne($pdo,'SELECT campaign_id,stage_index,candidate_sha256,producer_attempt,CASE WHEN OCTET_LENGTH(candidate_bytes)<=32768 THEN candidate_bytes ELSE NULL END AS candidate_bytes FROM hotel_server_candidates WHERE campaign_id=? AND stage_index=? LIMIT 2',[HOTEL_CAMPAIGN,0]);
+    $pins=preflightAttemptPins();
+    if($candidate['campaign_id']!==HOTEL_CAMPAIGN||hotelInt($candidate['stage_index'])!==0||$candidate['candidate_sha256']!==HOTEL_CANDIDATE_SHA||$candidate['producer_attempt']!==$pins['producer']['attempt_id'])hotelFail('preflight_candidate_cas');
+    $doc=preflightDocument($candidate['candidate_bytes'],32768,HOTEL_CANDIDATE_SHA);hotelKeys($doc,['schema','records']);
+    if($doc['schema']!=='hotel-server-candidate-v1'||!is_array($doc['records'])||!array_is_list($doc['records'])||count($doc['records'])!==4)hotelFail('preflight_candidate_shape');
+    $seen=[];
+    foreach($doc['records'] as $record){
+        if(!is_array($record))hotelFail('preflight_candidate_shape');hotelKeys($record,['scope','answer','evidence']);
+        $k=preflightScopeKey($record['scope']);
+        if(isset($seen[$k])||!in_array($k,$scopeKeys,true)||!is_string($record['answer'])||$record['answer']===''||strlen($record['answer'])>32768||!is_array($record['evidence']))hotelFail('preflight_candidate_shape');
+        $seen[$k]=true;
     }
-    $out['receipt_refs']=[];
-    $rows=hotelRows($pdo,'SELECT campaign_id,stage_index,receipt_sha256,OCTET_LENGTH(receipt_bytes) AS receipt_size FROM hotel_server_receipts WHERE campaign_id IN (?,?) ORDER BY campaign_id,stage_index LIMIT 9',$args,8);
-    foreach($rows as $row)$out['receipt_refs'][]=['campaign_id'=>hotelCampaign($row['campaign_id']),
-        'stage_index'=>hotelInt($row['stage_index'],3),'receipt_sha256'=>hotelHash($row['receipt_sha256']),
-        'receipt_bytes'=>hotelInt($row['receipt_size'],2097152),'content_not_read'=>true];
-    $out['attempts']=[];
-    // Project only enumerated status/cause fields inside the server; never return result/request bytes or evidence text.
-    $result="CASE WHEN OCTET_LENGTH(result_bytes)<=2097152 AND JSON_VALID(CONVERT(result_bytes USING utf8mb4)) THEN CONVERT(result_bytes USING utf8mb4) ELSE NULL END";
-    $rows=hotelRows($pdo,"SELECT campaign_id,attempt_id,stage_index,role,state,baseline_sha256,request_sha256,result_sha256,OCTET_LENGTH(result_bytes) AS result_size,JSON_UNQUOTE(JSON_EXTRACT(($result),'$.provider_outcome')) AS saved_provider_outcome,JSON_UNQUOTE(JSON_EXTRACT(($result),'$.rejection_code')) AS saved_rejection_code,JSON_UNQUOTE(JSON_EXTRACT(($result),'$.approved')) AS saved_approved FROM hotel_server_attempts WHERE campaign_id IN (?,?) ORDER BY campaign_id,stage_index,role LIMIT 17",$args,16);
-    foreach($rows as $row){
-        if(!in_array($row['role']??null,['producer','reviewer'],true)||!in_array($row['state']??null,['unknown','succeeded'],true))
-            hotelFail('attempt_state_unconfirmed');
-        $a=['campaign_id'=>hotelCampaign($row['campaign_id']),'attempt_id'=>hotelHash($row['attempt_id']),
-            'stage_index'=>hotelInt($row['stage_index'],3),'role'=>$row['role'],'state'=>$row['state'],
-            'baseline_sha256'=>hotelHash($row['baseline_sha256']),'request_sha256'=>hotelHash($row['request_sha256']),
-            'result_sha256'=>$row['result_sha256']===null?null:hotelHash($row['result_sha256']),
-            'result_bytes'=>$row['result_size']===null?null:hotelInt($row['result_size']),
-            'result_hash_independently_verified'=>false,'result_and_request_bytes_not_returned'=>true,'stored_cause'=>null];
-        $a['saved_provider_outcome']=in_array($row['saved_provider_outcome'],['rejected'],true)?$row['saved_provider_outcome']:null;
-        $a['saved_rejection_code']=in_array($row['saved_rejection_code'],['insufficient_evidence','invalid_candidate','invalid_review','invalid_response','provider_refused','provider_incomplete'],true)?$row['saved_rejection_code']:null;
-        $a['saved_approved']=$row['saved_approved']==='true'?true:($row['saved_approved']==='false'?false:null);
-        if($a['state']==='unknown')$a['stored_cause']='provider_outcome_unknown';
-        elseif($a['saved_provider_outcome']==='rejected')$a['stored_cause']='provider_rejected';
-        elseif($a['role']==='reviewer'&&$a['saved_approved']===false)$a['stored_cause']='independent_review_rejected';
-        $a['stored_cause_is_original_handoff_failure_proof']=false;$out['attempts'][]=$a;
+    $out['candidate']=preflightByteEvidence($candidate['candidate_bytes'],HOTEL_CANDIDATE_SHA)+['producer_attempt'=>$candidate['producer_attempt'],'records'=>$doc['records']];
+    $requests=[];$results=[];$out['attempts']=[];
+    foreach($pins as $role=>$pin){
+        $a=preflightOne($pdo,'SELECT campaign_id,stage_index,attempt_id,role,principal,state,baseline_sha256,request_sha256,result_sha256,CASE WHEN OCTET_LENGTH(request_bytes)<=131072 THEN request_bytes ELSE NULL END AS request_bytes,CASE WHEN OCTET_LENGTH(result_bytes)<=32768 THEN result_bytes ELSE NULL END AS result_bytes FROM hotel_server_attempts WHERE campaign_id=? AND stage_index=? AND role=? AND attempt_id=? LIMIT 2',[HOTEL_CAMPAIGN,0,$role,$pin['attempt_id']]);
+        if($a['campaign_id']!==HOTEL_CAMPAIGN||hotelInt($a['stage_index'])!==0||$a['attempt_id']!==$pin['attempt_id']||$a['role']!==$role||$a['state']!=='succeeded'
+            ||$a['baseline_sha256']!==HOTEL_BASELINE_SHA||$a['principal']!==$runtime['policy']['principals'][$role].':'.HOTEL_PROVIDER_REVISION
+            ||$a['request_sha256']!==$pin['request_sha256']||$a['result_sha256']!==$pin['result_sha256'])hotelFail('preflight_attempt_cas');
+        $request=preflightDocument($a['request_bytes'],131072,$pin['request_sha256']);$result=preflightDocument($a['result_bytes'],32768,$pin['result_sha256']);
+        foreach(['attempt_id','principal','baseline_sha256'] as $key)if(($request[$key]??null)!==$a[$key]||($result[$key]??null)!==$a[$key])hotelFail('preflight_attempt_lineage');
+        if(($request['campaign_id']??null)!==HOTEL_CAMPAIGN||($request['stage_index']??null)!==0||($request['role']??null)!==$role
+            ||($request['inputs_sha256']??null)!==HOTEL_INPUTS_SHA||($result['inputs_sha256']??null)!==HOTEL_INPUTS_SHA
+            ||($request['criteria_sha256']??null)!==HOTEL_CRITERIA_SHA||($request['research_mode']??null)!=='assigned_retained_excerpts'
+            ||hotelCanonical($request['scopes']??null)!==hotelCanonical($scopes)||hotelCanonical($request['limits']??null)!==hotelCanonical($plan['limits'])
+            ||($request['model']??null)!=='gpt-6.1-sol'||($result['provider_model']??null)!=='gpt-6.1-sol'
+            ||($result['profile_sha256']??null)!==HOTEL_PROFILE_SHA||($result['provider_policy_sha256']??null)!==HOTEL_PROVIDER_REVISION
+            ||($result['budget_attestation_sha256']??null)!==$runtime['policy']['budget_attestation_sha256']
+            ||array_key_exists('provider_outcome',$result))hotelFail('preflight_saved_result_lineage');
+        $requests[$role]=$request;$results[$role]=$result;
+        $out['attempts'][$role]=['attempt_id'=>$pin['attempt_id'],'principal'=>$a['principal'],'state'=>'succeeded','request_sha256'=>$pin['request_sha256'],
+            'request_bytes_read_only_for_hash_and_scoped_projection'=>true,'request_bytes_not_returned'=>true,
+            'result'=>preflightByteEvidence($a['result_bytes'],$pin['result_sha256'])];
     }
-    $out['work_outboxes']=[];
-    $rows=hotelRows($pdo,'SELECT campaign_id,stage_index,role,state,attempt_id FROM hotel_server_outbox WHERE campaign_id IN (?,?) ORDER BY campaign_id,stage_index,role LIMIT 17',$args,16);
-    foreach($rows as $row){
-        if(!in_array($row['role']??null,['producer','reviewer'],true)||!in_array($row['state']??null,['pending','unknown','done'],true))
-            hotelFail('outbox_state_unconfirmed');
-        $out['work_outboxes'][]=['campaign_id'=>hotelCampaign($row['campaign_id']),'stage_index'=>hotelInt($row['stage_index'],3),
-            'role'=>$row['role'],'state'=>$row['state'],'attempt_id'=>$row['attempt_id']===null?null:hotelHash($row['attempt_id'])];
+    if(($requests['producer']['candidate']??null)!==null||($requests['producer']['candidate_sha256']??null)!==null
+        ||hotelCanonical($results['producer']['candidate']??null)!==$candidate['candidate_bytes']
+        ||($requests['reviewer']['candidate_sha256']??null)!==HOTEL_CANDIDATE_SHA||hotelCanonical($requests['reviewer']['candidate']??null)!==$candidate['candidate_bytes'])hotelFail('preflight_candidate_lineage');
+    $review=preflightOne($pdo,'SELECT campaign_id,stage_index,review_attempt,candidate_sha256,approved,CASE WHEN OCTET_LENGTH(review_bytes)<=32768 THEN review_bytes ELSE NULL END AS review_bytes FROM hotel_server_reviews WHERE campaign_id=? AND stage_index=? LIMIT 2',[HOTEL_CAMPAIGN,0]);
+    if($review['campaign_id']!==HOTEL_CAMPAIGN||hotelInt($review['stage_index'])!==0||$review['review_attempt']!==$pins['reviewer']['attempt_id']||$review['candidate_sha256']!==HOTEL_CANDIDATE_SHA
+        ||hotelInt($review['approved'],1)!==0||!is_string($review['review_bytes'])||hash('sha256',$review['review_bytes'])!==$pins['reviewer']['result_sha256']
+        ||hotelCanonical($results['reviewer'])!==$review['review_bytes']||($results['reviewer']['approved']??null)!==false
+        ||($results['reviewer']['candidate_sha256']??null)!==HOTEL_CANDIDATE_SHA||($results['reviewer']['criteria_sha256']??null)!==HOTEL_CRITERIA_SHA)hotelFail('preflight_negative_review_lineage');
+    $checks=$results['reviewer']['review_checks']??null;$seen=[];$negative=[];
+    if(!is_array($checks)||!array_is_list($checks)||count($checks)!==4)hotelFail('preflight_scope_checks_required');
+    foreach($checks as $check){
+        if(!is_array($check))hotelFail('preflight_scope_checks_required');hotelKeys($check,['scope','approved','reason']);$k=preflightScopeKey($check['scope']);
+        if(isset($seen[$k])||!in_array($k,$scopeKeys,true)||!is_bool($check['approved'])||!is_string($check['reason'])||$check['reason']===''||strlen($check['reason'])>2048)hotelFail('preflight_scope_checks_required');
+        $seen[$k]=true;if(!$check['approved'])$negative[]=$k;
     }
-    $out['catalog_outboxes']=[];
-    $rows=hotelRows($pdo,'SELECT campaign_id,receipt_sha256,state FROM hotel_server_catalog_outbox WHERE campaign_id IN (?,?) ORDER BY campaign_id,receipt_sha256 LIMIT 9',$args,8);
-    foreach($rows as $row){
-        if(!in_array($row['state']??null,['pending','done'],true))hotelFail('catalog_outbox_state_unconfirmed');
-        $out['catalog_outboxes'][]=['campaign_id'=>hotelCampaign($row['campaign_id']),
-            'receipt_sha256'=>hotelHash($row['receipt_sha256']),'state'=>$row['state']];
+    $out['review_checks']=$checks;$out['negative_scope_keys']=$negative;$out['single_target_scope_rejected']=$negative===[HOTEL_TARGET_SCOPE_KEY];
+    $deps=$requests['producer']['dependencies']??null;
+    if(!is_array($deps)||!array_is_list($deps)||count($deps)!==4||hotelCanonical($deps)!==hotelCanonical($requests['reviewer']['dependencies']??null))hotelFail('preflight_dependencies_lineage');
+    $seen=[];$targetContext=null;
+    foreach($deps as $context){
+        if(!is_array($context))hotelFail('preflight_dependencies_shape');hotelKeys($context,['scope','dependencies']);$k=preflightScopeKey($context['scope']);
+        if(isset($seen[$k])||!in_array($k,$scopeKeys,true)||!is_array($context['dependencies']))hotelFail('preflight_dependencies_shape');
+        hotelKeys($context['dependencies'],['archives','corpus','criteria','instructions','map']);
+        foreach($context['dependencies'] as $text)if(!is_string($text)||$text===''||strlen($text)>8192)hotelFail('preflight_dependencies_bound');
+        $seen[$k]=true;if($k===HOTEL_TARGET_SCOPE_KEY)$targetContext=$context;
     }
-    $out['record_counts']=[];
-    $rows=hotelRows($pdo,'SELECT campaign_id,COUNT(*) AS record_count FROM hotel_server_records WHERE campaign_id IN (?,?) GROUP BY campaign_id ORDER BY campaign_id LIMIT 3',$args,2);
-    foreach($rows as $row)$out['record_counts'][]=['campaign_id'=>hotelCampaign($row['campaign_id']),'record_count'=>hotelInt($row['record_count'],1000000),'record_contents_not_read'=>true];
-    $out['review_statuses']=[];
-    $rows=hotelRows($pdo,'SELECT campaign_id,stage_index,review_attempt,candidate_sha256,approved FROM hotel_server_reviews WHERE campaign_id IN (?,?) ORDER BY campaign_id,stage_index LIMIT 9',$args,8);
-    foreach($rows as $row)$out['review_statuses'][]=['campaign_id'=>hotelCampaign($row['campaign_id']),
-        'stage_index'=>hotelInt($row['stage_index'],3),'review_attempt'=>hotelHash($row['review_attempt']),
-        'candidate_sha256'=>hotelHash($row['candidate_sha256']),'approved'=>hotelInt($row['approved'],1)===1];
+    if($targetContext===null||hash('sha256',hotelCanonical($targetContext))!==HOTEL_TARGET_CONTEXT_SHA)hotelFail('preflight_target_context_cas');
+    $out['stage_contexts']=$deps;$out['target_scope_key']=HOTEL_TARGET_SCOPE_KEY;$out['target_context_sha256']=HOTEL_TARGET_CONTEXT_SHA;$out['criteria_sha256']=HOTEL_CRITERIA_SHA;
+    $outs=preflightRows($pdo,'SELECT campaign_id,stage_index,role,state,attempt_id FROM hotel_server_outbox WHERE campaign_id=? AND stage_index=? ORDER BY role LIMIT 3',[HOTEL_CAMPAIGN,0],2);
+    if(count($outs)!==2)hotelFail('preflight_outbox_cas');$seen=[];
+    foreach($outs as $row){$role=$row['role'];if(!isset($pins[$role])||isset($seen[$role])||$row['campaign_id']!==HOTEL_CAMPAIGN||hotelInt($row['stage_index'])!==0||$row['state']!=='done'||$row['attempt_id']!==$pins[$role]['attempt_id'])hotelFail('preflight_outbox_cas');$seen[$role]=true;}
+    foreach(['hotel_server_receipts','hotel_server_corrections'] as $table){
+        $row=preflightOne($pdo,'SELECT COUNT(*) AS saved_count FROM '.$table.' WHERE campaign_id=? AND stage_index=?',[HOTEL_CAMPAIGN,0]);
+        if(hotelInt($row['saved_count'])!==0)hotelFail('preflight_stage_already_accepted_or_corrected');
+    }
+    $out['saved_outboxes_done']=true;$out['existing_stage_receipts']=0;$out['existing_stage_corrections']=0;
+    $out['correction_content_prerequisite_met']=$out['single_target_scope_rejected'];
     $out['state']='observed';
 }
-function hotelSection(string $name,callable $read): void {
-    global $report;
-    $report['phase']=$name;
-    try{$report[$name]=$read();}
-    catch(Throwable $e){$reason=hotelReason($e);$report[$name]=['available'=>false,'reason'=>$reason];
-        $report['section_errors'][]=['section'=>$name,'reason'=>$reason];}
-}
+
 function hotelFinish(): int {
     global $pdo,$target,$outputDone,$emergencyMemory,$report,$level;
     if($outputDone)return 1;
@@ -338,6 +314,7 @@ function hotelFinish(): int {
     echo json_encode($envelope,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),"\n";
     return $report['state']==='observed'&&$envelope['state']==='sealed'?0:1;
 }
+
 register_shutdown_function(static function():void {
     global $outputDone,$emergencyMemory,$report;
     if($outputDone)return;
@@ -350,52 +327,31 @@ register_shutdown_function(static function():void {
     hotelFinish();
 });
 
+
 try{
     $app='/var/www/anytoour/data/www/app.anytoour.ru';$run=getenv('HOTEL_OPERATION_RUN_ID');
-    if(PHP_SAPI!=='cli'||count($argv)!==1||realpath(getcwd())!==$app
-        ||!function_exists('posix_geteuid')||posix_geteuid()!==1012)hotelFail('target_unconfirmed');
+    if(PHP_SAPI!=='cli'||count($argv)!==1||realpath(getcwd())!==$app||!function_exists('posix_geteuid')||posix_geteuid()!==1012)hotelFail('target_unconfirmed');
     $target=true;
-    if(!is_string($run)||!preg_match('/\A[1-9][0-9]{6,20}\z/D',$run)||$run===HOTEL_ORIGINAL_RUN_ID)hotelFail('new_observation_invocation_unconfirmed');
-    $identity=['campaign_id'=>HOTEL_CAMPAIGN,'campaign_operation'=>HOTEL_ORIGINAL_OPERATION,
-        'installed_sha'=>HOTEL_EXPECTED_INSTALLED_SHA,'original_installed_sha'=>HOTEL_ORIGINAL_INSTALLED_SHA,
-        'original_job_id'=>HOTEL_ORIGINAL_JOB_ID,'original_run_id'=>HOTEL_ORIGINAL_RUN_ID,
-        'predecessor_id'=>HOTEL_PREDECESSOR,'schema'=>HOTEL_STATUS_KIND];
-    if(!hash_equals(HOTEL_OPERATION,hash('sha256',json_encode($identity,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))))
-        hotelFail('observation_identity_unconfirmed');
-    $report['github_run_id']=$run;$report['installed_sha']=hotelInstalled($app);
-    hotelSeal(['state'=>'preflight','operator_provider_calls'=>0]);
-    $report['observed_at_utc']=gmdate('Y-m-d\TH:i:s\Z');$root=dirname($app).'/max-search-bot-hotel-server';
-    // Capture immutable original files before config/DB work so a later failure preserves them.
-    hotelSection('original_files',static fn():array=>hotelOriginalFiles($root));
-    hotelSection('runtime',static fn():array=>hotelRuntime($root));
-    hotelSection('health',static fn():array=>hotelSavedHealth($app));
-    $report['phase']='database_connection';
-    // Current exact-source connection does only new PDO; do not initialize ProjectAccess/Hotel classes.
-    $connectionFile=$app.'/services/ConversationDb.php';
-    if(is_link($connectionFile)||realpath($connectionFile)!==$connectionFile
-        ||!hash_equals(HOTEL_CONNECTION_SOURCE_SHA,(string)hash_file('sha256',$connectionFile)))
-        hotelFail('read_only_connection_source_unconfirmed');
-    require_once $app.'/config.php';require_once $connectionFile;
-    $pdo=ConversationDb::connection();
-    if($pdo->inTransaction()||$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'
-        ||$pdo->getAttribute(PDO::ATTR_ERRMODE)!==PDO::ERRMODE_EXCEPTION
-        ||!in_array($pdo->getAttribute(PDO::ATTR_EMULATE_PREPARES),[false,0],true))hotelFail('application_database_unconfirmed');
-    $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
-    $pdo->exec('START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY');
+    if(!is_string($run)||!preg_match('/\A[1-9][0-9]{6,20}\z/D',$run)||in_array($run,['41666161566','41823005923'],true))hotelFail('new_correction_preflight_invocation_required');
+    $identity=hotelJson('{"campaign_id":"HOTEL-SERVER-20261103-B07","candidate_sha256":"44596fb4cc60d4ea40635b3b44ce8f2f3cd54d0152d20827d8d8bec7361c7034","installed_sha":"17400f819817593b3b4428b43a8dbe24b109c428","observation_kind":"b07_stage0_correction_preflight","producer_result_sha256":"4b830d18e0ce34d0bb09f7930ba8d5f9428162170c222f1fc2095109b12156be","review_result_sha256":"ea730f5f878d3968989a0830bcc08207f7d94aefd88cbb3e769beef96ac14b8f","schema":"hotel-server-private-incident-v1","stage_index":0}');
+    if(hash('sha256',hotelCanonical($identity))!==HOTEL_OPERATION)hotelFail('preflight_operation_identity');
+    $report['github_run_id']=$run;$report['installed_sha']=hotelInstalled($app);hotelSeal(['state'=>'preflight','operator_provider_calls'=>0]);
+    $report['observed_at_utc']=gmdate('Y-m-d\TH:i:s\Z');$report['phase']='original_policy';$runtime=preflightRuntime($app);$report['runtime']=$runtime;
+    $report['phase']='database_connection';$connectionFile=$app.'/services/ConversationDb.php';
+    if(is_link($connectionFile)||realpath($connectionFile)!==$connectionFile||hash_file('sha256',$connectionFile)!==HOTEL_CONNECTION_SOURCE_SHA)hotelFail('read_only_connection_source_unconfirmed');
+    require_once $app.'/config.php';require_once $connectionFile;$pdo=ConversationDb::connection();
+    if($pdo->inTransaction()||$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'||$pdo->getAttribute(PDO::ATTR_ERRMODE)!==PDO::ERRMODE_EXCEPTION||!in_array($pdo->getAttribute(PDO::ATTR_EMULATE_PREPARES),[false,0],true))hotelFail('application_database_unconfirmed');
+    $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$pdo->exec('START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY');
     if(!$pdo->inTransaction())hotelFail('read_only_snapshot_unconfirmed');
-    $report['phase']='database_metadata';$report['database']=[];
-    hotelSnapshot($pdo,$report['database']);$pdo->rollBack();$report['database']['read_only_snapshot_rolled_back']=true;
-    $report['phase']='final_release_pin';hotelInstalled($app);
-    $report['state']=$report['section_errors']===[]?'observed':'HOLD';
-    if($report['section_errors']!==[])$report['reason']='observation_sections_incomplete';
-    $report['snapshot_finished_at_utc']=gmdate('Y-m-d\TH:i:s\Z');
-    $report['files_and_database_are_separate_observation_instants']=true;
-    $report['original_failure_detail']='requires_original_receipt_decryption_or_saved_phase_review';
+    $report['phase']='correction_inputs';$report['database']=[];preflightRead($pdo,$runtime,$report['database']);
+    $pdo->rollBack();$report['database']['read_only_snapshot_rolled_back']=true;
+    $report['phase']='final_pins';$again=preflightRuntime($app);if(hotelCanonical($again)!==hotelCanonical($runtime))hotelFail('policy_changed_during_preflight');hotelInstalled($app);
+    $report['state']='observed';$report['snapshot_finished_at_utc']=gmdate('Y-m-d\TH:i:s\Z');
+    $report['correction_authorized_or_applied_by_this_read']=false;$report['next_action']='independently_review_exact_correction_and_immutable_admission';
 }catch(Throwable $e){
     $report['state']='HOLD';$report['reason']=hotelReason($e);
     if($e instanceof PDOException){
-        $report['reason']='database_metadata_observation_failed';
-        $info=$e->errorInfo;
+        $report['reason']='correction_preflight_database_read_failed';$info=$e->errorInfo;
         if(is_array($info)&&is_string($info[0]??null)&&preg_match('/\A[A-Z0-9]{5}\z/D',$info[0]))$report['database_sqlstate']=$info[0];
         if(is_array($info)&&is_int($info[1]??null))$report['database_driver_code']=$info[1];
     }

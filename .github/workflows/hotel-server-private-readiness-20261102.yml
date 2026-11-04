@@ -1,4 +1,4 @@
-name: Read original B07 outcome once through the existing private incident channel
+name: Read exact B07 correction prerequisites once through the existing private channel
 on:
   push:
     branches: [ops/hotel-server-private-activation-20261102]
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   private_incident:
-    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '3452b32a2a55234918151a1bfaf752d12ce270a5' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == 'dc1258a99ab1aeb44c28d17598ffaddaf804db6a' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -26,8 +26,8 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib,re
           root=pathlib.Path(os.environ['RUNNER_TEMP'])
-          operator_blob = '2f1a5d05a49a5d1110b8be3c2f0fa5f8231500fb'
-          operator_sha = 'f8f6fb896a35c2f2a0a5bdc5c9a451bdba9637293477504371506743dcaa6b97'
+          operator_blob = 'f62fa5f87844af113780fe52c483e1a9e8d16593'
+          operator_sha = '6ab65bb0830b3366973e12ba69eafb42f5be71f31307f1e6af7d934030728b7e'
           builder_blob = 'd2bbe82a97ae8229005db2ffcc1825ce2be37a04'
           builder_sha = '94296118e08221cbcd33e949cfd69c2247fcb6f9ca4a4d7a7b0ab8eb528ffecc'
           for input_name,output_name,expected_blob,expected_sha,limit in [
@@ -44,6 +44,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
+          extensions: mbstring, pdo_sqlite
           coverage: none
       - name: Lint and verify refusal outside the fixed server before loading credentials
         shell: bash
@@ -65,6 +66,26 @@ jobs:
         run: |
           set -euo pipefail
           python3 -B "$RUNNER_TEMP/build_hotel_server_handoff.py" --check-runner-diagnostics "$RUNNER_TEMP/hotel_handoff.php"
+      - name: Load the independently reviewed correction source for the isolated fixture
+        uses: actions/checkout@v4
+        with:
+          repository: pyatkoff/max-search-bot
+          ref: 7f96ed9340aeacf65cdfe8c464f2ee44f14c7994
+          path: hotel-core-fixture
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify the bounded correction on synthetic SQLite before server credentials
+        env:
+          HOTEL_WORK_NATIVE_MYSQL: '0'
+          HOTEL_CORE_SOURCE_SHA: 7f96ed9340aeacf65cdfe8c464f2ee44f14c7994
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE/hotel-core-fixture"
+          test "$(git rev-parse HEAD)" = "$HOTEL_CORE_SOURCE_SHA"
+          php -v
+          php tests/run_hotel_server_cycle_regression.php | tee "$RUNNER_TEMP/hotel_core_focused.txt"
+          php -r 'echo json_encode(["schema"=>"hotel-core-focused-v1","source_sha"=>getenv("HOTEL_CORE_SOURCE_SHA"),"php_version"=>PHP_VERSION,"suite"=>"tests/run_hotel_server_cycle_regression.php","backend"=>"isolated_synthetic_sqlite","state"=>"passed","production_credentials_loaded"=>false,"production_provider_calls"=>0,"required_pr_ci_passed"=>false], JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR), "\n";' >"$RUNNER_TEMP/hotel_core_focused.json"
       - name: Prepare the existing administrator connection and approved host continuity
         env:
           CONNECTION_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -97,7 +118,7 @@ jobs:
           assert approved,'Existing host continuity mismatch; STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_handoff_hosts').write_text('\n'.join(approved)+'\n')
           PY
-      - name: Read the original B07 receipt and bounded saved state once
+      - name: Read exact B07 stage0 candidate and correction prerequisites once
         id: handoff
         env:
           CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -123,7 +144,7 @@ jobs:
               if d['state']=='sealed':
                   assert set(d)=={'operation','state','operator_provider_calls','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256'}
                   assert d['algorithm']=='RSA-OAEP-SHA1+A256GCM' and d['recipient_sha256']=='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d'
-                  assert d['aad']=='hotel-server-private-incident-v1|17400f819817593b3b4428b43a8dbe24b109c428|f015a45bc062c4fabbfbea5948b8984449f64aeeac90c11f61a520bf6bafbf3f'
+                  assert d['aad']=='hotel-server-private-incident-v1|17400f819817593b3b4428b43a8dbe24b109c428|90b00f80c62dccb911eb4a0082c634685f2bb55155d17a10a531783cd9fbf9f8'
                   decoded={k:base64.b64decode(d[k],validate=True) for k in ['key','nonce','tag','ciphertext']}
                   assert len(decoded['key'])==384 and len(decoded['nonce'])==12 and len(decoded['tag'])==16
                   assert 0<len(decoded['ciphertext'])<=524288 and hashlib.sha256(decoded['ciphertext']).hexdigest()==d['ciphertext_sha256']
@@ -140,7 +161,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: hotel-server-private-incident-sealed
+          name: hotel-server-private-correction-preflight-sealed
           path: ${{ runner.temp }}/hotel_handoff_sealed.json
           retention-days: 7
           if-no-files-found: ignore
@@ -185,8 +206,18 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always() && steps.runner_diagnostic.outcome == 'success' && steps.runner_diagnostic.outputs.sealed == 'true'
         with:
-          name: hotel-server-private-incident-diagnostic
+          name: hotel-server-private-correction-preflight-diagnostic
           path: ${{ runner.temp }}/hotel_handoff_runner_diagnostic.sealed.json
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Preserve the exact synthetic focused-test evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hotel-b07-core-focused
+          path: |
+            ${{ runner.temp }}/hotel_core_focused.json
+            ${{ runner.temp }}/hotel_core_focused.txt
           retention-days: 7
           if-no-files-found: ignore
       - name: Remove only this run's ephemeral files
