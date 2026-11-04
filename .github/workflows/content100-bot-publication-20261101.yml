@@ -1,4 +1,4 @@
-name: Publish157 hotel YML offers after native MAX157 route verification
+name: Check one further retained price for an unpriced published hotel
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -22,11 +22,8 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
           sparse-checkout: |
-            /tools/direct_demand/operations/
-            /.github/traffic-publish/hotel-posts-telegram.xml
-            /.github/traffic-publish/hotel-posts-max.xml
-            /.github/traffic-publish/hotel-posts-all.xml
-          sparse-checkout-cone-mode: false
+            tools/direct_demand/operations
+          sparse-checkout-cone-mode: true
       - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -58,53 +55,29 @@ jobs:
           assert d['status']=='completed' and d['conclusion']=='success'
           print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
           PY
-      - name: Require accepted actual native MAX157 install
-        run: |
-          python3 - <<'PY'
-          import json,pathlib
-          e=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-max157-installed-safe-evidence-20261104.json').read_text())
-          assert e['repository']=='pyatkoff/tour-max' and e['run_id']==41902696282 and e['job_id']==126829029464 and e['source_commit']=='03298d509147ca8215404188ba561279e392bf61'
-          d=e['result']
-          assert d['operation']=='commercial-max157-private-route-extension-20261104-38-install1' and d['state']=='INSTALLED_AND_NATIVE_VERIFIED' and d['ok']
-          assert d['candidate_module_sha256']=='88f2ea27bdcaeac6f1a365aaf819198460ee0fd7df8209dafb4f9f99b3cbb6f9'
-          assert d['checks']['exact_total_routes']==157 and d['checks']['new_native_routes_verified']==1 and d['checks']['previous156_rows_identical']
-          assert d['checks']['private_projection_http_status']==404 and d['checks']['save_calls']==0 and d['checks']['project_active'] and d['checks']['counter_config_matches'] and d['checks']['required_post_fields_ready']
-          assert d['provider_calls']==d['db_writes']==d['message_sends']==d['feed_writes']==0
-          print('MAX157_ACTUAL_INSTALLED_NATIVE_RESULT_ACCEPTED natural_user_launch_not_claimed=1')
-          PY
-      - name: Validate native Direct YML cases and prepare three bounded static files
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261104-read9
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41898354901
+          path: ${{ runner.temp }}/retained-read9
+      - name: Bind one exact new retained candidate and original whole caption
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/verify-commercial-max157-feed-routes-20261104.py
-          python3 - <<'PY'
-          import base64,hashlib,json,os,pathlib
-          base=pathlib.Path('.github/traffic-publish')
-          names=['hotel-posts-telegram.xml','hotel-posts-max.xml','hotel-posts-all.xml']
-          files=[]
-          previous_hashes={"hotel-posts-telegram.xml":"477792e38d0d27bb5f5f41fc4930b1b39ec199e404812524bff26aa22f55007d","hotel-posts-max.xml":"e6df462586f76e16ed1810d948440e15c26c9fc7a16c07e5db52ef83c7137e09","hotel-posts-all.xml":"62b910d8a4e5b15c0ba25877d09b75e1f9bfabdeee17897b7d211f2662adc67d"}
-          for name,rows in zip(names,[157,157,314]):
-              raw=(base/name).read_bytes()
-              files.append({'name':name,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'rows':rows,'expected_previous_sha256':previous_hashes[name],'content_base64':base64.b64encode(raw).decode()})
-          data={'schema_version':2,'operation':'commercial-channel-hotel-feeds-20261104-update13','files':files}
-          raw=(json.dumps(data,separators=(',',':'))+'\n').encode()
-          source=pathlib.Path('tools/direct_demand/operations/publish-commercial-channel-hotel-feeds-20261103-1.php').read_text()
-          prefix="<?php\ndeclare(strict_types=1);\n"
-          assert source.startswith(prefix)
-          assert hashlib.sha256(source.encode()).hexdigest()=='2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e'
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const PUBLIC_STATIC_FEED_OPERATION=\'commercial-channel-hotel-feeds-20261104-update13\';\n"+"const PUBLIC_STATIC_FEED_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"+"const PUBLIC_STATIC_FEED_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\n"
-          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          (temp/'channel-preflight.php').write_text(header+source[len(prefix):])
-          intent={'operation':data['operation'],'state':'EXACT_THREE_PUBLIC_DIRECT_YML_FILES_INTENT_BEFORE_WRITE','source':os.environ['EXPECTED_PRODUCTION_SHA'],'files':[{k:v for k,v in f.items() if k!='content_base64'} for f in files]}
-          (temp/'static-feed-intent.json').write_text(json.dumps(intent,indent=2)+'\n')
-          PY
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          python3 tools/direct_demand/operations/prepare-commercial-price-20261104-quote4.py
           php -l "$RUNNER_TEMP/channel-preflight.php"
-      - name: Retain exact static publication intent before any server write
+          ANYTOUR_QUOTE4_INPUT_FIXTURE=1 php "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain durable private intent before the one gateway request
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261104-update13-intent
-          path: ${{ runner.temp }}/static-feed-intent.json
+          name: commercial-price-monitor-20261104-quote4-intent
+          path: |
+            ${{ runner.temp }}/quote-intent.json
+            ${{ runner.temp }}/quote4-candidate.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -145,7 +118,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish only the three approved public static Direct YML files
+      - name: Make the one justified existing gateway actualization
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -153,30 +126,31 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          probe_status=0
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
           import json,os,pathlib
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1])
-          print(json.dumps(d,sort_keys=True))
-          assert d['ok'] is True and d['operation']=='commercial-channel-hotel-feeds-20261104-update13'
-          assert len(d['files'])==3 and [r['rows'] for r in d['files']]==[157,157,314]
-          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
+          assert d['operation']=='commercial-price-monitor-20261104-quote4' and d['mode']=='one_existing_gateway_quote_contract'
+          assert d['db_writes']==d['message_sends']==d['price_block_updates']==0 and d['gateway_requests_attempted']<=1
+          safe={k:d.get(k) for k in ['operation','ok','error','catalog_id','gateway_requests_attempted','quote_state','http_status','response_bytes','request_started_epoch_utc','response_received_epoch_utc','automatic_retry_allowed','full_total_verified','current_availability_verified']}
+          print(json.dumps(safe,sort_keys=True))
+          assert d['ok'] is True
           PY
-          test "${probe_status:-0}" = 0
-      - name: Verify all three permanent YML URLs by exact public HTTPS bytes
-        shell: bash
-        run: python3 tools/direct_demand/operations/verify-commercial-max157-feeds-public-20261104.py
-      - name: Retain bounded static publication and public readback
+          test "$probe_status" = 0
+      - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261104-update13
+          name: commercial-price-monitor-20261104-quote4
           path: |
             ${{ runner.temp }}/channel-preflight.json
-            ${{ runner.temp }}/public-feed-readback.json
+            ${{ runner.temp }}/quote-intent.json
+            ${{ runner.temp }}/quote4-candidate.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection and input files
+      - name: Remove ephemeral connection and script files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/static-feed-intent.json" "$RUNNER_TEMP/public-feed-readback.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/quote-intent.json" "$RUNNER_TEMP/quote4-candidate.json"
+

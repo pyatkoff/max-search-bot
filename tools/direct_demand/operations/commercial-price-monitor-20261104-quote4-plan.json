@@ -1,0 +1,42 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote4",
+  "state": "ONE_NEW_RETAINED_CONTEXT_PLAN_NOT_CALLED",
+  "goal": "Actualize one further eligible already published hotel price using original READ9 private context",
+  "boundaries": [
+    "Only one original retained context for an unconsumed published hotel",
+    "No repeat READ9 scope query; one exact observation/native identity readonly revalidation before provider",
+    "No more than one gateway request; no automatic rerun/retry",
+    "Full private tuple and response only authenticated artifact",
+    "No post edits or new posts in this quote operation"
+  ],
+  "criteria": [
+    "Original READ9 terms/persistence30h/2A0/RUB/future/currentname/nativecountry/active",
+    "Unique original logical/text/cover binding",
+    "Exclude109/12114/9432 and six name-review IDs",
+    "Three new input cases and PHP lint; unchanged native/age cases not rerun",
+    "Current source/deploy/TLS/diagnostics/full21/host/runtimeclean gates and durable intent before provider"
+  ],
+  "risks": [
+    "HTTP/timeout UNKNOWN must be resolved on original run, never new operation bypass",
+    "Returned cached or quoted amount is not accepted until real flights and complete total reviewed"
+  ],
+  "retained_run": 41898354901,
+  "retained_artifact": 13357152456,
+  "excluded_consumed_hotel_ids": [
+    109,
+    12114,
+    9432
+  ],
+  "excluded_name_review_hotel_ids": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "max_age_seconds": 108000,
+  "max_gateway_requests": 1,
+  "automatic_retry_allowed": false,
+  "expected_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+}
