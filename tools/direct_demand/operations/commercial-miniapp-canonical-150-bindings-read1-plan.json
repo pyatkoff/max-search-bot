@@ -18,5 +18,19 @@
     "Legacy MAX route projection currently covers only6 current feed URLs",
     "TG manual installation owned by Pavel; current index.php/save.php requested for exact package"
   ],
-  "source": "b69f4552beae0837318efef8507b6d1283df2a2f"
+  "source": "300fcabd2277f337755f0e41fc74851491cf3dc7",
+  "source_stops": 1,
+  "previous_run": 41804970765,
+  "previous_outcome": "approved_source_not_current before SSH/intent/DB/provider; operation not executed",
+  "reviewed_new_source_diff_paths": [
+    "docs/MANAGER_REQUEST_PROFILE.md",
+    "manager/assets/manager-request-profile.js",
+    "manager/request-profile.php",
+    "services/ManagerRequestProfile.php",
+    "services/ManagerRequestProfileService.php",
+    "tests/run_manager_request_profile_regression.php",
+    "tests/visual/manager-request-profile.spec.js"
+  ],
+  "original_deploy_run": 41803690611,
+  "original_tls_run": 41804747539
 }

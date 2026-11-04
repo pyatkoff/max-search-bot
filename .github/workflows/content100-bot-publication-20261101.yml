@@ -10,7 +10,7 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: b69f4552beae0837318efef8507b6d1283df2a2f
+  EXPECTED_PRODUCTION_SHA: 300fcabd2277f337755f0e41fc74851491cf3dc7
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -36,9 +36,9 @@ jobs:
           evidence="$RUNNER_TEMP/commercial-source-evidence"
           mkdir -p "$evidence"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41798693016 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/41798693016/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41799673981 > "$evidence/tls_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41803690611 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/41803690611/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41804747539 > "$evidence/tls_run.json"
           gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
