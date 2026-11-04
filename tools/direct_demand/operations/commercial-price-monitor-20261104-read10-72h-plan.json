@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261104-read10-72h-extension1",
-  "state": "PURE_PREPARE_NOT_SERVER_READ",
+  "state": "PURE_VALIDATED_CURRENT_HEALTHY_SOURCE_APPROVED_ACTUAL_READ_NOT_YET_EXECUTED",
   "goal": "Use Pavel new72h freshness input to admit only previously unread historical price contexts, preserving all existing identity contracts",
   "max_age_seconds": 259200,
   "user_policy_file": "commercial-price-freshness-20261104-user72h-policy.json",
@@ -56,5 +56,21 @@
   "risks": [
     "Old tour tokens within72h may still be unavailable; paidactualization must be uniquely justified and without automaticretry",
     "Broader window does not make cachedprice a finalbasket or availability guarantee"
-  ]
+  ],
+  "pure_run": 41934080607,
+  "pure_job": 126938036442,
+  "pure_source_commit": "2af010d99c12831f3e9aa36e35c9437687653fd0",
+  "frozen_reader_sha256": "ddfa54ff247af046e25fcae7b0ca594864ff105901999d2c4f33f5d121d94f14",
+  "expected_source": "0a80b95fa31e3a90267daa8984adae24d6aaa6bb",
+  "current_deploy_run": 41933468218,
+  "current_verify_job": 126937285306,
+  "current_deploy_job": 126937330823,
+  "current_tls_run": 41934272551,
+  "current_diagnostics_run": 41934272665,
+  "old_pure_fixture_reruns_on_actual": 0,
+  "source_diff_review": [
+    ".github/workflows/modeled-conversion-monitor.yml",
+    "tests/run_production_gate_sequence_regression.py"
+  ],
+  "publishing21_unchanged": true
 }
