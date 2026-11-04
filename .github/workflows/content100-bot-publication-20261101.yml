@@ -1,21 +1,22 @@
-name: Update one verified Delphin price in both existing hotel posts
+name: Read ten batch36 owner pages and one public MAX2 route contract
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
-env:
-  EXPECTED_PRODUCTION_SHA: 0a8f5ec6f049369e67f36372ffb8917059b9fda7
 jobs:
   inspect:
-    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        media_group: [0,1,2,3]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,120 +25,18 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+      - name: Read only fixed official hotel descriptions and public photo references
         env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41789056393 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/41789056393/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41789990320 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-price-monitor-20261104-quote2-contract-reviewed
-          run-id: 41791986800
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/reviewed-quote2
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-price-monitor-20261104-quote2
-          run-id: 41791108063
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/original-quote2
-      - name: Validate exact Delphin quote, preserved caption and30hour window
-        run: |
-          set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          umask 077
-          python3 tools/direct_demand/operations/prepare-commercial-price-update-20261104-2.py
-          php -l "$RUNNER_TEMP/channel-preflight.php"
+          MEDIA_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
+      - name: Read one exact public miniapp entry without signed user data
+        if: matrix.media_group == 3
+        run: python3 tools/direct_demand/operations/inspect-commercial-miniapp-public-max2-20261104-1.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-update-20261104-2-intent
+          name: commercial-batch36-primary-sources-${{ matrix.media_group }}
           path: |
-            ${{ runner.temp }}/price-update2-intent.json
-            ${{ runner.temp }}/price-update2-manifest.json
-            ${{ runner.temp }}/price-update2-approval.json
+            public-media-sources.json
+            public-miniapp-contract.json
           retention-days: 14
           if-no-files-found: error
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Edit only the two existing Delphin captions through canonical registry and once
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
-          python3 - <<'PY'
-          import pathlib,json,os
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()[-1])
-          safe={k:d.get(k) for k in ['operation','mode','ok','error','new_posts_created','price_block_updates','content_edit_attempts','post_write_attempts']}
-          safe['all_body_photo_button_verified']=all(p.get('body_photo_button_verified') and p.get('existing_message_reused') for p in d.get('posts',[]))
-          print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-price-update-20261104-2-v1' and d['mode']=='update_existing_hotel_price_block' and d['ok']
-          assert d['new_posts_created']==0 and d['price_block_updates']==2 and d['content_edit_attempts']==2 and d['post_write_attempts']==2
-          assert len(d['posts'])==2 and {p['platform'] for p in d['posts']}=={'telegram','max'}
-          assert all(p['body_photo_button_verified'] and p['existing_message_reused'] and p['state']=='sent' for p in d['posts'])
-          PY
-          test "${probe_status:-0}" = 0
-      - name: Retain bounded route evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-price-update-20261104-2-publication
-          path: ${{ runner.temp }}/channel-preflight.json
-          retention-days: 14
-          if-no-files-found: warn
-      - name: Remove ephemeral connection and script files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/retained-quote1/channel-preflight.json" "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
-

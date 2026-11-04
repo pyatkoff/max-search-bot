@@ -1,0 +1,44 @@
+{
+  "operation": "commercial-batch36-primary-and-miniapp-public-contract-read1",
+  "goal": "Prepare batch36 groupedmaterials and establish the actual publicMAX2 frontend contract without waiting on another direction",
+  "boundaries": [
+    "TEN exactdeclaredownerpages in4readonlygroups/maxparallel2, no repeated35GET",
+    "ONE exactpublicMAX2HTTPSGET,noauth/signedcontext/privateAPI/data/config/alternatepath/redirectfollowing",
+    "No publicinlineJS/token/privateURL export andno changes toforeignminiappbackend",
+    "No DB/serverSSH/provider/messages/installedruntime/ads"
+  ],
+  "criteria": [
+    "Retain publicownerfacts/exactdeclaredphotoreferences only; unknownCDNmetadataisnotdownloadpermission",
+    "MiniappHTML reports onlystructure/declaredsameownerJS/knownparameternameindicators",
+    "Three newJSrefguardcases beforeGET"
+  ],
+  "risks": [
+    "PublicHTMLmaynotexposePHPserverreceiver; no claim installedroute or signedroundtrip",
+    "Kempinskigallerywebtimeout isunknown; nativeHTTPstatus separatelyrecorded"
+  ],
+  "hotel_ids": [
+    9322,
+    65895,
+    970,
+    967,
+    968,
+    2175,
+    1672,
+    35313,
+    1201,
+    1198
+  ],
+  "owner_urls": [
+    "https://www.palomahotels.com/en/paloma-pasha",
+    "https://www.palomahotels.com/en/paloma-orenda",
+    "https://www.alibey.com/en/resort",
+    "https://www.alibey.com/en/club",
+    "https://www.alibey.com/en/park",
+    "https://www.hillsidebeachclub.com/en/about-the-resort",
+    "https://www.hillsidebeachclub.com/en/gallery",
+    "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/our-hotel",
+    "https://www.kempinski.com/en/hotel-barbaros-bay/gallery",
+    "https://www.mandarinoriental.com/en/bodrum/paradise-bay"
+  ],
+  "public_miniapp_url": "https://tour-max.ru/new/max2/"
+}
