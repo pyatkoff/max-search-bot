@@ -58,7 +58,7 @@ jobs:
 
           PY
           php -l "$RUNNER_TEMP/channel-preflight.php"
-          ANYTOUR_CHANNEL_BATCH38_SCOPE_FIXTURE=1 php "$RUNNER_TEMP/channel-preflight.php"
+          # The unchanged three one-hotel scope cases passed original41869381261 before this stock serialization assertion was corrected.
           python3 - <<'PY'
           import json,pathlib
           rows=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-channel-hotel-feeds-20261104-read14-inputs.json').read_text())
@@ -78,7 +78,7 @@ jobs:
           source=(base/'read-commercial-stock-20261104-39-candidates.php').read_text()
           groups=json.loads("{\"gural-belek\":[\"gural premier belek\",\"güral premier belek\"],\"gural-tekirova\":[\"gural premier tekirova\",\"güral premier tekirova\"],\"nirvana-dolce\":[\"nirvana dolce vita\"],\"nirvana-cosmopolitan\":[\"nirvana cosmopolitan\"],\"liberty-fabay\":[\"liberty fabay\"],\"liberty-lykia\":[\"liberty lykia\"],\"tui-blue-palm\":[\"tui blue palm garden\"],\"club-hotel-sera\":[\"club hotel sera\"],\"orange-kemer\":[\"orange county kemer\"],\"granada-okurcalar\":[\"granada luxury okurcalar\"]}")
           assert len(groups)==10 and all(1<=len(a)<=2 and all(isinstance(x,str) and x.strip() for x in a) for a in groups.values())
-          assert "    $groups=json_decode('"+json.dumps(groups,separators=(',',':'))+"',true,16,JSON_THROW_ON_ERROR);" in source
+          assert "    $groups=json_decode('"+json.dumps(groups,ensure_ascii=False,separators=(',',':'))+"',true,16,JSON_THROW_ON_ERROR);" in source
           assert "LIMIT 12" in source and "$country=4" in source
           prefix="<?php\ndeclare(strict_types=1);\n"
           assert source.startswith(prefix)

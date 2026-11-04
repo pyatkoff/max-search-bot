@@ -24,5 +24,12 @@
   "hotel_ids": [
     1543
   ],
-  "baseline_logical_materials": 157
+  "baseline_logical_materials": 157,
+  "first_run": 41869381261,
+  "first_job": 126711953169,
+  "first_state": "STOPPED_BEFORE_SSH_ON_STOCK_UNICODE_LITERAL_ASSERTION",
+  "server_connections_first_run": 0,
+  "scope_cases_passed_original_run": 3,
+  "unchanged_scope_cases_rerun": 0,
+  "fix": "Python input literal comparison now preserves UTF8 to match exact reviewed PHP groups; group inputs unchanged"
 }
