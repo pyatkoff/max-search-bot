@@ -533,6 +533,7 @@ $cohort=[
     '1981'=>[877,'jaz_neo_naama','JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)',4,'1'],
     '12111'=>[1654,'movenpick_sharm','MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY',3,'1'],
     '498'=>[228,'titanic_beach','TITANIC BEACH SPA & AQUA PARK',4,'1'],
+    '78898'=>[3417,'official_pickalbatros_blu_spa_hurghada','PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+',4,'1'],
     '157359'=>[4101,'avia_resort','AVIA RESORT & SPA',3,'4'],
     '1077'=>[477,'club_aqua_plaza','CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)',3,'4'],
     '109900'=>[3726,'dream_fun_world','DREAM FUN WORLD',3,'4'],
@@ -575,6 +576,40 @@ foreach ($cohort as $sourceId=>[$anytourId,$researchKey,$sourceName,$factCount,$
         && $cohortInput['context']['origin_posts']===$baselineRefs['origin_posts']
         && $cohortInput['context']['travel_reference']===$baselineRefs['travel_reference']
         && strlen(json_encode($cohortWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=ManagerDraftClient::MAX_REQUEST_BYTES);
+    if ($researchKey==='official_pickalbatros_blu_spa_hurghada') {
+        // Pins come from retained accepted B04 answers and original source qualifications.
+        $bluPins=[
+            'HOTEL-EG-BLU-SPA-ADULTS-MINIMUM-AGE'=>['3df5575fac410760ebf7c15d513d419702a437fc06a0d3f8c43c7e626a37ada9','bf7b7e386c1424f84428d201693af5650a0ac465ee23ba4c153623153d1f3444'],
+            'HOTEL-EG-BLU-SPA-BEACH-LENGTH'=>['632b21041ef30ffe27eba8fdcf9c780ea5884ff659bec94c447870bd2b3757ea','a96bbd0373dc8990eab657e81fb314ba7d89b2e8459c0b44ad82b2b5f71faca2'],
+            'HOTEL-EG-BLU-SPA-INDOOR-POOL-WINTER-HEATING'=>['11f7d3dbb4de68b486f91fa3801b5d2f16e4ba932a49348c00a669865da2927e','6a4fce9877880deba99e5cc5a9514bc0adfeb48f65586c02b3d6a5716f5be0dd'],
+            'HOTEL-EG-BLU-SPA-DELUXE-AREA-CAPACITY'=>['d2b2707378bd1e4ec9ea58793dd258aa6a109aebdeb013a44635697ccba238c0','dd3431d30dd23c5c36066aa3bab44565e8ebc845100d553deb81633c8cd8b220'],
+        ];
+        $bluFacts=array_column($cohortCaptured['facts'],null,'id');
+        $bluSources=array_column($cohortCaptured['sources'],null,'id');
+        $bluExact=count($bluFacts)===4 && count($bluSources)===4;
+        foreach ($bluPins as $bluId=>[$answerSha,$qualificationSha]) {
+            $bluFact=$bluFacts[$bluId]??[];
+            $bluSource=$bluSources[$bluId.'-SOURCE']??[];
+            $bluExact=$bluExact
+                && hash('sha256',$bluFact['text']??'')===$answerSha
+                && hash('sha256',$bluSource['limitations']??'')===$qualificationSha
+                && ($bluFact['source_ids']??null)===[$bluId.'-SOURCE']
+                && ($bluFact['declared']??null)===true
+                && ($bluFact['valid_at_travel']??'')==='unverified'
+                && ($bluSource['retrieved_on']??'')==='2026-11-03'
+                && ($bluSource['captured_at']??'')==='2026-11-03T12:11:20Z'
+                && array_key_exists('publication_date',$bluSource) && $bluSource['publication_date']===null;
+        }
+        draftCheck('Blu Spa retains all accepted answers, source qualifications and original observation dates',$bluExact);
+        $bluPlain=$cohortInput['context'];unset($bluPlain['hotel_reference']);
+        $bluPlainWire=ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($bluPlain),$bluPlain);
+        $bluWireBytes=strlen(json_encode($cohortWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        $bluPlainBytes=strlen(json_encode($bluPlainWire,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        $bluDecoded=json_decode($cohortWire['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
+        draftCheck('Blu Spa complete facts, sources and material limits reach the actual wire inside the hotel allowance',
+            ($bluDecoded['hotel_reference']??null)===$cohortCaptured
+            && $bluWireBytes-$bluPlainBytes<=ManagerHotelKnowledge::MAX_REFERENCE_BYTES);
+    }
     if ($anytourId===99) {
         $jazFacts=array_column($cohortInput['context']['hotel_reference']['facts'],null,'id');
         $jazLimits=$cohortInput['context']['hotel_reference']['material_limits'];
