@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-batch-20261104-43-native-covers",
+  "state": "TWO_TEMPORARY_TX_EDITED_THUMBNAILS_PENDING_NATIVE_SHOW_FREEZE_NOT_SENT",
+  "goal": "Read exact current Canva preview bytes once, show each preview and freeze only visually accepted native PNG",
+  "boundaries": [
+    "Two existing pool designs; original protected",
+    "No permanentSave or repeatedthumbnail/export/download after acceptance",
+    "No botSSH/provider/DB/messages"
+  ],
+  "criteria": [
+    "Actual PNG10000..1600000bytes/500..2500dimensions/SHA/fullchunks and visualnativeacceptance",
+    "Whole hotel hero/logo/banner/title and two real lowerphotos visible",
+    "Acceptedimmutablefreeze then exactTXcancel"
+  ],
+  "risks": [
+    "Sera crop may fail wholehotelhero criterion",
+    "Expired or mismatched temporary bytes stop, no fabricatednativePNG"
+  ],
+  "exports": [
+    {
+      "hotel_id": 17480,
+      "transaction_id": "8129518479355109881",
+      "url": "https://export-download.canva.com/3c2b6072-dbee-4c9a-adc2-ea9f569eb241/0/0001-4152840008660259014.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261104%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261104T193741Z&X-Amz-Expires=7994&X-Amz-Signature=74145f5120fe3958053225fa917930e0b0851a6ab778a95c0b107ef37b9a7b48&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2004%20Nov%202026%2021%3A50%3A55%20GMT"
+    },
+    {
+      "hotel_id": 1100,
+      "transaction_id": "1961838792820582138",
+      "url": "https://export-download.canva.com/af12560d-335a-4bc6-8a48-86d3c99ce81b/0/0001-8038320590195169037.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261104%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261104T051100Z&X-Amz-Expires=59963&X-Amz-Signature=954ec8b39f9144335834e7e306b436b914084862f2d8d1f98e5a803bb395daf4&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2004%20Nov%202026%2021%3A50%3A23%20GMT"
+    }
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
