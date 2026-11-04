@@ -8,6 +8,24 @@ Owner-authorized production presentation at `/manager2/`, based on the agreed co
 
 The new chrome and body-scoped assets provide the forest navigation rail, compact queue/search tools, central conversation and a client card opened on demand. Primary tasks remain visible; secondary tasks, task creation, sales outcome/tags, reassignment and board controls use native keyboard/touch disclosures. If a dirty task prevents a client change, Manager2 reveals and focuses that task instead of leaving the warning behind a hidden mobile pane. Disclosure state is bounded in memory; task/outcome/reply drafts stay owned by the original modules.
 
+## Selection editor entry
+
+When the shell advertises the admitted `https://tours.anytoour.ru/editor.php`
+entry, the existing “Подборка” action opens that editor directly in a separate
+tab. Manager2 uses the canonical Conversation navigation/context guards, opens
+synchronously in the user gesture and passes only the conversation and actor IDs.
+The editor retains its own server authorization and versioned save/publication
+contracts. Missing or unrecognized admission keeps the existing in-panel editor.
+
+“Открыть подборку в панели” remains in the conversation actions menu for explicit
+recovery of unsaved edits or uncertain editor operations held in the original
+tab. Presentation neither reads nor copies the editor's private storage. A null
+`window.open` result never opens a second editor automatically. The original
+conversation tab retains its composer, File queue and reading position; returning
+to it uses ordinary tab switching. The editor's existing Manager2 link is not a
+new return-to-origin mechanism. This navigation slice does not remove the full
+editor assets from the workspace's initial loading.
+
 ## Administration
 
 `admin.php` includes the canonical `manager/admin.php` markup with an identity-free Manager2 presentation. It reuses `admin.js`, `admin-edit-safety.js`, the shared JSON client and Moscow-time helper, without loading Inbox or Conversation code. The canonical `/manager/` base keeps all protected reads and saves on the existing API; the new HTML never issues or replaces a session cookie. The previous administrative URL remains compatible.
@@ -318,3 +336,4 @@ Only that zero-dispatch rejection may reconcile across a changed context for the
 same freshly authorized actual owner; confirmed/UNKNOWN receipts stay context
 fenced. The UI refreshes authorized detail before unlocking a new explicit send,
 retaining the intent fence if the refresh fails. No database lock spans transport.
+
