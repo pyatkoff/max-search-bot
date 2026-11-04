@@ -12,6 +12,7 @@ require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/ManagerSelectionLinks.php';
 require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
 require_once __DIR__.'/ManagerAiDraftPhotoContext.php';
+require_once __DIR__.'/ConversationRecordClock.php';
 
 /** A bounded, read-only input snapshot. It neither generates nor sends a reply. */
 final class ManagerAiDraftContextService
@@ -138,13 +139,18 @@ final class ManagerAiDraftContextService
                 $meta = $raw !== '' ? json_decode($raw, true, 32) : [];
                 $validMetadata = is_array($meta);
                 if (!$validMetadata) { $meta = []; $metadataIncomplete = true; }
+                // SQL wall-clock bases are mixed historically. Only a canonical
+                // server receipt establishes an instant for the reply context.
+                $recordedAt = ConversationRecordClock::read($raw);
+                $displayCreatedAt = $recordedAt === null ? (string)($row['created_at'] ?? '')
+                    : gmdate('Y-m-d\TH:i:s\Z', $recordedAt);
                 $text = (string)($row['text'] ?? '');
                 if (preg_match('//u', $text) !== 1) return self::failure('context_unavailable');
                 $type = $validMetadata ? (string)($meta['type'] ?? 'message') : 'unknown';
                 if (!in_array($type, ['message','callback','start','bot_started'], true)) $type = 'unknown';
                 $sender = (string)($row['sender_type'] ?? '');
                 if (!in_array($sender, ['customer','manager','ai','system'], true)) $sender = 'system';
-                if ($type === 'message') $selectionSources[$id] = ManagerSelectionLinks::inMessage($text, $id, $sender, (string)($row['created_at'] ?? ''));
+                if ($type === 'message') $selectionSources[$id] = ManagerSelectionLinks::inMessage($text, $id, $sender, $displayCreatedAt);
                 $linkUnread = false;
                 $linksRedacted = false;
                 if ($type === 'callback') $text = self::callbackText($text);
@@ -154,7 +160,7 @@ final class ManagerAiDraftContextService
                 // speaker's own text; absent media/quotes remain unread evidence.
                 $mediaUnread = $attachments !== [] || !empty($meta['linked_message']);
                 $projected[] = ['id'=>$id, 'sender_type'=>$sender, 'text'=>$text,
-                    'event_type'=>$type, 'created_at'=>(string)($row['created_at'] ?? ''),
+                    'event_type'=>$type, 'created_at'=>$displayCreatedAt,
                     'media_unread'=>$mediaUnread, 'links_redacted'=>$linksRedacted,
                     'selections_link_unread'=>$linkUnread];
                 // Hash source edits even when redaction makes two projections

@@ -14,8 +14,12 @@ ltCheck('task without due date is allowed',LeadTaskService::normalizeCreateInput
 ltCheck('unicode title limit is character based',!empty(LeadTaskService::normalizeCreateInput(str_repeat('я',255),null)['ok'])&&LeadTaskService::normalizeCreateInput(str_repeat('я',256),null)['error']==='invalid_title');
 
 $now=new DateTimeImmutable('2026-08-28 01:30:00',new DateTimeZone('UTC'));
-ltCheck('LeadTaskService owns Kaliningrad due-today classification',LeadTaskService::dueState('2026-08-28 18:00:00',false,$now)==='today');
-ltCheck('future Kaliningrad task stays upcoming',LeadTaskService::dueState('2026-08-29 00:30:00',false,$now)==='upcoming');
+ltCheck('LeadTaskService owns Moscow due-today classification',LeadTaskService::dueState('2026-08-28 18:00:00',false,$now)==='today');
+ltCheck('future Moscow task stays upcoming',LeadTaskService::dueState('2026-08-29 00:30:00',false,$now)==='upcoming');
+$beforeMoscowMidnight=new DateTimeImmutable('2026-12-31 20:50:00',new DateTimeZone('UTC'));
+$afterMoscowMidnight=new DateTimeImmutable('2026-12-31 21:05:00',new DateTimeZone('UTC'));
+ltCheck('deadline after Moscow midnight belongs to the next day',LeadTaskService::dueState('2026-12-31 21:05:00',false,$beforeMoscowMidnight)==='upcoming');
+ltCheck('deadline across the old local midnight stays Moscow today',LeadTaskService::dueState('2026-12-31 22:05:00',false,$afterMoscowMidnight)==='today');
 ltCheck('overdue task wins over calendar-day classification',LeadTaskService::dueState('2026-08-28 00:15:00',true,$now)==='overdue');
 ltCheck('task without deadline is unscheduled',LeadTaskService::dueState(null,false,$now)==='unscheduled');
 ltCheck('inbox compatibility projection delegates urgency semantics',ManagerLeadInboxService::taskDueState('2026-08-28 18:00:00',false,$now)===LeadTaskService::dueState('2026-08-28 18:00:00',false,$now));
@@ -48,7 +52,7 @@ ltCheck('task creation guards duplicate submit and exposes progress',strpos($tas
 ltCheck('task creation supports explicit keyboard add',strpos($taskJs,"e.key==='Enter'")!==false&&strpos($taskJs,'e.preventDefault();submit()')!==false);
 ltCheck('task module returns task create success to task UI',strpos($taskJs,'async function createTask')!==false&&strpos($taskJs,"W.pipe('create_task'")!==false&&strpos($taskJs,'if(!j.ok)return false')!==false&&strpos($taskJs,'return refreshLead(target)')!==false);
 ltCheck('task create status has success and error presentation',strpos($taskCss,'.taskCreateStatus.success')!==false&&strpos($taskCss,'.taskCreateStatus.error')!==false);
-ltCheck('LeadTaskService is the single owner of Kaliningrad task urgency',strpos($taskService,'Europe/Kaliningrad')!==false&&strpos($taskService,'function dueState')!==false&&strpos($inboxService,'return LeadTaskService::dueState')!==false&&strpos($inboxService,'Europe/Kaliningrad')===false);
+ltCheck('LeadTaskService is the single owner of Moscow task urgency',strpos($taskService,'Europe/Moscow')!==false&&strpos($taskService,'function dueState')!==false&&strpos($inboxService,'return LeadTaskService::dueState')!==false&&strpos($inboxService,'Europe/Moscow')===false);
 ltCheck('task detail exposes canonical urgency without client-side date rules',strpos($taskService,"\$row['due_state']=self::dueState")!==false&&strpos($taskService,' AS overdue')!==false&&strpos($taskJs,'due_state')!==false&&strpos($taskJs,'window.ManagerTime.fromInput(localValue)')!==false&&strpos($taskJs,'Europe/Kaliningrad')===false);
 ltCheck('lead card renders visible urgency badges for overdue today and planned work',strpos($taskJs,"overdue:'Просрочено'")!==false&&strpos($taskJs,"today:'Сегодня'")!==false&&strpos($taskJs,"upcoming:'Запланировано'")!==false&&strpos($taskCss,'.taskUrgency.overdue')!==false&&strpos($taskCss,'.taskUrgency.today')!==false&&strpos($taskCss,'.taskRow.due-overdue')!==false);
 ltCheck('LeadTaskService owns pinned task persistence and priority ordering',strpos($taskService,'function setPinned')!==false&&strpos($taskService,"status='open' AND is_pinned=?")!==false&&strpos($taskService,'function openTaskOrderSql')!==false&&strpos($taskService,'is_pinned=1')!==false&&strpos($taskService,"\$order=self::openTaskOrderSql('t')")!==false&&strpos($taskService,"'open',0")!==false);

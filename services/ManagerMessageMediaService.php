@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
+require_once __DIR__ . '/ConversationRecordClock.php';
 require_once __DIR__ . '/ManagerCallbackPresentationService.php';
 
 class ManagerMessageMediaService
@@ -17,7 +18,11 @@ class ManagerMessageMediaService
         $q = $pdo->prepare($sql);
         $q->execute($ids);
         $mediaById = [];
+        $recordedById = [];
         foreach ($q->fetchAll() as $row) {
+            // Bare DB wall times have mixed origins; only the server receipt identifies an instant.
+            $recorded = ConversationRecordClock::read($row['metadata_json'] ?? null);
+            if ($recorded !== null) $recordedById[(int)$row['id']] = $recorded;
             $meta = json_decode((string)($row['metadata_json'] ?? ''), true);
             if (!is_array($meta)) continue;
             $linked=self::publicLinkedMessage((array)($meta['linked_message']??[]));
@@ -35,6 +40,8 @@ class ManagerMessageMediaService
             ];
         }
         foreach ($messages as &$message) {
+            $recorded = $recordedById[(int)($message['id'] ?? 0)] ?? null;
+            if ($recorded !== null) $message['created_at'] = gmdate('Y-m-d\TH:i:s\Z', $recorded);
             $media = $mediaById[(int)($message['id'] ?? 0)] ?? ['channel'=>'','direction'=>'','attachments'=>[],'linked_message'=>[]];
             // Recorded type is authoritative. A tourist typing a callback code
             // remains an ordinary message; raw metadata is never exposed.

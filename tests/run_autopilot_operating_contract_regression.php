@@ -35,7 +35,7 @@ contractCheck('scope forbids neighbouring project edits',strpos($agents,'Work on
 contractCheck('metrika and lead mechanism are protected',strpos($agents,'Yandex Metrica counters, goals')!==false&&strpos($agents,'existing lead-sending destination/mechanism')!==false);
 contractCheck('live conversations precede roadmap cleanup',strpos($agents,'fresh live conversations')!==false&&strpos($autopilot,'Inspect fresh live conversations first')!==false);
 contractCheck('priority keeps UX above roadmap refactor',strpos($agents,'dialogue, search, manager-workspace or responsive UX friction')!==false&&strpos($agents,'roadmap product work')!==false);
-contractCheck('handoff keeps timezone and five minute fallback',strpos($product,'10:00–20:00 Europe/Kaliningrad')!==false&&strpos($agents,'10:00–20:00 Europe/Kaliningrad')!==false&&strpos($product,'after 5 minutes without a manager reply')!==false);
+contractCheck('handoff keeps timezone and five minute fallback',strpos($product,'11:00–21:00 Europe/Moscow')!==false&&strpos($agents,'11:00–21:00 Europe/Moscow')!==false&&strpos($product,'after 5 minutes without a manager reply')!==false);
 contractCheck('manager shift state cannot be auto-corrected',strpos($agents,'operator-controlled manager `is_working` state')!==false&&strpos($ops,'Never auto-enable a manager')!==false);
 contractCheck('required CI remains merge gate',strpos($agents,'merge only after required CI is green')!==false&&strpos($autopilot,'Required PR CI must be green')!==false);
 contractCheck('production completion requires diagnostics',strpos($ops,'production diagnostics transfer')!==false&&strpos($autopilot,'production diagnostics download')!==false);

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/ConversationRecordClock.php';
 require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ProjectAccessService.php';
 require_once __DIR__ . '/RoutingAccessService.php';
@@ -235,6 +236,8 @@ class ManagerConversationService
     public static function decorateLastMessagePreviews(array $rows, array $failures = []): array
     {
         foreach($rows as &$row){
+            $recorded=ConversationRecordClock::read($row['last_metadata_json']??null);
+            if($recorded!==null)$row['last_message_recorded_at']=gmdate('Y-m-d\TH:i:s\Z',$recorded);
             $action=self::lastMessageAction($row);
             $row['last_preview_text']=$action['label']??(string)($row['last_text']??'');
             // The shared projection redacts private like-button tokens from
@@ -248,6 +251,16 @@ class ManagerConversationService
                 continue;
             }
             if(!empty($row['awaiting_first_reply'])){foreach(['last_text','last_preview_text'] as $field){$preview=trim((string)($row[$field]??''));$marker=self::formatWaitAge((int)($row['wait_age_seconds']??0));$row[$field]=$marker.($preview!==''?' · '.$preview:'');}}
+        }unset($row);
+        return $rows;
+    }
+
+    /** Browser response copy only; internal queue/routing timestamps stay unchanged. */
+    public static function displayRows(array $rows): array
+    {
+        foreach($rows as &$row){
+            if(is_string($row['last_message_recorded_at']??null))$row['last_message_at']=$row['last_message_recorded_at'];
+            unset($row['last_message_recorded_at']);
         }unset($row);
         return $rows;
     }

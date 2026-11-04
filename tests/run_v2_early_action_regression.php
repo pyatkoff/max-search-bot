@@ -43,6 +43,11 @@ v2aCheck(
     V2EarlyActionHandler::interceptAction($managerShadow, 'Соедините меня с менеджером'),
     RulesEngine::MANAGER
 );
+v2aCheck('explicit request with explanation remains canonical',V2EarlyActionHandler::interceptAction($managerShadow,'Позовите менеджера, я ему расскажу'),RulesEngine::MANAGER);
+foreach(['менеджер, не нужен','менеджер не нужен'] as $phrase){
+    v2aCheck('manager refusal is not promoted without manager intent: '.$phrase,
+        V2EarlyActionHandler::interceptAction(['decision'=>['action'=>RulesEngine::STOP],'extracted'=>['intent'=>'stop']],$phrase),null);
+}
 v2aCheck(
     'manager shadow without explicit human wording falls through',
     V2EarlyActionHandler::interceptAction($managerShadow, 'Хочу хороший семейный отель'),
