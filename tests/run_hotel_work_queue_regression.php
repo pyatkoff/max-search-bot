@@ -646,9 +646,20 @@ function hotelDeliveryRepairRaceChecks(): void
 if (($argv[1]??'')==='--delivery-repair-only') {
     hotelDeliveryRepairChecks();hotelDeliveryRepairRaceChecks();echo 'HOTEL WORK DELIVERY REPAIR: '.$checks." PASS\n";exit(0);
 }
-hotelClaimAuthorityChecks();
+$hotelTimingStart=microtime(true);
+try {
+    hotelClaimAuthorityChecks();
+} finally {
+    fprintf(STDERR, "HOTEL_QUEUE_SECTION_TIMING section=claim_authority seconds=%.3f\n", microtime(true)-$hotelTimingStart);
+}
 if (($argv[1]??'')==='--claim-authority-only') {echo 'HOTEL WORK CLAIM AUTHORITY: '.$checks." PASS\n";exit(0);}
-hotelDeliveryRepairChecks();hotelDeliveryRepairRaceChecks();
+$hotelTimingStart=microtime(true);
+try {
+    hotelDeliveryRepairChecks();hotelDeliveryRepairRaceChecks();
+} finally {
+    fprintf(STDERR, "HOTEL_QUEUE_SECTION_TIMING section=delivery_repair seconds=%.3f\n", microtime(true)-$hotelTimingStart);
+}
+$hotelTimingStart=microtime(true);
 
 [$pdo,$q,$clock]=hotelFixture();
 $s=hotelStatus($q);
@@ -1352,8 +1363,15 @@ foreach (['claim_first','recovery_first','old_ack_race'] as $scenario) {
         $racePdo=null;$raceQ=null;foreach (glob($dir.'/*')?:[] as $path) unlink($path);rmdir($dir);
     }
 }
+fprintf(STDERR, "HOTEL_QUEUE_SECTION_TIMING section=main_queue seconds=%.3f\n", microtime(true)-$hotelTimingStart);
+$hotelTimingStart=microtime(true);
 require __DIR__.'/hotel_work_skip_checks.php';
+fprintf(STDERR, "HOTEL_QUEUE_SECTION_TIMING section=skip_checks seconds=%.3f\n", microtime(true)-$hotelTimingStart);
+$hotelTimingStart=microtime(true);
 require __DIR__.'/hotel_work_execution_attempt_checks.php';
+fprintf(STDERR, "HOTEL_QUEUE_SECTION_TIMING section=execution_attempts seconds=%.3f\n", microtime(true)-$hotelTimingStart);
+$hotelTimingStart=microtime(true);
 require __DIR__.'/hotel_work_retirement_checks.php';
+fprintf(STDERR, "HOTEL_QUEUE_SECTION_TIMING section=retirement_checks seconds=%.3f\n", microtime(true)-$hotelTimingStart);
 echo 'HOTEL WORK QUEUE: '.$checks." PASS\n";
 
