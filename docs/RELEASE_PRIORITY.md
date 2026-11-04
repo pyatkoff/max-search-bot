@@ -92,3 +92,71 @@ Revert this feature through the normal checked release if its admission is
 defective. Preserve all pre-existing tests, release leases and production gates.
 Removing a reservation is an explicit metadata release by its owner, not a way
 to bypass a failed source check.
+
+
+## Automatic terminal update
+
+The existing post-deploy workflow `modeled-conversion-value-export.yml` now has
+a metadata-only `release-slot` job after its unchanged `configure` job. It uses
+the same existing workflow serialization. No new workflow, schedule, business
+operation, check dispatch, publisher, queue or customer notification is created.
+The closer has only repository/actions/PR read and issue-comment write permission;
+it has no deployment credential and cannot change main or deploy.
+
+Before the normal expected-head merge, the **same authorized publisher** writes
+its one existing issue #1122 record as the exact text
+`PR1234: выпуск занят`. Do not create a second record or repurpose another
+owner's record. In the existing PR description, bind the read-back comment ID,
+original author ID, exact source head and comment timestamp:
+
+```text
+<!-- release-slot-close:v1 {"comment_id":123456789,"head_sha":"FULL_40_CHARACTER_SOURCE_HEAD","owner_id":123456,"updated_at":"2026-11-03T19:00:00Z"} -->
+```
+
+The IDs and timestamp are the real API readback, never guessed. Only a merged
+same-repository PR with that exact merge SHA and source head is eligible.
+No marker means no automatic write; old releases are not replayed or relabeled.
+This opt-in concerns the technical shared slot. A separate browser/user or
+natural-monitor acceptance remains with its current owner, outside this slot.
+
+The original successful main-push deployment starts the existing tail. It waits
+for the original deployment, retired-domain guard, strict TLS, MAX and Telegram
+health, both diagnostic workflows, dedicated selection host, and the canonical
+modeled-conversion monitor to finish
+successfully for the same source. The installed pipeline-activation workflow is
+also classified: its original run and sole `activate` job must succeed when the
+original deployment commit carries its approved activation marker. Without that
+marker the original job must be explicitly skipped; workflow success alone does
+not prove a safe skip. Missing commit metadata, unexpected activation, missing or
+extra jobs, failed activation and unknown outcomes retain the slot. This closer
+only reads that existing workflow's metadata; it never requests activation or
+changes a schedule. The existing optional configuration job must
+be successful or explicitly skipped. Scheduled/manual checks cannot substitute
+for original post-deploy runs; reruns, duplicate origins or incomplete snapshots
+stop closure. An unclassified new post-deploy workflow also stops closure until
+its gate is included in the same checked package; it is never silently ignored.
+The existing deployment and diagnostic telemetry must also match
+this exact source and deployment run. No new live probe or acceptance is run.
+
+Pending gates are read together every 20 seconds for at most 18 minutes within
+the existing server job. Completed gates are not rerun. Failed/cancelled/skipped
+mandatory gates, changed main, unavailable/ambiguous metadata, API refusal,
+rate limiting and timeouts stop without freeing the slot. There is no retry on
+429 or other API errors.
+
+Immediately before the one update, the helper rereads main, original results,
+PR binding and the exact publisher comment/version. It updates **only that
+comment** to `PR1234: установлено, выпуск свободен` and reads it back once.
+An already terminal record is a no-op. A changed record is never overwritten.
+An uncertain write/readback result is UNKNOWN: inspect that same record and
+original run to establish the outcome; never resend or switch hosts.
+
+GitHub issue-comment edits do not offer atomic compare-and-swap. This narrow
+update therefore retains the existing exclusive-publisher operating contract
+and serialized post-deploy workflow, with a fresh version check; it does not
+claim a new platform-level lock. The publisher must not edit its admitted record
+concurrently. Stop on a conflict instead of taking over another owner's work.
+
+Behavioral failure, provenance, waiting, mutation and idempotency cases run inside
+the existing CI-scope regression. Its existing workflow-wiring test also checks
+permissions, exact checkout, dependency, timeout, and unchanged triggers.
