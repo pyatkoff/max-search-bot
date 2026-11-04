@@ -1,0 +1,312 @@
+{
+  "operation": "commercial-batch-20261104-41-contact",
+  "state": "CLOSED_NATIVE_CONTACT_COMPLETE_NO_READY_MATERIAL",
+  "checked_at_utc": "2026-11-04 19:02:31 UTC",
+  "run_id": 41892610146,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41892610146",
+  "source_commit": "9549a937754d06a148b7668016eb8d4f023dc087",
+  "jobs": [
+    {
+      "id": 126793707442,
+      "name": "inspect (0)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 126793708183,
+      "name": "inspect (1)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "proven_retained_scope_hotel_ids": [
+    1416,
+    1491,
+    55828,
+    2144,
+    3469,
+    9321,
+    1201,
+    1198,
+    970,
+    967
+  ],
+  "new_owner_page_gets": 0,
+  "different_new_declared_photo_requests": 10,
+  "raw_byte_format_dimension_passes": 8,
+  "dimension_guard_rejections": 2,
+  "http403_rejections": 0,
+  "readonly_groups": 2,
+  "max_parallel": 2,
+  "new_input_scope_cases_passed": 3,
+  "old_guard_fixtures_rerun": 0,
+  "rawguards_and_query_policy_byteidentical": true,
+  "previous_urls_and_basenames_excluded_count": 168,
+  "log_processing": {
+    "leading_bom_removed_per_line": true,
+    "timestamps_removed_after_bom": true,
+    "json_records_complete": true,
+    "contact_chunks_complete": true,
+    "decoded_byte_count_verified": true,
+    "independent_sha256_verified": true,
+    "native_contact_pixels_visually_inspected": true
+  },
+  "native_contacts": [
+    {
+      "job_id": 126793707442,
+      "kind": "contact",
+      "group": 0,
+      "width": 960,
+      "height": 540,
+      "bytes": 604100,
+      "sha256": "6f85c62806bf0e8a15eb11587876deab1bfc9b5854fd0e9592d445d5c74fc9ad",
+      "chunks": 17,
+      "decoded_verified": true
+    },
+    {
+      "job_id": 126793708183,
+      "kind": "contact",
+      "group": 1,
+      "width": 960,
+      "height": 540,
+      "bytes": 285610,
+      "sha256": "81769dbd929edb79c30767e85e75d471e2d742dc5320ba13ad6c9fa30960205b",
+      "chunks": 8,
+      "decoded_verified": true
+    }
+  ],
+  "native_image_reports": [
+    {
+      "operation": "commercial-batch41-bounded-primary-contact-inspection",
+      "mode": "pure_cloud_public_source_inspection",
+      "group": 0,
+      "server_connections": 0,
+      "provider_calls": 0,
+      "db_writes": 0,
+      "message_sends": 0,
+      "images": [
+        {
+          "hotel_id": 2144,
+          "role": "h2144_new41_0",
+          "index": 0,
+          "source_url": "https://fs.dmarisbay.com/cdn/uploads/000001601_2_716x537.jpg",
+          "format": "JPEG",
+          "width": 716,
+          "height": 537,
+          "bytes": 66015,
+          "sha256": "0e7bbcea6e4eaf690c8a163a4b6fcbc5e2b492ac55c1012056da98ae7a9fa611"
+        },
+        {
+          "hotel_id": 2144,
+          "role": "h2144_new41_1",
+          "index": 1,
+          "source_url": "https://fs.dmarisbay.com/cdn/uploads/000001612_3_568x424.jpg",
+          "format": "JPEG",
+          "width": 568,
+          "height": 424,
+          "bytes": 88271,
+          "sha256": "3c4c0a2973de0728fc015ea3bc51a6338e7c7dafdece71a5259d04f3798ad769"
+        },
+        {
+          "hotel_id": 2144,
+          "role": "h2144_new41_2",
+          "index": 2,
+          "source_url": "https://fs.dmarisbay.com/cdn/uploads/000001570_568x424_2.jpg",
+          "format": "JPEG",
+          "width": 568,
+          "height": 424,
+          "bytes": 125252,
+          "sha256": "e2d744ac95ef980ab6abde2ab5974b333123adf12b473491aa16f2fb825a7ea9"
+        },
+        {
+          "hotel_id": 2144,
+          "role": "h2144_new41_3",
+          "index": 3,
+          "source_url": "https://fs.dmarisbay.com/cdn/uploads/000001575_716x537_2.jpg",
+          "format": "JPEG",
+          "width": 716,
+          "height": 537,
+          "bytes": 203400,
+          "sha256": "6ebdce61cba5701c539bae2a1007b05fdd2b9e0ebcb3dad2230d15859bf3f440"
+        },
+        {
+          "hotel_id": 2144,
+          "role": "h2144_new41_4",
+          "index": 4,
+          "source_url": "https://fs.dmarisbay.com/cdn/uploads/000001577_568x424_4.jpg",
+          "format": "JPEG",
+          "width": 568,
+          "height": 424,
+          "bytes": 135059,
+          "sha256": "47d028429e47c366a53fa1d62cae31e9d6e30a69a021f7e9671f3ab1811f117d"
+        }
+      ],
+      "rejections": []
+    },
+    {
+      "operation": "commercial-batch41-bounded-primary-contact-inspection",
+      "mode": "pure_cloud_public_source_inspection",
+      "group": 1,
+      "server_connections": 0,
+      "provider_calls": 0,
+      "db_writes": 0,
+      "message_sends": 0,
+      "images": [
+        {
+          "hotel_id": 2144,
+          "role": "h2144_new41_5",
+          "index": 0,
+          "source_url": "https://fs.dmarisbay.com/cdn/uploads/000001578_568x424_5.jpg",
+          "format": "JPEG",
+          "width": 568,
+          "height": 424,
+          "bytes": 102226,
+          "sha256": "a75d1b9fa4870f7b0f2681a2ea4fc685cf7941e21abca3ef671d82010c686138"
+        },
+        {
+          "hotel_id": 9321,
+          "role": "h9321_new41_8",
+          "index": 3,
+          "source_url": "https://www.clubmarvy.com/AdminWeb/images_pages/MARVYSLIDER_ENG_wo34glnp.jpg",
+          "format": "JPEG",
+          "width": 1600,
+          "height": 900,
+          "bytes": 255814,
+          "sha256": "2b58101b5642e5ee731f853b5c069dec45be1b872312b5ab312688093b8c68ff"
+        },
+        {
+          "hotel_id": 9321,
+          "role": "h9321_new41_9",
+          "index": 4,
+          "source_url": "https://www.clubmarvy.com/AdminWeb/images_pages/RastgeleSofrasi_Web_Slider_EN_y8rw537h.jpg",
+          "format": "JPEG",
+          "width": 1600,
+          "height": 1200,
+          "bytes": 398915,
+          "sha256": "7e93a42c3abd41122b0b104e2bc364f23b19f0992da0091530e8a19c616994c5"
+        }
+      ],
+      "rejections": [
+        {
+          "hotel_id": 2144,
+          "role": "h2144_new41_6",
+          "index": 1,
+          "error": "ValueError",
+          "stage": "dimension_guard",
+          "observed": {
+            "http_status": 200,
+            "content_type": "image/jpeg",
+            "received_prefix_bytes": 47741,
+            "format": "JPEG",
+            "width": 320,
+            "height": 320
+          }
+        },
+        {
+          "hotel_id": 2144,
+          "role": "h2144_new41_7",
+          "index": 2,
+          "error": "ValueError",
+          "stage": "dimension_guard",
+          "observed": {
+            "http_status": 200,
+            "content_type": "image/jpeg",
+            "received_prefix_bytes": 49739,
+            "format": "JPEG",
+            "width": 263,
+            "height": 147
+          }
+        }
+      ]
+    }
+  ],
+  "visual_verdicts": [
+    {
+      "hotel_id": 2144,
+      "roles": [
+        "h2144_new41_0",
+        "h2144_new41_1",
+        "h2144_new41_2",
+        "h2144_new41_3",
+        "h2144_new41_4",
+        "h2144_new41_5"
+      ],
+      "verdict": "NO_WHOLE_PROPERTY_HERO",
+      "observed": "Yachts at sunset; restaurant guests; woman reading on hanging lounger; restaurant guests and server; food plates; people doing yoga. No whole hotel grounds or building overview."
+    },
+    {
+      "hotel_id": 2144,
+      "role": "h2144_new41_6",
+      "verdict": "DIMENSION_GUARD_REJECT",
+      "http_status": 200,
+      "format": "JPEG",
+      "width": 320,
+      "height": 320,
+      "note": "000002629_6.jpg. Not403; no larger variant guess or repeat."
+    },
+    {
+      "hotel_id": 2144,
+      "role": "h2144_new41_7",
+      "verdict": "DIMENSION_GUARD_REJECT",
+      "http_status": 200,
+      "format": "JPEG",
+      "width": 263,
+      "height": 147,
+      "note": "000001509_night.jpg. Not403; no larger variant guess or repeat."
+    },
+    {
+      "hotel_id": 9321,
+      "role": "h9321_new41_8",
+      "verdict": "PROMOTIONAL_TEXT_BANNER_NOT_HOTEL_PHOTOGRAPHY",
+      "observed": "ICRT Global2026 award text over water and beach background; no whole property hero"
+    },
+    {
+      "hotel_id": 9321,
+      "role": "h9321_new41_9",
+      "verdict": "ILLUSTRATED_RESTAURANT_PROMOTION_NOT_HOTEL_PHOTOGRAPHY",
+      "observed": "What a Catch fish and food line illustrations with promotion text"
+    }
+  ],
+  "accepted_general_hotel_hero_count": 0,
+  "canva_transactions_opened": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "new_quotes": 0,
+  "new_price_edits": 0,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "baseline_unchanged": {
+    "published_each_channel": 157,
+    "live_yml_offers": [
+      156,
+      156,
+      312
+    ],
+    "max_runtime_aliases": 156,
+    "monitor_hotel_count": 670,
+    "current_stock_ready": 0
+  },
+  "addressed_source_dedup_finding": {
+    "hotel_id": 231,
+    "already_retained_owner_source": "https://redseahotels.com/resorts/makadi-bay/the-grand-makadi/",
+    "evidence_file": "commercial-batch-20261103-26-source-notes.json",
+    "evidence_row": "captions.hotel_id231.sources",
+    "action": "ROOT_SOURCE_ALREADY_CLOSED_DO_NOT_GET_AGAIN"
+  },
+  "production_wait": {
+    "main": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+    "main_ref_checked_at_utc": "2026-11-04 18:54UTC",
+    "original_deploy_metadata_checked_at_utc": "2026-11-04 19:02:31UTC",
+    "original_deploy_run": 41870011689,
+    "conclusion": "failure",
+    "run_attempt": 1,
+    "updated_at": "2026-11-04T16:49:17Z",
+    "new_jobs_logs_or_tls_reads": 0,
+    "new_healthy_release_or_retry_observed": false
+  },
+  "repeat_policy": "All ten exact requests and basenames are CLOSED. No repeat, alternative larger filename, query stripping, resize or Canva bypass. Add this plan to future media exclusion sets.",
+  "next_priority": "New passing current production release with all gates -> READ14only1543+originalstock39 -> MAX157immutablemap -> YMLupdate13. READ8remains prepared and not executed on server. Prepare different independent proven candidates without rerunning closed passes."
+}
