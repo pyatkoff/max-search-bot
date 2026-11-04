@@ -1,0 +1,25 @@
+{
+  "operation": "commercial-monitor-publication-20261104-36",
+  "goal": "Appendfouractuallypublishedbatch35and36hotels to existing659monitorinputs",
+  "boundaries": [
+    "Exact659actualoriginal492+allbindingsdedup, no duplicate1199/1464/9322/1672",
+    "Onlyimmutablepublication_stock_20261104b_4 andsamehelper/smoketest",
+    "No collector/cron/transport/locks/budget64/hourly12/order/pendingsearchchanges",
+    "PreparePRandrequirednativeCI;mainmergeonlywithinexplicitauthorization,notbypasspreviousreview"
+  ],
+  "criteria": [
+    "663uniqueinputs/previous659byteidenticaltargets",
+    "Resumeexistingbatch34inflightsearch/mixedcountries/missing1199/inactive4nofalsecredit"
+  ],
+  "risks": [
+    "Monitoringconfigurationisnotreceivedquotes;oldmain659untilmerged"
+  ],
+  "catalog_ids": [
+    1199,
+    1464,
+    9322,
+    1672
+  ],
+  "previous_inputs": 659,
+  "new_inputs": 663
+}
