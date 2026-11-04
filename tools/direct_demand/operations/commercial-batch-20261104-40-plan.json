@@ -1,0 +1,143 @@
+{
+  "operation": "commercial-hotel-batch-20261104-40-v1",
+  "state": "TEN_PROVEN_IDENTITIES_SIX_NEW_OWNER_PAGES_PREPARED_READY_ZERO",
+  "baseline_logical_materials_per_channel": 157,
+  "baseline_live_offers": [
+    156,
+    156,
+    312
+  ],
+  "hotel_ids": [
+    1338,
+    46670,
+    1459,
+    65895,
+    2175,
+    35313,
+    28327,
+    1033,
+    1031,
+    109655
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "goal": "Prepare a next finite group of ten proven hotel materials while the production-release wait continues",
+  "boundaries": {
+    "new_exact_owner_page_gets": 6,
+    "old_page_get_repeats": 0,
+    "readonly_groups": 2,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "parser_functionality_unchanged": true,
+    "old_parser_fixture_reruns": 0
+  },
+  "criteria": [
+    "Read only six listed new property owner sources, with existing host/HTTP/query/privacyguards",
+    "Retain accepted whole-captions where present; four unresolvedhotelhrefs staydeferred withoutguessing",
+    "Later finite different-photo pass must exclude closed URLs/basenames through39 and enforce exacttargetmembership/wholehotelhero+two lowerphotos/native review",
+    "Prepare several covers and publish the actual ready subset serially only after healthy currentproduction source/TLS/full21blob gates"
+  ],
+  "risks": [
+    "Metadata/identity is not delivery",
+    "RoyalDragonMacau searchresult is wronghotel; old2025/2026summerRoyalDragonPDF does not establish currentrights",
+    "MandarinsharedgenericCDN images remainunprovenwithouttargetmembership",
+    "HillsideGCSqueryguards remainunchanged; no versionquerystrip/bypass",
+    "Production9678failed/TLSskipped stillunaccepted"
+  ],
+  "candidates": [
+    {
+      "hotel_id": 1338,
+      "native_name": "LIMAK LARA DE LUXE HOTEL & RESORT",
+      "country_id": 4,
+      "region_id": 20,
+      "new_declared_owner_url": "https://www.limakhotels.com/limak-lara-gallery",
+      "source_proof": "New exactpropertyowner gallery found in primary official search result",
+      "state": "PROVEN_IDENTITY_NEW_OWNER_SOURCE_PENDING"
+    },
+    {
+      "hotel_id": 46670,
+      "native_name": "TRENDY LARA",
+      "country_id": 4,
+      "region_id": 20,
+      "new_declared_owner_url": "https://trendy.com.tr/trendy-lara/trendy-lara-galeri/",
+      "source_proof": "New exactpropertyowner gallery found in primary official search result; earlier different enroot ValueError/HTTPunknown not403",
+      "state": "PROVEN_IDENTITY_NEW_OWNER_SOURCE_PENDING"
+    },
+    {
+      "hotel_id": 1459,
+      "native_name": "ROYAL DRAGON",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": null,
+      "source_proof": null,
+      "state": "PROVEN_IDENTITY_NO_NEW_ACCEPTABLE_SOURCE_HREF_YET"
+    },
+    {
+      "hotel_id": 65895,
+      "native_name": "PALOMA ORENDA RESORT",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://www.palomahotels.com/en/paloma-orenda/stay",
+      "source_proof": "Exacthref declared in retained target ownerroot36",
+      "state": "PROVEN_IDENTITY_NEW_OWNER_SOURCE_PENDING"
+    },
+    {
+      "hotel_id": 2175,
+      "native_name": "HILLSIDE BEACH CLUB",
+      "country_id": 4,
+      "region_id": 27,
+      "new_declared_owner_url": "https://www.hillsidebeachclub.com/en/about-the-resort/pool",
+      "source_proof": "Exacthref declared in retained target ownerroot/gallery36",
+      "state": "PROVEN_IDENTITY_NEW_OWNER_SOURCE_PENDING"
+    },
+    {
+      "hotel_id": 35313,
+      "native_name": "MANDARIN ORIENTAL BODRUM",
+      "country_id": 4,
+      "region_id": 24,
+      "new_declared_owner_url": "https://www.mandarinoriental.com/en/bodrum/paradise-bay/explore",
+      "source_proof": "Exacthref declared in retained target propertyroot36",
+      "state": "PROVEN_IDENTITY_NEW_OWNER_SOURCE_PENDING"
+    },
+    {
+      "hotel_id": 28327,
+      "native_name": "NIRVANA MEDITERRANEAN EXCELLENCE",
+      "country_id": 4,
+      "region_id": 22,
+      "new_declared_owner_url": null,
+      "source_proof": null,
+      "state": "PROVEN_IDENTITY_NO_NEW_ACCEPTABLE_SOURCE_HREF_YET"
+    },
+    {
+      "hotel_id": 1033,
+      "native_name": "BARUT HEMERA",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": "https://baruthemera.com/en/gallery",
+      "source_proof": "New exactpropertyowner generalgallery URI found in primary official search; oldgeneralchild31 remainsclosed",
+      "state": "PROVEN_IDENTITY_NEW_OWNER_SOURCE_PENDING"
+    },
+    {
+      "hotel_id": 1031,
+      "native_name": "ARUM BARUT COLLECTION",
+      "country_id": 4,
+      "region_id": 23,
+      "new_declared_owner_url": null,
+      "source_proof": null,
+      "state": "PROVEN_IDENTITY_NO_NEW_ACCEPTABLE_SOURCE_HREF_YET"
+    },
+    {
+      "hotel_id": 109655,
+      "native_name": "LIBERTY SIGNA",
+      "country_id": 4,
+      "region_id": 27,
+      "new_declared_owner_url": null,
+      "source_proof": null,
+      "state": "PROVEN_IDENTITY_NO_NEW_ACCEPTABLE_SOURCE_HREF_YET"
+    }
+  ]
+}

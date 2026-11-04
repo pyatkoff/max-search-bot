@@ -1,8 +1,8 @@
 import base64,html,json,os,re,urllib.parse,urllib.request
 from pathlib import Path
 from html.parser import HTMLParser
-operation='commercial-batch39-ten-new-declared-owner-pages'
-pages=["https://www.palomahotels.com/en/paloma-oceana/beach-and-pool","https://www.palomahotels.com/en/paloma-perissia/beach-and-pool","https://luxuryresortbelek.selectumhotels.com/en/gallery","https://dmarisbay.com/en/gallery","https://www.dresortgocek.com/en/accommodation","https://www.clubmarvy.com/en/beach-club-resort-turkey/home","https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/","https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/","https://www.alibey.com/en/resort/beach-waterpark/pools","https://www.alibey.com/en/club/beach-waterpark"]
+operation='commercial-batch40-six-new-declared-owner-pages'
+pages=["https://www.limakhotels.com/limak-lara-gallery","https://trendy.com.tr/trendy-lara/trendy-lara-galeri/","https://www.palomahotels.com/en/paloma-orenda/stay","https://www.hillsidebeachclub.com/en/about-the-resort/pool","https://www.mandarinoriental.com/en/bodrum/paradise-bay/explore","https://baruthemera.com/en/gallery"]
 group=int(os.environ['MEDIA_GROUP'])
 assert group in (0,1,2,3)
 pages=pages[group*3:group*3+3]

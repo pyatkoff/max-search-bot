@@ -1,60 +1,91 @@
 {
   "operation": "commercial-batch-20261104-39-contact",
-  "state": "QUEUED_NOT_NATIVE_PHOTO_ACCEPTED",
+  "state": "CLOSED_NATIVE_CONTACT_VISUALLY_REVIEWED_READY_ZERO",
   "run_id": 41877107577,
   "source_commit": "281398164f913752eb6fba9dbc6d5597e265bca0",
   "jobs": [
     {
       "id": 126739377859,
       "name": "inspect (2)",
-      "status": "queued",
-      "conclusion": null
+      "conclusion": "success"
     },
     {
       "id": 126739378187,
       "name": "inspect (3)",
-      "status": "queued",
-      "conclusion": null
+      "conclusion": "success"
     },
     {
       "id": 126739378254,
       "name": "inspect (0)",
-      "status": "queued",
-      "conclusion": null
+      "conclusion": "success"
     },
     {
       "id": 126739378488,
       "name": "inspect (1)",
-      "status": "queued",
-      "conclusion": null
+      "conclusion": "success"
     }
   ],
-  "declared_new_photo_inputs": 20,
-  "new_photo_hotel_ids": [
-    1416,
-    1491,
-    1201,
-    1198,
-    970,
-    967
+  "different_declared_photo_urls": 20,
+  "byte_dimension_guard_passes": 19,
+  "rejections": [
+    {
+      "hotel_id": 1491,
+      "role": "h1491_new39_4",
+      "stage": "byte_guard",
+      "http_status": 200,
+      "content_type": "image/jpeg",
+      "received_prefix_bytes": 5000001,
+      "reason": "Above5MBguard; no dimension claim and no403"
+    }
   ],
   "readonly_groups": 4,
   "max_parallel": 2,
-  "allowed_exact_owner_hosts": [
-    "www.palomahotels.com",
-    "www.gloria.com.tr",
-    "www.alibey.com"
-  ],
+  "all_contact_chunks_complete": true,
+  "decoded_bytes_sha256_verified": true,
+  "native_contact_pixels_reviewed": true,
   "previous_url_or_basename_repeats": 0,
   "raw_guards_unchanged": true,
   "query_policy_unchanged": true,
-  "native_accepted_photos": 0,
-  "canva_transactions": 0,
-  "ready_for_send_count": 0,
-  "new_posts": 0,
+  "new_input_host_cases_passed": 3,
+  "old_guard_fixtures_rerun": 0,
   "server_connections": 0,
   "provider_calls": 0,
   "db_writes": 0,
   "message_sends": 0,
-  "next_step": "Read only original nativejobs/logs once after actual progress; verify each-lineBOM/timestamps/chunkcompleteness/decodedbytes/SHA/nativecontactpixels. Do not enqueue/rerun/replace the pending run. Build several covers and use entire ready subset in one serial send after mandatory production source acceptance."
+  "canva_transactions_opened": 0,
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "verdicts": [
+    {
+      "hotel_id": 1416,
+      "state": "DEFERRED_NO_GENERAL_WHOLE_HOTEL_HERO",
+      "notes": "Beachwoman, separateLakeVillas cluster and poolbar. Villa-categorycluster not used as general whole-hotel hero."
+    },
+    {
+      "hotel_id": 1491,
+      "state": "DEFERRED_NO_GENERAL_WHOLE_HOTEL_HERO",
+      "notes": "Beach and pier withouthotel; vertical onepool. Otherpool HTTP200JPEG exceeded5MB byteguard, not403."
+    },
+    {
+      "hotel_id": 1201,
+      "state": "DEFERRED_NO_GENERAL_WHOLE_HOTEL_HERO",
+      "notes": "New pooldetails/onepool views and pier; no wholecomplex."
+    },
+    {
+      "hotel_id": 1198,
+      "state": "DEFERRED_NO_GENERAL_WHOLE_HOTEL_HERO",
+      "notes": "Pier, two indoorpool angles and pooldeck; no wholecomplex."
+    },
+    {
+      "hotel_id": 970,
+      "state": "DEFERRED_NO_GENERAL_WHOLE_HOTEL_HERO",
+      "notes": "Poolzone aerials and pooldetails with limited roofedge; notgeneralwholehotel."
+    },
+    {
+      "hotel_id": 967,
+      "state": "DEFERRED_NO_GENERAL_WHOLE_HOTEL_HERO",
+      "notes": "Closechairs, poolpavilion and peoplepool; no wholecomplex."
+    }
+  ],
+  "next_step": "Do not repeat these20GETs or relax whole-hotel hero criteria; continue next finite retained candidate group."
 }
