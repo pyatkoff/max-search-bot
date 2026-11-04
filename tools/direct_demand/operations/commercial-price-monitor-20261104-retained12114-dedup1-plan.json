@@ -1,0 +1,29 @@
+{
+  "operation": "commercial-price-monitor-20261104-retained12114-dedup1",
+  "goal": "Use already retained original read6 rows for only12114 to distinguish a new valid candidate from the consumed old quote1 while current production release is not accepted",
+  "boundaries": {
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_edits": 0,
+    "full_quote_response_reads": 0,
+    "old_provider_readbacks": 0,
+    "private_output": "authenticatedartifactonly"
+  },
+  "criteria": [
+    "Exact12114/nativecountry1/active/currentname/2A0children/RUB/knownnativeMeals/futuredate/UTCpersistence<=30h",
+    "Old quote1 fingerprint uniquely bound from only original intent; samefingerprint rejected",
+    "Fail closed ifoldfingerprint unavailable; no blindpaidcall"
+  ],
+  "risks": [
+    "Retainedcachedprice notfinaltotal oravailability",
+    "No quote execution while currentrelease9678failed/TLSskipped"
+  ],
+  "source_artifacts": [
+    13301980792,
+    13217767209
+  ],
+  "new_cases": 3,
+  "old_age_cases_rerun": 0
+}
