@@ -19,7 +19,6 @@
     "tour-max repository is audit metadata, not evidence of installed miniapp receiver source"
   ],
   "catalog_logical_hotels": 148,
-  "hosted_feed_offers_each_channel_before_pending_update": 146,
   "published_feed_route": "direct_canonical_channel_post",
   "desired_feed_route": "platform_specific_miniapp_then_exact_canonical_hotel_post",
   "evidence": [
@@ -29,5 +28,7 @@
   ],
   "feed_url_replacements": 0,
   "ad_imports": 0,
-  "post_sends_for_routing": 0
+  "post_sends_for_routing": 0,
+  "hosted_feed_offers_each_channel": 148,
+  "combined_offers": 296
 }

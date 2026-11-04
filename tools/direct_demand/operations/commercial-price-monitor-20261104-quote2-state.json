@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-price-monitor-20261104-quote2",
+  "state": "SINGLE_ACTUALIZED_QUOTE_CONSUMED_BY_VERIFIED_EXISTING_POST_EDIT",
+  "catalog_ids": [
+    9432
+  ],
+  "hotel_count": 1,
+  "gateway_requests_attempted": 1,
+  "upstream_request_limit": 1,
+  "quote_option_count": 2,
+  "selected_concrete_flight_option_count": 1,
+  "price_block_updates": 2,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41791108063",
+  "quote_review_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41791986800",
+  "edit_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41792503183",
+  "max_retained_age_hours": 30
+}

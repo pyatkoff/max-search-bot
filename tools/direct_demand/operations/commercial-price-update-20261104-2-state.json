@@ -1,0 +1,18 @@
+{
+  "operation": "commercial-price-update-20261104-2-v1",
+  "state": "EXISTING_DELPHIN_PRICE_UPDATED_IN_BOTH_CHANNELS_VERIFIED",
+  "catalog_ids": [
+    9432
+  ],
+  "price_block_updates": 2,
+  "content_edit_attempts": 2,
+  "post_write_attempts": 2,
+  "new_posts_created": 0,
+  "all_body_photo_button_verified": true,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41792503183",
+  "job_id": 126448904366,
+  "intent_artifact_id": 13304505545,
+  "result_artifact_id": 13304510601,
+  "source_stops": 0,
+  "max_price_age_hours": 30
+}
