@@ -1,0 +1,100 @@
+{
+  "operation": "commercial-hotel-batch-20261104-35-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish both ready whole hotel materials in both existing channels in one serial run",
+  "boundaries": [
+    "Existingchannels/bots/registry/once/serialapprovedpublisher only",
+    "Exact current source/verify/TLS/fulltree21blobs beforeSSH/provider; unchangedruntime/rights/dedupguards",
+    "NoMac/newworkers/queues/runtime/ads/customer messages/paidcalls"
+  ],
+  "criteria": [
+    "Two600pxnativePNGsbytes/chunks/SHA/dimensions/nativeviewaccepted",
+    "Exactly4verified body/photo/button/source posts or explicitstop"
+  ],
+  "risks": [
+    "Eightunresolvedcandidatesmustnotdelaytwoready",
+    "IfmainchangesstopbeforeSSH/provider;after2sourcestopsconcretereleasewait"
+  ],
+  "baseline_logical_materials": 146,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 1199,
+      "hotel": "Gloria Serenity Resort",
+      "key": "gloria-serenity",
+      "aliases": [
+        "GLORIA SERENITY RESORT"
+      ],
+      "sources": [
+        "https://www.gloria.com.tr/en/hotels/gloria-serenity-resort/"
+      ],
+      "text": "✈️ Туры в Gloria Serenity Resort с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж и пирс у Средиземного моря.\n🏊 Бассейны на территории.\n🧖 Спа Serenity.\n🛏 Есть номера и разные категории вилл.\n\n💡 Собственный бассейн и особые привилегии вилл зависят от выбранной категории размещения.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Gloria Serenity Resort.",
+      "logical_id": "commercial-gloria-serenity-1199-v1",
+      "text_sha256": "fc936de497656656ea215c395f500e4d369a21dea3da67052102722a463b71a7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4c5d31f2bc8ef21ed929422edb658361c4f0c7c9/.github/traffic-publish/commercial-batch-20261104-35/1199.png",
+      "photo_sha256": "1af16fb1f3a31710b8cf26d69d6e6cc4a4cb5ff98038a25443cc344d8b738972",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1464,
+      "hotel": "Royal Wings Hotel",
+      "key": "royal-wings",
+      "aliases": [
+        "ROYAL WINGS HOTEL"
+      ],
+      "sources": [
+        "https://www.royalwingshotel.com/en"
+      ],
+      "text": "✈️ Туры в Royal Wings Hotel с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Собственный песчаный пляж.\n💦 Бассейны, аквапарк и лунапарк.\n👧 Мини клуб с играми и творческими занятиями.\n🧖 Спа с сауной и парной.\n\n💡 В стандартных номерах есть балкон. Вид на море или территорию зависит от категории номера.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Royal Wings Hotel.",
+      "logical_id": "commercial-royal-wings-1464-v1",
+      "text_sha256": "479628f75252fe1caa19de74d7e9b94f6ce20d4567e569df52b1ff9d22838211",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/4c5d31f2bc8ef21ed929422edb658361c4f0c7c9/.github/traffic-publish/commercial-batch-20261104-35/1464.png",
+      "photo_sha256": "92c317930fc0ff0a6d393e45ec92ea8025ad6cbcd967402a357a76245682a8d1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 2,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 2,
+  "approved_live_send_count": 2,
+  "public_png_frozen_count": 2,
+  "native_inspection_state": "TWO_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41788687781"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 2144,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 3469,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 9321,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1201,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1198,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1543,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1137,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    },
+    {
+      "hotel_id": 1459,
+      "state": "PRIMARY_PHOTO_SCOPE_OR_HERO_NOT_ACCEPTED_NOT_SENT"
+    }
+  ]
+}
