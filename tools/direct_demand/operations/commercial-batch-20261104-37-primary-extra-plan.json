@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-batch37-five-newly-declared-owner-pages",
+  "goal": "Complete target-specific facts and exact declared photographs",
+  "boundaries": [
+    "Five fixed primary URLs; no old ten GET/403 retries",
+    "No guessed assets, sisterpropertyrights, privateURLs or tokens",
+    "Static.kilithg metadata is not automatic download permission"
+  ],
+  "criteria": [
+    "Target-specific service/body/gallery references"
+  ],
+  "risks": [
+    "Shared group assets must prove actual hotel membership"
+  ],
+  "first_primary_run": 41811362064,
+  "urls": [
+    "https://eftaliahotels.com/en/eftalia-ocean-hotel-hizmetlerimiz/",
+    "https://www.voyagehotel.com/en/voyage-torba/pool-beach",
+    "https://www.kirmanpremium.com/leodikya-kirman-premium/en/gallery-2",
+    "https://www.kirmanpremium.com/leodikya-kirman-premium/en/beach-3",
+    "https://www.nirvanahotels.com.tr/oteller/nirvana-mediterranean-excellence"
+  ],
+  "server_calls": 0,
+  "provider_calls": 0,
+  "db_writes": 0
+}

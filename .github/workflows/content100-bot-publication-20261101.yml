@@ -1,4 +1,4 @@
-name: Read ten fixed primary owner pages for batch37
+name: Read five newly declared batch37 property pages
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        media_group: [0,1,2,3]
+        media_group: [0,1]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,7 +31,7 @@ jobs:
         run: python3 tools/direct_demand/operations/inspect-hotel-media-20261102-3.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch37-primary-sources-${{ matrix.media_group }}
+          name: commercial-batch37-extra-primary-sources-${{ matrix.media_group }}
           path: |
             public-media-sources.json
           retention-days: 14
