@@ -1,0 +1,167 @@
+{
+  "operation": "commercial-batch-20261104-39-contact",
+  "state": "FINITE_TWENTY_NEW_DECLARED_PHOTOS_PREPARED_NOT_INSPECTED",
+  "goal": "Find usable whole-hotel heroes and lower photos for a ready subset of the next ten retained candidates",
+  "boundaries": {
+    "photos": 20,
+    "hotel_ids": [
+      1416,
+      1491,
+      1201,
+      1198,
+      970,
+      967
+    ],
+    "readonly_groups": 4,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "provider_calls": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "message_sends": 0,
+    "previous_url_or_basename_repeats": 0,
+    "raw_guards_unchanged": true,
+    "query_policy_unchanged": true
+  },
+  "criteria": [
+    "Exact source-declared URIs on three named proven owners only; no variants or query stripping",
+    "Mandatory HTTP/type/format/size/dimension guards then complete contact chunks/decodedbytes/SHA/native visual review",
+    "Approve whole-hotel hero and two usable different lower photos before Canva; ready subset only",
+    "Retained accepted captions preserved; no price or universal room-category rights"
+  ],
+  "risks": [
+    "Pool photographs may not show enough of the hotel to serve as hero",
+    "No source/production access while currentreleasefailed",
+    "Other four candidates have no new promising proven hero in current references"
+  ],
+  "source_run": 41876362524,
+  "allowed_hosts": [
+    "www.palomahotels.com",
+    "www.gloria.com.tr",
+    "www.alibey.com"
+  ],
+  "new_input_host_cases": 3,
+  "old_guard_fixtures_rerun": 0,
+  "images": [
+    {
+      "hotel_id": 1416,
+      "role": "h1416_new39_0",
+      "url": "https://www.palomahotels.com/Content/imgUpload/12-5-2020-8-50-50-PMbeachandpoolslider.jpg",
+      "primary_source_url": "https://www.palomahotels.com/en/paloma-oceana/beach-and-pool"
+    },
+    {
+      "hotel_id": 1416,
+      "role": "h1416_new39_1",
+      "url": "https://www.palomahotels.com/Content/imgUpload/11-27-2020-2-41-01-PMlake%20villas.jpg",
+      "primary_source_url": "https://www.palomahotels.com/en/paloma-oceana/beach-and-pool"
+    },
+    {
+      "hotel_id": 1416,
+      "role": "h1416_new39_2",
+      "url": "https://www.palomahotels.com/Content/imgUpload/11-27-2020-3-17-38-PMturquoise%20pool.jpg",
+      "primary_source_url": "https://www.palomahotels.com/en/paloma-oceana/beach-and-pool"
+    },
+    {
+      "hotel_id": 1491,
+      "role": "h1491_new39_3",
+      "url": "https://www.palomahotels.com/Content/imgUpload/12-11-2020-3-02-47-PMperissiabeach.jpg",
+      "primary_source_url": "https://www.palomahotels.com/en/paloma-perissia/beach-and-pool"
+    },
+    {
+      "hotel_id": 1491,
+      "role": "h1491_new39_4",
+      "url": "https://www.palomahotels.com/Content/imgUpload/11-20-2020-4-14-47-PMpool%202.jpg",
+      "primary_source_url": "https://www.palomahotels.com/en/paloma-perissia/beach-and-pool"
+    },
+    {
+      "hotel_id": 1491,
+      "role": "h1491_new39_5",
+      "url": "https://www.palomahotels.com/Content/imgUpload/11-20-2020-4-11-58-PMpool%201.jpg",
+      "primary_source_url": "https://www.palomahotels.com/en/paloma-perissia/beach-and-pool"
+    },
+    {
+      "hotel_id": 1201,
+      "role": "h1201_new39_6",
+      "url": "https://www.gloria.com.tr/media/wuiddl4y/gloria-verde-resort-main-pool-2.jpg",
+      "primary_source_url": "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/"
+    },
+    {
+      "hotel_id": 1201,
+      "role": "h1201_new39_7",
+      "url": "https://www.gloria.com.tr/media/uu1bhz0c/mainpool10_verderesort_h.jpg",
+      "primary_source_url": "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/"
+    },
+    {
+      "hotel_id": 1201,
+      "role": "h1201_new39_8",
+      "url": "https://www.gloria.com.tr/media/xdxfjge5/mainpool2_verderesort_h.jpg",
+      "primary_source_url": "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/"
+    },
+    {
+      "hotel_id": 1201,
+      "role": "h1201_new39_9",
+      "url": "https://www.gloria.com.tr/media/pfgg1cze/beach-3.jpg",
+      "primary_source_url": "https://www.gloria.com.tr/en/hotels/gloria-verde-resort/beach-pool/"
+    },
+    {
+      "hotel_id": 1198,
+      "role": "h1198_new39_10",
+      "url": "https://www.gloria.com.tr/media/5gcldm5o/gloria-golf-resort-beachpool-7.jpg",
+      "primary_source_url": "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/"
+    },
+    {
+      "hotel_id": 1198,
+      "role": "h1198_new39_11",
+      "url": "https://www.gloria.com.tr/media/mbxjwkb3/gloria-golf-resort-beachpools-gallery-19.jpg",
+      "primary_source_url": "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/"
+    },
+    {
+      "hotel_id": 1198,
+      "role": "h1198_new39_12",
+      "url": "https://www.gloria.com.tr/media/452docxf/gloria-golf-resort-beachpools-gallery-20.jpg",
+      "primary_source_url": "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/"
+    },
+    {
+      "hotel_id": 1198,
+      "role": "h1198_new39_13",
+      "url": "https://www.gloria.com.tr/media/0mxpw2dr/gloria-golf-resort-main-pool.jpg",
+      "primary_source_url": "https://www.gloria.com.tr/en/hotels/gloria-golf-resort/beach-pool/"
+    },
+    {
+      "hotel_id": 970,
+      "role": "h970_new39_14",
+      "url": "https://www.alibey.com/content/upload/content-slider/Alibey-Resort-Sorgun-Havuzlar-Ana-Havuzu-2.jpg",
+      "primary_source_url": "https://www.alibey.com/en/resort/beach-waterpark/pools"
+    },
+    {
+      "hotel_id": 970,
+      "role": "h970_new39_15",
+      "url": "https://www.alibey.com/content/upload/content-slider/Alibey-Resort-Sorgun-Havuzlar-Ana-Havuzu-3.jpg",
+      "primary_source_url": "https://www.alibey.com/en/resort/beach-waterpark/pools"
+    },
+    {
+      "hotel_id": 970,
+      "role": "h970_new39_16",
+      "url": "https://www.alibey.com/content/upload/content-slider/Alibey-Resort-Sorgun-Havuzlar-sessiz-havuz-4.jpg",
+      "primary_source_url": "https://www.alibey.com/en/resort/beach-waterpark/pools"
+    },
+    {
+      "hotel_id": 967,
+      "role": "h967_new39_17",
+      "url": "https://www.alibey.com/content/upload/content-slider/alibey_club_manavgat_havuzlar-1.jpg",
+      "primary_source_url": "https://www.alibey.com/en/club/beach-waterpark"
+    },
+    {
+      "hotel_id": 967,
+      "role": "h967_new39_18",
+      "url": "https://www.alibey.com/content/upload/content-slider/alibey_club_manavgat_havuzlar-2.jpg",
+      "primary_source_url": "https://www.alibey.com/en/club/beach-waterpark"
+    },
+    {
+      "hotel_id": 967,
+      "role": "h967_new39_19",
+      "url": "https://www.alibey.com/content/upload/content-slider/alibey_club_manavgat_havuzlar-3.jpg",
+      "primary_source_url": "https://www.alibey.com/en/club/beach-waterpark"
+    }
+  ]
+}
