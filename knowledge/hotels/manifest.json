@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-10-26.1",
+  "version": "2026-11-04.1",
   "project_key": "anytour",
   "bindings": [
     {
@@ -870,6 +870,63 @@
         "common_version": 107,
         "member": "hotel-knowledge-tr-cohort-20261025/akra_antalya/accepted-binding.json",
         "scope": "Accepted typed Turkey research join and unchanged sealed saved records; scoped conditional published information only. No native MATCH write, current tariff, operation, model-use or natural/UI confirmation."
+      }
+    },
+    {
+      "status": "accepted",
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "hotel": "78898",
+        "country": "1"
+      },
+      "accepted_source_names": [
+        "PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+"
+      ],
+      "accepted_binding": {
+        "accepted_chain": [
+          {
+            "id": 78898,
+            "namespace": "legacy_catalog/catalog_hotels.id"
+          },
+          {
+            "catalog_revision": 1,
+            "id": 3417,
+            "namespace": "anytour"
+          },
+          {
+            "catalog_revision": 3,
+            "id": 78898,
+            "namespace": "local-tv"
+          }
+        ],
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 3417
+        },
+        "identity_anchor": {
+          "address": "El Corniche St. Villages road, Hurghada, Red Sea, Egypt",
+          "city": "Hurghada",
+          "country": "Egypt",
+          "official_url": "https://www.pickalbatros.com/blu-spa-resort-hurghada",
+          "research_source_id": "OFFICIAL-URL-933ABA32029B100FB2F5",
+          "research_source_record_sha256": "c0e6a37b325cc0a1f0158be357d4209040e3670eb0ebc47585f305cd9fd917c6"
+        },
+        "project_key": "anytour",
+        "proofs": {
+          "anytour-legacy-78898.raw": "9c7620dccdb882da5e788d7559f08e0012ebdf54b39af0bcaf1573ece5ba96f9",
+          "local-tv-old-anytour-3417.raw": "72be9c203b82d704d5f2da80ce2d782140c7230ecf280d0b45066f8ad2a184bd",
+          "official-identity-anchor.json": "6a4637f38174d742dc81aa3bc90907fcd386db7cf8ba2e63a2b18072fd2e4bda"
+        },
+        "research_hotel_key": "official_pickalbatros_blu_spa_hurghada"
+      },
+      "binding_revision": "ef6fd5eb1ca782ec57c9f5e1eaf1de4e9b7ca4b26e22db498fb34f770d0fe243",
+      "bundle_file": "anytour-3417-blu-spa.json",
+      "bundle_sha256": "b5b0fa5f412fff75fff69fc6fba4d8fde83181d22b377924d7a452d8c7ef7e94",
+      "approval": {
+        "library_file_id": "libfile_5f87d9ae4bc08191a8c51e20ab6b20e1",
+        "common_version": 59,
+        "member": "hotel-knowledge-20261104/identity/b04-blu-spa/accepted-binding.json",
+        "scope": "B04 stage0: four accepted official declarations with original03Nov answers, source dates and qualifications. Exact typed property identity only; no operator-room, guest-composition, meal-plan, tariff, future-operation or model-use proof."
       }
     }
   ]

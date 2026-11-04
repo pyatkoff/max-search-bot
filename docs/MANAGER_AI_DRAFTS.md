@@ -187,13 +187,21 @@ This narrow first scope does not claim general hotel-name understanding.
 and its bounded, approved file. It accepts the explicitly evidenced source-country
 pairs `1` → Egypt and `4` → Turkey; neither a country name nor a hotel-name match
 creates a catalogue join. The original Tourvisor9374/country1 → anytour1554
-identity and three Family Suite facts remain unchanged, alongside six additional Egypt groups
-and eight Turkey groups. These fifteen bounded groups retain58 saved declarations
-and43 source records, including source-only conflict context; they are not fifteen
+identity and three Family Suite facts remain unchanged, alongside seven additional Egypt groups
+and eight Turkey groups. These sixteen bounded groups retain 62 saved declarations
+and 47 source records, including source-only conflict context; they are not sixteen
 complete hotel passports or a count of distinct hotels in the research base.
 Each manifest approval names an actual saved approval artifact version and member:
 the common archive or a bounded consumer export. The compatibility field
 `common_version` carries that artifact’s actual saved version. No native MATCH is changed.
+
+The Pickalbatros Blu Spa group preserves four accepted B04 declarations: the hotel's
+minimum age and couples-only policy, beach length, winter heating of the named
+indoor pool, and the official Deluxe category's area and capacity. Each original
+answer and source qualification is retained verbatim, with the original 3 November
+source observation. Acceptance and later identity checks do not refresh those dates.
+The group does not establish a marriage requirement, beach safety, heating of other
+pools, operation on travel dates, or equivalence with a selected operator room or tariff.
 
 The Jaz Makadi Saraya99 group adds one source-scoped buildings warning to the
 original five apartment facts: Corendon reports no lifts in its low-rise buildings.
