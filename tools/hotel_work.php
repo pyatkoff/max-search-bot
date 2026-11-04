@@ -61,7 +61,10 @@ try {
             if(!is_array($policy))throw new DomainException('hotel_provider_policy_required');
             $provider=new HotelServerAiProvider($policy);
         }
-        $context=['pdo'=>$pdo,'provider'=>$provider];
+        $context=['pdo'=>$pdo,'provider'=>$provider,'catalog'=>static function():PDO{
+            require_once dirname(__DIR__).'/services/HotelDatabase.php';
+            return HotelDatabase::connection();
+        }];
         if($privateRuntime!==null)$context+=['expected_campaign_id'=>$privateRuntime['campaign_id'],
             'expected_bootstrap_sha256'=>$privateRuntime['bootstrap_sha256']];
         return $context;
@@ -69,8 +72,17 @@ try {
     if($server['handled']){
         $confirmedHold=$server['state']==='hold'&&($server['worker_completed']??false)===true;
         $ok=$server['state']!=='hold'||$confirmedHold;
+        $catalog=null;
+        if(array_key_exists('catalog',$server)){
+            $state=$server['catalog']['state']??'unavailable';
+            if(!in_array($state,['idle','projected','unavailable'],true))$state='unavailable';
+            $catalog=['state'=>$state,'projected'=>$state==='projected'?1:($state==='idle'?0:null)];
+            if($state==='unavailable'){$ok=false;$catalog['reason']='catalog_projection_unconfirmed';}
+        }
         HotelWorkHealth::record($ok?'ok':'failed',$confirmedHold?'server_cycle_hold':'server_cycle',[],$trigger);$finished=true;
-        echo json_encode(['ok'=>$ok,'state'=>$server['state'],'server_cycle'=>true,'worker_completed'=>($server['worker_completed']??false)===true],JSON_THROW_ON_ERROR)."\n";exit($ok?0:1);
+        $output=['ok'=>$ok,'state'=>$server['state'],'server_cycle'=>true,'worker_completed'=>($server['worker_completed']??false)===true];
+        if($catalog!==null)$output['catalog']=$catalog;
+        echo json_encode($output,JSON_THROW_ON_ERROR)."\n";exit($ok?0:1);
     }
     $events=new HotelWorkEventService($pdo,connectionAuthorized:
         static fn(string $connection,int $admin,array $required):bool=>$required===[ManagerPreparationOAuth::HOTEL_SCOPE]

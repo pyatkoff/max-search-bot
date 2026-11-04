@@ -109,6 +109,40 @@ projection; it cannot repeat research or grant new acceptance credit. This is no
 a distributed transaction or an assertion that existing catalog readers use the
 new projection. No existing accepted/catalog records are overwritten.
 
+### Bounded delivery through the existing cron
+
+The existing `tools/hotel_work.php` supplies a lazy `HotelDatabase::connection`
+factory to `HotelServerCronRuntime`. After its one ordinary tick and eligible
+local acceptance, the runtime selects at most one pending catalogue receipt.
+The current campaign and complete, disabled predecessors are eligible, ordered
+by campaign and stage. A completed campaign can finish this local delivery after
+its research policy expires. Disabled server flags still return before context
+loading; no pending receipt means no catalogue connection. This adds no worker,
+schedule, provider call, acceptance credit or campaign transition.
+
+`HotelServerLane::projectionPayload` and `acknowledgeProjection` share the same
+canonical receipt/baseline/correction verifier under the existing HOTEL lock.
+The projector now admits the exact bytes before any catalogue insert, releases
+that lock, commits on the separate exception-mode PDO, then revalidates the ACK.
+A malformed payload, missing receipt or invalid correction proof cannot become
+a catalogue document. Existing different bytes conflict without overwrite. A
+committed document followed by a lost ACK remains pending and can be delivered
+again by the next ordinary tick using the same receipt and bytes. Research and
+UNKNOWN attempts are never replayed by that operation.
+
+The separate catalogue schema must already be installed explicitly. Missing
+configuration, connection, table or a failed ACK returns the bounded catalogue
+outcome `unavailable`; it does not create a table or change the confirmed research
+state to UNKNOWN. The CLI reports technical failure while retaining that actual
+campaign state and `worker_completed`. Public output contains only the fixed
+catalogue state/count/reason, with no receipt IDs, payloads or exception text. A
+failure does not claim zero catalogue writes because the commit may precede the
+failed ACK. Successful delivery is `projected`; an empty eligible queue is `idle`.
+
+These documents remain a persistence projection. This delivery does not infer
+native hotel identities or make the facts available to existing AI/card readers;
+their independently admitted identity, source and scope contracts still apply.
+
 ## One bounded cron step
 
 ### Forward handoff after a completed campaign

@@ -116,6 +116,21 @@ PHP);
                 &&$row['stage']===($completed?'server_cycle_hold':'server_cycle')
                 &&($printed['state']??null)==='hold'&&($printed['worker_completed']??null)===$completed);
         }
+        foreach(['idle','projected','unavailable'] as $catalogState){
+            $catalog=['state'=>$catalogState,'projected'=>$catalogState==='unavailable'?null:($catalogState==='projected'?1:0)];
+            if($catalogState==='unavailable')$catalog['reason']='catalog_projection_unconfirmed';
+            $result=['handled'=>true,'state'=>'complete','worker_completed'=>true,'catalog'=>$catalog+[
+                'receipt_sha256'=>'SYNTHETIC_PRIVATE_RECEIPT','detail'=>'SYNTHETIC_PRIVATE_DATABASE_ERROR']];
+            file_put_contents($app.'/services/HotelServerCronRuntime.php',
+                '<?php final class HotelServerCronRuntime { public static function tick(array $flags,callable $context):array{return '.var_export($result,true).';}}');
+            $out=[];$code=-1;exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/hotel_work.php').' tick 2>&1',$out,$code);
+            $row=json_decode((string)file_get_contents($checkpoint),true);$printed=json_decode(implode("\n",$out),true);
+            $ok=$catalogState!=='unavailable';
+            hotelHealthCheck('actual CLI reports '.$catalogState.' catalogue separately from completed research',
+                $code===($ok?0:1)&&$row['state']===($ok?'ok':'failed')&&$row['stage']==='server_cycle'
+                &&$printed['ok']===$ok&&$printed['state']==='complete'&&$printed['worker_completed']===true
+                &&$printed['catalog']===$catalog&&!array_key_exists('provider_calls',$printed));
+        }
     }finally{file_put_contents($app.'/services/HotelServerCronRuntime.php',$runtimeSource);}
     $v=new HotelWorkCronVerifier(1000);
     $held=static fn(int $at):array=>array_replace($sample($at),['stage'=>'server_cycle_hold']);
