@@ -388,5 +388,18 @@ function executionAttemptRaceChecks(): void {
     }
 }
 
-executionAttemptCoreChecks();executionAttemptInvalidChecks();executionLateUnknownProducerChecks();executionAttemptStoredStateChecks();executionAttemptRaceChecks();
+foreach ([
+    'core' => 'executionAttemptCoreChecks',
+    'invalid' => 'executionAttemptInvalidChecks',
+    'late_unknown_producer' => 'executionLateUnknownProducerChecks',
+    'stored_state' => 'executionAttemptStoredStateChecks',
+    'race' => 'executionAttemptRaceChecks',
+] as $section => $check) {
+    $started = microtime(true);
+    try {
+        $check();
+    } finally {
+        fprintf(STDERR, "HOTEL_EXECUTION_SECTION_TIMING section=%s seconds=%.3f\n", $section, microtime(true)-$started);
+    }
+}
 echo 'HOTEL WORK EXECUTION ATTEMPT: '.$executionAttemptChecks." PASS\n";
