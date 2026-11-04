@@ -1,0 +1,59 @@
+{
+  "operation": "commercial-batch-20261104-43-primary",
+  "state": "CLOSED_EIGHT_READABLE_OWNER_SUBPAGES_TEN_CAPTIONS_NOT_READY",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41907892889",
+  "jobs": [
+    {
+      "id": 126847337420,
+      "name": "inspect (1)",
+      "conclusion": "success"
+    },
+    {
+      "id": 126847337677,
+      "name": "inspect (2)",
+      "conclusion": "success"
+    },
+    {
+      "id": 126847337898,
+      "name": "inspect (0)",
+      "conclusion": "success"
+    }
+  ],
+  "source_commit": "f7f525329bb04617615d292571bf4e4d02cae457",
+  "proven_hotel_scope": [
+    1074,
+    969,
+    975,
+    1294,
+    17480,
+    1100,
+    1402,
+    62505,
+    968,
+    65782
+  ],
+  "new_owner_page_gets": 8,
+  "readable_property_pages": 8,
+  "http403": 0,
+  "owner_root_repeats": 0,
+  "old_parser_fixtures_rerun": 0,
+  "new_input_scope_cases": 3,
+  "parser_functionality_byteidentical": true,
+  "readonly_groups": 3,
+  "max_parallel": 2,
+  "new_raw_photo_gets": 0,
+  "whole_captions": 10,
+  "canva_transactions_opened": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "limitations": [
+    "GuralBelek20slides11adult9children/350mbeach;Tekirova22slides9adult13children/440mbeach;seasondependent/openareasnotavailability",
+    "Pavilionreservationnotuniversalorfree;roompoolcategoryrightsnotuniversal",
+    "Nirvana both newgallerypages show globalnavigationmemberships, no forced targetphoto from KHGmetadata; Aqualife facts are property bound, daypassconceptnotuniversalpackageinclusions"
+  ]
+}
