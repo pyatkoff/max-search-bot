@@ -89,6 +89,7 @@ final class ManagerTourSelectionShareService
                 'index'=>$i,'hotel'=>(string)$s['hotel'],'departure'=>(string)$s['departure'],
                 'date_from'=>(string)$s['date_from'],'nights'=>(int)$s['nights'],'adults'=>(int)$s['adults'],'children'=>count($s['child_ages']),
                 'room'=>(string)$s['room'],'meal'=>(string)$s['meal'],'amount'=>(string)$s['amount'],'currency'=>(string)$s['currency'],
+                ...(isset($s['price_qualifier'])?['price_qualifier'=>$s['price_qualifier']]:[]),
                 'rationale'=>(string)$s['rationale'],'compromise'=>(string)$s['compromise'],
                 'destination'=>(string)($details['destination']??''),'flights'=>(string)($details['flights']??''),
                 'inclusions'=>(string)($details['inclusions']??''),'constraints'=>(string)($details['constraints']??''),

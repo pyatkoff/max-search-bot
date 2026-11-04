@@ -36,6 +36,10 @@ async function privateEditor(page,options={}){
    expect(d.conversation_id).toBe(11);
    if(!allowed)return reply({ok:false,error:'not_found'},404);
    if(d.action==='editor_context')return reply({ok:true,context:{id:11,actor,display_name:'Синтетическая Анна',channel:'telegram',status:'manager',can_edit:!readOnly}});
+   if(options.sourceAction&&(d.action.startsWith('onetouch_')||d.editor_resource==='tour-selection-photo.php')){
+    const result=await options.sourceAction(copy(d),{snapshot,replaceDraft:next=>{draft=copy(next);version++}});
+    return result===null?route.abort('failed'):reply(result);
+   }
    if(d.editor_resource==='hotel-knowledge-api.php'){
     expect(d.action).toBe('read');expect(d.kind).toBe('working_draft');
     const viewer=actor,selection={kind:d.kind,draft_version:d.draft_version,offer_id:d.offer_id};

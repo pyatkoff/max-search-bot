@@ -236,4 +236,10 @@ try {
     $remove=static function(string $path) use(&$remove):void {if (is_link($path)||is_file($path)) {unlink($path);return;}if (is_dir($path)) {foreach (scandir($path)?:[] as $name) if ($name!=='.'&&$name!=='..') $remove($path.'/'.$name);rmdir($path);}};$remove($httpRoot);$remove($httpRoot.'-private');
 }
 $pdo->exec('DROP TABLE manager_tour_selection_drafts');$thrown=false;try{ManagerTourSelectionService::get(8,1);}catch(PDOException $e){$thrown=true;}tsCheck('missing schema is failure not an empty successful selection',$thrown);
+// Isolated synthetic OneTouch subcases are part of this existing mandatory
+// selection suite. Separate processes keep their in-memory fixture state local.
+foreach(['manager_tour_selection_onetouch_source.php','manager_tour_selection_onetouch_capture.php','manager_tour_selection_onetouch_store.php'] as $oneTouchCase){
+    passthru(escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/'.$oneTouchCase),$oneTouchExit);
+    if($oneTouchExit!==0)throw new RuntimeException('OneTouch selection regression failed: '.$oneTouchCase);
+}
 echo "TOTAL {$passed} | PASS {$passed} | FAIL 0\n";

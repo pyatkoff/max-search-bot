@@ -9,11 +9,17 @@ require_once dirname(__DIR__).'/services/ManagerTourSelectionCollectorSession.ph
 require_once dirname(__DIR__).'/services/ManagerTourSelectionInterestService.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionTripContext.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionBiblioSource.php';
+require_once dirname(__DIR__).'/services/ManagerTourSelectionOneTouchIntake.php';
 ManagerHttp::startJson(); $manager=ManagerHttp::requireManager();
 if (($_SERVER['REQUEST_METHOD']??'')!=='POST') ManagerHttp::respond(['ok'=>false,'error'=>'method_not_allowed'],405);
 $data=ManagerHttp::body(); ManagerHttp::requireCsrf($data);
 $collectorSession=hash('sha256',session_id());
 $biblioSigningKey='';
+$oneTouchSigningKey='';
+if(in_array($data['action']??null,['onetouch_search','onetouch_review','onetouch_add','onetouch_operation'],true)) {
+    try {$oneTouchSigningKey=ManagerTourSelectionOneTouchIntake::sessionKey($_SESSION,$collectorSession);}
+    catch(Throwable $e){session_write_close();ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);}
+}
 if (in_array($data['action']??null,['biblio_search','biblio_review','biblio_add'],true)) {
     try {$biblioSigningKey=ManagerTourSelectionBiblioSource::sessionKey($_SESSION,$collectorSession);}
     catch (Throwable $e) {session_write_close();ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);}
@@ -23,6 +29,10 @@ $id=$data['conversation_id']??null; $action=$data['action']??null;
 if (!is_int($id) || $id<=0) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_conversation_id'],422);
 try {
     $result=match($action) {
+        'onetouch_search'=>ManagerTourSelectionOneTouchIntake::search((int)$manager['id'],$id,$oneTouchSigningKey,$data),
+        'onetouch_review'=>ManagerTourSelectionOneTouchIntake::review((int)$manager['id'],$id,$oneTouchSigningKey,$data),
+        'onetouch_add'=>ManagerTourSelectionService::importOneTouch((int)$manager['id'],$id,$oneTouchSigningKey,$data),
+        'onetouch_operation'=>ManagerTourSelectionService::importOneTouch((int)$manager['id'],$id,$oneTouchSigningKey,$data,true),
         'biblio_search'=>ManagerTourSelectionBiblioSource::search((int)$manager['id'],$id,$biblioSigningKey,$data),
         'biblio_review'=>ManagerTourSelectionBiblioSource::review((int)$manager['id'],$id,$biblioSigningKey,$data),
         'biblio_add'=>ManagerTourSelectionService::importBiblio((int)$manager['id'],$id,$biblioSigningKey,$data),
