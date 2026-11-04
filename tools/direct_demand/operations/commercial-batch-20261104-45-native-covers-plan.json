@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-batch-20261104-45-native-covers",
+  "state": "ONE_CURRENT_TEMPORARY_COVER_NATIVE_READ_NOT_FROZEN_NOT_SENT",
+  "goal": "Inspect the one current native Canva preview for exactgeometry/bytes/SHA and verify generalhotelview/logo/title/twolowers before accepting orfreezing",
+  "boundaries": {
+    "hotel_ids": [
+      21642
+    ],
+    "exact_current_canva_png_reads": 1,
+    "readonly_groups": 1,
+    "max_parallel": 2,
+    "server_calls": 0,
+    "db_reads": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "permanent_save": false,
+    "new_posts": 0
+  },
+  "criteria": [
+    "Currentexactget_design_thumbnailURIalreadySHOWEDinchat; no oldclosedCanvaURLreuse",
+    "NativePNG10000..1600000/actualdims/SHA/fullchunks/view, neverguess1080",
+    "Completegeneralmainhotelbuildingoverview mustremainvisible aftercrop",
+    "OriginalDAHZIISS2iYprotected; existingpooltemporaryTXonly",
+    "FreezeONLYvisuallyacceptednativebytes; THENcancelEXACTTX, noPermanentSave/reexport/reupload"
+  ],
+  "risks": [
+    "Badfinalcropmeansnoreadymaterial; don'tforcequantity",
+    "Ownerfamilyroomimageisexamplecategory, notguaranteedroomrights"
+  ],
+  "canva_design": "DAHZx_JlJEM",
+  "canva_transaction": "2005748897468170417",
+  "pngs": [
+    {
+      "hotel_id": 21642,
+      "url": "https://export-download.canva.com/ab6c4f69-8b8b-4df0-94bd-3d3f86b94d1e/0/0001-5204430530338012038.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261104%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261104T030904Z&X-Amz-Expires=75713&X-Amz-Signature=11e354988bc86761737f616f85721e34fe68e8018008d35d44bc98d6c5a47448&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Thu%2C%2005%20Nov%202026%2000%3A10%3A57%20GMT"
+    }
+  ],
+  "media_state": "NATIVE_PNG_VISUAL_ACCEPTANCE_PENDING",
+  "ready_for_send": 0
+}
