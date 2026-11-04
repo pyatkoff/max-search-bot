@@ -1,0 +1,25 @@
+{
+  "operation": "commercial-miniapp-current-source-contract-20261104-read3",
+  "goal": "Prioritize working TG/MAX feed → own miniapp → exact hotel post with attribution",
+  "boundaries": [
+    "Existing pinned GHA server route only",
+    "Exactly four already source-declared public PHP entry files; no configuration/secret files",
+    "Static token projection; never execute receiver source",
+    "No DB/API/provider/usercontext/runtime writes or messages",
+    "All literal values except fixed public protocol keys redacted; private numeric literals redacted"
+  ],
+  "criteria": [
+    "Current source hashes, public protocol and declared local contract dependencies",
+    "Determine if source paths exist on existing approved connection",
+    "Native three redaction tests and PHP lint before connection"
+  ],
+  "risks": [
+    "Bot server and legacy miniapp host may differ; missing paths is a bounded negative result, not permission to alter another connection",
+    "Public client support alone does not prove signed receiver mapping and attribution"
+  ],
+  "expected_installed_sha": "b69f4552beae0837318efef8507b6d1283df2a2f",
+  "expected_source_diff_paths": [
+    "services/ModeledConversionAcquisitionStatsReader.php",
+    "tests/run_modeled_conversion_acquisition_stats_regression.php"
+  ]
+}
