@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-miniapp-canonical-150-bindings-read1",
+  "goal": "Create complete exact platform/project/postbot/channel mapping for150 hotel posts before miniapp routing replacement",
+  "boundaries": [
+    "One new necessary read-only route projection, no repeat provider readback",
+    "Exact 300 current YML destinations, registry LIMIT301",
+    "Only publication/version/source/channel identity and canonical public URL; no body/buttons/receipts/config exports",
+    "Private IDs and mapping stay authenticated artifact only; public aliases independent of private IDs",
+    "No catalogue lookups, runtime/feed/DB writes, messages or source-provider calls"
+  ],
+  "criteria": [
+    "300 unique current bindings and150 identical hotelIDsets for TG/MAX",
+    "Correct anytour project/platform/postbot/channel and enabled sources",
+    "Native3 new input/identity/alias cases andPHP-l beforeSSH",
+    "Durable read intent before single connection"
+  ],
+  "risks": [
+    "Legacy MAX route projection currently covers only6 current feed URLs",
+    "TG manual installation owned by Pavel; current index.php/save.php requested for exact package"
+  ],
+  "source": "b69f4552beae0837318efef8507b6d1283df2a2f"
+}
