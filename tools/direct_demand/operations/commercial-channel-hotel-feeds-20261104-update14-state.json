@@ -1,0 +1,123 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update14",
+  "state": "THREE_PUBLIC_FEEDS_NATIVE_WRITTEN_AND_HTTPS_EXACT_BYTES_VERIFIED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41914721369",
+  "job_id": 126871238141,
+  "source_sha": "626aac0471f9209e08d7ccf6f76988a019cb3e00",
+  "source_deploy_run": 41912324305,
+  "source_verify_job": 126862847263,
+  "source_deploy_job": 126864812797,
+  "source_tls_run": 41913284544,
+  "current_diagnostics_run": 41913284630,
+  "publishing_blob_count": 21,
+  "source_xml_commit": "3eb5f6ddab6cf94fb2eefee60fac2aa67452cbbc",
+  "writer_sha256": "2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e",
+  "intent_artifact": 13365000684,
+  "intent_created_utc": "2026-11-04T21:17:51Z",
+  "result_artifact": 13364885844,
+  "result_created_utc": "2026-11-04T21:18:02Z",
+  "previous157_offer_blocks_byteidentical": true,
+  "combined_exact_union": true,
+  "max159_install_run": 41912899171,
+  "description_discussion_unresolved": true,
+  "description_rewrites": 0,
+  "price_availability_fields": 0,
+  "explicit_image_gap_hotel_ids": [
+    381,
+    469
+  ],
+  "routing": {
+    "max": "159_MINIAPP_PUBLIC_ALIAS_TO_EXACT_CANONICAL_POST",
+    "telegram": "159_DIRECT_PUBLIC_POST_URLS_PENDING_PAVEL_FILES",
+    "natural_signed_user_launch_verified": false
+  },
+  "writer_result": {
+    "db_writes": 0,
+    "files": [
+      {
+        "bytes": 102954,
+        "name": "hotel-posts-telegram.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "rows": 159,
+        "sha256": "faa90b713faaf4e5a56b4ca8789b32fcb162b3dcb1584aad9f7cf6565441c79a",
+        "write_action": "replace"
+      },
+      {
+        "bytes": 129817,
+        "name": "hotel-posts-max.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "rows": 159,
+        "sha256": "967e080de651bb9db2263644c2732657e767234d38f80423443efe156850c417",
+        "write_action": "replace"
+      },
+      {
+        "bytes": 232398,
+        "name": "hotel-posts-all.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "rows": 318,
+        "sha256": "70d304ad6f214e9d6c2648a68f7275daa6eae18cb30a84b13f8a8c2a692a56d7",
+        "write_action": "replace"
+      }
+    ],
+    "message_sends": 0,
+    "mode": "publish_three_static_public_direct_yml_feeds",
+    "ok": true,
+    "operation": "commercial-channel-hotel-feeds-20261104-update14",
+    "provider_calls": 0
+  },
+  "public_https_result": {
+    "files": [
+      {
+        "bytes": 102954,
+        "content_type": "application/xml",
+        "description_count": 159,
+        "http": 200,
+        "max_miniapp_routes": 0,
+        "name": "hotel-posts-telegram.xml",
+        "name_count": 159,
+        "offers": 159,
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "sha256": "faa90b713faaf4e5a56b4ca8789b32fcb162b3dcb1584aad9f7cf6565441c79a"
+      },
+      {
+        "bytes": 129817,
+        "content_type": "application/xml",
+        "description_count": 159,
+        "http": 200,
+        "max_miniapp_routes": 159,
+        "name": "hotel-posts-max.xml",
+        "name_count": 159,
+        "offers": 159,
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "sha256": "967e080de651bb9db2263644c2732657e767234d38f80423443efe156850c417"
+      },
+      {
+        "bytes": 232398,
+        "content_type": "application/xml",
+        "description_count": 318,
+        "http": 200,
+        "max_miniapp_routes": 159,
+        "name": "hotel-posts-all.xml",
+        "name_count": 318,
+        "offers": 318,
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "sha256": "70d304ad6f214e9d6c2648a68f7275daa6eae18cb30a84b13f8a8c2a692a56d7"
+      }
+    ],
+    "message_sends": 0,
+    "mode": "public_https_exact_miniapp_yml_readback",
+    "ok": true,
+    "operation": "commercial-channel-hotel-feeds-20261104-update14",
+    "provider_calls": 0
+  },
+  "console_hostname_masked": true,
+  "canonical_public_urls_from_exact_whitelisted_validator": true,
+  "first_prepare_source_stop_run": 41913399396,
+  "first_prepare_stop_before_pure_cases_ssh_intent_or_write": true,
+  "new_healthy_current_release_reviewed": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "installed_bot_runtime_writes": 0,
+  "ads_import_changes": 0
+}

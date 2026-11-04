@@ -1,0 +1,56 @@
+{
+  "operation": "commercial-hotel-materials-20261104-159-progress",
+  "state": "159_PUBLISHED_PAIRS_AND_THREE_FULL_FEEDS_NATIVE_VERIFIED_GOAL500_NOT_COMPLETE",
+  "logical_hotels_published_per_channel": 159,
+  "public_feed_offers": {
+    "telegram": 159,
+    "max": 159,
+    "combined": 318
+  },
+  "max_runtime_native_routes": 159,
+  "max_route_prefix157_preserved": true,
+  "max_new_route_native_verified": [
+    17480,
+    1100
+  ],
+  "feed_update14_run": 41914721369,
+  "max159_install_run": 41912899171,
+  "read15_run": 41911857350,
+  "new_post_sends": 4,
+  "price_hotels_total": 4,
+  "all_prices_fresh": false,
+  "monitor_configured_targets": 672,
+  "normal672_collection_verified": false,
+  "current_stock_identities": 25,
+  "additional_proven_unpublished_identities": 44,
+  "actual_ready_materials": 0,
+  "goal_logical_pairs": 500,
+  "goal_complete": false,
+  "tg_miniapp_current_files_pending_from_pavel": true,
+  "natural_paid_signed_launch_observed": false,
+  "descriptions_discussion_unresolved": true,
+  "feed_image_gap_hotel_ids": [
+    381,
+    469
+  ],
+  "accepted_feed_files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 102954,
+      "rows": 159,
+      "sha256": "faa90b713faaf4e5a56b4ca8789b32fcb162b3dcb1584aad9f7cf6565441c79a"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 129817,
+      "rows": 159,
+      "sha256": "967e080de651bb9db2263644c2732657e767234d38f80423443efe156850c417"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 232398,
+      "rows": 318,
+      "sha256": "70d304ad6f214e9d6c2648a68f7275daa6eae18cb30a84b13f8a8c2a692a56d7"
+    }
+  ]
+}

@@ -859,11 +859,8 @@
     }
   ],
   "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
-  "monitor_append_pending_catalog_ids": [
-    17480,
-    1100
-  ],
-  "monitor_input_count": 670,
+  "monitor_append_pending_catalog_ids": [],
+  "monitor_input_count": 672,
   "published_excluded_catalog_ids": [
     56091,
     103124,
