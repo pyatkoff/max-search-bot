@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-materials-20261104-159-progress",
-  "state": "159_PUBLISHED_PAIRS_VERIFIED_PENDING_NEW2_CANONICAL_BINDINGS_MAX159_FEED14_AND_MONITOR_DEDUP",
+  "state": "159_PAIRS_AND_NEW2_CANONICAL_BINDINGS_VERIFIED_PENDING_MAX159_FEED14_MONITOR",
   "published_logical_hotels_each_channel": 159,
   "live_yml": {
     "telegram": 157,
@@ -30,5 +30,10 @@
     1100
   ],
   "additional_proven_unpublished_remaining": 44,
-  "goal500_complete": false
+  "goal500_complete": false,
+  "read15_run": 41911857350,
+  "read15_artifact": 13361704715,
+  "max159_prepare_commit": "e6bf392bb93b7c8e1b2c50bded03a6959c203fee",
+  "max159_runtime_installed": false,
+  "remaining_unpublished_extras": 44
 }

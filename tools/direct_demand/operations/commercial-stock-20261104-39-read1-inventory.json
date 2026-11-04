@@ -824,40 +824,6 @@
       "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
     },
     {
-      "key": "tui-blue-palm",
-      "country_id": 4,
-      "existing_registry_matches": {
-        "max": 0,
-        "telegram": 0
-      },
-      "id": 17480,
-      "is_active": 1,
-      "name": "TUI BLUE PALM GARDEN",
-      "rating": "4.80",
-      "region": "Сиде",
-      "region_id": 23,
-      "hotel_id": 17480,
-      "hotel": "TUI BLUE PALM GARDEN",
-      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
-    },
-    {
-      "key": "club-hotel-sera",
-      "country_id": 4,
-      "existing_registry_matches": {
-        "max": 0,
-        "telegram": 0
-      },
-      "id": 1100,
-      "is_active": 1,
-      "name": "CLUB HOTEL SERA",
-      "rating": "4.50",
-      "region": "Анталья",
-      "region_id": 20,
-      "hotel_id": 1100,
-      "hotel": "CLUB HOTEL SERA",
-      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
-    },
-    {
       "key": "orange-kemer",
       "country_id": 4,
       "existing_registry_matches": {
@@ -893,7 +859,10 @@
     }
   ],
   "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
-  "monitor_append_pending_catalog_ids": [],
+  "monitor_append_pending_catalog_ids": [
+    17480,
+    1100
+  ],
   "monitor_input_count": 670,
   "published_excluded_catalog_ids": [
     56091,
@@ -931,10 +900,12 @@
     55205,
     1334,
     1715,
-    1543
+    1543,
+    17480,
+    1100
   ],
-  "confirmed_logical_materials": 157,
-  "additional_proven_count": 46,
+  "confirmed_logical_materials": 159,
+  "additional_proven_count": 44,
   "new_lookup_native_ids": [
     1074,
     969,
@@ -950,5 +921,13 @@
     "liberty_fabay": "Native75377alreadyinbothchannels;excludedfromnewstock",
     "liberty_lykia": "Narrowlookup0notabsence;familyversusAdultsOnlyproductunresolved;donotforce",
     "granada_okurcalar": "Native1212provenbutexactownerHTTP403closed;noalternatehostorGETbypass"
+  },
+  "publication_consumption": {
+    "run": 41911131131,
+    "native_hotel_ids": [
+      17480,
+      1100
+    ],
+    "new_logical_pairs": 2
   }
 }

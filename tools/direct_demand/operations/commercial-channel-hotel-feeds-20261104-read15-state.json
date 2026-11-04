@@ -1,0 +1,37 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read15",
+  "state": "CLOSED_ONLY_NEW2_CANONICAL_PUBLIC_PAIRS_AND_PRIVATE_MAX_BINDINGS",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41911857350",
+  "job_id": 126861231072,
+  "authenticated_artifact": 13361704715,
+  "source_commit": "8bb19448fba77fa90760374202f397d3191aaa29",
+  "installed_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "hotel_ids": [
+    17480,
+    1100
+  ],
+  "summary": {
+    "db_writes": 0,
+    "deferred_count": 0,
+    "feed_rows": 2,
+    "message_sends": 0,
+    "ok": true,
+    "operation": "commercial-channel-hotel-feeds-20261104-read15",
+    "private_binding_count": 2,
+    "provider_calls": 0,
+    "scope_hotels": 2
+  },
+  "previous157_rows_read": 0,
+  "stock_queries": 0,
+  "public_firstline_queries": 2,
+  "public_limit_each": 3,
+  "private_exact_url_queries": 2,
+  "private_limit_each": 2,
+  "private_data_publicly_exported": false,
+  "new_scope_cases": 3,
+  "old_fixtures_rerun": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "repeat_policy": "Originalauthenticatedartifact ONLY for MAX159/feed14, do not repeat database queries."
+}
