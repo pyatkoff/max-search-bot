@@ -1,0 +1,73 @@
+{
+  "operation": "commercial-price-update-20261104-6-v1",
+  "state": "CLOSED_TWO_EXISTING_POST_PRICE_EDITS_ACTUAL_VERIFIED",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41919613567",
+  "job_id": 126888337686,
+  "source_commit": "73327f9fae3d13013fb78c3a6056469cb7866189",
+  "installed_source": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
+  "catalog_id": 73342,
+  "catalog_name": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+  "quote_run": 41919284078,
+  "quote_artifact": 13366286602,
+  "quote_intent_artifact": 13366975683,
+  "update_intent_artifact": 13367300066,
+  "intent_created_utc": "2026-11-04T21:49:23Z",
+  "result_artifact": 13366077245,
+  "result_created_utc": "2026-11-04T21:49:36Z",
+  "checked_utc": "2026-11-04T21:47:24.000Z",
+  "preparation_summaries": [
+    {
+      "operation": "commercial-price-update-20261104-6-caption-binding",
+      "catalog_id": 73342,
+      "catalog_name": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+      "source_manifest_path": "tools/direct_demand/operations/commercial-batch-20261103-17-manifest.json",
+      "trailing_newline_characters": 0,
+      "exact_original_cta_preserved": true,
+      "new_exact_closing_paragraph_cases": 3,
+      "server_calls": 0,
+      "provider_calls": 0
+    },
+    {
+      "operation": "commercial-price-update-20261104-6-v1",
+      "catalog_id": 73342,
+      "catalog_name": "JAZ SOMA BEACH (EX. SOLYMAR SOMA BEACH)",
+      "valid_real_roundtrip_options": 1,
+      "rejected_options": 0,
+      "selected_option_index": 0,
+      "verified_total_as_received": true,
+      "separate_fuel_added": false,
+      "existing_posts_to_edit": 2,
+      "new_posts": 0,
+      "new_binding_cases_passed": 3,
+      "old_age_and_updater_cases_rerun": 0,
+      "additional_gateway_calls": 0
+    }
+  ],
+  "actual_result": {
+    "additional_gateway_calls": 0,
+    "button_only_updates": 0,
+    "catalog_ids": [
+      73342
+    ],
+    "commercial_text_updates": 2,
+    "content_edit_attempts": 2,
+    "error": null,
+    "mode": "update_existing_hotel_price_block",
+    "new_posts_created": 0,
+    "ok": true,
+    "operation": "commercial-price-update-20261104-6-v1",
+    "post_write_attempts": 2,
+    "price_block_updates": 2,
+    "verified_existing_posts": 2
+  },
+  "entire_old_caption_and_exact_original_cta_preserved": true,
+  "photo_button_source_context_preserved": true,
+  "new_binding_cases_passed": 3,
+  "new_actual_closing_paragraph_cases_passed": 3,
+  "old_age_and_updater_cases_rerun": 0,
+  "fuel_separately_added": false,
+  "additional_gateway_calls": 0,
+  "new_posts": 0,
+  "provider_post_readback_consumed": true,
+  "feed_ad_copy_changes": 0
+}

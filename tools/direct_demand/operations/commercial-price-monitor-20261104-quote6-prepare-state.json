@@ -1,21 +1,21 @@
 {
   "operation": "commercial-price-monitor-20261104-quote6-prepare-state",
-  "state": "PREPARED_NOT_EXECUTED_WAITING_NEW_CURRENT_RELEASE",
+  "state": "CLOSED_CURRENT_RELEASE_AND_ACTUAL_QUOTE6_TWO_PRICE_EDITS_VERIFIED",
   "current_main": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
-  "last_accepted_installed": "626aac0471f9209e08d7ccf6f76988a019cb3e00",
+  "last_accepted_installed": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
   "new_deploy_run": 41917839854,
-  "last_observed_status": "in_progress",
+  "last_observed_status": "completed_success",
   "new_source_diff_files": [
     "tests/fixtures/hotel_work_queue.php",
     "tests/hotel_work_execution_attempt_checks.php"
   ],
   "old_21_publishing_blobs_unchanged_by_diff": true,
-  "new_source_runtime_acceptance": false,
-  "new_quote6_native_cases_executed": 0,
-  "quote6_server_calls": 0,
+  "new_source_runtime_acceptance": true,
+  "new_quote6_native_cases_executed": 3,
+  "quote6_server_calls": 1,
   "quote6_db_reads": 0,
-  "quote6_gateway_calls": 0,
-  "quote6_message_edits": 0,
+  "quote6_gateway_calls": 1,
+  "quote6_message_edits": 2,
   "published_hotels_each_channel": 159,
   "live_feed_counts": [
     159,
@@ -23,8 +23,18 @@
     318
   ],
   "monitor_configured_count": 672,
-  "prices_in_both_posts_hotel_count": 5,
+  "prices_in_both_posts_hotel_count": 6,
   "prices_all_fresh": false,
-  "no_new_delivery_this_turn": true,
-  "prerequisites": "NEWsource verify/deploy/TLS/currentdiagnostics/currentmain/full21/runtimeclean/host/schema/rights/UNKNOWN before anySSH. Never old626 SSH while main2f7pending. No foreignfix/rerun/privatecapture."
+  "no_new_delivery_this_turn": false,
+  "prerequisites": "NEWsource verify/deploy/TLS/currentdiagnostics/currentmain/full21/runtimeclean/host/schema/rights/UNKNOWN before anySSH. Never old626 SSH while main2f7pending. No foreignfix/rerun/privatecapture.",
+  "quote6_exact_observation_readonly": true,
+  "quote6_db_reads_scope": "ONE_EXACT_OBSERVATION_NATIVE_REVALIDATION_NOT157SCOPE",
+  "current_verify_job": 126882127040,
+  "current_deploy_job": 126884671933,
+  "current_tls_run": 41918925110,
+  "current_diagnostics_run": 41918925124,
+  "full21_and_hostaccepted25_native_passed": true,
+  "foreign_release_reruns": 0,
+  "manual_private_captures": 0,
+  "old_consumed_provider_readbacks_repeated": 0
 }
