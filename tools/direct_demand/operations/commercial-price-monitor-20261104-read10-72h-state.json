@@ -1,0 +1,90 @@
+{
+  "operation": "commercial-price-monitor-20261104-read10-72h-extension1",
+  "state": "CLOSED_ACTUAL_NEW_72H_HISTORICAL_READ_SUCCESS_NO_OLD_SLICE_REREAD",
+  "goal": "Use Pavel new72h freshness input to admit only previously unread historical price contexts, preserving all existing identity contracts",
+  "max_age_seconds": 259200,
+  "user_policy_file": "commercial-price-freshness-20261104-user72h-policy.json",
+  "scope_hotels": 159,
+  "preserved_original_prefix": 157,
+  "typed_bridge_preserved": 15,
+  "new_published_ids": [
+    17480,
+    1100
+  ],
+  "old157_rows_exclusive_upper_epoch": 1793812524,
+  "new2_rows_full_unread72h": true,
+  "allowed_sources": [
+    "scheduled_monitor",
+    "user_search",
+    "hot_tours"
+  ],
+  "excluded_consumed_hotel_ids": [
+    233,
+    110,
+    73342,
+    13869,
+    13873,
+    109,
+    12114,
+    9432,
+    56092,
+    32575,
+    83105,
+    250,
+    132,
+    235
+  ],
+  "name_review_exclusions": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "boundaries": [
+    "No repeat old157 READ8/9 persistence slice>=1793812524",
+    "Only original157identityprefix + actuallypublishednew2; country/active/currentname and name-review guards preserved",
+    "2A0/emptychildsig/RUB/future/runtimeUTCpersistence72h/max2perhotel, sourcesapproved",
+    "Pure phase provider/server/DB/edits0; actualread only after genuinelyhealthy currentrelease full21/currentmain/deploy/TLS/diagnostics/hostaccepted25/runtimeclean",
+    "No manualcollector/sourcewrites/observer/budget/cron/transportchanges"
+  ],
+  "criteria": [
+    "New3extension cases and scopeprefix/typed15/new2actualinputvalidation/PHP-l",
+    "No old native/30h/age/priceupdater fixtures rerun unchanged"
+  ],
+  "risks": [
+    "Old tour tokens within72h may still be unavailable; paidactualization must be uniquely justified and without automaticretry",
+    "Broader window does not make cachedprice a finalbasket or availability guarantee"
+  ],
+  "pure_run": 41934080607,
+  "pure_job": 126938036442,
+  "pure_source_commit": "2af010d99c12831f3e9aa36e35c9437687653fd0",
+  "frozen_reader_sha256": "ddfa54ff247af046e25fcae7b0ca594864ff105901999d2c4f33f5d121d94f14",
+  "expected_source": "0a80b95fa31e3a90267daa8984adae24d6aaa6bb",
+  "current_deploy_run": 41933468218,
+  "current_verify_job": 126937285306,
+  "current_deploy_job": 126937330823,
+  "current_tls_run": 41934272551,
+  "current_diagnostics_run": 41934272665,
+  "old_pure_fixture_reruns_on_actual": 0,
+  "source_diff_review": [
+    ".github/workflows/modeled-conversion-monitor.yml",
+    "tests/run_production_gate_sequence_regression.py"
+  ],
+  "publishing21_unchanged": true,
+  "run": 41934633857,
+  "job": 126939894277,
+  "artifact": 13372822872,
+  "source_commit": "2a1727205aee7fba39c51d2ec916340545283536",
+  "installed_source": "0a80b95fa31e3a90267daa8984adae24d6aaa6bb",
+  "new_retained_rows": 69,
+  "new_current_name_hotels": 37,
+  "readback_epoch_utc": 1793835213,
+  "lower_persistence_epoch_utc": 1793576013,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "edits": 0,
+  "old_slice_reread": false,
+  "do_not_repeat_this_db_read": true
+}

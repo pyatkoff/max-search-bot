@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-price-source-20261104-moscow-picture-native-binding1",
+  "goal": "Verify Pavel photo-ID hint against source country, exact known native identity and approved current hotel name, preserving AnyTour search IDs separately",
+  "boundaries": [
+    "Original sourceartifact and originalREAD9 + provennew2 retainedonly; no source/imageGET/DB/provider/edits",
+    "Separate publicsourcehotelqueryID from numericpictureID; no generalnumericcoercion",
+    "Require picturecountry ==retainednativecountry and exact acceptedname fold plus active/currentname/no review6",
+    "Only published159scope, no forcedunknown/unpublishedcatalogIDs"
+  ],
+  "criteria": [
+    "140partition, uniqueadmittednativeIDs, review6excluded",
+    "Correspondence is not a fulltour/fingerprint/room/meal/basket or availability proof"
+  ],
+  "risks": [
+    "A localpicturefilename can be wrong or country-scoped; do not treat arbitrarynumberasidentity",
+    "No photograph reuse rights or importpermission implied"
+  ],
+  "source_gets": 0,
+  "db_calls": 0,
+  "gateway_calls": 0,
+  "edits": 0
+}
