@@ -103,7 +103,7 @@ $failedRuntime=$monitor;$failedRuntime['pipeline']['ok']=false;
 $failedRuntimePrimary=$part(ModeledConversionDeliveryRegistryView::render($page,$input,$failedRuntime),'pipelineMonitor');
 $check(!str_contains($failedRuntimePrimary,'Проверка успешна')&&!str_contains($failedRuntimePrimary,'Регулярность подтверждена'),'failed local execution cannot become a green saved success');
 $check(!str_contains($html,$monitor['pipeline']['cycle_id'])&&!str_contains($html,$monitor['pipeline']['source_sha']),'technical cycle identifiers are not shown');
-foreach(['admin'=>200,'manager'=>403,'inactive'=>401,'no_project'=>403,'foreign'=>404,
+foreach(['admin'=>200,'admin_previous_day'=>200,'manager'=>403,'inactive'=>401,'no_project'=>403,'foreign'=>404,
     'post'=>405,'parameters'=>422,'session_changed'=>401,'anonymous'=>401]as$case=>$expected){
     $process=proc_open([PHP_BINARY,__DIR__.'/fixtures/modeled_delivery_route.php',$case],
         [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,dirname(__DIR__));
@@ -114,7 +114,7 @@ foreach(['admin'=>200,'manager'=>403,'inactive'=>401,'no_project'=>403,'foreign'
     $result=$matched?json_decode($match[1],true):null;
     $check($exit===0&&$matched&&($result['status']??null)===$expected
         &&($result['unchanged']??false)===true&&$errors==='','real read-only endpoint case: '.$case);
-    if($case==='admin')$check(str_contains($body,'Синтетический турист: проверка доступа')&&str_contains($body,'1 250 ₽')
+    if(in_array($case,['admin','admin_previous_day'],true))$check(str_contains($body,'Синтетический турист: проверка доступа')&&str_contains($body,'1 250 ₽')
         &&!str_contains($body,'Реестр сейчас недоступен'),'actual admin route composes reader, monitor and renderer');
     else $check(!str_contains($body,'Синтетический турист: проверка доступа')&&!str_contains($body,'1 250 ₽'),'denied endpoint returns no private rows: '.$case);
 }

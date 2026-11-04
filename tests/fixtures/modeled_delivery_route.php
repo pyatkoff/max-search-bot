@@ -19,7 +19,7 @@ final class ModeledDeliveryRouteFixturePDO extends PDO
     }
 }
 $case=$argv[1]??'admin';
-if(!in_array($case,['admin','manager','inactive','no_project','foreign','post','parameters','session_changed','anonymous'],true))exit(2);
+if(!in_array($case,['admin','admin_previous_day','manager','inactive','no_project','foreign','post','parameters','session_changed','anonymous'],true))exit(2);
 $repo=dirname(__DIR__,2);
 $dir=sys_get_temp_dir().'/modeled_delivery_route_'.bin2hex(random_bytes(10));
 if(!mkdir($dir,0700)||!mkdir($dir.'/manager',0700)||!mkdir($dir.'/sessions',0700))exit(2);
@@ -27,7 +27,12 @@ if(!symlink($repo.'/services',$dir.'/services')||!symlink($repo.'/manager/lib',$
     ||!copy($repo.'/manager/assigned-value.php',$dir.'/manager/assigned-value.php'))exit(2);
 $pdo=new ModeledDeliveryRouteFixturePDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 deliveryRegistrySchema($pdo);
-$now=time();deliveryRegistryFixtureEvent($pdo,101,1,$now-60,['name'=>'Синтетический турист: проверка доступа']);
+$now=time();
+$zone=new DateTimeZone('Europe/Kaliningrad');
+$eventAt=$case==='admin_previous_day'
+    ?(new DateTimeImmutable('@'.$now))->setTimezone($zone)->setTime(0,0)->getTimestamp()-60
+    :$now-60;
+deliveryRegistryFixtureEvent($pdo,101,1,$eventAt,['name'=>'Синтетический турист: проверка доступа']);
 foreach(['manager_projects','projects','managers']as$table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
 $pdo->exec('CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER)');
 $pdo->exec("INSERT INTO projects VALUES(1,'anytour','AnyTour',1),(2,'other','Other',1)");
@@ -51,7 +56,8 @@ session_save_path($dir.'/sessions');session_name('anytour_manager_panel');sessio
 session_start();$_SESSION['manager_id']=$actor;session_write_close();
 $_SERVER['SCRIPT_NAME']='/manager/assigned-value.php';$_SERVER['REQUEST_URI']='/manager/assigned-value.php?view=delivery';
 $_SERVER['REQUEST_METHOD']=$case==='post'?'POST':'GET';
-$_GET=['view'=>'delivery'];$_POST=[];
+// Pin the requested day to the seeded event; now-60 may be yesterday at midnight.
+$_GET=['view'=>'delivery','date'=>(new DateTimeImmutable('@'.$eventAt))->setTimezone($zone)->format('Y-m-d')];$_POST=[];
 if($case==='parameters')$_GET['unexpected']='fixture';
 if($case==='session_changed')$pdo->switchSession=true;
 register_shutdown_function(static function()use($pdo,$before,$dir):void{
