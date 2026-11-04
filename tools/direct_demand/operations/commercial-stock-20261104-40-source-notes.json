@@ -1,0 +1,37 @@
+{
+  "operation": "commercial-stock-20261104-40-source-notes",
+  "state": "TWO_UNCHANGED_RETAINED_WHOLE_CAPTIONS_FOR_CURRENT_PHOTO_SUBSET_OTHER_EIGHT_DEFERRED",
+  "captions": [
+    {
+      "hotel_id": 1338,
+      "hotel": "Limak Lara De Luxe Hotel & Resort",
+      "key": "limak-lara-de-luxe",
+      "aliases": [
+        "LIMAK LARA DE LUXE HOTEL & RESORT",
+        "LIMAK LARA"
+      ],
+      "sources": [
+        "https://www.limakhotels.com/lara"
+      ],
+      "text": "✈️ Туры в Limak Lara De Luxe с перелётом\n📍 Лара, Анталья, Турция.\n\n🏖 Песчаный пляж у Средиземного моря.\n🏊 Бассейны на территории.\n🛏 В семейных номерах есть гостиная, спальня и две ванные комнаты.\n🍽 Рестораны с турецкой и международной кухней.\n\n💡 Архитектура и оформление отеля вдохновлены Азией.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Limak Lara."
+    },
+    {
+      "hotel_id": 65895,
+      "hotel": "Paloma Orenda",
+      "key": "paloma-orenda",
+      "aliases": [
+        "PALOMA ORENDA RESORT"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/paloma-orenda"
+      ],
+      "text": "✈️ Туры в Paloma Orenda с перелётом\n📍 Сиде, Турция.\n\n🏖 Песчаный пляж длиной 350 метров.\n🌿 Невысокие корпуса среди садов.\n🎾 Теннис, падел и другие спортивные занятия.\n👧 Детский клуб Polly.\n\n💡 Приватные кабаны на пляже оплачиваются отдельно.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Orenda."
+    }
+  ],
+  "source_files": [
+    "commercial-stock-20261103-34-source-notes.json",
+    "commercial-stock-20261104-36-source-notes.json"
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

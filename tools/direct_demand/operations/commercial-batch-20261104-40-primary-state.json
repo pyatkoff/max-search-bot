@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-batch-20261104-40-primary-read",
+  "state": "CLOSED_SIX_NATIVE_READS_FIVE_PROPERTY_CONTENT_ONE_CHALLENGE",
+  "run_id": 41881413553,
+  "source_commit": "5a5dd3c30df2a923feb328b06e3b626ffe4d5fec",
+  "jobs": [
+    {
+      "id": 126754542772,
+      "conclusion": "success"
+    },
+    {
+      "id": 126754542925,
+      "conclusion": "success"
+    }
+  ],
+  "new_exact_owner_pages": 6,
+  "proper_property_content_pages": 5,
+  "challenge_pages": 1,
+  "challenge_property_id": 46670,
+  "challenge_title": "One moment, please...",
+  "old_get_repeats": 0,
+  "server_connections": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}

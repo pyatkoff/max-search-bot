@@ -1,0 +1,27 @@
+{
+  "operation": "commercial-batch-20261104-40-contact",
+  "state": "SUBMITTED_IMMUTABLE_PUSH_WORKFLOW_RUN_NOT_YET_OBSERVED",
+  "source_commit": "3b717ae6c1be3613090f705e36f628b54139b111",
+  "run_id": null,
+  "last_metadata_result_count": 0,
+  "new_distinct_original_photo_inputs": 8,
+  "hotel_ids": [
+    1338,
+    65895
+  ],
+  "readonly_groups": 2,
+  "max_parallel": 2,
+  "accepted_native_photos_observed": 0,
+  "canva_transactions": 0,
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "raw_guards_unchanged": true,
+  "query_policy_unchanged": true,
+  "old_url_or_basename_repeats": 0,
+  "new_input_host_cases_not_yet_observed": true,
+  "server_connections": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "next_step": "Reconcile this exactcommit nativeworkflow metadata after real progress; do not enqueue/resubmit/rerun or replace it. Native original logs/chunks/bytes/SHA/pixels required beforeCanva."
+}
