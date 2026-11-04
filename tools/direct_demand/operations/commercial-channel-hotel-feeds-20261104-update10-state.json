@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update10",
+  "state": "THREE_PUBLIC_DIRECT_YML_FEEDS_UPDATED_TO150_HOTELS_HTTPS_BYTES_VERIFIED",
+  "logical_hotels_each_channel": 150,
+  "combined_offers": 300,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797740299",
+  "job_id": 126465759803,
+  "intent_artifact_id": 13307125137,
+  "result_artifact_id": 13304989820,
+  "source_xml_commit": "6ea33d28367a4f02221129e7969b8d48da1e66e8",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 150,
+      "bytes": 97244,
+      "sha256": "807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 150,
+      "bytes": 98229,
+      "sha256": "a0599641898a173c2286e65d9c1ac15cfd138c2e3cf5934367e3ac2d096229f5"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 300,
+      "bytes": 195100,
+      "sha256": "69bf1431c18d3857e2331e90a874e49f0623824b518b0a3c181b895840700250"
+    }
+  ],
+  "previous148_offer_blocks_byteidentical": true,
+  "combined_exact_union": true,
+  "image_missing_catalog_ids": [
+    381,
+    469
+  ],
+  "description_rewrites": 0,
+  "destination_route": "EXISTING_DIRECT_CANONICAL_POST_URL_PENDING_VERIFIED_MINIAPP_INTEGRATION",
+  "ads_imports": 0
+}

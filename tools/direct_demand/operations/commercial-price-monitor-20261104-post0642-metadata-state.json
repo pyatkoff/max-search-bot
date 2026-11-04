@@ -1,0 +1,44 @@
+{
+  "operation": "commercial-price-monitor-20261104-post0642-metadata",
+  "state": "NO_TOUR_COLLECTOR_IN_ONE_NEW_METADATA_WINDOW",
+  "created_since": "2026-11-04T06:42:00Z",
+  "checked_before": "2026-11-04T08:15:00Z",
+  "scheduled_runs": [
+    {
+      "run_id": 41793289371,
+      "name": "Build AnyTour Yandex country feeds",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "run_id": 41792834307,
+      "name": "Roll up AnyTour prices",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "run_id": 41789100475,
+      "name": "Collect SEO hotel pilot live evidence",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "run_id": 41788990466,
+      "name": "Collect SEO inventory opportunities",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "run_id": 41787582654,
+      "name": "Collect SEO seasonal live evidence",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "tour_collectors": 0,
+  "retained_reads": 0,
+  "provider_calls": 0,
+  "quotes": 0,
+  "price_edits": 0,
+  "meaning": "Exactmetadatawindowonly;notabsenceofrawpricesoravailability"
+}

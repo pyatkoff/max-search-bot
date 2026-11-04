@@ -1,7 +1,7 @@
 {
   "operation": "commercial-monitor-publication-20261104-36",
-  "state": "NATIVE_663_VALIDATED_PR4992_MERGE_APPROVAL_PENDING",
-  "active_inputs": 659,
+  "state": "663_MONITOR_INPUTS_MERGED_AFTER_EXPLICIT_PR4992_AND_FUTURE_PUBLICATION_APPROVAL",
+  "active_inputs": 663,
   "proposed_inputs": 663,
   "catalog_ids": [
     1199,
@@ -22,7 +22,9 @@
   "inactive_four_no_false_credit": true,
   "focused_provider_calls": 0,
   "focused_db_writes": 0,
-  "merge_attempts": 0,
-  "approval_question_pending": true,
-  "publications_held_for_approval": 0
+  "merge_attempts": 1,
+  "approval_question_pending": false,
+  "publications_held_for_approval": 0,
+  "merged_commit": "27842818eb823deb8eff429f07ccbb18f3aa9ef4",
+  "approval_scope": "PR4992andfuturepublishedhotelappend-onlycohorts,sameexistingmonitor,budgets/schedulesunchanged"
 }

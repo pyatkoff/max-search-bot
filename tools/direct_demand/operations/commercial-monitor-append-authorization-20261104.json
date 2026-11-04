@@ -1,0 +1,16 @@
+{
+  "operation": "commercial-monitor-append-authorization-20261104",
+  "state": "EXPLICIT_OWNER_AUTHORIZATION_PERSISTS_FOR_FUTURE_PUBLISHED_HOTELS",
+  "owner_answer": "Да, PR4992 и следующие опубликованные отели",
+  "scope": "MergePR4992andaddfutureactuallypublishedhotels throughsameexistingappend-onlymonitoringmechanism",
+  "boundaries": [
+    "Existingrepo pyatkoff/poisk-turov-test andsamehelper/testscope",
+    "ActualfulladmittedIDdedup beforeeachcohort",
+    "RequirednativeCI/scopedfocusedacceptance/currentreviewedheadbeforemerge",
+    "Preserve originalroster/cohorts/order/targetkeys/pendingsearches/locks/collector/transport/budgets64/hourly12/schedule",
+    "No speculative identities countedaspublished andno existingprivateUNKNOWN/auto-reviewrejectionbypass"
+  ],
+  "accepted_pr": 4992,
+  "accepted_head": "9f352617bbfc85e770fec48abdfe50bf523bef80",
+  "merged_commit": "27842818eb823deb8eff429f07ccbb18f3aa9ef4"
+}

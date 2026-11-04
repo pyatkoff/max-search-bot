@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-batch-20261104-37-v1",
+  "state": "TEN_NEW_PROVEN_IDENTITIES_PLAN_NOT_SENT",
+  "goal": "Preparetennewhotelmaterials together andsendallready subset throughoneexistingserialrun",
+  "boundaries": [
+    "Use exactowner/currentprimaryfacts andrealhotelphotography",
+    "Onefinitecontactpass/severalCanvacovers;no prior36failedphotoURLs",
+    "Readinessrequirescaption+wholehero+2distinctlowers+acceptedPNG/source/dedup,notnativeID"
+  ],
+  "criteria": [
+    "WholehotelRussiancaption/flight/resort/3or4facts/feature/nextstep",
+    "Actualverifiedpairedpublicationbeforecredit"
+  ],
+  "risks": [
+    "ExactownerURLsfornewtennotyetproven",
+    "Nativealiasage/brandsnotproofcurrentownerrights;verifyTUIBLUE16+/Rixos13+withprimarybeforecaption"
+  ],
+  "baseline_logical_hotels": 150,
+  "hotel_ids": [
+    1653,
+    1659,
+    21695,
+    28668,
+    54592,
+    55205,
+    1334,
+    1142,
+    1715,
+    28327
+  ],
+  "ready_for_send_count": 0,
+  "new_posts": 0
+}
