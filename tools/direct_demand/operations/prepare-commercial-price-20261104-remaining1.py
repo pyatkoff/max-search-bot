@@ -3,7 +3,7 @@ base=pathlib.Path('tools/direct_demand/operations');temp=pathlib.Path(os.environ
 paths=list((temp/'retained-read9').rglob('price-readback.json'));assert len(paths)==1
 data=json.loads(paths[0].read_text().splitlines()[-1])
 assert data['operation']=='commercial-price-monitor-20261104-read9' and data['ok'] is True and len(data['hotels'])==157
-assert data['installed_sha']=='9678e8c617734dd3bd5054eabf3585e396e3ca12' and os.environ['EXPECTED_PRODUCTION_SHA']=='f84391d45dd9643271473cf3c325e9940e2a4593' and data['max_age_seconds']==108000
+assert data['installed_sha']=='9678e8c617734dd3bd5054eabf3585e396e3ca12' and os.environ['EXPECTED_PRODUCTION_SHA']=='d13f5cf94960bef206fe47b872c88f034c76c04f' and data['max_age_seconds']==108000
 blocked={233,110,73342,13869,13873,109,12114,9432,482,476,81173,32577,478,80964}
 pool=[]
 for hotel in data['hotels']:

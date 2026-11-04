@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261104-remaining1",
-  "state": "PLAN_NO_CALLS",
+  "state": "NEW_CURRENT_APPROVED_ATTEMPT_AFTER_ACTUAL_HEALTHY_RELEASE",
   "goal": "Resolve remaining fresh retained unpriced published hotels in one finite serial pass following Pavel prices-first instruction",
   "boundaries": [
     "Original authenticated READ9 only; no scope DB reread, manual collector, observer/transport/budget/cron change",
@@ -37,10 +37,40 @@
     478,
     80964
   ],
-  "expected_source": "f84391d45dd9643271473cf3c325e9940e2a4593",
+  "expected_source": "d13f5cf94960bef206fe47b872c88f034c76c04f",
   "retained_run": 41898354901,
   "retained_artifact": 13357152456,
   "max_age_seconds": 108000,
   "max_hotels": 8,
-  "automatic_retry_allowed": false
+  "automatic_retry_allowed": false,
+  "current_deploy_run": 41929407367,
+  "current_verify_job": 126923655004,
+  "current_deploy_job": 126923697635,
+  "current_tls_run": 41930172590,
+  "current_diagnostics_run": 41930172607,
+  "source_stops": 1,
+  "prior_attempt": {
+    "run": 41930200395,
+    "job": 126924857815,
+    "reason": "approved_source_not_current",
+    "before_preparer_intent_ssh_db_provider": true
+  },
+  "diff_review": {
+    "commits": 9,
+    "changed_paths": [
+      ".github/workflows/deploy.yml",
+      ".github/workflows/regression-tests.yml",
+      "docs/AUTOPILOT.md",
+      "docs/CI_SCOPES.md",
+      "manager2/README.md",
+      "manager2/assets/manager2.js",
+      "services/TelegramWebhookHealth.php",
+      "tests/run_manager2_navigation_behavior_regression.js",
+      "tests/run_required_checks_manifest_regression.php",
+      "tests/run_telegram_webhook_regression.php",
+      "tests/visual/manager2-workspace.spec.js",
+      "tools/telegram_smoke_test.php"
+    ],
+    "publishing21_changed": false
+  }
 }

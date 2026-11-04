@@ -3,7 +3,7 @@ temp=pathlib.Path(os.environ['RUNNER_TEMP']);root=temp/'remaining1'
 assert os.environ['GITHUB_RUN_ATTEMPT']=='1'
 index=json.loads((root/'index.json').read_text());assert len(index)<=8
 host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER'];sha=os.environ['EXPECTED_PRODUCTION_SHA']
-assert sha=='f84391d45dd9643271473cf3c325e9940e2a4593'
+assert sha=='d13f5cf94960bef206fe47b872c88f034c76c04f'
 ssh=['ssh','-i',str(temp/'channel_key'),'-o','BatchMode=yes','-o','ConnectTimeout=10','-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o','GlobalKnownHostsFile=/dev/null','-o','UserKnownHostsFile='+str(temp/'channel_known_hosts'),user+'@'+host]
 remote="set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = '"+sha+"'; test -z \"$(git status --porcelain --untracked-files=no)\"; php"
 summaries=[]
