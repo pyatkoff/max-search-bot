@@ -8,7 +8,7 @@ if(($requestProfilePresentation??'')!=='manager2')ManagerHttp::start();
 <p class="usageEyebrow">Текущая поездка</p><h1>Профиль запроса</h1><p class="profileIntro">Сверьте условия с сообщениями и зафиксируйте, что важно для этой поездки. Профиль помогает подготовить ответ; цены, наличие и услуги проверяются отдельно.</p>
 <p id="profileStatus" class="usageStatus" role="status" aria-live="polite">Проверяем доступ…</p>
 <button id="profileRetryLoad" class="usageReview" type="button" hidden>Повторить загрузку профиля</button>
-<section id="profileApp" hidden><div id="profileState" class="profileNotice"></div><div id="profileSuggestion" class="profileNotice" hidden></div>
+<section id="profileApp" hidden><div id="profileState" class="profileNotice"></div><div id="profilePreparation" class="profileNotice" hidden></div><div id="profileSuggestion" class="profileNotice" hidden></div>
 <form id="profileForm"><div class="profileHeaderFields"><label>Название запроса<input id="profileLabel" maxlength="120" required placeholder="Например, декабрьский отдых с ребёнком"></label><label>Начало обсуждения этой поездки<select id="profileBoundary" required><option value="">Выберите сообщение</option></select></label></div>
 <label class="profileNew"><input type="checkbox" id="profileNewTrip"> Это другая поездка — начать отдельный профиль</label>
 <p class="profileHelp">Для «слов туриста» укажите буквальный фрагмент его сообщения. Ваши выводы и уточнения отмечайте отдельно. Цена публикации не становится бюджетом туриста, а тарифный состав не заменяет фактическую семью.</p>
