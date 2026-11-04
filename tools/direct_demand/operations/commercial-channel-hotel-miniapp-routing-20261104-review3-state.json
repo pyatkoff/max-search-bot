@@ -1,0 +1,92 @@
+{
+  "operation": "commercial-channel-hotel-miniapp-routing-20261104-review3",
+  "state": "MAX150_CANDIDATE_NATIVE_TESTED_NOT_INSTALLED_TG_FILES_PENDING_USER",
+  "goal": "First MAX links, then TG after Pavel supplies current files",
+  "user_decisions": [
+    "ну ссылки сейчас это основное же",
+    "по тг я заменю файлы, у тебя доступа не было",
+    "позже пришлю, давай сначала по максу"
+  ],
+  "counts": {
+    "logical_hotels_each_channel": 150,
+    "yml_telegram": 150,
+    "yml_max": 150,
+    "yml_all": 300,
+    "new_pairs_this_routing_work": 0
+  },
+  "feed_route_current": "DIRECT_CANONICAL_PUBLIC_POST_URL",
+  "runtime_route_installed": false,
+  "feed_url_replacements": 0,
+  "tg": {
+    "canonical_public_entry": "https://tg.rhat.ru/tgmini/",
+    "public_native_run": 41803930222,
+    "http": 200,
+    "bytes": 15335,
+    "sha256": "235ba0b65fc7b5859f719697fdadbb93f4eb782eb9a1b059a54974f507c738ad",
+    "current_client_ctx1": false,
+    "current_client_post_context": false,
+    "owner_upload": "Pavel",
+    "current_index_and_save_files_requested": true,
+    "user_will_send_later": true,
+    "no_further_tg_server_access_attempts": true
+  },
+  "max": {
+    "legacy_native_source_run": 41803305831,
+    "current_legacy_map_current_feed_matches": 6,
+    "canonical_150_binding_run": 41805250929,
+    "canonical_binding_count": 300,
+    "canonical_private_artifact": 13310040349,
+    "canonical_source_stops": 1,
+    "first_stopped_run": 41804970765,
+    "first_stop_before_ssh_db_provider": true,
+    "candidate_run": 41806673259,
+    "candidate_job": 126495296832,
+    "candidate_artifact": 13310371103,
+    "public_alias_count": 150,
+    "private_ids_in_launch_urls": 0,
+    "native_exact_destination_tests": 150,
+    "paid_context_preservation_synthetic": true,
+    "negative_controls": [
+      "unknown_alias",
+      "wrong_offer",
+      "wrong_project",
+      "wrong_signature"
+    ],
+    "legacy_payload_control": true,
+    "natural_signed_launch_not_claimed": true,
+    "old_avito_frontend_and_legacy_post1_unchanged": true,
+    "proposed_files": [
+      {
+        "bytes": 14050,
+        "name": "lib.php",
+        "sha256": "2574585eaaef169e671966931c59bfe1b2bdf0e38d345c3d06a140c11dc65795"
+      },
+      {
+        "bytes": 3763,
+        "name": "anytour-hotel-feed-context.php",
+        "sha256": "1e63a46c2a3394b211f03c95ea8a2b78a93e255ce999126d9622194afec92fc2"
+      },
+      {
+        "bytes": 32136,
+        "name": "anytour-hotel-feed-routes.private.php",
+        "sha256": "afb4c6a2ceac44a99286697651bcc9f91ebf3361a4dad3b4ed134154c5703ae0"
+      }
+    ],
+    "untouched_current_files": {
+      "post-routes.json": "7a9ea3ce525df4ebd0d8bd6db773ca5879b90d744e363689687519deb1a23571",
+      "production.php": "1f71d498d57904fbe3d76e270397fa65503c5747fe6c2535fe5c82bc20158452",
+      "script3.php": "f136fc22f508edcde47d02912752bfe3242fa85830ec306c88eeb7ddce221bf6"
+    },
+    "root_directory_writable": true,
+    "lib_writable": true,
+    "installation_pending": true
+  },
+  "boundaries": [
+    "No Mac, new workers/chats/timers/agents/queues, foreign runtime/release/ads/collector changes",
+    "Use owned audit branch and established pinned GHA connection",
+    "Private mapping stays guarded server PHP projection and authenticated artifacts; no private IDs in public URLs or Git blobs",
+    "Do not replace old historical MAX package; preserve current Avito/frontend/production/script3/legacy routes",
+    "TG only user-installed current-file package after source files arrive"
+  ],
+  "next": "Prepare narrowly scoped atomic three-file MAX installer, durable intent, exact original/current SHA guards and rollback; native server read-only route preflight; then MAX feed URL replacement preserving other fields and Telegram URLs"
+}
