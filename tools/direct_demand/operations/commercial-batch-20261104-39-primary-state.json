@@ -1,0 +1,47 @@
+{
+  "operation": "commercial-batch-20261104-39-primary-read",
+  "state": "CLOSED_TEN_NEW_DECLARED_OWNER_PAGES_NATIVE_SUCCESS",
+  "run_id": 41876362524,
+  "source_commit": "14317929c5d22e28dad0ee7dbd1ee5e64823358a",
+  "jobs": [
+    {
+      "id": 126736725946,
+      "state": "success"
+    },
+    {
+      "id": 126736726476,
+      "state": "success"
+    },
+    {
+      "id": 126736726491,
+      "state": "success"
+    },
+    {
+      "id": 126736726525,
+      "state": "success"
+    }
+  ],
+  "new_owner_pages": 10,
+  "retained_whole_captions": 10,
+  "hotel_ids": [
+    1416,
+    1491,
+    55828,
+    2144,
+    3469,
+    9321,
+    1201,
+    1198,
+    970,
+    967
+  ],
+  "previous_page_get_repeats": 0,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "ready_for_send_count": 0,
+  "new_posts": 0,
+  "notes": "Selectum gallery again had no declared image references. DMaris gallery reused already closed hero references. DResort accommodation offered room/nav references. ClubMarvy new banners were not accepted photographs. No old photos downloaded."
+}
