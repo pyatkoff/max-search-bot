@@ -56,77 +56,107 @@ final class ModeledConversionAcquisitionStatsReader
             $inputCount=$this->rows('SELECT COUNT(*) AS n FROM modeled_conversion_profile_versions WHERE '.$potential.' AND id<=? AND observed_at_unix<=?',[$fence,$now])[0];
             if((int)$inputCount['n']>self::MAX_RECORDS)throw new ModeledConversionAcquisitionReadFailure('record_limit');
             $this->admittedScopeSql=$this->admittedScopes($filters['platform'],$fence,$now);
-            $where=$this->profileScope($filters['platform']).' AND p.id<=? AND p.observed_at_unix<=?';
-            $scopeArgs=[$fence,$now];
-            $meta=$this->rows('SELECT COUNT(*) AS n,MIN(p.observed_at_unix) AS lo,MAX(p.observed_at_unix) AS hi '.$this->profileFrom().' WHERE '.$where,$scopeArgs)[0];
-            $count=(int)$meta['n'];$this->sources['profiles_examined']=$count;
-            if($count>self::MAX_RECORDS)throw new ModeledConversionAcquisitionReadFailure('record_limit');
-            foreach(['lo'=>'first_profile_at','hi'=>'last_profile_at']as$k=>$name)
-                if($meta[$k]!==null)$this->sources[$name]=self::iso((int)$meta[$k]);
-            $people=[];$after='0';
-            do{
-                $doc=$this->safe('p.profile_json');
-                $native=['p.id','p.platform','p.customer_key','p.conversation_id','p.observed_at_unix'];
-                $paths=['access'=>'$.access_status','project'=>'$.subject.project_key','platform_json'=>'$.subject.platform',
-                    'customer_json'=>'$.subject.customer_key','conversation_json'=>'$.subject.conversation_id',
-                    'input_project'=>'$.profile.observation_input.subject.project_key','input_platform'=>'$.profile.observation_input.subject.platform',
-                    'input_customer'=>'$.profile.observation_input.subject.customer_key','input_conversation'=>'$.profile.observation_input.subject.conversation_id',
-                    'context_version'=>'$.contextual_signals.version','extractor_version'=>'$.contextual_signals.extractor_version',
-                    'cutoff'=>'$.contextual_signals.input_cutoff_at','input_prediction'=>'$.profile.observation_input.prediction_at',
-                    'context_prediction'=>'$.contextual_signals.prediction_at','fence'=>'$.source_fence_journal_id'];
-                // Select cheap IDs first; JSON work cannot move before this bounded page.
-                $selected='SELECT p.id '.$this->profileFrom().' WHERE '.$where.' AND p.id>? ORDER BY p.id LIMIT 128';
-                $pageFrom=' FROM ('.$selected.') selected_page JOIN modeled_conversion_profile_versions p ON p.id=selected_page.id';
-                if($this->mysql){
-                    // Parse the large historical document once for these fixed, mandatory paths.
-                    // A second LIMIT prevents derived merging from repeating the parse per field.
-                    $packed=[...$native,'JSON_EXTRACT('.$doc.','.implode(',',array_map(fn(string $path):string=>$this->lit($path),array_values($paths))).') AS metadata_values',
-                        $this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited',
-                        $this->interestPaths($doc).' AS interest_paths'];
-                    $bounded='SELECT '.implode(',',$packed).$pageFrom.' ORDER BY p.id LIMIT 128';
-                    // Multi-path extraction omits absent paths. Every one is already mandatory
-                    // in validPacket: reject the entire short array rather than shift identities.
-                    $small="CASE WHEN JSON_TYPE(p.metadata_values)='ARRAY' AND JSON_LENGTH(p.metadata_values)=15 THEN p.metadata_values ELSE '{}' END";
-                    $fields=$native;$index=0;
-                    foreach($paths as$alias=>$unused)$fields[]=$this->str($small,$this->lit('$['.$index++.']')).' AS '.$alias;
-                    $fields[]='p.limited';$fields[]='p.interest_paths';
-                    $page=$this->rows('SELECT '.implode(',',$fields).' FROM ('.$bounded.') p ORDER BY p.id',[...$scopeArgs,$after]);
-                }else{
-                    $fields=$native;
-                    foreach($paths as$alias=>$path)$fields[]=$this->str($doc,$this->lit($path)).' AS '.$alias;
-                    $fields[]=$this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited';
-                    $fields[]=$this->interestPaths($doc).' AS interest_paths';
-                    $page=$this->rows('SELECT '.implode(',',$fields).$pageFrom.' ORDER BY p.id',[...$scopeArgs,$after]);
-                }
-                $targets=[];$packets=[];
-                foreach($page as$p){
-                    $after=(string)$p['id'];
-                    if(!$this->validPacket($p,$now)){$this->sources['profiles_without_usable_packet']++;continue;}
-                    if((string)$p['limited']==='1')$this->sources['limited_profile_windows']++;
-                    $paths=json_decode((string)($p['interest_paths']??'null'),true);
-                    if($paths===null)continue;
-                    if(is_string($paths))$paths=[$paths];
-                    if(!is_array($paths)||!array_is_list($paths)||count($paths)>50)throw new ModeledConversionAcquisitionReadFailure('source_shape_limit');
-                    $packets[(string)$p['id']]=$p;
-                    foreach($paths as$path){
-                        if(!is_string($path)||preg_match('/\A\$\.contextual_signals\.events\[(?:0|[1-9][0-9]{0,3})\]\.goal\z/D',$path)!==1)
-                            throw new ModeledConversionAcquisitionReadFailure('source_shape_limit');
-                        $targets[]=[(string)$p['id'],substr($path,0,-5)];
+            // Admit latest exact scopes once in this fixed read-only snapshot.
+            // Only these bounded identity coordinates are retained, never profile bodies.
+            $admitWhere=$this->profileScope($filters['platform']);
+            $scopes=$this->rows('SELECT p.project_key,p.platform,p.customer_key,p.conversation_id '.$this->profileFrom()
+                .' WHERE '.$admitWhere);
+            $seenScopes=[];
+            foreach($scopes as$scope){
+                if($scope['project_key']!=='anytour'||!in_array($scope['platform'],['max','telegram'],true)
+                    ||!self::positive((string)$scope['customer_key'])||!self::positive((string)$scope['conversation_id']))
+                    throw new ModeledConversionAcquisitionReadFailure('source_changed');
+                $key=$scope['platform'].':'.$scope['customer_key'].':'.$scope['conversation_id'];
+                if(isset($seenScopes[$key]))throw new ModeledConversionAcquisitionReadFailure('source_changed');
+                $seenScopes[$key]=true;
+            }
+            usort($scopes,static function(array $a,array $b):int{
+                return strcmp($a['platform'],$b['platform'])?:self::decimalCompare((string)$a['customer_key'],(string)$b['customer_key'])
+                    ?:self::decimalCompare((string)$a['conversation_id'],(string)$b['conversation_id']);
+            });
+            $batches=array_chunk($scopes,64);unset($scopes,$seenScopes);
+            // Count every disjoint admitted batch before deriving any cohort result.
+            $count=0;$first=null;$last=null;
+            foreach($batches as$batch){
+                [$where,$scopeArgs]=$this->historicalScope($filters['platform'],$batch,$fence,$now);
+                $meta=$this->rows('SELECT COUNT(*) AS n,MIN(p.observed_at_unix) AS lo,MAX(p.observed_at_unix) AS hi '.$this->profileFrom(false).' WHERE '.$where,$scopeArgs)[0];
+                $count+=(int)$meta['n'];
+                if($count>self::MAX_RECORDS)throw new ModeledConversionAcquisitionReadFailure('record_limit');
+                if($meta['lo']!==null)$first=$first===null?(int)$meta['lo']:min($first,(int)$meta['lo']);
+                if($meta['hi']!==null)$last=$last===null?(int)$meta['hi']:max($last,(int)$meta['hi']);
+            }
+            $this->sources['profiles_examined']=$count;
+            $this->sources['first_profile_at']=$first===null?null:self::iso($first);
+            $this->sources['last_profile_at']=$last===null?null:self::iso($last);
+            $people=[];
+            foreach($batches as$batch){
+                [$where,$scopeArgs]=$this->historicalScope($filters['platform'],$batch,$fence,$now);
+                $after='0';
+                do{
+                    $doc=$this->safe('p.profile_json');
+                    $native=['p.id','p.platform','p.customer_key','p.conversation_id','p.observed_at_unix'];
+                    $paths=['access'=>'$.access_status','project'=>'$.subject.project_key','platform_json'=>'$.subject.platform',
+                        'customer_json'=>'$.subject.customer_key','conversation_json'=>'$.subject.conversation_id',
+                        'input_project'=>'$.profile.observation_input.subject.project_key','input_platform'=>'$.profile.observation_input.subject.platform',
+                        'input_customer'=>'$.profile.observation_input.subject.customer_key','input_conversation'=>'$.profile.observation_input.subject.conversation_id',
+                        'context_version'=>'$.contextual_signals.version','extractor_version'=>'$.contextual_signals.extractor_version',
+                        'cutoff'=>'$.contextual_signals.input_cutoff_at','input_prediction'=>'$.profile.observation_input.prediction_at',
+                        'context_prediction'=>'$.contextual_signals.prediction_at','fence'=>'$.source_fence_journal_id'];
+                    // Select cheap IDs first; JSON work cannot move before this bounded page.
+                    $selected='SELECT p.id '.$this->profileFrom(false).' WHERE '.$where.' AND p.id>? ORDER BY p.id LIMIT 128';
+                    $pageFrom=' FROM ('.$selected.') selected_page JOIN modeled_conversion_profile_versions p ON p.id=selected_page.id';
+                    if($this->mysql){
+                        // Parse the large historical document once for these fixed, mandatory paths.
+                        // A second LIMIT prevents derived merging from repeating the parse per field.
+                        $packed=[...$native,'JSON_EXTRACT('.$doc.','.implode(',',array_map(fn(string $path):string=>$this->lit($path),array_values($paths))).') AS metadata_values',
+                            $this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited',
+                            $this->interestPaths($doc).' AS interest_paths'];
+                        $bounded='SELECT '.implode(',',$packed).$pageFrom.' ORDER BY p.id LIMIT 128';
+                        // Multi-path extraction omits absent paths. Every one is already mandatory
+                        // in validPacket: reject the entire short array rather than shift identities.
+                        $small="CASE WHEN JSON_TYPE(p.metadata_values)='ARRAY' AND JSON_LENGTH(p.metadata_values)=15 THEN p.metadata_values ELSE '{}' END";
+                        $fields=$native;$index=0;
+                        foreach($paths as$alias=>$unused)$fields[]=$this->str($small,$this->lit('$['.$index++.']')).' AS '.$alias;
+                        $fields[]='p.limited';$fields[]='p.interest_paths';
+                        $page=$this->rows('SELECT '.implode(',',$fields).' FROM ('.$bounded.') p ORDER BY p.id',[...$scopeArgs,$after]);
+                    }else{
+                        $fields=$native;
+                        foreach($paths as$alias=>$path)$fields[]=$this->str($doc,$this->lit($path)).' AS '.$alias;
+                        $fields[]=$this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited';
+                        $fields[]=$this->interestPaths($doc).' AS interest_paths';
+                        $page=$this->rows('SELECT '.implode(',',$fields).$pageFrom.' ORDER BY p.id',[...$scopeArgs,$after]);
                     }
-                }
-                foreach(array_chunk($targets,128)as$part){
-                    foreach($this->candidateRows($part)as$r){
-                        $p=$packets[(string)$r['pid']]??null;
-                        if(!$p)throw new ModeledConversionAcquisitionReadFailure('source_changed');
-                        $candidate=$this->candidate($p,$r,$now);
-                        if($candidate===null)continue;
-                        $key=$p['platform'].':'.$p['customer_key'];
-                        if(!isset($people[$key])||$candidate['at']<$people[$key]['at']
-                            ||($candidate['at']===$people[$key]['at']&&self::decimalCompare($candidate['journal'],$people[$key]['journal'])<0))
-                            $people[$key]=['platform'=>$p['platform'],'customer'=>(string)$p['customer_key'],...$candidate];
+                    $targets=[];$packets=[];
+                    foreach($page as$p){
+                        $after=(string)$p['id'];
+                        if(!$this->validPacket($p,$now)){$this->sources['profiles_without_usable_packet']++;continue;}
+                        if((string)$p['limited']==='1')$this->sources['limited_profile_windows']++;
+                        $paths=json_decode((string)($p['interest_paths']??'null'),true);
+                        if($paths===null)continue;
+                        if(is_string($paths))$paths=[$paths];
+                        if(!is_array($paths)||!array_is_list($paths)||count($paths)>50)throw new ModeledConversionAcquisitionReadFailure('source_shape_limit');
+                        $packets[(string)$p['id']]=$p;
+                        foreach($paths as$path){
+                            if(!is_string($path)||preg_match('/\A\$\.contextual_signals\.events\[(?:0|[1-9][0-9]{0,3})\]\.goal\z/D',$path)!==1)
+                                throw new ModeledConversionAcquisitionReadFailure('source_shape_limit');
+                            $targets[]=[(string)$p['id'],substr($path,0,-5)];
+                        }
                     }
-                }
-            }while(count($page)===128);
+                    foreach(array_chunk($targets,128)as$part){
+                        foreach($this->candidateRows($part)as$r){
+                            $p=$packets[(string)$r['pid']]??null;
+                            if(!$p)throw new ModeledConversionAcquisitionReadFailure('source_changed');
+                            $candidate=$this->candidate($p,$r,$now);
+                            if($candidate===null)continue;
+                            $key=$p['platform'].':'.$p['customer_key'];
+                            if(!isset($people[$key])||$candidate['at']<$people[$key]['at']
+                                ||($candidate['at']===$people[$key]['at']&&self::decimalCompare($candidate['journal'],$people[$key]['journal'])<0))
+                                $people[$key]=['platform'=>$p['platform'],'customer'=>(string)$p['customer_key'],...$candidate];
+                        }
+                    }
+                }while(count($page)===128);
+            }
+
             $cohort=[];$from=strtotime($result['window']['from']);$exclusive=$this->endExclusive($filters['date']);
             foreach($people as$key=>$person)if($person['at']>=$from&&$person['at']<$exclusive&&$person['at']<=$now)$cohort[$key]=$person;
             $platforms=['max'=>$this->emptyPlatform('saved_max_events_only'),'telegram'=>$this->emptyPlatform('unavailable_pending_bitrix')];
@@ -268,13 +298,25 @@ final class ModeledConversionAcquisitionStatsReader
         }
         return ['at'=>$at,'journal'=>$match[1]];
     }
-    private function profileFrom():string
+    private function profileFrom(bool $admitted=true):string
     {
-        return ' FROM modeled_conversion_profile_versions p JOIN ('.$this->admittedScopeSql.') admitted'
-            .' ON admitted.project_key=p.project_key AND admitted.platform=p.platform AND admitted.customer_key=p.customer_key AND admitted.conversation_id=p.conversation_id'
-            .' AND HEX(admitted.project_key)=HEX(p.project_key) AND HEX(admitted.platform)=HEX(p.platform) AND HEX(admitted.customer_key)=HEX(p.customer_key) AND HEX(admitted.conversation_id)=HEX(p.conversation_id)'
+        $from=$admitted?' FROM ('.$this->admittedScopeSql.') p':' FROM modeled_conversion_profile_versions p';
+        return $from
             .' JOIN conversations c ON c.id=CAST(p.conversation_id AS '.($this->mysql?'UNSIGNED':'INTEGER').') AND c.customer_id=CAST(p.customer_key AS '.($this->mysql?'UNSIGNED':'INTEGER').') AND HEX(CAST(c.id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(p.conversation_id) AND HEX(CAST(c.customer_id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(p.customer_key) AND c.project_key=p.project_key AND c.channel=p.platform AND HEX(c.project_key)=HEX(p.project_key) AND HEX(c.channel)=HEX(p.platform)'
             .' JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel)';
+    }
+    private function historicalScope(string $platform,array $scopes,string $fence,int $now):array
+    {
+        if(!$scopes||count($scopes)>64)throw new ModeledConversionAcquisitionReadFailure('source_shape_limit');
+        $terms=[];$args=[];
+        foreach($scopes as$scope){
+            $terms[]='(p.project_key=? AND p.platform=? AND p.customer_key=? AND p.conversation_id=?'
+                .' AND HEX(p.project_key)=HEX(?) AND HEX(p.platform)=HEX(?) AND HEX(p.customer_key)=HEX(?) AND HEX(p.conversation_id)=HEX(?))';
+            $values=[$scope['project_key'],$scope['platform'],(string)$scope['customer_key'],(string)$scope['conversation_id']];
+            array_push($args,...$values,...$values);
+        }
+        return [$this->profileScope($platform).' AND ('.implode(' OR ',$terms).') AND p.id<=? AND p.observed_at_unix<=?',
+            [...$args,$fence,$now]];
     }
     private function profileScope(string $platform):string
     {
