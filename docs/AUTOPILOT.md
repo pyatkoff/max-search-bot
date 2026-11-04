@@ -81,6 +81,10 @@ accepted evidence instead of synchronizing and repeating a full run on every
 intermediate main change. Do not create another queue, coordinator or reservation
 renewal to do this.
 
+Where creating or updating a PR automatically starts that final CI, keep later
+source revisions in their preparation branch until this window. A draft PR does
+not suppress workflows unless the existing workflow explicitly does so.
+
 Early focused checks that discover an actual source or fixture failure remain
 useful; fix the failing behavior and check the affected work before finalization.
 A real source/dependency change still needs the ordinary selected current-source
