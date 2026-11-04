@@ -1,0 +1,62 @@
+{
+  "operation": "commercial-price-update-20261104-remaining1",
+  "state": "PLAN_NOT_EDITED",
+  "goal": "Finish all accepted price contexts from the one finite remaining quote pass in both existing channels",
+  "boundaries": [
+    "Only original results of41930421093, no gateway requests in updater",
+    "At most one operation per unconsumed hotel and two existing content edits each; no newposts",
+    "All private exact original-caption/closingparagraph/cover/logical/quote/basket bindings before durable intents and SSH",
+    "Preserve full existing caption/CTA/photo/button/source/token/publication/canonical registry/newversions/onceledger/flock/fsync",
+    "30h108000, real dated roundtrip, noPlaces/onDemand false, inclusionflags false, whole basket asreceived, separatefuel notadded",
+    "Declared gateway error/zero flights or rejectedbasket/caption means closed noedit, never price invention/retry",
+    "Currentd13/full21/source/deployverify/TLS/diagnostics/hostaccepted25/runtimeclean/schema/rights required"
+  ],
+  "criteria": [
+    "Six new actual native/logical/cover/closingparagraph cases per accepted input and PHP-l",
+    "Three new finite-pass uniquehotel/blocked exclusion/partition counts cases",
+    "No unchanged oldage/updater fixtures rerun",
+    "2 verified actual existing edits and preservedcontext per acceptedhotel; UNKNOWN stops the serial pass"
+  ],
+  "risks": [
+    "Transport or registry unknown requires resolving original operation; never new operation bypass",
+    "Completing retained contexts does not establish finalprices for all159/672"
+  ],
+  "quote_run": 41930421093,
+  "expected_source": "d13f5cf94960bef206fe47b872c88f034c76c04f",
+  "max_age_seconds": 108000,
+  "max_hotels": 8,
+  "max_existing_edits": 2,
+  "max_gateway_calls": 0,
+  "max_new_posts": 0,
+  "automatic_retry_allowed": false,
+  "excluded_hotel_ids": [
+    233,
+    110,
+    73342,
+    13869,
+    13873,
+    109,
+    12114,
+    9432,
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "quote_intent_artifact": 13371900942,
+  "quote_result_artifact": 13372051273,
+  "exact_quoted_native_ids": [
+    56092,
+    32575,
+    83105,
+    250,
+    132,
+    235
+  ],
+  "only_potential_edit_hotel_ids": [
+    235
+  ],
+  "remaining_five_closed_without_edit": true
+}

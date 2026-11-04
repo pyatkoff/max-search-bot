@@ -1,4 +1,4 @@
-name: Check remaining fresh unpriced hotels once in one finite serial pass
+name: Apply every accepted remaining price serially to its existing posts
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -57,26 +57,25 @@ jobs:
           PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-read9
+          name: commercial-price-monitor-20261104-remaining1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41898354901
-          path: ${{ runner.temp }}/retained-read9
-      - name: Bind every distinct remaining retained hotel with an exact original caption
+          run-id: 41930421093
+          path: ${{ runner.temp }}/remaining1
+      - name: Validate actual full baskets and each original caption before any edit
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 tools/direct_demand/operations/prepare-commercial-price-20261104-remaining1.py
-          find "$RUNNER_TEMP/remaining1" -name quote.php -print0 | while IFS= read -r -d '' file; do
+          python3 tools/direct_demand/operations/prepare-commercial-price-update-20261104-remaining1.py
+          find "$RUNNER_TEMP/remaining1" -name update.php -print0 | while IFS= read -r -d '' file; do
             php -l "$file"
-            ANYTOUR_REMAINING1_INPUT_FIXTURE=1 php "$file"
           done
-      - name: Retain all distinct private quote intents before any gateway request
+      - name: Retain distinct private full-basket edit intents before channel writes
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-remaining1-intents
+          name: commercial-price-update-20261104-remaining1-intents
           path: ${{ runner.temp }}/remaining1
           retention-days: 14
           if-no-files-found: error
@@ -118,7 +117,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Check distinct remaining hotel quotes serially with no automatic retries
+      - name: Update accepted hotels serially through the existing registry and once ledger
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -126,12 +125,12 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-commercial-price-20261104-remaining1.py
-      - name: Retain authenticated private original results including unknown outcomes
+          python3 tools/direct_demand/operations/run-commercial-price-update-20261104-remaining1.py
+      - name: Retain authenticated original edit receipts and all closed no-edit outcomes
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-remaining1
+          name: commercial-price-update-20261104-remaining1
           path: ${{ runner.temp }}/remaining1
           retention-days: 14
           if-no-files-found: warn
