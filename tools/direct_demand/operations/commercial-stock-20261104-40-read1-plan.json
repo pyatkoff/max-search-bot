@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261104-40-read1",
-  "state": "CORRECTED_TEN_NEW_NAMED_GROUPS_PURE_ONLY_WAIT_CURRENT_HEALTHY_RELEASE",
+  "state": "CURRENT_RELEASE_METADATA_PASS_NATIVE_TARGETED_STOCK40_READ_APPROVED",
   "goal": "Find ten additional distinct unpriced unpublished Turkey hotel identities for the500material goal, without retrying closed media or old stock39lookups",
   "boundaries": {
     "country_id": 4,
@@ -67,12 +67,10 @@
   ],
   "existing_frozen_feed_offer_rows": 159,
   "new_group_public_name_matches": 0,
-  "expected_source": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
-  "current_deploy_run": 41917839854,
-  "current_tls_run": 41918925110,
-  "current_diagnostics_run": 41918925124,
-  "current_new_main_not_accepted": "2dfd5249aba1419966c35f40961e650d2e982099",
-  "current_new_deploy_run": 41921002397,
+  "expected_source": "f84391d45dd9643271473cf3c325e9940e2a4593",
+  "current_deploy_run": 41923173718,
+  "current_tls_run": 41924297206,
+  "current_diagnostics_run": 41924297113,
   "source_stop_run": 41921737318,
   "source_stop_count": 1,
   "stock40_server_reads": 0,
@@ -86,5 +84,12 @@
     "native_scope_cases_executed": 0,
     "repeat_policy": "CLOSED_OLD_LOOKUP_INPUT_DEFERRED_NO_DB_REQUERY_NO_FORCE"
   },
-  "replacement_new_group": "sunis-elita"
+  "replacement_new_group": "sunis-elita",
+  "previous_failed_main": "2dfd5249aba1419966c35f40961e650d2e982099",
+  "current_verify_job": 126900619273,
+  "current_deploy_job": 126903187731,
+  "pure_cases_previously_passed_run": 41922553431,
+  "unchanged_pure_fixture_invocations_removed": true,
+  "closed_quote7_artifact_inspection_removed": true,
+  "full_fresh_source21_runtime_host_schema_readonly_gates_required": true
 }
