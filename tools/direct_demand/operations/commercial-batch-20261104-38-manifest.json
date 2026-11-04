@@ -1,0 +1,87 @@
+{
+  "operation": "commercial-hotel-batch-20261104-38-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish the ready whole Susesi material in both existing channels in one serial run",
+  "boundaries": [
+    "Existingpublisher/registry/once/serialonly",
+    "Exactcurrentmain/verify/TLS/fulltree21guardsbeforeSSH/provider",
+    "NoMac/newworkers/queues/ads/customer messages/paidcalls"
+  ],
+  "criteria": [
+    "Native600x600PNGfullchunks/decodedbytes/SHA/nativevisualaccepted",
+    "Exactly2verifiedbody/photo/button/sourcepostsorstop"
+  ],
+  "risks": [
+    "Nineunresolvedcandidatesmustnotdelayoneacceptedmaterial",
+    "Sourcechangebeforeproviderstops;after2sourcechangesconcretereleasewait"
+  ],
+  "baseline_logical_materials": 156,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 1543,
+      "hotel": "Susesi Luxury Resort",
+      "key": "susesi-luxury",
+      "aliases": [
+        "SUSESI LUXURY RESORT"
+      ],
+      "sources": [
+        "https://www.susesihotel.com/en"
+      ],
+      "text": "✈️ Туры в Susesi Luxury Resort с перелётом\n📍 Белек, Турция.\n\n🏖 Пляж и бассейны на территории.\n🧖 Спа La Calisse.\n🍽 Рестораны с кухнями разных стран.\n🛏 Есть номера Deluxe и семейные категории.\n\n💡 Собственный бассейн и услуги дворецкого предусмотрены в отдельных особых категориях размещения.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Susesi Luxury Resort.",
+      "logical_id": "commercial-susesi-luxury-1543-v1",
+      "text_sha256": "7f14a2ab499dad3d2aa6e0dfd26c8ee8d7d53a559b1dacb60141ac4194fec413",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/3b89a4b564edb08c60f2c4585ee2db7af1b25c12/.github/traffic-publish/commercial-batch-20261104-38/1543.png",
+      "photo_sha256": "4f400b9b68bb3e77d6bd1f0fff2f57d43681ec8b081c5cd4e4d9c94bb88c4c76",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 1,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 1,
+  "approved_live_send_count": 1,
+  "public_png_frozen_count": 1,
+  "native_inspection_state": "NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41867667269"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1416,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    },
+    {
+      "hotel_id": 1491,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    },
+    {
+      "hotel_id": 65782,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    },
+    {
+      "hotel_id": 15879,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    },
+    {
+      "hotel_id": 55828,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    },
+    {
+      "hotel_id": 2144,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    },
+    {
+      "hotel_id": 3469,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    },
+    {
+      "hotel_id": 9321,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    },
+    {
+      "hotel_id": 1137,
+      "state": "NO_ACCEPTED_WHOLE_HOTEL_HERO_FROM_THIS_FINITE_PASS"
+    }
+  ]
+}
