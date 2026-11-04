@@ -60,5 +60,10 @@
   "read15_artifact": 13361704715,
   "max159_install_run": 41912899171,
   "max159_install_job": 126864824754,
-  "source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+  "source_sha": "626aac0471f9209e08d7ccf6f76988a019cb3e00",
+  "source_deploy": 41912324305,
+  "source_tls": 41913284544,
+  "current_diagnostics": 41913284630,
+  "previous_prepare_source_stop": 41913399396,
+  "first_attempt_before_pure_cases_or_ssh": true
 }

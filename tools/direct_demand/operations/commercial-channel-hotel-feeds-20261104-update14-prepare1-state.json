@@ -1,0 +1,29 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update14-prepare",
+  "state": "FIRST_PREPARATION_STOPPED_AT_SOURCE_GATE_BEFORE_PURE_PREP_OR_SSH",
+  "run": 41913399396,
+  "job": 126866588698,
+  "error": "approved_source_not_current",
+  "approved_old_source": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "actual_new_main": "626aac0471f9209e08d7ccf6f76988a019cb3e00",
+  "source_stop_count": 1,
+  "pure_append_cases_executed": 0,
+  "ssh_calls": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "yml_writes": 0,
+  "new_passing_release": 41912324305,
+  "new_verify_job": 126862847263,
+  "new_deploy_job": 126864812797,
+  "new_tls": 41913284544,
+  "new_current_diagnostics": 41913284630,
+  "reviewed_changed_files": [
+    ".github/workflows/workspace-v2-visual-qa.yml",
+    "docs/CI_SCOPES.md",
+    "tests/check_ci_workflow_scopes.py",
+    "tests/run_ci_change_scope_regression.js",
+    "tools/ci_change_scope.js"
+  ],
+  "publishing21_changed": false,
+  "retry_basis": "A genuinely new passing current release was observed and its five changed CI-only paths were reviewed; full21gate retained, no foreign release changes or rerun."
+}
