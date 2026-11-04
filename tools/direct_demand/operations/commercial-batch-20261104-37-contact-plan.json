@@ -1,0 +1,199 @@
+{
+  "operation": "commercial-batch37-bounded-primary-contact-inspection",
+  "goal": "One finite29-photo pass from7 primary-proven hotels in the ten-candidate batch; accept all ready subset",
+  "boundaries": [
+    "Four readonlygroups/maxparallel2; server/provider/DBwrites/messages0",
+    "29actualdeclareddifferentURLs; no guessedvariants/querystrips/retries of closed403",
+    "No beachaccess/freeisland claims forEftalia; no genericKHGphotosorunicode-mangledrefs",
+    "Nativepixels/bytes/format/dims/SHA before Canva"
+  ],
+  "criteria": [
+    "Wholecomplex hero+2different usefullowerphotos; rejectonepool/model/render/logo",
+    "Keep actual acceptedprimaryseasonality/age/categoryscope in wholecaption"
+  ],
+  "risks": [
+    "3initialownerpagesHTTP403 deferred; Nirvana only2targetlowercandidates maynotcomplete",
+    "TUISarigerme2026season ended02Nov; mustsayso; Seno16+/hillside/shuttle"
+  ],
+  "photos": [
+    {
+      "hotel_id": 1659,
+      "role": "h1659_hero1",
+      "url": "https://www.tui-blue.com/media/hotels/Sarigerme/NEW_2025/overview/TB-SarigermePark-Hotel-Overview-1580.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-sarigerme-park/"
+    },
+    {
+      "hotel_id": 1659,
+      "role": "h1659_hero2",
+      "url": "https://www.tui-blue.com/media/hotels/Sarigerme/NEW_2025/overview/TB-SarigermePark-Hotel-Overview-1054.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-sarigerme-park/"
+    },
+    {
+      "hotel_id": 1659,
+      "role": "h1659_beach",
+      "url": "https://www.tui-blue.com/media/hotels/Sarigerme/NEW_2025/overview/TB-SarigermePark-Beach-3195.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-sarigerme-park/"
+    },
+    {
+      "hotel_id": 1659,
+      "role": "h1659_room",
+      "url": "https://www.tui-blue.com/media/hotels/Sarigerme/NEW_2025/rooms_new_2025/TB-SarigermePark-Comfort-Room-Mainbuilding-Bedroom-0878.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-sarigerme-park/"
+    },
+    {
+      "hotel_id": 21695,
+      "role": "h21695_hero1",
+      "url": "https://www.tui-blue.com/media/hotels/Seno/UEbersicht/1920x1080_NEU/tui-blue-seno-von-oben.JPG",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-seno/"
+    },
+    {
+      "hotel_id": 21695,
+      "role": "h21695_hero2",
+      "url": "https://www.tui-blue.com/media/hotels/Seno/UEbersicht/1920x1080/TUI-blue-Seno-overview-hotel.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-seno/"
+    },
+    {
+      "hotel_id": 21695,
+      "role": "h21695_beach",
+      "url": "https://www.tui-blue.com/media/hotels/Seno/UEbersicht/1920x1080/tui-blue-Seno-Beach.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-seno/"
+    },
+    {
+      "hotel_id": 21695,
+      "role": "h21695_room",
+      "url": "https://www.tui-blue.com/media/hotels/Seno/Zimmer/1920x1080/tui-blue-seno-doppelzimmer-meerblick-balkon.jpg",
+      "primary_source_url": "https://www.tui-blue.com/en/en/hotels/tui-blue-seno/"
+    },
+    {
+      "hotel_id": 28668,
+      "role": "h28668_hero1",
+      "url": "https://www.ahstatic.com/photos/b1j7_ho_00_p_1024x768.jpg",
+      "primary_source_url": "https://all.accor.com/hotel/B1J7/index.en.shtml"
+    },
+    {
+      "hotel_id": 28668,
+      "role": "h28668_hero2",
+      "url": "https://www.ahstatic.com/photos/b1j7_ho_01_p_1024x768.jpg",
+      "primary_source_url": "https://all.accor.com/hotel/B1J7/index.en.shtml"
+    },
+    {
+      "hotel_id": 28668,
+      "role": "h28668_hero3",
+      "url": "https://www.ahstatic.com/photos/b1j7_ho_02_p_1024x768.jpg",
+      "primary_source_url": "https://all.accor.com/hotel/B1J7/index.en.shtml"
+    },
+    {
+      "hotel_id": 28668,
+      "role": "h28668_hero4",
+      "url": "https://www.ahstatic.com/photos/b1j7_ho_03_p_1024x768.jpg",
+      "primary_source_url": "https://all.accor.com/hotel/B1J7/index.en.shtml"
+    },
+    {
+      "hotel_id": 28668,
+      "role": "h28668_room",
+      "url": "https://www.ahstatic.com/photos/b1j7_roskd_00_p_1024x768.jpg",
+      "primary_source_url": "https://all.accor.com/hotel/B1J7/index.en.shtml"
+    },
+    {
+      "hotel_id": 55205,
+      "role": "h55205_hero1",
+      "url": "https://eftaliahotels.com/wp-content/uploads/2021/03/ocean2048-1-1-2048x941.jpg",
+      "primary_source_url": "https://eftaliahotels.com/en/eftalia-ocean-hotel-2/"
+    },
+    {
+      "hotel_id": 55205,
+      "role": "h55205_aquapark",
+      "url": "https://eftaliahotels.com/wp-content/uploads/2021/03/ocean-kaydirak2048-1-2048x941.jpg",
+      "primary_source_url": "https://eftaliahotels.com/en/eftalia-ocean-hotel-2/"
+    },
+    {
+      "hotel_id": 55205,
+      "role": "h55205_room",
+      "url": "https://eftaliahotels.com/wp-content/uploads/2021/03/ocean-oda-2048-2048x941.jpg",
+      "primary_source_url": "https://eftaliahotels.com/en/eftalia-ocean-hotel-2/"
+    },
+    {
+      "hotel_id": 55205,
+      "role": "h55205_category",
+      "url": "https://eftaliahotels.com/wp-content/uploads/2021/03/ocean-swimup-balkon-2048-2048x941.jpg",
+      "primary_source_url": "https://eftaliahotels.com/en/eftalia-ocean-hotel-2/"
+    },
+    {
+      "hotel_id": 1334,
+      "role": "h1334_hero1",
+      "url": "https://www.kirmanpremium.com/image/icerik/_67a21508225c6.jpg",
+      "primary_source_url": "https://www.kirmanpremium.com/leodikya-kirman-premium/en/gallery-2"
+    },
+    {
+      "hotel_id": 1334,
+      "role": "h1334_hero2",
+      "url": "https://www.kirmanpremium.com/image/icerik/_67a2151d9b599.jpg",
+      "primary_source_url": "https://www.kirmanpremium.com/leodikya-kirman-premium/en/gallery-2"
+    },
+    {
+      "hotel_id": 1334,
+      "role": "h1334_hero3",
+      "url": "https://www.kirmanpremium.com/image/icerik/_67a2151d9aa16.jpg",
+      "primary_source_url": "https://www.kirmanpremium.com/leodikya-kirman-premium/en/gallery-2"
+    },
+    {
+      "hotel_id": 1334,
+      "role": "h1334_hero4",
+      "url": "https://www.kirmanpremium.com/image/icerik/_67a2151d99f2d.jpg",
+      "primary_source_url": "https://www.kirmanpremium.com/leodikya-kirman-premium/en/gallery-2"
+    },
+    {
+      "hotel_id": 1334,
+      "role": "h1334_hero5",
+      "url": "https://www.kirmanpremium.com/image/icerik/_67a2151d9715a.jpg",
+      "primary_source_url": "https://www.kirmanpremium.com/leodikya-kirman-premium/en/gallery-2"
+    },
+    {
+      "hotel_id": 1334,
+      "role": "h1334_room",
+      "url": "https://www.kirmanpremium.com/image/icerik/67a2118a790b8.png",
+      "primary_source_url": "https://www.kirmanpremium.com/leodikya-kirman-premium/en"
+    },
+    {
+      "hotel_id": 1715,
+      "role": "h1715_hero1",
+      "url": "https://voyagecdn.blob.core.windows.net/mediafiles/VTO-Gunce-12.05/1803x720_Genel2.jpg",
+      "primary_source_url": "https://www.voyagehotel.com/en/voyage-torba"
+    },
+    {
+      "hotel_id": 1715,
+      "role": "h1715_room",
+      "url": "https://voyagecdn.blob.core.windows.net/mediafiles/VTO_Yepyeni_04.11/617x537_Executive_Sea_Side_Family_1.jpg",
+      "primary_source_url": "https://www.voyagehotel.com/en/voyage-torba"
+    },
+    {
+      "hotel_id": 1715,
+      "role": "h1715_hero2",
+      "url": "https://voyagecdn.blob.core.windows.net/mediafiles/voyage_torba/Beach_Pool_Aquapark/VTO_General_View_9_1803x720.jpg",
+      "primary_source_url": "https://www.voyagehotel.com/en/voyage-torba/pool-beach"
+    },
+    {
+      "hotel_id": 1715,
+      "role": "h1715_beach",
+      "url": "https://voyagecdn.blob.core.windows.net/mediafiles/voyage_torba/Beach_Pool_Aquapark/VTO_Beach_5_1140x570.jpg",
+      "primary_source_url": "https://www.voyagehotel.com/en/voyage-torba/pool-beach"
+    },
+    {
+      "hotel_id": 28327,
+      "role": "h28327_experience1",
+      "url": "https://www.nirvanahotels.com.tr/_nuxt/img/ME-experience-top.a4cadf5.jpg",
+      "primary_source_url": "https://www.nirvanahotels.com.tr/oteller/nirvana-mediterranean-excellence"
+    },
+    {
+      "hotel_id": 28327,
+      "role": "h28327_experience2",
+      "url": "https://www.nirvanahotels.com.tr/_nuxt/img/ME-experience-bottom.035ddfa.jpg",
+      "primary_source_url": "https://www.nirvanahotels.com.tr/oteller/nirvana-mediterranean-excellence"
+    }
+  ],
+  "source_runs": [
+    41811362064,
+    41811835796
+  ],
+  "old_frame_retries": 0
+}
