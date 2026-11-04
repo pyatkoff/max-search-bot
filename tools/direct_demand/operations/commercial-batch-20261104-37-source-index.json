@@ -1,0 +1,70 @@
+{
+  "operation": "commercial-batch-20261104-37-source-index",
+  "state": "PUBLIC_PRIMARY_DISCOVERY_ONLY_NO_NATIVE_PHOTOGRAPHY_ACCEPTANCE",
+  "goal": "FinitefirstownerHTTPmetadataread for alltenbatch37 provenidentities;resolveexactpropertyhrefsforlasttwo",
+  "boundaries": [
+    "ExactactualprimaryURLs fromownersearch/declaredlinks,notguessedpaths",
+    "Primaryfacts/scopecurrent;no historicseasonrights/directbookingprivileges forAnyTour",
+    "No repeatsclosedURLs/photos/robotsbypass/unknownCDNautomaticdownload"
+  ],
+  "criteria": [
+    "Exacthotelprimaryidentity/body/declaredphotorefs",
+    "Onegroupedfinitephotopass,severalcovers,oneexistingserialreadysubsetsend"
+  ],
+  "risks": [
+    "Twoownerroot/contactURLsareinitialdiscovery,notexactpropertyphotoauthority"
+  ],
+  "hotels": [
+    {
+      "hotel_id": 1653,
+      "url": "https://www.hilton.com/en-gb/hotels/dlmhrhi-hilton-dalaman-sarigerme-resort-and-golf/",
+      "note": "OwnercurrentbrandResort&Golf,nativeoldSpa;no universalfreegolf/privatepoolrights"
+    },
+    {
+      "hotel_id": 1659,
+      "url": "https://www.tui-blue.com/en/en/hotels/tui-blue-sarigerme-park/"
+    },
+    {
+      "hotel_id": 21695,
+      "url": "https://www.tui-blue.com/en/en/hotels/tui-blue-seno/",
+      "note": "Ownerexplicit16+,hillside,5pools;not18emoji"
+    },
+    {
+      "hotel_id": 28668,
+      "url": "https://all.accor.com/hotel/B1J7/index.en.shtml",
+      "note": "Accorprimaryseparatefromblockedrixos.com;native13+needsprimaryproof"
+    },
+    {
+      "hotel_id": 54592,
+      "url": "https://granada.com.tr/en/our-hotels/granada-luxury-belek/",
+      "note": "Owner2026summerfactsheetvalid01Apr..31Oct2026alreadyexpired;no winterinclusiontransfer"
+    },
+    {
+      "hotel_id": 55205,
+      "url": "https://eftaliahotels.com/en/eftalia-ocean-hotel-2/",
+      "note": "NotEftaliaMarin/sisterrights;SwimUpcategoryonly;2025PDFhistorical"
+    },
+    {
+      "hotel_id": 1334,
+      "url": "https://www.kirmanpremium.com/leodikya-kirman-premium/en",
+      "note": "CurrentLeodikyaKirmanPremium;count5vs6chainpropertiesirrelevant;Jacuzziroomcategoryonly"
+    },
+    {
+      "hotel_id": 1715,
+      "url": "https://www.voyagehotel.com/en/voyage-torba",
+      "note": "NotVoyageTorbaPrivate;bookingtransfernotAnyTourinclusion"
+    },
+    {
+      "hotel_id": 1142,
+      "url": "https://crystalhotels.com.tr/",
+      "state": "OWNER_ROOT_PROVEN_EXACT_FLORA_PROPERTY_HREF_UNRESOLVED",
+      "note": "crystalhotels.uknotprovenownerlink;do notguesspropertypath/transfergroupimages"
+    },
+    {
+      "hotel_id": 28327,
+      "url": "https://www.nirvanahotels.com.tr/iletisim",
+      "state": "OWNER_CONTACT_PROVES_EXACT_NAME_ADDRESS_PROPERTY_HREF_UNRESOLVED",
+      "note": "NotCosmopolitan/DolceVita,ukmirrorunprovenownerlink"
+    }
+  ]
+}
