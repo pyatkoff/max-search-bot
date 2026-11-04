@@ -1,4 +1,4 @@
-name: Publish two prepared AnyTour hotels in both existing channels
+name: Actualize one justified Delphin Imperial retained quote within30hours
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -41,21 +41,46 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Prepare the exact verified two hotel batch after current release acceptance
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261104-retained30h1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41788687781
+          path: ${{ runner.temp }}/retained30h1
+      - name: Prepare the exact retained9432 input and durable one request intent
+        env:
+          RETAINED_PATH: ${{ runner.temp }}/retained30h1
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           python3 - <<'PY'
-          import hashlib,json,os,pathlib
-          base=pathlib.Path('tools/direct_demand/operations')
-          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf'
-          approval=json.loads((base/'commercial-batch-20261104-35-approval.json').read_text())
-          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert approval['operation']=='commercial-hotel-batch-20261104-35-v1' and len(approval['hotel_ids'])==2
+          import base64,hashlib,json,os,pathlib,time
+          source=pathlib.Path('tools/direct_demand/operations/check-commercial-price-20261104-quote2.php').read_text()
+          paths=list(pathlib.Path(os.environ['RETAINED_PATH']).rglob('quote-candidate-input.json'));assert len(paths)==1
+          retained=json.loads(paths[0].read_text());assert retained['original_run']==41786947561 and retained['max_age_seconds']==108000
+          assert len(retained['selected'])==1
+          chosen=retained['selected'][0];assert chosen['hotel']['local_tv_id']==9432 and chosen['hotel']['expected_country_id']==4 and chosen['hotel']['current_name_matches_expected'] is True
+          approved=dict(chosen['retained']);approved['hotel_id']=9432
+          assert 0<=int(time.time())-int(approved['created_at_stored_epoch_utc'])<=108000
+          raw=(json.dumps(approved,ensure_ascii=False,separators=(',',':'))+'\n').encode()
+          prefix="<?php\ndeclare(strict_types=1);\n";assert source.startswith(prefix)
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const APPROVED_CANDIDATE_B64='"+base64.b64encode(raw).decode()+"';\n"+"const APPROVED_CANDIDATE_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\n"
+          temp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          (temp/'channel-preflight.php').write_text(header+source[len(prefix):])
+          intent={'operation':'commercial-price-monitor-20261104-quote2','state':'EXACT_ONE_JUSTIFIED_QUOTE_INTENT_BEFORE_PROVIDER','catalog_id':9432,'expected_source':os.environ['EXPECTED_PRODUCTION_SHA'],'approved_candidate_sha256':hashlib.sha256(raw).hexdigest(),'retained_artifact_run':41788687781,'max_age_hours':30,'max_gateway_requests':1,'automatic_retry_allowed':False}
+          (temp/'quote-intent.json').write_text(json.dumps(intent,indent=2)+'\n')
           PY
-          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261104-35-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261104-35-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
           php -l "$RUNNER_TEMP/channel-preflight.php"
+          ANYTOUR_QUOTE30H_FIXTURE=1 php "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain exact private quote intent before the one gateway request
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-price-monitor-20261104-quote2-intent
+          path: ${{ runner.temp }}/quote-intent.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Prepare existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -94,7 +119,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish the exact approved two hotel pairs with canonical buttons and no duplicates
+      - name: Make the one justified existing gateway actualization
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -102,30 +127,30 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          probe_status=0
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
-          import pathlib,json,os
-          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
-          d=json.loads(lines[-1])
-          assert d['operation']=='commercial-hotel-batch-20261104-35-v1' and d['mode']=='publish_approved_commercial_batch'
-          assert d['ok'] is True and len(d['posts'])==4
-          assert d['post_write_attempts']<=4 and d['new_posts']<=4
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==4
-          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
-          summary={'operation':d['operation'],'ok':d['ok'],'verified_posts':len(d['posts']),'new_posts':d['new_posts'],'post_write_attempts':d['post_write_attempts'],'reused_existing':sum(bool(p.get('reused_existing')) for p in d['posts']),'all_body_photo_button_verified':all(p['body_photo_button_verified'] for p in d['posts'])}
-          print(json.dumps(summary,ensure_ascii=False,sort_keys=True))
+          import json,os,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1])
+          assert d['operation']=='commercial-price-monitor-20261104-quote2' and d['mode']=='one_existing_gateway_quote_contract'
+          assert d['db_writes']==d['message_sends']==d['price_block_updates']==0 and d['gateway_requests_attempted']<=1
+          safe={k:d.get(k) for k in ['operation','ok','error','catalog_id','gateway_requests_attempted','quote_state','http_status','response_bytes','response_sha256','request_started_epoch_utc','response_received_epoch_utc','automatic_retry_allowed','full_total_verified','current_availability_verified']}
+          print(json.dumps(safe,sort_keys=True))
+          assert d['ok'] is True
           PY
-          test "${probe_status:-0}" = 0
+          test "$probe_status" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261104-35-publication
-          path: ${{ runner.temp }}/channel-preflight.json
+          name: commercial-price-monitor-20261104-quote2
+          path: |
+            ${{ runner.temp }}/channel-preflight.json
+            ${{ runner.temp }}/quote-intent.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and script files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/quote-intent.json"
 

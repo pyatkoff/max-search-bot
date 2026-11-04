@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261104-quote2",
-  "state": "PREPARED_PENDING_ACCEPTED_CURRENT_RELEASE",
+  "state": "EXACT_APPROVED_RELEASE_AND_TLS_ACCEPTED_ONE_QUOTE_PREPARED",
   "goal": "Actualize one exact retained DelphinImperial candidate admitted by Pavel's30hour window",
   "boundaries": [
     "ONE justified existing action=flights tourId/RUB call;no blindcalls/no retryunknown",
@@ -26,5 +26,6 @@
   "max_gateway_requests": 1,
   "gateway_requests_attempted": 0,
   "db_writes": 0,
-  "message_edits": 0
+  "message_edits": 0,
+  "strict_tls_run": 41789990320
 }
