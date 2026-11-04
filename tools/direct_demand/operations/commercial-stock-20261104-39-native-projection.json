@@ -1,0 +1,191 @@
+{
+  "candidates": [
+    {
+      "key": "gural-belek",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 0,
+            "telegram": 0
+          },
+          "id": 1074,
+          "is_active": 1,
+          "name": "GURAL PREMIER BELEK",
+          "rating": "4.70",
+          "region": "Белек",
+          "region_id": 21
+        }
+      ],
+      "state": "unique_catalog_match"
+    },
+    {
+      "key": "gural-tekirova",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 0,
+            "telegram": 0
+          },
+          "id": 969,
+          "is_active": 1,
+          "name": "GURAL PREMIER TEKIROVA",
+          "rating": "4.50",
+          "region": "Кемер",
+          "region_id": 22
+        }
+      ],
+      "state": "unique_catalog_match"
+    },
+    {
+      "key": "nirvana-dolce",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 0,
+            "telegram": 0
+          },
+          "id": 975,
+          "is_active": 1,
+          "name": "NIRVANA DOLCE VITA",
+          "rating": "4.50",
+          "region": "Кемер",
+          "region_id": 22
+        }
+      ],
+      "state": "unique_catalog_match"
+    },
+    {
+      "key": "nirvana-cosmopolitan",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 0,
+            "telegram": 0
+          },
+          "id": 1294,
+          "is_active": 1,
+          "name": "NIRVANA COSMOPOLITAN",
+          "rating": "4.50",
+          "region": "Анталья",
+          "region_id": 20
+        }
+      ],
+      "state": "unique_catalog_match"
+    },
+    {
+      "key": "liberty-fabay",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 1,
+            "telegram": 1
+          },
+          "id": 75377,
+          "is_active": 1,
+          "name": "LIBERTY FABAY",
+          "rating": "4.60",
+          "region": "Фетхие",
+          "region_id": 27
+        }
+      ],
+      "state": "unique_catalog_match"
+    },
+    {
+      "key": "liberty-lykia",
+      "matches": [],
+      "state": "requires_identity_resolution"
+    },
+    {
+      "key": "tui-blue-palm",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 0,
+            "telegram": 0
+          },
+          "id": 17480,
+          "is_active": 1,
+          "name": "TUI BLUE PALM GARDEN",
+          "rating": "4.80",
+          "region": "Сиде",
+          "region_id": 23
+        }
+      ],
+      "state": "unique_catalog_match"
+    },
+    {
+      "key": "club-hotel-sera",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 0,
+            "telegram": 0
+          },
+          "id": 1100,
+          "is_active": 1,
+          "name": "CLUB HOTEL SERA",
+          "rating": "4.50",
+          "region": "Анталья",
+          "region_id": 20
+        }
+      ],
+      "state": "unique_catalog_match"
+    },
+    {
+      "key": "orange-kemer",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 0,
+            "telegram": 0
+          },
+          "id": 1402,
+          "is_active": 1,
+          "name": "ORANGE COUNTY KEMER",
+          "rating": "4.20",
+          "region": "Кемер",
+          "region_id": 22
+        }
+      ],
+      "state": "unique_catalog_match"
+    },
+    {
+      "key": "granada-okurcalar",
+      "matches": [
+        {
+          "country_id": 4,
+          "existing_registry_matches": {
+            "max": 0,
+            "telegram": 0
+          },
+          "id": 1212,
+          "is_active": 1,
+          "name": "GRANADA LUXURY OKURCALAR (EX. GRANADA LUXURY RESORT & SPA)",
+          "rating": "4.50",
+          "region": "Аланья",
+          "region_id": 19
+        }
+      ],
+      "state": "unique_catalog_match"
+    }
+  ],
+  "country": {
+    "id": 4,
+    "name": "Турция"
+  },
+  "db_writes": 0,
+  "installed_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+  "message_sends": 0,
+  "mode": "read_bounded_public_catalog_stock",
+  "ok": true,
+  "operation": "commercial-stock-20261104-39-read1",
+  "provider_calls": 0
+}
