@@ -51,7 +51,8 @@ $checks = [
 
 $health = null;
 if (defined('TELEGRAM_BOT_TOKEN') && trim((string)TELEGRAM_BOT_TOKEN) !== '') {
-    $health = TelegramWebhookHealth::collect();
+    // Retry only bounded read-only transport failures, not deployment actions.
+    $health = TelegramWebhookHealth::collect(null, true);
     $checks['Telegram API and configured webhook are healthy'] = ($health['ok'] ?? false) === true;
     echo 'TELEGRAM WEBHOOK STATUS: ' . json_encode([
         'ok'=>$health['ok'] ?? false,

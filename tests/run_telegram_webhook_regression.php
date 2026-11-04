@@ -120,6 +120,98 @@ $explicitHealth = TelegramWebhookHealth::collectToken('different-test-token',$he
 twCheck('Telegram health supports explicit token identity inspection', $explicitHealth['bot']['id'] ?? null, 123);
 twCheck('Explicit token health still never exposes token', array_key_exists('token',$explicitHealth), false);
 
+// BEGIN bounded read-only smoke transport regression (synthetic, no network).
+$probeFailure = static fn(int $errno, int $http = 0): array => [
+    'transport_ok'=>false, 'http'=>$http, 'curl_errno'=>$errno,
+    'curl_error'=>'https://api.telegram.org/botPRIVATE_TEST_SECRET/getMe', 'json'=>null,
+];
+foreach ([6,7,28,52,55,56] as $errno) {
+    foreach (['getMe','getWebhookInfo'] as $failedMethod) {
+        $probeCalls=[];$probeCounts=[];
+        $request=static function(string $method, int $budgetMs) use (&$probeCalls,&$probeCounts,$errno,$failedMethod,$probeFailure,$healthRequest): array {
+            $probeCalls[]=[$method,$budgetMs];$probeCounts[$method]=($probeCounts[$method]??0)+1;
+            return $method===$failedMethod&&$probeCounts[$method]===1 ? $probeFailure($errno) : $healthRequest($method);
+        };
+        $recovered=TelegramWebhookHealth::collectToken('PRIVATE_TEST_SECRET',$request,true);
+        $prefix=$failedMethod==='getMe'?'get_me':'get_webhook_info';
+        $label=$failedMethod.' errno '.$errno;
+        twCheck($label.' recovers only after a successful read', $recovered['ok'], true);
+        twCheck($label.' repeats only the failed read', array_column($probeCalls,0),
+            $failedMethod==='getMe'?['getMe','getMe','getWebhookInfo']:['getMe','getWebhookInfo','getWebhookInfo']);
+        twCheck($label.' preserves original failure evidence', $recovered['transport'][$prefix.'_prior_failures'][0]['curl_errno'], $errno);
+        twCheck($label.' reports bounded recovery', [$recovered['transport'][$prefix.'_attempts'],$recovered['transport'][$prefix.'_recovered']], [2,true]);
+        twCheck($label.' budgets never disable or increase timeout', count(array_filter($probeCalls,static fn(array $call):bool=>$call[1]>0&&$call[1]<=15000)), 3);
+        twCheck($label.' does not expose token or raw transport text', str_contains(json_encode($recovered),'PRIVATE_TEST_SECRET'), false);
+        twCheck($label.' preserves webhook and identity data', [$recovered['bot'],$recovered['webhook']], [$health['bot'],$health['webhook']]);
+    }
+}
+$nonRetryable=[
+    'unauthorized'=>$probeFailure(0,401), 'forbidden'=>$probeFailure(0,403),
+    'rate_limit'=>$probeFailure(0,429), 'server_error'=>$probeFailure(0,500),
+    'unavailable'=>$probeFailure(0,503), 'tls_handshake'=>$probeFailure(35),
+    'tls_certificate'=>$probeFailure(60), 'tls_ca'=>$probeFailure(77),
+    'unknown_transport'=>$probeFailure(99), 'no_classification'=>$probeFailure(0),
+    'invalid_json'=>['transport_ok'=>true,'http'=>200,'json'=>null],
+    'api_refusal'=>['transport_ok'=>true,'http'=>200,'json'=>['ok'=>false]],
+];
+foreach ($nonRetryable as $label=>$failure) {
+    $probeCalls=[];
+    $request=static function(string $method) use (&$probeCalls,$failure,$healthRequest):array {
+        $probeCalls[]=$method;return $method==='getMe'?$failure:$healthRequest($method);
+    };
+    $refused=TelegramWebhookHealth::collectToken('PRIVATE_TEST_SECRET',$request,true);
+    twCheck($label.' stays failed', $refused['ok'], false);
+    twCheck($label.' is not retried', $probeCalls, ['getMe','getWebhookInfo']);
+    twCheck($label.' has no recovery flag', $refused['transport']['get_me_recovered'], false);
+}
+$probeCalls=[];
+$persistent=static function(string $method)use(&$probeCalls,$probeFailure):array {$probeCalls[]=$method;return $probeFailure(7);};
+$refused=TelegramWebhookHealth::collectToken('PRIVATE_TEST_SECRET',$persistent,true);
+twCheck('persistent failure has at most two attempts per method', $probeCalls, ['getMe','getMe','getWebhookInfo','getWebhookInfo']);
+twCheck('persistent failure never passes smoke health', $refused['ok'], false);
+$probeCalls=[];
+$legacy=TelegramWebhookHealth::collectToken('PRIVATE_TEST_SECRET',$persistent);
+twCheck('existing status readers do not acquire retries', $probeCalls, ['getMe','getWebhookInfo']);
+twCheck('existing status readers retain failure', $legacy['ok'], false);
+$probeCalls=[];
+twCheck('missing token remains unconfigured', TelegramWebhookHealth::collectToken('',$persistent,true), ['ok'=>false,'configured'=>false,'reason'=>'missing_token']);
+twCheck('missing token makes no API requests', $probeCalls, []);
+$exception=TelegramWebhookHealth::collectToken('PRIVATE_TEST_SECRET',static function():array {throw new RuntimeException('https://example.test/PRIVATE_TEST_SECRET');},true);
+twCheck('unknown exception remains an error', [$exception['ok'],$exception['reason']], [false,'exception']);
+twCheck('exception detail cannot disclose tokens', str_contains(json_encode($exception),'PRIVATE_TEST_SECRET'), false);
+
+// Exercise the real private retry loop with a deterministic monotonic clock;
+// no sleep, credential, external request or replacement retry implementation.
+$readProbe=new ReflectionMethod(TelegramWebhookHealth::class,'readProbe');
+foreach ([12000,15000,20000] as $elapsed) {
+    $probeClock=0.0;$budgets=[];
+    $request=static function(string $method,int $budget)use(&$probeClock,&$budgets,$elapsed,$probeFailure,$healthRequest):array {
+        $budgets[]=$budget;
+        if(count($budgets)===1){$probeClock+=$elapsed;return $probeFailure(28);}
+        return $healthRequest($method);
+    };
+    $clock=static function()use(&$probeClock):float{return $probeClock;};
+    $probe=$readProbe->invoke(null,$request,'getMe',$clock);
+    twCheck('elapsed '.$elapsed.' shares original 15-second budget', $budgets, $elapsed<15000?[15000,15000-$elapsed]:[15000]);
+    twCheck('elapsed '.$elapsed.' requires real successful result', $probe['transport_ok'], $elapsed<15000);
+}
+$probeCalls=[];
+foreach (['sendMessage','setWebhook','deleteWebhook','getUpdates'] as $method) {
+    $denied=false;
+    try {$readProbe->invoke(null,$persistent,$method);} catch (InvalidArgumentException $e) {$denied=$e->getMessage()==='unsupported_health_read';}
+    twCheck('retry boundary refuses '.$method, $denied, true);
+}
+twCheck('disallowed methods never reach transport', $probeCalls, []);
+$probeCalls=[];
+$invalidAfterRetry=static function(string $method)use(&$probeCalls,$probeFailure,$healthRequest):array {
+    $probeCalls[]=$method;
+    if($method!=='getMe')return $healthRequest($method);
+    return count($probeCalls)===1?$probeFailure(7):['transport_ok'=>true,'http'=>200,'json'=>null];
+};
+$refused=TelegramWebhookHealth::collectToken('PRIVATE_TEST_SECRET',$invalidAfterRetry,true);
+twCheck('second invalid response cannot turn a retry into success', [$refused['ok'],$refused['transport']['get_me_recovered']], [false,false]);
+// END bounded read-only smoke transport regression.
+
 $channelUpdate = ['update_id'=>1004,'edited_channel_post'=>['text'=>'ignore me']];
 twCheck('Channel update is consumed before personal dispatcher', TelegramWebhookHandler::dispatchUpdate($channelUpdate,$dispatcher,$messenger), true);
 $ignored = ['update_id'=>1005,'poll'=>['question'=>'ignore me']];
