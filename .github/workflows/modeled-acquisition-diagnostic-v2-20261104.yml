@@ -1,0 +1,164 @@
+name: Diagnose modeled acquisition read failure v2
+
+on:
+  push:
+    branches: [ops/modeled-acquisition-diagnostic-v2-20261104]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/ops/modeled-acquisition-diagnostic-v2-20261104' && github.run_attempt == 1
+    concurrency:
+      group: anytour-modeled-acquisition-read-only-diagnostic-v2-20261104
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    env:
+      ACCEPTED_MAIN_SHA: 'b69f4552beae0837318efef8507b6d1283df2a2f'
+      EXPECTED_READER_BLOB: '57017c2dc25b1f92fdfa750685ce6df348c026d3'
+      EXPECTED_VIEW_BLOB: 'a481495f39b622db97d971c6d4e049df5e1c25ff'
+      EXPECTED_CONTROLLER_BLOB: '26f05e9d8ddfe1ddbff4dd4044856e29001bb4b0'
+      EXPECTED_OWNER_SCOPE_BLOB: '42b442b37b8e09b9e08d2c4f667440cfbd1aa6cb'
+    steps:
+      - name: Checkout this one original diagnostic commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify repository event original attempt main ancestry and sole path
+        id: provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_EVENT_NAME" = 'push'
+          test "$GITHUB_REF" = 'refs/heads/ops/modeled-acquisition-diagnostic-v2-20261104'
+          test "$GITHUB_RUN_ATTEMPT" = '1'
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          for value in "$ACCEPTED_MAIN_SHA" "$EXPECTED_READER_BLOB" "$EXPECTED_VIEW_BLOB" "$EXPECTED_CONTROLLER_BLOB" "$EXPECTED_OWNER_SCOPE_BLOB"; do [[ "$value" =~ ^[0-9a-f]{40}$ ]]; done
+          jq -e --arg sha "$GITHUB_SHA" '
+            .repository.full_name=="pyatkoff/max-search-bot" and
+            .ref=="refs/heads/ops/modeled-acquisition-diagnostic-v2-20261104" and
+            .deleted==false and .forced==false and .after==$sha
+          ' "$GITHUB_EVENT_PATH" >/dev/null
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          read -r head parent extra < <(git rev-list --parents -n 1 HEAD)
+          test "$head" = "$GITHUB_SHA"
+          test "$parent" = "$ACCEPTED_MAIN_SHA"
+          test -z "$extra"
+          test "$(git diff --name-only "$ACCEPTED_MAIN_SHA" HEAD)" = '.github/workflows/modeled-acquisition-diagnostic-v2-20261104.yml'
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:services/ModeledConversionAcquisitionStatsReader.php")" = "$EXPECTED_READER_BLOB"
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:services/ModeledConversionAcquisitionStatsView.php")" = "$EXPECTED_VIEW_BLOB"
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:manager/assigned-value.php")" = "$EXPECTED_CONTROLLER_BLOB"
+          test "$(git rev-parse "$ACCEPTED_MAIN_SHA:services/InternalOwnerDialogueScope.php")" = "$EXPECTED_OWNER_SCOPE_BLOB"
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git merge-base --is-ancestor "$ACCEPTED_MAIN_SHA" refs/remotes/origin/main
+
+      - name: Prepare existing SSH credential only on the GitHub runner
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_file="$RUNNER_TEMP/modeled-acquisition-diagnostic-v2-key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+
+      - name: Diagnose one canonical read with private warning capture
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'READ_ONLY_ACQUISITION_DIAGNOSTIC'
+          import datetime as dt,json,os,pathlib,re,subprocess
+          REMOTE="set -euo pipefail\nexport GIT_OPTIONAL_LOCKS=0\nroot='/var/www/anytoour/data/www/app.anytoour.ru'\ncd \"$root\"\nfence() {\n  test \"$(pwd -P)\" = \"$root\"\n  for path in services/ModeledConversionAcquisitionStatsReader.php services/ModeledConversionAcquisitionStatsView.php manager/assigned-value.php services/InternalOwnerDialogueScope.php; do\n    test -f \"$path\"\n    test ! -L \"$path\"\n  done\n  test \"$(git hash-object -- services/ModeledConversionAcquisitionStatsReader.php)\" = '57017c2dc25b1f92fdfa750685ce6df348c026d3'\n  test \"$(git hash-object -- services/ModeledConversionAcquisitionStatsView.php)\" = 'a481495f39b622db97d971c6d4e049df5e1c25ff'\n  test \"$(git hash-object -- manager/assigned-value.php)\" = '26f05e9d8ddfe1ddbff4dd4044856e29001bb4b0'\n  test \"$(git hash-object -- services/InternalOwnerDialogueScope.php)\" = '42b442b37b8e09b9e08d2c4f667440cfbd1aa6cb'\n  git diff --quiet HEAD -- services/ModeledConversionAcquisitionStatsReader.php services/ModeledConversionAcquisitionStatsView.php manager/assigned-value.php services/InternalOwnerDialogueScope.php\n}\nfence\nresult=\"$(/usr/bin/php <<'ACQUISITION_DIAGNOSTIC_PHP'\n<?php\ndeclare(strict_types=1);\nini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$root='/var/www/anytoour/data/www/app.anytoour.ru';\n$readerFile=$root.'/services/ModeledConversionAcquisitionStatsReader.php';\n$checks=array_fill_keys(['fixed_project','read_only_session','warning_mode','reader_returned',\n    'handler_restored','error_reporting_restored','pdo_mode_restored','transaction_closed','read_only_restored'],false);\n$out=['schema_version'=>1,'diagnostic_completed'=>false,'reason'=>'bootstrap_unavailable',\n    'checked_at'=>gmdate('Y-m-d\\TH:i:s\\Z'),'engine_family'=>'other','reader_available'=>false,\n    'reader_reason'=>null,'query_count'=>null,'elapsed_ms'=>null,'warnings'=>[],\n    'sources'=>['reader'=>'57017c2dc25b1f92fdfa750685ce6df348c026d3','view'=>'a481495f39b622db97d971c6d4e049df5e1c25ff',\n        'controller'=>'26f05e9d8ddfe1ddbff4dd4044856e29001bb4b0','owner_scope'=>'42b442b37b8e09b9e08d2c4f667440cfbd1aa6cb'],\n    'checks'=>$checks];\n$pdo=null;$priorReadOnly=null;$variable=null;$priorMode=null;$priorReporting=null;$installed=false;$warnings=[];\n$reason='bootstrap_unavailable';\ntry{\n    if(PHP_SAPI!=='cli'||realpath((string)getcwd())!==$root)throw new RuntimeException();\n    require_once $root.'/config.php';\n    require_once $root.'/services/ProjectAccessService.php';\n    require_once $readerFile;\n    $authorize=static function()use($root):void{\n        if(PHP_SAPI!=='cli'||realpath((string)getcwd())!==$root||ProjectConfig::projectId()!=='anytour'\n            ||!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635')throw new RuntimeException();\n    };\n    $authorize();$checks['fixed_project']=true;\n    ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();\n    if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'||$pdo->inTransaction())throw new RuntimeException();\n    $version=(string)$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);\n    $out['engine_family']=stripos($version,'mariadb')!==false?'mariadb':(preg_match('/\\A[0-9]+\\.[0-9]+/D',$version)===1?'mysql':'other');\n    unset($version);\n    $priorMode=(int)$pdo->getAttribute(PDO::ATTR_ERRMODE);\n    $reason='read_only_unavailable';\n    foreach(['transaction_read_only','tx_read_only']as$name){\n        try{\n            $value=$pdo->query('SELECT @@SESSION.'.$name)->fetchColumn();\n            if(in_array((string)$value,['0','1'],true)){$priorReadOnly=(int)$value;$variable=$name;break;}\n        }catch(PDOException$ignored){}\n    }\n    if($priorReadOnly===null)throw new RuntimeException();\n    $pdo->exec('SET SESSION TRANSACTION READ ONLY');\n    $checks['read_only_session']=(string)$pdo->query('SELECT @@SESSION.'.$variable)->fetchColumn()==='1';\n    if(!$checks['read_only_session'])throw new RuntimeException();\n    $reason='diagnostic_setup_failed';\n    $priorReporting=error_reporting(E_ALL);\n    set_error_handler(static function(int$severity,string$message,string$file,int$line)use(&$warnings,$readerFile):bool{\n        if(count($warnings)>=8)return true;\n        $state=null;$driver=null;\n        if(preg_match('/SQLSTATE\\[([A-Z0-9]{5})\\]/D',$message,$m)===1){\n            $state=$m[1];\n            if(preg_match('/:\\s*([0-9]{1,5})\\b/D',$message,$d)===1)$driver=(int)$d[1];\n        }\n        $operation='other';$publicLines=[];$callLine=null;\n        foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,24)as$frame){\n            $function=$frame['function']??'';$class=$frame['class']??'';\n            if(in_array($class,['PDO','PDOStatement'],true)&&in_array($function,['prepare','execute','fetch','query','exec','beginTransaction','rollBack'],true)\n                &&$operation==='other')$operation=$function;\n            if(($frame['file']??null)!==$readerFile||!is_int($frame['line']??null)||$frame['line']<1||$frame['line']>4096)continue;\n            if(!in_array($frame['line'],$publicLines,true)&&count($publicLines)<8)$publicLines[]=$frame['line'];\n            if($class==='ModeledConversionAcquisitionStatsReader'&&$function==='rows')$callLine=$frame['line'];\n        }\n        if($callLine===null&&$publicLines!==[])$callLine=$publicLines[0];\n        $warnings[]=['sqlstate'=>$state,'driver_code'=>$driver,'operation'=>$operation,\n            'reader_call_line'=>$callLine,'reader_lines'=>$publicLines];\n        return true;\n    });\n    $installed=true;\n    if(!$pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_WARNING))throw new RuntimeException();\n    $checks['warning_mode']=(int)$pdo->getAttribute(PDO::ATTR_ERRMODE)===PDO::ERRMODE_WARNING;\n    if(!$checks['warning_mode'])throw new RuntimeException();\n    $now=time();$out['checked_at']=gmdate('Y-m-d\\TH:i:s\\Z',$now);$reason='reader_call_failed';\n    $began=microtime(true);\n    try{$page=(new ModeledConversionAcquisitionStatsReader($pdo,$authorize))->read([],$now);}\n    finally{$out['elapsed_ms']=max(0,(int)round((microtime(true)-$began)*1000));}\n    $allowed=[null,'record_limit','time_limit','byte_limit','source_shape_limit','source_changed','storage_unavailable','outer_transaction'];\n    $checks['reader_returned']=is_array($page)&&($page['schema_version']??null)===1&&is_bool($page['available']??null)\n        &&in_array($page['reason']??null,$allowed,true)&&is_int($page['query_count']??null)\n        &&$page['query_count']>=0&&$page['query_count']<=50000;\n    if(!$checks['reader_returned']){$reason='invalid_technical_result';throw new RuntimeException();}\n    $out['reader_available']=$page['available'];$out['reader_reason']=$page['reason'];$out['query_count']=$page['query_count'];\n    unset($page);$checks['transaction_closed']=!$pdo->inTransaction();$authorize();$reason='diagnostic_contract_failed';\n}catch(Throwable$ignored){\n    // No raw warning, SQL, parameters, rows, profile, exception or server version is projected.\n}finally{\n    if($installed)$checks['handler_restored']=restore_error_handler();\n    if($priorReporting!==null){error_reporting($priorReporting);$checks['error_reporting_restored']=error_reporting()===$priorReporting;}\n    if($pdo instanceof PDO){\n        try{\n            if($priorMode!==null){\n                $pdo->setAttribute(PDO::ATTR_ERRMODE,$priorMode);\n                $checks['pdo_mode_restored']=(int)$pdo->getAttribute(PDO::ATTR_ERRMODE)===$priorMode;\n            }\n            if($pdo->inTransaction())$pdo->rollBack();\n            if($priorReadOnly!==null&&$variable!==null){\n                $pdo->exec('SET SESSION TRANSACTION READ '.($priorReadOnly===1?'ONLY':'WRITE'));\n                $checks['read_only_restored']=(string)$pdo->query('SELECT @@SESSION.'.$variable)->fetchColumn()===(string)$priorReadOnly;\n            }\n        }catch(Throwable$ignored){}\n    }\n}\n$out['checks']=$checks;$out['warnings']=$warnings;\n$out['diagnostic_completed']=!in_array(false,$checks,true);\n$out['reason']=$out['diagnostic_completed']?null:$reason;\necho json_encode($out,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES),\"\\n\";\nexit(0);\nACQUISITION_DIAGNOSTIC_PHP\n)\"\nfence\ntest \"$(printf '%s' \"$result\" | wc -c)\" -le 8192\nprintf '%s\\n' \"$result\"\n"
+          checks=["fixed_project","read_only_session","warning_mode","reader_returned","handler_restored",
+                  "error_reporting_restored","pdo_mode_restored","transaction_closed","read_only_restored"]
+          sources={"reader":os.environ["EXPECTED_READER_BLOB"],"view":os.environ["EXPECTED_VIEW_BLOB"],
+                   "controller":os.environ["EXPECTED_CONTROLLER_BLOB"],"owner_scope":os.environ["EXPECTED_OWNER_SCOPE_BLOB"]}
+          out={"schema_version":1,"diagnostic_completed":False,"reason":"diagnostic_transport_or_source_unavailable",
+               "checked_at":dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+               "engine_family":"other","reader_available":False,"reader_reason":None,"query_count":None,
+               "elapsed_ms":None,"warnings":[],"sources":sources,"checks":dict.fromkeys(checks,False)}
+          try:
+              command=["ssh","-i",str(pathlib.Path(os.environ["RUNNER_TEMP"])/"modeled-acquisition-diagnostic-v2-key"),
+                       "-o","BatchMode=yes","-o","StrictHostKeyChecking=no","-o","UserKnownHostsFile=/dev/null",
+                       "-o","ConnectTimeout=10",os.environ["DEPLOY_USER"]+"@"+os.environ["DEPLOY_HOST"],
+                       "timeout 25s bash -s"]
+              result=subprocess.run(command,input=REMOTE.encode("utf-8"),stdout=subprocess.PIPE,
+                                    stderr=subprocess.DEVNULL,timeout=30,check=False)
+              if result.returncode!=0 or len(result.stdout)>8192:
+                  raise ValueError("unavailable")
+              value=json.loads(result.stdout)
+              expected={"schema_version","diagnostic_completed","reason","checked_at","engine_family","reader_available",
+                        "reader_reason","query_count","elapsed_ms","warnings","sources","checks"}
+              reasons={None,"bootstrap_unavailable","read_only_unavailable","diagnostic_setup_failed","reader_call_failed",
+                       "invalid_technical_result","diagnostic_contract_failed"}
+              reader_reasons={None,"record_limit","time_limit","byte_limit","source_shape_limit","source_changed","storage_unavailable","outer_transaction"}
+              if not isinstance(value,dict) or set(value)!=expected or value["schema_version"]!=1 or \
+                 type(value["diagnostic_completed"]) is not bool or value["reason"] not in reasons or \
+                 value["engine_family"] not in {"mysql","mariadb","other"} or type(value["reader_available"]) is not bool or \
+                 value["reader_reason"] not in reader_reasons or value["sources"]!=sources or \
+                 not isinstance(value["checked_at"],str) or re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z",value["checked_at"]) is None or \
+                 not isinstance(value["checks"],dict) or set(value["checks"])!=set(checks) or \
+                 any(type(v) is not bool for v in value["checks"].values()) or \
+                 (value["diagnostic_completed"] and (value["reason"] is not None or not all(value["checks"].values()))):
+                  raise ValueError("shape")
+              for field,maximum in (("query_count",50000),("elapsed_ms",30000)):
+                  if value[field] is not None and (type(value[field]) is not int or not 0<=value[field]<=maximum):
+                      raise ValueError("technical_counter")
+              if not isinstance(value["warnings"],list) or len(value["warnings"])>8:
+                  raise ValueError("warnings")
+              for warning in value["warnings"]:
+                  if not isinstance(warning,dict) or set(warning)!={"sqlstate","driver_code","operation","reader_call_line","reader_lines"}:
+                      raise ValueError("warning_shape")
+                  if warning["sqlstate"] is not None and (not isinstance(warning["sqlstate"],str) or re.fullmatch(r"[A-Z0-9]{5}",warning["sqlstate"]) is None):
+                      raise ValueError("sqlstate")
+                  if warning["driver_code"] is not None and (type(warning["driver_code"]) is not int or not 0<=warning["driver_code"]<=99999):
+                      raise ValueError("driver")
+                  if warning["operation"] not in {"prepare","execute","fetch","query","exec","beginTransaction","rollBack","other"}:
+                      raise ValueError("operation")
+                  if not isinstance(warning["reader_lines"],list) or len(warning["reader_lines"])>8 or \
+                     any(type(line) is not int or not 1<=line<=4096 for line in warning["reader_lines"]):
+                      raise ValueError("lines")
+                  if warning["reader_call_line"] is not None and (type(warning["reader_call_line"]) is not int or warning["reader_call_line"] not in warning["reader_lines"]):
+                      raise ValueError("call_line")
+              out=value
+          except Exception:
+              pass
+          output=pathlib.Path(os.environ["RUNNER_TEMP"])/"modeled-acquisition-diagnostic-v2.json"
+          output.write_text(json.dumps(out,sort_keys=True,separators=(",",":"))+"\n",encoding="utf-8")
+          output.chmod(0o600)
+          print(json.dumps(out,sort_keys=True,separators=(",",":")))
+          raise SystemExit(0 if out["diagnostic_completed"] else 1)
+          READ_ONLY_ACQUISITION_DIAGNOSTIC
+
+      - name: Retain closed technical diagnosis only
+        if: always() && steps.provenance.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: modeled-acquisition-technical-diagnostic-v2
+          path: ${{ runner.temp }}/modeled-acquisition-diagnostic-v2.json
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Remove ephemeral SSH credential
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/modeled-acquisition-diagnostic-v2-key"
