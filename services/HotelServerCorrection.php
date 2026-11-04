@@ -11,8 +11,10 @@ final class HotelServerCorrection
     public static function prepare(array $c,array $package,array $plan,array $producer,array $reviewer,
         array $candidate,array $review,array $correction): array
     {
-        self::keys($correction,['schema','proposal','review']);
-        if(($correction['schema']??null)!=='hotel-server-correction-v1'||!is_array($correction['proposal'])||!is_array($correction['review']))
+        $continuing=($correction['schema']??null)==='hotel-server-correction-v2';
+        self::keys($correction,$continuing?['schema','proposal','review','continuation_admission']:['schema','proposal','review']);
+        if(!in_array($correction['schema']??null,['hotel-server-correction-v1','hotel-server-correction-v2'],true)
+            ||!is_array($correction['proposal'])||!is_array($correction['review']))
             throw new DomainException('correction_document_required');
         $p=$correction['proposal'];$supplement=$correction['review'];
         self::keys($p,['campaign_id','stage_index','bootstrap_sha256','inputs_sha256','baseline_sha256','plan_sha256',
@@ -24,7 +26,8 @@ final class HotelServerCorrection
             HotelServerInputs::sha($p[$field]);
         foreach(['campaign_id','bootstrap_sha256','inputs_sha256','baseline_sha256'] as $field)
             if($p[$field]!==$c[$field])throw new DomainException('correction_campaign_CAS');
-        if(!is_int($p['stage_index'])||$p['stage_index']<0||$p['stage_index']!==count($plan['stages'])-1
+        if(!is_int($p['stage_index'])||$p['stage_index']<0||$p['stage_index']>=count($plan['stages'])
+            ||($continuing?$p['stage_index']===count($plan['stages'])-1:$p['stage_index']!==count($plan['stages'])-1)
             ||($plan['research_mode']??null)!=='assigned_retained_excerpts'
             ||$p['plan_sha256']!==hash('sha256',$c['plan_bytes']))throw new DomainException('correction_final_stage_required');
         $identity=$package;unset($identity['inputs_sha256'],$identity['bytes']);
@@ -65,6 +68,7 @@ final class HotelServerCorrection
                 ||HotelServerInputs::json($r['scopes']??null)!==HotelServerInputs::json($scopes)
                 ||HotelServerInputs::json($r['dependencies']??null)!==HotelServerInputs::json($contexts)
                 ||HotelServerInputs::json($r['limits']??null)!==HotelServerInputs::json($plan['limits']))throw new DomainException('correction_attempt_lineage');
+            if($continuing&&array_key_exists('continuation_admission_sha256',$r))throw new DomainException('continuation_single_admission_required');
             $requests[$role]=$r;$results[$role]=$result;
         }
         if($producer['principal']===$reviewer['principal']||$producer['attempt_id']===$reviewer['attempt_id']
@@ -113,9 +117,70 @@ final class HotelServerCorrection
         if(count($seen)!==count($expected)||$originalRecord===null)throw new DomainException('correction_candidate_scope');
         $bytes=HotelServerInputs::json($document);$correctionBytes=HotelServerInputs::json($correction);
         if(strlen($bytes)>1048576||strlen($correctionBytes)>65536)throw new DomainException('correction_document_bound');
+        $continuation=$continuing?self::continuation($c,$package,$plan,$correction,$results):null;
         return ['candidate'=>$document,'candidate_bytes'=>$bytes,'candidate_sha256'=>hash('sha256',$bytes),
             'correction_bytes'=>$correctionBytes,'correction_sha256'=>hash('sha256',$correctionBytes),
-            'correction_review_sha256'=>hash('sha256',HotelServerInputs::json($supplement))];
+            'correction_review_sha256'=>hash('sha256',HotelServerInputs::json($supplement)),'continuation_admission'=>$continuation];
+    }
+
+    /** One immutable admission alongside the correction. No clock gate on historical proof. */
+    private static function continuation(array $c,array $package,array $plan,array $correction,array $results): array
+    {
+        $a=$correction['continuation_admission'];
+        if(!is_array($a))throw new DomainException('continuation_admission_required');
+        self::keys($a,['schema','proposal_sha256','budget_attestation','previous_policy','policy','profile','instruction_sha256']);
+        if($a['schema']!=='hotel-server-continuation-admission-v1'
+            ||HotelServerInputs::sha($a['proposal_sha256'])!==hash('sha256',HotelServerInputs::json($correction['proposal'])))
+            throw new DomainException('continuation_proposal_pin');
+        foreach(['budget_attestation','previous_policy','policy','profile','instruction_sha256'] as $key)
+            if(!is_array($a[$key])||array_is_list($a[$key]))throw new DomainException('continuation_admission_required');
+        $b=$a['budget_attestation'];$old=$a['previous_policy'];$policy=$a['policy'];$profile=$a['profile'];$instructions=$a['instruction_sha256'];
+        self::keys($b,['schema','campaign_id','bootstrap_sha256','plan_sha256','correction_stage_index','consumed','remaining','limits','valid_from','valid_until','authorization_ref']);
+        $stage=$correction['proposal']['stage_index'];$calls=2*($stage+1);$total=2*count($plan['stages']);$limits=$plan['limits'];
+        if($b['schema']!=='hotel-server-continuation-budget-v1'||$b['campaign_id']!==$c['campaign_id']
+            ||$b['bootstrap_sha256']!==$c['bootstrap_sha256']||$b['plan_sha256']!==hash('sha256',$c['plan_bytes'])
+            ||$b['correction_stage_index']!==$stage||HotelServerInputs::json($b['limits'])!==HotelServerInputs::json($limits)
+            ||$limits['max_calls']!==$total||$limits['max_tokens']!==$total*$limits['tokens_per_call']
+            ||$limits['max_micros']!==$total*$limits['micros_per_call'])throw new DomainException('continuation_original_budget_required');
+        foreach(['consumed'=>$calls,'remaining'=>$total-$calls] as $key=>$count){
+            $expected=['calls'=>$count,'tokens'=>$count*$limits['tokens_per_call'],'micros'=>$count*$limits['micros_per_call']];
+            if(HotelServerInputs::json($b[$key])!==HotelServerInputs::json($expected))throw new DomainException('continuation_reservations_unchanged');
+        }
+        self::text($b['authorization_ref'],2048);
+        if(!is_int($b['valid_from'])||!is_int($b['valid_until'])||$b['valid_from']<$limits['deadline']
+            ||$b['valid_until']<=$b['valid_from']||$b['valid_until']>2000000000)throw new DomainException('continuation_bounded_window_required');
+        self::keys($old,['model','profile_sha256','principals','source_mode','input_token_ceiling','request_byte_ceiling','max_scopes',
+            'reserved_micros_minimum','max_source_age_seconds','valid_until','budget_attestation_sha256']);
+        if($old['source_mode']!=='assigned_retained_excerpts'||$old['valid_until']!==$limits['deadline']
+            ||!is_int($old['max_source_age_seconds'])||$old['max_source_age_seconds']<1||$old['max_source_age_seconds']>31536000
+            ||!is_array($old['principals'])||HotelServerInputs::sha($old['profile_sha256'])!==hash('sha256',HotelServerInputs::json($profile)))
+            throw new DomainException('continuation_previous_policy_required');
+        HotelServerInputs::sha($old['budget_attestation_sha256']);self::keys($old['principals'],['producer','reviewer']);
+        self::keys($instructions,['producer','reviewer']);foreach($instructions as $hash)HotelServerInputs::sha($hash);
+        $expected=$old;$expected['valid_until']=$b['valid_until'];$expected['budget_attestation_sha256']=hash('sha256',HotelServerInputs::json($b));
+        if(HotelServerInputs::json($policy)!==HotelServerInputs::json($expected))throw new DomainException('continuation_policy_changed');
+        $revision=static fn(array $p):string=>hash('sha256',HotelServerInputs::json([$p,$profile,$instructions['producer'],$instructions['reviewer']]));
+        $previousRevision=$revision($old);$nextRevision=$revision($policy);$principals=[];
+        foreach(['producer','reviewer'] as $role){
+            self::principal($old['principals'][$role]);$r=$results[$role];
+            if($old['model']!==$plan['models'][$role]||($profile['model']??null)!==$old['model']
+                ||($r['profile_sha256']??null)!==$old['profile_sha256']||($r['provider_policy_sha256']??null)!==$previousRevision
+                ||($r['budget_attestation_sha256']??null)!==$old['budget_attestation_sha256']
+                ||($r['principal']??null)!==$old['principals'][$role].':'.$previousRevision)
+                throw new DomainException('continuation_original_provider_lineage');
+            $principals[$role]=$old['principals'][$role].':'.$nextRevision;self::principal($principals[$role]);
+        }
+        if($principals['producer']===$principals['reviewer'])throw new DomainException('independent_reviewer_required');
+        // The unchanged source-age policy bounds the renewed window as well as each provider preflight.
+        foreach(array_slice($plan['stages'],$stage+1) as $scopes)foreach($scopes as $scope){
+            $context=$package['stage_contexts'][HotelServerInputs::key($scope)]??null;
+            if(!is_array($context))throw new DomainException('continuation_assigned_sources_required');
+            foreach(self::sources($context) as $source)
+                if($source['captured_at']>$b['valid_from']||$b['valid_until']>$source['captured_at']+$old['max_source_age_seconds'])
+                    throw new DomainException('continuation_source_window_exceeded');
+        }
+        return ['sha256'=>hash('sha256',HotelServerInputs::json($a)),'first_stage'=>$stage+1,'last_stage'=>count($plan['stages'])-1,
+            'consumed'=>$b['consumed'],'valid_from'=>$b['valid_from'],'valid_until'=>$b['valid_until'],'principals'=>$principals];
     }
 
     /** Canonical receipt keeps the negative original and supplemental approval distinct. */
@@ -136,22 +201,28 @@ final class HotelServerCorrection
     {
         if(!is_string($p['source_url'])||!filter_var($p['source_url'],FILTER_VALIDATE_URL)||!str_starts_with($p['source_url'],'https://'))
             throw new DomainException('correction_source_url');
+        foreach(self::sources($context) as $source)
+            if($source['url']===$p['source_url']&&$source['sha256']===$p['source_sha256'])return $source;
+        throw new DomainException('correction_source_hash');
+    }
+
+    private static function sources(array $context): array
+    {
         $raw=$context['dependencies']['archives']??null;
         if(!is_string($raw)||strlen($raw)>8192)throw new DomainException('correction_assigned_source_required');
         $slice=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
         if(!is_array($slice))throw new DomainException('correction_assigned_source_required');self::keys($slice,['schema','sources']);
         if($slice['schema']!=='hotel-assigned-source-slice-v1'||!is_array($slice['sources'])||!array_is_list($slice['sources'])
             ||!$slice['sources']||count($slice['sources'])>8)throw new DomainException('correction_assigned_source_required');
-        $found=null;$seen=[];
+        $seen=[];
         foreach($slice['sources'] as $source){
             if(!is_array($source))throw new DomainException('correction_assigned_source_required');self::keys($source,['url','excerpt','sha256','captured_at','kind']);
             if(!is_string($source['url'])||isset($seen[$source['url']])||!is_string($source['excerpt'])||$source['excerpt']===''||strlen($source['excerpt'])>4096
                 ||$source['kind']!=='retained_excerpt'||!is_int($source['captured_at'])||$source['captured_at']<1
                 ||HotelServerInputs::sha($source['sha256'])!==hash('sha256',$source['excerpt']))throw new DomainException('correction_assigned_source_required');
             $seen[$source['url']]=true;
-            if($source['url']===$p['source_url']&&$source['sha256']===$p['source_sha256'])$found=$source;
         }
-        if($found===null)throw new DomainException('correction_source_hash');return $found;
+        return $slice['sources'];
     }
 
     private static function keys(array $value,array $expected): void
