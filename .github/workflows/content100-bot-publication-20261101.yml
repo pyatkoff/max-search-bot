@@ -1,4 +1,4 @@
-name: Read only six new batch37 pairs and their private MAX bindings
+name: Prepare156 hotel YML offers preserving150 existing MAX miniapp routes
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -9,132 +9,34 @@ permissions:
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
-env:
-  EXPECTED_PRODUCTION_SHA: 17400f819817593b3b4428b43a8dbe24b109c428
 jobs:
-  inspect:
-    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
           sparse-checkout: |
-            tools/direct_demand/operations
-          sparse-checkout-cone-mode: true
-      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41810617957 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/41810617957/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/41811237447 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Prepare bounded read-only stock inspection
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,pathlib
-          source=pathlib.Path('tools/direct_demand/operations/read-commercial-channel-hotel-feeds-20261104-13.php').read_text()
-          prefix="<?php\ndeclare(strict_types=1);\n"
-          assert source.startswith(prefix)
-          import base64,hashlib
-          inputs=pathlib.Path('tools/direct_demand/operations/commercial-channel-hotel-feeds-20261104-read13-inputs.json').read_bytes()
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const FEED_EXPORT_INPUT_B64='"+base64.b64encode(inputs).decode()+"';\n"+"const FEED_EXPORT_INPUT_SHA256='"+hashlib.sha256(inputs).hexdigest()+"';\n"
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.php').write_text(header+source[len(prefix):])
-
-          PY
-          php -l "$RUNNER_TEMP/channel-preflight.php"
-          ANYTOUR_CHANNEL_BATCH37_SCOPE_FIXTURE=1 php "$RUNNER_TEMP/channel-preflight.php"
-          python3 - <<'PY'
-          import json,pathlib
-          rows=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-channel-hotel-feeds-20261104-read13-inputs.json').read_text())
-          assert [r['hotel_id'] for r in rows]==[1659,21695,28668,55205,1334,1715]
-          assert len({r['accepted_first_line'] for r in rows})==6
-          assert all(r['image_url'].startswith('https://raw.githubusercontent.com/pyatkoff/max-search-bot/725a09df7d4fca62632c04f8ee28bec0f1edccf4/') and len(r['image_sha256'])==64 for r in rows)
-          print('READ13_EXACT_NEW6_INPUTS_OK old_scope_fixtures_rerun=0 server_calls=0')
-          PY
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Read only allowed public feed fields and current paired material counts
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
-          python3 - <<'PY'
-          import pathlib,json,os
-          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
-          d=json.loads(lines[-1])
-          print(json.dumps({k:d[k] for k in ['operation','ok','scope_hotels','feed_rows','deferred_count','private_binding_count','db_writes','provider_calls','message_sends']},sort_keys=True))
-          assert d['operation']=='commercial-channel-hotel-feeds-20261104-read13' and d['mode']=='read_bounded_public_channel_post_feed_inputs'
-          assert d['ok'] is True and d['scope_hotels']==6 and d['feed_rows']==6 and d['deferred_count']==0 and d['private_binding_count']==6
-          assert d['db_writes']==0 and d['provider_calls']==0 and d['message_sends']==0
-          PY
-          test "${probe_status:-0}" = 0
-      - name: Retain bounded route evidence
-        if: always()
-        uses: actions/upload-artifact@v4
+            /tools/direct_demand/operations/
+            /.github/traffic-publish/hotel-posts-telegram.xml
+            /.github/traffic-publish/hotel-posts-max.xml
+            /.github/traffic-publish/hotel-posts-all.xml
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@v4
         with:
+          run-id: 41818905386
           name: commercial-channel-hotel-feeds-20261104-read13
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/new6
+      - name: Build the three public YML exports from only new six canonical pairs
+        run: python3 tools/direct_demand/operations/prepare-commercial-max156-feeds-20261104.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commercial-channel-hotel-feeds-20261104-update12-prepared
           path: |
-            ${{ runner.temp }}/channel-preflight.json
+            ${{ runner.temp }}/hotel-posts-*.xml
+            ${{ runner.temp }}/feed156-route-baseline.json
           retention-days: 14
-          if-no-files-found: warn
-      - name: Remove ephemeral connection and script files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/stock-preflight.php" "$RUNNER_TEMP/stock-preflight.json"
-
+          if-no-files-found: error
