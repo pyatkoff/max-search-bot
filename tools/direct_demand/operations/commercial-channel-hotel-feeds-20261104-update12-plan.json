@@ -1,0 +1,47 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update12",
+  "state": "PREPARED_FOR_EXACT_THREE_STATIC_FILE_REPLACEMENT",
+  "goal": "Append6 acceptedhotel materials to allthree publicYML while preservingold150offerbytes andMAXminiapp routes",
+  "boundaries": [
+    "Only3whitelistedstaticXML with exactacceptedpreviousSHA",
+    "Noinstalledbotruntime/DB/provider/messages/ads/importwrites",
+    "Descriptions/name/imageold150unchanged; noprice/availabilityfields"
+  ],
+  "criteria": [
+    "NativeMAX156installedresultaccepted",
+    "3newappendcasespassedprepare41836833623;fullfrozenbytesvalidator/PHP-l beforeSSH",
+    "Newdurableintent then atomicserverstaticreplacement andHTTPS200exactbytes"
+  ],
+  "risks": [
+    "Unknownexistinghash/sourcechange muststop",
+    "Naturalpaiduserlaunchstillunobserved/TGdirectpendingPavelfiles"
+  ],
+  "source_sha": "fb60a495c4a8d992810aae23f00c60a5b5cd7549",
+  "source_deploy": 41842067565,
+  "source_tls": 41843167599,
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 101057,
+      "sha256": "477792e38d0d27bb5f5f41fc4930b1b39ec199e404812524bff26aa22f55007d",
+      "rows": 156,
+      "expected_previous_sha256": "807da5b17cbda96860c952417bd880091246991e39504ba1e65520f392d70d70"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 127448,
+      "sha256": "e6df462586f76e16ed1810d948440e15c26c9fc7a16c07e5db52ef83c7137e09",
+      "rows": 156,
+      "expected_previous_sha256": "b8d5bc0b5818279dd9968e963ea6a5b91fb837bf1aa8b2b08eec3046ca1782a3"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 228132,
+      "sha256": "62b910d8a4e5b15c0ba25877d09b75e1f9bfabdeee17897b7d211f2662adc67d",
+      "rows": 312,
+      "expected_previous_sha256": "e392c65f507e754f6a08d83f1e5a15bc1b90ea9f7320e4b8380d4832dc6d513b"
+    }
+  ],
+  "precommit_source_change_count": 1,
+  "previous_writer_attempts": 0
+}
