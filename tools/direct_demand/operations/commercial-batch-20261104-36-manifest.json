@@ -1,0 +1,100 @@
+{
+  "operation": "commercial-hotel-batch-20261104-36-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish both ready whole hotel materials in both existing channels in one serial run",
+  "boundaries": [
+    "Existingchannels/bots/registry/once/serialapprovedpublisher only",
+    "Exact current source/verify/TLS/fulltree21blobs beforeSSH/provider; unchangedruntime/rights/dedupguards",
+    "NoMac/newworkers/queues/runtime/ads/customer messages/paidcalls"
+  ],
+  "criteria": [
+    "Two600pxnativePNGsbytes/chunks/SHA/dimensions/nativeviewaccepted",
+    "Exactly4verified body/photo/button/source posts or explicitstop"
+  ],
+  "risks": [
+    "Eightunresolvedcandidatesmustnotdelaytwoready",
+    "IfmainchangesstopbeforeSSH/provider;after2sourcestopsconcretereleasewait"
+  ],
+  "baseline_logical_materials": 148,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 9322,
+      "hotel": "Paloma Pasha",
+      "key": "paloma-pasha",
+      "aliases": [
+        "PALOMA PASHA RESORT"
+      ],
+      "sources": [
+        "https://www.palomahotels.com/en/paloma-pasha"
+      ],
+      "text": "✈️ Туры в Paloma Pasha с перелётом\n📍 Оздере, Измир, Турция.\n\n🏖 Собственный песчаный пляж у бухты.\n🏊 Крытый и открытые бассейны.\n👧 Детские и подростковые программы.\n🧖 Спа и фитнес.\n\n💡 Номера с выходом к бассейну и сьюты с частными террасами относятся к отдельным категориям.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Paloma Pasha.",
+      "logical_id": "commercial-paloma-pasha-9322-v1",
+      "text_sha256": "c8b34bd97f9bdfd411d4608260b02e7577cd828e08c1c1be8e0a53a09f42f225",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/9322.png",
+      "photo_sha256": "aa9915b8ad9036c16803256e7c0e2758ca77fa1471e9ab54772729b2bb7395b8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    },
+    {
+      "hotel_id": 1672,
+      "hotel": "Kempinski Hotel Barbaros Bay",
+      "key": "kempinski-barbaros-bay",
+      "aliases": [
+        "KEMPINSKI BARBAROSS BAY HOTEL"
+      ],
+      "sources": [
+        "https://www.kempinski.com/en/hotel-barbaros-bay/hotel-overview/hotel-information/our-hotel"
+      ],
+      "text": "✈️ Туры в Kempinski Hotel Barbaros Bay с перелётом\n📍 Бодрум, Турция.\n\n🏖 Собственный пляж.\n🏊 Панорамный бассейн.\n🧖 Спа площадью 5 500 м².\n🍽 Рестораны с разными кухнями.\n\n💡 Отель расположен на склонах у бухты Барбарос с видом на Эгейское море.\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Kempinski Hotel Barbaros Bay.",
+      "logical_id": "commercial-kempinski-barbaros-bay-1672-v1",
+      "text_sha256": "86ac85b07c77d5133d28d9111fbe1a28328c33d5bf886a120f1b1a3788683ba4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/85dbd81563f98892ff919e35d7148c9d63cf1b0d/.github/traffic-publish/commercial-batch-20261104-36/1672.png",
+      "photo_sha256": "894adffcd6c46a580aec53fd63b2c2a13562d118667cb46ee4ce3a5926b6ff5f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 2,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 2,
+  "approved_live_send_count": 2,
+  "public_png_frozen_count": 2,
+  "native_inspection_state": "TWO_NATIVE_PNG_VISUALLY_VERIFIED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41796406693"
+  ],
+  "deferred": [
+    {
+      "hotel_id": 65895,
+      "reason": "videoheroonlypool/mainonepool/buildingband/overviewwoman/room404nohero"
+    },
+    {
+      "hotel_id": 970,
+      "reason": "mainmodels/roomonly/aquapark270x400dimensionrejection"
+    },
+    {
+      "hotel_id": 967,
+      "reason": "mainmodels/nohotelhero;roomandaquaparkonly"
+    },
+    {
+      "hotel_id": 968,
+      "reason": "mainmodels/nohotelhero;roomandaquaparkonly"
+    },
+    {
+      "hotel_id": 2175,
+      "reason": "generalviewwithwordmark/gallerybgintentionallyblurred/no2lowerphotos"
+    },
+    {
+      "hotel_id": 1201,
+      "reason": "new2photoskidslideandpoolnotwholehero"
+    },
+    {
+      "hotel_id": 1198,
+      "reason": "new3photosonepool/beach/pierswithoutcomplexnotwholehero"
+    },
+    {
+      "hotel_id": 35313,
+      "reason": "SSRgalleryonly2genericbrandCDNimagesnotprovenpropertyphotos;notdownloaded"
+    }
+  ]
+}
