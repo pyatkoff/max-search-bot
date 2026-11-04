@@ -189,6 +189,7 @@ function executionAttemptCoreChecks(): void {
 }
 
 function executionAttemptInvalidChecks(): void {
+    $invalidStarted=microtime(true);
     $reuse=getenv('HOTEL_WORK_NATIVE_MYSQL')==='1';
     if ($reuse) HotelWorkTestPdo::reuseInvalidSchema(true);
     try {
@@ -253,6 +254,7 @@ function executionAttemptInvalidChecks(): void {
     executionSameSnapshotReject($pdo,fn()=>$queue->bind_execution_attempt(1,str_repeat('a',32),array_replace($bind,['producer_run_id'=>'OTHER_PRODUCER4'])),'binding_conflict_cannot_add_fourth_producer');
     } finally {
         if ($reuse) HotelWorkTestPdo::reuseInvalidSchema(false);
+        fprintf(STDERR, "HOTEL_INVALID_MYSQL_TIMING seconds=%.3f reuse=%d\n", microtime(true)-$invalidStarted, (int)$reuse);
     }
 }
 
