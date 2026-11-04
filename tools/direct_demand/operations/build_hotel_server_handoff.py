@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
-"""Build a pinned HOTEL handoff offline. No network, PHP execution, Git or provider calls.
+"""Build a pinned HOTEL handoff and seal runner diagnostics locally.
+
+No network, PHP execution, Git or provider calls. Diagnostic modes only read the
+already pinned operator as text and this runner's existing capture files.
 
 The reviewed control flow is immutable. Only the strict launch manifest, canonical
 public payload, derived constants and workflow pins may change between launches.
 """
 from pathlib import Path
 import argparse
+import base64
 import hashlib
 import json
+import os
 import re
+import stat
 import sys
 
 PHP = 'tools/direct_demand/operations/hotel-server-private-readiness.php'
@@ -17,7 +23,7 @@ BUILDER = 'tools/direct_demand/operations/build_hotel_server_handoff.py'
 KIND = 'hotel-server-private-forward-handoff-v2'
 PROFILE = '92ae1de467574b17a77d188b2f9766d139e5ada622126a20d2fe2052f5506323'
 PHP_CONTROL_SHA = '3f3b04c89304a8131a71bbee0049ec337a916fad58a8a774bae68887ce60d6e9'
-WORKFLOW_CONTROL_SHA = '6a2fd2a44519c58e24d9bcb9d35cf8e8730f4fe31af2d47a45e9878e5bd963f5'
+WORKFLOW_CONTROL_SHA = 'c30baaacc621dc4e64493fc83977be8b24313551a166d787906a1c2b1366270d'
 COMPLETION = {'state': 'complete', 'stage_cursor': 4, 'new_accepted': 4,
               'historical_accepted': 19, 'reserved_calls': 8,
               'reserved_tokens': 8417600, 'reserved_micros': 88000000}
@@ -25,6 +31,11 @@ DYNAMIC = ('HOTEL_EXPECTED_INSTALLED_SHA', 'HOTEL_OPERATION', 'HOTEL_PREDECESSOR
            'HOTEL_CAMPAIGN', 'HOTEL_OLD_BOOTSTRAP', 'HOTEL_PREDECESSOR_INPUTS_SHA',
            'HOTEL_OLD_RUNTIME', 'HOTEL_PAYLOAD_SHA', 'HOTEL_DELTA_SHA',
            'HOTEL_PLAN_SHA', 'HOTEL_POLICY_SHA', 'HOTEL_BUDGET_SHA')
+DIAGNOSTIC_KIND = 'hotel-server-private-runner-diagnostic-v1'
+DIAGNOSTIC_FILE = 'hotel_handoff_runner_diagnostic.sealed.json'
+DIAGNOSTIC_CAPTURE_LIMIT = 16384
+DIAGNOSTIC_SOURCE_LIMIT = 196608
+DIAGNOSTIC_PLAIN_LIMIT = 65536
 
 
 def require(condition, reason):
@@ -119,6 +130,247 @@ def workflow_pins(text, before, operator_blob, operator_sha, builder_blob, build
 
 def normalize_workflow(text):
     return workflow_pins(text, *(['<DERIVED>'] * 6)).encode()
+
+
+def diagnostic_crypto():
+    # Deliberately lazy: the offline builder retains its standard-library-only
+    # behavior. The workflow checks this backend BEFORE server credentials/SSH.
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import padding, rsa
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    require(hasattr(os, 'O_NOFOLLOW') and hasattr(os, 'O_DIRECTORY')
+            and all(function in os.supports_dir_fd for function in (os.open, os.link, os.unlink)),
+            'diagnostic_private_io_unavailable')
+    return hashes, serialization, padding, rsa, AESGCM
+
+
+def diagnostic_directory(path):
+    path = Path(path)
+    require(path.is_absolute() and path.resolve(strict=True) == path, 'diagnostic_directory_unconfirmed')
+    before = path.lstat()
+    require(stat.S_ISDIR(before.st_mode) and before.st_uid == os.geteuid(), 'diagnostic_directory_unconfirmed')
+    fd = os.open(path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        opened = os.fstat(fd)
+        require((opened.st_dev, opened.st_ino) == (before.st_dev, before.st_ino),
+                'diagnostic_directory_changed')
+    except BaseException:
+        os.close(fd)
+        raise
+    return fd
+
+
+def diagnostic_file(fd):
+    before = os.fstat(fd)
+    require(stat.S_ISREG(before.st_mode) and stat.S_IMODE(before.st_mode) == 0o600
+            and before.st_uid == os.geteuid() and before.st_nlink == 1 and before.st_size >= 0,
+            'diagnostic_private_file_unconfirmed')
+    return before
+
+
+def diagnostic_stable(before, after):
+    fields = ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns', 'st_ctime_ns', 'st_mode', 'st_uid', 'st_nlink')
+    require(all(getattr(before, field) == getattr(after, field) for field in fields),
+            'diagnostic_private_file_changed')
+
+
+def diagnostic_read_exact(fd, count):
+    chunks = []
+    while count:
+        chunk = os.read(fd, count)
+        require(bool(chunk), 'diagnostic_private_file_changed')
+        chunks.append(chunk)
+        count -= len(chunk)
+    return b''.join(chunks)
+
+
+def diagnostic_source(path):
+    path = Path(path)
+    root = diagnostic_directory(path.parent)
+    try:
+        fd = os.open(path.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=root)
+        try:
+            before = diagnostic_file(fd)
+            require(0 < before.st_size < DIAGNOSTIC_SOURCE_LIMIT, 'diagnostic_source_bounds')
+            raw = diagnostic_read_exact(fd, before.st_size)
+            diagnostic_stable(before, os.fstat(fd))
+        finally:
+            os.close(fd)
+    finally:
+        os.close(root)
+    text = raw.decode('utf-8')
+    values = {}
+    for name, pattern in [('HOTEL_EXPECTED_INSTALLED_SHA', '[a-f0-9]{40}'),
+                          ('HOTEL_OPERATION', '[a-f0-9]{64}'),
+                          ('HOTEL_RECEIPT_RECIPIENT_SHA', '[a-f0-9]{64}')]:
+        require(len(re.findall(r'^const ' + name + '=', text, re.M)) == 1,
+                'diagnostic_source_identity_unconfirmed')
+        matches = re.findall(r"^const " + name + r"='(" + pattern + r")';$", text, re.M)
+        require(len(matches) == 1, 'diagnostic_source_identity_unconfirmed')
+        values[name] = matches[0]
+    # The same existing channel also has a read-only incident mode. Neither
+    # mode is executed here; only the fixed public recipient and identity bind
+    # encrypted runner captures. Exactly one supported operation declaration.
+    kinds = re.findall(r"^const (HOTEL_ACTIVATION_KIND|HOTEL_STATUS_KIND)='([^']+)';$", text, re.M)
+    require(kinds in [[('HOTEL_ACTIVATION_KIND', KIND)],
+                      [('HOTEL_STATUS_KIND', 'hotel-server-private-incident-v1')]],
+            'diagnostic_source_identity_unconfirmed')
+    recipients = re.findall(
+        r"^[ \t]*\$recipient=<<<'PUBLIC_RECEIPT_RECIPIENT'\n"
+        r'(-----BEGIN PUBLIC KEY-----\n[A-Za-z0-9+/=\n]+-----END PUBLIC KEY-----)\n'
+        r'PUBLIC_RECEIPT_RECIPIENT;$', text, re.M)
+    require(len(recipients) == 1, 'diagnostic_recipient_unconfirmed')
+    pem = (recipients[0] + '\n').encode('ascii')
+    require(sha(pem) == values['HOTEL_RECEIPT_RECIPIENT_SHA'], 'diagnostic_recipient_unconfirmed')
+    _, serialization, _, rsa, _ = diagnostic_crypto()
+    recipient = serialization.load_pem_public_key(pem)
+    require(isinstance(recipient, rsa.RSAPublicKey) and recipient.key_size == 3072,
+            'diagnostic_recipient_unconfirmed')
+    return {'installed_sha': values['HOTEL_EXPECTED_INSTALLED_SHA'],
+            'operation_id': values['HOTEL_OPERATION'],
+            'recipient_sha256': values['HOTEL_RECEIPT_RECIPIENT_SHA'],
+            'operator_source_sha256': sha(raw)}, recipient
+
+
+def diagnostic_capture(root, name, limit):
+    try:
+        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=root)
+    except FileNotFoundError:
+        return {'state': 'absent'}
+    try:
+        before = diagnostic_file(fd)
+        length = before.st_size
+        if length <= limit:
+            head, tail = diagnostic_read_exact(fd, length), b''
+        else:
+            head = diagnostic_read_exact(fd, limit // 2)
+            os.lseek(fd, length - (limit - len(head)), os.SEEK_SET)
+            tail = diagnostic_read_exact(fd, limit - len(head))
+        diagnostic_stable(before, os.fstat(fd))
+    finally:
+        os.close(fd)
+    return {'state': 'present', 'bytes_total': length, 'captured_bytes': len(head) + len(tail),
+            'truncated': length > limit, 'head_bytes': len(head), 'tail_bytes': len(tail),
+            'head_base64': base64.b64encode(head).decode('ascii'),
+            'tail_base64': base64.b64encode(tail).decode('ascii'),
+            'captured_sha256': sha(head + tail)}
+
+
+def diagnostic_exit_status(capture):
+    value = None
+    if capture['state'] == 'present' and not capture['truncated']:
+        raw = base64.b64decode(capture['head_base64'], validate=True)
+        if re.fullmatch(rb'(0|[1-9][0-9]{0,2})\n', raw) and int(raw) <= 255:
+            value = int(raw)
+    return {'state': 'known' if value is not None else 'unknown', 'value': value, 'capture': capture}
+
+
+def diagnostic_identity(source_identity, run_id, run_attempt, workflow_sha):
+    require(type(run_id) is str and re.fullmatch(r'[1-9][0-9]{0,19}', run_id), 'diagnostic_run_unconfirmed')
+    require(type(run_attempt) is str and re.fullmatch(r'[1-9][0-9]{0,2}', run_attempt),
+            'diagnostic_run_unconfirmed')
+    hash_value(workflow_sha, 40)
+    return {**source_identity, 'github_run_id': run_id, 'github_run_attempt': int(run_attempt),
+            'workflow_sha': workflow_sha}
+
+
+def diagnostic_seal(plain, identity, recipient):
+    hashes, _, padding, _, AESGCM = diagnostic_crypto()
+    require(0 < len(plain) <= DIAGNOSTIC_PLAIN_LIMIT, 'diagnostic_plaintext_bounds')
+    aad = '|'.join([DIAGNOSTIC_KIND, identity['installed_sha'], identity['operation_id'],
+                    identity['github_run_id'], str(identity['github_run_attempt']), identity['workflow_sha']])
+    key, nonce = os.urandom(32), os.urandom(12)
+    cipher_and_tag = AESGCM(key).encrypt(nonce, plain, aad.encode('ascii'))
+    # This also exercises the AEAD backend during the precredential self-check.
+    require(AESGCM(key).decrypt(nonce, cipher_and_tag, aad.encode('ascii')) == plain,
+            'diagnostic_encryption_unavailable')
+    wrapped = recipient.encrypt(key, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA1()),
+                                                 algorithm=hashes.SHA1(), label=None))
+    require(len(wrapped) == 384, 'diagnostic_encryption_unavailable')
+    cipher, tag = cipher_and_tag[:-16], cipher_and_tag[-16:]
+    return {'schema': DIAGNOSTIC_KIND, 'evidence_kind': 'runner_capture_not_server_receipt',
+            'state': 'sealed', 'runtime_outcome_confirmed': False, 'acceptance_confirmed': False,
+            'replay_authorized': False, 'algorithm': 'RSA-OAEP-SHA1+A256GCM',
+            'recipient_sha256': identity['recipient_sha256'], 'aad': aad,
+            'key': base64.b64encode(wrapped).decode('ascii'),
+            'nonce': base64.b64encode(nonce).decode('ascii'),
+            'tag': base64.b64encode(tag).decode('ascii'),
+            'ciphertext': base64.b64encode(cipher).decode('ascii'), 'ciphertext_sha256': sha(cipher)}
+
+
+def diagnostic_publish(root, envelope):
+    raw = canon(envelope) + b'\n'
+    require(len(raw) <= 98304, 'diagnostic_envelope_bounds')
+    temporary = '.hotel_handoff_diagnostic.' + os.urandom(12).hex() + '.part'
+    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=root)
+    try:
+        os.fchmod(fd, 0o600)
+        offset = 0
+        while offset < len(raw):
+            written = os.write(fd, raw[offset:])
+            require(written > 0, 'diagnostic_write_unconfirmed')
+            offset += written
+        os.fsync(fd)
+        os.close(fd)
+        fd = None
+        # Hard-link publication is atomic and refuses any existing destination,
+        # including symlinks. rename() would overwrite an existing artifact.
+        os.link(temporary, DIAGNOSTIC_FILE, src_dir_fd=root, dst_dir_fd=root, follow_symlinks=False)
+        os.fsync(root)
+    finally:
+        if fd is not None:
+            os.close(fd)
+        os.unlink(temporary, dir_fd=root)
+
+
+def check_runner_diagnostics(source):
+    identity, recipient = diagnostic_source(source)
+    identity = diagnostic_identity(identity, '1', '1', '0' * 40)
+    diagnostic_seal(b'runner-diagnostic-backend-self-check', identity, recipient)
+    return {'runner_diagnostic_backend': 'PASS', 'server_commands_executed': 0}
+
+
+def seal_runner_diagnostics(source, directory, run_id, run_attempt, workflow_sha):
+    root = diagnostic_directory(directory)
+    try:
+        stdout = diagnostic_capture(root, 'hotel_handoff_raw.private', DIAGNOSTIC_CAPTURE_LIMIT)
+        stderr = diagnostic_capture(root, 'hotel_handoff_stderr.private', DIAGNOSTIC_CAPTURE_LIMIT)
+        status_capture = diagnostic_capture(root, 'hotel_handoff_status.private', 16)
+        if all(capture['state'] == 'absent' for capture in (stdout, stderr, status_capture)):
+            return {'runner_diagnostic': 'SKIPPED', 'reason': 'no_runner_capture', 'server_commands_executed': 0}
+        identity, recipient = diagnostic_source(source)
+        identity = diagnostic_identity(identity, run_id, run_attempt, workflow_sha)
+        payload = {'schema': DIAGNOSTIC_KIND, 'evidence_kind': 'runner_capture_not_server_receipt',
+                   **identity, 'runtime_outcome_confirmed': False, 'acceptance_confirmed': False,
+                   'replay_authorized': False, 'server_commands_executed': 0,
+                   'exit_status': diagnostic_exit_status(status_capture), 'stdout': stdout, 'stderr': stderr}
+        diagnostic_publish(root, diagnostic_seal(canon(payload), identity, recipient))
+        return {'runner_diagnostic': 'SEALED', 'runtime_outcome_confirmed': False,
+                'acceptance_confirmed': False, 'server_commands_executed': 0}
+    finally:
+        os.close(root)
+
+
+def diagnostic_mode(args):
+    try:
+        require(not any([args.manifest, args.payload, args.output]), 'exclusive_builder_mode_required')
+        if args.check_runner_diagnostics:
+            require(not any([args.diagnostic_root, args.run_id, args.run_attempt, args.workflow_sha]),
+                    'exclusive_diagnostic_mode_required')
+            result = check_runner_diagnostics(args.check_runner_diagnostics)
+        else:
+            require(all([args.diagnostic_root, args.run_id, args.run_attempt, args.workflow_sha]),
+                    'diagnostic_arguments_required')
+            result = seal_runner_diagnostics(args.seal_runner_diagnostics, args.diagnostic_root,
+                                             args.run_id, args.run_attempt, args.workflow_sha)
+        print(json.dumps(result, sort_keys=True))
+    except Exception:
+        # Exceptions can include paths or backend details. Never print them,
+        # private capture bytes, source payloads, key material or traceback.
+        print(json.dumps({'runner_diagnostic': 'HOLD', 'reason': 'diagnostic_unavailable',
+                          'runtime_outcome_confirmed': False, 'server_commands_executed': 0}, sort_keys=True),
+              file=sys.stderr)
+        raise SystemExit(1)
 
 
 def validate(manifest, raw):
@@ -278,11 +530,22 @@ def main():
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument('--check-source', type=Path)
     modes.add_argument('--emit-boundary-fixture', type=Path)
+    modes.add_argument('--check-runner-diagnostics', type=Path)
+    modes.add_argument('--seal-runner-diagnostics', type=Path)
     parser.add_argument('--manifest', type=Path)
     parser.add_argument('--payload', type=Path)
-    parser.add_argument('--template-root', type=Path, default=Path(__file__).resolve().parents[3])
+    parser.add_argument('--template-root', type=Path)
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--diagnostic-root', type=Path)
+    parser.add_argument('--run-id')
+    parser.add_argument('--run-attempt')
+    parser.add_argument('--workflow-sha')
     args = parser.parse_args()
+    if args.check_runner_diagnostics or args.seal_runner_diagnostics:
+        diagnostic_mode(args)
+        return
+    require(not any([args.diagnostic_root, args.run_id, args.run_attempt, args.workflow_sha]),
+            'exclusive_diagnostic_mode_required')
     if args.check_source or args.emit_boundary_fixture:
         require(not any([args.manifest, args.payload, args.output]), 'exclusive_builder_mode_required')
         if args.check_source:
@@ -297,8 +560,9 @@ def main():
     require(len(canon(manifest)) <= 16384, 'bounded_manifest_required')
     payload = args.payload.read_bytes()
     public = validate(manifest, payload)
-    source = (args.template_root / PHP).read_text()
-    workflow = (args.template_root / WORKFLOW).read_text()
+    template_root = args.template_root if args.template_root is not None else Path(__file__).resolve().parents[3]
+    source = (template_root / PHP).read_text()
+    workflow = (template_root / WORKFLOW).read_text()
     reviewed_source(source)
     require(sha(normalize_workflow(workflow)) == WORKFLOW_CONTROL_SHA, 'unreviewed_workflow_control_flow')
     builder = Path(__file__).read_bytes()
@@ -340,3 +604,4 @@ if __name__ == '__main__':
     except (ValueError, KeyError, TypeError, OSError) as error:
         print('HOLD: ' + str(error), file=sys.stderr)
         sys.exit(1)
+
