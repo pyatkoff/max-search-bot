@@ -77,7 +77,12 @@ function automaticGalleryChecks(): void {
 }
 
 function appearanceShareChecks(): void {
-    global $pdo;$original=$pdo;
+    global $pdo;$original=$pdo;$originalLog=DiagnosticLogger::filePath();
+    // A disposable DB restarts native offer IDs. Its photo cache must therefore
+    // be separate too, so it cannot pre-warm the original publication barriers.
+    $appearanceDirectory=dirname($originalLog).'/appearance-case';
+    if(!mkdir($appearanceDirectory,0700))throw new RuntimeException('Unable to isolate appearance fixture');
+    DiagnosticLogger::setFile($appearanceDirectory.'/events.log');
     try {
         $pdo=deliveryDb();
         $pdo->exec('CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);
@@ -97,7 +102,7 @@ CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version
         $changed=$draft;$changed['appearance']=['template'=>'photo','palette'=>'sunset','agency_name'=>'Another agency'];deliverySave($changed,2);ManagerTourSelectionDeliveryService::prepare(7,1,3);
         deliveryCheck('later draft appearance never silently replaces frozen public branding',ManagerTourSelectionShareService::read($token)['appearance']===$draft['appearance']);
         deliveryCheck('old immutable legacy publication still omits appearance',!array_key_exists('appearance',ManagerTourSelectionDeliveryService::get(7,1,$legacy['id'])['publication']));
-    } finally {$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$original);}
+    } finally {DiagnosticLogger::setFile($originalLog);$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$original);}
 }
 try {
     appearanceShareChecks();
