@@ -514,8 +514,14 @@ function modeledObservationalProfileAssertions(PDO $p,callable $check):void
                     &&$current['current_customer_turn_count']===1&&$current['features']['meaningful_customer_turns']===1
                     &&$current['outcome_observations']===[]
                     &&$v['contextual_signals']['goal_counts']['agency_purchase_intent']===0
-                    &&$v['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===0
-                    &&$v['prediction_followup']['prior_prediction_digest']===$previous['prediction_digest']);
+                    &&$v['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===0);
+                // Followup is anchored to the earliest saved prediction for this request, not a rolling baseline.
+                $check('followup keeps the first saved prediction despite intervening receipts '.$target,
+                    $v['prediction_followup']['prior_prediction_digest']===$prediction['prediction_digest']
+                    &&$v['prediction_followup']['prior_prediction_at']===$prediction['prediction_at']
+                    &&$v['prediction_followup']['prior_estimated_probability']===$prediction['estimated_probability']
+                    &&$v['prediction_followup']['horizon_end_at']===$prediction['horizon_end_at']
+                    &&($i===0||$v['prediction_followup']['prior_prediction_digest']!==$previous['prediction_digest']));
                 $check('private reader validates the numeric receipt without native tables '.$target,
                     $read['window']['invalid_blocks']===0&&$read['saved']['prospective_estimates']>0
                     &&$read['saved']['estimated_probability_range']['minimum']===0.083333);
