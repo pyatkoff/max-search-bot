@@ -1,0 +1,215 @@
+{
+  "operation": "commercial-hotel-batch-20261103-34-v1",
+  "state": "TWO_READY_NATIVE_COVER_INSPECTION_PENDING_NOT_SENT",
+  "goal": "Use real accepted targetphotographs for all ready batch34 covers together",
+  "boundaries": [
+    "No permanentCanvaSave/unchangedrawandnativeguards",
+    "No repeats of closedframes, no newpass for one rejectedframe"
+  ],
+  "criteria": [
+    "NativePNGdecodedbytes/chunks/SHA/dims/view beforefreeze",
+    "Allready subset oneexistingserialsend aftergates"
+  ],
+  "risks": [
+    "Eightprovenidentities stillnotready; preparation isnotdelivery"
+  ],
+  "primary_runs": [
+    41743633833,
+    41743870371
+  ],
+  "primary_gets": 12,
+  "successful_primary_pages": 12,
+  "contact_run": 41744225756,
+  "new_photo_count": 28,
+  "actual_bytes_accepted": 25,
+  "rejections": [
+    {
+      "hotel_id": 1416,
+      "role": "h1416_photo_2",
+      "index": 2,
+      "error": "ValueError",
+      "stage": "dimension_guard",
+      "observed": {
+        "http_status": 200,
+        "content_type": "image/jpeg",
+        "received_prefix_bytes": 21188,
+        "format": "JPEG",
+        "width": 454,
+        "height": 340
+      }
+    },
+    {
+      "hotel_id": 1416,
+      "role": "h1416_photo_3",
+      "index": 3,
+      "error": "ValueError",
+      "stage": "dimension_guard",
+      "observed": {
+        "http_status": 200,
+        "content_type": "image/jpeg",
+        "received_prefix_bytes": 30958,
+        "format": "JPEG",
+        "width": 454,
+        "height": 340
+      }
+    },
+    {
+      "hotel_id": 1491,
+      "role": "h1491_photo_3",
+      "index": 7,
+      "error": "ValueError",
+      "stage": "dimension_guard",
+      "observed": {
+        "http_status": 200,
+        "content_type": "image/jpeg",
+        "received_prefix_bytes": 21634,
+        "format": "JPEG",
+        "width": 454,
+        "height": 340
+      }
+    }
+  ],
+  "selected": [
+    {
+      "id": 1417,
+      "roles": [
+        "h1417_photo_1",
+        "h1417_photo_3",
+        "h1417_photo_4"
+      ],
+      "design": "DAHZx_JlJEM",
+      "title": "PALOMA GRIDA",
+      "font": 56,
+      "alts": [
+        "Корпуса и территория Paloma Grida",
+        "Аквапарк Palomaqua Belek в Paloma Grida",
+        "Категория Lake Suite в Paloma Grida"
+      ],
+      "photos": [
+        {
+          "hotel_id": 1417,
+          "role": "h1417_photo_1",
+          "index": 5,
+          "source_url": "https://www.palomahotels.com/Content/imgUpload/18-08-2025-10-38-19pg_otel_ana_sayfa_ana_fotograf_foto2.jpg",
+          "format": "JPEG",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 364553,
+          "sha256": "d2ae241f39f37393be2e976e9c9c99ae873894515e68a8ad68c842b3bc77153f"
+        },
+        {
+          "hotel_id": 1417,
+          "role": "h1417_photo_3",
+          "index": 7,
+          "source_url": "https://www.palomahotels.com/Content/imgUpload/image-18-08-2025-10-01-37pg_palomaqua.jpg",
+          "format": "JPEG",
+          "width": 600,
+          "height": 600,
+          "bytes": 137805,
+          "sha256": "27bb83666d061c266e583c369132e970206f9114c9142d39791d8de7f81e419c"
+        },
+        {
+          "hotel_id": 1417,
+          "role": "h1417_photo_4",
+          "index": 8,
+          "source_url": "https://www.palomahotels.com/Content/imgUpload/image-18-08-2025-10-05-32pg_lake_suite.jpg",
+          "format": "JPEG",
+          "width": 600,
+          "height": 600,
+          "bytes": 86608,
+          "sha256": "aa18f928599a7280766f4e5e631823dd3f443e4766c53da68f87c851dbe6740f"
+        }
+      ]
+    },
+    {
+      "id": 1348,
+      "roles": [
+        "h1348_photo_0",
+        "h1348_photo_2",
+        "h1348_photo_3"
+      ],
+      "design": "DAHZx-KVGLQ",
+      "title": "SEVEN SEAS HOTEL LIFE",
+      "font": 48,
+      "alts": [
+        "Общий вид Seven Seas Hotel Life у моря",
+        "Бассейн Seven Seas Hotel Life",
+        "Ресторан Seven Seas Hotel Life"
+      ],
+      "photos": [
+        {
+          "hotel_id": 1348,
+          "role": "h1348_photo_0",
+          "index": 0,
+          "source_url": "https://fileservice.sevenseashotels.com/files/md/resources/img/ad1d1cb8-3dec-4fbb-b174-a41e6ec3edc5.jpg",
+          "format": "JPEG",
+          "width": 800,
+          "height": 600,
+          "bytes": 153663,
+          "sha256": "44138868d518002e3e26dc0ecc7ee8b8c891461991f75f5be46ccf265e92b1b6"
+        },
+        {
+          "hotel_id": 1348,
+          "role": "h1348_photo_2",
+          "index": 2,
+          "source_url": "https://fileservice.sevenseashotels.com/files/md/resources/img/87e247b1-61d2-4c4e-9c87-d3746281fa96.jpg",
+          "format": "JPEG",
+          "width": 800,
+          "height": 533,
+          "bytes": 181344,
+          "sha256": "9b6f3ed2c5849f6035cc6538b95840f3411176494a3c3f4392bf0e53dfcb49da"
+        },
+        {
+          "hotel_id": 1348,
+          "role": "h1348_photo_3",
+          "index": 3,
+          "source_url": "https://fileservice.sevenseashotels.com/files/md/resources/img/efdef9e6-d3bb-4b4a-a9ec-3a57d15df0c4.jpg",
+          "format": "JPEG",
+          "width": 800,
+          "height": 533,
+          "bytes": 151049,
+          "sha256": "df52bc47c8d73bc07b6f46444cdd35cd4ba164dc3a7c9edd5fd692e1c2f5c257"
+        }
+      ]
+    }
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1416,
+      "reason": "Onlyeveningonepoolandinterior;two454x340framesfailedunchangeddimensionguard"
+    },
+    {
+      "hotel_id": 1491,
+      "reason": "Onepool/edgeofhotel andbeachpool/aquapark notwholehotelhero;room454x340failedguard"
+    },
+    {
+      "hotel_id": 65782,
+      "reason": "Womanpool/roomnumbers/pillow/onepoolbuildingband notwholehotelhero"
+    },
+    {
+      "hotel_id": 15879,
+      "reason": "Promoheatedpoolcollage/peoplepool/onepool/buildingside notwholehero;room loweronly"
+    },
+    {
+      "hotel_id": 55828,
+      "reason": "Root and exactgallery gave0acceptedextensionphotorefs"
+    },
+    {
+      "hotel_id": 1035,
+      "reason": "No different declared wholehotelhero, oldframes closed"
+    },
+    {
+      "hotel_id": 109655,
+      "reason": "No different declared wholehotelhero, oldframes closed"
+    },
+    {
+      "hotel_id": 1338,
+      "reason": "Three403exactframesclosed,nobypass/alternativesameframe"
+    }
+  ],
+  "new_posts": 0,
+  "canva_transactions_open": [
+    "7271582664596620586",
+    "459888229738819001"
+  ]
+}

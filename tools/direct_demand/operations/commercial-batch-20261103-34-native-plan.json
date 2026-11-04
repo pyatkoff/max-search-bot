@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-batch34-covers-20261104-read1",
+  "goal": "Verify two new prepared covers natively together beforepublication",
+  "boundaries": [
+    "TemporaryCanvaexportURLsareauthorized publiccovers only",
+    "Purecloud/no server/provider/messages; existingPNGformat/dim/sizeguards"
+  ],
+  "criteria": [
+    "Exact2PNGchunks/decodedbytes/SHA/nativeview"
+  ],
+  "risks": [
+    "Titlesmustremainonelegibleline"
+  ],
+  "hotel_ids": [
+    1417,
+    1348
+  ],
+  "rows": [
+    {
+      "hotel_id": 1417,
+      "url": "https://export-download.canva.com/8b88654e-6a98-4a60-bd8a-3f54f83d699c/0/0001-7410068353816160671.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261103%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261103T200859Z&X-Amz-Expires=20564&X-Amz-Signature=bf36ff12ece731b735874857f3144d9b2c2238c07d86ae7bbd0870d51755467b&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2004%20Nov%202026%2001%3A51%3A43%20GMT"
+    },
+    {
+      "hotel_id": 1348,
+      "url": "https://export-download.canva.com/5353caee-c461-49c2-9e75-d4bb35289f34/0/0001-6324700845352018111.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUH4R7NKVBA%2F20261103%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20261103T175711Z&X-Amz-Expires=26520&X-Amz-Signature=77da6cf094718bfbccd65bb28c187643c6d33ca32eb2707ce0978b9402eeb4c4&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2004%20Nov%202026%2001%3A19%3A11%20GMT"
+    }
+  ]
+}
