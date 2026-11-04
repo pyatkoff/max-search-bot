@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-stock-20261104-39-primary-preparation1",
+  "state": "PRELIMINARY_PARAPHRASED_OWNER_FACTS_NOT_PUBLICATION_COPY_NATIVE_IDENTITY_PENDING",
+  "candidates": [
+    {
+      "key": "gural-belek",
+      "hotel": "Gural Premier Belek",
+      "url": "https://www.guralpremier.com/en/belek",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [
+        "Официальная страница относится к Güral Premier Belek.",
+        "В списке размещения есть семейные номера и отдельные категории Pool Room и Pool Suite."
+      ],
+      "limitations_ru": [
+        "Услуги номера с бассейном не относятся ко всем категориям.",
+        "Старые афиши событий2020года и награды прошлых лет не доказывают текущую программу или наличие мест.",
+        "Для цельного материала нужны дополнительные конкретные факты после подтверждения nativeID."
+      ]
+    },
+    {
+      "key": "gural-tekirova",
+      "hotel": "Gural Premier Tekirova",
+      "url": "https://www.guralpremier.com/en/tekirova",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [
+        "Официальная страница относится к Güral Premier Tekirova.",
+        "Варианты размещения включают семейные номера, номера и сьюты с бассейном, а также отдельную виллу."
+      ],
+      "limitations_ru": [
+        "Не переносить права виллы и сьютов на все номера.",
+        "Старые афиши2020года не являются текущими событиями; открытие и наличие мест не установлены."
+      ]
+    },
+    {
+      "key": "nirvana-dolce",
+      "hotel": "Nirvana Dolce Vita",
+      "url": "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [
+        "Официальная страница относится к Nirvana Dolce Vita в Текирове, Кемер."
+      ],
+      "limitations_ru": [
+        "Соседние продукты Nirvana Cosmopolitan и Mediterranean Excellence остаются отдельными.",
+        "Общие фото KHG и общие пункты навигации не доказывают принадлежность фотографии или включённые услуги этого отеля."
+      ]
+    },
+    {
+      "key": "nirvana-cosmopolitan",
+      "hotel": "Nirvana Cosmopolitan",
+      "url": "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [
+        "Официальная страница относится к Nirvana Cosmopolitan в Ларе, Анталья."
+      ],
+      "limitations_ru": [
+        "Нужна точная привязка фактов и фото к этому объекту; услуги других Nirvana не переносить.",
+        "Прогулки на катамаране, кабаны и услуги для животных не считать включёнными для всех гостей."
+      ]
+    },
+    {
+      "key": "liberty-fabay",
+      "hotel": "Liberty Fabay",
+      "url": "https://www.libertyhotels.com/en/hotels/liberty-fabay/",
+      "reuse_retained_source30": true,
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [],
+      "limitations_ru": [
+        "Используется ссылка на ранее прочитанный источник30 без повторного GET.",
+        "Новое nativeсоответствие и новые факты в этой операции не подтверждались."
+      ]
+    },
+    {
+      "key": "liberty-lykia",
+      "hotel": "Liberty Lykia",
+      "url": "https://www.libertyhotels.com/en/hotels/liberty-lykia/",
+      "separate_adults_only_product_excluded": true,
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [
+        "Основной Liberty Lykia находится в Олюденизе.",
+        "На странице семейного объекта указаны детские игровые пространства и отдельная пляжная зона для маленьких гостей.",
+        "Номера с джакузи выделены в отдельную категорию."
+      ],
+      "limitations_ru": [
+        "Liberty Lykia Adults Only является отдельным продуктом.",
+        "Не связывать семейную страницу с nativeкатегорией Adults Only при неоднозначном lookup.",
+        "Не переносить джакузи и конкретный вид из номера на все категории."
+      ]
+    },
+    {
+      "key": "tui-blue-palm",
+      "hotel": "TUI BLUE Palm Garden",
+      "url": "https://www.tui-blue.com/en/en/hotels/tui-blue-palm-garden/",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [
+        "TUI BLUE Palm Garden расположен в Манавгате у песчано галечного пляжа.",
+        "Официальная страница описывает комплекс бунгало среди пальм, три бассейна и водные горки.",
+        "В описании предусмотрены занятия для детей и семейный отдых."
+      ],
+      "limitations_ru": [
+        "Для reception/checkin в таблице указан период с начала апреля до конца октября; это не доказательство работы в ноябре или открытия2027года.",
+        "Концепция отеля не заменяет проверку фактического состава и доступности конкретного тура."
+      ]
+    },
+    {
+      "key": "club-hotel-sera",
+      "hotel": "Club Hotel Sera",
+      "url": "https://clubhotelsera.com.tr/en/",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [
+        "Club Hotel Sera находится в Анталье, в Ларе.",
+        "На странице перечислены корпуса Elegance, Club и Park с разным расположением на территории.",
+        "Perge Pool описан как бассейн с морской водой; также указаны другие открытые и крытый бассейны.",
+        "Есть отдельная защищённая детская пляжная зона и два основных ресторана."
+      ],
+      "limitations_ru": [
+        "Расположение корпуса Club ближе к пляжу не относится ко всем корпусам.",
+        "Не обещать подогрев, работу всех бассейнов или включённое посещение всех ресторанов без отдельного подтверждения."
+      ]
+    },
+    {
+      "key": "orange-kemer",
+      "hotel": "Orange County Kemer",
+      "url": "https://www.orangecounty.com.tr/kemer/en",
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [
+        "Orange County Kemer описан как отель с архитектурой в стиле Амстердама.",
+        "У отеля указан галечный пляж длиной90метров.",
+        "Перечислены турецкая баня, сауна и фитнес; услуги массажа указаны отдельно."
+      ],
+      "limitations_ru": [
+        "Возрастная политика в этой операции не подтверждена; не добавлять Adults Only или обещания детской программы из одной навигации.",
+        "Спа и массаж не считать универсально бесплатными.",
+        "Старые значения дат в форме бронирования не доказывают текущее наличие мест."
+      ]
+    },
+    {
+      "key": "granada-okurcalar",
+      "hotel": "Granada Luxury Okurcalar",
+      "url": "https://granada.com.tr/en/our-hotels/granada-luxury-okurcalar/",
+      "expired_summer2026_pdf_not_current_rights": true,
+      "native_catalog_id": null,
+      "native_identity_state": "PENDING_ORIGINAL_READ14_STOCK39_COUNTRY4_LOOKUP",
+      "publication_ready": false,
+      "owner_url_proof": "Exact official property URI returned by bounded primary-source discovery; not a native catalog binding",
+      "facts_ru": [],
+      "limitations_ru": [
+        "Новая exactownerстраница Granada Luxury Okurcalar вернула HTTP403: закрыто, без повторов или альтернативного хоста.",
+        "Срок действия найденного2026summerPDF закончился31Oct2026; зимние и2027права не установлены."
+      ]
+    }
+  ],
+  "native_identity_bindings": 0,
+  "publication_ready_count": 0,
+  "new_posts": 0
+}

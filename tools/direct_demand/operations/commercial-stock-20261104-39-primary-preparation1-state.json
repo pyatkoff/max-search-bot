@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-stock-20261104-39-primary-preparation1",
+  "state": "CLOSED_SOURCE_PREPARATION_ONLY_NO_NATIVE_IDENTITIES_OR_READY_MATERIALS",
+  "run_id": 41887486411,
+  "source_commit": "4ef6e1c0eed20690172a0929487e99f8c2eda8c1",
+  "jobs": [
+    {
+      "id": 126775745597,
+      "name": "inspect (1)",
+      "conclusion": "success"
+    },
+    {
+      "id": 126775746200,
+      "name": "inspect (2)",
+      "conclusion": "success"
+    },
+    {
+      "id": 126775746417,
+      "name": "inspect (0)",
+      "conclusion": "success"
+    }
+  ],
+  "new_exact_owner_requests": 9,
+  "readable_property_pages": 8,
+  "http403_property_pages": 1,
+  "http403_key": "granada-okurcalar",
+  "reused_retained_fabay_source30_without_get": 1,
+  "pending_fixed_lookup_groups": 10,
+  "native_ids_confirmed": 0,
+  "publication_ready_count": 0,
+  "new_hotels_counted": 0,
+  "raw_photo_gets": 0,
+  "canva_transactions": 0,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "parser_functionality_unchanged": true,
+  "old_parser_fixtures_rerun": 0,
+  "all_expected_nine_source_urls_accounted": true,
+  "criteria_still_required": [
+    "Healthycurrentbotrelease/strictTLS/full21gates before ORIGINALREAD14+stock39 lookup",
+    "ExactcurrentnativeID/country4/active/name/product andregistry0both, noforcezero/ambiguousmatches",
+    "Photographownership+targetmembership andallbyte/dim/SHA/pixelguards beforeanyimport/cover",
+    "Onlyactualpublishedpairs latercount toward500"
+  ],
+  "next_step": "Retain source graph for the fixed pendinglookupgroups. Do not repeat9GETs, infer nativebindings or bypassGranadaOkurcalar403. LinkpriorityREAD14→MAX157→YMLupdate13 remains."
+}
