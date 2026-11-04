@@ -105,10 +105,12 @@ for component_path in component_paths:
         check(visual_triggered(component_path),'component path would skip its native gate: '+component_path)
 editor_manifest='modules/tour-selections/editor.json'
 check(visual_triggered(editor_manifest),'manifest-only releases and contract changes need their selected native gate')
+check(visual_triggered('modules/tour-selections/editor-tours.php'),'wrapper-only edits must run complete native selection coverage')
+check(visual_triggered('tests/visual/fixtures/selection-private-editor.js'),'private editor fixture-only edits must run complete native selection coverage')
 editor_document=load('tour-selection-editor-module.yml')
 editor_events=editor_document.get('on',editor_document.get(True))
 for event in ['pull_request','push']:
-    for editor_path in [editor_manifest,'manager/assets/workspace-v2-tour-selection.js','manager/assets/workspace-v2-tour-selection.css']:
+    for editor_path in [editor_manifest,'modules/tour-selections/editor-tours.php','manager/assets/workspace-v2-tour-selection.js','manager/assets/workspace-v2-tour-selection.css']:
         check(any(fnmatch.fnmatchcase(editor_path,pattern) for pattern in editor_events[event]['paths']),event+' must retain the exact editor package gate: '+editor_path)
 editor_steps='\n'.join(step.get('run','') for step in editor_document['jobs']['editor-module']['steps'])
 for command in ['python3 tests/run_tour_selection_editor_module.py','node tests/run_tour_selection_editor_host.js',

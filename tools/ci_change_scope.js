@@ -57,6 +57,11 @@ const TOUR_SELECTION_PATHS = new Set([
   // Content is checked against both Git revisions below. This is not an
   // exemption for changes to the package/host/backend compatibility contract.
   EDITOR_MANIFEST,
+  // The standalone wrapper is rendered only by the selection fixture; that
+  // fixture is imported only by the complete selection spec. Shared editor
+  // host/auth/app helpers remain outside this exact reviewed dependency set.
+  'modules/tour-selections/editor-tours.php',
+  'tests/visual/fixtures/selection-private-editor.js',
   'manager/assets/workspace-v2-tour-selection.js',
   'manager/assets/workspace-v2-tour-selection.css',
   'manager/tour-selections-api.php',

@@ -15,6 +15,8 @@ const tour = 'manager/assets/workspace-v2-tour-selection.js';
 const tourService = 'services/ManagerTourSelectionShareService.php';
 const tourDoc = 'docs/MANAGER_TOUR_SELECTIONS.md';
 const editorManifest = 'modules/tour-selections/editor.json';
+const editorWrapper = 'modules/tour-selections/editor-tours.php';
+const editorFixture = 'tests/visual/fixtures/selection-private-editor.js';
 const editorBase = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', editorManifest), 'utf8'));
 const editorNext = { ...editorBase, version: editorBase.version.replace(/\d+$/, patch => String(Number(patch) + 1)) };
 const collectorPage = 'manager/tour-selection-collector.php';
@@ -135,6 +137,40 @@ for (const changed of [
   fixtureImport + sharedSpec,
 ]) check(oauthSpecOnlyChange(sharedSpec, changed), false, 'malformed or shared-browser change falls back');
 
+// The wrapper and fixture are selection inputs, not a shared-module exemption.
+// Keep the real editor-only package shape and its mixed-backend counterexample.
+function verifyPrivateEditorScope() {
+  const changed = path => ({status:'M',path,oldMode:'100644',newMode:'100644'});
+  const editorPackage = [tour,'manager/assets/workspace-v2-tour-selection.css',
+    editorManifest,editorWrapper,editorFixture,'tests/visual/manager-tour-selection.spec.js',tourDoc];
+  check(classify(editorPackage.map(changed)),'tour-selection','complete private editor package retains component coverage');
+  check(classify([...editorPackage,'tests/run_manager_prepared_reply_regression.php'].map(changed)),
+    'full','PR1305 diagnostic companion remains full; no shared-test exemption');
+  for (const file of [editorWrapper,editorFixture]) {
+    check(classify([changed(file)]),'tour-selection','standalone reviewed editor dependency: '+file);
+    for (const status of ['A','D','R100','C100','T','U']) {
+      check(classify([{...changed(file),status}]),'full','editor dependency status is not silently exempt: '+file+'/'+status);
+    }
+    for (const [oldMode,newMode] of [['100644','100755'],['120000','120000'],['160000','160000']]) {
+      check(classify([{...changed(file),oldMode,newMode}]),'full','editor dependency mode/type stays full: '+file);
+    }
+    check(classify([{...changed(file),previousPath:file}]),'full','editor dependency copies cannot inherit scope');
+    for (const adjacent of ['./'+file,file+'.bak',file+'/extra']) {
+      check(classify([changed(file),changed(adjacent)]),'full','lookalike editor path stays full: '+adjacent);
+    }
+  }
+  for (const dependency of ['modules/tour-selections/editor-app.php','manager/tour-selection-editor.php',
+    'modules/tour-selections/unknown-helper.php','manager/_bootstrap.php',
+    'tests/visual/fixtures/internal-notes.js','tests/visual/manager-ai-draft.spec.js',
+    'tests/support/prepared-input-fixture.php','tests/run_manager_prepared_reply_regression.php',
+    'services/ManagerAuthService.php','migrations/999_changed.sql',
+    'tools/ci_change_scope.js','.github/workflows/workspace-v2-visual-qa.yml']) {
+    check(classify([changed(editorWrapper),changed(editorFixture),changed(dependency)]),
+      'full','shared, unknown or policy dependency retains full coverage: '+dependency);
+  }
+}
+verifyPrivateEditorScope();
+
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-scope-'));
 try {
   const git = args => execFileSync('git', args, { cwd: temp, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -144,6 +180,8 @@ try {
   put(oauth, 'base\n'); put(doc, 'docs\n'); put('manager/_bootstrap.php', 'shared\n');
   put(tour,'base selection\n');put(tourService,'<?php // base\n');put(tourDoc,'selection docs\n');
   put(editorManifest, JSON.stringify(editorBase));
+  put(editorWrapper,'<?php // standalone wrapper\n');put(editorFixture,'module.exports = {};\n');
+  put('tests/run_manager_prepared_reply_regression.php','<?php // shared backend fixture\n');
   put('tests/visual/manager-tour-selection.spec.js', 'base selection cases\n');
   put(collectorPage,'collector page base\n');
   for(const file of collector1108)put(file,'collector dependency base\n');
@@ -169,6 +207,24 @@ try {
     check(run(event(git(['rev-parse', 'HEAD']))), expected, message);
     check(lastProof,proof,'additional component proof only for its CI-rule edits');
   }
+  commitCase('standalone editor wrapper-only edit has native component ownership',()=>put(editorWrapper,'<?php // changed wrapper\n'),'tour-selection');
+  commitCase('private editor fixture-only edit has native component ownership',()=>put(editorFixture,'module.exports = {changed:true};\n'),'tour-selection');
+  commitCase('complete private editor package retains exact dependencies',()=>{
+    put(tour,'changed editor\n');put(editorManifest,JSON.stringify(editorNext));
+    put(editorWrapper,'<?php // changed wrapper\n');put(editorFixture,'module.exports = {changed:true};\n');
+    put('tests/visual/manager-tour-selection.spec.js','changed complete editor cases\n');
+  },'tour-selection');
+  commitCase('private editor and shared backend diagnostic stay full',()=>{
+    put(editorWrapper,'<?php // changed wrapper\n');put(editorFixture,'module.exports = {changed:true};\n');
+    put('tests/run_manager_prepared_reply_regression.php','<?php // changed shared diagnostic\n');
+  },'full');
+  commitCase('private editor wrapper deletion stays full',()=>fs.unlinkSync(path.join(temp,editorWrapper)),'full');
+  commitCase('private editor fixture rename stays full',()=>fs.renameSync(path.join(temp,editorFixture),path.join(temp,editorFixture+'.renamed')),'full');
+  commitCase('private editor wrapper mode change stays full',()=>fs.chmodSync(path.join(temp,editorWrapper),0o755),'full');
+  commitCase('wrapper and editor contract change stay full',()=>{
+    put(editorWrapper,'<?php // changed wrapper\n');
+    put(editorManifest,JSON.stringify({...editorNext,contract:'tour-selection-editor-host-v2'}));
+  },'full');
   commitCase('selection UI change',()=>put(tour,'changed selection\n'),'tour-selection');
   commitCase('PR1171 editor UI, complete component spec and version-only manifest',()=>{
     put(tour,'changed editor history boundary\n');
