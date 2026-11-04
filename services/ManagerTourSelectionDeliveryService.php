@@ -67,7 +67,9 @@ final class ManagerTourSelectionDeliveryService
         }
         return ['ok'=>true,'publication'=>['id'=>$id,'draft_version'=>(int)$publication['draft_version'],'created_at'=>$publication['created_at'],
             'title'=>$publication['selection']['title'],'channel'=>$context['conversation']['channel'],
-            'can_send'=>$context['can_send'] && self::binding($context)===$publication['binding'],'cards'=>$cards]];
+            'can_send'=>$context['can_send'] && self::binding($context)===$publication['binding'],'cards'=>$cards,
+            ...(isset($publication['selection']['appearance'])?['appearance'=>$publication['selection']['appearance']]:[]),
+            ...($publication['selection']['intro']!==''?['intro'=>$publication['selection']['intro']]:[])]];
     }
 
     public static function photo(int $actor,int $conversation,string $id,int $card,int $photo): ?array

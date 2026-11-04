@@ -98,7 +98,13 @@ final class ManagerTourSelectionShareService
                 ...(($offer['presentation']['layout']??'')==='gallery-v1'?['photo_layout'=>'gallery-v1']:[]),
             ];
         }
-        return ['title'=>(string)$p['selection']['title'],'intro'=>(string)$p['selection']['intro'],'version'=>(int)$link['version'],'updated_at'=>$link['updated_at'],'offers'=>$offers];
+        $appearance=[];
+        if (array_key_exists('appearance',$p['selection'])) {
+            $valid=ManagerTourSelectionDraft::appearance($p['selection']['appearance']);
+            if ($valid===null) return null;
+            $appearance=['appearance'=>$valid];
+        }
+        return ['title'=>(string)$p['selection']['title'],'intro'=>(string)$p['selection']['intro'],'version'=>(int)$link['version'],'updated_at'=>$link['updated_at'],'offers'=>$offers,...$appearance];
     }
 
     /** An opaque exact-version selector, not identity and not a native callback. */
