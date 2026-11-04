@@ -1,0 +1,194 @@
+{
+  "operation": "commercial-stock-20261104-40-native-projection",
+  "state": "TEN_NEW_UNPUBLISHED_NATIVE_IDENTITIES_PROVEN_NOT_READY",
+  "source_run": 41924993837,
+  "source_artifact": 13369371370,
+  "new_native_identities": [
+    {
+      "key": "adalya-elite-lara",
+      "hotel_id": 47025,
+      "hotel": "ADALYA ELITE LARA",
+      "country_id": 4,
+      "region_id": 20,
+      "region": "Анталья",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "adalya-ocean-deluxe",
+      "hotel_id": 21642,
+      "hotel": "ADALYA OCEAN DELUXE",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "adalya-resort",
+      "hotel_id": 948,
+      "hotel": "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "adalya-artside",
+      "hotel_id": 1217,
+      "hotel": "ADALYA ART SIDE (EX. GRAND HOTEL ARTSIDE)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "melas-lara",
+      "hotel_id": 1369,
+      "hotel": "MELAS LARA HOTEL",
+      "country_id": 4,
+      "region_id": 20,
+      "region": "Анталья",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "melas-resort",
+      "hotel_id": 1370,
+      "hotel": "MELAS RESORT HOTEL",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "melas-holiday",
+      "hotel_id": 1368,
+      "hotel": "MELAS HOLIDAY VILLAGE",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "sunis-elita",
+      "hotel_id": 1013,
+      "hotel": "SUNIS ELITA BEACH RESORT (EX. ASTERIA ELITA RESORT)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "sunis-kumkoy",
+      "hotel_id": 1531,
+      "hotel": "SUNIS KUMKOY BEACH RESORT & SPA",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "sunis-evren",
+      "hotel_id": 1530,
+      "hotel": "SUNIS EVREN BEACH RESORT & SPA",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    }
+  ],
+  "new_projection_cases_passed": 3,
+  "old_projection_fixtures_rerun": 0,
+  "scope_db_rereads": 0,
+  "provider_calls": 0,
+  "ready_for_send": 0,
+  "new_posts": 0
+}

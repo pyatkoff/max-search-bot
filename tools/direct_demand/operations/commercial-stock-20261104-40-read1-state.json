@@ -1,22 +1,22 @@
 {
   "operation": "commercial-stock-20261104-40-read1",
-  "state": "CURRENT_MAIN_SOURCE_STOP_BEFORE_SSH_DB_PENDING_CORRECTED_CODE_PURE_VALIDATED",
+  "state": "CLOSED_ACTUAL_TEN_NEW_UNPUBLISHED_NATIVE_IDENTITIES_COUNTRY4_ACTIVE1_TG0_MAX0",
   "source_stop_run": 41921737318,
   "source_stop_job": 126895683297,
   "source_stop_count": 1,
   "source_stop_commit": "2d19beb0d7e3c70a2ba63d827ffbf1c876c3d509",
   "source_stop_reason": "approved_source_not_current",
   "approved_old_source": "2f7cff9ab66f59003af8df8a7f18ef2b93bca93d",
-  "current_main_not_accepted": "2dfd5249aba1419966c35f40961e650d2e982099",
-  "current_deploy_run": 41921002397,
-  "verify_job": 126893171141,
-  "verify_conclusion": "failure",
-  "deploy_job": 126894227693,
-  "deploy_conclusion": "skipped",
-  "tls_run": 41921323283,
-  "tls_conclusion": "skipped",
-  "current_diagnostics_run": 41921323017,
-  "diagnostics_conclusion": "skipped",
+  "current_main_not_accepted": null,
+  "current_deploy_run": 41923173718,
+  "verify_job": 126900619273,
+  "verify_conclusion": "success",
+  "deploy_job": 126903187731,
+  "deploy_conclusion": "success",
+  "tls_run": 41924297206,
+  "tls_conclusion": "success",
+  "current_diagnostics_run": 41924297113,
+  "diagnostics_conclusion": "success",
   "new_diff_paths": [
     "services/MaxTrackerLookupRepository.php",
     "tests/test_max_tracker_mysql.php",
@@ -27,45 +27,12 @@
   "foreign_release_reruns": 0,
   "manual_private_captures": 0,
   "current_runtime_installed_source_not_assumed": true,
-  "stock_server_calls": 0,
+  "stock_server_calls": 1,
   "stock_db_reads": 0,
   "provider_calls": 0,
   "message_sends": 0,
-  "lookup_groups": {
-    "adalya-elite-lara": [
-      "adalya elite lara"
-    ],
-    "adalya-ocean-deluxe": [
-      "adalya ocean deluxe"
-    ],
-    "adalya-resort": [
-      "adalya resort"
-    ],
-    "adalya-artside": [
-      "adalya artside",
-      "adalya art side"
-    ],
-    "melas-lara": [
-      "melas lara"
-    ],
-    "melas-resort": [
-      "melas resort"
-    ],
-    "melas-holiday": [
-      "melas holiday"
-    ],
-    "sunis-elita": [
-      "sunis elita beach"
-    ],
-    "sunis-kumkoy": [
-      "sunis kumkoy beach",
-      "sunis kumköy beach"
-    ],
-    "sunis-evren": [
-      "sunis evren beach"
-    ]
-  },
-  "native_identities_proven": 0,
+  "lookup_groups": 10,
+  "native_identities_proven": 10,
   "old_acanthus_lookup_input_deferred": true,
   "pure_prepare1_run": 41922240471,
   "pure_prepare1_stopped_before_php_l_or_cases": true,
@@ -78,5 +45,104 @@
   "targeted_registry_projection": "ONLYnewmatchednativeIDs ORnewexactnamedaliases; no full159/old300read",
   "ready_for_send": 0,
   "new_posts": 0,
-  "repeat_policy": "DoNOTrerunfailedsource/pure1/pure2jobs. AfterNEWhealthycurrentrelease+fullgates use NEWapprovedsourceactualstockattempt, removeclosedquote7inspectionandunchanged3fixtureinvocationfromrestoredroute. No repin tofailed2df/foreignfix."
+  "repeat_policy": "ACTUALSTOCK40CLOSED. DoNOTquerythese10groupsagain/rerunread/purecases. UseORIGINALartifact13369371370 and acceptednativeprojection only; photos/currentownerrights/readiness stillseparate. No newpost/monitorcredit.",
+  "actual_run": 41924993837,
+  "actual_job": 126906932072,
+  "actual_artifact": 13369371370,
+  "actual_source_commit": "6e5696d97e85ab422348838e787ffdae3c5e25b7",
+  "actual_installed_source": "f84391d45dd9643271473cf3c325e9940e2a4593",
+  "stock_db_readonly_operation_executed": true,
+  "actual_summary": {
+    "operation": "commercial-stock-20261104-40-read1",
+    "ok": true,
+    "error": null,
+    "lookup_groups": 10,
+    "targeted_registry_rows": 0,
+    "whole_previous159_registry_read": false,
+    "groups": [
+      {
+        "key": "adalya-elite-lara",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          47025
+        ]
+      },
+      {
+        "key": "adalya-ocean-deluxe",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          21642
+        ]
+      },
+      {
+        "key": "adalya-resort",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          948
+        ]
+      },
+      {
+        "key": "adalya-artside",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          1217
+        ]
+      },
+      {
+        "key": "melas-lara",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          1369
+        ]
+      },
+      {
+        "key": "melas-resort",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          1370
+        ]
+      },
+      {
+        "key": "melas-holiday",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          1368
+        ]
+      },
+      {
+        "key": "sunis-elita",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          1013
+        ]
+      },
+      {
+        "key": "sunis-kumkoy",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          1531
+        ]
+      },
+      {
+        "key": "sunis-evren",
+        "match_count": 1,
+        "new_unique_unpublished_native_ids": [
+          1530
+        ]
+      }
+    ],
+    "provider_calls": 0,
+    "db_writes": 0,
+    "message_sends": 0,
+    "ready_for_send": 0,
+    "new_posts": 0
+  },
+  "whole_previous159_registry_read": false,
+  "targeted_registry_rows": 0,
+  "prior_source_stop_closed": true,
+  "new_current_release_accepted": true,
+  "full_native21_source_host_runtime_clean_schema_readonly_passed": true,
+  "offline_projection_run": 41925729536,
+  "offline_projection_cases": 3,
+  "stock_scope_db_rereads": 0
 }

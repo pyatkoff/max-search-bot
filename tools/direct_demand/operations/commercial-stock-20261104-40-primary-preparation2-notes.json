@@ -1,0 +1,70 @@
+{
+  "operation": "commercial-stock-20261104-40-primary-preparation2",
+  "state": "PARAPHRASED_SOURCE_BINDINGS_NOT_READY",
+  "facts": [
+    {
+      "hotel_id": 21642,
+      "native_current_name": "ADALYA OCEAN DELUXE",
+      "source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+      "binding": "EXACT_NATIVE_CURRENT_NAME_TO_OWNER_PROPERTY_PROVEN",
+      "facts": [
+        "Собственныйпляжибассейны",
+        "Стандартныеисемейныеномера",
+        "Spa/фитнес/детскийклуб"
+      ],
+      "constraints": [
+        "Nemoвменю/Mareвтексте:нельзяпридуматьточноеимяиливозрастклуба",
+        "НетподтверждениябесплатностиaLaCarte/spa/водныхуслуг",
+        "Нетбеспрерывнойдоступности/открытия2027"
+      ]
+    },
+    {
+      "hotel_id": 948,
+      "native_current_name": "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY",
+      "source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+      "binding": "NATIVE_CURRENT_BLISS_WITH_EX_RESORT_EXPLICIT_OWNER_BLISS_MATCH_RESOLVED",
+      "facts": [
+        "Форматдлявзрослых;16+прямоуказановранеефактическипрочитанномowner-directory",
+        "Собственныепляж/бассейны,spa/фитнес/вечерниевыступления",
+        "Suite/GardenUp/Jacuzzi отдельныекатегории"
+      ],
+      "constraints": [
+        "Не18+/не🔞/непереносить16+наEliteOceanArtSide",
+        "Poolaccess/jacuzzi/butlerнеуниверсальныеправа",
+        "Новыйгод2027navlinkНЕдоказательствовключённойгалы/наличия"
+      ]
+    },
+    {
+      "hotel_id": 1368,
+      "native_current_name": "MELAS HOLIDAY VILLAGE",
+      "source_url": "https://www.melashotels.com/en/club-melas-prive",
+      "binding": "DEFERRED_NATIVE_HOLIDAY_VS_OWNER_CLUB_MELAS_PRIVE_RENAME_NOT_EXPLICIT",
+      "facts": [],
+      "constraints": [
+        "OwnerзаголовокClubMelasPrive,нативныйкаталогMelasHolidayVillage,встраницеНЕнайденоявногоEXмоста;неforce",
+        "НеиспользоватьownerPrivephotos/roomrightsдля1368бездоказательствамаппинга",
+        "НекоторыекомнатныеформулировкиповторяютMelasResort;непереноситьsea-view112roomclaim"
+      ]
+    }
+  ],
+  "owner_photo_scope_evidence": [
+    {
+      "hotel_id": 1369,
+      "source_url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "owner_photo_host": "static.melashotels.com",
+      "actual_declared_property_media_namespace": "/networks/1/properties/3/multimedia/",
+      "other_property_namespace_count": 0,
+      "rights_scope": "ExactURIsfromthisretainedpropertypageandfixedprefixonly,noarbitraryCDNadmission"
+    },
+    {
+      "hotel_id": 1370,
+      "source_url": "https://www.melashotels.com/en/melas-resort-hotel",
+      "owner_photo_host": "static.melashotels.com",
+      "actual_declared_property_media_namespace": "/networks/1/properties/2/multimedia/",
+      "other_property_namespace_count": 0,
+      "rights_scope": "ExactURIsfromthisretainedpropertypageandfixedprefixonly,noarbitraryCDNadmission"
+    }
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
