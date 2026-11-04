@@ -1,0 +1,83 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-read14-stock39",
+  "state": "WAIT_FOR_HEALTHY_CURRENT_PRODUCTION_RELEASE_BEFORE_CANONICAL_READ",
+  "actual_logical_hotels_each_channel": 157,
+  "live_yml_counts": [
+    156,
+    156,
+    312
+  ],
+  "max_runtime_routes": 156,
+  "first_attempt": {
+    "run_id": 41869381261,
+    "job_id": 126711953169,
+    "outcome": "STOPPED_BEFORE_SSH_ON_STOCK_UTF8_LITERAL_ASSERTION",
+    "new_scope_cases_passed": 3,
+    "db_reads": 0
+  },
+  "second_attempt": {
+    "run_id": 41870019241,
+    "job_id": 126714228063,
+    "outcome": "STOPPED_BEFORE_SSH_APPROVED_SOURCE_NOT_CURRENT",
+    "source_stop_count": 1,
+    "db_reads": 0
+  },
+  "stock_utf8_literal_comparison": "CORRECTED_REVIEWED_BUT_NOT_REACHED_BY_SECOND_ATTEMPT_SOURCE_STOP",
+  "scope_cases_rerun": 0,
+  "pending_scope_hotel_ids": [
+    1543
+  ],
+  "planned_stock_groups": {
+    "gural-belek": [
+      "gural premier belek",
+      "güral premier belek"
+    ],
+    "gural-tekirova": [
+      "gural premier tekirova",
+      "güral premier tekirova"
+    ],
+    "nirvana-dolce": [
+      "nirvana dolce vita"
+    ],
+    "nirvana-cosmopolitan": [
+      "nirvana cosmopolitan"
+    ],
+    "liberty-fabay": [
+      "liberty fabay"
+    ],
+    "liberty-lykia": [
+      "liberty lykia"
+    ],
+    "tui-blue-palm": [
+      "tui blue palm garden"
+    ],
+    "club-hotel-sera": [
+      "club hotel sera"
+    ],
+    "orange-kemer": [
+      "orange county kemer"
+    ],
+    "granada-okurcalar": [
+      "granada luxury okurcalar"
+    ]
+  },
+  "stock_matches_read": 0,
+  "new_stock_identities_proven": 0,
+  "concrete_release_wait": {
+    "source": "9678e8c617734dd3bd5054eabf3585e396e3ca12",
+    "deploy_run": 41870011689,
+    "verify_job": 126714201346,
+    "verify": "SUCCESS",
+    "deploy_job": 126717296318,
+    "deploy": "FAILURE",
+    "strict_tls_run": 41871333309,
+    "strict_tls": "SKIPPED",
+    "underlying_cause": "NOT_INSPECTED_NOT_INFERRED",
+    "foreign_repair_or_rerun": 0
+  },
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "source_connections_attempted_by_read14": 0,
+  "do_not_rerun_unchanged_failed_attempts": true
+}

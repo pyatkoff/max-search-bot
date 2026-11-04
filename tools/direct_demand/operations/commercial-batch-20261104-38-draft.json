@@ -14,6 +14,18 @@
   "artifact_id": 13343855951,
   "source_sha": "08f821759be6f63c324d5419c3104551313c1e79",
   "source_stop_count": 0,
-  "feeds_state": "APPEND_PENDING_NEW_MAX_PRIVATE_ALIAS_FIRST",
-  "native_cover_freeze": "3b89a4b564edb08c60f2c4585ee2db7af1b25c12"
+  "feeds_state": "LIVE156_NEW157TH_SUSESI_ALIAS_AND_FEED_APPEND_PENDING_HEALTHY_SOURCE",
+  "native_cover_freeze": "3b89a4b564edb08c60f2c4585ee2db7af1b25c12",
+  "monitor_native_ids": 670,
+  "canva_transaction_id": "5435239988274163195",
+  "canva_transaction_state": "CANCELLED_AFTER_ACCEPTED_FREEZE",
+  "native_cover": {
+    "run_id": 41867667269,
+    "job_id": 126706022298,
+    "width": 600,
+    "height": 600,
+    "bytes": 736472,
+    "sha256": "4f400b9b68bb3e77d6bd1f0fff2f57d43681ec8b081c5cd4e4d9c94bb88c4c76",
+    "freeze": "3b89a4b564edb08c60f2c4585ee2db7af1b25c12"
+  }
 }

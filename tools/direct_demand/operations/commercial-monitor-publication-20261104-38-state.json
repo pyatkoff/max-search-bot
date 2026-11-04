@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-monitor-publication-20261104-38",
+  "state": "NATIVE670_VALIDATED_PR4994_MERGED",
+  "previous": 669,
+  "current": 670,
+  "hotel_ids": [
+    1543
+  ],
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4994",
+  "reviewed_head": "4d70f1acf5429dedb85e1808b0043cd013b56ba1",
+  "merged_sha": "8b37744b5f7d86d761d37551452b0be931e48024",
+  "guard_run": 41870928793,
+  "collect_validate_run": 41870928571,
+  "collect_validate_job": 126717445337,
+  "sync_run": 41870929252,
+  "production_collect": "SKIPPED",
+  "budgets_schedule_transport_locks_order_unchanged": true,
+  "normal670_collection_verified": false,
+  "actual669dedup1543absent": true,
+  "authorization": "Pavel standing approval PR4992 and subsequent actually published hotels"
+}
