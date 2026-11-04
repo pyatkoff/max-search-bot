@@ -46,32 +46,48 @@ final class HotelServerLane
         });
     }
 
+    /** Admit the immutable accepted payload before a separate catalogue write. */
+    public function projectionPayload(string $campaign,string $receipt): array
+    {
+        HotelServerInputs::sha($receipt);
+        return $this->locked(fn(array $lane):array=>$this->validatedProjection($lane,$campaign,$receipt));
+    }
+
     /** Fixed projection acknowledgement only; retired campaign ownership is never restored. */
     public function acknowledgeProjection(string $campaign,string $receipt,string $payloadSha256): void
     {
         HotelServerInputs::sha($receipt);HotelServerInputs::sha($payloadSha256);
         $this->locked(function(array $lane) use($campaign,$receipt,$payloadSha256): void {
-            if($lane['queue_id']!==$campaign){
-                $s=$this->app->prepare('SELECT state,enabled FROM hotel_server_campaigns WHERE campaign_id=?');$s->execute([$campaign]);$c=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
-                if(!$c||$c['state']!=='complete'||(int)$c['enabled']!==0)throw new DomainException('hotel_lane_not_owned');
-            }
-            $s=$this->app->prepare('SELECT * FROM hotel_server_catalog_outbox WHERE campaign_id=? AND receipt_sha256=?');$s->execute([$campaign,$receipt]);$out=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
-            $s=$this->app->prepare('SELECT receipt_bytes FROM hotel_server_receipts WHERE campaign_id=? AND receipt_sha256=?');$s->execute([$campaign,$receipt]);$raw=$s->fetchColumn();$s->closeCursor();
-            if(!$out||!in_array($out['state'],['pending','done'],true)||!is_string($raw)||hash('sha256',$raw)!==$receipt
-                ||hash('sha256',$out['payload_bytes'])!==$payloadSha256)throw new DomainException('projection_ack_CAS');
-            $r=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
-            if(!in_array($r['schema']??null,['hotel-server-acceptance-v1','hotel-server-correction-acceptance-v1'],true)
-                ||($r['campaign_id']??null)!==$campaign)throw new DomainException('projection_ack_CAS');
-            $baseline=HotelServerInputs::sha($r['baseline_sha256']??null);
-            $s=$this->app->prepare('SELECT parent_sha256,document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?');$s->execute([$campaign,$baseline]);$b=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
-            if(!$b||$b['document_bytes']!==$out['payload_bytes']||hash('sha256',$b['document_bytes'])!==$baseline
-                ||($r['previous_baseline_sha256']??null)!==$b['parent_sha256'])throw new DomainException('projection_ack_CAS');
-            $d=json_decode($b['document_bytes'],true,64,JSON_THROW_ON_ERROR);
-            if(($d['schema']??null)!=='hotel-server-baseline-v1'||($d['parent_sha256']??null)!==$b['parent_sha256']
-                ||($d['candidate_sha256']??null)!==($r['candidate_sha256']??null))throw new DomainException('projection_ack_CAS');
-            if($r['schema']==='hotel-server-correction-acceptance-v1')$this->verifyCorrectionProjection($campaign,$r,$raw,$b['document_bytes']);
-            $s=$this->app->prepare("UPDATE hotel_server_catalog_outbox SET state='done' WHERE campaign_id=? AND receipt_sha256=?");$s->execute([$campaign,$receipt]);
+            $out=$this->validatedProjection($lane,$campaign,$receipt);
+            if($out['payload_sha256']!==$payloadSha256)throw new DomainException('projection_ack_CAS');
+            if($out['state']==='done')return;
+            $s=$this->app->prepare("UPDATE hotel_server_catalog_outbox SET state='done' WHERE campaign_id=? AND receipt_sha256=? AND state='pending'");$s->execute([$campaign,$receipt]);
+            if($s->rowCount()!==1)throw new DomainException('projection_ack_CAS');
         });
+    }
+
+    /** Shared by the pre-write admission and the later ACK under the HOTEL lock. */
+    private function validatedProjection(array $lane,string $campaign,string $receipt): array
+    {
+        if($lane['queue_id']!==$campaign){
+            $s=$this->app->prepare('SELECT state,enabled FROM hotel_server_campaigns WHERE campaign_id=?');$s->execute([$campaign]);$c=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
+            if(!$c||$c['state']!=='complete'||(int)$c['enabled']!==0)throw new DomainException('hotel_lane_not_owned');
+        }
+        $s=$this->app->prepare('SELECT * FROM hotel_server_catalog_outbox WHERE campaign_id=? AND receipt_sha256=?');$s->execute([$campaign,$receipt]);$out=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
+        $s=$this->app->prepare('SELECT receipt_bytes FROM hotel_server_receipts WHERE campaign_id=? AND receipt_sha256=?');$s->execute([$campaign,$receipt]);$raw=$s->fetchColumn();$s->closeCursor();
+        if(!$out||!in_array($out['state'],['pending','done'],true)||!is_string($raw)||hash('sha256',$raw)!==$receipt)throw new DomainException('projection_ack_CAS');
+        $r=json_decode($raw,true,64,JSON_THROW_ON_ERROR);
+        if(!in_array($r['schema']??null,['hotel-server-acceptance-v1','hotel-server-correction-acceptance-v1'],true)
+            ||($r['campaign_id']??null)!==$campaign)throw new DomainException('projection_ack_CAS');
+        $baseline=HotelServerInputs::sha($r['baseline_sha256']??null);
+        $s=$this->app->prepare('SELECT parent_sha256,document_bytes FROM hotel_server_baselines WHERE campaign_id=? AND baseline_sha256=?');$s->execute([$campaign,$baseline]);$b=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
+        if(!$b||$b['document_bytes']!==$out['payload_bytes']||hash('sha256',$b['document_bytes'])!==$baseline
+            ||($r['previous_baseline_sha256']??null)!==$b['parent_sha256'])throw new DomainException('projection_ack_CAS');
+        $d=json_decode($b['document_bytes'],true,64,JSON_THROW_ON_ERROR);
+        if(($d['schema']??null)!=='hotel-server-baseline-v1'||($d['parent_sha256']??null)!==$b['parent_sha256']
+            ||($d['candidate_sha256']??null)!==($r['candidate_sha256']??null))throw new DomainException('projection_ack_CAS');
+        if($r['schema']==='hotel-server-correction-acceptance-v1')$this->verifyCorrectionProjection($campaign,$r,$raw,$b['document_bytes']);
+        return ['payload_bytes'=>$out['payload_bytes'],'payload_sha256'=>$baseline,'state'=>$out['state']];
     }
 
     /** The new receipt is admitted only with its immutable correction and exact
