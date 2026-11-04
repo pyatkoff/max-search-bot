@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261104-update13",
+  "state": "PREPARING_NOT_WRITTEN",
+  "goal": "Append the already published Susesi1543 pair to all three feeds after native MAX157 installation",
+  "boundaries": [
+    "Only three existing public XML exports",
+    "Previous156 offer blocks and MAX156 URLs byte identical",
+    "No publication/provider/price/advertising/runtime-controller writes",
+    "Private canonical input only original READ14 authenticated artifact"
+  ],
+  "criteria": [
+    "Actual MAX157 native install accepted",
+    "Exact previous three hashes and one new canonical binding",
+    "Three new append rejection cases; frozen byte validation; PHP lint; current production full21 gates; durable intent before write; HTTPS exact bytes"
+  ],
+  "risks": [
+    "Unknown static hash or changed production stops",
+    "Natural paid signed launch unobserved; TG files pending Pavel"
+  ],
+  "previous_files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 156,
+      "bytes": 101057,
+      "sha256": "477792e38d0d27bb5f5f41fc4930b1b39ec199e404812524bff26aa22f55007d"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 156,
+      "bytes": 127448,
+      "sha256": "e6df462586f76e16ed1810d948440e15c26c9fc7a16c07e5db52ef83c7137e09"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 312,
+      "bytes": 228132,
+      "sha256": "62b910d8a4e5b15c0ba25877d09b75e1f9bfabdeee17897b7d211f2662adc67d"
+    }
+  ],
+  "new_hotel_ids": [
+    1543
+  ],
+  "target_rows": [
+    157,
+    157,
+    314
+  ],
+  "read14_run": 41901350165,
+  "read14_artifact": 13358566138,
+  "max157_install_run": 41902696282,
+  "max157_install_job": 126829029464,
+  "source_sha": "9678e8c617734dd3bd5054eabf3585e396e3ca12"
+}
