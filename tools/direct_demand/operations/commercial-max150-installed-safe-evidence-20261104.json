@@ -1,0 +1,37 @@
+{
+  "repository": "pyatkoff/tour-max",
+  "run_id": 41809034251,
+  "job_id": 126503281893,
+  "source_commit": "85eba72b59a3d4e9df966f80b13eeafe608eface",
+  "authenticated_result_artifact_id": 13310294679,
+  "result": {
+    "candidate_lib_sha256": "2574585eaaef169e671966931c59bfe1b2bdf0e38d345c3d06a140c11dc65795",
+    "changed_files": [
+      "anytour-hotel-feed-routes.private.php",
+      "anytour-hotel-feed-context.php",
+      "lib.php"
+    ],
+    "checks": {
+      "counter_config_matches": true,
+      "db_writes": 0,
+      "exact_routes_verified": 150,
+      "message_sends": 0,
+      "natural_signed_user_launch_verified": false,
+      "ok": true,
+      "private_projection_http_status": 404,
+      "project_active": true,
+      "provider_calls": 0,
+      "required_post_fields_ready": true,
+      "save_calls": 0
+    },
+    "db_writes": 0,
+    "expected_previous_lib_sha256": "f8ee2fd9120cdc8c152febb6ac0d2802a5ba167d873df1f6a379553a5b82a4e6",
+    "feed_writes": 0,
+    "message_sends": 0,
+    "ok": true,
+    "operation": "commercial-max150-public-alias-route-20261104-install2",
+    "provider_calls": 0,
+    "state": "INSTALLED_AND_NATIVE_VERIFIED"
+  },
+  "verification": "Original successful run and exact safe native result independently read through the authorized GitHub connection; no private IDs or credentials included"
+}

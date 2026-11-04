@@ -2,8 +2,15 @@ import base64,copy,hashlib,json,os,pathlib,re,xml.etree.ElementTree as ET
 BASE=pathlib.Path('.github/traffic-publish')
 OPS=pathlib.Path('tools/direct_demand/operations')
 BASELINE=json.loads((OPS/'commercial-channel-hotel-feeds-20261104-update11-route-baseline.json').read_text())
-CANDIDATE=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'max150-approved'/'candidate-max150-feed-urls.json').read_text())
-URLS={r['offer_id']:r['url'] for r in CANDIDATE}
+CANONICAL=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'canonical150'/'channel-preflight.json').read_text().splitlines()[-1])
+assert CANONICAL['ok'] and CANONICAL['operation']=='commercial-miniapp-canonical-150-bindings-read1' and CANONICAL['binding_count']==300
+URLS={}
+for r in CANONICAL['bindings']:
+    if r['platform']!='max':continue
+    offer='max_'+str(r['hotel_id']);alias='h1_'+hashlib.sha256(('anytour|'+offer+'|'+r['post_url']).encode()).hexdigest()[:32]
+    assert r['public_offer_id']==offer and r['public_route_alias']==alias
+    encoded=base64.urlsafe_b64encode(json.dumps({'post_id':alias,'offer_id':offer},separators=(',',':')).encode()).decode().rstrip('=')
+    URLS[offer]='https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_'+encoded
 assert len(URLS)==150
 def insist(ok,why):
     if not ok:raise ValueError(why)

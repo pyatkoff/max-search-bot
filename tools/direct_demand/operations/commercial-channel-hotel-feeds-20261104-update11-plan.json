@@ -42,5 +42,11 @@
       "expected_previous_sha256": "69bf1431c18d3857e2331e90a874e49f0623824b518b0a3c181b895840700250",
       "sha256": "e392c65f507e754f6a08d83f1e5a15bc1b90ea9f7320e4b8380d4832dc6d513b"
     }
-  ]
+  ],
+  "first_run": 41809791482,
+  "first_run_outcome": "Tour-max artifact inaccessible to max-search-bot workflow token; stopped before native validation/intent/SSH/writer",
+  "writes_in_first_run": 0,
+  "source_stops": 0,
+  "evidence_transfer": "Authorized GitHub connector independently read exact original successful safe result; public input carries only operation/counts/hashes/status, no private map/IDs/credentials",
+  "canonical_binding_input": "Original same-repository authenticated artifact41805250929; expected public aliases recomputed independently from exact canonical150 bindings"
 }

@@ -46,23 +46,17 @@ jobs:
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
       - uses: actions/download-artifact@v4
         with:
-          repository: pyatkoff/tour-max
-          run-id: 41806673259
-          name: commercial-max150-public-alias-candidate-v1
+          run-id: 41805250929
+          name: commercial-miniapp-canonical-150-bindings-read1
           github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/max150-approved
-      - uses: actions/download-artifact@v4
-        with:
-          repository: pyatkoff/tour-max
-          run-id: 41809034251
-          name: commercial-max150-public-alias-install2-result
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/max150-installed
+          path: ${{ runner.temp }}/canonical150
       - name: Require actual native MAX150 installed result before feed replacement
         run: |
           python3 - <<'PY'
           import json,os,pathlib
-          d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'max150-installed'/'max150-install-result.json').read_text())
+          evidence=json.loads(pathlib.Path('tools/direct_demand/operations/commercial-max150-installed-safe-evidence-20261104.json').read_text())
+          assert evidence['repository']=='pyatkoff/tour-max' and evidence['run_id']==41809034251 and evidence['job_id']==126503281893 and evidence['source_commit']=='85eba72b59a3d4e9df966f80b13eeafe608eface'
+          d=evidence['result']
           assert d['operation']=='commercial-max150-public-alias-route-20261104-install2' and d['state']=='INSTALLED_AND_NATIVE_VERIFIED' and d['ok']
           assert d['candidate_lib_sha256']=='2574585eaaef169e671966931c59bfe1b2bdf0e38d345c3d06a140c11dc65795'
           assert d['checks']['exact_routes_verified']==150 and d['checks']['private_projection_http_status']==404
