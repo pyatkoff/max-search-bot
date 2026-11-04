@@ -16,21 +16,11 @@ FILES = (
     'services/MaxTrackerLookupRepository.php',
     'services/MaxSubscriptionAttributionPolicy.php',
 )
-# Forward public-code target for the HL10 history-enum correction.
-TARGET_MANIFEST = {'version': 1, 'files': {
-    'lookup.php': '0ba2187b77adffdcfb2d00a9a3024d9d0899b93005768ff86aa565b958553e8e',
-    'services/MaxTrackerLookupProtocol.php': 'c8a21dc7c29fb5903ea6104db6b5b57f33f118cc3a1735039bc783272b5b3a1b',
-    'services/MaxTrackerLookupRepository.php': '84c99056bd43725ee14f812afe08bd49161708b8b37dcf72078b90a76f019d12',
-    'services/MaxSubscriptionAttributionPolicy.php': '2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b',
-}}
-TARGET_RELEASE_SHA256 = '3cd31843b969b5945eb9497a3fed820b470682a9b47eca2934a0759189e5714d'
-# Exact public predecessor snapshot; the remote guard revalidates it before any write.
-CHECKED_PREIMAGE = {'version': 1, 'files': {
-    'lookup.php': '13f22bddafcf789ef9415c3a22e0b76f80d7a9aab67fc2be6def02901aa37d70',
-    'services/MaxTrackerLookupProtocol.php': '6bd10d2287c02bf3abe68147cbd45ebca8534686fd09d597d4d596f57b85d582',
-    'services/MaxTrackerLookupRepository.php': '0aff4027466da36b27f331d504a34b03a88ba630ea727d995ec156fa6cb2ef86',
-    'services/MaxSubscriptionAttributionPolicy.php': '2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b',
-}, 'release_json_sha256': '1f2e9be66d7524da1bda4b92bac851f44601396734d16139be4ae7fe49242075'}
+# Forward public-code target for the real HL9 schema and explicit legacy unavailability.
+TARGET_MANIFEST = {'version': 1, 'files': {'lookup.php': '0ba2187b77adffdcfb2d00a9a3024d9d0899b93005768ff86aa565b958553e8e', 'services/MaxTrackerLookupProtocol.php': 'c8a21dc7c29fb5903ea6104db6b5b57f33f118cc3a1735039bc783272b5b3a1b', 'services/MaxTrackerLookupRepository.php': '9da66b1b56c729a643585002fb91e227a8260c5e47f3e9e50783d458aacb80cf', 'services/MaxSubscriptionAttributionPolicy.php': '2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b'}}
+TARGET_RELEASE_SHA256 = '1725da282bdfb1b2c8cb229440509190ad096ae32421cde700829160db89d81d'
+# Exact installed public predecessor; revalidated remotely before any write.
+CHECKED_PREIMAGE = {'version': 1, 'files': {'lookup.php': '0ba2187b77adffdcfb2d00a9a3024d9d0899b93005768ff86aa565b958553e8e', 'services/MaxTrackerLookupProtocol.php': 'c8a21dc7c29fb5903ea6104db6b5b57f33f118cc3a1735039bc783272b5b3a1b', 'services/MaxTrackerLookupRepository.php': '84c99056bd43725ee14f812afe08bd49161708b8b37dcf72078b90a76f019d12', 'services/MaxSubscriptionAttributionPolicy.php': '2e5b35659b1aa7159b4b2b772ba0fafd1440c98bc63786ba48e3b4f9b34ef53b'}, 'release_json_sha256': '3cd31843b969b5945eb9497a3fed820b470682a9b47eca2934a0759189e5714d'}
 
 
 def _json(raw):
