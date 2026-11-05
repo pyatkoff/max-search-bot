@@ -1,0 +1,14 @@
+{
+  "operation": "commercial-batch49-covers-20261105-read1",
+  "state": "REJECTED_NATIVE_COVER_CROP_CLIPS_BOTH_MAIN_ROOFLINES",
+  "run": 41960331622,
+  "job": 127024928376,
+  "width": 600,
+  "height": 600,
+  "bytes": 830115,
+  "sha256": "bcc812bd67211c9e77fc02caa8f92f96b7c7a8e3b4bfaada09b293cac6eb86d7",
+  "thumbnail_shown": true,
+  "public_git_png_written": false,
+  "publication_sends": 0,
+  "correction": "Replace inherited hero fill rectangle with a fresh temporary fill of the same verified source to reset legacy crop; restore same existing AnyTourlogo above it. Keep lowerphotos/title/banner."
+}

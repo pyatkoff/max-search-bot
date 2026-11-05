@@ -1,4 +1,4 @@
-name: Inspect the current temporary Papillon Zeugma native Canva PNG preview
+name: Inspect the corrected Papillon Zeugma native preview with reset hero crop
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-batch-20261105-49-canva-1422",
-  "state": "ONE_TEMPORARY_TRANSACTION_OPEN_THREE_VERIFIED_PHOTOS_IMPORTED_AND_PREVIEW_REQUESTED",
+  "state": "ONE_TEMPORARY_TRANSACTION_OPEN_FIRST_PNG_CROP_REJECTED_SECOND_PREVIEW_PENDING",
   "hotel_id": 1422,
   "transaction_id": "3034821431815808944",
   "design_id": "DAHZx_JlJEM",
@@ -43,12 +43,17 @@
     "existing_blue_banner_top": 983,
     "reason": "Keep complete twin rooflines and grounds visible from square source while retaining two readable lower photographs and blue title banner."
   },
-  "thumbnail_requests": 1,
+  "thumbnail_requests": 2,
   "thumbnail_native_png_pending": true,
   "thumbnail_shown": false,
   "permanent_saves": 0,
   "accepted_native_pngs": 0,
   "new_posts": 0,
   "manual_price_collection": false,
-  "repeat_policy": "This exact transaction remains open only until nativePNG/chunks/SHA/pixels acceptance and freeze; then cancelEXACTtransaction. Each thumbnail must be shown. No oldphoto GET, no permanentSave."
+  "repeat_policy": "This exact transaction remains open only until nativePNG/chunks/SHA/pixels acceptance and freeze; then cancelEXACTtransaction. Each thumbnail must be shown. No oldphoto GET, no permanentSave.",
+  "thumbnail1_shown": true,
+  "thumbnail2_shown": false,
+  "first_png_rejected_reason": "Both rooflines clipped by inherited hero crop",
+  "hero_fill_reinserted_to_reset_crop": true,
+  "same_existing_anytour_logo_reinserted": true
 }
