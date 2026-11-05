@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261105-41-read1",
-  "state": "TEN_NEW_NAMED_GROUPS_PURE_PREPARATION_BEFORE_READONLY_NATIVE_LOOKUP",
+  "state": "NEW_TEN_INPUTS_PURE_VALIDATED_APPROVED_TARGETED_READONLY_NATIVE_LOOKUP",
   "goal": "Broaden the authorized500 hotel material stock with different catalogue lookup inputs while the separately requested price-source manual collection awaits explicit human permission.",
   "boundaries": {
     "country_id": 4,
@@ -72,5 +72,10 @@
   "current_tls_run": 41937963662,
   "current_diagnostics_run": 41937963780,
   "manual_price_permission_pending": true,
-  "manual_price_approval_recorded": false
+  "manual_price_approval_recorded": false,
+  "pure_preparation_run": 41955909968,
+  "pure_preparation_job": 127010628163,
+  "new_pure_cases_passed": 3,
+  "actual_fixture_rerun": 0,
+  "host_step_byteidentical_accepted25": true
 }
