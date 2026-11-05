@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-price-monitor-20261105-read13-approved-manual1",
+  "state": "PREPARED_ONE_NEW_ORIGINAL_APPROVED_SEARCH_SLICE_NOT_EXECUTED",
+  "goal": "Readmax2current eligibleobservationsperactualnew56sourcehotelstrictlyoriginal7searchIDs,excludingALL85oldretainedfingerprintsbeforeanypaidquote.",
+  "original_source_run": 41976677950,
+  "original_source_artifact": 13391673842,
+  "source_projection_run": 41977589739,
+  "source_projection_artifact": 13392496795,
+  "actual_source_hotels": 56,
+  "maximum_rows": 112,
+  "original_manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
+  "boundaries": {
+    "read_only": true,
+    "provider_calls": 0,
+    "db_writes": 0,
+    "post_edits": 0,
+    "old159_or_closed_time_slice_replays": 0,
+    "original_actual_search_ids_only": true
+  },
+  "criteria": [
+    "FRESHcurrentmain/sameversiondeployTLSdiagnostics/fullremote21/accepted25hostpin/installedclean/readonlycatalog.",
+    "Original121scope/typedpublisherroles/currentcountry-active-name/Moscow2A0/RUB/actualUTCfuture/6..12Nov/5..14n/72h/fromsourceintentUTC/max2/newfingerprints.",
+    "3NEWactualinputcasesnative1422/country99/search0/PHP-l;oldfixtures0.",
+    "PrivateIDs/fingerprints/rowsONLYauthartifact;consoleoperation/nativeIDs/counts/no rawprice/tours."
+  ],
+  "risks": [
+    "Boundcandidatecountsnotfinalbaskets/availability;currentcaption/photo/button/source/tokenproofneededBEFOREpaidquotes.",
+    "SourcepublicationidentitynotinferredfromAnyTourinteger;typedrolespreservedexplicitly."
+  ]
+}
