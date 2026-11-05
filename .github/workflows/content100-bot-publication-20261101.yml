@@ -1,4 +1,4 @@
-name: Add admitted legacy hotel tour prices to their existing channel posts serially
+name: Read new normal672 price inputs and classify the retained legacy381 rejection
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -15,7 +15,7 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,6 +24,31 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261105-legacy9-pass1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41944924563
+          path: ${{ runner.temp }}/legacy-quotes
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-update-20261105-legacy9-pass1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41945166136
+          path: ${{ runner.temp }}/legacy-updates
+      - name: Classify only the newly rejected original381 full-basket contract without another quote
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/direct_demand/operations/inspect-commercial-price-legacy381-20261105-contract1.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commercial-price-legacy381-20261105-contract-inspection1
+          path: ${{ runner.temp }}/legacy381-contract-summary.json
+          retention-days: 14
+          if-no-files-found: error
       - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -55,30 +80,31 @@ jobs:
           assert d['status']=='completed' and d['conclusion']=='success'
           print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
           PY
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-price-monitor-20261105-legacy9-pass1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41944924563
-          path: ${{ runner.temp }}/price-legacy9-pass1
-      - name: Validate actual full baskets and each original caption before any edit
+      - name: Validate and freeze only the genuinely new672 observation slice
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 tools/direct_demand/operations/prepare-commercial-price-update-20261105-legacy9-pass1.py
-          find "$RUNNER_TEMP/price-legacy9-pass1" -name update.php -print0 | while IFS= read -r -d '' file; do
-            php -l "$file"
-          done
-      - name: Retain distinct private full-basket edit intents before channel writes
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-price-update-20261105-legacy9-pass1-intents
-          path: ${{ runner.temp }}/price-legacy9-pass1
-          retention-days: 14
-          if-no-files-found: error
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,re
+          base=pathlib.Path('tools/direct_demand/operations')
+          source=(base/'read-commercial-price-monitor-20261105-read11-new672.php').read_text()
+          old=(base/'read-commercial-price-monitor-20261104-read10-72h.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='316d05c7b189b0e4e352352f4e669801656e179b2d965093a242262dfe2e6fac'
+          def scope(s):
+           marker="$scope=json_decode(<<<'_ANYTOUR_PRICE157_SCOPE_'";end="_ANYTOUR_PRICE157_SCOPE_,true,512,JSON_THROW_ON_ERROR);"
+           return s[s.index(marker):s.index(end)+len(end)]
+          assert scope(source)==scope(old)
+          assert "max(1793835598,$now-259200)" in source and "count($scope)===159" in source
+          assert "$eligible=$active&&$nameMatches&&price_native_eligible($hotel,$binding);" in source
+          prefix="<?php\ndeclare(strict_types=1);\n";assert source.startswith(prefix)
+          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
+          pathlib.Path(os.environ['RUNNER_TEMP'],'price-read.php').write_text(header+source[len(prefix):])
+          print('NEW672_SOURCECUT72H_SCOPE159_EXACT_PREFIX_TYPED15_OK old_scope_fixture_reruns=0 server_calls=0')
+          PY
+          php -l "$RUNNER_TEMP/price-read.php"
+          ANYTOUR_PRICE11_NEW_INPUT_FIXTURE=1 php "$RUNNER_TEMP/price-read.php"
       - name: Prepare existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -117,7 +143,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Update accepted hotels serially through the existing registry and once ledger
+      - name: Read only new post-sourcecut672 observations for other unpriced published hotels
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -125,16 +151,35 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-commercial-price-update-20261105-legacy9-pass1.py
-      - name: Retain authenticated original edit receipts and all closed no-edit outcomes
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/price-read.php" > "$RUNNER_TEMP/price-readback.json" || probe_status=$?
+          python3 - <<'PY'
+          import json,pathlib,os
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'price-readback.json').read_text().splitlines()[-1])
+          assert d['operation']=='commercial-price-monitor-20261105-read11-new672-input1' and d['ok'] and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert len(d['hotels'])==159 and len({r['local_tv_id'] for r in d['hotels']})==159
+          assert d['db_writes']==d['provider_calls']==d['message_sends']==d['price_block_updates']==0
+          assert d['max_age_seconds']==259200 and d['actual_new_collector_source_cutoff_epoch_utc']==1793835598
+          excluded=set(d['coverage_excluded_consumed_native_ids']);assert len(excluded)==51
+          assert all(len(h['observations'])<=2 and (not h['observations'] or h['local_tv_id'] not in excluded) for h in d['hotels'])
+          for h in d['hotels']:
+           for row in h['observations']:
+            assert int(row['created_at_stored_epoch_utc'])>=max(1793835598,d['readback_epoch_utc']-259200) and row['departure_date']>'2026-11-05'
+          summary={'operation':d['operation'],'ok':True,'scope_hotels':159,'hotels_with_new_retained_rows':sum(bool(h['observations']) for h in d['hotels']),'new_retained_rows':sum(len(h['observations']) for h in d['hotels']),'new_native_hotel_ids':[h['local_tv_id'] for h in d['hotels'] if h['observations']],'readback_epoch_utc':d['readback_epoch_utc'],'lower_persistence_epoch_utc':d['created_after_persistence_epoch_utc'],'source_cutoff_epoch_utc':1793835598,'max_age_seconds':259200,'closed_old_slices_reread':False,'db_writes':0,'provider_calls':0,'message_sends':0,'price_block_updates':0}
+          pathlib.Path(os.environ['RUNNER_TEMP'],'price-read11-summary.json').write_text(json.dumps(summary)+'\n')
+          print(json.dumps(summary,sort_keys=True))
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Retain bounded private price inputs only in authenticated artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-update-20261105-legacy9-pass1
-          path: ${{ runner.temp }}/price-legacy9-pass1
+          name: commercial-price-monitor-20261105-read11-new672-input1
+          path: |
+            ${{ runner.temp }}/price-readback.json
+            ${{ runner.temp }}/price-read11-summary.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection files
+      - name: Remove ephemeral connection and read scripts
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/price-read.php" "$RUNNER_TEMP/price-readback.json" "$RUNNER_TEMP/price-read11-summary.json" "$RUNNER_TEMP/current-diagnostics-run.json"

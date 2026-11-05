@@ -1,0 +1,103 @@
+{
+  "operation": "commercial-price-monitor-20261105-rollout8-normal672",
+  "state": "CLOSED_NEW_ACTUAL_SCHEDULED_NORMAL672_INPUT",
+  "run": 41935377716,
+  "validate_job": 126942396158,
+  "collect_production_job": 126942462291,
+  "source_sha": "196f16c9dbf3e24d05d8be6e2f53e3beee1f2f27",
+  "event": "schedule",
+  "created_at": "2026-11-04T23:38:59Z",
+  "first_actual_monthly_start_utc": "2026-11-04T23:39:58.0066585Z",
+  "actual_monthly_done_utc": "2026-11-04T23:49:37.2392492Z",
+  "source_cutoff_epoch_utc": 1793835598,
+  "configured_target_count": 672,
+  "actual_native_counts": {
+    "processed": 64,
+    "page_gap_processed": 8,
+    "failed": 0,
+    "partial": 0,
+    "observations_written": 8478,
+    "fresh_targets": 203,
+    "pending_targets": 3868,
+    "complete": false,
+    "months": {
+      "2026-11": {
+        "total": 345,
+        "fresh": 54,
+        "pending": 291
+      },
+      "2026-12": {
+        "total": 345,
+        "fresh": 16,
+        "pending": 329
+      },
+      "2027-01": {
+        "total": 345,
+        "fresh": 15,
+        "pending": 330
+      },
+      "2027-02": {
+        "total": 276,
+        "fresh": 15,
+        "pending": 261
+      },
+      "2027-03": {
+        "total": 345,
+        "fresh": 15,
+        "pending": 330
+      },
+      "2027-04": {
+        "total": 345,
+        "fresh": 15,
+        "pending": 330
+      },
+      "2027-05": {
+        "total": 345,
+        "fresh": 15,
+        "pending": 330
+      },
+      "2027-06": {
+        "total": 345,
+        "fresh": 15,
+        "pending": 330
+      },
+      "2027-07": {
+        "total": 345,
+        "fresh": 14,
+        "pending": 331
+      },
+      "2027-08": {
+        "total": 345,
+        "fresh": 14,
+        "pending": 331
+      },
+      "2027-09": {
+        "total": 345,
+        "fresh": 14,
+        "pending": 331
+      },
+      "2027-10": {
+        "total": 345,
+        "fresh": 1,
+        "pending": 344
+      }
+    }
+  },
+  "original_collect_job_log_read_once": true,
+  "actual_collector_source_calls_and_db_observation_writes": true,
+  "our_manual_collects": 0,
+  "our_db_writes": 0,
+  "verified_tour_prices": false,
+  "metadata_window": {
+    "created_after": "2026-11-04T23:14:27Z",
+    "checked_at_utc": "2026-11-05 00:58:35 UTC",
+    "scheduled_total": 2,
+    "matching_normal_collectors": 1
+  },
+  "boundaries": [
+    "New8478 raw observations are not fullbasket finalprices",
+    "Original normal672 job/log CLOSED, no rerun/readback/requery samewindow",
+    "Genuinelynewrelated input may justify ONEnew159scope slice after thissourcecut, with typed15 preserved; no oldREAD9/READ10slices again",
+    "No collector/cron/budget/transport/observerchanges"
+  ]
+}

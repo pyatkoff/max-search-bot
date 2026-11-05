@@ -1,0 +1,118 @@
+{
+  "operation": "commercial-price-update-20261105-legacy9-pass1",
+  "state": "CLOSED_SIX_REAL_PRICES_TWO_CHANNELS_EACH_VERIFIED",
+  "quoted_catalog_ids": [
+    240,
+    310,
+    381,
+    469,
+    498,
+    1971,
+    1981,
+    9373,
+    46672
+  ],
+  "max_age_seconds": 259200,
+  "max_existing_edits": 18,
+  "goal": "Preserve complete existing legacy post context and add one independently verified2adult tour basket per admitted hotel",
+  "boundaries": [
+    "No new posts; exact typed publisher/native roles and canonical stable existing photo signatures",
+    "Actual original caption and closing paragraph from recovered current approved receipt; no hardcoded previous hotel CTA",
+    "Current exact registry pub/version/token/button/source/caption/photo checked before writes; unknown stop",
+    "Full real roundtrip, correct dates,2adultwholebasketasreceived,RUB,noPlacesfalse,onDemandfalse,all inclusionflagsfalse; fuel not added",
+    "Prepare manifests only for actual admissible original quotes; no provider retries",
+    "Registrynewversions/onceledger/flock/fsync/nativeprovider readback unchanged"
+  ],
+  "criteria": [
+    "New actual per-input native/logical/photo binding cases and closing cases/PHP-l before edits",
+    "Durable private intent uploaded before serial existing edits",
+    "Two actual body/photo/button/context verifications per accepted hotel"
+  ],
+  "risks": [
+    "Some real responses may not pass fullbasket or caption length; leave unchanged",
+    "Current canonical version may change after capture; stop before write"
+  ],
+  "nonerror_flight_catalog_ids": [
+    310,
+    381,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "quote_results": {
+    "run": 41944924563,
+    "artifact": 13377692635,
+    "source_sha": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
+  },
+  "expected_current_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "run": 41945166136,
+  "job": 126975456424,
+  "source_commit": "c84339faeb79066d0a05133294423720bb7ae57b",
+  "installed_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "execution_intent_artifact": 13377888476,
+  "execution_intent_created_at": "2026-11-05T00:57:57Z",
+  "result_artifact": 13378252223,
+  "result_created_at": "2026-11-05T00:59:00Z",
+  "updated_hotels": 6,
+  "updated_native_hotel_ids": [
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "verified_existing_edits": 12,
+  "actual_content_edit_attempts": 12,
+  "new_posts": 0,
+  "additional_gateway_calls": 0,
+  "button_only_updates": 0,
+  "all_original_caption_photo_button_source_token_context_preserved": true,
+  "registry_versions_and_onceledger_updated": true,
+  "real_baskets_as_received": true,
+  "fuel_separately_added": false,
+  "checked_times": [
+    {
+      "native_hotel_id": 310,
+      "epoch_utc": 1793840163
+    },
+    {
+      "native_hotel_id": 469,
+      "epoch_utc": 1793840174
+    },
+    {
+      "native_hotel_id": 498,
+      "epoch_utc": 1793840177
+    },
+    {
+      "native_hotel_id": 1971,
+      "epoch_utc": 1793840183
+    },
+    {
+      "native_hotel_id": 1981,
+      "epoch_utc": 1793840188
+    },
+    {
+      "native_hotel_id": 9373,
+      "epoch_utc": 1793840191
+    }
+  ],
+  "closed_no_edit": [
+    {
+      "native_hotel_id": 240,
+      "state": "DECLARED_GATEWAY_ERROR_ZERO_FLIGHTS"
+    },
+    {
+      "native_hotel_id": 381,
+      "state": "ORIGINAL_FULL_BASKET_CONTRACT_REJECTED_NOT_READY_FOR_EDIT"
+    },
+    {
+      "native_hotel_id": 46672,
+      "state": "HTTP404_NO_ACCEPTED_QUOTE"
+    }
+  ],
+  "old_fixtures_rerun": 0,
+  "do_not_repeat_updates_or_provider_readbacks": true
+}
