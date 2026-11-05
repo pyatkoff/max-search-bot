@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261105-read17",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "BindONLYnewactuallypublishedCullinan78251pair toprivateMAX161route andthreefeeds;no older160publicationreread.",
+  "boundaries": {
+    "hotel_ids": [
+      78251
+    ],
+    "previous160_read": 0,
+    "public_firstline_queries": 1,
+    "public_query_limit_each": 3,
+    "private_exact_url_queries": 1,
+    "private_query_limit_each": 2,
+    "stock_queries": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0
+  },
+  "criteria": [
+    "Actualsender41969870445 verified2newbody-photo-button-sourceposts/reused0;immutablemanifestSHAf81944d2d2a4eee4ac50deca70e89929e150e542c81470ab95416af5233e66ad",
+    "Exactapprovedfirstline+immutableaccepted600PNG/734595bytes/SHA from51manifest, no oldcontextsubstitution",
+    "PublicsingletonLIMIT3/privateexactURLLIMIT2queryfunctionsBYTEIDENTICALREAD16;only3NEW78251scope-querycases/PHP-l,oldfixtures0",
+    "Freshcurrentmain/sameversionverifydeploy/TLS/currentdiagnostics/fullremote21/hostaccepted25/installedclean/schema/rights/readonlybeforeSSH",
+    "PrivatecanonicalIDs/URLs/fullreceiptsONLYauthartifact/consolecounts/publicdestinationsONLY3requestedfeeds"
+  ],
+  "risks": [
+    "Missing/ambiguousnewpairorprivatebindingSTOP/noold160registryread",
+    "CanonicalpostURLsnotminiappURLs/publicaliasesnotprivatecanonicalID"
+  ],
+  "actual_sender_run": 41969870445,
+  "actual_sender_artifact": 13389382040,
+  "expected_source": "627a9c6284624e63b24287bea61277ef6c8f5364"
+}
