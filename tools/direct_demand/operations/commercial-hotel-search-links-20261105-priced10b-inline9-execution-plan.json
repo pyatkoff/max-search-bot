@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced10b-inline9-pass1",
+  "state": "EXECUTE_NINE_FROZEN_NATIVE_INLINE_LINK_PAIRS_AFTER_FRESH_HEALTHY_FULL_GATES",
+  "scope_sha256": "c145da757b5c2138d92d96299ef8a4bb67b0a5541c2cf8b9e174643875b32acc",
+  "expected_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "hotel_ids": [
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264
+  ],
+  "prepared_run": 42091333772,
+  "prepared_artifact": 13445192021,
+  "context_run": 42090970270,
+  "context_source_sha": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "frozen_prepared_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "template_sha256": "aaf6cbe778fc4ba1fdeaedb7cfa0c1d6b25fb89aaf0e4f2e130fbff9103d55b0",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": false,
+  "new_native_cases_already_closed_per_hotel": 9,
+  "new_python_cases_already_closed_per_hotel": 4,
+  "old_fixtures_to_rerun": 0,
+  "bounds": {
+    "max_existing_content_edits": 18,
+    "new_posts": 0,
+    "price_edits": 0,
+    "quote_calls": 0,
+    "source_searches": 0
+  },
+  "criteria": [
+    "Reconstruct ALL frozen PHP bytes/approval/manifest/frame; this execution same435 source, no header rebind or case rerun.",
+    "Fresh current main+same healthy DeployTLSdiag/FULL21/accepted25 host/installedclean/runtime/native/schema-rights/UNKNOWNoriginalfirst.",
+    "Private exact intents uploaded before ANY server/provider; ONE existing SERIAL updater with original once IDs, no automatic retry.",
+    "Caption text byte-identical, native anchor URL proven bothplatforms, originalentities/photo/button/source/token/versions preserved; exact original priceSHA/checkepoch BEFORE+AFTER.",
+    "Any partial/unknown stops and resolves SAMEoriginal outcome first."
+  ]
+}
