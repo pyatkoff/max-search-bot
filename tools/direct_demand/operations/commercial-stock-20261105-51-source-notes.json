@@ -1,0 +1,80 @@
+{
+  "operation": "commercial-stock-20261105-51-source-notes",
+  "state": "TEN_PROVEN_SCOPE_SIX_CAPTIONS_UNCHANGED_ONE_ACTUAL_CULLINAN_DELIVERY_OTHER_NINE_NOT_READY",
+  "proven_scope": [
+    1420,
+    1421,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260,
+    1217
+  ],
+  "captions": [
+    {
+      "hotel_id": 1260,
+      "text": "🏨 IC Hotels Santai Family Resort\n✈️ Тур с перелётом в Белек\n\n🌊 Пляж длиной 300 метров.\n🧒 Детский клуб.\n🍽 Итальянский, азиатский, мексиканский и рыбный рестораны.\n🧖 Спа и велнес.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 268,
+      "source_run": 41958609449,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    },
+    {
+      "hotel_id": 1420,
+      "text": "🏨 Papillon Ayscha\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж.\n🧒 Детский клуб Papy Kids World.\n🎾 Теннис, фитнес и занятия в Fit Club.\n🧖 Reborn Spa с турецкой баней.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 258,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    },
+    {
+      "hotel_id": 1421,
+      "text": "🏨 Papillon Belvil\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж.\n🧒 Papy Kids World с играми и творческими занятиями.\n⚽ Футбол, теннис и пляжный волейбол.\n🧖 Reborn Spa.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 258,
+      "source_run": 41958609449,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    },
+    {
+      "hotel_id": 27349,
+      "text": "🏨 Maxx Royal Kemer Resort\n✈️ Тур с перелётом в Кемер\n\n🌊 Три пляжа и бассейны с разными концепциями.\n🧒 Maxxi Land, аквапарк и детские бассейны.\n🧖 Спа и фитнес.\n🛎 Помощь Maxx Assistant во время отдыха.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 290,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    },
+    {
+      "hotel_id": 78251,
+      "text": "🏨 Cullinan Belek\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж с белым песком.\n🧒 Клуб Upupa для детей от 2 до 16 лет.\n♨️ Зимой часть бассейнов подогревают. Работа зависит от погоды.\n🧖 C'espace Spa и фитнес.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 297,
+      "source_run": 41957285388,
+      "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED"
+    },
+    {
+      "hotel_id": 108942,
+      "text": "🏨 Maxx Royal Bodrum Resort\n✈️ Тур с перелётом в Бодрум\n\n🌊 Бухта в районе Гёльтюркбюкю.\n💦 Бассейны, в том числе с морской водой.\n🧖 Maxx Wellbeing со спа и фитнесом.\n🛎 Maxx Assistant для гостей отеля.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 289,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    }
+  ],
+  "all_six_wholecaption_texts_byteidentical_from49_50": true,
+  "deferred_caption_ids": [
+    1253,
+    15904,
+    15913,
+    1217
+  ],
+  "primary_source_run": 41968470694,
+  "contact_run": 41968724003,
+  "source_constraints": [
+    "Cullinanactualpropertygallerydownloadinvitation+explicittargetphoto filenames,no genericCDNmembership assumption",
+    "MaxxquerylessURLsactuallydeclaredbynewchildpages,notquerystripped. OldAyschaoriginalversionssamecloseddroneframesdeferred",
+    "No golf/free/privatevilla/pavilion/season/2027/priceavailabilityclaims added;othernineunready"
+  ],
+  "actual_published_native_ids": [
+    78251
+  ],
+  "new_logical_pairs": 1,
+  "new_posts": 2,
+  "ready_for_send": 0
+}
