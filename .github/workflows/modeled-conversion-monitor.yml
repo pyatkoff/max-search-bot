@@ -159,26 +159,74 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const names = new Set(['modeled-monitor-private-intent', 'modeled-monitor-private-final']);
-            let found = [];
+            const names = ['modeled-monitor-private-intent', 'modeled-monitor-private-final'];
+            const perPage = 25, maxPages = 20, maxPerName = perPage * maxPages;
+            const started = performance.now();
             let artifactReadRetried = false;
-            async function readArtifactPage(page) {
-              const request = {...context.repo, per_page: 100, page, request: {timeout: 10000}};
+            const found = [], seen = new Set();
+            function remainingMs() {
+              const elapsed = performance.now() - started;
+              if (!Number.isFinite(elapsed) || elapsed < 0 || elapsed >= 60000)
+                throw new Error('monitor_artifact_discovery_deadline');
+              const remaining = Math.floor(60000 - elapsed);
+              if (remaining < 1) throw new Error('monitor_artifact_discovery_deadline');
+              return remaining;
+            }
+            async function readArtifactPage(name, page) {
+              const request = () => ({...context.repo, name, per_page: perPage, page,
+                request: {timeout: Math.min(10000, remainingMs())}});
               try {
-                return await github.rest.actions.listArtifactsForRepo(request);
+                const response = await github.rest.actions.listArtifactsForRepo(request());
+                remainingMs();
+                return response;
               } catch (error) {
                 if (artifactReadRetried || error?.status !== 500) throw error;
+                if (remainingMs() <= 1000) throw new Error('monitor_artifact_discovery_deadline');
                 artifactReadRetried = true;
                 core.warning('GitHub artifact-list HTTP 500: retrying this read once.');
                 await new Promise(resolve => setTimeout(resolve, 1000));
-                return await github.rest.actions.listArtifactsForRepo(request);
+                const response = await github.rest.actions.listArtifactsForRepo(request());
+                remainingMs();
+                return response;
               }
             }
-            for (let page = 1; page <= 5; page++) {
-              const r = await readArtifactPage(page);
-              found = r.data.artifacts.filter(a => names.has(a.name) && !a.expired && a.workflow_run?.head_branch === 'main');
-              if (found.length || r.data.artifacts.length < 100) break;
+            const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+            const positive = value => Number.isSafeInteger(value) && value > 0;
+            function validCreatedAt(value) {
+              if (typeof value !== 'string' || value.length !== 20 ||
+                  !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value)) return false;
+              const parsed = Date.parse(value);
+              return Number.isFinite(parsed) && new Date(parsed).toISOString() === value.slice(0,-1) + '.000Z';
             }
+            for (const name of names) {
+              let expectedTotal = null, scanned = 0, complete = false;
+              for (let page = 1; page <= maxPages; page++) {
+                const response = await readArtifactPage(name, page), data = response?.data;
+                if (!object(data) || !Number.isSafeInteger(data.total_count) || data.total_count < 0 ||
+                    !Array.isArray(data.artifacts) || data.artifacts.length > perPage)
+                  throw new Error('monitor_artifact_metadata_invalid');
+                if (data.total_count > maxPerName) throw new Error('monitor_artifact_discovery_incomplete');
+                if (expectedTotal !== null && data.total_count !== expectedTotal)
+                  throw new Error('monitor_artifact_list_changed');
+                expectedTotal = data.total_count;
+                for (const artifact of data.artifacts) {
+                  if (!object(artifact) || artifact.name !== name || !positive(artifact.id) ||
+                      typeof artifact.expired !== 'boolean' || !validCreatedAt(artifact.created_at) ||
+                      !object(artifact.workflow_run) || !positive(artifact.workflow_run.id) ||
+                      typeof artifact.workflow_run.head_branch !== 'string' || artifact.workflow_run.head_branch.length > 1024 ||
+                      seen.has(artifact.id))
+                    throw new Error('monitor_artifact_metadata_invalid');
+                  seen.add(artifact.id);
+                  if (!artifact.expired && artifact.workflow_run.head_branch === 'main') found.push(artifact);
+                }
+                scanned += data.artifacts.length;
+                if (scanned > expectedTotal) throw new Error('monitor_artifact_metadata_invalid');
+                if (scanned === expectedTotal) { complete = true; break; }
+                if (data.artifacts.length < perPage) throw new Error('monitor_artifact_discovery_incomplete');
+              }
+              if (!complete) throw new Error('monitor_artifact_discovery_incomplete');
+            }
+            remainingMs();
             found.sort((a,b) => b.created_at.localeCompare(a.created_at) || b.id-a.id);
             const latest = found[0];
             core.setOutput('present', latest ? 'true' : 'false');
