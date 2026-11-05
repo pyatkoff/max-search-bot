@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-hotel-prices-and-search-links-20261105-next-after-media58-plan1",
+  "state": "GENUINELY_NEW_NORMAL_PRICES_FIRST_THEN_PROPER_REVIEW6_PROOF_THEN_NEW_DECLARED_PROPERTY_MEDIA",
+  "current": {
+    "published_pairs": 161,
+    "prices_in_both": 85,
+    "linked_in_both": 155,
+    "admitted_unpriced": 70,
+    "unlinked_review_only": [
+      482,
+      476,
+      81173,
+      32577,
+      478,
+      80964
+    ],
+    "ready_price_edits": 0,
+    "ready_link_edits": 0,
+    "ready_materials": 0,
+    "open_canva_transactions": 0,
+    "unknown_pending": 0,
+    "active_provider_workflows": 0
+  },
+  "latest_metadata": {
+    "operation": "commercial-price-monitor-20261105-metadata31-new-after2055",
+    "state": "CLOSED_NEW_BOUNDED_SCHEDULED_METADATA_ONLY",
+    "created_after": "2026-11-05T20:55:20Z",
+    "query_start_inclusive": "2026-11-05T20:55:21Z",
+    "upper_utc": "2026-11-05T21:10:17Z",
+    "total_count": 0,
+    "returned": 0,
+    "new_normal_or_admitted_tour_tuple": false,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "old_logs_read": 0,
+    "do_not_repeat_same_window": true
+  },
+  "closed_media_states": [
+    "commercial-batch-20261105-58-primary-state.json",
+    "commercial-batch-20261105-58-primary-metadata-projection1-state.json",
+    "commercial-batch-20261105-58-contact-state.json"
+  ],
+  "next_media_plan": "commercial-batch-20261105-59-serry-declared-pdf-evidence-plan1.json",
+  "photo_exclusions": {
+    "urls": 293,
+    "decoded_basenames": 292,
+    "index": "commercial-batch-20261105-58-contact-source-index.json",
+    "union": "closedarrays+bothnew_photos"
+  },
+  "goal500_complete": false,
+  "automation": "Onlyownanytour-max15minACTIVE until500actualpairs+3fullYML+agreedminiappacceptance+savedacceptance",
+  "notify_rule": "Routineunchanged/source/photoevidencewithoutnewdeliveryquiet; actualNEWdelivery orNEWactionableblockeronce"
+}

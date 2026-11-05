@@ -1,0 +1,36 @@
+{
+  "operation": "commercial-batch-20261105-59-serry-declared-pdf-evidence-plan1",
+  "state": "EXACT_OWNER_BROCHURE_POINTER_NOT_REQUESTED_NEWNESS_AND_PROPERTY_PROOF_REQUIRED",
+  "goal": "Inspect only a genuinelyNEW exactownerPDF pointer that maydeclarepropertywholecomplexmedia; avoidmoreblindentrance/pool/Overviewdownloads.",
+  "native_id": 83563,
+  "retained_name": "SERRY BEACH RESORT",
+  "retained_property_pointer": "https://www.theserry.com/beach-resort",
+  "declared_pdf_url": "https://theserry.com/pdf/new/Serry_Brochure.pdf",
+  "discovery_query": "site:theserry.com \"Serry Beach Resort\" gallery",
+  "discovery_kind": "PUBLIC_PRIMARY_OWNER_SEARCH_RETURNED_EXACT_PDF",
+  "discovery_state": "SEARCH_DECLARED_ONLY_NOT_CURRENT_PDF_CONTENT_OR_RIGHTS_ACCEPTANCE",
+  "bounds": {
+    "new_owner_groups": 1,
+    "max_declared_owner_gets": 1,
+    "max_parallel": 1,
+    "owner_get_before_closed_metadata_dedup": 0,
+    "server_calls": 0,
+    "provider_calls": 0,
+    "canva_before_proof": 0,
+    "new_posts": 0
+  },
+  "criteria": [
+    "BeforePDFGET compareALLcanonicalclosed source-index/primary-plan metadata andwww/trailingslashvariants. Ifalreadyclosed GET0; don'treadknownSerryroot orwwwPDFvariant.",
+    "UseONLYexactreturnednonwwwPDFURL. No redirect/retry/queryrewrite/alternatepath-host/headercookie/robotsbypass. Freezeconcretebyte/MIME/PDFsignature/page/imagebounds+newactualinputcasesbeforeworkflow; no inventedfilenames oroldfixtures.",
+    "OwnerPDFcanmixfamilySerryBeachResortandseparate16+sister; proveexactpropertycontext perphoto. NoManarasuitelounge/shareddiningrights generalized; maps/renders/icons areNOTrealwholecomplexphotos.",
+    "Native83563ID/name retained, currentexactcountry-active-native-name/registry/rights/facts/wholecaption proof stillrequired beforeCanva/publisher. MissingfieldsremainNULL, neverinvented0.",
+    "PHOTOexclusionsNOW293URLs292decodedbasenames via58contactindexpriorarrays291/290+bothnew_photos2; maintaincanonicalcontactmetadataexclusions too.",
+    "All58owner/projection/contactlogs/results/cases/pixelsCLOSED/no repeat. Gallerymetadataonlyin58-primary-retainedcanbeusedfornewdeclaredsemanticproof; no blindlyGETtimestampentrancevariants oroldpixels. Fullrawtext/photosONLYoriginalauthartifacts.",
+    "Wholemaincomplexhero+2differentpropertyphotos mandatory; noAIstock/sharedbrandimages/loweredquality. FreshCanvaTXonlyafterproof/protecteddesign/reusepool/EACHthumbnailSHOW/PNGguards/freezeTHENcancel.",
+    "Ready1..10ONEexistingSERIAL/privateintent/once/UNKNOWNoriginalFIRST; hardcasesnotheldwithready. Onlyactualnewpair permitsMAX162/feed17/monitorappend."
+  ],
+  "risks": [
+    "PDFmayalreadybeclosed, redirect/403, containonlymap/graphic/details ornotprovepropertymembership; deferwithoutbypass.",
+    "Newsource/photoevidenceisnotmaterialdelivery;500stillNOTcomplete."
+  ]
+}

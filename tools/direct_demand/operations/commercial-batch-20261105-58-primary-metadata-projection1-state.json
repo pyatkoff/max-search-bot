@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-batch-20261105-58-primary-metadata-projection1",
+  "state": "CLOSED_CURRENT_AUTHENTICATED_SOURCE_METADATA_ONLY_PROJECTION",
+  "run": 42111371324,
+  "job": 127539499966,
+  "source_commit": "ec9682ba0c233f32d4f968cd8997de94ca4dbd16",
+  "authenticated_artifact_id": 13454761451,
+  "artifact_name": "commercial-batch58-current-owner-metadata1",
+  "original_source_run": 42110612108,
+  "original_source_artifact_id": 13454390908,
+  "projected_metadata_retained_file": "commercial-batch-20261105-58-primary-retained.json",
+  "new_actual_input_cases": 6,
+  "old_fixtures_rerun": 0,
+  "owner_page_gets": 0,
+  "raw_photo_gets": 0,
+  "server_calls": 0,
+  "provider_calls": 0,
+  "raw_public_text_or_photo_console": 0,
+  "new_posts": 0,
+  "ready_for_send": 0,
+  "original_log_closed": true
+}

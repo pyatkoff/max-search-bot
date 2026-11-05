@@ -1,0 +1,843 @@
+{
+  "operation": "commercial-batch-20261105-58-primary-metadata-retained",
+  "state": "DECLARED_OWNER_METADATA_ONLY_NO_RAW_PUBLIC_TEXT_OR_PHOTO_BYTES",
+  "source_run": 42110612108,
+  "source_sha": "616f2e2f3f488f3d0858a9088d3e64b777af4e09",
+  "source_artifact_id": 13454390908,
+  "projection_run": 42111371324,
+  "projection_artifact_id": 13454761451,
+  "pages": [
+    {
+      "source_url": "https://www.oldpalaceresort.com/en/gallery/",
+      "final_url": "https://www.oldpalaceresort.com/en/gallery/",
+      "page_title": " Gallery",
+      "image_hosts": [
+        "www.oldpalaceresort.com"
+      ],
+      "image_urls": [
+        "https://www.oldpalaceresort.com/google.jpg",
+        "https://www.oldpalaceresort.com/twitter.jpg",
+        "https://www.oldpalaceresort.com/facebook.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/logo-white.png",
+        "https://www.oldpalaceresort.com/images/uploads/logo-black.png",
+        "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204619803.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204630526.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204635269.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204640260.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204647768.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/20211416102713.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202658839.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320279498.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202715197.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202719607.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202723428.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/202114161350200.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/202114161715181.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202847887.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203844197.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204658522.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320475940.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204752719.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203633534.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203637959.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203641721.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203645565.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203649971.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203654494.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203659204.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320374816.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320378653.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320371314.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203717318.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203721164.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-2021232037253.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320373297.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203735953.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203740167.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320483117.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204021230.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204024994.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204029110.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204032860.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/visa.png",
+        "https://www.oldpalaceresort.com/images/uploads/mastercard.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.oldpalaceresort.com/google.jpg",
+        "https://www.oldpalaceresort.com/twitter.jpg",
+        "https://www.oldpalaceresort.com/facebook.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/logo-white.png",
+        "https://www.oldpalaceresort.com/images/uploads/logo-black.png",
+        "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204619803.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204630526.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204635269.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204640260.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204647768.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/20211416102713.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202658839.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320279498.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202715197.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202719607.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202723428.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/202114161350200.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/202114161715181.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202847887.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203844197.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204658522.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320475940.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204752719.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203633534.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203637959.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203641721.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203645565.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203649971.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203654494.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203659204.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320374816.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320378653.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320371314.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203717318.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203721164.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-2021232037253.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320373297.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203735953.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203740167.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320483117.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204021230.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204024994.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204029110.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204032860.jpg",
+        "https://www.oldpalaceresort.com/images/uploads/visa.png",
+        "https://www.oldpalaceresort.com/images/uploads/mastercard.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/logo-white.png",
+          "alt": "logo"
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/logo-black.png",
+          "alt": "logo1"
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204619803.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204630526.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204635269.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204640260.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204647768.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/20211416102713.jpg",
+          "alt": "Superior Room"
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202658839.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320279498.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202715197.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202719607.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202723428.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/202114161350200.jpg",
+          "alt": "El Kasr Main Restaurant"
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/202114161715181.jpg",
+          "alt": "LA Cucina A’ la Carte Restaurant"
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202847887.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203844197.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204658522.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320475940.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204752719.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203633534.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203637959.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203641721.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203645565.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203649971.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203654494.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203659204.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320374816.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320378653.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320371314.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203717318.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203721164.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-2021232037253.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320373297.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203735953.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203740167.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320483117.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204021230.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204024994.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204029110.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204032860.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/visa.png",
+          "alt": "image"
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/mastercard.png",
+          "alt": "image"
+        }
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/logo-white.png",
+          "tag": "img",
+          "alt": "logo",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/logo-black.png",
+          "tag": "img",
+          "alt": "logo1",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204619803.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204619803.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204630526.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204630526.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204635269.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204635269.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204640260.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204640260.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204647768.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204647768.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/20211416102713.jpg",
+          "tag": "img",
+          "alt": "Superior Room",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/20211416102713.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202658839.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202658839.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320279498.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320279498.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202715197.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202715197.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202719607.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202719607.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202723428.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202723428.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/202114161350200.jpg",
+          "tag": "img",
+          "alt": "El Kasr Main Restaurant",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/202114161350200.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/202114161715181.jpg",
+          "tag": "img",
+          "alt": "LA Cucina A’ la Carte Restaurant",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/202114161715181.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202847887.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123202847887.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203844197.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203844197.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204658522.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204658522.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320475940.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320475940.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204752719.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204752719.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203633534.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203633534.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203637959.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203637959.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203641721.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203641721.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203645565.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203645565.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203649971.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203649971.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203654494.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203654494.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203659204.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203659204.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320374816.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320374816.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320378653.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320378653.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320371314.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320371314.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203717318.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203717318.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203721164.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203721164.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-2021232037253.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-2021232037253.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320373297.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320373297.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203735953.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203735953.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203740167.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123203740167.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320483117.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-20212320483117.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204021230.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204021230.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204024994.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204024994.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204029110.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204029110.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204032860.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204032860.jpg",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/visa.png",
+          "tag": "img",
+          "alt": "image",
+          "categories": []
+        },
+        {
+          "url": "https://www.oldpalaceresort.com/images/uploads/mastercard.png",
+          "tag": "img",
+          "alt": "image",
+          "categories": []
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.oldpalaceresort.com/favicon.ico",
+        "https://www.oldpalaceresort.com/",
+        "https://www.oldpalaceresort.com/en/about-us/",
+        "https://www.oldpalaceresort.com/en/contact-us/",
+        "https://www.oldpalaceresort.com/en/news/",
+        "https://www.oldpalaceresort.com/en/",
+        "https://www.oldpalaceresort.com/en/accommodation/",
+        "https://www.oldpalaceresort.com/en/accommodation/rooms/",
+        "https://www.oldpalaceresort.com/en/accommodation/suites/",
+        "https://www.oldpalaceresort.com/en/dining/",
+        "https://www.oldpalaceresort.com/en/activities/",
+        "https://www.oldpalaceresort.com/en/meetings-events/",
+        "https://www.oldpalaceresort.com/en/gallery/",
+        "https://www.oldpalaceresort.com/en/offers/",
+        "https://www.oldpalaceresort.com/en/faq/",
+        "https://www.oldpalaceresort.com/en/terms-conditions/",
+        "https://www.oldpalaceresort.com/en/privacy-policy/",
+        "https://www.oldpalaceresort.com/en/covid-19/"
+      ],
+      "hotel_id": 343,
+      "public_text_sha256": "70977251e24d1cb905651c4b230bbde96b4b8822a62a8d6b96d1eefabc58fa52",
+      "public_text_characters": 1123
+    }
+  ]
+}

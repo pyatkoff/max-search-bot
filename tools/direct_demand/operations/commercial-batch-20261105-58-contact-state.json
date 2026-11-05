@@ -1,0 +1,83 @@
+{
+  "operation": "commercial-batch-20261105-58-contact1",
+  "state": "CLOSED_TWO_NEW_NATIVE_OWNER_IMAGES_GUARDS_PASS_ENTRANCE_FACADES_NOT_WHOLECOMPLEX_HERO",
+  "run": 42111938288,
+  "job": 127541446517,
+  "source_commit": "f4b6b0664a686dd00b8951736f7ba2eed17e1115",
+  "authenticated_artifact_id": 13453757417,
+  "artifact_name": "commercial-batch58-contact-0",
+  "native_ids": [
+    343
+  ],
+  "new_raw_photo_gets": 2,
+  "http200": 2,
+  "guard_passes": 2,
+  "rejections": 0,
+  "contact_metadata_files_checked": 28,
+  "new_actual_input_cases": 7,
+  "old_fixtures_rerun": 0,
+  "old_photo_get_repeats": 0,
+  "source_images": [
+    {
+      "hotel_id": 343,
+      "role": "h343_new58_0",
+      "index": 0,
+      "format": "JPEG",
+      "width": 900,
+      "height": 600,
+      "bytes": 90328,
+      "sha256": "a5e92df1f1dcd9ffdb625e28ad26f188ef6b792ea20fb3a73e98669427e61aa9",
+      "retained_raw_file": "accepted-primary-raw/h343_new58_0.jpg"
+    },
+    {
+      "hotel_id": 343,
+      "role": "h343_new58_1",
+      "index": 1,
+      "format": "JPEG",
+      "width": 900,
+      "height": 600,
+      "bytes": 135300,
+      "sha256": "8b600f9bcc543d503de8876301ce12ffdf961325f293f8b248ba29f7f4090791",
+      "retained_raw_file": "accepted-primary-raw/h343_new58_1.jpg"
+    }
+  ],
+  "contact": {
+    "width": 640,
+    "height": 270,
+    "bytes": 216692,
+    "sha256": "2ad2fc03936912a14915f15a89ee2f2d753bb134256b56aeb7e265e5757f9bdb",
+    "chunks": 7,
+    "full_chunks_bytes_sha_png_dims_verified": true,
+    "shown_once": true
+  },
+  "visual_verdicts": [
+    {
+      "hotel_id": 343,
+      "role": "h343_new58_0",
+      "verdict": "CLOSE_MAIN_ENTRANCE_FACADE_DAYTIME_NOT_WHOLE_MAIN_COMPLEX_HERO"
+    },
+    {
+      "hotel_id": 343,
+      "role": "h343_new58_1",
+      "verdict": "CLOSE_MAIN_ENTRANCE_FACADE_TWILIGHT_NOT_WHOLE_MAIN_COMPLEX_HERO"
+    }
+  ],
+  "whole_complex_heroes_accepted": 0,
+  "new_total_closed_unique_urls": 293,
+  "new_total_closed_decoded_basenames": 292,
+  "current_photo_index": "commercial-batch-20261105-58-contact-source-index.json",
+  "closed_union_rule": "priorarrays291/290+BOTHnew_photos2",
+  "raw_photos_only_original_authenticated_artifact": true,
+  "original_log_result_chunks_pixels_cases_closed": true,
+  "unconsumed_owner_gallery_refs_metadata": "Otherdeclaredrefsmetadataavailablein58-primary-retained; don'tinferdifferentwholecomplexframefromtimestampnames orblindGETotherentrancevariants.",
+  "native_publication_eligibility": "CURRENT_EXACT_COUNTRY_ACTIVE_NATIVE_NAME_REGISTRY_RIGHTS_FACTS_AND_WHOLECAPTION_REQUIRED_NO_SEND",
+  "canva_transactions": 0,
+  "open_canva_transactions": 0,
+  "new_logical_pairs_actual": 0,
+  "new_posts_actual": 0,
+  "ready_for_send": 0,
+  "provider_calls": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "server_connections": 0
+}
