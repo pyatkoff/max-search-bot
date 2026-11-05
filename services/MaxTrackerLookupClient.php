@@ -45,7 +45,7 @@ final class MaxTrackerLookupClient
             ||!is_int($p['scanned_event_count'])||$p['scanned_event_count']<0||$p['scanned_event_count']>64
             ||!is_int($p['omitted_unknown_count'])||$p['omitted_unknown_count']<0||$p['omitted_unknown_count']>$p['scanned_event_count']
             ||$p['scanned_event_count']<count($p['rows'])
-            ||($p['next_cursor']!==null&&!is_string($p['next_cursor']))throw new RuntimeException('tracker_history_page_invalid');
+            ||($p['next_cursor']!==null&&!is_string($p['next_cursor'])))throw new RuntimeException('tracker_history_page_invalid');
         if($request!==null&&($p['cutoff_unix']!==$request['cutoff_unix']||$p['history_fence_id']!==$request['history_fence_id']))
             throw new RuntimeException('tracker_history_page_invalid');
         $last=null;$seen=[];
