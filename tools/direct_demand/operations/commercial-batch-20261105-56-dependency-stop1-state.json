@@ -1,0 +1,19 @@
+{
+  "operation": "commercial-batch-20261105-56-contact1",
+  "state": "PREACCESS_DEPENDENCY_STOP_NO_PIL",
+  "run_id": 42106318201,
+  "job_id": 127522004042,
+  "source_sha": "b5aade5b8889b2d919e61cc385c6af82c319f6e0",
+  "error": "ModuleNotFoundError:PIL",
+  "failed_at": "top_level_import_line3_before_scope_or_HTTP",
+  "new_input_cases_executed": 0,
+  "old_fixtures_rerun": 0,
+  "photo_gets": 0,
+  "owner_gets": 0,
+  "server_calls": 0,
+  "provider_calls": 0,
+  "new_posts": 0,
+  "artifacts": 0,
+  "original_log_closed": true,
+  "correction": "RestoreonlycanonicalPillowworkflowdependency; samefrozeninput/codeoperation, notbusinessretry"
+}

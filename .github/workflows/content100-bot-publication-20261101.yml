@@ -26,7 +26,12 @@ jobs:
       - name: Validate new declared photo inputs before bounded raw GETs
         env:
           MEDIA_GROUP: '0'
-        run: python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261105-batch56.py
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-pil
+          python3 -m py_compile tools/direct_demand/operations/inspect-hotel-primary-images-20261105-batch56.py
+          python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261105-batch56.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
