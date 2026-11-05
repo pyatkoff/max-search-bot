@@ -1,0 +1,19 @@
+{
+  "operation": "commercial-price-monitor-20261105-normal674-quote-pass1",
+  "state": "CLOSED_PRE_ACCESS_SOURCE_STOP5CA_TO_DA54_NO_QUOTES_ATTEMPTED",
+  "run": 41996751985,
+  "job": 127141692724,
+  "source": "e72ac2712010a48cc6acf2da102e7c9ef3d22e50",
+  "reason": "approved_source_not_current",
+  "code_preparation": 0,
+  "new_native_case_runs": 0,
+  "private_intents": 0,
+  "ssh": 0,
+  "provider": 0,
+  "db": 0,
+  "gateway_calls": 0,
+  "posts": 0,
+  "context16_current_frames_still_original5ca": true,
+  "do_not_rerun_context16_owned_reads": true,
+  "same_quote_operation_and_new_fingerprints_retained": true
+}

@@ -1,0 +1,24 @@
+{
+  "operation": "commercial-current-source-20261105-da54-for-normal674-quotes",
+  "state": "INDEPENDENT_CURRENT_DA54_DEPLOY_TLS_DIAGNOSTICS_HEALTHY_PUBLISHING21_UNCHANGED_NATIVE_REMOTE_REQUIRED_BEFORE_QUOTES",
+  "previous_source": "5ca5abcec260c41e73884e08f0f45c0617c21785",
+  "current_source": "da54e30f9f8b3bde427554ee3e3a2cc02b9ffd97",
+  "current_tree": "b350ad11d46517186437b1b192a4de2f1b5506c1",
+  "reviewed_commits": 4,
+  "reviewed_paths": [
+    "manager2/assets/request-profile-panel.js",
+    "tests/visual/manager-request-profile.spec.js"
+  ],
+  "publishing21_changed": 0,
+  "deploy_run": 41996764151,
+  "verify_job": 127143060546,
+  "deploy_job": 127143096679,
+  "tls_run": 41997602590,
+  "diagnostics_run": 41997602666,
+  "tg_run": 41997602610,
+  "max_run": 41997602477,
+  "live_run": 41997602489,
+  "all_six_native_metadata_success": true,
+  "no_foreign_fix_rerun_lease_or_release_mutation": true,
+  "context16_original_source_5ca_preserved": true
+}
