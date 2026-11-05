@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced6c-inline6-pass1",
+  "state": "EXECUTE_SIX_FROZEN_NATIVE_INLINE_PAIRS_AFTER_FRESH_HEALTHY_FULL_GATES",
+  "scope_sha256": "d7410bce2f0dc1a5680426f45bad23f85a7190b22cc4de2d7612d09eb7a6a7af",
+  "expected_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "hotel_ids": [
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "prepared_run": 42094037091,
+  "prepared_artifact": 13446131878,
+  "context_run": 42093416544,
+  "context_source_sha": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "frozen_prepared_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "template_sha256": "aaf6cbe778fc4ba1fdeaedb7cfa0c1d6b25fb89aaf0e4f2e130fbff9103d55b0",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": false,
+  "new_native_cases_already_closed_per_hotel": 9,
+  "new_python_cases_already_closed_per_hotel": 4,
+  "old_fixtures_to_rerun": 0,
+  "bounds": {
+    "max_existing_content_edits": 12,
+    "new_posts": 0,
+    "price_edits": 0,
+    "quote_calls": 0,
+    "source_searches": 0
+  },
+  "criteria": [
+    "Reconstruct ALL frozen PHP bytes/frame/manifest/exact5keyapproval; same435 source/noheaderrebind/casesnotrerun.",
+    "Fresh main/samehealthyDeployTLSdiag/FULL21/accepted25host/clean/runtime/native/schema-rights/UNKNOWNoriginalfirst.",
+    "Private intents durable BEFOREANYserver-provider; ONEexistingSERIAL updater/originalonce/noautomaticretry.",
+    "Bothnativeentityreadbacks prove priceanchorURL; textbyte-identical/existingentities/photo/button/source/token/versions + EXACToldpriceSHA/checkepoch preserved before/after.",
+    "Partialunknown stops originalfirst; no alternateoperation/ID bypass."
+  ]
+}
