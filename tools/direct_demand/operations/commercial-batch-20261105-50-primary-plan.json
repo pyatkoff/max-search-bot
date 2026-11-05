@@ -1,0 +1,76 @@
+{
+  "operation": "commercial-batch-20261105-50-primary-preparation1",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Continue original500-material task while explicitmanualpricepermission remains unanswered; retain ten proven unpublished identities and six wholecaptions, read onlyfour genuinelynew declared Santai pages for factual/photo discovery.",
+  "boundaries": {
+    "proven_native_ids": [
+      1420,
+      1421,
+      1253,
+      15904,
+      15913,
+      78251,
+      27349,
+      108942,
+      1260,
+      1217
+    ],
+    "new_primary_native_ids": [
+      1260
+    ],
+    "new_exact_owner_pages": [
+      {
+        "hotel_id": 1260,
+        "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+        "declared_by": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "native_country_id": 4,
+        "group": 0
+      },
+      {
+        "hotel_id": 1260,
+        "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+        "declared_by": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "native_country_id": 4,
+        "group": 0
+      },
+      {
+        "hotel_id": 1260,
+        "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+        "declared_by": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "native_country_id": 4,
+        "group": 1
+      },
+      {
+        "hotel_id": 1260,
+        "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+        "declared_by": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "native_country_id": 4,
+        "group": 1
+      }
+    ],
+    "max_gets": 4,
+    "readonly_groups": 2,
+    "max_parallel": 2,
+    "provider_calls": 0,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "photo_gets": 0,
+    "message_sends": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "Exactfournewownerhrefs must be present in retained originalSantai rootwebsite_links; no guessedpath, rootrepeat, alternativehost or querystripping",
+    "Native10 acceptedcountry4/active/unique/unpublished retainedproof; published1422excluded. Sixwholecaptions preserved byteidentical, remainingfournotinvented",
+    "Dedup addressedsource-index/primary-plan metadata beforeanyGET; parser/HTTP/redirect/query/size functionalitybyteidentical acceptedprimary2",
+    "ThreeNEWinputnegativecases only(scopepublishedID,wrongnativecountry,undeclaredhref), group0once;oldparserfixtures0",
+    "Any403/redirect/404/challenge stops that exactsource; no bypass or newvariant. Facts/photoURIs notready/delivery; wholecomplexhero criterion preserved"
+  ],
+  "risks": [
+    "Santai childpages may expose only detailphotos/no usablehero. Do not force readiness or read otherclosedframes for quantity",
+    "Season/room/villa/swimup/paidservice rights notuniversal. No prices/availability frompublicownerpages"
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
