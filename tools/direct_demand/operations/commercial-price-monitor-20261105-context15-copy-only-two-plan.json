@@ -1,0 +1,34 @@
+{
+  "operation": "commercial-price-monitor-20261105-context15-copy-only-two",
+  "state": "EXACT_TWO_NEW_RELATED_UNQUOTED_CONTEXTS_PREPARED_NOT_READ_YET",
+  "goal": "Recover exact current canonical copy-only contexts for the only two still-unquoted source-pass hotels,67910 and68323, without requiring an invented original publisher or photo PNG hash.",
+  "source_run": 41976677950,
+  "read13_run": 41978466494,
+  "native_ids": [
+    67910,
+    68323
+  ],
+  "canonical_operation": "commercial-human-copy-early-nine-20261102-v1",
+  "boundaries": {
+    "catalog_current_identity_reads": 2,
+    "canonical_copy_receipt_files_max": 1,
+    "owned_MAX_message_reads_max": 2,
+    "old54_post_reads": 0,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "gateway_calls": 0,
+    "new_source_searches": 0,
+    "private_historical_public_ids_used_as_canonical": false
+  },
+  "criteria": [
+    "Exact canonical complete copy receipt and manifest hash, logical/key/caption hash/platform/source/current publication-version-photo-button-token proof.",
+    "Explicit null publisher and stable provider photo-signature proof; no invented PNG SHA.",
+    "Current native country1/active/name exactly matches source and heading.",
+    "Nonempty conflicting keyboard stops; empty stored keyboard requires actual owned MAX body/photo/canonical URL/onlybutton and TG confirmed current copy transport receipt.",
+    "Three new native/publisher/caption negative cases, PHP lint and fresh current-source/full21/host/clean/schema/rights gates."
+  ],
+  "risks": [
+    "Historical public private IDs cannot resolve canonical truth.",
+    "A deferred context is not permission to re-query old tuples or reread accepted54 messages."
+  ]
+}

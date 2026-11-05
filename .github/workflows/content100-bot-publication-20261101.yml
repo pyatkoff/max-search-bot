@@ -1,4 +1,4 @@
-name: Finish original Telegram273 plus40 unattempted hotel offer pairs serially
+name: Bind only two unquoted copy-only hotel contexts with exact canonical receipts
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -57,44 +57,26 @@ jobs:
           PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-hotel-offer-update-20261105-manual1-prepared1
+          name: commercial-price-monitor-20261105-read13-approved-manual1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41982673887
-          path: ${{ runner.temp }}/prepared-offers
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-hotel-offer-update-20261105-manual1-pass1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41984228461
-          path: ${{ runner.temp }}/original-execution
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-hotel-offer273-20261105-reconcile1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41986606018
-          path: ${{ runner.temp }}/original-reconciliation
-      - name: Exclude completed13 pairs and bind only confirmed MAX273 Telegram continuation plus40 unattempted pairs
+          run-id: 41978466494
+          path: ${{ runner.temp }}/original-read13
+      - name: Prepare exact two new copy-only native contexts and three new negative cases
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/prepare-hotel-offer-original-continuation-20261105.py tools/direct_demand/operations/run-hotel-offer-original-continuation-20261105.py
-          python3 tools/direct_demand/operations/prepare-hotel-offer-original-continuation-20261105.py
-          for script in "$RUNNER_TEMP"/prepared-offers/*/continuation.php; do
-            php -l "$script"
-          done
-          ANYTOUR_RESUME273_NEW_WITNESS_CASES=1 php "$RUNNER_TEMP/prepared-offers/273/continuation.php"
-      - name: Retain exact original continuation intents before provider access
+          python3 -m py_compile tools/direct_demand/operations/prepare-copy-only-two-price-contexts-20261105.py tools/direct_demand/operations/run-copy-only-two-price-contexts-20261105.py
+          python3 tools/direct_demand/operations/prepare-copy-only-two-price-contexts-20261105.py
+          php -l "$RUNNER_TEMP/context15.php"
+          ANYTOUR_CONTEXT15_NEW_COPY_CASES=1 php "$RUNNER_TEMP/context15.php"
+      - name: Retain exact private two-context input before any owned provider read
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-offer-update-20261105-manual1-continuation1-intent
-          path: |
-            ${{ runner.temp }}/offer-continuation-intents.private.json
-            ${{ runner.temp }}/offer-continuation-binding-safe.json
+          name: commercial-price-monitor-20261105-context15-copy-only-two-intent
+          path: ${{ runner.temp }}/context15-input.private.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -135,7 +117,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Continue only original273 Telegram and40 unattempted hotel pairs serially
+      - name: Read only two current copy contexts and at most two owned MAX messages
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -143,19 +125,16 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-hotel-offer-original-continuation-20261105.py
-      - name: Retain original continuation outcomes including partial or unknown results
+          python3 tools/direct_demand/operations/run-copy-only-two-price-contexts-20261105.py
+      - name: Retain original private canonical contexts and safe bounded summary
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-offer-update-20261105-manual1-continuation1
+          name: commercial-price-monitor-20261105-context15-copy-only-two
           path: |
-            ${{ runner.temp }}/offer-continuation-summary.json
-            ${{ runner.temp }}/offer-continuation-complete-safe.json
-            ${{ runner.temp }}/offer-continuation-binding-safe.json
-            ${{ runner.temp }}/offer-continuation-intents.private.json
-            ${{ runner.temp }}/prepared-offers/*/continuation-result.private.json
-            ${{ runner.temp }}/prepared-offers/*/continuation-attempt-started.private.json
+            ${{ runner.temp }}/context15-readback.private.json
+            ${{ runner.temp }}/context15-input.private.json
+            ${{ runner.temp }}/context15-summary.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and read scripts
