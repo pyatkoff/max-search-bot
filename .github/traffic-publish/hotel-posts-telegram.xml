@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-04 21:12">
+<yml_catalog date="2026-11-05 03:56">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -1435,6 +1435,15 @@
         <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="tg_1422">
+        <url>https://t.me/any_toour/174</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a49bc708d95df70e1a496bbfae9ac09abd7fc537/.github/traffic-publish/commercial-batch-20261105-49/1422.png</picture>
+        <name>Путевки в Papillon Zeugma Relaxury</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
       </offer>
     </offers>
   </shop>

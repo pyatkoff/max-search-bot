@@ -1,0 +1,52 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261105-update15-prepare",
+  "state": "CLOSED_FOUR_NATIVE_PAYLOADS_VERIFIED_THREE_XML_FROZEN_NOT_LIVE_YET",
+  "run": 41964677569,
+  "job": 127038817069,
+  "artifact": 13387286185,
+  "source": "a2e72e2cfeadb8813e823b9d7efe9cc30966adaa",
+  "production_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "native_new_append_cases": 3,
+  "old_fixtures_rerun": 0,
+  "all_BOM_timestamp_full_chunks_decoded_bytes_sha_utf8_verified": true,
+  "previous159_offerblocks_and_MAXURLs_byteidentical": true,
+  "offers": [
+    160,
+    160,
+    320
+  ],
+  "baseline": {
+    "name": "feed160-baseline.json",
+    "bytes": 55970,
+    "sha256": "078f17399f65b7f15ca67866763143051fb57c12b37031b02906e2ca8e741b4a"
+  },
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 103590,
+      "rows": 160,
+      "sha256": "31e34eaf75a5a4b7dadd87758db2e3bfb13790f468284400e2a3e8c23d40e317",
+      "expected_previous_sha256": "faa90b713faaf4e5a56b4ca8789b32fcb162b3dcb1584aad9f7cf6565441c79a"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 130610,
+      "rows": 160,
+      "sha256": "559a57004b00c907a6c5ba76a95fd42b1545f8752875f84ae4d734274a17ac12",
+      "expected_previous_sha256": "967e080de651bb9db2263644c2732657e767234d38f80423443efe156850c417"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 233827,
+      "rows": 320,
+      "sha256": "4ecf19079cef41b1faad578e2d3bea70094bf473ec5437c64d3a3d74f55fa4cb",
+      "expected_previous_sha256": "70d304ad6f214e9d6c2648a68f7275daa6eae18cb30a84b13f8a8c2a692a56d7"
+    }
+  ],
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "server_connections": 0,
+  "live_feeds_still_previous159": true,
+  "repeat_policy": "Do not reprepare/rerun candidate or three appendcases. Use exactfrozenUTF8bytes/baseline with unchangedexisting3-filewriter afterfreshcurrentgates; no previous159block rewrite."
+}

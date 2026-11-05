@@ -31,5 +31,6 @@
     "previous_module_sha256": "f4009432e4c8c5346a7db6991d9f1d1a065eeae5b5c657020db12ae55bbc9a20",
     "provider_calls": 0,
     "state": "INSTALLED_AND_NATIVE_VERIFIED"
-  }
+  },
+  "repository": "pyatkoff/tour-max"
 }

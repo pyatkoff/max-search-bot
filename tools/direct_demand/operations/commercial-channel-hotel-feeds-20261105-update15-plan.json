@@ -1,6 +1,6 @@
 {
   "operation": "commercial-channel-hotel-feeds-20261105-update15",
-  "state": "PREPARED_PURE_EXACT_ONE_PAIR_APPEND_AFTER_NATIVE_MAX160",
+  "state": "FROZEN_FOR_EXACT_THREE_STATIC_FILE_REPLACEMENT",
   "goal": "Append only actually published PapillonZeugma1422 to allthreeexisting publicfeeds after realMAX160native installation.",
   "boundaries": [
     "Only three existing publicXML exports, previous159offerblocks/MAX159URLs byteidentical",
@@ -60,5 +60,34 @@
   "source_tls": 41962668602,
   "current_diagnostics": 41962668530,
   "current_native_full21_run": 41963598875,
-  "previous_source_xml_commit": "3eb5f6ddab6cf94fb2eefee60fac2aa67452cbbc"
+  "previous_source_xml_commit": "3eb5f6ddab6cf94fb2eefee60fac2aa67452cbbc",
+  "candidate_run": 41964677569,
+  "candidate_job": 127038817069,
+  "candidate_artifact": 13387286185,
+  "writer_sha256": "2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 103590,
+      "rows": 160,
+      "sha256": "31e34eaf75a5a4b7dadd87758db2e3bfb13790f468284400e2a3e8c23d40e317",
+      "expected_previous_sha256": "faa90b713faaf4e5a56b4ca8789b32fcb162b3dcb1584aad9f7cf6565441c79a"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 130610,
+      "rows": 160,
+      "sha256": "559a57004b00c907a6c5ba76a95fd42b1545f8752875f84ae4d734274a17ac12",
+      "expected_previous_sha256": "967e080de651bb9db2263644c2732657e767234d38f80423443efe156850c417"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 233827,
+      "rows": 320,
+      "sha256": "4ecf19079cef41b1faad578e2d3bea70094bf473ec5437c64d3a3d74f55fa4cb",
+      "expected_previous_sha256": "70d304ad6f214e9d6c2648a68f7275daa6eae18cb30a84b13f8a8c2a692a56d7"
+    }
+  ],
+  "native_new_append_cases": 3,
+  "unchanged_old_fixtures_rerun": 0
 }
