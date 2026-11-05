@@ -76,7 +76,7 @@ try {
     require_once getcwd().'/services/HotelDatabase.php';need(HotelDatabase::configured(),'hotel_catalog_connection_not_configured');
     $catalog=HotelDatabase::connection();$pdo=ConversationDb::connection();
     foreach(['033_channel_post_context.sql','036_channel_post_member_delivery.sql','040_channel_post_reconciliation.sql'] as $m){$q=$pdo->prepare('SELECT checksum FROM schema_migrations WHERE version=?');$q->execute([$m]);need($q->fetchColumn()===hash_file('sha256',getcwd().'/migrations/'.$m),'publishing_schema_not_accepted');}
-    $catalog->exec('START TRANSACTION READ ONLY');$pdo->exec('START TRANSACTION READ ONLY');
+    $sharedReadonlyConnection=$catalog===$pdo;$catalog->exec('START TRANSACTION READ ONLY');if(!$sharedReadonlyConnection)$pdo->exec('START TRANSACTION READ ONLY');$out['readonly_connection_mode']=$sharedReadonlyConnection?'shared':'separate';
     $registry=new ChannelPostRegistryService($pdo);
     $identity=$catalog->prepare('SELECT id,name,is_active,country_id FROM catalog_hotels WHERE id=? LIMIT 1');
     $targets=['max'=>['bot'=>'id9704048781_1_bot','channel'=>'-80492244209683','source'=>'max_anytour_msk1','id'=>9],'telegram'=>['bot'=>'anyru_bot','channel'=>'-1002262666616','source'=>'tg_anytour_msk','id'=>10]];
@@ -111,15 +111,15 @@ try {
        $sig=photoSignature($snapshot);
        if($copied!==null)need($sig===($copied['photo_signature']??''),'current_photo_differs_from_confirmed_copy');
        else need((int)$pub['version_id']===(int)$proof['version_id'],'original_only_version_requires_new_proof');
-       $button=ChannelPostButtonTransport::buttonUrl($pub);
-       need(($proof['source_key']??'')===$t['source']&&($proof['post_url']??'')===($snapshot['post_url']??'')&&($proof['button_url']??'')===$button&&ChannelPostIncomingAdapter::containsOnlyButton($snapshot,$button,'✈️ Узнать стоимость тура'),'canonical_source_url_or_button_context_changed');
+       need(is_string($pub['start_payload'])&&$pub['start_payload']!=='','existing_start_payload_missing');$button=ChannelPostButtonTransport::buttonUrl($pub);
+       need(($proof['platform']??'')===$platform&&($proof['source_key']??'')===$t['source']&&($proof['post_url']??'')===($snapshot['post_url']??'')&&($proof['button_url']??'')===$button&&ChannelPostIncomingAdapter::containsOnlyButton($snapshot,$button,'✈️ Узнать стоимость тура'),'canonical_source_url_or_button_context_changed');
        $contexts[$platform]=['publication_id'=>(int)$pub['publication_id'],'message_id'=>$pub['external_message_id'],'version_id'=>(int)$pub['version_id'],'logical_id'=>$b['logical_id'],'source_key'=>$pub['source_key'],'start_payload_sha256'=>hash('sha256',$pub['start_payload']),'button_url_sha256'=>hash('sha256',$button),'post_url'=>$snapshot['post_url'],'photo_signature'=>$sig,'old_text'=>$snapshot['text'],'old_text_sha256'=>$b['caption_sha256'],'canonical_proof_kind'=>$copied!==null?'CONFIRMED_COPY_RECEIPT_AND_CURRENT_CANONICAL_PHOTO_SIGNATURE':'ORIGINAL_PUBLISHER_APPROVED_RECEIPT_AND_EXACT_CURRENT_VERSION','original_publication_hotel_id'=>$b['publisher']['hotel_id']??null,'original_photo_sha256'=>$b['publisher']['photo_sha256']??null];
       }
       need(count($contexts)===2,'two_legacy_platform_bindings_required');
       $out['bindings'][]=['native_hotel_id'=>$id,'expected_country_id'=>$b['expected_country_id'],'catalog_name'=>$hotel['name'],'identity_provenance'=>$b['identity_provenance'],'publisher_hotel_id'=>$b['publisher']['hotel_id']??null,'key'=>'legacy-'.$id,'logical_id'=>$b['logical_id'],'caption_sha256'=>$b['caption_sha256'],'caption'=>$b['caption'],'source_copy_operation'=>$b['copy']['operation']??null,'source_copy_manifest_hash'=>$b['copy']['manifest_hash']??null,'source_original_publisher'=>$b['publisher']['operation']??null,'contexts'=>$contexts];
      }catch(Throwable $e){$out['deferred'][]=['native_hotel_id'=>$id,'reason'=>preg_match('/\\A[a-z][a-z0-9_]{1,100}\\z/D',$e->getMessage())?$e->getMessage():'legacy_canonical_binding_not_admitted'];}
     }
-    $pdo->rollBack();$catalog->rollBack();$out['canonical_source_receipts_read']=$GLOBALS['legacy_source_receipts_read']??0;$out['captured_epoch_utc']=time();$out['installed_sha']=EXPECTED_INSTALLED_SHA;$out['input_sha256']=APPROVED_BINDINGS_SHA256;$out['ok']=true;
+    if(!$sharedReadonlyConnection)$pdo->rollBack();$catalog->rollBack();$out['canonical_source_receipts_read']=$GLOBALS['legacy_source_receipts_read']??0;$out['captured_epoch_utc']=time();$out['installed_sha']=EXPECTED_INSTALLED_SHA;$out['input_sha256']=APPROVED_BINDINGS_SHA256;$out['ok']=true;
 } catch(Throwable $e){
  if(isset($pdo)&&$pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(isset($catalog)&&$catalog instanceof PDO&&$catalog->inTransaction())$catalog->rollBack();
  $out['error']=preg_match('/\\A[a-z][a-z0-9_]{1,100}\\z/D',$e->getMessage())?$e->getMessage():'legacy_context_read_failed';
