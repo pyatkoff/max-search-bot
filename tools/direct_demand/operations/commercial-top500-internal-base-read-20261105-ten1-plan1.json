@@ -1,0 +1,60 @@
+{
+  "operation": "commercial-top500-internal-base-read-20261105-ten1-plan1",
+  "state": "PREPARED_CODE_SOURCE_VERIFIED_RUNTIME_NOT_STARTED",
+  "goal": "Use exact owner TOP500 roster and existing stored internal photos/prices first; determine usable coverage for first10 unpublished canonical IDs without supplier search, migration or publication.",
+  "source_repository": "pyatkoff/poisk-turov-test",
+  "source_revision": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "source_membership_file": "v2/data/top-hotels-v1.php",
+  "canonical_unique_ids": 492,
+  "source_rows": 500,
+  "native_id_namespace": "Tourvisor native / catalog_hotels.id; exact source-defined shared collection namespace only. AnyTour/oldLocal IDs require explicit crosswalk and must not be substituted.",
+  "hotel_ids": [
+    22879,
+    8520,
+    8208,
+    12575,
+    8188,
+    39872,
+    35319,
+    27611,
+    8554,
+    8602
+  ],
+  "max_hotels": 10,
+  "scope": [
+    "Before any server/DB action: fresh bot currentmain and same healthy Deploy/TLS/diag + full remote21 + accepted25 byte-identical host step + clean/runtime/native/schema-rights/UNKNOWN checks + private intent.",
+    "Prove target PDO is the catalog producer identified by source contract; schema presence alone does not prove matching live dataset. No guessed host/DB or exported configuration/secrets.",
+    "Select exact IDs only: current name/country/active; retain explicit NULL/unverified for missing fields. Preserve deletion and copying exclusions.",
+    "Read existing internal media metadata only: photo count/declared source/current revision or fetched_at, primary/gallery role and provenance. No raw bytes, image HTTP, source_json/full descriptions or new supplier fetch. Reuse/rights/wholecomplexhero still require accepted proof.",
+    "Read only bounded price coverage metadata for exact10: presence/count/UTC persistence oldest/newest, source and condition-field completeness. No full tuples/fingerprints/quotes in public Git/console. Do not invent dates/party or call candidate reader requiring absent conditions.",
+    "Any next actionable price row must be genuinely new/unconsumed and satisfy user72h/currentUTCdeparture/knownparty-room-meal/fullbasket requirements and current own publication context. Stored search rows are not final availability.",
+    "Current publication registry: exact10 membership/dedup metadata only after gates, no old161 provider GET/readback. Already-published conflict stops that hotel.",
+    "Use one existing GHA role with private authenticated artifact. New reader functionality gets scoped native CI/new cases; do not replay accepted old fixtures. No dispatch of collectors/sync/migration scripts."
+  ],
+  "criteria": [
+    "All10 records accounted as present/missing without guessing or name joins.",
+    "Internal photos and stored prices measured, with unsupported fields NULL.",
+    "No provider/quote/photo/Canva/posts/migrations/collector writes.",
+    "Only proven internal gaps allow later external property research.",
+    "Ready1..10 after all proof accepted may advance through existing serial publisher; hard cases do not hold ready."
+  ],
+  "bounds": {
+    "read_passes": 1,
+    "explicit_hotels": 10,
+    "supplier_searches": 0,
+    "quote_calls": 0,
+    "external_owner_http": 0,
+    "photo_http": 0,
+    "canva_transactions": 0,
+    "post_writes": 0,
+    "private_full_tuple_public_exports": 0,
+    "other_automations": 0,
+    "agents_queues": 0
+  },
+  "risks": [
+    "Source roster has500 rows but492 unique hotels; do not invent8 additional IDs or mark500 complete.",
+    "Previous161 materials intersect canonical roster at4 exact native IDs only; history/count161 preserved, membership label corrected.",
+    "Runtime photo/price completeness and deployment are unread, so code contracts do not earn ready credit.",
+    "Cancelled new normal run can have partial writes; no inference of zero prices and no automatic retry."
+  ]
+}

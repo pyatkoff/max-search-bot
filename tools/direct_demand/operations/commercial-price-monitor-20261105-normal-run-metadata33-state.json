@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-price-monitor-20261105-metadata33-correct-producer",
+  "state": "CLOSED_NEW_CORRECT_REPOSITORY_SCHEDULED_METADATA_ONE_CANCELLED_RUN",
+  "repository": "pyatkoff/poisk-turov-test",
+  "query_start_inclusive": "2026-11-05T21:46:41Z",
+  "upper_utc": "2026-11-05T23:05:21Z",
+  "total_count": 1,
+  "runs": [
+    {
+      "id": 42117386591,
+      "source_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "created_at": "2026-11-05T21:58:17Z",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/42117386591",
+      "validate_job": 127560540480,
+      "validate_conclusion": "success",
+      "collect_job": 127560614978,
+      "collect_conclusion": "cancelled"
+    }
+  ],
+  "new_normal_price_rows_proven": false,
+  "possible_partial_writes": "UNKNOWN_NO_LOG_OR_DB_READ",
+  "db_calls": 0,
+  "provider_calls": 0,
+  "logs_read": 0,
+  "old_window_repeated": false,
+  "no_rerun_or_fix": true,
+  "future_new_window_after": "2026-11-05T23:05:21Z"
+}
