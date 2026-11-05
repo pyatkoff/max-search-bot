@@ -302,6 +302,18 @@ function preparationOauthHttpChecks(bool $browserFixture = false, bool $developm
         $archiveDenied=$request($archiveForm['action'],$archiveForm['method'],http_build_query($archiveForm['post']),$cookie);
         preparationOauthCheck('HTTP explicit archive refusal creates no new grant',
             $archiveDenied['status']===303&&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===1);
+        $dialogueUrl='/manager/ai-oauth.php?'.http_build_query(array_replace($authorization,['scope'=>ManagerPreparationOAuth::DIALOGUE_SCOPE,'action'=>'authorize']));
+        $dialogueConsent=$request($dialogueUrl,'GET','',$cookie);
+        $dialogueForm=preparationOauthConsentForm($dialogueConsent['body'],'deny');
+        preparationOauthCheck('HTTP dialogue-only consent explicitly describes live tourist bot and manager messages',
+            $dialogueConsent['status']===200&&str_contains($dialogueConsent['body'],'Разрешить разбор текущих диалогов AnyTour в ChatGPT?')
+            &&str_contains($dialogueConsent['body'],'Чтение текущих MAX и Telegram переписок AnyTour, включая сообщения туристов, бота и менеджеров')
+            &&str_contains($dialogueConsent['body'],'не отмечает их прочитанными')
+            &&!str_contains($dialogueConsent['body'],'Сохранение подготовленных ответов для проверки менеджером')
+            &&!str_contains($dialogueConsent['body'],'Управление очередью гостиничных исследований'));
+        $dialogueDenied=$request($dialogueForm['action'],$dialogueForm['method'],http_build_query($dialogueForm['post']),$cookie);
+        preparationOauthCheck('HTTP explicit dialogue refusal creates no new grant',
+            $dialogueDenied['status']===303&&(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()===1);
         $expiring=$request($url,'GET','',$cookie);
         $expiredForm=preparationOauthConsentForm($expiring['body'],'allow');
         $request('/manager/fixture-expire.php','GET','',$cookie);
@@ -652,7 +664,7 @@ try {
         && $metadata['token_endpoint_auth_methods_supported']===['none'] && $metadata['code_challenge_methods_supported']===['S256']
         && !in_array('client_credentials',$metadata['grant_types_supported'],true)
         && ManagerPreparationOAuth::resourceMetadata()['resource']===ManagerPreparationOAuth::RESOURCE
-        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write','forecasts:read']);
+        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write','forecasts:read','dialogues:read','selections:write']);
     preparationOauthCheck('only current active admin with canonical project membership is eligible',
         $oauth->activeAdmin(1) && !$oauth->activeAdmin(0) && !$oauth->activeAdmin(2) && !$oauth->activeAdmin(3) && !$oauth->activeAdmin(4));
     preparationOauthCheck('authorization never changes the operator working state', (int)$pdo->query('SELECT is_working FROM managers WHERE id=1')->fetchColumn()===0);
