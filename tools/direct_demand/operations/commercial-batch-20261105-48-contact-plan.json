@@ -1,0 +1,54 @@
+{
+  "operation": "commercial-batch-20261105-48-contact",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Inspect one finite grouped pass of different exact owner-declared photographs for four currently caption-verified hotels within the ten proven stock41 scope.",
+  "boundaries": {
+    "proven_scope": [
+      1420,
+      1421,
+      1422,
+      1253,
+      15904,
+      15913,
+      78251,
+      27349,
+      108942,
+      1260
+    ],
+    "photo_subset_native_ids": [
+      1420,
+      78251,
+      27349,
+      108942
+    ],
+    "new_exact_photo_gets": 18,
+    "readonly_groups": 4,
+    "max_parallel": 2,
+    "old_urls_excluded": 229,
+    "old_decoded_basenames_excluded": 228,
+    "source_gets": 0,
+    "server_calls": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "Every exact URI is already declared by the exact newly read owner property page and bound to its accepted country4/active/current native identity; no shared directory/navigation photo accepted as membership",
+    "Whole hotel buildings/grounds must be visible for hero acceptance; rooms/onepool/people/facade/category cluster do not qualify as whole hero",
+    "Unchanged accepted46 query/redirect/byte/type/dimension guards: HTTPS allowlist, no redirects/query stripping/variant guessing/403 or HTML bypass,10KB..5MB,long>=500/short>=250/max6000",
+    "Use exact1536Ayscha URIs actually declared by owner; no inferred resize variant. Queryless Maxx references are separately actually declared, not stripped queries",
+    "Only three new actual-input bindings before anyphotoGET; old image guard fixtures0, native roles not merged by hotelID",
+    "All native contact chunks/bytes/SHA/pixels must be inspected; only complete valid photos can be imported into temporary Canva later",
+    "Any actualready subset can progress without deferred six, but no publication credit before actual provider verification"
+  ],
+  "risks": [
+    "18declaredphotos can all fail wholehero/byte/size criteria; do not weaken guards or infer readiness",
+    "Four current captions are content preparation only; owner condition/room/villa rights and source context must be retained",
+    "No price API or raw price copied, manualprice permission still unanswered"
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}

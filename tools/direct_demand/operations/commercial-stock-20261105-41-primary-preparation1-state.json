@@ -1,0 +1,83 @@
+{
+  "operation": "commercial-stock-20261105-41-primary-preparation1",
+  "state": "CLOSED_TEN_EXACT_OWNER_GETS_SIX_READABLE_PAGES_NO_PHOTO_GET",
+  "source_run": 41957285388,
+  "source_commit": "889b48aa3b2ce482ca026d16e21cb8cd0d372fee",
+  "jobs": [
+    {
+      "id": 127015113688,
+      "name": "inspect (2)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127015113990,
+      "name": "inspect (0)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127015114064,
+      "name": "inspect (1)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127015114123,
+      "name": "inspect (3)",
+      "conclusion": "success"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13384271220,
+      "name": "commercial-stock41-primary1-2"
+    },
+    {
+      "id": 13384271200,
+      "name": "commercial-stock41-primary1-1"
+    },
+    {
+      "id": 13383672609,
+      "name": "commercial-stock41-primary1-3"
+    },
+    {
+      "id": 13383262519,
+      "name": "commercial-stock41-primary1-0"
+    }
+  ],
+  "native_scope": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "new_owner_page_gets": 10,
+  "readable_property_pages": 5,
+  "readable_owner_directory_pages": 1,
+  "http_403": 1,
+  "http_404": 1,
+  "value_error_pages": 2,
+  "value_error_subcause_not_exported": true,
+  "old_owner_get_repeats": 0,
+  "metadata_files_checked": 40,
+  "older_metadata_urls_checked": 301,
+  "new_actual_input_scope_checks": 3,
+  "old_parser_fixtures_rerun": 0,
+  "parser_implementation_byteidentical_43": true,
+  "max_parallel": 2,
+  "readonly_groups": 4,
+  "photo_gets": 0,
+  "server_connections": 0,
+  "db_calls": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "manual_price_collection": false,
+  "repeat_policy": "All ten exact owner page requests closed; do not repeat them, logs or guess variants. Any future page must be a genuinely new exact declared owner href with separate scope and prior URL dedup. Existing403/404/ValueError are not reasons for header/host/query/Canva bypass."
+}

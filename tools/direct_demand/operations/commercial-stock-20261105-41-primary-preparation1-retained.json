@@ -1,0 +1,418 @@
+{
+  "operation": "commercial-stock-20261105-41-primary-preparation1-retained",
+  "state": "CLOSED_SELECTED_PUBLIC_METADATA_FOR_CONTACT48_FULL_SOURCE_IN_ORIGINAL_AUTH_ARTIFACT",
+  "source_run": 41957285388,
+  "pages": [
+    {
+      "source_url": "https://papillon.com.tr/en/papillon-ayscha/",
+      "final_url": "https://papillon.com.tr/en/papillon-ayscha/",
+      "page_title": "Papillon Ayscha - Papillon Hotels",
+      "image_hosts": [
+        "papillon.com.tr"
+      ],
+      "image_urls": [
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-10-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-13-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-17-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-21-1536x1023.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-10-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-13-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-17-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-21-1536x1023.jpg"
+      ],
+      "image_details": [
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-10-1536x1023.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-13-1536x1023.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-17-1536x1023.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-21-1536x1023.jpg",
+          "alt": ""
+        }
+      ],
+      "document_urls": [
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PZ-FactsInfo-Summer-2026-EN.pdf",
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PA-FactsInfo-Summer-2026-EN_V4.pdf",
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PB-FactsInfo-Summer-2026-EN.pdf"
+      ],
+      "website_links": [
+        "https://papillon.com.tr/xmlrpc.php",
+        "https://papillon.com.tr/ayscha/",
+        "https://papillon.com.tr/en/papillon-ayscha/",
+        "https://papillon.com.tr/de/papillon-ayscha-2/",
+        "https://papillon.com.tr/ru/papillon-ayscha-3/",
+        "https://papillon.com.tr/en/feed/",
+        "https://papillon.com.tr/en/comments/feed/",
+        "https://papillon.com.tr/en/papillon-ayscha",
+        "https://papillon.com.tr/en/papillon-zeugma/",
+        "https://papillon.com.tr/en/papillon-belvil/",
+        "https://papillon.com.tr/en/loyalty-2/",
+        "https://papillon.com.tr/en/",
+        "https://papillon.com.tr/en/meeting-conference-mice/",
+        "https://papillon.com.tr/en/football/",
+        "https://papillon.com.tr/en/accommodation/",
+        "https://papillon.com.tr/en/adult-comfort-zone-2/",
+        "https://papillon.com.tr/en/gastro-journey-2/",
+        "https://papillon.com.tr/en/reborn-spa-wellness-2/",
+        "https://papillon.com.tr/en/fit-club-2/",
+        "https://papillon.com.tr/en/papy-kids-world/",
+        "https://papillon.com.tr/en/360-tur-2/",
+        "https://papillon.com.tr/en/about-us/",
+        "https://papillon.com.tr/en/contact/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/junior-suite/",
+        "https://papillon.com.tr/en/zeugma/konaklama/dublex-family-room",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/luxury-pool-suite/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/excellent-suite/",
+        "https://papillon.com.tr/en/zeugma/konaklama/presidential-dublex-suite",
+        "https://papillon.com.tr/en/papillon-zeugma/gastro-journey/mosaic/"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-10-1536x1023.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-13-1536x1023.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-17-1536x1023.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Ayscha-Inspire-Drone-21-1536x1023.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ],
+      "public_text_sha256": "fb7019c474e912159c5df5dd9b63e1036d1f94a6d1f71083571e58980cb77845",
+      "public_text_characters": 10000
+    },
+    {
+      "source_url": "https://www.papillon.com.tr/en/papillon-belvil/",
+      "error": "ValueError",
+      "http_status": null
+    },
+    {
+      "source_url": "https://www.papillon.com.tr/EN/papillon-zeugma-relaxury",
+      "error": "ValueError",
+      "http_status": null
+    },
+    {
+      "source_url": "https://kayahotels.com/en/oteller/kaya-belek",
+      "final_url": "https://kayahotels.com/en/oteller/kaya-belek",
+      "page_title": "Kaya Belek | Kaya Hotels & Resorts",
+      "image_hosts": [
+        "kayahotels.com"
+      ],
+      "image_urls": [],
+      "declared_public_image_references": [],
+      "image_details": [],
+      "document_urls": [
+        "https://kayahotels.com/wp-content/uploads/2026/02/enkaya-belek-factsheet-2026.pdf",
+        "https://kayahotels.com/wp-content/uploads/2025/11/surdurulebilirlik-raporu-eng.ssujb_.pdf"
+      ],
+      "website_links": [
+        "https://kayahotels.com",
+        "https://kayahotels.com/manifest.webmanifest",
+        "https://kayahotels.com/en/oteller/kaya-belek",
+        "https://kayahotels.com/tr/oteller/kaya-belek",
+        "https://kayahotels.com/de/oteller/kaya-belek",
+        "https://kayahotels.com/ru/oteller/kaya-belek",
+        "https://kayahotels.com/en",
+        "https://kayahotels.com/en/oteller",
+        "https://kayahotels.com/en/teklifler",
+        "https://kayahotels.com/en/etkinlikler",
+        "https://kayahotels.com/en/kaya-club",
+        "https://kayahotels.com/en/kongre-toplanti",
+        "https://kayahotels.com/en/contact",
+        "https://kayahotels.com/en/oteller/dorukkaya-ski-mountain-resort",
+        "https://kayahotels.com/en/oteller/kaya-uludag",
+        "https://kayahotels.com/en/oteller/kaya-belek/konaklama",
+        "https://kayahotels.com/en/oteller/kaya-belek/restoran-barlar",
+        "https://kayahotels.com/en/oteller/kaya-belek/spa-fitness",
+        "https://kayahotels.com/en/oteller/kaya-belek/kongre",
+        "https://kayahotels.com/en/oteller/kaya-belek/spor",
+        "https://kayahotels.com/en/oteller/kaya-belek/mini-club",
+        "https://kayahotels.com/en/oteller/kaya-belek/iletisim",
+        "https://kayahotels.com/en/kisisel-verilerin-korunmasi",
+        "https://kayahotels.com/en/kurumsal",
+        "https://kayahotels.com/en/acenta",
+        "https://kayahotels.com/en/oduller",
+        "https://kayahotels.com/en/insan-kaynaklari",
+        "https://kayahotels.com/en/service-reservation-sales-agreement"
+      ],
+      "gallery_memberships": [],
+      "public_text_sha256": "6931861bc012c7658e4e3f6f88a3b42c126f02d697651b09688e0c0eab94b37b",
+      "public_text_characters": 3708
+    },
+    {
+      "source_url": "https://www.kayapalazzohotels.com/en/",
+      "error": "HTTPError",
+      "http_status": 403
+    },
+    {
+      "source_url": "https://www.titanic.com.tr/titanic-deluxe-golf-belek",
+      "error": "HTTPError",
+      "http_status": 404
+    },
+    {
+      "source_url": "https://www.cullinanhotels.com/",
+      "final_url": "https://www.cullinanhotels.com/",
+      "page_title": "Cullinan Belek | All inclusive luxury hotel in Belek",
+      "image_hosts": [
+        "image-tc.galaxy.tf",
+        "w.bookcdn.com"
+      ],
+      "image_urls": [
+        "https://image-tc.galaxy.tf/wijpeg-5keljfpcvbsrocy48fkmi0fm9/cullinan-belek-general-8.jpg",
+        "https://image-tc.galaxy.tf/wijpeg-8vspq3la9nfge8f8nthy2ffdt/cullinan-belek-general-13.jpg",
+        "https://image-tc.galaxy.tf/wijpeg-dkbvi3vhde9u1ly5jqg3e3s9h/cullinan-belek-general-view-1.jpg",
+        "https://image-tc.galaxy.tf/wijpeg-7gp0cdx1qdafvf9vian2zm1be/cullinan-belek-pool-6.jpg?width=668&height=400"
+      ],
+      "declared_public_image_references": [
+        "https://image-tc.galaxy.tf/wijpeg-5keljfpcvbsrocy48fkmi0fm9/cullinan-belek-general-8.jpg",
+        "https://image-tc.galaxy.tf/wijpeg-8vspq3la9nfge8f8nthy2ffdt/cullinan-belek-general-13.jpg",
+        "https://image-tc.galaxy.tf/wijpeg-dkbvi3vhde9u1ly5jqg3e3s9h/cullinan-belek-general-view-1.jpg",
+        "https://image-tc.galaxy.tf/wijpeg-7gp0cdx1qdafvf9vian2zm1be/cullinan-belek-pool-6.jpg?width=668&height=400"
+      ],
+      "image_details": [
+        {
+          "url": "https://image-tc.galaxy.tf/wijpeg-7gp0cdx1qdafvf9vian2zm1be/cullinan-belek-pool-6.jpg?width=668&height=400",
+          "alt": "Aerial view of a Cullinan Belek pool area with lounge chairs, palm trees, and an outdoor stage surrounded by greenery "
+        },
+        {
+          "url": "https://image-tc.galaxy.tf/wijpeg-7gp0cdx1qdafvf9vian2zm1be/cullinan-belek-pool-6.jpg?width=668&height=400",
+          "alt": "Aerial view of a Cullinan Belek pool area with lounge chairs, palm trees, and an outdoor stage surrounded by greenery "
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.cullinanhotels.com",
+        "https://www.cullinanhotels.com/tr",
+        "https://www.cullinanhotels.com/ru",
+        "https://www.cullinanhotels.com/de",
+        "https://www.cullinanhotels.com/",
+        "https://www.cullinanhotels.com/contact-and-location",
+        "https://www.cullinanhotels.com/accommodation",
+        "https://www.cullinanhotels.com/experiences",
+        "https://www.cullinanhotels.com/dining",
+        "https://www.cullinanhotels.com/spa",
+        "https://www.cullinanhotels.com/offers",
+        "https://www.cullinanhotels.com/gallery",
+        "https://www.cullinanhotels.com/multimedia",
+        "https://www.cullinanhotels.com/e-catalogue",
+        "https://www.cullinanhotels.com/accommodation/superior-room-sea-view",
+        "https://www.cullinanhotels.com/accommodation/superior-room-swim-up",
+        "https://www.cullinanhotels.com/accommodation/family-room",
+        "https://www.cullinanhotels.com/accommodation/family-room-sea-view",
+        "https://www.cullinanhotels.com/accommodation/superior-duplex-swim-up",
+        "https://www.cullinanhotels.com/accommodation/lagoon-golf-swim-up",
+        "https://www.cullinanhotels.com/accommodation/lagoon-beach-swim-up",
+        "https://www.cullinanhotels.com/offers/honeymoon-concept",
+        "https://www.cullinanhotels.com/offers/bicycle-friendly-hotel",
+        "https://www.cullinanhotels.com/experiences/private-beach",
+        "https://www.cullinanhotels.com/experiences/swimming-pools",
+        "https://www.cullinanhotels.com/experiences/kids-club",
+        "https://www.cullinanhotels.com/experiences/entertainment",
+        "https://www.cullinanhotels.com/experiences/golf",
+        "https://www.cullinanhotels.com/experiences/airport-services",
+        "https://www.cullinanhotels.com/experiences/cullinan-lounge"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://image-tc.galaxy.tf/wijpeg-7gp0cdx1qdafvf9vian2zm1be/cullinan-belek-pool-6.jpg?width=668&height=400",
+          "tag": "img",
+          "alt": "Aerial view of a Cullinan Belek pool area with lounge chairs, palm trees, and an outdoor stage surrounded by greenery ",
+          "categories": []
+        },
+        {
+          "url": "https://image-tc.galaxy.tf/wijpeg-7gp0cdx1qdafvf9vian2zm1be/cullinan-belek-pool-6.jpg?width=668&height=400",
+          "tag": "a",
+          "alt": "",
+          "categories": []
+        }
+      ],
+      "public_text_sha256": "957aab5a15644453faf321cebf7a80851f9c6c9989f39651381216fa6efccd4c",
+      "public_text_characters": 7792
+    },
+    {
+      "source_url": "https://www.maxxroyal.com/Maxx-Royal-Kemer",
+      "final_url": "https://www.maxxroyal.com/Maxx-Royal-Kemer",
+      "page_title": "Maxx Royal Kemer - The Majestic Reflection of Nature",
+      "image_hosts": [
+        "www.maxxroyal.com"
+      ],
+      "image_urls": [
+        "https://www.maxxroyal.com/media/tm1akjjx/maxxroyalkemerexperiences.jpg",
+        "https://www.maxxroyal.com/media/dvjgbeiw/mrk_general_view23_63.jpeg",
+        "https://www.maxxroyal.com/media/extbdguy/maxxroyalkemer2.jpg",
+        "https://www.maxxroyal.com/media/aaqfiefm/mrk_suite_sea_8.jpg",
+        "https://www.maxxroyal.com/media/h3yfwnn4/mrk_maxx_wellbeing_spa_30.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://www.maxxroyal.com/media/tm1akjjx/maxxroyalkemerexperiences.jpg",
+        "https://www.maxxroyal.com/media/dvjgbeiw/mrk_general_view23_63.jpeg",
+        "https://www.maxxroyal.com/media/extbdguy/maxxroyalkemer2.jpg",
+        "https://www.maxxroyal.com/media/aaqfiefm/mrk_suite_sea_8.jpg",
+        "https://www.maxxroyal.com/media/h3yfwnn4/mrk_maxx_wellbeing_spa_30.jpg"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.maxxroyal.com/maxx-royal-kemer",
+        "https://www.maxxroyal.com/de/maxx-royal-kemer",
+        "https://www.maxxroyal.com/ru/maxx-royal-kemer",
+        "https://www.maxxroyal.com/tr/maxx-royal-kemer",
+        "https://www.maxxroyal.com/",
+        "https://www.maxxroyal.com/contact",
+        "https://www.maxxroyal.com/maxx-royal-belek",
+        "https://www.maxxroyal.com/maxx-royal-bodrum",
+        "https://www.maxxroyal.com/caja-by-maxx-royal",
+        "https://www.maxxroyal.com/why-maxx",
+        "https://www.maxxroyal.com/maxx-royal-belek/golf",
+        "https://www.maxxroyal.com/royalty",
+        "https://www.maxxroyal.com/sustainability",
+        "https://www.maxxroyal.com/gallery",
+        "https://www.maxxroyal.com/offers",
+        "https://www.maxxroyal.com/maxx-royal-kemer/stay",
+        "https://www.maxxroyal.com/maxx-royal-kemer/stay/suites",
+        "https://www.maxxroyal.com/maxx-royal-kemer/stay/lagoon-suites",
+        "https://www.maxxroyal.com/maxx-royal-kemer/stay/villas",
+        "https://www.maxxroyal.com/maxx-royal-kemer/gastronomy",
+        "https://www.maxxroyal.com/maxx-royal-kemer/family",
+        "https://www.maxxroyal.com/maxx-royal-kemer/experiences",
+        "https://www.maxxroyal.com/maxx-royal-kemer/experiences/entertainment",
+        "https://www.maxxroyal.com/maxx-royal-kemer/experiences/pool-and-beach",
+        "https://www.maxxroyal.com/maxx-royal-kemer/maxx-wellbeing",
+        "https://www.maxxroyal.com/maxx-royal-kemer/maxx-wellbeing/maxx-wellbeing-spa",
+        "https://www.maxxroyal.com/maxx-royal-kemer/maxx-wellbeing/fitness",
+        "https://www.maxxroyal.com/maxx-royal-kemer/offers",
+        "https://www.maxxroyal.com/maxx-helicopter",
+        "https://www.maxxroyal.com/maxx-royal-kemer/family/maxxi-land"
+      ],
+      "gallery_memberships": [],
+      "public_text_sha256": "30d9ec9b0185027daa6831eca849553d6de2052f766b80032e2b575e8bfaa1fc",
+      "public_text_characters": 5572
+    },
+    {
+      "source_url": "https://www.maxxroyal.com/maxx-royal-bodrum",
+      "final_url": "https://www.maxxroyal.com/maxx-royal-bodrum",
+      "page_title": "Maxx Royal Bodrum - Where Sea and Nature Meet",
+      "image_hosts": [
+        "www.maxxroyal.com"
+      ],
+      "image_urls": [
+        "https://www.maxxroyal.com/media/unzn4h5l/maxx-royal-bodrum-fullbleed.jpg",
+        "https://www.maxxroyal.com/media/bq2ng2w4/maxxroyal_bodrum_r_3.jpg",
+        "https://www.maxxroyal.com/media/hh3dolz3/mbo_full_bleed.jpg",
+        "https://www.maxxroyal.com/media/kjtljf4d/maxxroyalbodrumspamaxxwellbeing3.jpg",
+        "https://www.maxxroyal.com/media/gwfnu4o1/maxx-royal-bodrum-mainpage-pools.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://www.maxxroyal.com/media/unzn4h5l/maxx-royal-bodrum-fullbleed.jpg",
+        "https://www.maxxroyal.com/media/bq2ng2w4/maxxroyal_bodrum_r_3.jpg",
+        "https://www.maxxroyal.com/media/hh3dolz3/mbo_full_bleed.jpg",
+        "https://www.maxxroyal.com/media/kjtljf4d/maxxroyalbodrumspamaxxwellbeing3.jpg",
+        "https://www.maxxroyal.com/media/gwfnu4o1/maxx-royal-bodrum-mainpage-pools.jpg"
+      ],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.maxxroyal.com/maxx-royal-bodrum",
+        "https://www.maxxroyal.com/de/maxx-royal-bodrum",
+        "https://www.maxxroyal.com/ru/maxx-royal-bodrum",
+        "https://www.maxxroyal.com/tr/maxx-royal-bodrum",
+        "https://www.maxxroyal.com/",
+        "https://www.maxxroyal.com/contact",
+        "https://www.maxxroyal.com/maxx-royal-belek",
+        "https://www.maxxroyal.com/maxx-royal-kemer",
+        "https://www.maxxroyal.com/caja-by-maxx-royal",
+        "https://www.maxxroyal.com/why-maxx",
+        "https://www.maxxroyal.com/maxx-royal-belek/golf",
+        "https://www.maxxroyal.com/royalty",
+        "https://www.maxxroyal.com/sustainability",
+        "https://www.maxxroyal.com/gallery",
+        "https://www.maxxroyal.com/offers",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/stay",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/stay/suites",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/stay/lagoon-suites",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/stay/maxx-island-villas",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/stay/villas",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/gastronomy",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/family",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/experiences",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/experiences/entertainment",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/experiences/pool-and-beach",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/maxx-wellbeing",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/maxx-wellbeing/maxx-wellbeing-centre",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/maxx-wellbeing/fitness",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/events-and-wedding",
+        "https://www.maxxroyal.com/maxx-royal-bodrum/offers"
+      ],
+      "gallery_memberships": [],
+      "public_text_sha256": "28d65f0adbfea78135881c93a94377d137c4d9b3c36a33c9382e61f615c44d51",
+      "public_text_characters": 6355
+    },
+    {
+      "source_url": "https://www.ichotels.com.tr/tr/iletisim",
+      "final_url": "https://www.ichotels.com.tr/tr/iletisim",
+      "page_title": "İletişim | IC Hotels",
+      "image_hosts": [
+        "www.ichotels.com.tr"
+      ],
+      "image_urls": [],
+      "declared_public_image_references": [],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.ichotels.com.tr/tr/iletisim/",
+        "https://www.ichotels.com.tr/en/contact/",
+        "https://www.ichotels.com.tr/ru/contact/",
+        "https://www.ichotels.com.tr/de/kontakt/",
+        "https://www.ichotels.com.tr/tr/iletisim",
+        "https://www.ichotels.com.tr/tr/oteller/green-palace-villas/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "https://www.ichotels.com.tr/tr/oteller/airport/",
+        "https://www.ichotels.com.tr/tr/gastronomi/",
+        "https://www.ichotels.com.tr/tr/ozel-teklifler/",
+        "https://www.ichotels.com.tr/tr/loyalty/",
+        "https://www.ichotels.com.tr/tr/",
+        "https://www.ichotels.com.tr/politikalarimiz/kvkk/",
+        "https://www.ichotels.com.tr/tr/oteller/",
+        "https://www.ichotels.com.tr/tr/deneyimler/",
+        "https://www.ichotels.com.tr/tr/blog/",
+        "https://www.ichotels.com.tr/tr/hakkimizda/",
+        "https://www.ichotels.com.tr/tr/odul-ve-sertifikalar/",
+        "https://www.ichotels.com.tr/tr/kariyer/",
+        "https://www.ichotels.com.tr/tr/sikca-sorulan-sorular/",
+        "https://www.ichotels.com.tr/tr/factsheet/",
+        "https://www.ichotels.com.tr/tr/surdurulebilirlik/",
+        "https://www.ichotels.com.tr/tr/politikalarimiz/kvkk/"
+      ],
+      "gallery_memberships": [],
+      "public_text_sha256": "71fe0207df3fe3da43d6b2d7c65fe0e0882db2d88e7838e55efa33406a7e8775",
+      "public_text_characters": 1615
+    }
+  ],
+  "full_image_reference_projection": false,
+  "selected_photo_reference_count": 18
+}

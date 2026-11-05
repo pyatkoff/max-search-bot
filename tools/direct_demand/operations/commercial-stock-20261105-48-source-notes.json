@@ -1,0 +1,81 @@
+{
+  "operation": "commercial-stock-20261105-48-source-notes",
+  "state": "TEN_PROVEN_SCOPE_FOUR_WHOLE_CAPTIONS_NEW_SOURCE_VERIFIED_COVERS_PENDING",
+  "proven_scope": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "captions": [
+    {
+      "hotel_id": 1420,
+      "text": "🏨 Papillon Ayscha\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж.\n🧒 Детский клуб Papy Kids World.\n🎾 Теннис, фитнес и занятия в Fit Club.\n🧖 Reborn Spa с турецкой баней.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 258,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_NATIVE_PROPERTY_SOURCE_NO_COVER_YET"
+    },
+    {
+      "hotel_id": 27349,
+      "text": "🏨 Maxx Royal Kemer Resort\n✈️ Тур с перелётом в Кемер\n\n🌊 Три пляжа и бассейны с разными концепциями.\n🧒 Maxxi Land, аквапарк и детские бассейны.\n🧖 Спа и фитнес.\n🛎 Помощь Maxx Assistant во время отдыха.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 290,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_NATIVE_PROPERTY_SOURCE_NO_COVER_YET"
+    },
+    {
+      "hotel_id": 78251,
+      "text": "🏨 Cullinan Belek\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж с белым песком.\n🧒 Клуб Upupa для детей от 2 до 16 лет.\n♨️ Зимой часть бассейнов подогревают. Работа зависит от погоды.\n🧖 C'espace Spa и фитнес.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 297,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_NATIVE_PROPERTY_SOURCE_NO_COVER_YET"
+    },
+    {
+      "hotel_id": 108942,
+      "text": "🏨 Maxx Royal Bodrum Resort\n✈️ Тур с перелётом в Бодрум\n\n🌊 Бухта в районе Гёльтюркбюкю.\n💦 Бассейны, в том числе с морской водой.\n🧖 Maxx Wellbeing со спа и фитнесом.\n🛎 Maxx Assistant для гостей отеля.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 289,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_NATIVE_PROPERTY_SOURCE_NO_COVER_YET"
+    }
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1421,
+      "reason": "Original exact owner pointer ValueError; no accepted primary facts yet."
+    },
+    {
+      "hotel_id": 1422,
+      "reason": "Original exact owner pointer ValueError; no accepted primary facts yet."
+    },
+    {
+      "hotel_id": 1253,
+      "reason": "Current property facts retained; owner-chain search indicates2027 renovation with primary dates/scope unresolved. Do not claim current closure or publish availability."
+    },
+    {
+      "hotel_id": 15904,
+      "reason": "Owner directory HTTP403 closed; no alternate/variant bypass, exact property href/facts not accepted."
+    },
+    {
+      "hotel_id": 15913,
+      "reason": "Owner pointer HTTP404 closed; current LuxuryCollection vsnativeDeluxeGolf product binding unresolved."
+    },
+    {
+      "hotel_id": 1260,
+      "reason": "Owner directory identifies Santai and actually declares target property href; property source/facts/photos still unread."
+    }
+  ],
+  "constraints": [
+    "Raw navigation/sisterproperty content not target fact proof",
+    "Cullinan airport transfer/a-la-carte/golf costs are not universal free inclusions; winter pool/weather qualification retained",
+    "Maxx private butler/lagoon/villa/yacht/helicopter/transfer rights not universal",
+    "No source prices/availability claims; manualprice source refresh still unapproved"
+  ],
+  "whole_caption_count": 4,
+  "ready_for_send": 0,
+  "new_posts": 0
+}
