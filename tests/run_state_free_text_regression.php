@@ -99,6 +99,30 @@ foreach ($childDetailsRoutingTests as [$text, $expected, $label]) {
     }
 }
 
+// At the stars step a tourist may answer the current question and the next meal
+// question in one natural phrase. Preserve only a strict, unambiguous two-field
+// answer; do not reinterpret extra hotel wishes or ambiguous "не важно" text.
+$combinedStarsMealTests = [
+    ['4 звезды и всё включено', ['stars_text'=>'4 звезды','meal_text'=>'всё включено'], 'stars then all inclusive'],
+    ['всё включено, 4 звезды', ['stars_text'=>'4 звезды','meal_text'=>'всё включено'], 'meal then stars'],
+    ['4 звезды; завтрак', ['stars_text'=>'4 звезды','meal_text'=>'завтрак'], 'semicolon stars and breakfast'],
+    ['4 звезды, завтрак и ужин', ['stars_text'=>'4 звезды','meal_text'=>'завтрак и ужин'], 'meal phrase may contain its own conjunction'],
+    ['4', [], 'single stars answer stays ordinary path'],
+    ['4 звезды и первая линия', [], 'unrelated wish is not swallowed as meal'],
+    ['не важно и всё включено', [], 'ambiguous no-preference fragment is not guessed'],
+];
+foreach ($combinedStarsMealTests as [$text, $expected, $label]) {
+    $actual = StateMessageHandler::resolveCombinedStarsMeal($text);
+    if ($actual === $expected) { echo "PASS  {$label}\n"; $passed++; }
+    else {
+        echo "FAIL  {$label}\n";
+        echo '      text: ' . $text . "\n";
+        echo '      expected: ' . var_export($expected, true) . "\n";
+        echo '      actual:   ' . var_export($actual, true) . "\n";
+        $failed++;
+    }
+}
+
 // Keep exact live nights phrases in required CI. Conversation 308 exposed the
 // prefixed range "От 7-9"; conversation 484 exposed the natural short range
 // "8 9"; conversation 555 exposed comma-separated short ranges such as "3,4";
@@ -201,6 +225,9 @@ if ($todayDay > 1) {
 
 $source = (string)file_get_contents(__DIR__ . '/../handlers/StateMessageHandler.php');
 $aiShortSource = (string)file_get_contents(__DIR__ . '/../handlers/AiShortAnswerHandler.php');
+$starsStart = strpos($source, 'elseif($status==MaxSearchApi::$statusStars)');
+$mealStart = $starsStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusMeal)', $starsStart);
+$starsSource = ($starsStart !== false && $mealStart !== false) ? substr($source, $starsStart, $mealStart - $starsStart) : '';
 $nightsStart = strpos($source, 'elseif($status==MaxSearchApi::$statusNights)');
 $dateStart = $nightsStart === false ? false : strpos($source, 'elseif($status==MaxSearchApi::$statusDate)', $nightsStart);
 $nightsSource = ($nightsStart !== false && $dateStart !== false) ? substr($source, $nightsStart, $dateStart - $nightsStart) : '';
@@ -219,6 +246,10 @@ $guards = [
     'wizard child step keeps existing-step status id' => strpos($source, "'children',\n                    \$childText,\n                    (int)MaxSearchApi::\$statusChild") !== false,
     'zero children advances without age question' => strpos($source, "EditFlowService::finishIfNeeded(\$chat_id,'tourists')") !== false && strpos($source, 'MaxSearchApi::showStarsButtons($chat_id);') !== false,
     'positive child count advances to ages' => strpos($source, 'MaxSearchApi::showAgeButtons($chat_id,$children);') !== false,
+    'wizard stars checks combined stars and meal before one-field apply' => $starsSource !== '' && strpos($starsSource, 'self::resolveCombinedStarsMeal($starsText)') !== false,
+    'combined stars uses update-only canonical application boundary' => $starsSource !== '' && strpos($starsSource, "'stars',\n                        \$combinedStarsMeal['stars_text']") !== false,
+    'combined meal uses canonical resolution and application boundary' => $starsSource !== '' && strpos($starsSource, "NeedApplicationService::resolveAndApply(\n                        \$chat_id,\n                        'meal',") !== false,
+    'combined stars and meal advances through canonical progression' => $starsSource !== '' && strpos($starsSource, 'NeedProgressionService::advance($chat_id);') !== false,
     'wizard nights uses canonical resolver/application boundary' => $nightsSource !== '' && strpos($nightsSource, 'NeedApplicationService::resolveAndApplyExistingWizardStep') !== false && strpos($nightsSource, "'nights'") !== false && strpos($nightsSource, 'NeedValueResolver::resolve') === false,
     'wizard nights keeps existing-step status id' => $nightsSource !== '' && strpos($nightsSource, '(int)MaxSearchApi::$statusNights') !== false && strpos($nightsSource, 'ExistingWizardStepApplicationService::apply') === false,
     'AI short nights uses NeedApplicationService boundary' => strpos($aiShortSource, 'NeedApplicationService::resolveAndApply($chat_id, $field, $lower)') !== false,
