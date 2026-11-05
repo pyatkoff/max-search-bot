@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-hotel-batch-20261105-51-v1",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
+  "run": 41969870445,
+  "job": 127055348502,
+  "artifact": 13389382040,
+  "source_commit": "936f84cc9eb91f930db7a963cff81b65a1dfc3b2",
+  "installed_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "manifest_sha256": "f81944d2d2a4eee4ac50deca70e89929e150e542c81470ab95416af5233e66ad",
+  "hotel_ids": [
+    78251
+  ],
+  "logical_materials_published_per_channel": 161,
+  "new_posts": 2,
+  "post_write_attempts": 2,
+  "verified_posts": 2,
+  "reused_existing": 0,
+  "all_body_photo_button_source_verified": true,
+  "new_price_edits": 0,
+  "new_paid_quotes": 0,
+  "manual_price_collection_approved": false,
+  "open_canva_transactions": 0,
+  "cover_freeze_commit": "ef8fccca42e608229175e3fd928889e91f179482",
+  "canonical_read17_pending": true,
+  "max161_route_pending": true,
+  "three_feed_append_pending": true,
+  "repeat_policy": "Actualsender/providerreadbackconsumed. ImmutablePREPARED_NOT_SENTinputnotresendreason. No sameoperation/providerreadback/cover/Canva replays."
+}
