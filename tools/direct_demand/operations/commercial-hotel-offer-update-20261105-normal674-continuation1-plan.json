@@ -1,0 +1,39 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-normal674-pass1-continuation1",
+  "state": "ORIGINAL_MAX157359_CONFIRMED_ONLY_TG_PLUS6_UNATTEMPTED_PAIRS_PREPARED",
+  "original_run": 42000246854,
+  "original_repair_run": 42004597801,
+  "prepared_run": 41999314350,
+  "prepared_artifact": 13401766643,
+  "scope": [
+    157359,
+    1291,
+    1582,
+    27316,
+    3405,
+    1422,
+    78251
+  ],
+  "max_new_content_write_attempts": 13,
+  "original_content_attempts_before_continuation": 2,
+  "combined_expected_actual_attempts": 15,
+  "combined_expected_verified_existing_posts": 14,
+  "expected_new_price_hotels": 4,
+  "expected_new_link_hotels": 4,
+  "expected_owned_existing_link_blocks_replaced": 3,
+  "bounds": {
+    "confirmed_MAX157359_post_reads": 0,
+    "confirmed_MAX157359_writes": 0,
+    "new_gateway_calls": 0,
+    "new_source_searches": 0,
+    "new_posts": 0,
+    "old_unrelated56_posts_touched": 0
+  },
+  "criteria": [
+    "Exact original failure/repair private artifacts and canonical MAX confirmed receipt/current version/text/photo/source/token; TG unattempted.",
+    "Rebuild original frozen expected scripts exactly from1a5template before any continuation; six unattempted use unchanged template; native157359 only adds confirmed-MAX/TG-only witness guard.",
+    "Three NEW actual witness native/max-confirmed/TG-unattempted rejection cases only157359/PHP-l7; do not rerun old6cases or8Python cases.",
+    "Fresh current main healthy exact deploy/TLS/diagnostics/full21/host/clean/schema/rights; private intents beforeprovider; serial once/UNKNOWN original first.",
+    "Truthful15combinedattempts14verifiedposts ifallcomplete: one original failed-not-applied MAX attempt, one successful same-operation MAX repair,13continuation writes."
+  ]
+}

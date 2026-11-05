@@ -1,0 +1,36 @@
+import base64,hashlib,json,os,pathlib
+t=pathlib.Path(os.environ['RUNNER_TEMP']);b=pathlib.Path('tools/direct_demand/operations');p=list((t/'prepared-offers').rglob('update-index.json'));assert len(p)==1;root=p[0].parent;index=json.loads(p[0].read_text())
+assert len(index)==7 and {int(x['hotel_id']) for x in index}=={157359,1291,1582,27316,3405,1422,78251}
+def one(folder,name):
+ xs=list((t/folder).rglob(name));assert len(xs)==1,(folder,name);return xs[0]
+orig=json.loads(one('original-execution','offer-execution-summary.json').read_text());assert len(orig)==1 and orig[0]['catalog_id']==157359 and not orig[0]['ok'] and orig[0]['post_write_attempts']==1
+started=list((t/'original-execution').rglob('update-attempt-started.private.json'));assert len(started)==1 and int(started[0].parent.name)==157359
+wr=json.loads(one('original-repair','original157359-repair-result.private.json').read_text().splitlines()[-1]);wi=json.loads(one('original-repair','original157359-repair-input.private.json').read_text())
+assert wr['ok'] and wr['max_original_write_confirmed'] and wr['telegram_not_attempted'] and wr['provider_write_requests']==1 and wr['original_total_content_write_attempts']==2 and wr['gateway_calls']==wr['new_posts']==wr['other_publications_touched']==0 and wi['native_hotel_id']==157359 and wi['original_execution_run']==42000246854
+w={k:wr[k] for k in ['ok','max_original_write_confirmed','telegram_not_attempted','provider_write_requests','original_total_content_write_attempts','gateway_calls','new_posts']};w.update(native_hotel_id=157359,original_execution_run=42000246854,original_repair_run=42004597801)
+resume=(b/'continue-repaired-normal-hotel-offer157359-20261105.php').read_bytes();assert hashlib.sha256(resume).hexdigest()=='37987fe551a199aef631f94af1e3fd8585a0f2b85dbed0fdee471fd64ab94e7f'
+
+summary=json.loads((root/'prepare-summary.json').read_text());assert summary['prepared_hotels']==7 and summary['prepared_price_hotel_ids']==[157359,27316,3405,1422] and summary['prepared_search_link_hotels']==7 and summary['prepared_link_only_hotel_ids']==[1291,1582,78251] and summary['prepared_new_link_hotel_ids']==[157359,1291,1422,78251]
+template=(b/'update-new-normal674-hotel-offers-20261105.php').read_bytes();assert hashlib.sha256(template).hexdigest()=='1a5c2c00a82ab59833d74bc8d2cd86ba01eab5dcf31c5f9bda0b87ca668806a8'
+q=list((t/'normal-read14').rglob('price14-input.private.json'));assert len(q)==1;source=json.loads(q[0].read_text());assert source['source_run']==41982177052 and source['lower_epoch']==1793861003 and source['upper_epoch']==1793861528
+scope={int(x['hotel_id']) for x in index};identities=[x['binding'] for x in source['bindings'] if int(x['binding']['local_tv_id']) in scope];assert len(identities)==7
+executionPlan=json.loads((b/'commercial-hotel-offer-update-20261105-normal674-execution-source.json').read_text());sha=os.environ['EXPECTED_PRODUCTION_SHA'];frozenSha='da54e30f9f8b3bde427554ee3e3a2cc02b9ffd97';assert sha==executionPlan['expected_source'] and executionPlan['operation']=='commercial-hotel-offer-update-20261105-normal674-pass1';intents=[]
+for entry in index:
+ hid=int(entry['hotel_id']);assert entry['folder']==str(hid) and entry['operation']=='commercial-hotel-offer-update-20261105-normal674-h'+str(hid)+'-v1';folder=root/entry['folder']
+ raw=(folder/'update-manifest.json').read_bytes();m=json.loads(raw);a=json.loads((folder/'update-approval.json').read_text());c=json.loads((folder/'candidate.json').read_text());f=c['canonical_context'];bb=f['binding'];fr=json.dumps(f,ensure_ascii=False,separators=(',',':')).encode();frameSHA=hashlib.sha256(fr).hexdigest()
+ assert set(a)=={'schema_version','operation','expected_installed_sha','hotel_ids','manifest_sha256'} and a['schema_version']==1 and a['expected_installed_sha']==frozenSha and a['hotel_ids']==[hid] and a['operation']==m['operation']==entry['operation'] and a['manifest_sha256']==hashlib.sha256(raw).hexdigest()==entry['manifest_sha256']
+ assert m['rows'][0]['hotel_id']==bb['native_hotel_id']==hid and m['rows'][0]['legacy_context_sha256']==frameSHA==c['canonical_context_sha256'] and m['update_kind']==entry['update_kind']
+ r=m['rows'][0];values={'EXPECTED_INSTALLED_SHA':frozenSha,'APPROVED_MANIFEST_SHA256':a['manifest_sha256'],'MANIFEST_BASE64':base64.b64encode(raw).decode(),'VERIFIED_QUOTE_RESPONSE_SHA256':m['quote_response_sha256'],'VERIFIED_QUOTE_EPOCH':m['quote_epoch_utc'],'VERIFIED_QUOTE_INDEX':m['quote_index'],'APPROVED_UPDATE_HOTEL_ID':hid,'APPROVED_UPDATE_KEY_B64':base64.b64encode(bb['key'].encode()).decode(),'APPROVED_UPDATE_LOGICAL_B64':base64.b64encode(bb['logical_id'].encode()).decode(),'APPROVED_UPDATE_OPERATION':m['operation'],'APPROVED_LEGACY_CONTEXT_B64':base64.b64encode(fr).decode(),'APPROVED_LEGACY_CONTEXT_SHA256':frameSHA,'APPROVED_IDENTITY_BINDINGS_B64':base64.b64encode(json.dumps(identities,ensure_ascii=False,separators=(',',':')).encode()).decode(),'APPROVED_SEARCH_URL_B64':base64.b64encode(r['search_link_url'].encode()).decode()}
+ prefix=b"<?php\ndeclare(strict_types=1);\n";assert template.startswith(prefix)
+ def script(v,model=template):return prefix+b''.join(('const '+k+'='+json.dumps(x,ensure_ascii=False)+';\n').encode() for k,x in v.items())+model[len(prefix):]
+ expected=script(values);assert (folder/'update.php').read_bytes()==expected,'FROZEN_NORMAL_EXPECTED_SCRIPT_BYTES_CHANGED';values['EXPECTED_INSTALLED_SHA']=sha
+ if hid==157359:
+  assert wi['manifest_sha256']==entry['manifest_sha256'] and wi['manifest']==m
+  values['APPROVED_ORIGINAL157359_WITNESS_B64']=base64.b64encode(json.dumps(w,separators=(',',':')).encode()).decode()
+ execution=script(values,resume if hid==157359 else template);(folder/'execution.php').write_bytes(execution);entry['expected_new_content_attempts']=1 if hid==157359 else 2
+
+ ea=dict(a);ea['expected_installed_sha']=sha;(folder/'execution-approval.json').write_text(json.dumps(ea)+'\n')
+ intent=json.loads((folder/'update-intent.json').read_text());assert intent['operation']==m['operation'] and intent['manifest_sha256']==a['manifest_sha256'] and intent['expected_source']==frozenSha and intent['max_content_edits']==2 and intent['new_posts']==intent['additional_gateway_calls']==0;intent.update(prepared_expected_source=frozenSha,execution_expected_source=sha,frozen_script_sha256=hashlib.sha256(expected).hexdigest(),execution_script_sha256=hashlib.sha256(execution).hexdigest());intent['max_new_content_edits']=entry['expected_new_content_attempts'];intent['original_MAX_already_confirmed_do_not_reread_or_rewrite']=hid==157359;intents.append(intent)
+(root/'continuation-index.json').write_text(json.dumps(index)+'\n');(t/'offer-continuation-root.txt').write_text(str(root)+'\n');(t/'all-offer-continuation-intents.private.json').write_text(json.dumps(intents)+'\n')
+proof={'operation':'commercial-hotel-offer-update-20261105-normal674-pass1-continuation1','state':'ORIGINAL157359_MAX_CONFIRMED_TG_ONLY_AND6_UNATTEMPTED_PAIRS_BOUND','original_execution_run':42000246854,'original_repair_run':42004597801,'hotels':7,'max_new_content_edits':13,'new_price_hotels':4,'new_link_hotels':4,'unattempted_pairs':6,'confirmed_MAX157359_post_reads_or_writes':0,'old_fixtures_rerun':0,'new_resume_witness_cases':3,'provider_calls':0}
+(t/'offer-continuation-binding-safe.json').write_text(json.dumps(proof)+'\n');print(json.dumps(proof))
