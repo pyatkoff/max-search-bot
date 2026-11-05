@@ -55,6 +55,31 @@ owners. That slice must apply project authorization and its own delivery policy.
 This settings API alone does not establish full database, media or dialogue
 isolation, a repair workflow, or a working second business.
 
+### AppleService39 publication preview
+
+Run `php tools/preview_appleservice39_offer.php` to prepare one reviewed offer
+from two price rows on the AppleService39 site. The example's `appleservice39`
+project key is explicit and used only for this preview. The generic
+`iphone_repair` example is a separate template. Production must verify the
+actual project and connection before importing or publishing this offer.
+
+The service identity uses the business, model and operation. The fingerprint
+changes with the source evidence or draft while the identity stays stable.
+An exact model price appears only when two distinct same-domain source pages
+agree on the exact amount and no price review is pending. Other price kinds
+remain in the evidence, and the draft asks customers to confirm the cost.
+The raw warranty marks and conflicting durations are retained without a promise
+in the caption. The draft includes the button label and a local iPhone X
+illustration in `resources/project-examples/assets/`. The source page's artwork
+advertises a third duration, so the pilot uses a separate illustration without
+a time claim. The live button URL and message/version identifiers belong to the
+existing channel post registry after observation of a real publication.
+
+For repair ads, the candidate is the [universal CSV feed](https://yandex.ru/support/direct/ru/feeds/requirements-other-categories#universal),
+with a stable offer ID and a verified offer-page URL. A preview creates no feed
+row, since this example has no verified offer-to-bot landing URL. It does not
+register a project, write to the database or contact a provider.
+
 ## Verification
 
 php tests/run_project_marker_boundary_regression.php runs in the existing
@@ -63,4 +88,7 @@ cases extend that same invocation. It exercises real legacy/default search behav
 app/tracking overrides, alternating projects, wrong-scope rejection, returned
 array mutations, shared PHP references, bounded cycles and typed lookup values.
 It does not make network calls, open a database or mutate live configuration.
+The existing channel-post registry regression runs the repair draft on MAX and
+Telegram fixtures with an isolated database. It checks the existing token,
+project boundaries, idempotent entry and immutable manager readback.
 The normal required CI for the complete change remains authoritative.

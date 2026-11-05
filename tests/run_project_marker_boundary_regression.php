@@ -189,5 +189,75 @@ $cycle['loop'] =& $cycle;
 pcReject('cyclic reference fails within the depth bound',
     fn()=>ProjectConfig::forProject('iphone_repair', $cycle), 'project_config_too_deep');
 
+require_once dirname(__DIR__) . '/services/RepairOfferDraft.php';
+$appleValues = require dirname(__DIR__) . '/resources/project-examples/appleservice39.php';
+$apple = ProjectConfig::forProject('appleservice39', $appleValues);
+$offer = $apple->get('offer');
+$draft = RepairOfferDraft::prepare($apple, $offer);
+pcCheck('preview keeps explicit project and business scope', [$draft['project_key'], $draft['business_key']], ['appleservice39', 'appleservice39']);
+pcCheck('pilot has a stable service identity', $draft['offer_id'], 'appleservice39:iphone-x:battery-replacement');
+pcCheck('two exact source prices permit the pilot price', $draft['price_rub'], 3500);
+pcCheck('draft caption includes model, service, price and business', $draft['publication']['caption'],
+    "Замена аккумулятора iPhone X\n3 500 ₽\nAppleService39 · Калининград");
+pcCheck('original warranty marks and both conflicting durations are preserved',
+    [array_column($draft['source_rows'], 'warranty_raw'), array_column($draft['source_rows'], 'duration_raw')],
+    [['✔', '✔'], ['25 мин.', '60 мин.']]);
+pcCheck('offline draft has an image and a label with no live button URL',
+    [$draft['publication']['image_asset'], $draft['publication']['button_text'], isset($draft['publication']['button_url'])],
+    [$offer['image_asset'], 'Уточнить ремонт', false]);
+pcCheck('the packaged image matches the draft version',
+    hash_file('sha256', dirname(__DIR__) . '/resources/project-examples/assets/' . $draft['publication']['image_asset']),
+    $draft['publication']['image_sha256']);
+
+$reversed = $offer;
+$reversed['source_rows'] = array_reverse($offer['source_rows']);
+pcCheck('source ordering does not change the draft or its version', RepairOfferDraft::prepare($apple, $reversed), $draft);
+$changed = $offer;
+$changed['source_rows'][1]['price_raw'] = '800 руб.';
+$disputed = RepairOfferDraft::prepare($apple, $changed);
+pcCheck('price disagreement keeps identity and changes version',
+    [$disputed['offer_id'], $disputed['offer_version'] === $draft['offer_version'], $disputed['price_rub']],
+    [$draft['offer_id'], false, null]);
+pcCheck('price disagreement produces a quote on request', str_contains($disputed['publication']['caption'], 'Стоимость уточняйте'), true);
+
+foreach (['от 3 500 ₽' => ['from', 3500], 'уточняйте' => ['on_request', null], 'Бесплатно' => ['free', 0],
+    '0 руб.' => ['free', 0], 'неизвестно' => ['unrecognized', null]] as $raw => [$kind, $amount]) {
+    $changed['source_rows'][1]['price_raw'] = $raw;
+    $review = RepairOfferDraft::prepare($apple, $changed);
+    $row = $review['source_rows'][1];
+    pcCheck('raw price stays distinct: ' . $raw, [$row['price_raw'], $row['price_kind'], $row['price_amount_rub'], $review['price_rub']],
+        [$raw, $kind, $amount, null]);
+}
+$changed = $offer;
+$changed['price_review_required'] = true;
+pcCheck('manual review suppresses even a corroborated price', RepairOfferDraft::prepare($apple, $changed)['price_rub'], null);
+$changed = $offer;
+$changed['model_scope'] = 'series';
+pcCheck('an exact price is not promoted to a series', RepairOfferDraft::prepare($apple, $changed)['price_rub'], null);
+$changed = $offer;
+$changed['source_rows'] = [$offer['source_rows'][0]];
+pcCheck('one price page is insufficient', RepairOfferDraft::prepare($apple, $changed)['price_rub'], null);
+$changed['source_rows'][] = $offer['source_rows'][0];
+$changed['source_rows'][1]['url'] = rtrim($changed['source_rows'][1]['url'], '/');
+pcReject('a repeated source cannot corroborate itself', fn()=>RepairOfferDraft::prepare($apple, $changed), 'repair_offer_duplicate_source');
+$changed = $offer;
+$changed['source_rows'][0]['url'] = 'https://servise39.ru/example/';
+pcReject('a second domain is not silently accepted', fn()=>RepairOfferDraft::prepare($apple, $changed), 'repair_offer_invalid_source_url');
+$changed = $offer;
+$changed['image_asset'] = '../private.png';
+pcReject('a preview asset cannot select an arbitrary path', fn()=>RepairOfferDraft::prepare($apple, $changed), 'repair_offer_invalid_image_asset');
+$changed = $offer;
+$changed['operation'] = 'front-glass-replacement';
+$changed['price_review_required'] = true;
+$glass = RepairOfferDraft::prepare($apple, $changed);
+$changed['operation'] = 'display-replacement';
+$display = RepairOfferDraft::prepare($apple, $changed);
+pcCheck('glass and display have distinct identities', [$glass['offer_id'], $display['offer_id']],
+    ['appleservice39:iphone-x:front-glass-replacement', 'appleservice39:iphone-x:display-replacement']);
+pcReject('AnyTour cannot consume the repair draft', fn()=>RepairOfferDraft::prepare($tour, $offer), 'repair_offer_business_mismatch');
+pcReject('the generic repair template does not resolve the AppleService39 key',
+    fn()=>RepairOfferDraft::prepare($repair, $offer), 'repair_offer_business_mismatch');
+pcCheck('repair preview leaves AnyTour config intact', ProjectConfig::all(), $legacy);
+
 echo "\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed > 0 ? 1 : 0);
