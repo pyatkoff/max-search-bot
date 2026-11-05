@@ -152,6 +152,11 @@ class MaxUpdateHandler
                 'username'=>(string)($user['username']??''),
             ],
         ];
+        if ($post) {
+            require_once __DIR__.'/../services/SourceQualificationPrompt.php';
+            $incoming['entry_kind']='channel_post';
+            $incoming['source_post_context']=SourceQualificationPrompt::publicationContext($post);
+        }
         if (MaxStartSourcePolicy::apply($incoming,$entry)) {
             if ($post) ChannelPostEntryService::record('max',$internalId,$post,ChannelPostEntryService::eventKey('max',$update));
             return;

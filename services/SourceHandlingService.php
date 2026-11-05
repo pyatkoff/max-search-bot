@@ -84,11 +84,14 @@ class SourceHandlingService
                     if($sourceStart){
                         // Reentry keeps current needs and does not manufacture a
                         // tourist message or complete an older trip by itself.
-                        if(!$qualifying||empty($savedChoice['prompted'])){
+                        $postContext=self::greetingContext($incoming,$row,$platform);
+                        $differentPost=!empty($postContext['publication_id'])
+                            &&(int)$postContext['publication_id']!==(int)($savedChoice['publication_id']??0);
+                        if(!$qualifying||empty($savedChoice['prompted'])||$differentPost){
                             require_once __DIR__.'/DialogueView.php';
-                            if(DialogueView::sourceQualificationStart($chatId,self::missing($chatId))){
+                            if(DialogueView::sourceQualificationStart($chatId,self::missing($chatId),true,(string)($postContext['hotel_name']??''))){
                                 self::recordChoice($platform,$chatId,self::AI,self::QUALIFICATION_REASON,
-                                    ['source_id'=>(int)$row['source_id'],'prompted'=>true]);
+                                    ['source_id'=>(int)$row['source_id'],'prompted'=>true,'publication_id'=>(int)($postContext['publication_id']??0)]);
                             }
                         }
                         return true;
@@ -248,6 +251,18 @@ class SourceHandlingService
             $out['historical_publication']=true;
             return self::$qualificationTurn['post_context']=$out;
         }catch(Throwable $ignored){return [];}
+    }
+
+    /** Request-only data attached by the authenticated token-resolution owners. */
+    private static function greetingContext(array $incoming,array $row,string $platform): array
+    {
+        $post=$incoming['source_post_context']??null;
+        if(($incoming['entry_kind']??'')!=='channel_post'||!is_array($post)
+            ||($post['platform']??'')!==$platform
+            ||(int)($post['source_id']??0)!==(int)$row['source_id']
+            ||($post['source_key']??'')!==$row['source_key']
+            ||(int)($post['publication_id']??0)<1)return [];
+        return $post;
     }
 
     private static function qualificationSource(array $row,string $platform): bool
