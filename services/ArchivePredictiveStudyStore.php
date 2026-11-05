@@ -39,13 +39,17 @@ final class ArchivePredictiveStudyStore
         if(file_exists($run.'/checkpoint.json')){
             $c=$this->json($run.'/checkpoint.json',self::CHECKPOINT_BYTES);
             self::checkpoint($c,$runId);
+            if(isset($c['lineage'])||file_exists($run.'/derive-intent.json')||is_link($run.'/derive-intent.json')){
+                if(!isset($c['lineage'])||$this->json($run.'/derive-intent.json',8192)
+                    !==['schema'=>1,'lineage'=>$c['lineage'],'provenance'=>$c['provenance']])self::fail('study_derive_state_changed');
+            }
             $identity=$c['provenance'];unset($identity['captured_at_unix']);
             $current=$provenance;unset($current['captured_at_unix']);
             if($identity!==$current)self::fail('study_provenance_changed');
             foreach($c['chunks']as$chunk)$this->verifyChunk($chunk);
             $this->checkpoint=$c;
         }else{
-            foreach(['manifest.json','analysis-intent.json','analysis-complete.json','analysis']as$name)
+            foreach(['manifest.json','analysis-intent.json','analysis-complete.json','analysis','derive-intent.json']as$name)
                 if(file_exists($run.'/'.$name)||is_link($run.'/'.$name))self::fail('study_existing_intent');
             $this->checkpoint=['schema'=>1,'kind'=>'archive_predictive_checkpoint_v1','run_id'=>$runId,
                 'provenance'=>$provenance,'salt_hex'=>bin2hex(random_bytes(32)),
@@ -58,6 +62,87 @@ final class ArchivePredictiveStudyStore
         // Repair only the projection of an already durable checkpoint, never source or research evidence.
         $this->writeManifest();
         return $this->checkpoint;
+    }
+
+    /**
+     * Reanalyse the exact completed derivative atoms under new analysis code.
+     * The original run is only read. Existing or interrupted target directories are never reset.
+     */
+    public function deriveCompleted(string $parentRunId,string $newRunId,array $provenance,string $currentScopeDigest):array
+    {
+        self::run($parentRunId);self::run($newRunId);self::provenance($provenance);
+        if($parentRunId===$newRunId)self::fail('study_derive_arguments');
+        if(!self::digest($currentScopeDigest))self::fail('study_scope');
+        if($this->lock!==null)self::fail('study_already_open');
+        if(!$this->root(false))self::fail('study_derive_parent_incomplete');
+        $this->lock=$this->openLock(false);
+        if(!flock($this->lock,LOCK_EX|LOCK_NB)){$this->close();self::fail('study_busy');}
+        try{
+            $parent=$this->directory.'/'.$parentRunId;$target=$this->directory.'/'.$newRunId;
+            if(file_exists($target)||is_link($target))self::fail('study_derive_target_exists');
+            $this->privateDirectory($parent);$this->runId=$parentRunId;
+            $c=$this->json($parent.'/checkpoint.json',self::CHECKPOINT_BYTES);self::checkpoint($c,$parentRunId);
+            if(!$c['complete']||!array_key_exists('position',$c)||$c['position']!==null
+                ||!file_exists($parent.'/analysis-complete.json'))self::fail('study_derive_parent_incomplete');
+            if(($c['scope_digest']??null)!==$currentScopeDigest)self::fail('study_source_scope_changed');
+            foreach(['services/ArchiveResearchReadService.php','services/ArchiveResearchSemanticExtractor.php',
+                'services/ManagerAiTextRedactor.php','services/InternalOwnerDialogueScope.php',
+                'services/ArchivePredictiveStudyAtoms.php','services/ModeledConversionTextSignals.php']as$file){
+                $old=$c['provenance']['code_hashes'][$file]??null;$new=$provenance['code_hashes'][$file]??null;
+                if(!self::digest($old)||!self::digest($new)||!hash_equals($old,$new))self::fail('study_derive_source_changed');
+            }
+            foreach(['extractor_sha256'=>'services/ArchiveResearchSemanticExtractor.php',
+                'text_features_sha256'=>'services/ModeledConversionTextSignals.php']as$key=>$file)
+                if($c['provenance'][$key]!==$c['provenance']['code_hashes'][$file]
+                    ||$provenance[$key]!==$provenance['code_hashes'][$file])self::fail('study_derive_source_changed');
+            $manifestRaw=$this->read($parent.'/manifest.json',self::MANIFEST_BYTES);
+            if($manifestRaw!==self::encode(self::manifest($c)))self::fail('study_derive_parent_changed');
+            $manifest=json_decode($manifestRaw,true,64,JSON_THROW_ON_ERROR);$manifestSha=hash('sha256',$manifestRaw);
+            $intent=$this->json($parent.'/analysis-intent.json',4096);
+            if(($intent['schema']??null)!==1||($intent['run_id']??null)!==$parentRunId
+                ||($intent['state']??null)!=='started'||($intent['manifest_sha256']??null)!==$manifestSha
+                ||($intent['analyzer_sha256']??null)!==$c['provenance']['analyzer_sha256'])
+                self::fail('study_derive_parent_changed');
+            $this->privateDirectory($parent.'/analysis');
+            $summaryRaw=$this->read($parent.'/analysis/summary.json',self::SUMMARY_BYTES);
+            $candidateRaw=$this->read($parent.'/analysis/candidate_weights.json',16384);
+            $summary=json_decode($summaryRaw,true,64,JSON_THROW_ON_ERROR);
+            $candidate=json_decode($candidateRaw,true,64,JSON_THROW_ON_ERROR);
+            $this->validateBinding($summary,$manifest,$manifestSha,'archive_predictive_study_summary_v1');
+            $this->validateBinding($candidate,$manifest,$manifestSha,'archive_predictive_relative_weights_v1');
+            if(!is_bool($summary['weights_eligible']??null)||($candidate['weights_eligible']??null)!==$summary['weights_eligible'])
+                self::fail('study_analysis_contract');
+            $receipt=['schema'=>1,'run_id'=>$parentRunId,'manifest_sha256'=>$manifestSha,
+                'summary_sha256'=>hash('sha256',$summaryRaw),'candidate_sha256'=>hash('sha256',$candidateRaw),
+                'audits_sha256'=>$this->digestFile($parent.'/analysis/case_audits.jsonl',self::TOTAL_BYTES),
+                'prefixes_sha256'=>$this->digestFile($parent.'/analysis/prefixes.jsonl',self::TOTAL_BYTES)];
+            if($this->json($parent.'/analysis-complete.json',4096)!==$receipt)self::fail('study_derive_parent_changed');
+            $records=0;$bytes=0;$chain=str_repeat('0',64);
+            foreach($c['chunks']as$i=>$chunk){
+                $this->verifyChunk($chunk);$raw=$this->read($parent.'/'.$chunk['file'],self::CHUNK_BYTES);
+                if($chunk['file']!=='chunk_'.str_pad((string)($i+1),6,'0',STR_PAD_LEFT).'.ndjson'
+                    ||substr_count($raw,"\n")!==$chunk['records'])self::fail('study_derive_parent_changed');
+                $records+=$chunk['records'];$bytes+=strlen($raw);
+                $chain=hash('sha256',$chain."\0".$chunk['file']."\0".$chunk['sha256']."\0".$chunk['records']);
+            }
+            if($records!==($c['source_counts']['records']??null)||$bytes!==$c['total_chunk_bytes']||$chain!==$c['chain_sha256']
+                ||($c['source_counts']['desktop_import']??null)!==($c['expected']['desktop_records']??null)
+                ||$c['chat_pairs']!==($c['expected']['account_chat_pairs']??null)
+                ||($c['source_counts']['desktop_import']??-1)+($c['source_counts']['business_message']??-1)!==$records)
+                self::fail('study_derive_parent_changed');
+            $lineage=['kind'=>'completed_atoms_copy_v1','parent_run_id'=>$parentRunId,'parent_manifest_sha256'=>$manifestSha];
+            $provenance['captured_at_unix']=$c['provenance']['captured_at_unix'];
+            $derived=$c;$derived['run_id']=$newRunId;$derived['provenance']=$provenance;$derived['lineage']=$lineage;
+            if(!mkdir($target,0700))self::fail('study_directory');$this->privateDirectory($target);$this->syncDirectory($this->directory);
+            $this->atomic($target.'/derive-intent.json',self::encode(['schema'=>1,'lineage'=>$lineage,'provenance'=>$provenance]),false);
+            foreach($c['chunks']as$chunk){
+                $raw=$this->read($parent.'/'.$chunk['file'],self::CHUNK_BYTES);
+                if(!hash_equals($chunk['sha256'],hash('sha256',$raw)))self::fail('study_chunk_changed');
+                $this->atomic($target.'/'.$chunk['file'],$raw,false);
+            }
+            $this->runId=$newRunId;$this->checkpoint=$derived;$this->saveCheckpoint();$this->writeManifest();
+            return$derived;
+        }catch(Throwable $error){$this->close();throw$error;}
     }
 
     public function status(string $runId):array
@@ -279,9 +364,9 @@ final class ArchivePredictiveStudyStore
     }
     public function __destruct(){$this->close();}
 
-    private function writeManifest():void
+    private static function manifest(array $c):array
     {
-        $c=$this->currentCheckpoint();$p=$c['provenance'];
+        $p=$c['provenance'];
         $m=['schema'=>1,'kind'=>'archive_predictive_study_v1','project_key'=>'anytour','run_id'=>$c['run_id'],
             'source_commit'=>$p['source_commit'],'scope_digest'=>$c['scope_digest'],'source_fence'=>$c['source_fence'],
             'extractor_sha256'=>$p['extractor_sha256'],'text_features_sha256'=>$p['text_features_sha256'],
@@ -290,7 +375,14 @@ final class ArchivePredictiveStudyStore
             'chunks'=>$c['chunks'],'expected'=>$c['expected'],'chain_sha256'=>$c['chain_sha256'],
             'coverage'=>['source_history_complete'=>false,'historical_availability'=>'unknown','immutable_snapshot'=>false,
                 'source_counts'=>$c['source_counts'],'account_chat_pairs'=>$c['chat_pairs']]];
-        $raw=self::encode($m);if(strlen($raw)>self::MANIFEST_BYTES)self::fail('study_manifest_limit');
+        if(isset($c['lineage']))$m['lineage']=$c['lineage'];
+        return$m;
+    }
+
+    private function writeManifest():void
+    {
+        $raw=self::encode(self::manifest($this->currentCheckpoint()));
+        if(strlen($raw)>self::MANIFEST_BYTES)self::fail('study_manifest_limit');
         $this->atomic($this->runDirectory().'/manifest.json',$raw,true);
     }
 
@@ -470,6 +562,14 @@ final class ArchivePredictiveStudyStore
             ||!is_int($c['total_chunk_bytes']??null)||$c['total_chunk_bytes']<0||$c['total_chunk_bytes']>self::TOTAL_BYTES
             ||!self::digest($c['chain_sha256']??null))self::fail('study_checkpoint');
         self::provenance($c['provenance']);
+        if(array_key_exists('lineage',$c)){
+            $l=$c['lineage'];
+            if(!is_array($l)||count($l)!==3||array_diff(array_keys($l),['kind','parent_run_id','parent_manifest_sha256'])
+                ||($l['kind']??null)!=='completed_atoms_copy_v1'||!self::digest($l['parent_manifest_sha256']??null))
+                self::fail('study_derive_state_changed');
+            self::run($l['parent_run_id']??null);
+            if($l['parent_run_id']===$runId)self::fail('study_derive_state_changed');
+        }
     }
     private static function noSourceText(mixed $value):void
     {

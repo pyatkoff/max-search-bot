@@ -273,3 +273,34 @@ Regression fixtures are synthetic. They exercise source conservation,
 read-only admission, temporal and trip barriers, repeated-person splitting,
 durable private storage, package validation, immutable older forecasts and
 saved weighted-result readback. They do not establish actual corpus findings.
+
+
+### Corrective derivation from completed atoms
+
+The prefix learner admits a meaningful early request with unresolved product as
+`unknown`, matching the live predictor. It does not require an early literal
+package-tour declaration. Explicit flight-only, hotel-only, add-on or mixed
+products and other-payment-product flags remain excluded. A canonical direct
+payment statement in that same provisional episode can retain unresolved
+product; it is still evidence of a statement, not verified tour or bank truth.
+Later messages never fill earlier product/features.
+
+For an observed positive, the first trustworthy payment statement ends the
+required source-continuity interval. A non-outcome gap after that statement
+cannot erase its existence. Earlier uncertainty, product/trip binding, edited
+payment and contrary outcomes retain their guards. A retained-evidence-absent
+control still requires the full clean mature observation window.
+
+The corrected protocol records prior control exposure and preserves the
+original peer-group assignment seed. Neither coefficients nor admission
+thresholds are tuned to the already viewed control. An eligible candidate
+still requires the unchanged support and model-comparison gates; publication
+of a completed study does not imply admission.
+
+`derive NEW_RUN_ID EXPECTED_INSTALLED_SHA PARENT_RUN_ID` creates a separately
+bound private study from a completed, verified parent. It requires current scope
+and unchanged source-producing code, retains original atoms, salt, capture
+clock and source fence, and records lineage to the parent manifest. It never
+rereads archive payloads or alters the parent, and never resets an unknown
+analysis attempt. New analysis uses one new intent and an actual new issuance
+time. Activation remains separate and requires review of the exact candidate.

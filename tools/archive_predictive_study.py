@@ -13,6 +13,7 @@ import time
 
 VERSION = "archive_predictive_study_v1"
 TARGET = "observed_retained_payment_evidence_30d_v1"
+ORIGINAL_ASSIGNMENT_PROTOCOL_SHA = "068905aa67b9e96dbd9ede7749a4678ee902e595380934376ac1b9ac2635f3cb"
 FEATURES = ("continued_meaningful_engagement", "near_term_urgency", "long_range_planning",
             "deferral", "continued_offer_search", "office_question", "payment_terms_question")
 STAGES = ("substantive_dialogue", "concrete_request", "exact_offer_discussion",
@@ -39,7 +40,10 @@ PROTOCOL = {
     "version": VERSION, "target": TARGET, "horizon_seconds": 30 * 86400,
     "outcome_interval": "strictly_after_cutoff_and_before_horizon_end",
     "prefixes": list(PREFIXES), "features": list(FEATURES), "stage_names": list(STAGES),
-    "assignment": "sha256_protocol_and_peer_group_80_20_v1",
+    "assignment": "sha256_original_protocol_and_peer_group_80_20_v1",
+    "assignment_seed_protocol_sha256": ORIGINAL_ASSIGNMENT_PROTOCOL_SHA,
+    "label_policy": "retained_evidence_unknown_product_first_payment_binding_v2",
+    "previous_control_exposed": True,
     "evaluation_exposure": "retrospective_group_control_not_pristine_research_holdout",
     "learner": "fixed_common_stage_prefix_logistic_and_relative_l2_logistic",
     "l2": 0.05, "iterations": 200, "learning_rate": 0.25,
@@ -116,7 +120,7 @@ def validate_manifest(value):
                 "extractor_sha256", "rule_revision", "text_features_sha256", "captured_at_unix",
                 "complete", "chunks", "expected", "coverage"}
     require(isinstance(value, dict) and required <= set(value)
-            and set(value) <= required | {"analyzer_sha256", "source_commit", "code_hashes", "chain_sha256"}, "manifest_shape")
+            and set(value) <= required | {"analyzer_sha256", "source_commit", "code_hashes", "chain_sha256", "lineage"}, "manifest_shape")
     require(value["schema"] == 1 and type(value["schema"]) is int
             and value["kind"] == VERSION and value["project_key"] == "anytour"
             and value["rule_revision"] == 3 and type(value["rule_revision"]) is int
@@ -127,6 +131,14 @@ def validate_manifest(value):
             and is_sha(value["text_features_sha256"]) and valid_time(value["captured_at_unix"]), "manifest_binding")
     if "analyzer_sha256" in value:
         require(is_sha(value["analyzer_sha256"]), "manifest_analyzer_hash")
+    if "lineage" in value:
+        lineage = value["lineage"]
+        require(isinstance(lineage, dict) and set(lineage) == {"kind", "parent_run_id", "parent_manifest_sha256"}
+                and lineage["kind"] == "completed_atoms_copy_v1"
+                and isinstance(lineage["parent_run_id"], str)
+                and re.fullmatch(r"[a-z0-9][a-z0-9_-]{0,63}", lineage["parent_run_id"])
+                and lineage["parent_run_id"] != value["run_id"]
+                and is_sha(lineage["parent_manifest_sha256"]), "manifest_lineage")
     if "chain_sha256" in value:
         require(is_sha(value["chain_sha256"]), "manifest_chain_hash")
     if "source_commit" in value:
@@ -205,7 +217,7 @@ def validate_atom(value):
 
 
 def assignment(group):
-    value = hashlib.sha256((PROTOCOL_SHA + "\n" + group).encode()).digest()
+    value = hashlib.sha256((ORIGINAL_ASSIGNMENT_PROTOCOL_SHA + "\n" + group).encode()).digest()
     return "development" if int.from_bytes(value[:8], "big") % 5 else "control"
 
 
@@ -325,8 +337,8 @@ def make_prefix(case_atoms, episode_atoms, kind, cutoff, end_index, captured):
             return excluded("future_source_clock")
     if any(a["flags"].get(k) for _, a in selected for k in BINDING_FLAGS):
         return excluded("trip_binding_unknown")
-    if product != "tour":
-        return excluded("other_or_unknown_prefix_product")
+    if product in ("hotel", "flight", "addon", "mixed"):
+        return excluded("explicit_other_prefix_product")
     if any(set(a["goals"]) & OUTCOMES for _, a in selected):
         return excluded("outcome_already_known")
     episode_start = episode_atoms[0][0]
@@ -347,15 +359,24 @@ def make_prefix(case_atoms, episode_atoms, kind, cutoff, end_index, captured):
     future = [(i, a) for i, a in episode_atoms if i > end_index
               and (a["at"] is None or cutoff < a["at"] < end)]
     payments = [a for _, a in future if set(a["goals"]) & PAYMENTS]
+    reliable_payment_indices = [i for i, a in future if set(a["goals"]) & PAYMENTS
+        and atom_problem(a) is None and a["version_at"] == a["at"] and a["at"] <= captured
+        and a["product"] in ("tour", "unknown") and not a["flags"].get("other_payment_product")
+        and not any(a["flags"].get(k) for k in BINDING_FLAGS)]
+    first_reliable_index = min(reliable_payment_indices, default=None)
+    # A later unread/non-outcome record cannot erase an already retained direct statement.
+    # Outcome corrections, edited payments and explicit other products retain their full-window guards.
+    required_followup = [(i, a) for i, a in future if first_reliable_index is None
+        or i <= first_reliable_index or set(a["goals"]) & OUTCOMES]
     if any(atom_problem(a) or (a["at"] is not None and a["at"] > captured)
-           or (a["version_at"] is not None and a["version_at"] > captured) for _, a in future):
+           or (a["version_at"] is not None and a["version_at"] > captured) for _, a in required_followup):
         row["label_reason"] = "followup_clock_or_source_unknown"
-    elif any(a["flags"].get(k) for _, a in future for k in BINDING_FLAGS):
+    elif any(a["flags"].get(k) for _, a in required_followup for k in BINDING_FLAGS):
         row["label_reason"] = "followup_trip_binding_unknown"
     elif any(a["version_at"] > a["at"] for a in payments):
         row["label_reason"] = "edited_payment_source"
-    elif any(a["product"] != "tour" or a["flags"].get("other_payment_product") for a in payments):
-        row["label_reason"] = "other_or_unknown_payment_product"
+    elif any(a["product"] in ("hotel", "flight", "addon", "mixed") or a["flags"].get("other_payment_product") for a in payments):
+        row["label_reason"] = "other_payment_product"
     elif any(set(a["goals"]) & CONTRARY for _, a in future):
         row["label_reason"] = "contrary_outcome_observed"
     elif payments:
@@ -426,8 +447,8 @@ def process_case(atoms, captured):
             audit_exclusions.add("payment_clock_unknown")
         if payment_episode is None or payment_episode == 0:
             audit_exclusions.add("trip_binding_unknown")
-        if any(a["product"] != "tour" or a["flags"].get("other_payment_product") for _, a in first):
-            audit_exclusions.add("other_or_unknown_payment_product")
+        if any(a["product"] in ("hotel", "flight", "addon", "mixed") or a["flags"].get("other_payment_product") for _, a in first):
+            audit_exclusions.add("other_payment_product")
         if any(a["at"] is None or a["version_at"] is None or a["version_at"] > a["at"] for _, a in first):
             audit_exclusions.add("edited_or_unknown_payment_version")
         if any(atom_problem(a) or any(a["flags"].get(k) for k in BINDING_FLAGS) for a in before):
@@ -455,6 +476,7 @@ def process_case(atoms, captured):
             "first_payment_edited": any(a["at"] is None or a["version_at"] is None
                                         or a["version_at"] > a["at"] for _, a in first),
             "first_payment_product": first[0][1]["product"] if first else "unknown",
+            "first_payment_product_unknown": any(a["product"] == "unknown" for _, a in first),
             "prepayment_signal_lags_seconds": {k: first_time - at if lag_eligible else None
                                                 for k, at in signal_first.items()},
             "prepayment_input_edited_after_payment": late_input_version,
@@ -638,7 +660,8 @@ def evaluate(weighted, common, multipliers):
     return {"unit": "equal_total_weight_per_peer_group_across_resolved_prefixes", "groups": len(groups),
             "metrics": metric, "paired_group_bootstrap": paired,
             "within_stage_prefix_ranking": ranking,
-            "interpretation": "retained_evidence_target_not_true_purchase_calibration"}
+            "interpretation": "retained_evidence_target_not_true_purchase_calibration",
+            "previous_control_exposed": True}
 
 
 
@@ -666,6 +689,8 @@ def aggregate_payment_audits(audits):
         "unknown_payment_clock_cases": sum(a["payment_clock_unknown"] for a in audits),
         "uncertain_first_payment_source_cases": sum(a["first_payment_source_uncertain"] for a in audits),
         "edited_first_payment_cases": sum(a["first_payment_edited"] for a in audits),
+        "first_payment_product_counts": dict(collections.Counter(a["first_payment_product"] for a in audits)),
+        "unknown_first_payment_product_cases": sum(a["first_payment_product_unknown"] for a in audits),
         "lag_claims_eligible_cases": sum(a["prepayment_lag_claims_eligible"] for a in audits),
         "lag_claims_excluded_cases": sum(not a["prepayment_lag_claims_eligible"] for a in audits),
         "cases_with_eligible_prefix": sum(a["eligible_prefixes"] > 0 for a in audits),
@@ -674,7 +699,8 @@ def aggregate_payment_audits(audits):
         "cases_with_prefix_exclusion_by_reason": dict(prefix_case_exclusions),
         "prepayment_signals": observed,
         "timing_basis": "same_candidate_episode_before_first_retained_created_clock; uncertain_lags_excluded",
-        "historical_availability": "unknown", "verified_purchases": None}
+        "historical_availability": "unknown", "verified_purchases": None,
+        "product_interpretation": "unknown_remains_unknown_not_confirmed_tour_payment"}
 
 
 def analyze(manifest, atoms, manifest_sha256=None):
@@ -767,6 +793,8 @@ def analyze(manifest, atoms, manifest_sha256=None):
     summary = {
         "schema": 1, "kind": "archive_predictive_study_summary_v1", **binding,
         "target": TARGET, "complete": True, "weights_eligible": eligible,
+        "source_captured_at_unix": manifest["captured_at_unix"], "issued_at_unix": manifest["captured_at_unix"],
+        "lineage": manifest.get("lineage"),
         "counts": {"source_records": physical, "unique_source_records": unique, "duplicate_records": duplicates,
                    "account_chat_pairs": len(cases), "payment_candidate_cases": len(audits), "prefixes": len(rows),
                    "eligible_prefixes": sum(r["eligible"] for r in rows),
@@ -777,12 +805,17 @@ def analyze(manifest, atoms, manifest_sha256=None):
                         r["exclusion_reason"] for r in rows if r["exclusion_reason"])),
                      "label_reasons": dict(collections.Counter(r["label_reason"] for r in rows)),
                      "source_history_external_completeness": "unknown", "historical_availability": "unknown",
-                     "accepted_16000_membership": "unverified", "true_purchase_labels_available": False},
+                     "accepted_16000_membership": "unverified", "true_purchase_labels_available": False,
+                     "prefix_product_strata": {product: {"prefixes": sum(r["product"] == product for r in rows),
+                         "eligible": sum(r["product"] == product and r["eligible"] for r in rows),
+                         "positive": sum(r["product"] == product and r["label"] == 1 for r in rows)}
+                         for product in PRODUCTS if any(r["product"] == product for r in rows)}},
         "fit": {"development_groups": len(dev_groups), "positive_development_groups": len(dev_positive),
                 "control_groups": len(ctrl_groups), "positive_control_groups": len(ctrl_positive),
                 "fitted": train_ok, "support_gates_passed": support_ok, "feature_support": support,
                 "point_better_than_old": point_better, "point_not_worse_than_stage": point_not_worse,
-                "control_tuned": False, "control_is_pristine_research_holdout": False},
+                "control_tuned": False, "control_is_pristine_research_holdout": False,
+                "previous_control_exposed": True, "assignment_seed_protocol_sha256": ORIGINAL_ASSIGNMENT_PROTOCOL_SHA},
         "evaluation": evaluation, "candidate_admission": PROTOCOL["candidate_admission"],
         "relative_weights": {"multipliers": dict(multipliers),
             "old_multipliers": dict(zip(FEATURES, (1.1, 1.2, 0.65, 0.5, 1.0, 1.0, 1.0))),
@@ -891,6 +924,11 @@ def main():
         require(not os.path.lexists(os.path.join(run, "analysis")), "analysis_already_exists")
         manifest, manifest_sha, atoms = read_dataset(run)
         result = analyze(manifest, atoms, manifest_sha)
+        issued = int(time.time())
+        require(valid_time(issued) and issued >= manifest["captured_at_unix"], "analysis_issuance_clock")
+        result["candidate_weights"]["issued_at_unix"] = issued
+        result["summary"]["issued_at_unix"] = issued
+        require(len(encoded(result["summary"])) <= 11800, "summary_byte_limit")
         write_outputs(run, result)
         ok = True
     except InvalidStudy:
