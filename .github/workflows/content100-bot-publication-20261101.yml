@@ -14,7 +14,7 @@ env:
   LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-context22-ten6-scope.json
   EXPECTED_LINK_SCOPE_SHA256: 79649aec85cb577cfd08dafa709e4d97e76228b669bc5889ba77e489b3b3b07e
   LINK_CONTEXT_RUN: 42030425796
-  LINK_CONTEXT_SOURCE_SHA: 28e3741fa40240e4287c8f3b0340891f3b57beab
+  LINK_CONTEXT_SOURCE_SHA: f486099f3aaaa79b4eccad148eb2d4a80981688a
 jobs:
   prepare:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'

@@ -15,7 +15,7 @@
     21695
   ],
   "context_run": 42030425796,
-  "context_source_sha": "28e3741fa40240e4287c8f3b0340891f3b57beab",
+  "context_source_sha": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
   "context_artifact": 13415153847,
   "scope_sha256": "79649aec85cb577cfd08dafa709e4d97e76228b669bc5889ba77e489b3b3b07e",
   "expected_source": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
@@ -39,5 +39,16 @@
   "risks": [
     "Nativebinding/captionmayconflict or length exceed bound;deferhonestly,do not forcehardcases.",
     "Futureprod/captioncouldchange;executionmustbindexactfrozenbytesandfreshguards."
-  ]
+  ],
+  "context_workflow_source_sha": "28e3741fa40240e4287c8f3b0340891f3b57beab",
+  "input_binding_correction": {
+    "failed_pure_run": 42030749410,
+    "failed_job": 127256279626,
+    "wrong_env_was_audit_workflow_commit": "28e3741fa40240e4287c8f3b0340891f3b57beab",
+    "correct_env_is_original_context_installed_sha": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+    "original_context_repeated": false,
+    "provider_or_db_calls": 0,
+    "prepared_artifacts": 0,
+    "cases_before_failure": 0
+  }
 }
