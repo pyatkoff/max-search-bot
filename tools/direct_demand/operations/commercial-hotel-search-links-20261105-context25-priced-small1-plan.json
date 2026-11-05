@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context25-priced-small1",
+  "state": "PREPARED_CURRENT_PRICE_ROLE_AND_NATIVE_ENTITY_CAPTURE_FOR_ONE_NEW_LINK_TARGET",
+  "owner_fast_steering": "давай побыстрее",
+  "goal": "Capture one current confirmed own priced post pair, including canonical native text entities, for a bounded inline price search link without changing amount/checktime.",
+  "native_hotel_ids": [
+    57028
+  ],
+  "scope_filename": "commercial-hotel-search-links-20261105-context25-priced-small1-scope.json",
+  "scope_sha256": "faffa49a1406d9bd3496446da6772b9e55191b7ed85ea52ef5f80f177caf6e79",
+  "projection_run": 42073736305,
+  "projection_artifact": 13436743582,
+  "projection_source": "5d8b69eeb816cbd387bc8f844cf1c1370912ba2f",
+  "reader_sha256": "af212d45249a916c72e19d0857ae4e0df48c4cd9bbdfe82bfdbaad93c567dde9",
+  "bounds": {
+    "max_owned_max_reads": 1,
+    "provider_channel_rights_checks": 2,
+    "db_writes": 0,
+    "gateway_calls": 0,
+    "quotes": 0,
+    "post_edits": 0,
+    "old_provider_post_rereads": 0
+  },
+  "criteria": [
+    "Only native57028 from new10b immutable projection; other9 have no owned reads.",
+    "CURRENT exact confirmed own price journal+receipt/version/caption/photo/button/source/token and price quote hash/check epoch required.",
+    "Capture full current native markup from both canonical snapshots; MAX live markup must semantically equal current registry. Stop rather than overwrite an owner edit.",
+    "Native14 actual-input cases include4new markup-bound cases;3new Python scope cases;oldfixtures0.",
+    "Fresh healthy current main/fullremote21/hostaccepted25 byteidentical/installedclean/schema/native/rights; durable private input before any server access.",
+    "No post writes in this operation. Inline serializer/readback cases must follow before a separate existing updater action."
+  ],
+  "risks": [
+    "Registry/provider markup mismatch must defer this hotel.",
+    "Unsupported existing markup must be preserved or deferred by later serializer, never flattened.",
+    "Missing current proof must not be replaced with historical IDs or caption."
+  ],
+  "source_health_sha": "446531f0ae40e14a7cf8b08fb7ae3beba770630d"
+}
