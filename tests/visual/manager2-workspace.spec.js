@@ -19,7 +19,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   }
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
-  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map();
+  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null,bookingHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
@@ -99,6 +99,10 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
         const status=await new Promise(resolve=>pendingMetadata.push({request:req,release:resolve}));
         if(status!==200){if(status===401)authenticated=false;return reply({ok:false,error:status===401?'unauthorized':'synthetic_metadata_unavailable'},status)}
       }
+      if(['booking_read','booking_save'].includes(data.action)&&bookingHandler){
+        const result=await bookingHandler(data);if(result.abort)return route.abort('failed');
+        return reply(result.body,result.status||200);
+      }
       if(data.action==='catalog')return reply({ok:true,stages,tags:[{id:1,display_name:'Семья'}],outcomes:{open:'В работе',won:'Продажа',lost:'Отказ'},close_reasons:{price:'Цена'}});
       if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager]}});
       if(data.action==='list')return reply({ok:true,conversations:rows()});
@@ -133,7 +137,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,manager,setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+  return {calls,unexpected,errors,sends,tasks,manager,setBookingHandler:fn=>{bookingHandler=fn},setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
     async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
 }
 async function openLead(page,id=11){
@@ -1219,3 +1223,68 @@ for(const width of [390,1440])test('Sales uses explicit scope and saves custom c
   await page.locator('#leadSaleAmount').fill('250000');await page.locator('#leadSaleDate').fill('2026-11-02');await page.locator('#saveOutcome').click();await expect.poll(()=>s.calls.filter(c=>c.action==='set_outcome').length).toBe(1);expect(s.calls.find(c=>c.action==='set_outcome')).toMatchObject({conversation_id:11,stage_key:'sold',expected_stage_key:'working',outcome:'won',sale_amount:'250000',sale_date:'2026-11-02'});expect(s.calls.filter(c=>c.action==='set_stage')).toEqual([]);await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
+
+function bookingChoiceFixture(){
+ return {offers:[{offer_id:17,liked_at:'2026-10-23 10:00:00',delivered_at:'2026-10-23 09:59:00',snapshot:{hotel:'Booking synthetic hotel',departure:'Москва',date_from:'2027-06-12',date_to:'2027-06-19',nights:7,adults:2,child_ages:[5,5],room:'Family exact variant',meal:'AI',flights:[],amount:'180000.50',currency:'RUB',price_basis:'party',is_demo:false}}]};
+}
+for(const width of [390,1440]){
+ test('exact selected variant opens booking without send at '+width,async({page})=>{
+  await page.setViewportSize({width,height:844});const s=await setup(page,{tourChoices:bookingChoiceFixture()});
+  let record=null;
+  s.setBookingHandler(async data=>{
+   expect(data).toMatchObject({conversation_id:11,source_kind:'native',source_id:17});
+   if(data.action==='booking_save'){
+    expect(data.fields).toMatchObject({state:'checking',amount:'',currency:'',available:false,customer_agreed:false});
+    record={revision:1,fields:data.fields};return {body:{ok:true,record,saved_revision:1,operation_found:true}};
+   }
+   return {body:{ok:true,can_edit:true,record,operation_found:false}};
+  });
+  await openLead(page);await showCard(page);
+  await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+  const panel=page.locator('[data-booking-panel]');await expect(panel.locator('form')).toBeVisible();
+  await expect(panel.locator('[data-booking-field="amount"]')).toHaveValue('');
+  await expect(panel).toContainText('не становится подтверждённой автоматически');
+  await panel.locator('[data-booking-field="terms"]').fill('Данные пока проверяются');
+  await panel.getByRole('button',{name:'Сохранить оформление'}).click();
+  await expect(panel).toContainText('Оформление сохранено');
+  expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);
+  const box=await panel.boundingBox();expect(box.width).toBeGreaterThan(100);expect(box.x+box.width).toBeLessThanOrEqual(width+1);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+ });
+}
+test('booking lost response reconciles original operation after reload without another write',async({page})=>{
+ const choices=bookingChoiceFixture(),s=await setup(page,{tourChoices:choices});let record=null,op='';
+ s.setBookingHandler(async data=>{
+  if(data.action==='booking_save'){op=data.operation_id;record={revision:1,fields:data.fields};return {abort:true}}
+  return {body:{ok:true,can_edit:true,record,operation_found:!!op&&data.operation_id===op,saved_revision:1}};
+ });
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ const panel=page.locator('[data-booking-panel]');await expect(panel.locator('form')).toBeVisible();
+ await panel.getByRole('button',{name:'Сохранить оформление'}).click();
+ await expect(panel).toContainText('Исход сохранения неизвестен');await expect(panel.locator('fieldset')).toBeDisabled();
+ await panel.getByRole('button',{name:'Проверить сохранение'}).click();
+ await expect(panel).toContainText('Сохранение подтверждено');
+ expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);
+ expect(s.calls.filter(c=>c.action==='booking_read').at(-1).operation_id).toBe(op);
+ expect(await page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('anytour-booking-v1:')))).toEqual([]);
+ expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('unresolved booking receipt stays fenced across same-account page reload',async({page})=>{
+ const s=await setup(page,{tourChoices:bookingChoiceFixture()});let op='';
+ s.setBookingHandler(async data=>{
+  if(data.action==='booking_save'){op=data.operation_id;return {abort:true}}
+  return {body:{ok:true,can_edit:true,record:null,operation_found:false}};
+ });
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ await page.locator('[data-booking-panel]').getByRole('button',{name:'Сохранить оформление'}).click();await expect(page.locator('[data-booking-panel]')).toContainText('Исход сохранения неизвестен');
+ await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ const panel=page.locator('[data-booking-panel]');await expect(panel).toContainText('Исход сохранения пока неизвестен');await expect(panel.locator('fieldset')).toBeDisabled();
+ expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);
+ expect(s.calls.filter(c=>c.action==='booking_read').at(-1).operation_id).toBe(op);expect(s.sends).toEqual([]);
+});
+test('booking read for another owner is readonly and does not replace transcript',async({page})=>{
+ const s=await setup(page,{tourChoices:bookingChoiceFixture(),otherOwner:true});
+ s.setBookingHandler(async data=>({body:{ok:true,can_edit:false,record:null,operation_found:false}}));
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ await expect(page.locator('[data-booking-panel] fieldset')).toBeDisabled();expect(s.calls.filter(c=>c.action==='booking_save')).toEqual([]);expect(s.sends).toEqual([]);
+});

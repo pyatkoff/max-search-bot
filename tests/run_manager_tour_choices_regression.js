@@ -116,4 +116,23 @@ check('bad search timestamps never break the remaining customer card',()=>{
  for(const capturedAt of [null,0,-1,NaN,9007199254740991]){const item=search();item.observation.capturedAt=capturedAt;assert(ui.markup({offers:[offer()],search_inquiries:[item]}).includes('Hotel Sea'));}
  for(const value of [null,{}, {observation:null},{observation:{hotel:{name:''}}}])assert.equal(ui.markup({offers:[],search_inquiries:[value]}),'');
 });
+
+check('booking action binds exact origins and never guesses a missing inquiry ID',()=>{
+ window.WorkspaceV2.pipe=async()=>({ok:true});
+ let html=ui.markup({offers:[offer()],web_inquiries:[inquiry({inquiry_id:33})],search_inquiries:[{...search(),inquiry_id:44}]});
+ for(const value of ['data-booking-kind="native" data-booking-source="17"','data-booking-kind="web" data-booking-source="33"','data-booking-kind="search" data-booking-source="44"'])assert(html.includes(value),value);
+ html=ui.markup({offers:[],web_inquiries:[inquiry()],search_inquiries:[search()]});assert(!html.includes('data-booking-source'));
+});
+check('booking fields distinguish verification agreement and actual operator receipt',()=>{
+ const html=ui.bookingFieldsMarkup({},true);
+ for(const value of ['Подтверждённая полная сумма','Наличие подтверждено','Турист согласовал','Номер подтверждённой брони','Подтверждённые условия','МСК'])assert(html.includes(value),value);
+ assert(!html.includes('value="180000'));assert(!html.includes(' checked'));
+ assert(ui.bookingFieldsMarkup({},false).includes('<fieldset disabled>'));
+ const hostile=ui.bookingFieldsMarkup({terms:'<script>bad()</script>',booking_reference:'"><img src=x>'},true);
+ assert(!hostile.includes('<script>'));assert(!hostile.includes('<img'));assert(hostile.includes('&lt;script&gt;'));
+});
+check('booking refusal explains missing proof rather than claiming a booking',()=>{
+ for(const code of ['conflict','verification_required','verification_expired','booking_evidence_required','invalid_transition','context_changed'])assert(ui.bookingError(code).length>25);
+});
 console.log('PASS manager tour choices '+checks+' checks');
+

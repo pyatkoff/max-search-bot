@@ -1,2 +1,4 @@
 .tourChoiceSummary{display:grid;gap:4px;min-width:0}.tourChoiceHotel{min-width:0;overflow-wrap:anywhere}.tourChoicePrice{font-weight:700;color:var(--ws-text-secondary,#52606d)}
 .manager2 [data-tour-choices] .leadPanelHint{display:block}
+
+.tourBooking{margin-top:12px;padding-top:12px;border-top:1px solid var(--ws-border,#dde3ea);overflow-wrap:anywhere}.tourBooking fieldset{border:0;padding:0;margin:12px 0;min-width:0;display:grid;gap:12px}.tourBooking label{display:grid;gap:6px}.tourBooking input:not([type=checkbox]),.tourBooking select,.tourBooking textarea{box-sizing:border-box;width:100%;max-width:100%;min-width:0}.tourBooking label:has(input[type=checkbox]){display:block}.tourBooking [role=status]{margin:10px 0}.tourBooking textarea{min-height:84px;resize:vertical}

@@ -130,3 +130,10 @@ link click is an anonymous intent in the separate058 projection; it cannot call
 `like`, become a trusted callback, create an inquiry, or assign the original
 customer. Old publication/offer versions and strict native envelope checks keep
 their existing owners.
+
+## Manager booking continuation
+
+The exact selected native/web/search variant can now open the lazy protected
+[booking worksheet](TOUR_BOOKING.md). Original quote, checked full-party terms,
+customer agreement and actual operator confirmation remain separate facts.
+Saving this staff record never submits a booking or marks a payment/sale.
