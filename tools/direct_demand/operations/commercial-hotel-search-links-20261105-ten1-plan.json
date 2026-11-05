@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten1-pass1",
+  "state": "PURE_PREPARATION_ONLY_BEFORE_SERIAL_EXECUTION",
+  "goal": "Add10hotel-specific public search links to20existingposts without quoting or claiming prices/availability.",
+  "native_ids": [
+    129,
+    139,
+    150,
+    172,
+    173,
+    232,
+    241,
+    249,
+    250,
+    263
+  ],
+  "quote_state": "NOQUOTE",
+  "bounds": {
+    "max_existing_post_edits": 20,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "existing_prices_modified": 0
+  },
+  "criteria": [
+    "Only originalcontext17 actualcurrentframes/run42009478360/art13406417201; no old capture reinspection.",
+    "Exact8querykeys/Moscow2A/nativecountry+hotel/future06..12Nov5..14n; immutablemanifest plus5keyapproval.",
+    "Preservewholecurrentcaption/closing/photo/button/source/token;≤1024UTF16 or defer.",
+    "No quote epoch/response SHA/amount/index fields. Preserve all prior snapshot price metadata; separateNOQUOTEsearchlinkmetadata only.",
+    "8NEWPythonnegativebindingcases+6NEWnativecases perreadyhotel/PHP-l; no oldfixtures; purepreparationnoSSH/provider/DB.",
+    "Actualwriteonlyafterfrozenoutputverified,freshhealthycurrentmain/full21/hostclean/schema-rights/privateintent/serialonce/UNKNOWNoriginalfirst."
+  ],
+  "risks": [
+    "A stale/currentlychangedpost must stop, never silently append towrongversion.",
+    "HTTP/providerfailuremustresolveoriginalintentbeforeanylaterwrites; no automatic retry."
+  ],
+  "template_sha256": "d5315073bf1eb9677936b5065b85d27ebc59599e2f8533bfb1ff1061e5a275af",
+  "context_run": 42009478360,
+  "context_artifact": 13406417201,
+  "expected_installed_sha": "a95f6e3514eb48f2b7dcda36ac1f40ab31d0ff99"
+}
