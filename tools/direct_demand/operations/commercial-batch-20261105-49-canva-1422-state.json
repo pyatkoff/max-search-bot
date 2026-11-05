@@ -1,6 +1,6 @@
 {
   "operation": "commercial-batch-20261105-49-canva-1422",
-  "state": "ONE_TEMPORARY_TRANSACTION_OPEN_FIRST_PNG_CROP_REJECTED_SECOND_PREVIEW_PENDING",
+  "state": "CLOSED_ACCEPTED_NATIVE_PNG_FROZEN_EXACT_TX_CANCELLED",
   "hotel_id": 1422,
   "transaction_id": "3034821431815808944",
   "design_id": "DAHZx_JlJEM",
@@ -44,16 +44,29 @@
     "reason": "Keep complete twin rooflines and grounds visible from square source while retaining two readable lower photographs and blue title banner."
   },
   "thumbnail_requests": 2,
-  "thumbnail_native_png_pending": true,
-  "thumbnail_shown": false,
+  "thumbnail_native_png_pending": false,
+  "thumbnail_shown": true,
   "permanent_saves": 0,
-  "accepted_native_pngs": 0,
+  "accepted_native_pngs": 1,
   "new_posts": 0,
   "manual_price_collection": false,
-  "repeat_policy": "This exact transaction remains open only until nativePNG/chunks/SHA/pixels acceptance and freeze; then cancelEXACTtransaction. Each thumbnail must be shown. No oldphoto GET, no permanentSave.",
+  "repeat_policy": "Closed exacttransaction, acceptedPNG and allpreview/photo reads. Do not reopen/reexport/reupload/reinspect; use only immutable frozen1422PNG. Newpublication uses existingserialpublisher afterfreshfullgates, manualpricepermission remains unapproved.",
   "thumbnail1_shown": true,
-  "thumbnail2_shown": false,
+  "thumbnail2_shown": true,
   "first_png_rejected_reason": "Both rooflines clipped by inherited hero crop",
   "hero_fill_reinserted_to_reset_crop": true,
-  "same_existing_anytour_logo_reinserted": true
+  "same_existing_anytour_logo_reinserted": true,
+  "accepted_native_png": {
+    "run": 41960636631,
+    "job": 127025904476,
+    "width": 600,
+    "height": 600,
+    "bytes": 849456,
+    "sha256": "19f23e5b9d83afbc1c4c41942adb2aac788e003950cc502b67b72889defce9a7",
+    "freeze_commit": "a49bc708d95df70e1a496bbfae9ac09abd7fc537"
+  },
+  "transaction_status": "cancelled",
+  "transaction_cancel_confirmed": true,
+  "accepted_hero_rooflines_complete": true,
+  "open_transactions": 0
 }

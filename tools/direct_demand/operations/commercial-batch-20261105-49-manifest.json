@@ -1,0 +1,67 @@
+{
+  "operation": "commercial-hotel-batch-20261105-49-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish the entire actual ready subset1 from ten proven native stock41 identities in both existing channels with the verified official whole-complex cover, whole caption and canonical buttons.",
+  "boundaries": [
+    "Existing single serial publisher/registry/once/flock/fsync only; one native hotel/two channelposts",
+    "Fresh currentmain/same-source verify/deploy/TLS/currentdiagnostics/fullremote21/accepted25host/installedclean/schema/rights/live dedup/UNKNOWN gates beforeprovider",
+    "NoMac/newagents/workers/queues/ads/customer messages/pricecalls/manual price collection",
+    "Do not hold the ready1422hotel for nine remaining source/media hardcases"
+  ],
+  "criteria": [
+    "Exact native1422country4/active/currentname/TG0MAX0 proof and new immutable cover849456bytes/600x600/fullSHA/nativepixels verified, both roofs/grounds visible",
+    "Two actual body/photo/button/source verified posts or stop; UNKNOWNoriginal resolvefirst without newoperationbypass",
+    "All three accepted owner photos belong to1422; three caption source facts and wholeclosing retained; no fakeprice/availability/freeinclusions",
+    "Only actual newlypublished1422 then monitorappend/newcanonicalbinding/MAX160alias/threefeedappend; do not count prep or cover as delivery"
+  ],
+  "risks": [
+    "New currentproduction release/UNKNOWN/provider outcome muststop before furtherprovider writes; do not fix foreign releases or replay",
+    "Three livefeeds remain159/159/318 until actualnewcanonical binding/MAX160install/feedupdate15HTTPS accepted",
+    "Prices32 and manual121/7 permissionpending unchanged; this publication approval is not manualcollection approval"
+  ],
+  "baseline_logical_materials": 159,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 1422,
+      "hotel": "Papillon Zeugma Relaxury",
+      "key": "papillon-zeugma-relaxury",
+      "aliases": [
+        "PAPILLON ZEUGMA RELAXURY",
+        "Papillon Zeugma"
+      ],
+      "sources": [
+        "https://papillon.com.tr/en/papillon-zeugma/"
+      ],
+      "text": "🏨 Papillon Zeugma Relaxury\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж.\n🧒 Papy Kids World со спортивными и творческими занятиями.\n🧘 Fit Club с йогой и пилатесом.\n🧖 Reborn Spa.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-papillon-zeugma-relaxury-1422-v1",
+      "text_sha256": "4601a58320d86cb730fc829efc0f0440b094bbbd5e4bf46807a0384ee89e6730",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/a49bc708d95df70e1a496bbfae9ac09abd7fc537/.github/traffic-publish/commercial-batch-20261105-49/1422.png",
+      "photo_sha256": "19f23e5b9d83afbc1c4c41942adb2aac788e003950cc502b67b72889defce9a7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 1,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 1,
+  "approved_live_send_count": 0,
+  "public_png_frozen_count": 1,
+  "native_inspection_state": "ONE_NATIVE_600_PNG_VISUALLY_ACCEPTED_EXACT_TX_CANCELLED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41959091900",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41959463139",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41960636631"
+  ],
+  "deferred": [
+    1420,
+    1421,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ]
+}
