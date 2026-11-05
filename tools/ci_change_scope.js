@@ -16,6 +16,7 @@ const OAUTH_PATHS = new Set([
 const FIXTURE = 'tests/visual/fixtures/oauth-consent.js';
 const DOCUMENT = 'docs/MANAGER_PREPARED_REPLIES.md';
 const EDITOR_MANIFEST = 'modules/tour-selections/editor.json';
+const PUBLIC_MANIFEST = 'modules/tour-selections/module.json';
 // Explicit collector owners. These files are consumed by the selection page,
 // its MV3 package and dedicated regressions, not by other workspace UI specs.
 // Unknown adapters/helpers still require review; this is never a prefix match.
@@ -157,14 +158,14 @@ function oauthSpecOnlyChange(baseSource, headSource) {
   return !!(base && head && head.hasOAuth && base.prefix === head.prefix);
 }
 
-function editorManifestVersionOnlyChange(baseSource, headSource) {
+function manifestVersionOnlyChange(baseSource, headSource, expectedName, expectedContract) {
   try {
     const base = JSON.parse(baseSource), head = JSON.parse(headSource);
     const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
     const keys = ['backend_inputs', 'contract', 'files', 'name', 'schema', 'version'];
     const valid = value => record(value) && isDeepStrictEqual(Object.keys(value).sort(), keys) &&
-      value.schema === 1 && value.name === 'anytour-selection-editor' &&
-      value.contract === 'tour-selection-editor-host-v1' &&
+      value.schema === 1 && value.name === expectedName &&
+      value.contract === expectedContract &&
       typeof value.version === 'string' && value.version === value.version.trim() &&
       /^[0-9]+\.[0-9]+\.[0-9]+$/.test(value.version) &&
       record(value.files) && Object.keys(value.files).length > 0 &&
@@ -178,6 +179,40 @@ function editorManifestVersionOnlyChange(baseSource, headSource) {
     return valid(base) && valid(head) && base.version !== head.version &&
       isDeepStrictEqual({ ...base, version: head.version }, head);
   } catch (_) { return false; }
+}
+
+function editorManifestVersionOnlyChange(baseSource, headSource) {
+  return manifestVersionOnlyChange(baseSource, headSource,
+    'anytour-selection-editor', 'tour-selection-editor-host-v1');
+}
+
+function publicManifestVersionOnlyChange(baseSource, headSource) {
+  return manifestVersionOnlyChange(baseSource, headSource,
+    'anytour-selection-public', 'selection-php-view-v1');
+}
+
+// A public package version may accompany an already audited component change.
+// It is NOT a new standalone scope owner: the companion must still trigger the
+// existing two-engine selection workflow. Metadata-only, unknown and mixed
+// changes therefore retain full coverage; package/host gates remain unchanged.
+function classifySelectionCompanionChanges(changes, readManifest) {
+  if (!Array.isArray(changes)) return classifyChanges(changes);
+  const manifests = changes.filter(change => change?.path === PUBLIC_MANIFEST);
+  if (!manifests.length) return classifyChanges(changes);
+  if (manifests.length !== 1 || manifests[0].status !== 'M' ||
+      manifests[0].previousPath !== undefined ||
+      manifests[0].oldMode !== '100644' || manifests[0].newMode !== '100644') {
+    return full('public_manifest_not_regular_modification');
+  }
+  const result = classifyChanges(changes.filter(change => change?.path !== PUBLIC_MANIFEST));
+  if (result.mode !== 'tour-selection') return full('public_manifest_without_audited_component');
+  try {
+    const [baseSource, headSource] = readManifest();
+    if (!publicManifestVersionOnlyChange(baseSource, headSource)) {
+      return full('public_manifest_contract_changed');
+    }
+  } catch (_) { return full('public_manifest_unavailable'); }
+  return { ...result, reason: 'bounded_tour_selection_with_public_version' };
 }
 
 function selectScope(env = process.env) {
@@ -206,7 +241,9 @@ function selectScope(env = process.env) {
       throw error;
     }
     const changes = parseRawDiff(git(['diff', '--raw', '-z', '--no-renames', '--no-abbrev', base, head]));
-    const result = classifyChanges(changes);
+    const result = classifySelectionCompanionChanges(changes, () => [
+      git(['show', `${base}:${PUBLIC_MANIFEST}`]), git(['show', `${head}:${PUBLIC_MANIFEST}`])
+    ]);
     const browserSpec = 'tests/visual/manager-ai-draft.spec.js';
     if (result.mode === 'oauth' && changes.some(change => change.path === browserSpec) &&
         !oauthSpecOnlyChange(git(['show', `${base}:${browserSpec}`]), git(['show', `${head}:${browserSpec}`]))) {
@@ -234,4 +271,4 @@ if (require.main === module) {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, selectScope };
+module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectScope };
