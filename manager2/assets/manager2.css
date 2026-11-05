@@ -1,3 +1,5 @@
+.manager2 .tsOpen{border:1px solid #d7e3dd;border-radius:9px;padding:6px 11px;background:#fff;color:#17483d;font:600 12px inherit;cursor:pointer;white-space:nowrap}
+.manager2 .m2ConversationMenu .tsOpen{display:block;width:100%;min-height:40px;text-align:left;font-size:12px}
 /* Agreed AnyTour manager design. Scoped to the opt-in /manager2/ shell. */
 .manager2 .m2Rail>.m2MoreToggle{display:none}
 body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--ws-text-secondary:#55675f;--ws-muted:#718078;--ws-border:#e4e9e4;--ws-surface-subtle:#f5f7f3;--ws-surface-hover:#edf4ee;--m2-forest:#17483d;--m2-line:#e4e9e4;--m2-bg:#f6f7f3;--m2-header:0px;margin:0;background:var(--m2-bg);color:#283b33;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;height:100vh;height:100dvh;overflow:hidden}
@@ -416,3 +418,5 @@ body.manager2{--ws-accent:#25624f;--ws-accent-soft:#e9f3ed;--ws-text:#233c34;--w
 /* An empty request keeps only its existing menu action, with readable feedback. */
 .manager2 .m2RequestMenuStatus{display:block;padding:4px 10px;color:#617168;font-size:12px;line-height:1.4;white-space:normal;overflow-wrap:anywhere}
 .manager2 .m2RequestMenuStatus[hidden],.manager2 #m2RequestProfileOpen[hidden]{display:none!important}
+
+.manager2 .m2SelectionLoadActions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.manager2 .m2SelectionLoadActions .actionBtn{min-height:44px;padding:8px 14px}
