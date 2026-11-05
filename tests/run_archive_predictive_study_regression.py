@@ -11,6 +11,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location("archive_predictive_study", ROOT / "tools/archive_predictive_study.py")
@@ -122,6 +123,51 @@ def protocol_checks():
     check(first(absent)["label"] == 0 and "not_no_purchase" in first(absent)["label_reason"], "zero only retained evidence target")
     immature = run(sample(payment=False), T + 2 * 86400)
     check(first(immature)["label"] is None and first(immature)["label_reason"] == "horizon_not_mature", "immature remains unknown")
+    unknown_product = copy.deepcopy(base)
+    for a in unknown_product:
+        a["product"] = "unknown"
+    unknown_row = first(run(unknown_product))
+    check(unknown_row["eligible"] and unknown_row["label"] == 1 and unknown_row["product"] == "unknown",
+          "qualified unknown prefix and direct unknown payment remain unknown-product evidence")
+    later_tour = copy.deepcopy(unknown_product)
+    later_tour[3]["product"] = later_tour[4]["product"] = "tour"
+    later_tour_row = first(run(later_tour))
+    check(later_tour_row["product"] == "unknown"
+          and later_tour_row["feature_fingerprint"] == unknown_row["feature_fingerprint"],
+          "future outcome product never fills historical prefix product")
+    for product in ("flight", "hotel", "addon", "mixed"):
+        excluded_product = copy.deepcopy(base)
+        for a in excluded_product:
+            a["product"] = product
+        check(first(run(excluded_product))["exclusion_reason"] == "explicit_other_prefix_product",
+              "explicit other prefix product excluded: " + product)
+    explicit_other_payment = copy.deepcopy(unknown_product)
+    explicit_other_payment[3]["flags"]["other_payment_product"] = True
+    check(first(run(explicit_other_payment))["label"] is None
+          and first(run(explicit_other_payment))["label_reason"] == "other_payment_product",
+          "unknown product never rescues explicit other-payment flag")
+    unread_after = copy.deepcopy(base)
+    unread_after.append(atom(1, 6, base[4]["at"] + 60, role="unknown", status="unknown_role",
+                             flags={"context_barrier": True}))
+    check(first(run(unread_after))["label"] == 1, "unrelated unread record after direct payment cannot erase it")
+    unread_before = copy.deepcopy(base)
+    unread_before.insert(3, atom(1, 6, base[3]["at"] - 60, role="unknown", status="unknown_role",
+                                flags={"context_barrier": True}))
+    check(first(run(unread_before))["label"] is None, "unknown binding before direct payment remains unknown")
+    unknown_after_without_payment = sample(payment=False)
+    unknown_after_without_payment.append(atom(1, 6, unknown_after_without_payment[-1]["at"] + 60,
+                                               role="unknown", status="unknown_role", flags={"context_barrier": True}))
+    check(first(run(unknown_after_without_payment))["label"] is None,
+          "absence still requires clean full window, never purchase loss")
+    edited_later_payment = copy.deepcopy(base)
+    edited_later_payment.append(atom(1, 6, base[4]["at"] + 60, ["payment_self_report"]))
+    edited_later_payment[-1]["version_at"] += 10
+    check(first(run(edited_later_payment))["label_reason"] == "edited_payment_source",
+          "later edited outcome guard preserved across full window")
+    other_later_payment = copy.deepcopy(base)
+    other_later_payment.append(atom(1, 6, base[4]["at"] + 60, ["payment_self_report"], product="flight"))
+    check(first(run(other_later_payment))["label_reason"] == "other_payment_product",
+          "later explicit other-product payment guard preserved across full window")
     edited = copy.deepcopy(base)
     edited[3]["version_at"] += 600
     edited_result = run(edited)
@@ -158,7 +204,7 @@ def protocol_checks():
     check(first(run(barrier))["label"] is None, "future source barrier never becomes negative")
     other = copy.deepcopy(base)
     other[3]["product"] = other[4]["product"] = "flight"
-    check(first(run(other))["label_reason"] == "other_or_unknown_payment_product", "flight outcome not tour")
+    check(first(run(other))["label_reason"] == "other_payment_product", "flight outcome not tour")
     uncertain_trip = copy.deepcopy(base)
     uncertain_trip[0]["flags"]["party_change_unresolved"] = True
     check(first(run(uncertain_trip))["exclusion_reason"] == "trip_binding_unknown", "unresolved trip excluded")
@@ -221,6 +267,19 @@ def protocol_checks():
     invalid[3]["role"] = "manager"
     rejected(lambda: run(invalid), "payment source actor independently checked")
     m = manifest(before)
+    m["lineage"] = {"kind": "completed_atoms_copy_v1", "parent_run_id": "synthetic_parent",
+                    "parent_manifest_sha256": h("immutable-parent-manifest")}
+    derived = study.analyze(m, before)
+    check(derived["summary"]["lineage"] == m["lineage"]
+          and derived["summary"]["source_captured_at_unix"] == m["captured_at_unix"],
+          "derived lineage retains original observation asof")
+    bad_lineage = copy.deepcopy(m)
+    bad_lineage["lineage"]["parent_run_id"] = bad_lineage["run_id"]
+    rejected(lambda: study.analyze(bad_lineage, before), "self lineage rejected")
+    bad_lineage = copy.deepcopy(m)
+    bad_lineage["lineage"]["extra"] = "forbidden"
+    rejected(lambda: study.analyze(bad_lineage, before), "lineage exact keys required")
+    m = manifest(before)
     m["complete"] = False
     rejected(lambda: study.analyze(m, before), "incomplete corpus cannot complete")
     m = manifest(before)
@@ -240,6 +299,15 @@ def protocol_checks():
 
 
 def math_checks():
+    original_seed = "068905aa67b9e96dbd9ede7749a4678ee902e595380934376ac1b9ac2635f3cb"
+    check(study.ORIGINAL_ASSIGNMENT_PROTOCOL_SHA == original_seed
+          and study.PROTOCOL_SHA != original_seed and study.PROTOCOL["previous_control_exposed"],
+          "corrective protocol changes while original group split remains pinned and exposed")
+    for i in range(100):
+        group = h("stable-original-fold" + str(i))
+        raw = hashlib.sha256((original_seed + "\n" + group).encode()).digest()
+        expected = "development" if int.from_bytes(raw[:8], "big") % 5 else "control"
+        check(study.assignment(group) == expected, "old group assignment retained")
     rows = [model_row("one", 1) for _ in range(3)] + [model_row("two", 0)]
     weighted = study.normalized_rows(rows)
     sums = {}
@@ -379,6 +447,7 @@ def cli_checks():
         (run_dir / "manifest.json").write_bytes(manifest_raw)
         before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in run_dir.iterdir()}
         command = [sys.executable, str(ROOT / "tools/archive_predictive_study.py"), "--run-dir", str(run_dir)]
+        issuance_floor = int(time.time())
         completed = subprocess.run(command, capture_output=True, timeout=30)
         check(completed.returncode == 0 and not completed.stderr, "finite CLI completes synthetic run")
         stdout = json.loads(completed.stdout)
@@ -391,6 +460,11 @@ def cli_checks():
               and all((p.stat().st_mode & 0o777) == 0o600 for p in analysis.iterdir()), "private output permissions")
         actual = json.loads((analysis / "candidate_weights.json").read_bytes())
         check(actual["manifest_sha256"] == hashlib.sha256(manifest_raw).hexdigest(), "exact manifest bytes bind candidate")
+        actual_summary = json.loads((analysis / "summary.json").read_bytes())
+        check(issuance_floor <= actual["issued_at_unix"] <= int(time.time())
+              and actual_summary["issued_at_unix"] == actual["issued_at_unix"]
+              and actual_summary["source_captured_at_unix"] == m["captured_at_unix"],
+              "new weights issued at actual completion without moving original source window")
         after = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in run_dir.iterdir() if p.is_file()}
         check(before == after, "source input hashes unchanged")
         second = subprocess.run(command, capture_output=True, timeout=30)

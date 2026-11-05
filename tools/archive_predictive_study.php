@@ -49,11 +49,12 @@ function archivePredictiveAssertInstalledSource(string $root,string $expectedSou
 $store=null;$stage='arguments';$exitCode=0;$publicResult=['ok'=>false];
 try{
     $operation=$argv[1]??'';
-    if(!in_array($operation,['build','status','activate'],true)
-        ||count($argv)!==($operation==='activate'?5:4)
+    if(!in_array($operation,['build','status','activate','derive'],true)
+        ||count($argv)!==(in_array($operation,['activate','derive'],true)?5:4)
         ||preg_match('/\A[a-z0-9][a-z0-9_-]{0,63}\z/D',$argv[2]??'')!==1
         ||preg_match('/\A[a-f0-9]{40}\z/D',$argv[3]??'')!==1
-        ||($operation==='activate'&&preg_match('/\A[a-f0-9]{64}\z/D',$argv[4]??'')!==1))
+        ||($operation==='activate'&&preg_match('/\A[a-f0-9]{64}\z/D',$argv[4]??'')!==1)
+        ||($operation==='derive'&&preg_match('/\A[a-z0-9][a-z0-9_-]{0,63}\z/D',$argv[4]??'')!==1))
         throw new RuntimeException('study_arguments');
     $runId=$argv[2];$expectedSource=$argv[3];$root=dirname(__DIR__);
     $stage='operator';
@@ -104,8 +105,15 @@ try{
             'text_features_sha256'=>$hashes['services/ModeledConversionTextSignals.php'],
             'analyzer_sha256'=>$hashes['tools/archive_predictive_study.py'],
             'rule_revision'=>ArchiveResearchSemanticExtractor::RULE_REVISION,'captured_at_unix'=>time(),'code_hashes'=>$hashes];
-        $stage='store';$checkpoint=$store->begin($runId,$provenance);
         $reader=new ArchiveResearchReadService(ConversationDb::connection());
+        if($operation==='derive'){
+            $stage='derivation_scope';$fresh=$reader->operatorStudyPage($authorize,[],1);
+            $stage='derivation';$checkpoint=$store->deriveCompleted($argv[4],$runId,$provenance,$fresh['scope_digest']);
+        }else{$stage='store';$checkpoint=$store->begin($runId,$provenance);}
+        if(isset($checkpoint['lineage'])){
+            $stage='derivation_scope';$fresh=$reader->operatorStudyPage($authorize,[],1);
+            if(($fresh['scope_digest']??null)!==$checkpoint['scope_digest'])throw new RuntimeException('study_source_scope_changed');
+        }
         if($operation==='activate'){
             $stage='activation_scope';$fresh=$reader->operatorStudyPage($authorize,[],1);
             if(($fresh['scope_digest']??null)!==$checkpoint['scope_digest'])throw new RuntimeException('study_source_scope_changed');
@@ -138,7 +146,12 @@ try{
                     ||($proof['ok']??null)!==true||($proof['completed']??null)!==true
                     ||($proof['private_outputs_written']??null)!==true||($proof['purchase_probability_calibrated']??null)!==false
                     ||($proof['live_files_changed']??null)!==false)throw new RuntimeException('study_analysis_contract');
-                $authorize();$stage='publication';$result=$store->publishAnalysis();
+                $authorize();
+                if(isset($checkpoint['lineage'])){
+                    $stage='derivation_scope';$fresh=$reader->operatorStudyPage($authorize,[],1);
+                    if(($fresh['scope_digest']??null)!==$checkpoint['scope_digest'])throw new RuntimeException('study_source_scope_changed');
+                }
+                $stage='publication';$result=$store->publishAnalysis();
             }else $result=['ok'=>true,'completed'=>true,'already_completed'=>true];
         }
     }
@@ -155,7 +168,9 @@ try{
         'study_review_hash','study_candidate_changed','study_weights_not_eligible','study_activation_readback',
         'study_process_unavailable','study_process_output_limit','study_process_timeout','study_summary_limit',
         'study_summary_identity','study_raw_source_refused','study_checkpoint','study_checkpoint_limit',
-        'study_file','study_file_changed','study_file_limit','study_directory','study_directory_sync','study_scope'];
+        'study_file','study_file_changed','study_file_limit','study_directory','study_directory_sync','study_scope',
+        'study_derive_arguments','study_derive_parent_incomplete','study_derive_target_exists','study_derive_source_changed',
+        'study_derive_parent_changed','study_derive_state_changed'];
     $reason=in_array($error->getMessage(),$allowed,true)?$error->getMessage():'study_operation_failed';
     $publicResult=['ok'=>false,'reason'=>$reason,'stage'=>$stage];
     $exitCode=1;
