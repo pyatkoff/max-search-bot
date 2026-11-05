@@ -1,0 +1,23 @@
+{
+  "operation": "commercial-price-monitor-20261105-rollout8-metadata4",
+  "state": "CLOSED_NEW_BOUNDED_WINDOW_NO_NEW_NORMAL_COLLECTOR",
+  "created_after": "2026-11-05T02:12:21Z",
+  "checked_at_utc": "2026-11-05 02:36:56 UTC",
+  "scheduled_run_count": 1,
+  "new_normal_collectors": 0,
+  "other_scheduled_runs": [
+    {
+      "run": 41954604476,
+      "path": ".github/workflows/build-anytour-hot.yml",
+      "state": "COMPLETED_SUCCESS_EXISTING_OBSERVATION_HOT_INVENTORY_BUILDER"
+    }
+  ],
+  "new_other_workflow_source_read": true,
+  "builder_contract": "Exact workflow checks it must not call Tourvisor; builds hot inventory from existing user_search observations. This is not proof of new provider/source observations or672price coverage.",
+  "other_job_logs_read": 0,
+  "source_or_provider_calls_by_us": 0,
+  "db_calls_by_us": 0,
+  "manual_collection_approved": false,
+  "do_not_repeat_same_window": true,
+  "next_new_window_after": "2026-11-05 02:36:56 UTC"
+}

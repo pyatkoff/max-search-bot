@@ -22,7 +22,7 @@
   "monitor_configured_targets": 672,
   "normal672_collection_verified": true,
   "current_stock_identities": 25,
-  "additional_proven_unpublished_identities": 54,
+  "additional_proven_unpublished_identities": 64,
   "actual_ready_materials": 0,
   "goal_logical_pairs": 500,
   "goal_complete": false,
@@ -72,7 +72,7 @@
   "stock40_lookup_groups_prepared_not_identities": 0,
   "stock40_native_identities_proven": 10,
   "stock40_native_db_read_pending": false,
-  "current_stock_inventory": "commercial-stock-20261104-40-read1-inventory.json",
+  "current_stock_inventory": "commercial-stock-20261105-41-read1-inventory.json",
   "last_price_attempt_catalog_ids": [
     382,
     253,
@@ -181,5 +181,26 @@
   "latest_media_pass46_state": "CLOSED_TWELVE_NEW_OWNER_PHOTOS_NO_WHOLE_HOTEL_HERO_NO_READY_NO_DELIVERY",
   "latest_media_pass46_run": 41953255994,
   "latest_media_pass46_ready": 0,
-  "latest_scheduled_metadata_window_checked_at": "2026-11-05 02:12:21 UTC"
+  "latest_scheduled_metadata_window_checked_at": "2026-11-05 02:36:56 UTC",
+  "stock41_native_identities_proven": 10,
+  "stock41_read_run": 41956089070,
+  "stock41_projection_run": 41956293584,
+  "stock41_native_ids": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "stock41_ready": 0,
+  "stock41_published_credit": 0,
+  "latest_scheduled_metadata_window_run_count": 1,
+  "latest_scheduled_metadata_window_new_normal_count": 0,
+  "latest_addressed_recovery47_state": "CLOSED_BOUNDED_METADATA_RECOVERY_NO_COMPLETE_62505_PHOTO_PROOF",
+  "stock41_owner_discovery_state": "SEARCH_METADATA_ONLY_PRIMARY_PHOTO_GET_ZERO"
 }

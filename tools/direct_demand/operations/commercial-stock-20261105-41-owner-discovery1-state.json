@@ -1,0 +1,43 @@
+{
+  "operation": "commercial-stock-20261105-41-owner-discovery1",
+  "state": "CLOSED_TEN_NEW_EXACT_QUERY_METADATA_DISCOVERY",
+  "native_hotel_ids": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "search_calls": 3,
+  "queries": [
+    "Papillon Ayscha official hotel website",
+    "Papillon Belvil official hotel website",
+    "Papillon Zeugma Relaxury official hotel website",
+    "Kaya Belek official hotel website",
+    "Kaya Palazzo Golf Resort official hotel website",
+    "Titanic Deluxe Golf Belek official hotel website",
+    "Cullinan Belek official hotel website",
+    "Maxx Royal Kemer Resort official hotel website",
+    "Maxx Royal Bodrum Resort official hotel website",
+    "IC Hotels Santai Family Resort official hotel website"
+  ],
+  "property_pointer_count": 8,
+  "owner_directory_pointer_count": 2,
+  "primary_gets": 0,
+  "photo_gets": 0,
+  "server_calls": 0,
+  "db_calls": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "whole_captions_prepared": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "constraints_not_facts": true,
+  "repeat_policy": "Do not repeat these same ten queries without genuinely new relevant input. Search metadata is not current primary fact proof, exact photo property scope or reuse permission. Obtain actual declared property hrefs for15904/1260 and resolve15913current owner product name before claims."
+}

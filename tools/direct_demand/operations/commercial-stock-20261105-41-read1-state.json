@@ -41,5 +41,9 @@
   "ready_for_send": 0,
   "new_posts": 0,
   "monitor_appends": 0,
-  "repeat_policy": "Do not repeat stock41 catalogue/registry read or unchanged pure cases. Original artifact only for current native names; names/proofs are not media readiness/publication or prices."
+  "repeat_policy": "Do not repeat stock41 catalogue/registry read or unchanged pure cases. Original artifact only for current native names; names/proofs are not media readiness/publication or prices.",
+  "original_artifact_projection_run": 41956293584,
+  "original_artifact_projection_job": 127011870289,
+  "original_artifact_projection_source": "4f72695279fc73740d7691741ef850fd71f54b8e",
+  "actual_current_native_names_retained": true
 }

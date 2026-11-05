@@ -1,0 +1,37 @@
+{
+  "operation": "commercial-stock-20261105-41-owner-discovery1",
+  "state": "BOUNDED_NEW_OWNER_POINTER_DISCOVERY_METADATA_ONLY",
+  "goal": "Find current owner property URL pointers for ten newly proven native stock41 identities without fetching sources or photographs.",
+  "native_hotel_ids": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "criteria": [
+    "Exactly ten new name-specific queries in three bounded search calls",
+    "Retain only actual returned exact owner/property URL pointers; search metadata is not primary-page content, photo membership, reuse rights, current availability or readiness",
+    "No synthesized hrefs, guessed property variants, query stripping, photo GET, imports, Canva or server/provider/DB calls"
+  ],
+  "risks": [
+    "Search may return directories or secondary sellers; defer unresolved exact owner property identity",
+    "A pointer from a search result is not permission to download a photograph; later source/photo scope and old exclusions remain required"
+  ],
+  "max_search_calls": 3,
+  "max_queries": 10,
+  "owner_page_gets": 0,
+  "photo_gets": 0,
+  "server_calls": 0,
+  "provider_calls": 0,
+  "db_calls": 0,
+  "canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "manual_price_permission_pending": true
+}
