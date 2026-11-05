@@ -54,4 +54,10 @@ vqCheck('fixture covers high-risk responsive states',strpos($fixture,'waitUrgent
 vqCheck('fixture can expose mobile conversation and lead views',strpos($fixture,"view==='conversation'")!==false&&strpos($fixture,"view==='lead'")!==false&&strpos($fixture,"classList.add('open')")!==false);
 vqCheck('kanban fixture uses production board styles',strpos($kanbanFixture,'../../manager/assets/workspace-v2-kanban.css')!==false&&strpos($kanbanFixture,'kanbanMode')!==false&&strpos($kanbanFixture,'kanbanColumn')!==false&&strpos($kanbanFixture,'kanbanCard urgent')!==false);
 vqCheck('fixtures have no real production endpoints',strpos($fixture,'app.anytoour.ru')===false&&strpos($fixture,'api.php')===false&&strpos($fixture,'pipeline-api.php')===false&&strpos($kanbanFixture,'app.anytoour.ru')===false&&strpos($kanbanFixture,'api.php')===false&&strpos($kanbanFixture,'pipeline-api.php')===false&&strpos($activityFixture,'app.anytoour.ru')===false&&strpos($activityFixture,'api.php')===false&&strpos($activityFixture,'pipeline-api.php')===false&&strpos($startupFixture,'app.anytoour.ru')===false&&strpos($startupFixture,'api.php')===false&&strpos($startupFixture,'pipeline-api.php')===false&&strpos($inboxFailureFixture,'app.anytoour.ru')===false&&strpos($inboxFailureFixture,'api.php')===false&&strpos($inboxFailureFixture,'pipeline-api.php')===false&&strpos($adminFixture,'app.anytoour.ru')===false&&strpos($adminFixture,'api.php')===false);
+// Exercise case ownership and the native-listing/process boundary in this
+// existing mandatory contract, without introducing another workflow or runner.
+$casePartOutput=[];$casePartStatus=0;
+exec('node '.escapeshellarg(__DIR__.'/support/manager2-visual-case-parts.js').' 2>&1',$casePartOutput,$casePartStatus);
+foreach($casePartOutput as $line)echo $line.PHP_EOL;
+vqCheck('large constructor case partitions preserve exact coverage and failures',$casePartStatus===0);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);
