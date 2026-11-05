@@ -1,0 +1,47 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261105-update16-prepare",
+  "state": "CLOSED_THREE_XML_AND_BASELINE_FULL_NATIVE_CHUNKS_UTF8_SHA_VERIFIED_FROZEN_NOT_YET_WRITTEN",
+  "run": 41971359499,
+  "job": 127060133393,
+  "artifact": 13389806712,
+  "source_commit": "28958fcd424234a11cfe9cc2f0f368d3092b1836",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 104218,
+      "rows": 161,
+      "sha256": "9574b065aca33fd6ca55503571fa3a7c5d2ef1fdfd12f871d54d5664eab640a5",
+      "chunks": 3
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 131396,
+      "rows": 161,
+      "sha256": "6b7fce87d6df21e2037cb75709950edf943dc80dab15633fc741da0848b52f59",
+      "chunks": 4
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 235241,
+      "rows": 322,
+      "sha256": "5f8e752f7ec8357db1190fc5eb9258f1d435df215dace8c51db2b9ce5dea8450",
+      "chunks": 7
+    },
+    {
+      "name": "feed161-baseline.json",
+      "bytes": 56316,
+      "rows": 3,
+      "sha256": "21cf6bfc45f46cd05d41ced853a8ae649e3ab9e627d4530852fc51751b4ff767",
+      "chunks": 2
+    }
+  ],
+  "native_new_append_cases_passed": 3,
+  "old_fixtures_rerun": 0,
+  "previous160_offer_blocks_and_max_urls_byteidentical": true,
+  "combined_exact_union": true,
+  "source_xml_previous_commit": "e718c94b86452433adf6acc4ec8bc0adbcd13af0",
+  "server_connections": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0
+}

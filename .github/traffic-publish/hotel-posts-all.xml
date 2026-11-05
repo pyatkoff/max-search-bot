@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-05 03:56">
+<yml_catalog date="2026-11-05 05:01">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -2879,6 +2879,24 @@
         <categoryId>1</categoryId>
         <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/a49bc708d95df70e1a496bbfae9ac09abd7fc537/.github/traffic-publish/commercial-batch-20261105-49/1422.png</picture>
         <name>Туры в Papillon Zeugma Relaxury</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_78251">
+        <url>https://t.me/any_toour/175</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef8fccca42e608229175e3fd928889e91f179482/.github/traffic-publish/commercial-batch-20261105-51/78251.png</picture>
+        <name>Путевки в Cullinan Belek</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="max_78251">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGI2MmM4MzQ4NjY0NThlYzQyNTExMjU1NzU4NzI5YWEiLCJvZmZlcl9pZCI6Im1heF83ODI1MSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef8fccca42e608229175e3fd928889e91f179482/.github/traffic-publish/commercial-batch-20261105-51/78251.png</picture>
+        <name>Туры в Cullinan Belek</name>
         <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Белек</custom_label_1>

@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261105-read17",
+  "state": "CLOSED_NEW78251_CANONICAL_PUBLIC_PAIR_AND_PRIVATE_MAX1_AUTH_ARTIFACT",
+  "run": 41970261735,
+  "job": 127056595991,
+  "artifact": 13388898038,
+  "source_commit": "caeab3f773c3c94f2187fa8d78d1091b32efd9be",
+  "installed_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "hotel_ids": [
+    78251
+  ],
+  "scope_hotels": 1,
+  "feed_rows": 1,
+  "private_binding_count": 1,
+  "deferred_count": 0,
+  "previous160_registry_read": 0,
+  "stock_queries": 0,
+  "public_singleton_limit3_queries": 1,
+  "private_exact_url_limit2_queries": 1,
+  "query_functions_byteidentical": true,
+  "new_scope_input_cases_passed": 3,
+  "old_fixtures_rerun": 0,
+  "php_l_passed": true,
+  "full_current21_deploy_tls_diagnostics_host_installed_clean_readonly_passed": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "private_ids_only_original_authenticated_artifact": true,
+  "repeat_policy": "Do notDBreadREAD17again.Originalartifactonlyfuturebindingpreparation."
+}

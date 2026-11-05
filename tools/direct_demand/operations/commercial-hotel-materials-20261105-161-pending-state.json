@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-hotel-materials-20261105-161-sync",
+  "state": "161_ACTUAL_PUBLISHED_PAIRS_MAX161_INSTALLED_ONLY_THREE_FEED_WRITES_PENDING",
+  "published_pairs": 161,
+  "new_native_ids": [
+    78251
+  ],
+  "public_feed_offers": {
+    "telegram": 160,
+    "max": 160,
+    "combined": 320
+  },
+  "target_feed_offers": {
+    "telegram": 161,
+    "max": 161,
+    "combined": 322
+  },
+  "max_runtime_routes": 161,
+  "canonical_read17_pending": false,
+  "new_native_route_binding_pending": [],
+  "new_feed_append_pending": [
+    78251
+  ],
+  "price_hotels": 32,
+  "additional_proven_unpublished_identities": 62,
+  "monitor_configured_targets": 674,
+  "goal_complete": false,
+  "manual_collection_approved": false,
+  "open_canva_transactions": 0
+}

@@ -1,0 +1,1371 @@
+{
+  "operation": "commercial-stock-20261105-51-inventory",
+  "state": "CURRENT25_PLUS62_PROVEN_UNPUBLISHED_NO_READY",
+  "hotel_count": 25,
+  "target_hotel_count": 25,
+  "ready_for_send_count": 0,
+  "candidates": [
+    {
+      "key": "jaz-elite-maraya",
+      "hotel_id": 67897,
+      "hotel": "JAZ MARAYA",
+      "region": "Марса Алам",
+      "state": "GENERAL_AMENITIES_READ_SHORELINE_PRIMARY_PROOF_PENDING"
+    },
+    {
+      "key": "sentido-reef-oasis-senses",
+      "hotel_id": 4184,
+      "hotel": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    },
+    {
+      "key": "beach-albatros-marsa",
+      "hotel_id": 107,
+      "hotel": "BEACH ALBATROS RESORT MARSA ALAM",
+      "region": "Марса Алам",
+      "state": "EXACT_CURRENT_PRIMARY_HOTEL_MATCH_REQUIRED",
+      "identity_source": "commercial-stock-20261102-12-inventory.json"
+    },
+    {
+      "key": "jaz-fanara-resort",
+      "hotel_id": 12107,
+      "hotel": "JAZ FANARA RESORT & RESIDENCE (EX. IBEROTEL CLUB)",
+      "region": "Шарм-эль-Шейх",
+      "state": "CATALOG_CONFIRMED_PRIMARY_OBJECT_AND_CONTENT_NOT_READY",
+      "identity_note": "Native12107 combines Resort & Residence; primary gallery4 and gallery3 are separate. Resolve exact tour product before any post."
+    },
+    {
+      "key": "robinson-soma-bay",
+      "hotel_id": 62505,
+      "hotel": "ROBINSON SOMA BAY",
+      "region": "Хургада",
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    },
+    {
+      "key": "sheraton-miramar-el-gouna",
+      "hotel_id": 432,
+      "hotel": "SHERATON MIRAMAR RESORT",
+      "region": "Эль Гуна",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "nubian-village",
+      "hotel_id": 341,
+      "hotel": "NUBIAN VILLAGE",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "nubian-island",
+      "hotel_id": 340,
+      "hotel": "NUBIAN ISLAND",
+      "region": "Шарм-эль-Шейх",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "cleopatra-luxury-makadi",
+      "hotel_id": 21476,
+      "hotel": "CLEOPATRA LUXURY RESORT MAKADI BAY (EX. ALDIANA MAKADI)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "hilton-marsa-alam-nubian",
+      "hotel_id": 4181,
+      "hotel": "HILTON MARSA ALAM NUBIAN RESORT",
+      "region": "Марса Алам",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sunny-days-el-palacio",
+      "hotel_id": 473,
+      "hotel": "SUNNY DAYS EL PALACIO (EX. SUNNY DAYS RESORTS SPA & AQUA PARK)",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sunrise-royal-makadi",
+      "hotel_id": 483,
+      "hotel": "SUNRISE ROYAL MAKADI RESORT",
+      "region": "Хургада",
+      "country_id": 1,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "sindbad-club",
+      "hotel_id": 62504,
+      "hotel": "SINDBAD CLUB",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "grand-makadi",
+      "hotel_id": 231,
+      "hotel": "GRAND MAKADI",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "makadi-spa",
+      "hotel_id": 15693,
+      "hotel": "THE MAKADI SPA ADULTS ONLY 18+",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-royal",
+      "hotel_id": 65779,
+      "hotel": "TITANIC ROYAL HOTEL",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-palace",
+      "hotel_id": 932,
+      "hotel": "TITANIC PALACE RESORT & SPA",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "titanic-resort-aqua-park",
+      "hotel_id": 497,
+      "hotel": "TITANIC RESORT & AQUA PARK",
+      "country_id": 1,
+      "region": "Хургада",
+      "region_id": 5,
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "amarina-abu-soma",
+      "hotel_id": 68907,
+      "hotel": "AMARINA ABU SOMA RESORT & AQUAPARK",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "old-palace-resort",
+      "hotel_id": 343,
+      "hotel": "OLD PALACE RESORT SAHL HASHESH",
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "serry-beach",
+      "hotel_id": 83563,
+      "hotel": "SERRY BEACH RESORT",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "key": "grand-palace-hurghada",
+      "hotel_id": 73343,
+      "hotel": "THE GRAND PALACE ADULTS ONLY 18+",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "key": "serenity-alpha-beach",
+      "hotel_id": 418,
+      "hotel": "SERENITY ALPHA BEACH (EX. SERENITY MAKADI BEACH)",
+      "country_id": 1,
+      "region_id": 5,
+      "region": "Хургада",
+      "state": "CATALOG_CONFIRMED_CONTENT_AND_COVER_NOT_READY"
+    },
+    {
+      "country_id": 1,
+      "id": 74258,
+      "is_active": 1,
+      "name": "CASA COOK EL GOUNA ADULTS ONLY",
+      "region": "Эль Гуна",
+      "region_id": 15,
+      "key": "casa-cook-el-gouna",
+      "hotel_id": 74258,
+      "hotel": "CASA COOK EL GOUNA ADULTS ONLY",
+      "state": "CATALOG_CONFIRMED_PRIMARY_PREPARATION_REQUIRED"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 102031,
+      "is_active": 1,
+      "name": "STEIGENBERGER NILE PALACE LUXOR",
+      "rating": "4.30",
+      "region": "Люксор",
+      "region_id": 721,
+      "key": "steigenberger-nile-palace",
+      "hotel_id": 102031,
+      "hotel": "STEIGENBERGER NILE PALACE LUXOR",
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    }
+  ],
+  "additional_confirmed_candidates": [
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 75571,
+      "is_active": 1,
+      "name": "SOFITEL WINTER PALACE LUXOR",
+      "rating": "0.00",
+      "region": "Люксор",
+      "region_id": 721,
+      "key": "sofitel-winter-palace",
+      "hotel_id": 75571,
+      "hotel": "SOFITEL WINTER PALACE LUXOR",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 102774,
+      "is_active": 1,
+      "name": "HILTON LUXOR RESORT & SPA",
+      "rating": "0.00",
+      "region": "Люксор",
+      "region_id": 721,
+      "key": "hilton-luxor",
+      "hotel_id": 102774,
+      "hotel": "HILTON LUXOR RESORT & SPA",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 512,
+      "is_active": 1,
+      "name": "TROPITEL DAHAB OASIS",
+      "rating": "4.60",
+      "region": "Дахаб",
+      "region_id": 10,
+      "key": "tropitel-dahab",
+      "hotel_id": 512,
+      "hotel": "TROPITEL DAHAB OASIS",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1962,
+      "is_active": 1,
+      "name": "BARON PALMS RESORT ADULTS ONLY 16+",
+      "rating": "4.60",
+      "region": "Шарм-эль-Шейх",
+      "region_id": 6,
+      "key": "baron-palms",
+      "hotel_id": 1962,
+      "hotel": "BARON PALMS RESORT ADULTS ONLY 16+",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 468,
+      "is_active": 1,
+      "name": "SULTAN BEY HOTEL",
+      "rating": "4.60",
+      "region": "Эль Гуна",
+      "region_id": 15,
+      "key": "sultan-bey",
+      "hotel_id": 468,
+      "hotel": "SULTAN BEY HOTEL",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 254,
+      "is_active": 1,
+      "name": "THE THREE CORNERS SEA BEACH RESORT",
+      "rating": "4.50",
+      "region": "Марса Алам",
+      "region_id": 11,
+      "key": "three-corners-sea-beach",
+      "hotel_id": 254,
+      "hotel": "THE THREE CORNERS SEA BEACH RESORT",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "country_id": 1,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 4185,
+      "is_active": 1,
+      "name": "ROYAL BRAYKA BEACH RESORT",
+      "rating": "4.40",
+      "region": "Марса Алам",
+      "region_id": 11,
+      "key": "royal-brayka",
+      "hotel_id": 4185,
+      "hotel": "ROYAL BRAYKA BEACH RESORT",
+      "state": "CATALOG_CONFIRMED_NOT_IN_CURRENT25"
+    },
+    {
+      "hotel_id": 1033,
+      "name": "BARUT HEMERA",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1032,
+      "name": "BAYOU ACANTHUS (EX. ACANTHUS CENNET BARUT COLLECTION)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 1031,
+      "name": "ARUM BARUT COLLECTION",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "hotel_id": 21673,
+      "name": "TUI BLUE BARUT ANDIZ ADULTS ONLY 16+",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "CATALOG_IDENTITY_CONFIRMED_PRIMARY_PREPARATION_REQUIRED",
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41716347078",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1035,
+      "is_active": 1,
+      "name": "LARA BARUT COLLECTION",
+      "rating": "4.80",
+      "region": "Анталья",
+      "region_id": 20,
+      "key": "lara-barut",
+      "hotel_id": 1035,
+      "hotel": "LARA BARUT COLLECTION",
+      "state": "CATALOG_CONFIRMED_NOT_CURRENT25_NOT_READY",
+      "monitor_input_admitted": false,
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 109655,
+      "is_active": 1,
+      "name": "LIBERTY SIGNA",
+      "rating": "4.30",
+      "region": "Фетхие",
+      "region_id": 27,
+      "key": "liberty-signa",
+      "hotel_id": 109655,
+      "hotel": "LIBERTY SIGNA",
+      "state": "CATALOG_CONFIRMED_NOT_CURRENT25_NOT_READY",
+      "monitor_input_admitted": false,
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 59116,
+      "is_active": 1,
+      "name": "LUJO HOTEL BODRUM (EX. LUJO ART & JOY)",
+      "rating": "4.50",
+      "region": "Бодрум",
+      "region_id": 24,
+      "key": "lujo-bodrum",
+      "hotel_id": 59116,
+      "hotel": "LUJO HOTEL BODRUM (EX. LUJO ART & JOY)",
+      "state": "CATALOG_CONFIRMED_NOT_CURRENT25_NOT_READY",
+      "monitor_input_admitted": false,
+      "lookup_run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41728602616"
+    },
+    {
+      "key": "limak-lara",
+      "hotel_id": 1338,
+      "hotel": "LIMAK LARA DE LUXE HOTEL & RESORT",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "trendy-lara",
+      "hotel_id": 46670,
+      "hotel": "TRENDY LARA",
+      "region": "Анталья",
+      "country_id": 4,
+      "region_id": 20,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-oceana",
+      "hotel_id": 1416,
+      "hotel": "PALOMA OCEANA RESORT",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-perissia",
+      "hotel_id": 1491,
+      "hotel": "PALOMA PERISSIA",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "paloma-finesse",
+      "hotel_id": 65782,
+      "hotel": "PALOMA FINESSE SIDE",
+      "region": "Сиде",
+      "country_id": 4,
+      "region_id": 23,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "kirman-belazur",
+      "hotel_id": 15879,
+      "hotel": "KIRMAN BELAZUR RESORT & SPA",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "key": "selectum-luxury",
+      "hotel_id": 55828,
+      "hotel": "SELECTUM LUXURY RESORT BELEK",
+      "region": "Белек",
+      "country_id": 4,
+      "region_id": 21,
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 2144,
+      "is_active": 1,
+      "name": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "rating": "4.80",
+      "region": "Мармарис",
+      "region_id": 26,
+      "key": "d-maris-bay",
+      "hotel_id": 2144,
+      "hotel": "D MARIS BAY (EX. D HOTEL MARIS)",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 3469,
+      "is_active": 1,
+      "name": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "rating": "4.40",
+      "region": "Фетхие",
+      "region_id": 27,
+      "key": "d-resort-gocek",
+      "hotel_id": 3469,
+      "hotel": "D RESORT GOCEK (EX. SWISSOTEL GOCEK MARINA AND RESORT)",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 9321,
+      "is_active": 1,
+      "name": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "rating": "4.60",
+      "region": "Измир",
+      "region_id": 306,
+      "key": "club-marvy",
+      "hotel_id": 9321,
+      "hotel": "CLUB MARVY (EX. PALOMA CLUB SULTAN)",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1201,
+      "is_active": 1,
+      "name": "GLORIA VERDE RESORT",
+      "rating": "4.80",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "gloria-verde",
+      "hotel_id": 1201,
+      "hotel": "GLORIA VERDE RESORT",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1198,
+      "is_active": 1,
+      "name": "GLORIA GOLF RESORT",
+      "rating": "4.70",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "gloria-golf",
+      "hotel_id": 1198,
+      "hotel": "GLORIA GOLF RESORT",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1137,
+      "is_active": 1,
+      "name": "CORNELIA DIAMOND GOLF RESORT & SPA",
+      "rating": "4.70",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "cornelia-diamond",
+      "hotel_id": 1137,
+      "hotel": "CORNELIA DIAMOND GOLF RESORT & SPA",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1459,
+      "is_active": 1,
+      "name": "ROYAL DRAGON",
+      "rating": "4.50",
+      "region": "Сиде",
+      "region_id": 23,
+      "key": "royal-dragon",
+      "hotel_id": 1459,
+      "hotel": "ROYAL DRAGON",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY",
+      "monitor_input_admitted": false
+    },
+    {
+      "key": "paloma-orenda",
+      "hotel_id": 65895,
+      "hotel": "PALOMA ORENDA RESORT",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-36-read1"
+    },
+    {
+      "key": "ali-bey-resort",
+      "hotel_id": 970,
+      "hotel": "ALI BEY RESORT SORGUN",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-36-read1"
+    },
+    {
+      "key": "ali-bey-club",
+      "hotel_id": 967,
+      "hotel": "ALI BEY CLUB (EX. ALI BEY CLUB MANAVGAT)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-36-read1"
+    },
+    {
+      "key": "ali-bey-park",
+      "hotel_id": 968,
+      "hotel": "ALI BEY PARK MANAVGAT",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-36-read1"
+    },
+    {
+      "key": "hillside-beach",
+      "hotel_id": 2175,
+      "hotel": "HILLSIDE BEACH CLUB",
+      "country_id": 4,
+      "region_id": 27,
+      "region": "Фетхие",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-36-read1"
+    },
+    {
+      "key": "mandarin-bodrum",
+      "hotel_id": 35313,
+      "hotel": "MANDARIN ORIENTAL BODRUM",
+      "country_id": 4,
+      "region_id": 24,
+      "region": "Бодрум",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-36-read1"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1653,
+      "is_active": 1,
+      "name": "HILTON DALAMAN SARIGERME RESORT & SPA",
+      "rating": "4.70",
+      "region": "Даламан",
+      "region_id": 25,
+      "key": "hilton-dalaman",
+      "hotel_id": 1653,
+      "hotel": "HILTON DALAMAN SARIGERME RESORT & SPA",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-37-read1"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 54592,
+      "is_active": 1,
+      "name": "GRANADA LUXURY BELEK",
+      "rating": "4.40",
+      "region": "Белек",
+      "region_id": 21,
+      "key": "granada-belek",
+      "hotel_id": 54592,
+      "hotel": "GRANADA LUXURY BELEK",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-37-read1"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1142,
+      "is_active": 1,
+      "name": "CRYSTAL FLORA PEARL COLLECTION (EX. CRYSTAL FLORA BEACH RESORT)",
+      "rating": "4.50",
+      "region": "Кемер",
+      "region_id": 22,
+      "key": "crystal-flora",
+      "hotel_id": 1142,
+      "hotel": "CRYSTAL FLORA PEARL COLLECTION (EX. CRYSTAL FLORA BEACH RESORT)",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-37-read1"
+    },
+    {
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 28327,
+      "is_active": 1,
+      "name": "NIRVANA MEDITERRANEAN EXCELLENCE",
+      "rating": "4.60",
+      "region": "Кемер",
+      "region_id": 22,
+      "key": "nirvana-mediterranean",
+      "hotel_id": 28327,
+      "hotel": "NIRVANA MEDITERRANEAN EXCELLENCE",
+      "state": "NATIVE_IDENTITY_PROVEN_CONTENT_NOT_PREPARED",
+      "identity_source": "commercial-stock-20261104-37-read1"
+    },
+    {
+      "key": "gural-belek",
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1074,
+      "is_active": 1,
+      "name": "GURAL PREMIER BELEK",
+      "rating": "4.70",
+      "region": "Белек",
+      "region_id": 21,
+      "hotel_id": 1074,
+      "hotel": "GURAL PREMIER BELEK",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
+    },
+    {
+      "key": "gural-tekirova",
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 969,
+      "is_active": 1,
+      "name": "GURAL PREMIER TEKIROVA",
+      "rating": "4.50",
+      "region": "Кемер",
+      "region_id": 22,
+      "hotel_id": 969,
+      "hotel": "GURAL PREMIER TEKIROVA",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
+    },
+    {
+      "key": "nirvana-dolce",
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 975,
+      "is_active": 1,
+      "name": "NIRVANA DOLCE VITA",
+      "rating": "4.50",
+      "region": "Кемер",
+      "region_id": 22,
+      "hotel_id": 975,
+      "hotel": "NIRVANA DOLCE VITA",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
+    },
+    {
+      "key": "nirvana-cosmopolitan",
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1294,
+      "is_active": 1,
+      "name": "NIRVANA COSMOPOLITAN",
+      "rating": "4.50",
+      "region": "Анталья",
+      "region_id": 20,
+      "hotel_id": 1294,
+      "hotel": "NIRVANA COSMOPOLITAN",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
+    },
+    {
+      "key": "orange-kemer",
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1402,
+      "is_active": 1,
+      "name": "ORANGE COUNTY KEMER",
+      "rating": "4.20",
+      "region": "Кемер",
+      "region_id": 22,
+      "hotel_id": 1402,
+      "hotel": "ORANGE COUNTY KEMER",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
+    },
+    {
+      "key": "granada-okurcalar",
+      "country_id": 4,
+      "existing_registry_matches": {
+        "max": 0,
+        "telegram": 0
+      },
+      "id": 1212,
+      "is_active": 1,
+      "name": "GRANADA LUXURY OKURCALAR (EX. GRANADA LUXURY RESORT & SPA)",
+      "rating": "4.50",
+      "region": "Аланья",
+      "region_id": 19,
+      "hotel_id": 1212,
+      "hotel": "GRANADA LUXURY OKURCALAR (EX. GRANADA LUXURY RESORT & SPA)",
+      "state": "NATIVE_IDENTITY_PROVEN_NOT_READY_OWNER_PREPARATION_RETAINED"
+    },
+    {
+      "key": "adalya-elite-lara",
+      "hotel_id": 47025,
+      "hotel": "ADALYA ELITE LARA",
+      "country_id": 4,
+      "region_id": 20,
+      "region": "Анталья",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "OWNER_SOURCE_KNOWN_NO_NATIVE_PHOTOS_YET",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "adalya-ocean-deluxe",
+      "hotel_id": 21642,
+      "hotel": "ADALYA OCEAN DELUXE",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "OWNER_SOURCE_KNOWN_NO_NATIVE_PHOTOS_YET",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "adalya-resort",
+      "hotel_id": 948,
+      "hotel": "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "OWNER_SOURCE_KNOWN_NO_NATIVE_PHOTOS_YET",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "adalya-artside",
+      "hotel_id": 1217,
+      "hotel": "ADALYA ART SIDE (EX. GRAND HOTEL ARTSIDE)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "OWNER_SOURCE_KNOWN_NO_NATIVE_PHOTOS_YET",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "melas-lara",
+      "hotel_id": 1369,
+      "hotel": "MELAS LARA HOTEL",
+      "country_id": 4,
+      "region_id": 20,
+      "region": "Анталья",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "OWNER_SOURCE_KNOWN_NO_NATIVE_PHOTOS_YET",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "melas-resort",
+      "hotel_id": 1370,
+      "hotel": "MELAS RESORT HOTEL",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "OWNER_SOURCE_KNOWN_NO_NATIVE_PHOTOS_YET",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "melas-holiday",
+      "hotel_id": 1368,
+      "hotel": "MELAS HOLIDAY VILLAGE",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "DEFERRED_OWNER_CURRENT_PRODUCT_BINDING_UNRESOLVED",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "sunis-elita",
+      "hotel_id": 1013,
+      "hotel": "SUNIS ELITA BEACH RESORT (EX. ASTERIA ELITA RESORT)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "DEFERRED_OWNER_EXPLICIT_COPY_NOTICE",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "sunis-kumkoy",
+      "hotel_id": 1531,
+      "hotel": "SUNIS KUMKOY BEACH RESORT & SPA",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "DEFERRED_OWNER_EXPLICIT_COPY_NOTICE",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "sunis-evren",
+      "hotel_id": 1530,
+      "hotel": "SUNIS EVREN BEACH RESORT & SPA",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "DEFERRED_EXACT_OWNER_URI_UNRESOLVED",
+      "monitor_state": "DO_NOT_APPEND_UNTIL_ACTUALLY_PUBLISHED_AND_ADMITTED_ID_DEDUP",
+      "source_catalog_run": 41924993837
+    },
+    {
+      "key": "papillon-ayscha",
+      "hotel_id": 1420,
+      "hotel": "PAPILLON AYSCHA",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "NOT_REQUESTED_OWNER_POINTER_METADATA_ONLY",
+      "monitor_state": "NOT_ADMITTED_NOT_PUBLISHED",
+      "source_catalog_run": 41956089070
+    },
+    {
+      "key": "papillon-belvil",
+      "hotel_id": 1421,
+      "hotel": "PAPILLON BELVIL",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "NOT_REQUESTED_OWNER_POINTER_METADATA_ONLY",
+      "monitor_state": "NOT_ADMITTED_NOT_PUBLISHED",
+      "source_catalog_run": 41956089070
+    },
+    {
+      "key": "kaya-belek",
+      "hotel_id": 1253,
+      "hotel": "KAYA BELEK (EX. RIU KAYA BELEK)",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "NOT_REQUESTED_OWNER_POINTER_METADATA_ONLY",
+      "monitor_state": "NOT_ADMITTED_NOT_PUBLISHED",
+      "source_catalog_run": 41956089070
+    },
+    {
+      "key": "kaya-palazzo-golf",
+      "hotel_id": 15904,
+      "hotel": "KAYA PALAZZO GOLF RESORT (EX. RIU)",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "NOT_REQUESTED_OWNER_POINTER_METADATA_ONLY",
+      "monitor_state": "NOT_ADMITTED_NOT_PUBLISHED",
+      "source_catalog_run": 41956089070
+    },
+    {
+      "key": "titanic-deluxe-golf-belek",
+      "hotel_id": 15913,
+      "hotel": "TITANIC DELUXE GOLF BELEK",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "NOT_REQUESTED_OWNER_POINTER_METADATA_ONLY",
+      "monitor_state": "NOT_ADMITTED_NOT_PUBLISHED",
+      "source_catalog_run": 41956089070
+    },
+    {
+      "key": "maxx-royal-kemer",
+      "hotel_id": 27349,
+      "hotel": "MAXX ROYAL KEMER RESORT",
+      "country_id": 4,
+      "region_id": 22,
+      "region": "Кемер",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "NOT_REQUESTED_OWNER_POINTER_METADATA_ONLY",
+      "monitor_state": "NOT_ADMITTED_NOT_PUBLISHED",
+      "source_catalog_run": 41956089070
+    },
+    {
+      "key": "maxx-royal-bodrum",
+      "hotel_id": 108942,
+      "hotel": "MAXX ROYAL BODRUM RESORT",
+      "country_id": 4,
+      "region_id": 24,
+      "region": "Бодрум",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "NOT_REQUESTED_OWNER_POINTER_METADATA_ONLY",
+      "monitor_state": "NOT_ADMITTED_NOT_PUBLISHED",
+      "source_catalog_run": 41956089070
+    },
+    {
+      "key": "ic-santai-family",
+      "hotel_id": 1260,
+      "hotel": "IC HOTELS SANTAI FAMILY RESORT",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0,
+      "state": "EXACT_NATIVE_COUNTRY4_ACTIVE_CURRENT_NAME_UNPUBLISHED_PROVEN_NOT_READY",
+      "owner_photo_state": "NOT_REQUESTED_OWNER_POINTER_METADATA_ONLY",
+      "monitor_state": "NOT_ADMITTED_NOT_PUBLISHED",
+      "source_catalog_run": 41956089070
+    }
+  ],
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/41797073276",
+  "monitor_append_pending_catalog_ids": [],
+  "monitor_input_count": 674,
+  "published_excluded_catalog_ids": [
+    56091,
+    103124,
+    488,
+    98723,
+    139,
+    342,
+    1291,
+    15869,
+    253,
+    75377,
+    74503,
+    1582,
+    1449,
+    1453,
+    9432,
+    1451,
+    1151,
+    1583,
+    1379,
+    1133,
+    27316,
+    1559,
+    3405,
+    1417,
+    1348,
+    1199,
+    1464,
+    9322,
+    1672,
+    1659,
+    21695,
+    28668,
+    55205,
+    1334,
+    1715,
+    1543,
+    17480,
+    1100,
+    78251
+  ],
+  "confirmed_logical_materials": 161,
+  "additional_proven_count": 62,
+  "new_lookup_native_ids": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "new_hotel_delivery_credit": 1,
+  "closed_lookup_notes": {
+    "liberty_fabay": "Native75377alreadyinbothchannels;excludedfromnewstock",
+    "liberty_lykia": "Narrowlookup0notabsence;familyversusAdultsOnlyproductunresolved;donotforce",
+    "granada_okurcalar": "Native1212provenbutexactownerHTTP403closed;noalternatehostorGETbypass"
+  },
+  "publication_consumption": {
+    "run": 41969870445,
+    "native_hotel_ids": [
+      78251
+    ],
+    "new_logical_pairs": 1,
+    "previous_consumption": {
+      "run": 41961272340,
+      "native_hotel_ids": [
+        1422
+      ],
+      "new_logical_pairs": 1,
+      "previous_consumption": {
+        "run": 41911131131,
+        "native_hotel_ids": [
+          17480,
+          1100
+        ],
+        "new_logical_pairs": 2
+      }
+    }
+  },
+  "last_stock_read_run": 41956089070,
+  "stock39_previous44_preserved": true,
+  "stock40_append_native_ids": [
+    47025,
+    21642,
+    948,
+    1217,
+    1369,
+    1370,
+    1368,
+    1013,
+    1531,
+    1530
+  ],
+  "stock40_previous54_preserved": true,
+  "stock41_append_native_ids": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "stock41_remaining8_after1422_and78251_consumed": true
+}

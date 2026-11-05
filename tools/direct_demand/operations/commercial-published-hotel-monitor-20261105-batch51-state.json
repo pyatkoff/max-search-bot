@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-published-hotel-monitor-20261105-batch51",
+  "state": "CLOSED_EXACT_REVIEWED_HEAD_MERGED_CONFIGURED674",
+  "pr": 4997,
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4997",
+  "reviewed_head": "0b1533238c126dc7aabf1cdf53fa72da8f31053f",
+  "merge_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "new_native_ids": [
+    78251
+  ],
+  "previous_count": 673,
+  "configured_active": 674,
+  "original492_unchanged": true,
+  "previous673_id_order_and_target_prefix_preserved": true,
+  "native_focused_validate_run": 41970564101,
+  "native_focused_validate_job": 127057569357,
+  "guard_run": 41970564082,
+  "sync_run": 41970564097,
+  "collect_production_in_ci": "skipped",
+  "sync_production_in_ci": "skipped",
+  "native_focus_count": 674,
+  "existing_search_resumed": true,
+  "mixed_countries_preserved": true,
+  "missing_inactive_new_hotel_no_false_credit": true,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "manual_collect": 0,
+  "normal674_actual_collection_observed": false,
+  "repeat_policy": "Do not rerunclosedPR/nativeCI/focus.Standingactualpublishedappendauthorizationused;configured674not674verifiedprices."
+}

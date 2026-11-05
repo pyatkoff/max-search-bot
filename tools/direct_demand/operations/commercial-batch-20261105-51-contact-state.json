@@ -1,0 +1,263 @@
+{
+  "operation": "commercial-batch-20261105-51-contact",
+  "state": "CLOSED_FOURTEEN_NEW_OWNER_PHOTOS_ONE_CULLINAN_HERO_CONSUMED_ACTUAL_PUBLISHED_PAIR",
+  "run": 41968724003,
+  "jobs": [
+    127051695853,
+    127051695953,
+    127051695993
+  ],
+  "source_commit": "c60569d10d0f35f610f3c93a0fbace71b71b62a7",
+  "artifacts": [
+    {
+      "id": 13389375231,
+      "name": "commercial-batch51-contact-0"
+    },
+    {
+      "id": 13388408149,
+      "name": "commercial-batch51-contact-2"
+    },
+    {
+      "id": 13388069679,
+      "name": "commercial-batch51-contact-1"
+    }
+  ],
+  "new_raw_photo_gets": 14,
+  "http200": 14,
+  "guard_passes": 14,
+  "guard_rejects": 0,
+  "http403": 0,
+  "readonly_groups": 3,
+  "max_parallel": 2,
+  "new_input_negative_cases_passed": 3,
+  "old_guard_fixtures_rerun": 0,
+  "query_redirect_byte_type_format_dimension_guards_byteidentical": true,
+  "old_url_exclusions": 263,
+  "old_decoded_basename_exclusions": 262,
+  "new_total_closed_unique_urls": 277,
+  "new_total_closed_decoded_basenames": 276,
+  "contacts": [
+    {
+      "kind": "contact",
+      "group": 0,
+      "width": 960,
+      "height": 540,
+      "bytes": 689150,
+      "sha256": "5eee2ac58184bb02f1eb75c6b3b8be39198d0fe9f84d277662b53cc0865bab6e",
+      "chunks": 20,
+      "full_bom_timestamp_chunks_decoded_bytes_sha_and_native_pixels_verified": true
+    },
+    {
+      "kind": "contact",
+      "group": 1,
+      "width": 960,
+      "height": 540,
+      "bytes": 354213,
+      "sha256": "c9ec32471fc9288c4474c88d9504bf3a6faa549d56c8892be563f3301050bac0",
+      "chunks": 10,
+      "full_bom_timestamp_chunks_decoded_bytes_sha_and_native_pixels_verified": true
+    },
+    {
+      "kind": "contact",
+      "group": 2,
+      "width": 960,
+      "height": 540,
+      "bytes": 395679,
+      "sha256": "80b1e26d330b57e8c5d9c663d45a3bf3725f9dfb3750583f9eed94945e4974fc",
+      "chunks": 11,
+      "full_bom_timestamp_chunks_decoded_bytes_sha_and_native_pixels_verified": true
+    }
+  ],
+  "source_images": [
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_0",
+      "index": 0,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-13stbqytzq47csslb2kngj1ho/007-cullinan-belek-exterior.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 423800,
+      "sha256": "51e8c3a11ba2844f2be0529340961fba4995e51ac9dde75a008a003e803692a5",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_0.jpg"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_1",
+      "index": 1,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-5gx04isz2w9g2cujfy4vetctz/008-cullinan-belek-exterior.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1152,
+      "bytes": 302335,
+      "sha256": "81ed170f61a9d4bf569d2617ee26f7074319e00426ca202c8f110ccdb234df4e",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_1.jpg"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_2",
+      "index": 2,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-2xvc1jdz3mnv4lf40agrcil2n/009-cullinan-belek-exterior.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 434341,
+      "sha256": "0cf88b56d36c6f2cfb1b7322af560d01912bd9e302598589e465dd37f809e7bf",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_2.jpg"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_3",
+      "index": 3,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-d52psyauht4tcyu9974qjuhe3/010-cullinan-belek-exterior.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 386711,
+      "sha256": "c30b426186cc82f5d5a860ee978f332e8ef4484b9bf91c30f57870d3041636f6",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_3.jpg"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_4",
+      "index": 4,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-8qhea7whg0b1eye3nktl430bt/cullinan-belek-general-view-3.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1440,
+      "bytes": 625490,
+      "sha256": "b41f9eca7abe0f41e9412c5da07c73a91a8f0c6c86ffd19f743be4b9a377e21a",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_4.jpg"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_5",
+      "index": 5,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-xoe8lp1vl5vws44p7iav7b81/cullinan-belek-general-view-4.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1440,
+      "bytes": 627398,
+      "sha256": "1b64359e4d04b326d6af7f2e696fc7113d48ed90fe2ba785abc94e62b787140c",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_5.jpg"
+    },
+    {
+      "hotel_id": 27349,
+      "role": "h27349_new51_0",
+      "index": 0,
+      "source_url": "https://www.maxxroyal.com/media/13if4tbi/maxxroyalkemerlongbeach1.jpg",
+      "format": "JPEG",
+      "width": 2000,
+      "height": 1125,
+      "bytes": 720883,
+      "sha256": "3618c01eb70cf17a4fe0f39f768d5b37185410c474fdadcca318a0088b5478f7",
+      "retained_raw_file": "accepted-primary-raw/h27349_new51_0.jpg"
+    },
+    {
+      "hotel_id": 27349,
+      "role": "h27349_new51_1",
+      "index": 1,
+      "source_url": "https://www.maxxroyal.com/media/ohfiagxb/maxxroyalkemermainpool2.jpg",
+      "format": "JPEG",
+      "width": 600,
+      "height": 900,
+      "bytes": 592603,
+      "sha256": "7186f3c3fea2703e79444b3131f79452bb416ee9743c7ca4cdb26b4890cab346",
+      "retained_raw_file": "accepted-primary-raw/h27349_new51_1.jpg"
+    },
+    {
+      "hotel_id": 27349,
+      "role": "h27349_new51_2",
+      "index": 2,
+      "source_url": "https://www.maxxroyal.com/media/wr2p1mr0/maxxroyalkemermiddlebay4.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 735493,
+      "sha256": "495e945a718333dcff67a69adec5623699c3764ff1ebdb3ebcab5fdd33b7ac7f",
+      "retained_raw_file": "accepted-primary-raw/h27349_new51_2.jpg"
+    },
+    {
+      "hotel_id": 27349,
+      "role": "h27349_new51_3",
+      "index": 3,
+      "source_url": "https://www.maxxroyal.com/media/lgrlu3tj/maxxroyalkemerlongbeach4.jpg",
+      "format": "JPEG",
+      "width": 600,
+      "height": 900,
+      "bytes": 423373,
+      "sha256": "8d05aaf7da6ff2e529ad29a1f9a34385b598a4a45056f72a3e5140e446e08808",
+      "retained_raw_file": "accepted-primary-raw/h27349_new51_3.jpg"
+    },
+    {
+      "hotel_id": 108942,
+      "role": "h108942_new51_0",
+      "index": 0,
+      "source_url": "https://www.maxxroyal.com/media/haofx0sw/maxx_royal_bodrum_mainpool_main.jpg",
+      "format": "JPEG",
+      "width": 2048,
+      "height": 1118,
+      "bytes": 2045252,
+      "sha256": "b32a8126ef8525afcf57654d620f8c8e56b9a6ab3012d6dc702ce8c54e979391",
+      "retained_raw_file": "accepted-primary-raw/h108942_new51_0.jpg"
+    },
+    {
+      "hotel_id": 108942,
+      "role": "h108942_new51_1",
+      "index": 1,
+      "source_url": "https://www.maxxroyal.com/media/zheduupv/maxx_royal_bodrum_mainpool.jpg",
+      "format": "JPEG",
+      "width": 2048,
+      "height": 1514,
+      "bytes": 1020845,
+      "sha256": "a9e1ef1b8a90bfad83fe7cbd5aea7d7572efe5094ad78d76ce82aaabb3f74691",
+      "retained_raw_file": "accepted-primary-raw/h108942_new51_1.jpg"
+    },
+    {
+      "hotel_id": 108942,
+      "role": "h108942_new51_2",
+      "index": 2,
+      "source_url": "https://www.maxxroyal.com/media/cy0ppelm/maxx_royal-bodrum_whitedeck.jpg",
+      "format": "JPEG",
+      "width": 1463,
+      "height": 591,
+      "bytes": 504913,
+      "sha256": "4aafd7349acff2a41453a839d60e5ffa8ff5a68f179ad93ce1cb89eba69ffb5b",
+      "retained_raw_file": "accepted-primary-raw/h108942_new51_2.jpg"
+    },
+    {
+      "hotel_id": 108942,
+      "role": "h108942_new51_3",
+      "index": 3,
+      "source_url": "https://www.maxxroyal.com/media/myynqk1g/maxx_royal_bodrum_beach.jpg",
+      "format": "JPEG",
+      "width": 756,
+      "height": 886,
+      "bytes": 467841,
+      "sha256": "271474a2ddbcaf88fce46f4eac286bc96b851c19c85622d8bf599e1eac555afd",
+      "retained_raw_file": "accepted-primary-raw/h108942_new51_3.jpg"
+    }
+  ],
+  "wholehotel_hero_native78251_accepted_role": "h78251_new51_1",
+  "native_hero_offline_view_run": 41969036682,
+  "native_hero_offline_view_job": 127052695135,
+  "native_hero_whole_main_building_and_adjacent_grounds_verified": true,
+  "hero_and_two_lowers_consumed_by_actual_publisher_run": 41969870445,
+  "deferred_hotel_ids_no_wholehotel_hero": [
+    27349,
+    108942
+  ],
+  "deferred_verdicts": {
+    "27349": "Longbeach/pavilions/onepool/cliffbay,notwholemaincomplex",
+    "108942": "Onepool/partialbuildings/privatecabanas-deck/beach,notwholemaincomplex"
+  },
+  "raw_photos_only_original_authenticated_artifacts": true,
+  "canva_transactions_closed": 1,
+  "open_canva_transactions": 0,
+  "new_logical_pairs_actual": 1,
+  "new_posts_actual": 2,
+  "provider_calls_in_contact_phase": 0,
+  "db_writes": 0,
+  "server_connections": 0,
+  "repeat_policy": "All14rawURLs/basenames/contactlogs/nativepixelsclosed;onefreshnativehero offlineviewclosed,acceptedPNG frozenandTXcancelled,actualproviderreadbackconsumed.No sameGET/variants/oldAyschaframequerylessvariant/importforcinghero/reinspection."
+}
