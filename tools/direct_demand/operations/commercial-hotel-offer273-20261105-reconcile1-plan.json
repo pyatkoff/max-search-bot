@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-manual1-h273-v1-reconcile1",
+  "state": "PREPARED_ORIGINAL_SINGLE_MAX_WRITE_RECONCILIATION_NO_PROVIDER_WRITES",
+  "original_execution_run": 41984228461,
+  "original_execution_job": 127101100534,
+  "original_execution_result_artifact": 13394843412,
+  "original_intent_artifact": 13394957541,
+  "original_native_id": 273,
+  "original_write_attempts": 1,
+  "original_error": "max_read_failed",
+  "original_confirmed_pairs_excluded": 13,
+  "unattempted_pairs_held": 40,
+  "goal": "ResolveONLYoriginalh273MAXcaptionwriteusingownoncejournal+oneexactownedGET;acknowledgealreadywrittennewbodyinownregistry/journalwithoutrepeatingMAXPUT/TGwrite/gateway.",
+  "boundaries": {
+    "max_owned_provider_reads": 1,
+    "provider_caption_or_button_writes": 0,
+    "gateway_calls": 0,
+    "new_posts": 0,
+    "other_publications": 0,
+    "foreign_leases_or_releases_fixed": 0,
+    "private_diagnostic_capture": 0,
+    "own_registry_acknowledgement_only": true
+  },
+  "criteria": [
+    "FRESHsameversionmain/deployTLSdiag/fullremote21/accepted25hostpin/clean/schema/currentnative273country1/ownjournalflock/fsync.",
+    "PrimaryGHApartialresult14attempts/13confirmedpairs+273oneMAXattempt/TGunattempted+40nobegunattempts;neverre-read13acceptedproviderbodies.",
+    "Exactoriginalfrozenmanifest/hash/currentorownnewregistryversion/photo/source/token/publication;conflicting/foreignleasesSTOP.",
+    "OneownedGETmustproveEXPECTEDNEWbody/photo/canonicalURL/onlybutton;old/otherbodySTOPnoretry. Preserveactualreceiptlineage;registerownoriginalobservedversion+confirmonlyitsownpendingstatewithoutproviderwrites.",
+    "3NEWoriginalnative/run/attempt-countnegativecases/PHP-l;oldfixtures0. No old encrypted diagnostic/capture reread/repeat."
+  ]
+}
