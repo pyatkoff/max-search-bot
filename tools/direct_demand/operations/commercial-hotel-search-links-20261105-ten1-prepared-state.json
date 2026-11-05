@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten1-pass1",
+  "prepared_hotels": 10,
+  "prepared_native_ids": [
+    129,
+    139,
+    150,
+    172,
+    173,
+    232,
+    241,
+    249,
+    250,
+    263
+  ],
+  "quote_state": "NOQUOTE",
+  "prepared_prices": 0,
+  "max_existing_content_edits": 20,
+  "closed_no_edit": [],
+  "new_python_cases_per_hotel": 8,
+  "new_native_php_cases_per_hotel": 6,
+  "old_fixtures": 0,
+  "provider_calls": 0,
+  "gateway_calls": 0,
+  "new_posts": 0,
+  "template_sha256": "d5315073bf1eb9677936b5065b85d27ebc59599e2f8533bfb1ff1061e5a275af",
+  "state": "ACTUAL_FROZEN10_NOQUOTE_SEARCH_LINK_MANIFESTS_NATIVE_CASES_PASSED_CLOSED",
+  "run": 42010191220,
+  "job": 127186944038,
+  "artifact": 13406776859,
+  "source": "947c663e0492110bde34614b70b966d43afacc11",
+  "all10_php_l_and_6_new_native_cases_each_passed": true
+}

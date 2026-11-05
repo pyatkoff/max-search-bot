@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten1-pass1",
+  "state": "EXECUTE_ONLY_ORIGINAL_FROZEN10_NOQUOTE_INPUT_AFTER_PURE_VALIDATION_AND_FRESH_GATES",
+  "native_hotel_ids": [
+    129,
+    139,
+    150,
+    172,
+    173,
+    232,
+    241,
+    249,
+    250,
+    263
+  ],
+  "prepared_run": 42010191220,
+  "context_run": 42009478360,
+  "expected_source": "a95f6e3514eb48f2b7dcda36ac1f40ab31d0ff99",
+  "template_sha256": "d5315073bf1eb9677936b5065b85d27ebc59599e2f8533bfb1ff1061e5a275af",
+  "limits": {
+    "one_serial_run": true,
+    "max_hotels": 10,
+    "max_existing_post_content_edits": 20,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "provider_automatic_retry": false
+  },
+  "criteria": [
+    "Original prepared artifact name and script bytes/manifestSHA/EXACT5keyapproval/contextframe; no reprepare/oldfixtures.",
+    "Fresh same current production/deploy/TLS/diag/fullremote21/hostaccepted25/clean/runtime/native/schema/rights.",
+    "Private all-hotel intent artifact before any server/provider read or edit, perhotel durableonce intentbeforewrite.",
+    "Preserveallcurrentcaption/closing/photo/button/source/token;explicitNOQUOTElinkmetadata;all85pricesuntouched.",
+    "UNKNOWN/failure stopsoriginalseries; resolveoriginaloperation outcome before any continuation; no newoperationID bypass."
+  ],
+  "risks": [
+    "Capturedpostorprodsourcecouldchange; stop beforewriteifanyproofmismatch.",
+    "Contentupdatecanbeappliedalthoughfinalreadfails; do not blindly rerun."
+  ]
+}
