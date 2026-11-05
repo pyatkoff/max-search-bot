@@ -3,7 +3,6 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ManagerHandoffDispatchService.php';
-require_once __DIR__ . '/SourceQualificationPrompt.php';
 
 /**
  * Applies the configured conversation start policy for a concrete source.

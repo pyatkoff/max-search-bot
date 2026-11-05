@@ -7,7 +7,6 @@ require_once __DIR__ . '/ManagerRequestService.php';
 require_once __DIR__ . '/PostTourService.php';
 require_once __DIR__ . '/SearchDateSummary.php';
 require_once __DIR__ . '/ChannelOfferService.php';
-require_once __DIR__ . '/SourceQualificationPrompt.php';
 require_once __DIR__ . '/TripSummaryProjection.php';
 require_once __DIR__ . '/../contracts/OutboundMetadataMessengerInterface.php';
 
@@ -92,6 +91,7 @@ class DialogueView
     /** Start only the source-specific qualification; retain all saved needs. */
     public static function sourceQualificationStart($chatId,array $missing,bool $greet=true,string $hotelName=''): bool
     {
+        require_once __DIR__.'/SourceQualificationPrompt.php';
         // Delivery failure must not leave the next real reply on an old check
         // surface. This changes mode, never resets or replaces the collected trip.
         MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);
