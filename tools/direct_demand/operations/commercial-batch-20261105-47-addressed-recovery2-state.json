@@ -1,0 +1,47 @@
+{
+  "operation": "commercial-batch-20261105-47-addressed-recovery2",
+  "state": "CLOSED_BOUNDED_METADATA_RECOVERY_NO_COMPLETE_62505_PHOTO_PROOF",
+  "goal": "Locate only addressed earlier ROBINSON62505 photo exclusion evidence without re-reading closed sources, photographs or broad history.",
+  "files_read": [
+    "commercial-stock-20261102-12-source-index.json",
+    "commercial-stock-20261102-15-source-index.json",
+    "commercial-stock-20261103-17-source-index.json",
+    "commercial-stock-20261103-23-source-index.json",
+    "commercial-stock-20261103-18-content-notes.json",
+    "commercial-stock-20261103-16-inventory.json",
+    "commercial-stock-20261103-20-inventory.json",
+    "commercial-stock-20261103-20-state.json",
+    "commercial-batch-20261103-20-source-notes.json",
+    "commercial-batch-20261103-20-extension-source-notes.json"
+  ],
+  "immutable_read_source": "b8e3cc61c88557e049e68d1fa1d405d09e7c01ab",
+  "native_hotel_ids": [
+    62505
+  ],
+  "findings": [
+    {
+      "file": "commercial-stock-20261103-16-inventory.json",
+      "native_hotel_id": 62505,
+      "state": "CATALOG_CONFIRMED_PRIMARY_SOURCE_AND_COVER_NOT_READY"
+    },
+    {
+      "file": "commercial-stock-20261103-20-inventory.json",
+      "native_hotel_id": 62505,
+      "state": "CONTENT_VERIFIED_GENERAL_HOTEL_HERO_DEFERRED"
+    }
+  ],
+  "conclusion": "These two metadata states do not establish first admission, absence of earlier photo GETs, complete old photo exclusions or permission to request retained MICE frames. Other eight addressed files provided no applicable62505 photo receipt.",
+  "old_seven_file_recovery_repeated": false,
+  "whole_history_scan": false,
+  "owner_page_gets": 0,
+  "photo_gets": 0,
+  "server_calls": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "repeat_policy": "Do not reread these ten unchanged metadata files. Keep seven retained62505 MICE frames deferred until genuinely new addressed evidence supplies complete old URL/basename proof; progress other new hotel inputs."
+}

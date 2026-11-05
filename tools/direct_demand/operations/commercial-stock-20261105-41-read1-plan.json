@@ -1,0 +1,76 @@
+{
+  "operation": "commercial-stock-20261105-41-read1",
+  "state": "TEN_NEW_NAMED_GROUPS_PURE_PREPARATION_BEFORE_READONLY_NATIVE_LOOKUP",
+  "goal": "Broaden the authorized500 hotel material stock with different catalogue lookup inputs while the separately requested price-source manual collection awaits explicit human permission.",
+  "boundaries": {
+    "country_id": 4,
+    "exact_named_groups": {
+      "papillon-ayscha": [
+        "papillon ayscha"
+      ],
+      "papillon-belvil": [
+        "papillon belvil"
+      ],
+      "papillon-zeugma": [
+        "papillon zeugma"
+      ],
+      "kaya-belek": [
+        "kaya belek"
+      ],
+      "kaya-palazzo-golf": [
+        "kaya palazzo golf"
+      ],
+      "titanic-deluxe-golf-belek": [
+        "titanic deluxe golf belek"
+      ],
+      "cullinan-belek": [
+        "cullinan belek"
+      ],
+      "maxx-royal-kemer": [
+        "maxx royal kemer"
+      ],
+      "maxx-royal-bodrum": [
+        "maxx royal bodrum"
+      ],
+      "ic-santai-family": [
+        "ic hotels santai"
+      ]
+    },
+    "max_groups": 10,
+    "max_catalog_matches_per_group": 12,
+    "max_candidate_ids": 120,
+    "max_targeted_registry_rows": 240,
+    "registry_scope": "ONLY newly matched native IDs OR exact new named aliases; platform/nativeID/firstline only; no full previous159/old300 projection",
+    "server_readonly_operations": 1,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "photos": 0,
+    "canva_transactions": 0,
+    "monitor_appends": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "New names have no normalized name match in accepted159 native identity scope or retained79 stock identities (25current+54extras); server exact current identity and registry proof still mandatory",
+    "Old exact named reader inputs must pass dedup before SSH; closed old inputs STOP without another catalogue lookup",
+    "Country4/active1/current native name/product/unique group+TG0MAX0 before proving a new unpublished identity; zero/ambiguous matches are not absence and never forced",
+    "Only three NEW dataset scope/projection cases and PHP-l; no old stock40/39/projection fixture reruns",
+    "Fresh current main, same-source deploy verify/deploy/TLS/current diagnostics, full remote21, accepted25host step, clean installedruntime, schema/rights/read-only gates before actual SSH",
+    "No source/photo/price/provider/messages or monitor changes; catalogue identities alone earn zero delivery credit"
+  ],
+  "risks": [
+    "Some proposed names can already have been queried in older accepted readers; exact input dedup can stop before DB and requires genuinely different replacement input",
+    "A unique substring catalogue match is only a candidate; current product/name/nativecountry and registry proof required before admission",
+    "New proven identities do not prove owner media or facts, ready materials, published posts or prices; rating is not stars"
+  ],
+  "existing_frozen_feed_offer_rows": 159,
+  "new_group_public_name_matches": 0,
+  "known_stock_identities": 79,
+  "new_group_known_stock_name_matches": 0,
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "current_deploy_run": 41937182905,
+  "current_tls_run": 41937963662,
+  "current_diagnostics_run": 41937963780,
+  "manual_price_permission_pending": true,
+  "manual_price_approval_recorded": false
+}
