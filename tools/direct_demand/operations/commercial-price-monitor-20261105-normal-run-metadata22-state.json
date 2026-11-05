@@ -1,0 +1,38 @@
+{
+  "start_exclusive": "2026-11-05T15:00:18Z",
+  "start": "2026-11-05T15:00:19Z",
+  "end": "2026-11-05T15:30:48Z",
+  "checked": "2026-11-05 15:30:48 UTC",
+  "total": 1,
+  "runs": [
+    {
+      "id": 42054958159,
+      "name": "Collect AnyTour tour observations",
+      "path": ".github/workflows/collect-anytour-tours.yml",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "in_progress",
+      "conclusion": null,
+      "created_at": "2026-11-05T15:26:15Z"
+    }
+  ],
+  "provider_access": 0,
+  "db_access": 0,
+  "job_log_reads": 0,
+  "operation": "commercial-price-monitor-20261105-normal-run-metadata22",
+  "state": "CLOSED_NEW_METADATA_WINDOW_ONE_NEW_NORMAL674_RUN_STILL_COLLECTING_NO_PRICE_INPUT_READ",
+  "normal_validate": {
+    "run": 42054958159,
+    "job": 127340706017,
+    "success": true,
+    "configured_native_targets": 674,
+    "original_log_read_once": true,
+    "calls": 0,
+    "writes": 0
+  },
+  "latest_collection_status": {
+    "job": 127340818871,
+    "status": "in_progress",
+    "checked_at_utc": "2026-11-05T15:40:50Z",
+    "original_collection_log_reads": 0
+  }
+}
