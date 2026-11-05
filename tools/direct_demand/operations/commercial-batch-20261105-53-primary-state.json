@@ -1,0 +1,64 @@
+{
+  "operation": "commercial-batch-20261105-53-primary-preparation1",
+  "state": "CLOSED_ONE_NEW_OWNER_HTTP403_THREE_CLOSED_URLS_SKIPPED_BEFORE_HTTP_READY_ZERO",
+  "run": 42101833761,
+  "jobs": [
+    127506314868,
+    127506315185
+  ],
+  "source_commit": "9f4f53f0dc967970a63e7f2959593c176200ff5a",
+  "source_artifacts": [
+    {
+      "id": 13448988358,
+      "name": "commercial-batch53-primary-0"
+    },
+    {
+      "id": 13449783195,
+      "name": "commercial-batch53-primary-1"
+    }
+  ],
+  "retained_native_ids": [
+    254,
+    4185,
+    512,
+    102774
+  ],
+  "new_owner_http_gets": 1,
+  "readable_identity_bound_pages": 0,
+  "http403": 1,
+  "old_owner_get_repeats": 0,
+  "closed_url_or_variant_skipped_before_http": 3,
+  "skipped_native_ids": [
+    254,
+    4185,
+    512
+  ],
+  "closed_http403_native_ids": [
+    102774
+  ],
+  "closed_http403_exact_source": "https://www.hilton.com/en/hotels/luxhitw-hilton-luxor-resort-and-spa/",
+  "no_alternate_host_query_or_path_bypass": true,
+  "metadata_files_checked": 56,
+  "readonly_groups": 2,
+  "max_parallel": 2,
+  "new_input_negative_cases_passed": 8,
+  "old_parser_fixtures_rerun": 0,
+  "parser_extraction_functions_preserved": true,
+  "full_raw_public_texts_only_original_authenticated_artifacts": true,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "photo_gets": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "new_posts": 0,
+  "new_materials": 0,
+  "ready_for_send": 0,
+  "all_original_logs_results_and_source_scope_closed_no_replay": true,
+  "raw_photo_exclusions_unchanged": {
+    "unique_urls": 289,
+    "decoded_basenames": 288
+  },
+  "closed_at_utc": "2026-11-05 20:20:27 UTC"
+}
