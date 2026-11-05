@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-source-refresh-20261105-pass1",
-  "state": "PREPARED_INACTIVE_MANUAL_FALLBACK_NO_PERMISSION_QUESTION_YET_UNREAD_CACHE_INTERVAL_FOUND",
+  "state": "FULLY_PREPARED_INACTIVE_AWAITING_EXPLICIT_REPLY_TO_REQUESTED_MANUAL_PERMISSION",
   "goal": "Make one finite currently prohibited manual source refresh concrete and natively reviewable before requesting an exception",
   "manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
   "template_sha256": "1dd5f40e632acbc07ac98f8d65cab279796a1bbfbf9c088cd1ccb77bbb2c5a4a",
@@ -73,6 +73,15 @@
   "post_edits": 0,
   "request_policy": "One finite pass, atmost7ADDITIONALhotel-batchsearches/121unpricedhotels/Moscow2A0RUB/5..14nights/next7futureUTCdeparture days atlaunch. Originaldefaultbudgets/order/schedulesunchanged. Approvalnotreceived; do notactivateorcreateapprovalrecord.",
   "approval_usage": "Permissionneededbecausecurrenttaskboundaryprohibitsmanualcollector. MeaningfulexplicitreplytoNEWmanualcollectionquestiononly; pendingXMLpriceunitreplydoesnotauthorizecollection. No elapsedtime/selectiondefaultcountsasapproval.",
-  "next_step": "First executeprovenunread retainedinterval12 withoutmanualcollection. Ifnoappropriateunusedcontexts remain, the7searchmanualfallbackisalreadyfullyprepared/nativelyvalidated and canbereviewedwithPavel; do notaskwhileusefulauthorizedcacheworkexists.",
-  "permission_question_sent": false
+  "next_step": "AwaitactualexplicitreplytoNEWmanualcollectionpermissionquestion. No provider/manualcollection or approvalmetadatafile until reply. Ifyes, recordgenuineapproval and activateONEalreadypreparedexistingworkflow afterfreshsource/full21/host/runtime/date/native/unknownchecks. DoNOTaskagain. Ifno, preserveprohibition andcontinueonlyschedulednewinput/independentauthorizedmaterialwork. PendingXMLpriceunitanswerisNOTmanualcollectionpermission.",
+  "permission_question_sent": true,
+  "permission_question_requested_at_utc": "2026-11-05 01:48:31 UTC",
+  "permission_question_options": [
+    "Да, один проход",
+    "Только штатный сбор"
+  ],
+  "permission_question_do_not_repeat": true,
+  "read12_unread_cache_intervals_closed_run": 41950617284,
+  "read12_new_eligible_rows": 0,
+  "latest_counts_diagnostic_run": 41946730487
 }

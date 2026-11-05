@@ -68,7 +68,7 @@
   "last_price_attempt_run": 41944924563,
   "last_price_attempt_state": "CLOSED_NINE_QUOTES_SIX_ADMITTED_REAL_PRICES_TWELVE_VERIFIED_EXISTING_EDITS",
   "new_materials_this_pass": 0,
-  "new_price_edits_this_pass": 12,
+  "new_price_edits_this_pass": 0,
   "stock40_lookup_groups_prepared_not_identities": 0,
   "stock40_native_identities_proven": 10,
   "stock40_native_db_read_pending": false,
@@ -159,7 +159,7 @@
   "last_delivery_reported_in_commentary": true,
   "normal672_run": 41935377716,
   "last_normal_collector_observations": 8478,
-  "last_readonly_price_input_run": 41945775526,
+  "last_readonly_price_input_run": 41950617284,
   "last_readonly_price_input_rows": 0,
   "last_price_contexts_native_ids_consumed": [
     240,
@@ -172,5 +172,10 @@
     9373,
     46672
   ],
-  "current_db_scope_input_still_available": false
+  "current_db_scope_input_still_available": false,
+  "latest_aggregate_price_coverage_run": 41946730487,
+  "manual_collection_permission_pending": true,
+  "manual_collection_approved": false,
+  "prepared_manual_source_hotels": 121,
+  "prepared_manual_new_search_limit": 7
 }

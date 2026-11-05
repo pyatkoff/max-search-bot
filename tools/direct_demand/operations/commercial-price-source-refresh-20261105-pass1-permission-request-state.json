@@ -1,0 +1,12 @@
+{
+  "state": "EXPLICIT_MANUAL_COLLECTION_PERMISSION_REQUESTED_AWAITING_REPLY",
+  "requested_at_utc": "2026-11-05 01:48:31 UTC",
+  "question": "Разрешаете один адресный проход по121отелю безцены:до7дополнительныхпоисков изМосквы,2взрослых,вылет вближайшие7дней на момент запуска,5..14ночей;расписание/настройкилимитов неизменны;полнаякорзина/перелёты передпостами",
+  "options": [
+    "Да, один проход",
+    "Только штатный сбор"
+  ],
+  "manual_collection_approved": false,
+  "do_not_repeat_question": true,
+  "pending_xml_price_unit_question_is_separate": true
+}
