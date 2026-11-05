@@ -31,8 +31,9 @@ function exactCases(actual, expected) {
 test('all 375 constructor cases execute once across four existing parts', () => {
   const expected = source(), parts = [0, 1, 2, 3].map(part => choose(expected, part));
   exactCases(parts.flatMap(part => part.cases), expected);
-  assert.deepEqual(parts.map(part => part.cases.filter(item => item.spec === SELECTION_SPEC).length), [94, 94, 94, 93]);
+  assert.deepEqual(parts.map(part => part.cases.filter(item => item.spec === SELECTION_SPEC).length), [75, 0, 38, 262]);
   for (let part = 0; part < 3; part++) assert(parts[part].cases.some(item => item.spec === otherSpecs[part]));
+  assert(!parts[1].specs.includes(SELECTION_SPEC), 'the busiest whole-spec part receives no extra selection work');
 });
 test('WebKit preserves the same complete selection, not a sampled second engine', () => {
   const expected = source(375, 'webkit');
@@ -150,4 +151,93 @@ test('JSON report environment overrides cannot replace the intended current repo
     assert.notEqual(calls[1].options.env.PLAYWRIGHT_JSON_OUTPUT_NAME, 'wrong');
   } finally { names.forEach((name, i) => {if (saved[i] === undefined) delete process.env[name]; else process.env[name] = saved[i];}); }
 });
+
+test('uneven constructor inventories retain exact coverage without loading the busy part', () => {
+  for (const count of [128, 129, 374, 375, 376, 1001]) {
+    const expected = source(count), parts = [0, 1, 2, 3].map(part => choose(expected, part));
+    exactCases(parts.flatMap(part => part.cases), expected);
+    assert(parts[1].cases.every(item => item.spec !== SELECTION_SPEC));
+  }
+});
+const {namespaceScreenshots, assertScreenshotNamespace} = caseParts;
+const outputDirs = ['manager2-artifacts', 'visual-artifacts', 'report-attachment-artifacts'];
+function screenshotFixture(action) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'm2-screenshot-ownership-'));
+  const write = (name, value) => { const file = path.join(root, name); fs.mkdirSync(path.dirname(file), {recursive:true}); fs.writeFileSync(file, value); return file; };
+  try { action(root, write); } finally { fs.rmSync(root, {recursive:true, force:true}); }
+}
+test('identical screenshot names from two parts retain separate original bytes', () => {
+  const results = [];
+  for (const part of [0, 3]) screenshotFixture((root, write) => {
+    const name = 'manager2-artifacts/tour-selection-photo-correction-webkit-1440.png';
+    const original = write(name, 'native bytes from part ' + part);
+    const bytes = fs.readFileSync(original);
+    assert.equal(namespaceScreenshots({root, part, outputDirs}), 1);
+    const target = 'manager2-artifacts/case-part-' + part + '--tour-selection-photo-correction-webkit-1440.png';
+    assert(!fs.existsSync(original)); assert.deepEqual(fs.readFileSync(path.join(root, target)), bytes);
+    assertScreenshotNamespace([{path:target}], part); results.push(target);
+  });
+  assert.equal(new Set(results).size, 2);
+});
+test('nested screenshots and CLI captures retain all paths and non-PNG files', () => screenshotFixture((root, write) => {
+  write('manager2-artifacts/nested/image.png', 'nested');
+  write('visual-artifacts/layout.png', 'layout');
+  write('manager2-artifacts/report.json', 'preserved');
+  assert.equal(namespaceScreenshots({root, part:0, outputDirs}), 2);
+  assert.equal(fs.readFileSync(path.join(root, 'manager2-artifacts/case-part-0--nested%2Fimage.png'), 'utf8'), 'nested');
+  assert.equal(fs.readFileSync(path.join(root, 'visual-artifacts/case-part-0--layout.png'), 'utf8'), 'layout');
+  assert.equal(fs.readFileSync(path.join(root, 'manager2-artifacts/report.json'), 'utf8'), 'preserved');
+}));
+test('content-addressed report attachments keep their existing shared namespace', () => screenshotFixture((root, write) => {
+  const file = write('report-attachment-artifacts/' + 'a'.repeat(64) + '.png', 'attachment');
+  assert.equal(namespaceScreenshots({root, part:2, outputDirs}), 0);
+  assert.equal(fs.readFileSync(file, 'utf8'), 'attachment');
+  assertScreenshotNamespace([{path:'report-attachment-artifacts/' + 'a'.repeat(64) + '.png'}], 2);
+}));
+test('a prior or foreign namespace refuses the operation before moving any file', () => screenshotFixture((root, write) => {
+  const original = write('manager2-artifacts/first.png', 'first');
+  write('visual-artifacts/case-part-3--collision.png', 'already saved');
+  assert.throws(() => namespaceScreenshots({root, part:0, outputDirs}), /namespace already exists/);
+  assert.equal(fs.readFileSync(original, 'utf8'), 'first');
+  assert(!fs.existsSync(path.join(root, 'manager2-artifacts/case-part-0')));
+}));
+test('screenshot symlinks refuse the entire operation before partial moves', () => screenshotFixture((root, write) => {
+  const original = write('manager2-artifacts/first.png', 'first');
+  fs.mkdirSync(path.join(root, 'visual-artifacts'));
+  fs.symlinkSync(original, path.join(root, 'visual-artifacts/linked.png'));
+  assert.throws(() => namespaceScreenshots({root, part:0, outputDirs}), /symlinks/);
+  assert.equal(fs.readFileSync(original, 'utf8'), 'first');
+  assert(!fs.existsSync(path.join(root, 'manager2-artifacts/case-part-0')));
+}));
+test('a symlinked output root is not followed or silently ignored', () => screenshotFixture((root) => {
+  fs.symlinkSync(path.join(root, 'missing-target'), path.join(root, 'manager2-artifacts'));
+  assert.throws(() => namespaceScreenshots({root, part:0, outputDirs}), /Unsafe screenshot directory/);
+}));
+test('unpartitioned and foreign-part evidence remains a release failure', () => {
+  for (const name of ['manager2-artifacts/image.png', 'manager2-artifacts/case-part-1--image.png'])
+    assert.throws(() => assertScreenshotNamespace([{path:name}], 0), /namespace/);
+  assertScreenshotNamespace([{path:'manager2-artifacts/case-part-0--image.png'}], 0);
+  assert.throws(() => assertScreenshotNamespace([{path:null}], 0), /Invalid screenshot path/);
+});
+test('invalid namespace parameters cannot touch the file system', () => screenshotFixture((root, write) => {
+  const file = write('manager2-artifacts/image.png', 'original');
+  for (const part of [-1, 4, 1.5]) assert.throws(() => namespaceScreenshots({root, part, outputDirs}));
+  for (const directories of [[], ['../outside'], ['manager2-artifacts', 'manager2-artifacts']])
+    assert.throws(() => namespaceScreenshots({root, part:0, outputDirs:directories}));
+  assert.equal(fs.readFileSync(file, 'utf8'), 'original');
+}));
+
+test('all renamed PNGs match unchanged top-level upload patterns without basename loss', () => screenshotFixture((root, write) => {
+  write('manager2-artifacts/nested/image.png', 'nested');
+  write('manager2-artifacts/nested%2Fimage.png', 'literal percent');
+  write('manager2-artifacts/plain.png', 'plain');
+  assert.equal(namespaceScreenshots({root, part:3, outputDirs}), 3);
+  const files = fs.readdirSync(path.join(root, 'manager2-artifacts'), {withFileTypes:true})
+    .filter(entry => entry.isFile() && entry.name.endsWith('.png')).map(entry => entry.name).sort();
+  assert.deepEqual(files, ['case-part-3--nested%252Fimage.png', 'case-part-3--nested%2Fimage.png', 'case-part-3--plain.png']);
+  for (const name of files) assertScreenshotNamespace([{path:'manager2-artifacts/' + name}], 3);
+  assert.equal(fs.readFileSync(path.join(root, 'manager2-artifacts/case-part-3--nested%252Fimage.png'), 'utf8'), 'literal percent');
+  assert.equal(fs.readFileSync(path.join(root, 'manager2-artifacts/case-part-3--nested%2Fimage.png'), 'utf8'), 'nested');
+}));
+
 console.log('Manager2 case partitions: ' + passed + ' tests passed.');

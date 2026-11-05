@@ -13,6 +13,11 @@ const caseParts = (() => {
 const cp = require('node:child_process');
 const SELECTION_SPEC = 'tests/visual/manager-tour-selection.spec.js';
 const MIN_CASES = 128;
+// Original run 42072803983: non-selection WebKit parts took about 435/593/523s.
+// Equal quarters add work to the already slowest part. Keep its whole specs,
+// and send 20/0/10/70 percent of selection identities to residual capacity.
+// This fixed cycle changes ownership only; it never removes a case or runner.
+const CASE_PART_CYCLE = Object.freeze([0, 3, 3, 2, 3, 0, 3, 3, 3, 3]);
 function requireValue(value, message) { if (!value) throw new Error(message); }
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -35,7 +40,7 @@ function selection({browser, part, partCount, selectedSpecs, wholeSpecs, expecte
   const ordered = expected.filter(row => row.spec === SELECTION_SPEC)
     .sort((left, right) => left.key < right.key ? -1 : left.key > right.key ? 1 : 0);
   const split = selectedSpecs.includes(SELECTION_SPEC) && ordered.length >= MIN_CASES;
-  const owned = new Set(split ? ordered.filter((_, index) => index % partCount === part).map(row => row.key) : []);
+  const owned = new Set(split ? ordered.filter((_, index) => CASE_PART_CYCLE[index % CASE_PART_CYCLE.length] === part).map(row => row.key) : []);
   const cases = expected.filter(row => selectedSpecs.includes(row.spec) &&
     (split && row.spec === SELECTION_SPEC ? owned.has(row.key) : wholeSpecs.includes(row.spec)));
   const specs = selectedSpecs.filter(spec => cases.some(row => row.spec === spec));
@@ -84,7 +89,57 @@ function run({root, browser, selection: plan, collectCases, exactCases, exec = c
   exec('npx', [...args, '--reporter=line,json'], {cwd: root, env, stdio: 'inherit'});
 }
 
-return {SELECTION_SPEC, MIN_CASES, selection, run};
+// Several existing cases intentionally reuse a screenshot basename. Each
+// native part must retain its own bytes before the ordinary strict assembly.
+function namespaceScreenshots({root, part, outputDirs}) {
+  requireValue(Number.isInteger(part) && part >= 0 && part < 4, 'Invalid screenshot part');
+  requireValue(Array.isArray(outputDirs) && outputDirs.length && new Set(outputDirs).size === outputDirs.length,
+    'Invalid screenshot directories');
+  // Keep PNGs at the existing upload glob's top level; encode nested names
+  // injectively rather than losing them or changing workflow collection rules.
+  const namespace = 'case-part-' + part + '--', moves = [];
+  for (const directory of outputDirs) {
+    requireValue(typeof directory === 'string' && /^[a-z0-9-]+$/.test(directory), 'Invalid screenshot directory');
+    if (directory === 'report-attachment-artifacts') continue;
+    const top = path.join(root, directory);
+    if (!fs.lstatSync(top, {throwIfNoEntry: false})) continue;
+    const visit = current => {
+      const stat = fs.lstatSync(current);
+      requireValue(stat.isDirectory() && !stat.isSymbolicLink(), 'Unsafe screenshot directory');
+      for (const entry of fs.readdirSync(current, {withFileTypes: true})) {
+        requireValue(!entry.isSymbolicLink(), 'Screenshot symlinks are forbidden');
+        requireValue(current !== top || !/^case-part-[0-9]+(?:--|$)/.test(entry.name), 'Screenshot namespace already exists');
+        const source = path.join(current, entry.name);
+        if (entry.isDirectory()) visit(source);
+        else if (entry.isFile() && entry.name.endsWith('.png')) {
+          const target = path.join(top, namespace + encodeURIComponent(path.relative(top, source).split(path.sep).join('/')));
+          requireValue(!fs.existsSync(target), 'Screenshot namespace collision');
+          moves.push({source, target});
+        }
+      }
+    };
+    visit(top);
+  }
+  // Complete validation before moving any file; a failed operation is not retried.
+  for (const {source, target} of moves) {
+    fs.mkdirSync(path.dirname(target), {recursive: true});
+    fs.renameSync(source, target);
+  }
+  return moves.length;
+}
+function assertScreenshotNamespace(files, part) {
+  requireValue(Array.isArray(files) && Number.isInteger(part) && part >= 0 && part < 4,
+    'Invalid screenshot ownership');
+  for (const file of files) {
+    requireValue(typeof file?.path === 'string', 'Invalid screenshot path');
+    if (file.path.startsWith('report-attachment-artifacts/')) continue;
+    const pieces = file.path.split('/');
+    requireValue(pieces.length === 2 && pieces[1].startsWith('case-part-' + part + '--'),
+      'Screenshot belongs to another or unpartitioned namespace');
+  }
+}
+
+return {SELECTION_SPEC, MIN_CASES, selection, run, namespaceScreenshots, assertScreenshotNamespace};
 })();
 const PROTOCOL='manager2-partition-v1';
 const read=file=>JSON.parse(fs.readFileSync(file,'utf8'));
@@ -127,6 +182,7 @@ function envelope({root,browser,part,plan,p,artifacts}) {
   check(['full','affected'].includes(plan.mode)&&inventory.validManifest(plan.inputs),'Invalid partition plan/inputs');
   require('./browser_qa_environment.js').assertSourceExecution(p.execution,plan.inputs);
   const {expected,fresh}=reportCases(root,browser,part,plan);
+  if(partSelection(browser,part,plan,expected).split)caseParts.assertScreenshotNamespace(artifacts,part);
   for(const name of ['cache','main']) {
     const file=path.join(root,'visual-reports',name+'.json');
     if(fs.existsSync(file))reuse.validatePNGAttachments(read(file),artifacts);
@@ -293,6 +349,8 @@ if(require.main===module) {
         else check(!fs.existsSync(path.join(root,'visual-reports','main.json')),'Unexpected report in empty selected partition');
       } else if(command==='record-part') {
         const names=['main',...(part===0?['cache']:[])].filter(name=>fs.existsSync(path.join(root,'visual-reports',name+'.json')));
+        if(partSelection(browser,part,plan,reuse.reports(root,browser,true)).split)
+          caseParts.namespaceScreenshots({root,part,outputDirs:reuse.OUTPUT_DIRS});
         reuse.compactReports(root,names);
         if(part===0&&plan.mode==='affected') {
           const baseline=path.join(root,'baseline',browser),target=path.join(root,'donor');
