@@ -1,0 +1,86 @@
+{
+  "operation": "commercial-stock-20261105-52-source-notes",
+  "state": "TEN_RETAINED_PROVEN_IDENTITIES_FOUR_CAPTIONS_UNCHANGED_NO_READY_MATERIAL",
+  "proven_scope": [
+    47025,
+    21642,
+    948,
+    1217,
+    1369,
+    1370,
+    1420,
+    1421,
+    27349,
+    108942
+  ],
+  "new_primary_source_scope": [
+    47025,
+    21642,
+    1217,
+    1369
+  ],
+  "new_photo_scope": [
+    47025,
+    21642,
+    1217,
+    1369
+  ],
+  "captions": [
+    {
+      "hotel_id": 1420,
+      "text": "🏨 Papillon Ayscha\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж.\n🧒 Детский клуб Papy Kids World.\n🎾 Теннис, фитнес и занятия в Fit Club.\n🧖 Reborn Spa с турецкой баней.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 258,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    },
+    {
+      "hotel_id": 1421,
+      "text": "🏨 Papillon Belvil\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж.\n🧒 Papy Kids World с играми и творческими занятиями.\n⚽ Футбол, теннис и пляжный волейбол.\n🧖 Reborn Spa.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 258,
+      "source_run": 41958609449,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    },
+    {
+      "hotel_id": 27349,
+      "text": "🏨 Maxx Royal Kemer Resort\n✈️ Тур с перелётом в Кемер\n\n🌊 Три пляжа и бассейны с разными концепциями.\n🧒 Maxxi Land, аквапарк и детские бассейны.\n🧖 Спа и фитнес.\n🛎 Помощь Maxx Assistant во время отдыха.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 290,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    },
+    {
+      "hotel_id": 108942,
+      "text": "🏨 Maxx Royal Bodrum Resort\n✈️ Тур с перелётом в Бодрум\n\n🌊 Бухта в районе Гёльтюркбюкю.\n💦 Бассейны, в том числе с морской водой.\n🧖 Maxx Wellbeing со спа и фитнесом.\n🛎 Maxx Assistant для гостей отеля.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "utf16_units": 289,
+      "source_run": 41957285388,
+      "state": "WHOLE_CAPTION_VERIFIED_COVER_PENDING"
+    }
+  ],
+  "all_four_wholecaption_texts_byteidentical_from51": true,
+  "deferred_caption_ids": [
+    47025,
+    21642,
+    948,
+    1217,
+    1369,
+    1370
+  ],
+  "primary_source_run": 41973260232,
+  "contact_run": 41973850656,
+  "deferred_verdicts": {
+    "1217": "Onepool_and_frontfacade_clipped_at_left/topdown_pool_with_buildings_cut_at_frame_edges/beach;no_whole_complex.",
+    "1369": "Gallerypanorama_crops_main_roofline_at_top;vertical_beach_and_pool_details;no_whole_complex.",
+    "21642": "Sunbatherdetail/beachaerial/onepool;no_whole_hotel_buildings.",
+    "47025": "Poolgrounds/pier;no_whole_main_buildings. New52_0_and_2_show_same_pool_frame_at_different_native_dimensions;neither_hero."
+  },
+  "source_constraints": [
+    "Melasnative1369exactproperty3namespace;noResortproperty2/arbitraryCDN/guessedstaticURI.",
+    "ElitepageBlissnamedimagesexcluded;brandnavnotnativepropertyrights/namedkidsclubfacts.",
+    "StaticbookingwidgetUnexpectedErrorisnotprovideravailabilityevidence.",
+    "Historicalcommercial-stock-20261104-40-source-notes.jsonactuallyconcernsLimakLara/PalomaOrenda;notboundtothisStock40scope.",
+    "Onlyaddressedoriginalsource40authenticatedartifactswouldsupplyrootwholecaptionfactsifgenuinenewcoverbecameready;no rootGET/replay/allhistoryrequirednow."
+  ],
+  "new_logical_pairs": 0,
+  "new_posts": 0,
+  "ready_for_send": 0,
+  "raw_photos_not_public_git_or_accepted_covers": true
+}

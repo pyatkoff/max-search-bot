@@ -1,0 +1,252 @@
+{
+  "operation": "commercial-batch-20261105-52-contact",
+  "state": "CLOSED_TWELVE_NEW_OWNER_PHOTOS_NO_WHOLE_COMPLEX_HERO_READY_ZERO",
+  "run": 41973850656,
+  "jobs": [
+    127068028626,
+    127068028694,
+    127068028872,
+    127068028984
+  ],
+  "source_commit": "94bb92ed11cd956ab609e7d8c0c0901864d02cfb",
+  "artifacts": [
+    {
+      "id": 13391235452,
+      "name": "commercial-batch52-contact-2"
+    },
+    {
+      "id": 13391135727,
+      "name": "commercial-batch52-contact-0"
+    },
+    {
+      "id": 13391125864,
+      "name": "commercial-batch52-contact-1"
+    },
+    {
+      "id": 13390338327,
+      "name": "commercial-batch52-contact-3"
+    }
+  ],
+  "new_raw_photo_gets": 12,
+  "http200": 12,
+  "guard_passes": 12,
+  "guard_rejects": 0,
+  "http403": 0,
+  "readonly_groups": 4,
+  "max_parallel": 2,
+  "new_input_negative_cases_passed": 3,
+  "old_guard_fixtures_rerun": 0,
+  "query_redirect_byte_type_format_dimension_guards_byteidentical": true,
+  "old_url_exclusions": 277,
+  "old_decoded_basename_exclusions": 276,
+  "new_total_closed_unique_urls": 289,
+  "new_total_closed_decoded_basenames": 288,
+  "contacts": [
+    {
+      "kind": "contact",
+      "group": 0,
+      "width": 960,
+      "height": 270,
+      "bytes": 350781,
+      "sha256": "036d160ddf7384e6c730d9b5e631815f047186600dec2666fc9e9a90dd5387ab",
+      "chunks": 10,
+      "full_bom_timestamp_chunks_decoded_bytes_sha_and_native_pixels_verified": true
+    },
+    {
+      "kind": "contact",
+      "group": 1,
+      "width": 960,
+      "height": 270,
+      "bytes": 332047,
+      "sha256": "e604c2121c8cbcabf87c18a530ef8c2b797be0d33d97644a1b5aeca44e2351e4",
+      "chunks": 10,
+      "full_bom_timestamp_chunks_decoded_bytes_sha_and_native_pixels_verified": true
+    },
+    {
+      "kind": "contact",
+      "group": 2,
+      "width": 960,
+      "height": 270,
+      "bytes": 313574,
+      "sha256": "5b079f601770543730b3ce4a14055f0485e70d32518d8a710b43b743aae64c9e",
+      "chunks": 9,
+      "full_bom_timestamp_chunks_decoded_bytes_sha_and_native_pixels_verified": true
+    },
+    {
+      "kind": "contact",
+      "group": 3,
+      "width": 960,
+      "height": 270,
+      "bytes": 210593,
+      "sha256": "08fb0885a8dfb69f441e18dac8d17e8872a58375d6d388b5dec5a2c6df0fe619",
+      "chunks": 6,
+      "full_bom_timestamp_chunks_decoded_bytes_sha_and_native_pixels_verified": true
+    }
+  ],
+  "source_images": [
+    {
+      "hotel_id": 47025,
+      "role": "h47025_new52_0",
+      "index": 0,
+      "source_url": "https://www.adalyahotels.com/media/yupafx1o/adalya-elit-lara-plaj-havuz-banner-1.jpg",
+      "format": "JPEG",
+      "width": 2160,
+      "height": 1350,
+      "bytes": 483637,
+      "sha256": "ee6dfc3dc34728976cfa6493131c4773e80d4647b91f4da8cb0842a9eb5b04bc",
+      "retained_raw_file": "accepted-primary-raw/h47025_new52_0.jpg"
+    },
+    {
+      "hotel_id": 47025,
+      "role": "h47025_new52_1",
+      "index": 1,
+      "source_url": "https://www.adalyahotels.com/media/purnokyl/adalya-elite-lara-plaj-iskele-card.jpg",
+      "format": "JPEG",
+      "width": 990,
+      "height": 660,
+      "bytes": 103062,
+      "sha256": "f9fad457e2d42d0183a889d75d0d27bf2e3432930284975a95c2790e94834ce9",
+      "retained_raw_file": "accepted-primary-raw/h47025_new52_1.jpg"
+    },
+    {
+      "hotel_id": 47025,
+      "role": "h47025_new52_2",
+      "index": 2,
+      "source_url": "https://www.adalyahotels.com/media/oicjagn3/adalya-elite-lara-acik-havuz-card.jpg",
+      "format": "JPEG",
+      "width": 546,
+      "height": 340,
+      "bytes": 449608,
+      "sha256": "488cc02a675e012a710565f14117ed659505a0cc29915ef3b790634ce618f41a",
+      "retained_raw_file": "accepted-primary-raw/h47025_new52_2.jpg"
+    },
+    {
+      "hotel_id": 21642,
+      "role": "h21642_new52_0",
+      "index": 0,
+      "source_url": "https://www.adalyahotels.com/media/dl5cl400/adalya-ocean-deluxe-plaj-havuz-banner-1-1.jpg",
+      "format": "JPEG",
+      "width": 2160,
+      "height": 1350,
+      "bytes": 490473,
+      "sha256": "d0159884d3d80d91eedebe4fb239ddf887813990cf530c0088a83453cf080569",
+      "retained_raw_file": "accepted-primary-raw/h21642_new52_0.jpg"
+    },
+    {
+      "hotel_id": 21642,
+      "role": "h21642_new52_1",
+      "index": 1,
+      "source_url": "https://www.adalyahotels.com/media/iiyd4dy0/adalya-ocean-plaj-list-card-1.jpg",
+      "format": "JPEG",
+      "width": 990,
+      "height": 660,
+      "bytes": 244741,
+      "sha256": "7ca01f0b341249bd5fdd0d66abed9dabd398ca592c0509a6138e209854cb1d10",
+      "retained_raw_file": "accepted-primary-raw/h21642_new52_1.jpg"
+    },
+    {
+      "hotel_id": 21642,
+      "role": "h21642_new52_2",
+      "index": 2,
+      "source_url": "https://www.adalyahotels.com/media/giqa4rpn/adalya-hotels-ocean-beach-and-pool-outdoor-pool-list-card.jpg",
+      "format": "JPEG",
+      "width": 1092,
+      "height": 680,
+      "bytes": 199808,
+      "sha256": "f038bfd696a41c8a5f59623b68163e57cfe9be42364fef5f35682694ab7e99f2",
+      "retained_raw_file": "accepted-primary-raw/h21642_new52_2.jpg"
+    },
+    {
+      "hotel_id": 1217,
+      "role": "h1217_new52_0",
+      "index": 0,
+      "source_url": "https://www.adalyahotels.com/media/kezbknjh/adalya-art-side-plaj-havuz-banner11.jpg",
+      "format": "JPEG",
+      "width": 2160,
+      "height": 1350,
+      "bytes": 774236,
+      "sha256": "72380cbe9ae744f8cca967959f0622847a702372f36afac56f9860e24cf8bde4",
+      "retained_raw_file": "accepted-primary-raw/h1217_new52_0.jpg"
+    },
+    {
+      "hotel_id": 1217,
+      "role": "h1217_new52_1",
+      "index": 1,
+      "source_url": "https://www.adalyahotels.com/media/cjzobanp/adalya-art-side-plaj-havuz-plaj-card.jpg",
+      "format": "JPEG",
+      "width": 990,
+      "height": 660,
+      "bytes": 146836,
+      "sha256": "a5320429c2239a4cf6db47ede515cae91edcb042f7d598aba5fc9bf5e741924a",
+      "retained_raw_file": "accepted-primary-raw/h1217_new52_1.jpg"
+    },
+    {
+      "hotel_id": 1217,
+      "role": "h1217_new52_2",
+      "index": 2,
+      "source_url": "https://www.adalyahotels.com/media/lgidt5gs/adalya-art-side-acik-havuz-list-card.jpg",
+      "format": "JPEG",
+      "width": 819,
+      "height": 510,
+      "bytes": 466941,
+      "sha256": "e17e745c800f5d53628de60390c1bf5afdb775307e3159898fa930664d71f989",
+      "retained_raw_file": "accepted-primary-raw/h1217_new52_2.jpg"
+    },
+    {
+      "hotel_id": 1369,
+      "role": "h1369_new52_0",
+      "index": 0,
+      "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260601100949957_org.webp",
+      "format": "WEBP",
+      "width": 1440,
+      "height": 483,
+      "bytes": 358542,
+      "sha256": "f4d7f94dac3a2349f25600ce50620d3b0d4e721237d3f65b6d7dd7853dadb611",
+      "retained_raw_file": "accepted-primary-raw/h1369_new52_0.webp"
+    },
+    {
+      "hotel_id": 1369,
+      "role": "h1369_new52_1",
+      "index": 1,
+      "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430125018613_org.webp",
+      "format": "WEBP",
+      "width": 906,
+      "height": 1527,
+      "bytes": 323344,
+      "sha256": "a0a0d1de847857340fc87d4cd52746252152c53f1899d60c9b61decf7a4c9aa3",
+      "retained_raw_file": "accepted-primary-raw/h1369_new52_1.webp"
+    },
+    {
+      "hotel_id": 1369,
+      "role": "h1369_new52_2",
+      "index": 2,
+      "source_url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430125018608_org.webp",
+      "format": "WEBP",
+      "width": 906,
+      "height": 1527,
+      "bytes": 261412,
+      "sha256": "07c6f2e8c7603f8c33fb80f0de407793de2fdc7b4ed1c19599c8bc751635b5c4",
+      "retained_raw_file": "accepted-primary-raw/h1369_new52_2.webp"
+    }
+  ],
+  "deferred_verdicts": {
+    "1217": "Onepool_and_frontfacade_clipped_at_left/topdown_pool_with_buildings_cut_at_frame_edges/beach;no_whole_complex.",
+    "1369": "Gallerypanorama_crops_main_roofline_at_top;vertical_beach_and_pool_details;no_whole_complex.",
+    "21642": "Sunbatherdetail/beachaerial/onepool;no_whole_hotel_buildings.",
+    "47025": "Poolgrounds/pier;no_whole_main_buildings. New52_0_and_2_show_same_pool_frame_at_different_native_dimensions;neither_hero."
+  },
+  "whole_complex_heroes_accepted": 0,
+  "raw_photos_only_original_authenticated_artifacts": true,
+  "canva_transactions": 0,
+  "open_canva_transactions": 0,
+  "new_logical_pairs_actual": 0,
+  "new_posts_actual": 0,
+  "ready_for_send": 0,
+  "provider_calls": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "server_connections": 0,
+  "message_sends": 0,
+  "manual_collection_approved": false,
+  "repeat_policy": "All12rawURLs/basenames/contactlogs/nativepixelsclosed. No sameGET/variants/importenlargement/reinspection/forcedcover. Imageguards_passed_is_not_publication_acceptance."
+}
