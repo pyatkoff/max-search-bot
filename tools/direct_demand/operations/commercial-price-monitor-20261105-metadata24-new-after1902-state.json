@@ -1,0 +1,15 @@
+{
+  "operation": "commercial-price-monitor-20261105-metadata24-new-after1902",
+  "state": "CLOSED_NEW_BOUNDED_SCHEDULED_METADATA_ONLY",
+  "created_after": "2026-11-05T19:02:00Z",
+  "query_start_inclusive": "2026-11-05T19:02:01Z",
+  "upper_utc": "2026-11-05T19:04:57Z",
+  "separate_from_failed_metadata23": true,
+  "total_count": 0,
+  "returned": 0,
+  "new_normal_or_admitted_tour_tuple": false,
+  "db_calls": 0,
+  "provider_calls": 0,
+  "old_logs_read": 0,
+  "do_not_repeat_same_window": true
+}

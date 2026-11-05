@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context26-priced-inline9",
+  "state": "BOUNDED_NEW_NINE_CURRENT_NATIVE_ENTITY_PRICE_RECEIPT_CONTEXT_PLAN_BEFORE_ACCESS",
+  "goal": "Capture only nine NEW current priced unlinked post pairs for native price hyperlinks, preserving current owner text/entities and exact price metadata.",
+  "hotel_ids": [
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264
+  ],
+  "scope_filename": "commercial-hotel-search-links-20261105-context26-priced-inline9-scope.json",
+  "scope_sha256": "5a841d4a61e98328b956c9020b20781692127e2be05749f62eec89f9bc00386f",
+  "expected_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "expected_counts": {
+    "published_pairs": 161,
+    "priced": 85,
+    "linked": 134
+  },
+  "projection": {
+    "run": 42073736305,
+    "artifact": 13436743582,
+    "name": "commercial-hotel-search-links-20261105-priced10b-original-projection1",
+    "file": "priced-original-input.private.json",
+    "only_remaining_original_nine": true,
+    "no_reprojection": true
+  },
+  "bounds": {
+    "hotels": 9,
+    "owned_max_gets": 9,
+    "channel_rights_checks": 2,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "quotes": 0,
+    "source_searches": 0,
+    "edits": 0
+  },
+  "criteria": [
+    "NEW scope count/map/read-limit inputs checked before private intent/SSH; seven NEW actual scope Python cases plus fourteen NEW native cases on NEW original input, oldfixtures0.",
+    "Reader unchanged af212; fullREMOTE21 and accepted25 host step BYTEIDENTICAL, fresh healthy current source/DeployTLSdiag/installedclean/runtime/native/schema-rights.",
+    "Private exact input retained before server/provider; CURRENT ownprice journal+confirmed receipt/version/text/nativeentities/photo/button/source/token and EXACT old price metadata required.",
+    "At most one owned MAX GET per NEW finite current context; conflicting entities/button or changed current body defer, never overwrite owner formatting.",
+    "No57028 or old owned read/result/case replay; do not hold ready supported contexts for hard cases."
+  ],
+  "risks": [
+    "Unsupported MAX native formatting or ambiguous original price anchors may defer at pure preparation; original price amount/check metadata must remain unchanged.",
+    "Any unknown outcome stops original operation and requires original-first reconciliation; no retries or changed IDs."
+  ]
+}

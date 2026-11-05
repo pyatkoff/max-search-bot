@@ -1,4 +1,4 @@
-name: Update one existing pair with a native price hyperlink preserving every text byte
+name: Capture nine new current priced pairs with exact native entities
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -11,11 +11,12 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 43564b38db46a02a102ddcab9e8f9bbf34ad2a1d
-  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-priced10b-inline-small1-scope.json
-  EXPECTED_LINK_SCOPE_SHA256: ecf66257db9d6a87c63f5913de810ff9ffb0723396e6e5c6f55b3d09642ca9c9
-  LINK_EXECUTION_PLAN_FILENAME: commercial-hotel-search-links-20261105-priced10b-inline-small1-execution-plan.json
+  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-context26-priced-inline9-scope.json
+  EXPECTED_LINK_SCOPE_SHA256: 5a841d4a61e98328b956c9020b20781692127e2be05749f62eec89f9bc00386f
+  EXPECTED_INLINE_CONTEXT_READER_SHA256: af212d45249a916c72e19d0857ae4e0df48c4cd9bbdfe82bfdbaad93c567dde9
 jobs:
-  update:
+  inspect:
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -59,30 +60,32 @@ jobs:
           PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-priced10b-inline-small1-prepared1
+          name: commercial-hotel-search-links-20261105-priced10b-original-projection1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 42086454851
-          path: ${{ runner.temp }}/prepared-links
+          run-id: 42073736305
+          path: ${{ runner.temp }}/original-priced-input
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring
-      - name: Reconstruct all frozen bytes and bind only reviewed current runtime header
+      - name: Validate only new actual nine scope inputs and native entity capture
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/bind-priced-hotel-inline-price-link-20261105.py
-          python3 tools/direct_demand/operations/bind-priced-hotel-inline-price-link-20261105.py
-      - name: Retain private exact intent before any server or provider access
+          python3 -m py_compile tools/direct_demand/operations/prepare-priced-hotel-inline-contexts-20261105-data-bound.py
+          python3 tools/direct_demand/operations/prepare-priced-hotel-inline-contexts-20261105-data-bound.py
+          php -l "$RUNNER_TEMP/link-context.php"
+          ANYTOUR_CURRENT_LINK_CONTEXT_NEW_INPUT_CASES=1 php "$RUNNER_TEMP/link-context.php"
+      - name: Retain exact private scope before server and owned-post access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-priced10b-inline-small1-intents1
+          name: commercial-hotel-search-links-20261105-context26-priced-inline9-input
           path: |
-            ${{ runner.temp }}/all-link-execution-intents.private.json
-            ${{ runner.temp }}/link-execution-binding-safe.json
+            ${{ runner.temp }}/link-context-input.private.json
+            ${{ runner.temp }}/link-context.php
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -123,7 +126,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Execute one existing serial updater with original operation and no retry
+      - name: Capture only nine new owned current posts and canonical counterparts without writes
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -131,17 +134,15 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-hotel-search-links-explicit-noquote-20261105-data-bound.py
-      - name: Retain original private results receipts and safe totals
+          python3 tools/direct_demand/operations/run-hotel-search-links-current-contexts-20261105-data-bound.py
+      - name: Retain private current native contexts and safe counts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-priced10b-inline-small1-actual1
+          name: commercial-hotel-search-links-20261105-context26-priced-inline9
           path: |
-            ${{ runner.temp }}/prepared-links
-            ${{ runner.temp }}/link-execution-summary.json
-            ${{ runner.temp }}/link-execution-complete-safe.json
-            ${{ runner.temp }}/link-execution-binding-safe.json
-            ${{ runner.temp }}/all-link-execution-intents.private.json
+            ${{ runner.temp }}/link-context-input.private.json
+            ${{ runner.temp }}/link-context-readback.private.json
+            ${{ runner.temp }}/link-context-summary.json
           retention-days: 14
           if-no-files-found: warn
