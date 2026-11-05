@@ -8,11 +8,15 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i,is_terminal:stage_key==='sold'?1:0,is_won:stage_key==='sold'?1:0}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null,selectionAssetPackage=null}={}){
   const pushProtocol=lifecycle(7);
   // Model the existing server admission field, retaining the real shell/assets.
   // This fixture does not claim an installed or authenticated production editor.
-  const workspaceShell=selectionEditorEntry===null?shell:shell.replace(/(<meta name="selection-editor-entry" content=")[^"]*(")/,(_match,before,after)=>before+selectionEditorEntry.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+after);
+  let workspaceShell=selectionEditorEntry===null?shell:shell.replace(/(<meta name="selection-editor-entry" content=")[^"]*(")/,(_match,before,after)=>before+selectionEditorEntry.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+after);
+  if(selectionAssetPackage){
+    expect(selectionAssetPackage).toMatch(/^[a-f0-9]{64}$/);
+    for(const [kind,asset] of Object.entries({script:'editor.js',host:'manager2-host.js',style:'editor.css'}))workspaceShell=workspaceShell.replace(new RegExp('(<meta name="m2-selection-'+kind+'" content=")[^"]*(")'),(_match,before,after)=>before+'/manager/tour-selection-editor.php?asset='+asset+'&amp;package='+selectionAssetPackage+after);
+  }
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
   let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map();
@@ -42,6 +46,11 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
   if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conversation(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
     if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/')){const asset=path.resolve(root,'.'+url.pathname);if(!asset.startsWith(root+path.sep))return route.abort();return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(asset)})}
+    if(req.method()==='GET'&&selectionAssetPackage&&url.pathname==='/manager/tour-selection-editor.php'){
+      expect([...url.searchParams.keys()].sort()).toEqual(['asset','package']);expect(url.searchParams.get('package')).toBe(selectionAssetPackage);
+      const file={'editor.js':'workspace-v2-tour-selection.js','manager2-host.js':'workspace-v2-tour-selection-host.js','editor.css':'workspace-v2-tour-selection.css'}[url.searchParams.get('asset')];
+      expect(file).toBeTruthy();return route.fulfill({contentType:file.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(path.join(root,'manager/assets',file))});
+    }
     if(!url.pathname.endsWith('.php'))return route.continue();
     if(!url.pathname.startsWith('/manager/')){unexpected.push(req.method()+' '+url.pathname);return route.abort()}
     const data=req.method()==='POST'?req.postDataJSON()||{}:{};
@@ -154,6 +163,37 @@ async function readable(page,selector){
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
 
+function selectionAssetRequests(page){
+  const requests=[];
+  page.on('request',request=>{
+    const url=new URL(request.url());
+    const name=url.pathname==='/manager/tour-selection-editor.php'?url.searchParams.get('asset'):url.pathname.split('/').pop();
+    const kind={'workspace-v2-tour-selection.js':'script','workspace-v2-tour-selection-host.js':'host','workspace-v2-tour-selection.css':'style','editor.js':'script','manager2-host.js':'host','editor.css':'style'}[name];
+    if(kind)requests.push(kind);
+  });
+  return requests;
+}
+async function selectionReadFixture(page,conversation=11){
+  const reads=[];
+  await page.route('**/manager/tour-selections-api.php',route=>{
+    const d=route.request().postDataJSON();reads.push(d);expect(d.action).toBe('get');expect(d.conversation_id).toBe(conversation);expect(d.csrf).toBe('synthetic-csrf');
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,selection:{conversation_id:conversation,version:0,draft:{title:'Синтетическая подборка',intro:'',offers:[]},can_edit:true,updated_at:null,updated_by_manager_id:null}})});
+  });
+  return reads;
+}
+async function observeSelectionHostLoad(page){
+  await page.evaluate(()=>{
+    window.selectionHostLoaded=false;
+    document.addEventListener('load',event=>{
+      if(event.target instanceof HTMLScriptElement&&new URL(event.target.src).pathname==='/manager/assets/workspace-v2-tour-selection-host.js')window.selectionHostLoaded=true;
+    },true);
+  });
+}
+async function openSelectionInPanel(page){
+  const control=page.locator('#m2SelectionInPanel');if(!await control.isVisible())await page.locator('#m2ConversationMenuToggle').click();
+  await control.click();
+}
+
 async function selectionEntryDraft(page){
   await page.locator('#replyText').fill('Ответ клиенту остаётся в переписке');
   // Observe the actual File handed to the preview; the native picker may clear
@@ -179,7 +219,7 @@ async function retainedSelectionEntryDraft(page){
   expect(retained).toEqual({reply:true,form:true,input:true,file:true,preview:true,selection:[3,11,'backward'],anchor:true,current:true,auth:true,open:true});
 }
 for(const width of [390,1440])test('Manager2 standalone selection entry preserves the original conversation at '+width,async({page})=>{
-  const admitted='https://tours.anytoour.ru/editor.php',navigations=[],unexpected=[];
+  const assets=selectionAssetRequests(page),admitted='https://tours.anytoour.ru/editor.php',navigations=[],unexpected=[];
   // Intercept the first popup request at context level. Only navigation is under
   // test here; the protected editor has its own existing native fixture suite.
   await page.context().route('https://tours.anytoour.ru/**',route=>{
@@ -188,6 +228,7 @@ for(const width of [390,1440])test('Manager2 standalone selection entry preserve
     navigations.push(url.href);return route.fulfill({contentType:'text/html',body:'<!doctype html><html><head><title>Synthetic selection entry</title><link rel="icon" href="data:,"></head><body><main>Синтетический адрес редактора</main></body></html>'});
   });
   await page.setViewportSize({width,height:900});const s=await setup(page,{selectionEditorEntry:admitted});await openLead(page);await selectionEntryDraft(page);
+  expect(assets).toEqual([]);
   const primary=page.locator('#tourSelectionOpen');if(!await primary.isVisible())await page.locator('#m2ConversationMenuToggle').click();
   await expect(primary).toHaveAttribute('aria-label',/отдельной вкладке/);await expect(primary).not.toHaveAttribute('aria-haspopup','dialog');
   const originalUrl=page.url(),initialPages=page.context().pages().length,popupPromise=page.context().waitForEvent('page');
@@ -197,17 +238,13 @@ for(const width of [390,1440])test('Manager2 standalone selection entry preserve
   await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(page.url()).toBe(originalUrl);
   if(width===390){await expect(page.locator('.m2ConversationMenu')).not.toHaveAttribute('open','');await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused()}
   await popup.close();await page.bringToFront();await retainedSelectionEntryDraft(page);
-  expect(s.calls.filter(call=>/tour-selection/.test(call.path))).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+  expect(assets).toEqual([]);expect(s.calls.filter(call=>/tour-selection/.test(call.path))).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
-test('Manager2 standalone selection entry retains an explicit same-tab editor action',async({page})=>{
-  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);await selectionEntryDraft(page);
-  const editorReads=[];
-  await page.route('**/manager/tour-selections-api.php',route=>{
-    const d=route.request().postDataJSON();editorReads.push(d);expect(d.action).toBe('get');expect(d.conversation_id).toBe(11);expect(d.csrf).toBe('synthetic-csrf');
-    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,selection:{conversation_id:11,version:0,draft:{title:'Синтетическая подборка',intro:'',offers:[]},can_edit:true,updated_at:null,updated_by_manager_id:null}})});
-  });
+for(const packageId of [null,'a'.repeat(64)])test('Manager2 loads the same-tab editor on demand and reuses its '+(packageId?'sealed':'workspace')+' assets',async({page})=>{
+  const assets=selectionAssetRequests(page);
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php',selectionAssetPackage:packageId});await openLead(page);await selectionEntryDraft(page);
+  expect(assets).toEqual([]);const editorReads=await selectionReadFixture(page);
   await page.evaluate(()=>{
-    // Keep the frozen core intact and delegate through a temporary call spy.
     const core=window.WorkspaceV2TourSelection;window.selectionEntryCore=core;window.selectionPanelCalls=[];
     window.WorkspaceV2TourSelection={...core,open(...args){selectionPanelCalls.push(args[0].id);return core.open(...args)}};
   });
@@ -215,10 +252,77 @@ test('Manager2 standalone selection entry retains an explicit same-tab editor ac
   await expect(secondary).toHaveAttribute('aria-haspopup','dialog');await expect(secondary).toHaveAttribute('aria-controls','tourSelectionDialog');
   const pages=page.context().pages().length;await secondary.click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText('загружен');
   expect(await page.evaluate(()=>selectionPanelCalls)).toEqual([11]);expect(editorReads).toHaveLength(1);expect(page.context().pages()).toHaveLength(pages);
+  expect(assets.slice().sort()).toEqual(['host','script','style']);
+  // Loading the stylesheet late must keep the original presentation precedence.
+  expect(await page.evaluate(()=>{const links=[...document.head.querySelectorAll('link[rel="stylesheet"]')];return links.findIndex(link=>/workspace-v2-tour-selection\.css|asset=editor\.css/.test(link.href))<links.findIndex(link=>link.href.includes('/manager2/assets/manager2.css?'))})).toBe(true);
   await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused();
   await page.evaluate(()=>{window.WorkspaceV2TourSelection=window.selectionEntryCore;delete window.selectionEntryCore});
+  await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');await expect(page.locator('#tourSelectionDialog')).toBeVisible();
+  expect(editorReads).toHaveLength(2);expect(assets.slice().sort()).toEqual(['host','script','style']);
+  await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
+
+test('Manager2 cancel during editor loading keeps the native reply and prevents a late open',async({page})=>{
+  const assets=selectionAssetRequests(page);await page.setViewportSize({width:390,height:900});
+  const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);await selectionEntryDraft(page);const reads=await selectionReadFixture(page);
+  let release;const held=new Promise(resolve=>{release=resolve});
+  await page.route('**/manager/assets/workspace-v2-tour-selection.js?*',async route=>{await held;return route.fallback()});
+  await observeSelectionHostLoad(page);
+  await openSelectionInPanel(page);await expect(page.locator('#m2SelectionLoading')).toBeVisible();await expect(page.locator('#m2SelectionCancel')).toBeInViewport();
+  await page.locator('#m2SelectionCancel').click();await expect(page.locator('#m2SelectionLoading')).not.toBeVisible();await retainedSelectionEntryDraft(page);await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused();
+  release();await page.waitForFunction(()=>window.selectionHostLoaded);
+  await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(reads).toEqual([]);
+  await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');
+  expect(reads).toHaveLength(1);expect(assets.slice().sort()).toEqual(['host','script','style']);
+  await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+test('Manager2 retries only a failed editor asset after an explicit action',async({page})=>{
+  const assets=selectionAssetRequests(page);await page.setViewportSize({width:390,height:900});
+  const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);await selectionEntryDraft(page);const reads=await selectionReadFixture(page);
+  let attempts=0;
+  await page.route('**/manager/assets/workspace-v2-tour-selection-host.js?*',route=>++attempts===1?route.abort('failed'):route.fallback());
+  await openSelectionInPanel(page);await expect(page.locator('#m2SelectionLoadingStatus')).toContainText('Не удалось открыть подборку');await expect(page.locator('#m2SelectionRetry')).toBeVisible();
+  expect(assets.slice().sort()).toEqual(['host','script','style']);expect(reads).toEqual([]);expect(attempts).toBe(1);
+  await page.locator('#m2SelectionRetry').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText('загружен');
+  expect(assets.slice().sort()).toEqual(['host','host','script','style']);expect(reads).toHaveLength(1);
+  await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const stale of ['actor','auth','conversation','open'])test('Manager2 ignores an editor load after its '+stale+' context changes',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);const reads=await selectionReadFixture(page);
+  let release;const held=new Promise(resolve=>{release=resolve});
+  await page.route('**/manager/assets/workspace-v2-tour-selection.js?*',async route=>{await held;return route.fallback()});
+  await observeSelectionHostLoad(page);
+  await openSelectionInPanel(page);await expect(page.locator('#m2SelectionLoading')).toBeVisible();
+  // Change one identity dimension while the real host is still unavailable.
+  // No production request, navigation, authentication or data write is simulated.
+  await page.evaluate(stale=>{
+    if(stale==='actor')WorkspaceV2.S.manager={...WorkspaceV2.S.manager,id:8};
+    if(stale==='auth')WorkspaceV2.S.authGeneration++;
+    if(stale==='conversation')WorkspaceV2.S.current=12;
+    if(stale==='open'){const owner=WorkspaceV2Conversation,generation=owner.getOpenGeneration();window.WorkspaceV2Conversation={...owner,getOpenGeneration:()=>generation+1}}
+  },stale);
+  release();await page.waitForFunction(()=>window.selectionHostLoaded);
+  await expect(page.locator('#m2SelectionLoading')).not.toBeVisible();await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();
+  expect(reads).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const actor of [7,8])test('Manager2 consumes a collector return once for actor '+actor,async({page})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});
+  const assets=selectionAssetRequests(page),reads=await selectionReadFixture(page);
+  await page.goto(origin+'/manager2/index.php?selection=11&collector_actor='+actor+'#conversation=11');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
+  await expect.poll(()=>new URL(page.url()).searchParams.has('selection')).toBe(false);expect(new URL(page.url()).searchParams.has('collector_actor')).toBe(false);
+  if(actor===7){
+    await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText('загружен');expect(reads).toHaveLength(1);expect(assets.slice().sort()).toEqual(['host','script','style']);
+    await page.locator('#tsClose').click();await page.evaluate(()=>WorkspaceV2TourSelection.sync(WorkspaceV2.S.detail.conversation));await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(reads).toHaveLength(1);
+  }else{await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(reads).toEqual([]);expect(assets).toEqual([])}
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
 
 // Check the first rendered viewport before Playwright can scroll a button into view.
 async function exitInitiallyReachable(page){
