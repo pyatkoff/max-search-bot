@@ -32,5 +32,24 @@
   "risks": [
     "PDFmayalreadybeclosed, redirect/403, containonlymap/graphic/details ornotprovepropertymembership; deferwithoutbypass.",
     "Newsource/photoevidenceisnotmaterialdelivery;500stillNOTcomplete."
-  ]
+  ],
+  "closed_metadata_role_rule": {
+    "state": "DECLARED_NOT_REQUESTED_POINTER_IS_NOT_AUTOMATICALLY_A_CLOSED_GET",
+    "exact_pointer_role": {
+      "file": "commercial-batch-20261105-58-primary-plan.json",
+      "field": "deferred_other_supported_pointer",
+      "hotel_id": 83563,
+      "url": "https://theserry.com/pdf/new/Serry_Brochure.pdf",
+      "expected_state": "SEARCH_DECLARED_OFFICIAL_OWNER_PDF_METADATA_ONLY_NOT_REQUESTED_OR_ACCEPTED"
+    },
+    "proof": "Source58frozenactualscopeONLY343OldPalace; original58runHTTP1OldPalace, source/projection/contactSerryGET0. Thisprovesnotrequestedby58only, notallhistory.",
+    "future_guard": "Inspectneededcanonicalclosedmetadata bytypedrole. ExcludeONLYthisexact58deferredpointerfieldfromautomaticclosed-GETclassification afterverifyingitsNOT_REQUESTEDstate andsource58scope. AllotheractualclosedsourceURLs/variants/exclusionsremainbinding. IfsamePDFhasanyearlierclosed-GETproofdeferGET0; doNOTblanketremoveURLfromclosedset orskipothermetadata.",
+    "new_cases_required_before_any_pdf_http": [
+      "exactdeclared-not-requested58pointeralonecannotbeclaimedasalreadyGET",
+      "prioractualclosedPDFsameURLreject",
+      "prioractualclosedPDFwwwvariantreject",
+      "changed58pointerstateorfieldreject",
+      "mutatedURL-host-path-queryreject"
+    ]
+  }
 }
