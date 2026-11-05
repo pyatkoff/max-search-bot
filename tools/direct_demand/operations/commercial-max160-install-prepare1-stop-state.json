@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-max160-private-route-extension-20261105-49-install1-prepare1",
+  "state": "CLOSED_CURRENT_BOT_SOURCE_CHANGED_BEFORE_CASES_INTENT_OR_SSH",
+  "run": 41962947214,
+  "job": 127033329849,
+  "source": "89b80ea98531dff3435d49a24c628b30c6bd1bb8",
+  "old_approved_bot_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "actual_new_bot_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "reason": "Fresh currentmain metadata assertion failed; new independently healthy CI-only release627 observed",
+  "install_intents_created": 0,
+  "transaction_cases_executed": 0,
+  "ssh_calls": 0,
+  "server_mutations": 0,
+  "new_route_installed": false,
+  "source_stop_count": 1,
+  "repeat_policy": "Do not rerun failed originaljob. Preserve originalcandidate/READ16source25a2; after actualnew627full21acceptance update only freshcurrenthealthmetadata and execute same finite install operation."
+}

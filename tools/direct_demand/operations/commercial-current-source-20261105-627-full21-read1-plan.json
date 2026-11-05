@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-current-source-20261105-627-full21-read1",
+  "state": "PREPARED_NEW_CURRENT_RELEASE_SOURCE_ONLY_GATE",
+  "goal": "Independently accept actual installed627andall21unchangedpublishingblobs after the genuine new CI-only release before further route/feed SSH.",
+  "boundaries": {
+    "expected_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+    "previous_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+    "publishing_files": 21,
+    "server_readonly_operations": 1,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "private_config_read": false,
+    "manual_private_capture": false,
+    "source_runtime_config_fixes": false
+  },
+  "criteria": [
+    "Freshmain/same627Deploy41962033993verify+deploy/TLS41962668602/currentdiagnostics41962668530success beforeSSH",
+    "Diff25a2to627 exactly threeCI-onlypaths reviewed; nativeall21actualfilehashes+gitHEAD+cleanstatus required, no shortenedremoteprobe",
+    "Sameaccepted25host step byteidentical; no schemas/customer/publication/tuples queries or privatecapture",
+    "OriginalREAD16/candidate160 provenance stays25a2, not relabelled627"
+  ],
+  "risks": [
+    "Anycurrent source/workingtree/blob mismatch stops, no foreignfix/rerun/endlessrepin",
+    "This is source-only runtime evidence, not new prices/materials or paidlaunch"
+  ]
+}
