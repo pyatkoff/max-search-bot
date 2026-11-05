@@ -128,8 +128,9 @@ may still start. No broad path exclusion hides a deleted or mixed shared input.
 The main production deployment retains its canonical full verification; this
 PR scope does not change that deployment contract.
 
-Selection keeps **all five required PHP groups, syntax, inventory and native
-prepared/delivery MySQL coverage**. Only browser scope narrows. Chromium and
+Except for the styling-only subprofile below, selection keeps **all five
+required PHP groups, syntax, inventory and native prepared/delivery MySQL
+coverage**. Functional JS/PHP/API/collector changes never enter that exception. Chromium and
 WebKit execute the whole selection spec, including editor, exact conditions,
 lost responses/UNKNOWN, readonly access, preview/send, publish/revoke, pending
 photos and the anonymous public page. It also executes every collector case for
@@ -154,6 +155,47 @@ verifier or visual workflow run **full coverage plus the component runner** once
 to commission its real invocation/report path; ordinary full changes do not pay
 for that additional proof. The prepared environment below also removes repeated
 OS, browser and npm installation; test timeouts and assertions are unchanged.
+
+## Styling-only backend subprofile
+
+The existing selector may attach `backend=selection-style` to `tour-selection`
+only after checking the complete exact base/head diff and the existing manifest
+contracts. It requires a modification to at least one of these existing styles:
+
+- `manager/assets/workspace-v2-tour-selection.css`
+- `selection/selection.css`
+
+The only permitted companions are the complete component visual spec
+`tests/visual/manager-tour-selection.spec.js` and version-only changes to the
+existing editor/public module manifests. Every path must remain a regular 100644
+file, with modification status and no rename/copy. Manifest validation still
+reads both Git blobs and rejects changes to schema, contract, package files,
+backend inputs or unknown fields. A version-only or spec-only PR is not a styling
+PR. CSS mixed with JS, PHP, an API, a fixture, collector code, migration, auth,
+documentation, unknown paths or CI retains its ordinary backend coverage.
+
+CSS does not alter the PHP/SQL implementation. Its observable browser effects
+remain covered by the full selection suite in both Chromium and WebKit, including
+all four existing widths, private/anonymous behavior and required screenshots.
+The editor's package, host, install/rollback and private-HTTP workflow is unchanged.
+No case is removed from a manifest, filtered by grep or accepted from an older run.
+
+For this exact subprofile, the existing required matrix runs architecture and
+excludes dialogue, website, manager and diagnostics. Inventory and PHP syntax
+remain mandatory. The prepared MySQL job does not start. No new jobs or workflows
+are added. The existing aggregate explicitly requires successful scope,
+inventory, syntax and selected architecture, and declared skips for MySQL/OAuth.
+Absent/unknown profiles, failed/cancelled selected jobs and unexpected results
+fail; a styling result cannot certify a full or OAuth profile. Other selection
+changes still run all five groups and MySQL. Manual and production verification
+remain full, and publisher/admission behavior is unchanged.
+
+`tests/check_ci_selection_style_scope.js` executes disposable Git histories and
+the actual scope-output shell. The existing workflow contract suite validates
+matrix exclusions, wiring and the actual aggregate truth table. Policy edits
+still receive full regression plus the existing component commissioning. Actual
+runner savings and duration must come from a subsequent ordinary styling PR,
+not an artificial release or a claimed percentage from these local fixtures.
 
 ## Prepared native browser environment
 

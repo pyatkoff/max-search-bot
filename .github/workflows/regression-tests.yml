@@ -50,6 +50,8 @@ jobs:
       fail-fast: false
       matrix:
         group: [architecture, dialogue, website, manager, diagnostics]
+        # Only an exact styling-only PR may omit unchanged server owners.
+        exclude: ${{ fromJSON(needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style' && '[{"group":"dialogue"},{"group":"website"},{"group":"manager"},{"group":"diagnostics"}]' || '[]') }}
     runs-on: ubuntu-latest
     name: required / ${{ matrix.group }}
     steps:
@@ -76,7 +78,7 @@ jobs:
 
   prepared-mysql:
     needs: change-scope
-    if: needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'
+    if: needs.change-scope.outputs.mode == 'full' || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -149,6 +151,7 @@ jobs:
         env:
           SCOPE_RESULT: ${{ needs.change-scope.result }}
           CI_MODE: ${{ needs.change-scope.outputs.mode }}
+          BACKEND_PROFILE: ${{ needs.change-scope.outputs.backend }}
           OAUTH_RESULT: ${{ needs.oauth.result }}
           INVENTORY_RESULT: ${{ needs.inventory.result }}
           SYNTAX_RESULT: ${{ needs.php-syntax.result }}
@@ -158,15 +161,20 @@ jobs:
           test "$SCOPE_RESULT" = success
           test "$INVENTORY_RESULT" = success
           test "$SYNTAX_RESULT" = success
-          case "$CI_MODE" in
-            oauth)
+          case "$CI_MODE:$BACKEND_PROFILE" in
+            oauth:full)
               test "$OAUTH_RESULT" = success
               test "$REQUIRED_RESULT" = skipped
               test "$PREPARED_MYSQL_RESULT" = skipped
               ;;
-            full|tour-selection)
+            full:full|tour-selection:full)
               test "$REQUIRED_RESULT" = success
               test "$PREPARED_MYSQL_RESULT" = success
+              test "$OAUTH_RESULT" = skipped
+              ;;
+            tour-selection:selection-style)
+              test "$REQUIRED_RESULT" = success
+              test "$PREPARED_MYSQL_RESULT" = skipped
               test "$OAUTH_RESULT" = skipped
               ;;
             *) exit 1 ;;
