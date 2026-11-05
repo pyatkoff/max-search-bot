@@ -1252,7 +1252,7 @@ for(const width of [390,1440]){
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
  });
 }
-test('booking lost response reconciles original operation after reload without another write',async({page})=>{
+test('booking lost response reconciles original operation without another write',async({page})=>{
  const choices=bookingChoiceFixture(),s=await setup(page,{tourChoices:choices});let record=null,op='';
  s.setBookingHandler(async data=>{
   if(data.action==='booking_save'){op=data.operation_id;record={revision:1,fields:data.fields};return {abort:true}}
@@ -1261,7 +1261,7 @@ test('booking lost response reconciles original operation after reload without a
  await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
  const panel=page.locator('[data-booking-panel]');await expect(panel.locator('form')).toBeVisible();
  await panel.getByRole('button',{name:'Сохранить оформление'}).click();
- await expect(panel).toContainText('Исход сохранения неизвестен');await expect(panel.locator('fieldset')).toBeDisabled();
+ await expect(panel).toContainText('Исход сохранения неизвестен');await expect(panel.locator('[data-booking-field="terms"]')).toBeDisabled();
  await panel.getByRole('button',{name:'Проверить сохранение'}).click();
  await expect(panel).toContainText('Сохранение подтверждено');
  expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);
@@ -1278,7 +1278,7 @@ test('unresolved booking receipt stays fenced across same-account page reload',a
  await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
  await page.locator('[data-booking-panel]').getByRole('button',{name:'Сохранить оформление'}).click();await expect(page.locator('[data-booking-panel]')).toContainText('Исход сохранения неизвестен');
  await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
- const panel=page.locator('[data-booking-panel]');await expect(panel).toContainText('Исход сохранения пока неизвестен');await expect(panel.locator('fieldset')).toBeDisabled();
+ const panel=page.locator('[data-booking-panel]');await expect(panel).toContainText('Исход сохранения пока неизвестен');await expect(panel.locator('[data-booking-field="terms"]')).toBeDisabled();
  expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);
  expect(s.calls.filter(c=>c.action==='booking_read').at(-1).operation_id).toBe(op);expect(s.sends).toEqual([]);
 });
@@ -1286,5 +1286,38 @@ test('booking read for another owner is readonly and does not replace transcript
  const s=await setup(page,{tourChoices:bookingChoiceFixture(),otherOwner:true});
  s.setBookingHandler(async data=>({body:{ok:true,can_edit:false,record:null,operation_found:false}}));
  await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
- await expect(page.locator('[data-booking-panel] fieldset')).toBeDisabled();expect(s.calls.filter(c=>c.action==='booking_save')).toEqual([]);expect(s.sends).toEqual([]);
+ await expect(page.locator('[data-booking-panel] [data-booking-field="terms"]')).toBeDisabled();expect(s.calls.filter(c=>c.action==='booking_save')).toEqual([]);expect(s.sends).toEqual([]);
+});
+
+test('unsaved booking conditions survive same-account card rerender without adopting a newer revision',async({page})=>{
+ const s=await setup(page,{tourChoices:bookingChoiceFixture()});
+ s.setBookingHandler(async data=>({body:{ok:true,can_edit:true,record:null,operation_found:false}}));
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ const terms=page.locator('[data-booking-field="terms"]');await terms.fill('Unsaved exact terms for this client');
+ await page.evaluate(()=>WorkspaceV2TourChoices.enhanceCard(WorkspaceV2.S.detail.conversation));
+ await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ await expect(page.locator('[data-booking-field="terms"]')).toHaveValue('Unsaved exact terms for this client');
+ expect(s.calls.filter(c=>c.action==='booking_save')).toEqual([]);expect(s.sends).toEqual([]);
+});
+
+test('late original booking response cannot clear a newer save fence',async({page})=>{
+ const s=await setup(page,{tourChoices:bookingChoiceFixture()});let record=null,firstRelease,secondRelease;const ops=[];
+ s.setBookingHandler(async data=>{
+  if(data.action==='booking_save'){
+   ops.push(data.operation_id);record={revision:ops.length,fields:data.fields};
+   const body={ok:true,record,saved_revision:ops.length,operation_found:true};
+   return await new Promise(resolve=>{if(ops.length===1)firstRelease=()=>resolve({body});else secondRelease=()=>resolve({abort:true})});
+  }
+  return {body:{ok:true,can_edit:true,record,operation_found:ops.includes(data.operation_id),saved_revision:1}};
+ });
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();
+ const button=page.getByRole('button',{name:'Оформление бронирования'});await button.click();
+ await page.locator('[data-booking-panel]').getByRole('button',{name:'Сохранить оформление'}).click();
+ await expect.poll(()=>ops.length).toBe(1);
+ await button.click();await button.click();await expect(page.locator('[data-booking-panel]')).toContainText('Сохранение подтверждено');
+ await page.locator('[data-booking-field="terms"]').fill('A newer unsaved condition');
+ await page.locator('[data-booking-panel]').getByRole('button',{name:'Сохранить оформление'}).click();await expect.poll(()=>ops.length).toBe(2);
+ firstRelease();await expect.poll(async()=>page.evaluate(()=>Object.entries(sessionStorage).filter(([k])=>k.startsWith('anytour-booking-v1:')).map(([,v])=>v))).toEqual([ops[1]]);
+ secondRelease();await expect(page.locator('[data-booking-panel]')).toContainText('Исход сохранения неизвестен');
+ expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(2);expect(s.sends).toEqual([]);
 });

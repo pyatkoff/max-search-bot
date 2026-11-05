@@ -2,6 +2,7 @@
 'use strict';
 const W=window.WorkspaceV2;if(!W)return;
 const {S,esc}=W,MAX_OFFERS=5;
+const bookingDrafts=new Map();let bookingDraftScope='';
 function text(value,limit=512){return typeof value==='string'?(value.length>limit?value.slice(0,limit)+'…':value).trim():''}
 function row(label,value,limit=600){value=text(value,limit);return value?`<div class="leadDetailRow"><span class="label">${esc(label)}</span><span class="value">${esc(value)}</span></div>`:''}
 function date(value){const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(text(value,10));return match?`${match[3]}.${match[2]}.${match[1]}`:''}
@@ -17,7 +18,7 @@ function bookingButton(kind,id){
   return typeof W.pipe==='function'&&Number.isSafeInteger(id)&&id>0?'<button type="button" class="actionBtn" data-booking-kind="'+kind+'" data-booking-source="'+id+'">Оформление бронирования</button>':'';
 }
 function bookingFieldsMarkup(fields={},editable=false){
-  const input=(key,label,max=300,type='text')=>'<label>'+esc(label)+'<input class="stageSelect" data-booking-field="'+key+'" type="'+type+'" maxlength="'+max+'" value="'+esc(type==='datetime-local'?(window.ManagerTime?.toInput(fields[key])||''):(fields[key]||''))+'"></label>';
+  const input=(key,label,max=300,type='text')=>'<label>'+esc(label)+'<input class="stageSelect" data-booking-field="'+key+'" type="'+type+'" maxlength="'+max+'" value="'+esc(type==='datetime-local'?(fields._localDates?(fields[key]||''):(window.ManagerTime?.toInput(fields[key])||'')):(fields[key]||''))+'"></label>';
   const area=(key,label,max)=>'<label>'+esc(label)+'<textarea class="outcomeNote" data-booking-field="'+key+'" maxlength="'+max+'">'+esc(fields[key]||'')+'</textarea></label>';
   return '<fieldset '+(editable?'':'disabled')+'><label>Состояние<select class="stageSelect" data-booking-field="state">'+Object.entries({checking:'Проверяем условия',ready:'Условия согласованы',confirmed:'Бронь подтверждена оператором',cancelled:'Отменено'}).map(([v,label])=>'<option value="'+v+'" '+((fields.state||'checking')===v?'selected':'')+'>'+label+'</option>').join('')+'</select></label>'+
     input('amount','Подтверждённая полная сумма за всех',16)+input('currency','Валюта: RUB, EUR или USD',3)+
@@ -41,6 +42,7 @@ function bindBookings(root,conversation){
       const kind=button.dataset.bookingKind,id=Number(button.dataset.bookingSource),actor=Number(S.manager?.id||0),generation=S.authGeneration;
       if(!actor||!['native','web','search'].includes(kind)||!Number.isSafeInteger(id))return;
       const current=()=>Number(S.current)===conversation&&Number(S.detail?.conversation?.id)===conversation&&Number(S.manager?.id)===actor&&S.authGeneration===generation&&!S.authExpired&&button.isConnected;
+      const scope=actor+':'+generation;if(bookingDraftScope!==scope){bookingDrafts.clear();bookingDraftScope=scope}
       const parent=button.parentElement;
       let panel=parent.querySelector('[data-booking-panel]');
       if(panel){panel.remove();return}
@@ -49,22 +51,24 @@ function bindBookings(root,conversation){
       const key='anytour-booking-v1:'+actor+':'+conversation+':'+kind+':'+id;
       let pending='',record=null,canEdit=false,busy=false;
       const getPending=()=>{try{const op=sessionStorage.getItem(key)||'';return /^[a-f0-9]{32}$/.test(op)?op:''}catch(e){return 'storage-unavailable'}};
+      const clearPending=expected=>{try{if(sessionStorage.getItem(key)===expected)sessionStorage.removeItem(key);pending=getPending()}catch(e){/* Keep the original fence on storage failure. */}};
       const say=message=>{const node=panel.querySelector('[data-booking-status]');if(node)node.textContent=message};
       const active=()=>current()&&panel.isConnected;
       function render(message=''){
         panel.innerHTML='<div class="leadPanelTitle">От выбора до бронирования</div><p class="leadPanelHint">Точные выбранные условия сохранены выше. Цена из подборки не становится подтверждённой автоматически. Здесь фиксируется работа менеджера и уже полученное подтверждение оператора. Сохранение не отправляет заявку, сообщение или платёж.</p>'+
           (record?'<p>Сохранено: '+esc(({checking:'проверка условий',ready:'условия согласованы',confirmed:'бронь подтверждена оператором',cancelled:'отменено'})[record.fields.state])+' · версия '+Number(record.revision)+'</p>':'<p>Оформление ещё не сохранено.</p>')+
-          '<form data-booking-form>'+bookingFieldsMarkup(record?.fields,canEdit&&!pending)+'</form><div role="status" aria-live="polite" data-booking-status>'+esc(message)+'</div><button class="actionBtn" type="button" data-booking-read>'+(pending?'Проверить сохранение':'Открыть сохранённую запись')+'</button>';
-        panel.querySelector('[data-booking-read]').onclick=()=>read();
+          '<form data-booking-form>'+bookingFieldsMarkup(bookingDrafts.get(key)?.fields||record?.fields,canEdit&&!pending)+'</form><div role="status" aria-live="polite" data-booking-status>'+esc(message)+'</div><button class="actionBtn" type="button" data-booking-read>'+(pending?'Проверить сохранение':'Открыть сохранённую запись')+'</button>';
+        panel.querySelector('[data-booking-read]').onclick=()=>read(true);
+        panel.querySelector('form').oninput=()=>{const fields={_localDates:true};for(const n of panel.querySelectorAll('[data-booking-field]'))fields[n.dataset.bookingField]=n.type==='checkbox'?n.checked:n.value;const revision=bookingDrafts.get(key)?.revision??(record?.revision||0);bookingDrafts.set(key,{fields,revision});while(bookingDrafts.size>20)bookingDrafts.delete(bookingDrafts.keys().next().value)};
         panel.querySelector('form').onsubmit=event=>{event.preventDefault();save()};
       }
-      async function read(){
-        if(busy||!active())return;busy=true;pending=getPending();if(pending==='storage-unavailable'){busy=false;canEdit=false;render('Не удалось прочитать защиту от повтора. Откройте сохранённую запись после восстановления хранилища.');return}panel.textContent='Открываем оформление…';
+      async function read(discardDraft=false){
+        if(busy||!active())return;if(discardDraft&&!getPending())bookingDrafts.delete(key);busy=true;pending=getPending();if(pending==='storage-unavailable'){busy=false;canEdit=false;render('Не удалось прочитать защиту от повтора. Откройте сохранённую запись после восстановления хранилища.');return}panel.textContent='Открываем оформление…';
         let result;try{result=await W.pipe('booking_read',{conversation_id:conversation,source_kind:kind,source_id:id,operation_id:pending})}catch(e){result=null}
         busy=false;if(!active())return;
         if(result?.ok){
           record=result.record;canEdit=result.can_edit===true;
-          if(pending&&result.operation_found){try{sessionStorage.removeItem(key);pending=''}catch(e){/* Retain the fence if storage cannot be updated. */}}
+          if(pending&&result.operation_found){if(getPending()===pending&&bookingDraftScope===scope)bookingDrafts.delete(key);clearPending(pending)}
           render(pending?'Исход сохранения пока неизвестен. Повторная запись заблокирована.':result.operation_found?'Сохранение подтверждено.':'');
         }else{canEdit=false;if(['forbidden','not_found','unauthorized'].includes(result?.error))record=null;render(bookingError(result?.error));}
       }
@@ -86,10 +90,10 @@ function bindBookings(root,conversation){
           sessionStorage.setItem(key,op);if(sessionStorage.getItem(key)!==op)throw Error('storage');
         }catch(e){say('Не удалось сохранить защиту от повтора. Запись не отправлена.');return}
         pending=op;busy=true;panel.querySelector('fieldset').disabled=true;say('Сохраняем…');
-        let result;try{result=await W.pipe('booking_save',{conversation_id:conversation,source_kind:kind,source_id:id,revision:record?.revision||0,operation_id:op,fields})}catch(e){result=null}
-        busy=false;
+        let result;try{result=await W.pipe('booking_save',{conversation_id:conversation,source_kind:kind,source_id:id,revision:bookingDrafts.get(key)?.revision??(record?.revision||0),operation_id:op,fields})}catch(e){result=null}
+        busy=false;if(result?.ok&&getPending()===op&&bookingDraftScope===scope)bookingDrafts.delete(key);
         const rejected=['invalid_source','invalid_revision','invalid_operation','invalid_fields','verification_required','verification_expired','booking_evidence_required','cancellation_reason_required','invalid_transition','conflict','context_changed','forbidden','source_unavailable'];
-        if(result?.ok||rejected.includes(result?.error)){try{sessionStorage.removeItem(key);pending=''}catch(e){/* A storage failure keeps writes fenced. */}}
+        if(result?.ok||rejected.includes(result?.error))clearPending(op);
         if(!active())return;
         if(result?.ok){record=result.record;render(pending?'Запись сохранена, но локальная защита ещё не снята.':'Оформление сохранено.')}
         else if(pending){say('Исход сохранения неизвестен. Нажмите «Проверить сохранение»; повторная запись заблокирована.');panel.querySelector('[data-booking-read]').textContent='Проверить сохранение'}
