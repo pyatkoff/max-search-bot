@@ -31,6 +31,17 @@
   "original_preprovider_intent_artifact": 13377888476,
   "original_preprovider_run": 41945166136,
   "original_log_and_results_closed_do_not_repeat": true,
-  "current_contexts_not_captured": true,
-  "ready_link_edits": 0
+  "current_contexts_not_captured": false,
+  "ready_link_edits": 0,
+  "current_context_native_ids_consumed": [
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "remaining_current_context_native_ids": [],
+  "all_six_current_contexts_consumed": true,
+  "actual_run": 42098593673
 }

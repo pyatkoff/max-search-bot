@@ -1,0 +1,34 @@
+{
+  "operation": "commercial-current-source-20261105-a0b3-for-legacy-inline6",
+  "state": "CLOSED_ACCEPTED_NEW_CURRENT_SOURCE_FOR_LEGACY_INLINE_SIX",
+  "sha": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+  "deploy": 42096003931,
+  "tls": 42097023328,
+  "diag": 42097023519,
+  "deploy_job": 127487691410,
+  "installed_verify_job": 127489098326,
+  "accepted_execution_run": 42098593673,
+  "accepted_context_run": 42097711121,
+  "reviewed_independent_delta_paths": [
+    "docs/ARCHIVE_RESEARCH_READ.md",
+    "services/ArchiveResearchReadService.php",
+    "tests/run_archive_research_read_regression.php"
+  ],
+  "publishing21_unchanged": true,
+  "preactivation_source_stop": {
+    "state": "V8_CURRENT_MAIN_CHANGED_STOP_BEFORE_CONTEXT_WORKFLOW_ACTIVATION",
+    "old_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+    "new_source": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+    "workflow_activated": false,
+    "new_context_native_cases_run": 0,
+    "private_input_created": 0,
+    "ssh_db_provider_calls": 0,
+    "old_projection_not_replayed": true
+  },
+  "full_remote21": true,
+  "accepted_host25_byte_identical": true,
+  "installed_clean": true,
+  "runtime_native_schema_rights": true,
+  "no_foreign_release_mutation": true,
+  "future_always_fresh_current_main_same_healthy_gates": true
+}

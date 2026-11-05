@@ -1,0 +1,90 @@
+{
+  "operation": "commercial-hotel-prices-and-search-links-20261105-next-after-inline22-plan1",
+  "state": "ALL155_ADMITTED_PUBLISHED_LINK_PAIRS_CLOSED_REVIEW6_ONLY_THEN_GENUINELY_NEW_MATERIAL_INPUTS",
+  "goal": "Prices first from genuinelyNEWnormal persisted input; remaining six name-review links require exact native-product-publisher proof; then new material inputs toward500.",
+  "published_pairs": 161,
+  "priced_pairs": 85,
+  "unresolved_name_review_native_ids": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "new_price_edits_ready": 0,
+  "new_link_edits_ready": 0,
+  "new_materials_ready": 0,
+  "open_canva_transactions": 0,
+  "current_price_provider_workflows": 0,
+  "goal500_complete": false,
+  "next_metadata_window_exclusive_lower": "2026-11-05T19:36:13Z",
+  "latest_closed_new_price_input": {
+    "run": 42060554998,
+    "source_run": 42054958159,
+    "scope": 70,
+    "admitted_rows": 0,
+    "window": [
+      1793892442,
+      1793893033
+    ],
+    "unique_consumed_fingerprints": 199,
+    "results_closed": true
+  },
+  "criteria": [
+    "Prices first only genuinelyNEWnormal persisted inputs. Metadata26 created19:20:28..19:36:13 returned0/CLOSED; futureNEWboundedmetadata after19:36:13 only, no samewindow or oldlogs/sourceAPI/manualpass/cronfix.",
+    "READ15/window70/sourcevalidate-collect/old185+all14READ14FPs/oldquotes/secondtuples closed. Limitedzero is not allmarketabsence; old pricechecktime is unchanged, no newavailabilityclaim.",
+    "After all six currentlegacy inlinepairs verified, all149+6=155 admittedpublishedhotels have addresslinks. Remainingreview6=482/476/81173/32577/478/80964 need genuinely exact native-country-active-name/product/publisher proof before any wronghotel URL/role/frame; do not force countscomplete or guess country/bindings.",
+    "Recover only needed canonicalreview6 plan/state/sourceproof to choose finite genuinelyNEW exact identity evidence. Do not query oldcataloguegroups or reread accepted123/149ownedposts. A missing proof is notpermission.",
+    "When no readyprice/link edit, resume newmaterials ONLY from genuinelyNEW declared inputs on top of canonical media≤52closed/exclusions289URLs288decodedbasenames. Recover needed stock25/extras62/batch52plans and retained indices/notes, choose finite≤4NEWownergroups/max2declaredexactURLs each; never replay closedURL/photo/log/pixel/PNG/TX.",
+    "Maintain wholemaincomplexhero+2propertylowerphotos+confirmedfacts/captions/rights/nativebindings; no AIstock/inventedfacts/branding/sharedCDN substitutes. Unsupported/missingwholecomplexhero defers; ready1..10notheldforhardcases.",
+    "FreshCanvaTX only afterfrozenacceptedsourceproof; originaldesignprotected/reusepool/EACHthumbnailSHOW/realownerphoto/PNGguards/freezeTHENcancel exactTX, no reexport/closedTXreuse. OneexistingSERIALpublisher/privateintent/once/UNKNOWNoriginalfirst.",
+    "Newactualmaterialpair ONLY permits exactnextMAXroute/feedappend/monitorappend usinglastactual161 acceptance; price/linkEDITS neverappendfeeds/MAX/monitor or increase161materials.",
+    "For any futureexistingpriceedit useCURRENTownlinkmanifest+confirmedonce/receipt/version/body/entities/photo/button/source/token; firstTENlinks/10a/6c/6dops arecurrent, never oldprice-onlycaption. Fullfreshcurrentmain/samehealthyDeployTLSdiag/full21/accepted25host/clean/native/schema-rights required beforeSSH.",
+    "Goal500notcomplete; keepONLYownanytour-maxACTIVE15 until500actualpairs+3fullYML+agreedminiappacceptance+savedacceptance. Nopeoplemessages/foreignleases/otherautomationchanges."
+  ],
+  "native_inline_current_operations": {
+    "first10b_prefix": "commercial-hotel-search-links-20261105-priced10b-h",
+    "sixc_prefix": "commercial-hotel-search-links-20261105-priced6c-h",
+    "legacy6d_prefix": "commercial-hotel-search-links-20261105-priced6d-h",
+    "suffix": "-v1"
+  },
+  "next_action_requires_no_new_user_permission_for_already_authorized_work": true,
+  "linked_pairs": 155,
+  "unlinked_pairs": 6,
+  "priced_unlinked_native_ids": [],
+  "latest_closed_link_update_run": 42098593673,
+  "latest_closed_context_run": 42097711121,
+  "all_noquote_pairs_closed": 95,
+  "latest_inline_delivery": {
+    "native_hotel_ids": [
+      310,
+      469,
+      498,
+      1971,
+      1981,
+      9373
+    ],
+    "run": 42098593673,
+    "verified_existing_posts": 12,
+    "caption_text_byte_identical": true,
+    "price_amount_and_checkmetadata_unchanged": true,
+    "closed": true
+  },
+  "latest_closed_normal_source_run": 42054958159,
+  "metadata26_closed": {
+    "operation": "commercial-price-monitor-20261105-metadata26-new-after1920",
+    "state": "CLOSED_NEW_BOUNDED_SCHEDULED_METADATA_ONLY",
+    "created_after": "2026-11-05T19:20:27Z",
+    "query_start_inclusive": "2026-11-05T19:20:28Z",
+    "upper_utc": "2026-11-05T19:36:13Z",
+    "total_count": 0,
+    "returned": 0,
+    "new_normal_or_admitted_tour_tuple": false,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "old_logs_read": 0,
+    "do_not_repeat_same_window": true
+  },
+  "updated_at_utc": "2026-11-05 19:59:37 UTC"
+}
