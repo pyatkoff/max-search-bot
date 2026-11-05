@@ -219,13 +219,13 @@ final class TourChoiceService
     private static function searchInquiries(PDO $pdo,int $conversation,int $limit): array
     {
         if ($conversation<=0) return [];
-        $q=$pdo->prepare("SELECT payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type='tour_search_inquiry' ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));$q->execute([$conversation]);$out=[];
+        $q=$pdo->prepare("SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type='tour_search_inquiry' ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));$q->execute([$conversation]);$out=[];
         require_once __DIR__.'/Search3TourHandoffSnapshot.php';
         foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $p=self::decode($row['payload_json']);
             if (($p['schema']??null)!==1||!is_array($p['snapshot']??null)||Search3TourHandoffSnapshot::normalize($p['snapshot'])===null) continue;
             $o=$p['snapshot']['observation'];$expiry=$o['price']['expiresAt'];
-            $out[]=['observation'=>$o,'price_at_arrival'=>$p['price_at_arrival']??'unknown','price_state_now'=>is_int($expiry)&&$expiry<=time()?'expired':$o['price']['state'],'created_at'=>$row['created_at']];
+            $out[]=['inquiry_id'=>(int)$row['id'],'observation'=>$o,'price_at_arrival'=>$p['price_at_arrival']??'unknown','price_state_now'=>is_int($expiry)&&$expiry<=time()?'expired':$o['price']['state'],'created_at'=>$row['created_at']];
         }
         return $out;
     }
@@ -233,12 +233,12 @@ final class TourChoiceService
     private static function webInquiries(PDO $pdo,int $conversation,int $limit): array
     {
         if ($conversation<=0) return [];
-        $q=$pdo->prepare("SELECT payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type='tour_web_inquiry' ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));
+        $q=$pdo->prepare("SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type='tour_web_inquiry' ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));
         $q->execute([$conversation]);$out=[];
         foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
             $p=self::decode($row['payload_json']);
             if (($p['schema']??null)!==1 || !is_array($p['public_offer']??null)) continue;
-            $out[]=['public_offer'=>$p['public_offer'],'link_version'=>(int)$p['link_version'],'variant'=>(int)$p['variant'],'created_at'=>$row['created_at']];
+            $out[]=['inquiry_id'=>(int)$row['id'],'public_offer'=>$p['public_offer'],'link_version'=>(int)$p['link_version'],'variant'=>(int)$p['variant'],'created_at'=>$row['created_at']];
         }
         return $out;
     }

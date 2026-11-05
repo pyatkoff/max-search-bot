@@ -51,6 +51,7 @@ return [
         'php tools/telegram_smoke_test.php',
         'php tests/run_dialogue_application_regression.php',
         'php tests/run_tour_choice_regression.php',
+        'php tests/run_tour_booking_regression.php',
         'php tests/run_tour_choice_dispatch_regression.php',
         'php tests/run_search3_tour_handoff_regression.php',
         'php tests/run_owner_tour_choice_trial_regression.php',
