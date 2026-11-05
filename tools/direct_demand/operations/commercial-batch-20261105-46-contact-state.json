@@ -1,0 +1,199 @@
+{
+  "operation": "commercial-batch-20261105-46-contact",
+  "state": "CLOSED_TWELVE_NEW_OWNER_PHOTOS_NO_WHOLE_HOTEL_HERO_NO_READY_NO_DELIVERY",
+  "proven_scope": [
+    1074,
+    969,
+    975,
+    1294,
+    1402,
+    62505,
+    968,
+    65782,
+    1338,
+    65895
+  ],
+  "photo_subset": [
+    969,
+    1074
+  ],
+  "source_commit": "20fa305515afadb89f7ac0eaa53675d60ef313c5",
+  "actual_run": 41953255994,
+  "jobs": [
+    127001947203,
+    127001947528
+  ],
+  "original_artifacts": [
+    {
+      "group": 0,
+      "id": 13381657422
+    },
+    {
+      "group": 1,
+      "id": 13382470946
+    }
+  ],
+  "primary_owner_gets": 0,
+  "actual_raw_photo_gets": 12,
+  "readonly_groups": 2,
+  "max_parallel": 2,
+  "byte_format_dimension_passes": 11,
+  "dimension_rejects": 1,
+  "http403": 0,
+  "all_BOM_timestamp_fullcontactchunks_decodedbytes_sha_nativepixels_verified": true,
+  "raw_guards_query_policy_byte_identical": true,
+  "new_scope_cases": 3,
+  "old_guard_fixture_reruns": 0,
+  "retained_wholecaptions_unchanged": 10,
+  "old_url_exclusions_before": 217,
+  "old_basename_exclusions_before": 217,
+  "closed_unique_urls_through46": 229,
+  "closed_decoded_basenames_through46": 228,
+  "verdicts": {
+    "969": {
+      "hero_accepted": false,
+      "reason": "Twopeople/lifestyleframes,beachwithoutresortbuildings,beachchairs,kidsaquaparkdetail; no wholecomplex",
+      "dimension_reject": {
+        "role": "h969_new46_4",
+        "http": 200,
+        "type": "JPEG",
+        "bytes": 61046,
+        "width": 370,
+        "height": 230,
+        "not_http403": true,
+        "no_larger_variant_guess": true
+      }
+    },
+    "1074": {
+      "hero_accepted": false,
+      "reason": "Topdownaquaparkcategoryzone/slidepools/beach/pavilion/interior; no wholehotelcomplex",
+      "accepted_only_as_lower_context_not_ready": true
+    }
+  },
+  "accepted_raw_files_retained_only_in_original_authenticated_artifacts": [
+    {
+      "hotel_id": 969,
+      "role": "h969_new46_0",
+      "file": "accepted-primary-raw/h969_new46_0.jpg",
+      "sha256": "0c87952e31dd21570b2e1efe333ba1d368d42aab4464d46f1eb779b244322378",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 980,
+      "bytes": 186288
+    },
+    {
+      "hotel_id": 969,
+      "role": "h969_new46_1",
+      "file": "accepted-primary-raw/h969_new46_1.jpg",
+      "sha256": "c37f19b874f0687502d4c5dcd079884ba5608715fbc2e82267605e70b87d360f",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 980,
+      "bytes": 130570
+    },
+    {
+      "hotel_id": 969,
+      "role": "h969_new46_2",
+      "file": "accepted-primary-raw/h969_new46_2.jpg",
+      "sha256": "1377aa5a97189e57d1e6cb4e182fe0fbd1139fd366902871222e3537ed551e98",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 757738
+    },
+    {
+      "hotel_id": 969,
+      "role": "h969_new46_3",
+      "file": "accepted-primary-raw/h969_new46_3.jpg",
+      "sha256": "ed6c02a68036e6860694168670e63d355bf0b0ac217f7406f0eb30ff1acc780b",
+      "format": "JPEG",
+      "width": 850,
+      "height": 395,
+      "bytes": 128771
+    },
+    {
+      "hotel_id": 969,
+      "role": "h969_new46_5",
+      "file": "accepted-primary-raw/h969_new46_5.jpg",
+      "sha256": "1b91e6784867bb43c1da13d362228c7be28305ebdc9dcfc5003debe74d07efb3",
+      "format": "JPEG",
+      "width": 1700,
+      "height": 1000,
+      "bytes": 275859
+    },
+    {
+      "hotel_id": 1074,
+      "role": "h1074_new46_6",
+      "file": "accepted-primary-raw/h1074_new46_6.jpg",
+      "sha256": "067bcf8fed4be7e6a24b405dcaad87ed6c01ffef527ac6c2760f8e1e80e9ef55",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 980,
+      "bytes": 843408
+    },
+    {
+      "hotel_id": 1074,
+      "role": "h1074_new46_7",
+      "file": "accepted-primary-raw/h1074_new46_7.jpg",
+      "sha256": "e262cc7e77e2c0dabf3a3a7ba3dd5e05453ea606e3b2f0fa2d839207d679e9a3",
+      "format": "JPEG",
+      "width": 1600,
+      "height": 898,
+      "bytes": 772475
+    },
+    {
+      "hotel_id": 1074,
+      "role": "h1074_new46_8",
+      "file": "accepted-primary-raw/h1074_new46_8.jpg",
+      "sha256": "e28c1f1f2b812f401a3d5ba531ad4bb8d0b152b108672882a13ae2277896c1ac",
+      "format": "JPEG",
+      "width": 1600,
+      "height": 899,
+      "bytes": 888300
+    },
+    {
+      "hotel_id": 1074,
+      "role": "h1074_new46_9",
+      "file": "accepted-primary-raw/h1074_new46_9.jpg",
+      "sha256": "e27b05bef0385d0e01192dee733b7ab8e13a362f0f87ea389c6b5a1610fe4f10",
+      "format": "JPEG",
+      "width": 850,
+      "height": 395,
+      "bytes": 87505
+    },
+    {
+      "hotel_id": 1074,
+      "role": "h1074_new46_10",
+      "file": "accepted-primary-raw/h1074_new46_10.png",
+      "sha256": "54ebd5f9774f70b8662b61c3b7b8b27d8c510a3370e2b81e590cf5c3aa8e3a58",
+      "format": "PNG",
+      "width": 795,
+      "height": 597,
+      "bytes": 583691
+    },
+    {
+      "hotel_id": 1074,
+      "role": "h1074_new46_11",
+      "file": "accepted-primary-raw/h1074_new46_11.jpg",
+      "sha256": "707ffa58c517233d7ee220eb6918e16789c5d040e4fc2abd3059ee46864e9f61",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1080,
+      "bytes": 594015
+    }
+  ],
+  "all12_urls_and_basenames_closed_no_repeat_get_or_variants": true,
+  "raw_photos_public_git_exports": 0,
+  "canva_transactions_opened": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "new_logical_pairs": 0,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "tour_provider_calls": 0,
+  "price_quotes": 0,
+  "price_edits": 0,
+  "manual_collection_approved": false,
+  "manual_permission_question_still_unanswered": true
+}

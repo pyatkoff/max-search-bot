@@ -177,5 +177,9 @@
   "manual_collection_permission_pending": true,
   "manual_collection_approved": false,
   "prepared_manual_source_hotels": 121,
-  "prepared_manual_new_search_limit": 7
+  "prepared_manual_new_search_limit": 7,
+  "latest_media_pass46_state": "CLOSED_TWELVE_NEW_OWNER_PHOTOS_NO_WHOLE_HOTEL_HERO_NO_READY_NO_DELIVERY",
+  "latest_media_pass46_run": 41953255994,
+  "latest_media_pass46_ready": 0,
+  "latest_scheduled_metadata_window_checked_at": "2026-11-05 02:12:21 UTC"
 }
