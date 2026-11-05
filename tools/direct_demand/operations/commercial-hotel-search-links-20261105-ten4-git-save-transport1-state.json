@@ -1,0 +1,8 @@
+{
+  "state": "IMMUTABLE_GIT_TRANSPORT_ERRORS_RESOLVED_SAME4_CONTENTS_PARENT_CAS_NO_REF_OR_PROVIDER_REPLAY",
+  "original_parent": "e1e79298d613127cf3397c3aec34425f05cac4db",
+  "actual_commit": "4e23c8e33d72ed17f1fb1f30136626755c4b6dc2",
+  "actual_tree": "de67d0a53c54156ce303c043da2c64e5e93a4eef",
+  "provider_calls": 0,
+  "automatic_business_retry": false
+}
