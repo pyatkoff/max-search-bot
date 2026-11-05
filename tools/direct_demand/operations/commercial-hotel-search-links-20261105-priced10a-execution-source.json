@@ -1,0 +1,55 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced10a-pass1",
+  "state": "EXECUTE_ONLY_ORIGINAL_FROZEN10_PRIOR_PRICED_NOQUOTE_LINK_PAIRS",
+  "goal": "Add10nativehotelsearchlinks to20existingpricedposts while preservingcurrentwholepricecaption/photo/button/source/token andEXACTprice quotehash/checkepoch.",
+  "hotel_ids": [
+    12114,
+    9432,
+    109,
+    13873,
+    13869,
+    73342,
+    233,
+    253,
+    165,
+    389
+  ],
+  "prepared_run": 42039527841,
+  "prepared_artifact": 13420631052,
+  "context_run": 42038473677,
+  "context_artifact": 13419427060,
+  "context_source_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "context_workflow_source_sha": "171c43a8aaedb35333c825ef48b85410a8731ce0",
+  "frozen_prepared_source": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "expected_source": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "scope_sha256": "abe807e059e7adc4cf9d8b45b5ccc9d2e503ebd3a784a21a4f9d7caa8740139a",
+  "template_sha256": "dc2a1f05ae2e24b2d599d811a8e933a02349504c0dc96658c61607f54479be6b",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": false,
+  "expected_base": {
+    "published": 161,
+    "priced": 85,
+    "linked": 123
+  },
+  "limits": {
+    "one_serial_run": true,
+    "max_hotels": 10,
+    "max_existing_post_content_edits": 20,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_prices": 0,
+    "new_posts": 0,
+    "automatic_retry": false
+  },
+  "criteria": [
+    "Originalframe-manifest-approval5keys-scriptbytes/nativeprice-role proof/expected_prior_price_metadata frozen;syntaxonly/closed4Python+8nativecasesnotrerun.",
+    "FreshSAMEhealthycurrentmain/deployverifyTLSdiag/FULLremote21/hostaccepted25/clean/runtime/native/schema-rights.",
+    "AllhotelprivateintentartifactBEFOREANYserver/provideraccess/perpostdurableonceBEFOREwrite.",
+    "NativeTEMPLATE checksEXACTpriorprice metadata beforewrite andaftercurrentregistryreceipt, preservingwholepricecaption/closing/photo/token/source. LinkNOQUOTE notnewquote/checktime/availability.",
+    "Acceptance requiresallidswerepriced85andpreviouslyunlinked123;pricedIDlistandcheckmetadataunchanged/newprices0/newposts0.",
+    "UNKNOWN/failureSTOPseries/reconcileoriginalFIRST/noautomaticretry/newoperationbypass."
+  ],
+  "risks": [
+    "Post/productioncouldchange;mandatoryguardsstopbeforewrite.",
+    "Providereditcouldapplybutfinalreadfail;originaloutcomeFIRST/no blindreplay."
+  ]
+}
