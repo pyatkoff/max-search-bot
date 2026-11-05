@@ -1,0 +1,20 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-normal674-pass1",
+  "state": "ORIGINAL_FIRST_MAX_CONTENT_WRITE_OUTCOME_UNRESOLVED_TG_UNATTEMPTED_OTHER6_UNATTEMPTED",
+  "run": 42000246854,
+  "job": 127153335683,
+  "source": "df5f3614f619e6bc54a7bf3c619bb9ec11a4177e",
+  "expected_source": "da54e30f9f8b3bde427554ee3e3a2cc02b9ffd97",
+  "intent_artifact": 13402486074,
+  "intent_created_at": "2026-11-05T09:11:00Z",
+  "result_artifact": 13401867953,
+  "result_created_at": "2026-11-05T09:11:12Z",
+  "native_id": 157359,
+  "error": "max_content_edit_readback_mismatch",
+  "content_write_attempts": 1,
+  "confirmed_pairs": 0,
+  "unattempted_pairs": 6,
+  "original_MAX_readback_must_be_reconciled_before_any_continuation": true,
+  "paid_quotes_all7_consumed_no_retry": true,
+  "do_not_repeat_original7_sender": true
+}

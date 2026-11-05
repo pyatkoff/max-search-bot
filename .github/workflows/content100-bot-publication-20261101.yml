@@ -1,4 +1,4 @@
-name: Apply only seven frozen normal hotel offers including three exact owned link block replacements
+name: Reconcile only original157359 MAX write without repeating a caption write
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -64,29 +64,26 @@ jobs:
           path: ${{ runner.temp }}/prepared-offers
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-read14-new674-unpriced1
+          name: commercial-hotel-offer-update-20261105-normal674-pass1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41993389158
-          path: ${{ runner.temp }}/normal-read14
-      - name: Bind exact frozen manifests scripts and owned-block replacements to fresh current source
+          run-id: 42000246854
+          path: ${{ runner.temp }}/original-execution
+      - name: Bind exactly original157359 MAX attempt and validate three new scopes
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/bind-new-normal674-hotel-offers-20261105.py tools/direct_demand/operations/run-new-normal674-hotel-offer-updates-20261105.py
-          python3 tools/direct_demand/operations/bind-new-normal674-hotel-offers-20261105.py
-          for script in "$RUNNER_TEMP"/prepared-offers/*/execution.php; do
-            php -l "$script"
-          done
-      - name: Retain all exact private content edit intents before provider access
+          python3 -m py_compile tools/direct_demand/operations/prepare-original-normal-offer157359-reconcile-20261105.py tools/direct_demand/operations/run-original-normal-offer157359-reconcile-20261105.py
+          python3 tools/direct_demand/operations/prepare-original-normal-offer157359-reconcile-20261105.py
+          php -l "$RUNNER_TEMP/reconcile157359.php"
+          ANYTOUR_RECONCILE157359_NEW_INPUT_CASES=1 php "$RUNNER_TEMP/reconcile157359.php"
+      - name: Retain exact original reconciliation intent before one owned MAX read
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-offer-update-20261105-normal674-pass1-intent
-          path: |
-            ${{ runner.temp }}/all-offer-execution-intents.private.json
-            ${{ runner.temp }}/offer-execution-binding-safe.json
+          name: commercial-hotel-offer157359-20261105-reconcile1-intent
+          path: ${{ runner.temp }}/original157359-reconcile-intent.private.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -127,7 +124,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Update only seven frozen normal hotel pairs serially with exact owned block replacement
+      - name: Reconcile original MAX content without any provider write or other post read
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -135,19 +132,17 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-new-normal674-hotel-offer-updates-20261105.py
-      - name: Retain original private edit outcomes including partial or unknown results
+          python3 tools/direct_demand/operations/run-original-normal-offer157359-reconcile-20261105.py
+      - name: Retain bounded original private reconciliation proof
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-offer-update-20261105-normal674-pass1
+          name: commercial-hotel-offer157359-20261105-reconcile1
           path: |
-            ${{ runner.temp }}/offer-execution-summary.json
-            ${{ runner.temp }}/offer-execution-complete-safe.json
-            ${{ runner.temp }}/all-offer-execution-intents.private.json
-            ${{ runner.temp }}/prepared-offers/*/update-result.private.json
-            ${{ runner.temp }}/prepared-offers/*/update-attempt-started.private.json
-            ${{ runner.temp }}/prepared-offers/*/execution-approval.json
+            ${{ runner.temp }}/original157359-reconcile-result.private.json
+            ${{ runner.temp }}/original157359-reconcile-input.private.json
+            ${{ runner.temp }}/original157359-reconcile-intent.private.json
+            ${{ runner.temp }}/original157359-reconcile-summary.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and read scripts

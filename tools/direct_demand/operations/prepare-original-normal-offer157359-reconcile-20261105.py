@@ -1,0 +1,14 @@
+import base64,hashlib,json,os,pathlib
+t=pathlib.Path(os.environ['RUNNER_TEMP']);b=pathlib.Path('tools/direct_demand/operations')
+def one(folder,name):
+ p=list((t/folder).rglob(name));assert len(p)==1,(folder,name);return p[0]
+summary=json.loads(one('original-execution','offer-execution-summary.json').read_text());assert len(summary)==1 and summary[0]['catalog_id']==157359 and summary[0]['ok'] is False and summary[0]['error']=='max_content_edit_readback_mismatch' and summary[0]['post_write_attempts']==1
+root=one('prepared-offers','update-index.json').parent;index=json.loads((root/'update-index.json').read_text());assert len(index)==7;entry=next(x for x in index if x['hotel_id']==157359);folder=root/entry['folder'];raw=(folder/'update-manifest.json').read_bytes();m=json.loads(raw);c=json.loads((folder/'candidate.json').read_text());assert hashlib.sha256(raw).hexdigest()==entry['manifest_sha256'] and m['operation']==summary[0]['operation']
+started=list((t/'original-execution').rglob('update-attempt-started.private.json'));assert len(started)==1 and int(started[0].parent.name)==157359
+d={'native_hotel_id':157359,'original_execution_run':42000246854,'original_error':'max_content_edit_readback_mismatch','original_write_attempts':1,'manifest_sha256':entry['manifest_sha256'],'manifest':m,'canonical_context':c['canonical_context'],'completed_native_ids':[],'unattempted_native_ids':[x['hotel_id'] for x in index if x['hotel_id']!=157359]}
+raw=(json.dumps(d,ensure_ascii=False,separators=(',',':'))+'\n').encode();(t/'original157359-reconcile-input.private.json').write_bytes(raw)
+intent={'operation':'commercial-hotel-offer-update-20261105-normal674-h157359-v1-reconcile1','original_operation':m['operation'],'original_execution_run':42000246854,'input_sha256':hashlib.sha256(raw).hexdigest(),'manifest_sha256':entry['manifest_sha256'],'max_owned_provider_reads':1,'provider_writes':0,'gateway_calls':0,'other_publications_touched':0,'manual_capture':False,'own_registry_ack_only_after_exact_actual_body_photo_button_proof':True}
+(t/'original157359-reconcile-intent.private.json').write_text(json.dumps(intent)+'\n')
+s=(b/'reconcile-original-normal-hotel-offer157359-20261105.php').read_text();prefix="<?php\ndeclare(strict_types=1);\n";assert s.startswith(prefix);v={'EXPECTED_INSTALLED_SHA':os.environ['EXPECTED_PRODUCTION_SHA'],'APPROVED_RECONCILE_INPUT_B64':base64.b64encode(raw).decode(),'APPROVED_RECONCILE_INPUT_SHA256':hashlib.sha256(raw).hexdigest()}
+(t/'reconcile157359.php').write_text(prefix+''.join('const '+k+'='+json.dumps(x)+';\n' for k,x in v.items())+s[len(prefix):])
+print(json.dumps({'operation':intent['operation'],'original_single_write_unknown_native':157359,'unattempted_pairs_held':6,'completed_pairs_reread':0,'max_owned_reads':1,'provider_writes':0,'new_posts':0,'gateway_calls':0}))

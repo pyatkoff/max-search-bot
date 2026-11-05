@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-normal674-h157359-v1-reconcile1",
+  "state": "EXACT_ORIGINAL_SINGLE_MAX_WRITE_OUTCOME_FIRST_NO_PROVIDER_REWRITE",
+  "original_run": 42000246854,
+  "original_job": 127153335683,
+  "original_result_artifact": 13401867953,
+  "original_intent_artifact": 13402486074,
+  "prepared_run": 41999314350,
+  "prepared_artifact": 13401766643,
+  "native_id": 157359,
+  "original_error": "max_content_edit_readback_mismatch",
+  "original_content_write_attempts": 1,
+  "original_confirmed_pairs": 0,
+  "unattempted_pairs_held": 6,
+  "goal": "Resolve original first MAX content edit by one exact owned read and acknowledge only that own registry/once outcome if full intended body/photo/button/source/token matches. No duplicate provider write.",
+  "bounds": {
+    "max_owned_MAX_reads": 1,
+    "provider_writes": 0,
+    "gateway_quotes": 0,
+    "new_source_searches": 0,
+    "new_posts": 0,
+    "other_post_reads": 0,
+    "foreign_lease_changes": 0,
+    "manual_capture": false
+  },
+  "criteria": [
+    "Fresh healthy current source/full21/hostpin/clean/schema/current native and exact own canonical once manifest/plan.",
+    "Original perhotel operation/manifest/current publication/token/old or own-new version/phase text_edit_returned only.",
+    "Three new original native/run/one-attempt negative cases, PHP-l, old fixtures0.",
+    "Exact actual new body/photo/canonical URL/onlybutton proof before registry acknowledge. If body differs, retain private original snapshot in own once journal and original artifact; no blind rewrite, no foreign IDs/body exported.",
+    "registerPublication own transaction and confirmObservedButton own current pending only, no outer transaction/providerbuttonPUT. Preserve old token/logical/source/photo and mark same original MAX member confirmed only after actual proof."
+  ]
+}
