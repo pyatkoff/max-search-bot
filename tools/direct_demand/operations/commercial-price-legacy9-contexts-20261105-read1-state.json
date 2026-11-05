@@ -1,0 +1,104 @@
+{
+  "operation": "commercial-price-legacy9-contexts-20261105-read1",
+  "state": "CLOSED_ACTUAL_READ1_FOUR_CANONICAL_HOTELS_EIGHT_PLATFORM_CONTEXTS_CAPTURED_FIVE_DEFERRED_BY_READER_FORMAT_CHECK",
+  "goal": "Recover current exact canonical context for9 unquoted legacy posts, with publisher/native roles and last-authorized-caption proof kept separate",
+  "native_hotel_ids": [
+    240,
+    1981,
+    46672,
+    498,
+    9373,
+    469,
+    381,
+    310,
+    1971
+  ],
+  "typed_bridge_cases": {
+    "240": 80,
+    "498": 228,
+    "1981": 877,
+    "46672": 2432
+  },
+  "source_proof_modes": [
+    "Confirmed historical caption-copy once receipt + current canonical caption/photo signature",
+    "Originalpublisher approved receipt + current canonical exact version",
+    "Bothpublisher andcopy receipts agree on same unchangedpublication"
+  ],
+  "boundaries": [
+    "No paidquotes/provider calls/edits or receipt rewrites",
+    "Only9nativecurrentcatalogLIMIT1 and atmost18existingcanonicalpublication getters in READONLYtransactions",
+    "Canonicalclosedoncefiles read only,cachedperpath; no fullprivatearchiveexport",
+    "Ignore oldpublicpublication/message/versionreferences aslookupauthority; deriveprivateIDs fromoriginalconfirmedcanonicalonce receipts",
+    "Runtimefull21/source/schema/host/channelconfig/currentcaption/nativecountry-active-name/body-photo-button proof before acceptingcontext",
+    "Copy-only existingphotoSignature isexplicitproofkind, notinventedPNGcoverhash",
+    "No oldhuman-copy/initialpublisheroperation rerun; no original IDs rewritten; no source/cron/budget/schema/transport/runtimecontrollerchanges"
+  ],
+  "criteria": [
+    "ThreeNEWidentityrole cases, all9approvedsource-native-name checks andPHP-l in pureCI",
+    "No oldtyped15/14gate/age/updaterfixtures rerun",
+    "Fullcurrentproductiongates before actualSSH, actualreadonlyoutput privateauthartifactonly, consolescopecounts/nativeIDs/reasons"
+  ],
+  "risks": [
+    "Some canonicalsourcefiles can be missing or currentcaption/photo/version changed; defereach affectedhotel without paidcall",
+    "A retained row may expire or departurebecometoday; re-evaluate72h/UTCfuture later before anyquote"
+  ],
+  "max_native_identity_queries": 9,
+  "max_publication_contexts": 18,
+  "max_provider_calls": 0,
+  "max_db_writes": 0,
+  "max_edits": 0,
+  "pure_run": 41940690288,
+  "pure_job": 126960415972,
+  "pure_commit": "63119551de2bd959d3deac79b1927f820c840c5e",
+  "frozen_input_sha256": "9bc8d10e1326522fb11fba91c79cd313ff61562b49bb6e8a6b67e995764c0bb4",
+  "frozen_reader_sha256": "d586b05846c3bc8b69470815632acf30da7832302ce759f844fa71e937d69b00",
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "deploy_run": 41937182905,
+  "tls_run": 41937963662,
+  "diagnostics_run": 41937963780,
+  "publishing21_unchanged": true,
+  "source_diff_paths": [
+    "services/DialogueController.php",
+    "services/ManagerAiDraftReferenceContext.php",
+    "services/ManagerAiDraftService.php",
+    "services/ManagerSearch3ReferenceContext.php",
+    "services/ModeledConversionEarlyForecast.php",
+    "services/ModeledConversionSemanticPrediction.php",
+    "tests/fixtures/dialogue_manager_interrupt.php",
+    "tests/run_manager_ai_draft_context_regression.php",
+    "tests/run_modeled_conversion_early_forecast_regression.php",
+    "tests/run_modeled_conversion_stream_regression.php",
+    "tests/run_v2_early_action_regression.php"
+  ],
+  "pure_role_case_reruns_on_actual": 0,
+  "readonly_transaction_mode": "Handle either samePDO or separatePDO without nesting; both remain READONLY",
+  "actual_server_reads_so_far": 0,
+  "run": 41941025252,
+  "job": 126961555461,
+  "source_commit": "fd1b8f9760a5bab0c4b83923f34362ae5bf0426f",
+  "installed_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "result_artifact": 13375024853,
+  "accepted_native_ids": [
+    310,
+    469,
+    381,
+    1971
+  ],
+  "accepted_platform_contexts": 8,
+  "deferred_native_ids": [
+    240,
+    1981,
+    46672,
+    498,
+    9373
+  ],
+  "deferred_reason": "canonical_source_receipt_partial",
+  "root_cause_now_verified": "Original publisher persist() atomically writes whole JSON objects without a terminal newline; reader wrongly applied JSONL terminal-newline contract to .json files",
+  "canonical_source_receipts_read": 2,
+  "readonly_connection_mode": "separate",
+  "db_writes": 0,
+  "provider_calls": 0,
+  "gateway_calls": 0,
+  "edits": 0,
+  "do_not_repeat_captured_four_or_full_nine": true
+}
