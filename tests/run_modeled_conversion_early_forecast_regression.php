@@ -250,6 +250,24 @@ function modeledObservationalEventAssertions(callable $check):void
 function modeledEarlyAssertions(callable $check):void
 {
     modeledObservationalEventAssertions($check);
+    $p=modeledEarlyRun([['text'=>'Подберите тур для семьи.'],
+        ['text'=>'Выбрали отель Fixture Bay, давайте начнем оформлять бронь.']]);
+    $check('selected accommodation commitment reaches the frozen live readiness packet without claiming payment',
+        $p['contextual_signals']['goal_counts']['general_purchase_intent']===1
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===1
+        &&$p['semantic_prediction']['stage']==='agency_purchase_intent'
+        &&$p['semantic_prediction']['outcome_observations']===[]
+        &&$p['contextual_signals']['extractor_sha256']===hash_file('sha256',dirname(__DIR__).'/services/ArchiveResearchSemanticExtractor.php')
+        &&$p['early_forecast']['purchase_with_us']['probability']===null
+        &&!$p['semantic_prediction']['export_allowed']);
+    $p=modeledEarlyRun([['text'=>'Подберите тур для семьи.'],
+        ['text'=>'Можно приобрести у вас авиабилеты только? Потом забронируем дом сами.']]);
+    $check('separate flight inquiry and self booking do not freeze a tour purchase commitment',
+        $p['contextual_signals']['goal_counts']['general_purchase_intent']===0
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$p['semantic_prediction']['stage']!=='agency_purchase_intent'
+        &&$p['semantic_prediction']['stage']!=='general_purchase_intent'
+        &&$p['semantic_prediction']['outcome_observations']===[]);
     $p=modeledEarlyRun([['text'=>'Подберите тур в Турцию. Бюджет до 200 тысяч.']]);
     $f=$p['early_forecast'];
     $check('early quality is a distinct non-monetary candidate with unresolved trip',

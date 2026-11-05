@@ -9,6 +9,7 @@ declare(strict_types=1);
 final class ArchiveResearchSemanticExtractor
 {
     public const VERSION='ru_archive_contextual_v2';
+    public const RULE_REVISION=3;
     public const MAX_TEXT_BYTES=32768;
     public const MAX_STATE_BYTES=1024;
     private const GOALS=[
@@ -27,13 +28,13 @@ final class ArchiveResearchSemanticExtractor
     }
     public static function initialState():array
     {
-        return ['v'=>2,'e'=>0,'last'=>null,'p'=>'unknown','q'=>'none','qt'=>null,'qr'=>null,'qi'=>0,
+        return ['v'=>self::RULE_REVISION,'e'=>0,'last'=>null,'p'=>'unknown','q'=>'none','qt'=>null,'qr'=>null,'qi'=>0,
             'money'=>null,'mt'=>null,'booking'=>null,'bt'=>null,'cancelled'=>false,'linked'=>false];
     }
     public static function validState(array$s):bool
     {
         $zero=self::initialState();
-        if(count($s)!==count($zero)||array_diff(array_keys($s),array_keys($zero))||$s['v']!==2)return false;
+        if(count($s)!==count($zero)||array_diff(array_keys($s),array_keys($zero))||$s['v']!==self::RULE_REVISION)return false;
         if(!is_int($s['e'])||$s['e']<0||$s['e']>500000||!is_int($s['qi'])||$s['qi']<0||$s['qi']>8)return false;
         if(!in_array($s['p'],['unknown','tour','hotel','flight','addon','mixed'],true)
             ||!in_array($s['q'],['none','booking','data','payment','criteria'],true))return false;
@@ -142,12 +143,20 @@ final class ArchiveResearchSemanticExtractor
                     $goals['substantive_interest']=true;$rules['substantive_interest']='answer_to_trip_criteria_question';
                     $relations['substantive_interest']=$s['qr']!==null?[$s['qr']]:[];
                 }
-                $intent=self::hit('готов\pL*\s+(?:за)?брониров\pL*|давайте\s+(?:за)?брони(?:ру\pL*|ровать)(?!\pL)|давайте\s+(?:нам\s+)?этот|(?<!\pL)(?:за)?бронируем(?!\pL)|хочу\s+(?:этот\s+)?купить|хотим\s+купить|(?:бер[её]м|беру)\s+(?:этот|этот\s+тур|тур|его|вариант)|(?<!\pL)покупаю(?!\pL)|готов\pL*\s+оплат|(?:сейчас|сегодня|завтра)\s+оплачу|(?<!\pL)оплачиваю(?!\pL)',$clause);
+                // A future plan alone does not identify this seller or accept a current offer.
+                $otherSeller=self::hit('у\s+друг|в\s+другом\s+агент|через\s+друг|не\s+у\s+вас',$clause);
+                $currentBooking=!$otherSeller&&self::hit('(?<!\pL)(?:за)?бронируем(?!\pL)',$clause)
+                    &&($s['q']==='booking'||self::hit('(?<!\pL)(?:за)?бронируем\s+(?:этот|выбранный|предложенный)\s+(?:тур|отель|вариант)(?!\pL)',$clause));
+                $selectedBooking=!$otherSeller&&!$excludedProduct
+                    &&!self::hit('перел[её]т|авиабилет|(?<!\pL)(?:билет|рейс|место|места|багаж)(?!\pL)',$clause)
+                    &&(in_array($s['p'],['tour','hotel'],true)||self::hit('(?<!\pL)(?:отел[ьяею]|тур)(?!\pL)',$clause))
+                    &&self::hit('(?<!\pL)выбрал(?:а|и)?(?!\pL)(?s:.{0,120})(?:давайте|можем|готов(?:а|ы)?)(?:\s+уже)?\s+(?:нач(?:ать|н[её]м)\s+)?(?:сделать|оформить|оформлять)\s+брон(?:ь|ирование)(?!\pL)',$clause);
+                $intent=self::hit('готов\pL*\s+(?:за)?брониров\pL*|давайте\s+(?:за)?брони(?:ру\pL*|ровать)(?!\pL)|давайте\s+(?:нам\s+)?этот|хочу\s+(?:этот\s+)?купить|хотим\s+купить|(?:бер[её]м|беру)\s+(?:этот|этот\s+тур|тур|его|вариант)|(?<!\pL)покупаю(?!\pL)|готов\pL*\s+оплат|(?:сейчас|сегодня|завтра)\s+оплачу|(?<!\pL)оплачиваю(?!\pL)',$clause)||$currentBooking||$selectedBooking;
                 $affirmative=self::hit('\A\s*(?:да|да,\s*беру|давайте|бер[её]м|беру|соглас(?:ен|на|ны)|оформляем|дистанционн(?:о|ое)|удал[её]нно|онлайн|в\s+офисе)\s*[.!]?\s*\z',$clause);
                 if($direct&&($intent||($affirmative&&$s['q']==='booking'))){
                     $goals['general_purchase_intent']=true;$rules['general_purchase_intent']='direct_customer_booking_or_payment_intent';
                     if($s['q']==='booking'||(in_array($s['p'],['tour','hotel','flight'],true)&&$s['q']!=='criteria'
-                        &&self::hit('давайте\s+(?:нам\s+)?этот\s+(?:тур|отель)(?!\pL)',$clause))||self::hit('давайте\s+(?:за)?брони(?:ру\pL*|ровать)(?!\pL)|(?<!\pL)(?:за)?бронируем(?!\pL)|(?:бер[её]м|беру)\s+(?:этот|тур|его|вариант)',$clause)){
+                        &&self::hit('давайте\s+(?:нам\s+)?этот\s+(?:тур|отель)(?!\pL)',$clause))||$currentBooking||$selectedBooking||self::hit('давайте\s+(?:за)?брони(?:ру\pL*|ровать)(?!\pL)|(?:бер[её]м|беру)\s+(?:этот|тур|его|вариант)',$clause)){
                         $goals['agency_purchase_intent']=true;$rules['agency_purchase_intent']='response_to_current_booking_context';
                         if($s['qr']!==null)$relations['agency_purchase_intent']=[$s['qr']];
                     }
@@ -248,7 +257,7 @@ final class ArchiveResearchSemanticExtractor
     }
     private static function result(array$s,string$status,array$events,array$flags,?string$boundary):array
     {
-        return ['version'=>self::VERSION,'status'=>$status,'state'=>$s,'events'=>$events,
+        return ['version'=>self::VERSION,'rule_revision'=>self::RULE_REVISION,'status'=>$status,'state'=>$s,'events'=>$events,
             'flags'=>$flags,'episode_boundary'=>$boundary,
             'semantics'=>'contextual_rule_candidates; episode_identity_unverified; not_purchase_probability'];
     }
@@ -260,7 +269,7 @@ final class ArchiveResearchSemanticExtractor
     private static function product(string$t):?string
     {
         if(self::hit('доплат\pL*\s+за|депозит|залог|апгрейд',$t))return'addon';
-        if(self::hit('только\s+(?:авиа)?билет|только\s+перел[её]т',$t))return'flight';
+        if(self::hit('только\s+(?:авиа)?билет|только\s+перел[её]т|(?<!\pL)(?:авиа)?билет\pL*\s+только(?!\pL)|(?<!\pL)перел[её]т\pL*\s+только(?!\pL)',$t))return'flight';
         if(self::hit('только\s+отел|без\s+перел[её]та',$t))return'hotel';
         if(self::hit('(?<!\pL)тур(?:ы|а|ом|у|ов)?(?!\pL)|пакетный\s+тур',$t))return'tour';
         return null;
