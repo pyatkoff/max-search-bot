@@ -1,0 +1,20 @@
+{
+  "operation": "commercial-price-source-refresh-20261105-single-attempt-exception-request",
+  "state": "SPECIFIC_CURRENT_HELPER_SINGLE_ATTEMPT_EXCEPTION_REQUESTED_AWAITING_REPLY",
+  "requested_at_utc": "2026-11-05 05:43:35 UTC",
+  "original_manual_121_7_approval_received": true,
+  "original_manual_approval_must_not_be_requested_again": true,
+  "specific_exception_approved": false,
+  "question": "Разрешаете для уже согласованного прохода по 121 отелю использовать проверенные текущие модули и разовый способ запросов без автоматических повторов? До 7 поисков, серверные файлы и обычное расписание сохраняются. Это отдельное исключение из ваших ограничений на версии модулей и способ запросов.",
+  "options": [
+    "Да, разрешаю разовый вариант",
+    "Нет, сохранить прежние ограничения"
+  ],
+  "question_tool_accepted_means_displayed_not_approval": true,
+  "original_actual_zero_api_stop_run": 41974771766,
+  "native_prepared_candidate_passed_run": 41975513624,
+  "candidate_template_sha256": "007830e74bfb63fb0333e7ef5809c2d138ff177e4feaa450ea309a5ce3240ec7",
+  "exception_file_not_created": true,
+  "do_not_repeat_question": true,
+  "xml_price_unit_question_separate_still_unanswered": true
+}
