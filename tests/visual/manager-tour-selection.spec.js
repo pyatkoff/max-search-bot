@@ -1978,6 +1978,7 @@ for(const width of [390,430,768,1440])test('personal client page exact condition
  await expect(page.locator('.managerContacts a[href^="mailto:"]')).toHaveAttribute('href','mailto:manager%40example.invalid');
  await expect(page.locator('.offer')).toHaveCount(2);await expect(page.locator('.photos img')).toHaveCount(6);
  for(const img of await page.locator('.photos img').all()){await img.scrollIntoViewIfNeeded();await expect.poll(()=>img.evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true)}
+ const fillGaps=await page.locator('.photos').first().evaluate(el=>[...el.querySelectorAll('figure')].map(figure=>{const f=figure.getBoundingClientRect(),i=figure.querySelector('img').getBoundingClientRect();return Math.max(Math.abs(f.top-i.top),Math.abs(f.bottom-i.bottom))}));expect(Math.max(...fillGaps)).toBeLessThanOrEqual(1);console.log('personal-gallery-fill',JSON.stringify({width,fillGaps}));
  const details=page.locator('.personalDetails').first();await expect(details).not.toHaveAttribute('open','');await expect(page.locator('.personalRecommendation').first()).toBeVisible();await expect(page.locator('.personalCompromise').first()).toContainText(offer.compromise);
  await details.locator('summary').click();await expect(details).toHaveAttribute('open','');await expect(details).toContainText(offer.flights);await expect(details).toContainText(offer.constraints);
  await details.locator('summary').focus();await page.keyboard.press('Enter');await expect(details).not.toHaveAttribute('open','');await page.keyboard.press('Enter');await expect(details).toHaveAttribute('open','');
@@ -2002,6 +2003,12 @@ for(const width of [390,1440])test('personal template manager can assemble and r
  fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-personal-settings-${browserName}-${width}.png`),animations:'disabled'});
  await f.locator('#tsAppearanceBack').click();await f.locator('#tsPreview').click();await expect(f.locator('.tsManagerPresentation h4')).toHaveText(manager.name);await expect(f.locator('.tsManagerPresentation img')).toHaveCount(0);await expect(f.locator('.tsManagerPresentation')).toContainText(manager.email);
  const publication=frozen();expect(publication.appearance.manager).toEqual(manager);expect(publication.appearance.template).toBe('personal');
+ const previewImages=f.locator('.tsPhotos img');await expect(previewImages).toHaveCount(publication.cards.reduce((sum,card)=>sum+card.photos.length,0));
+ for(const img of await previewImages.all()){
+  await expect.poll(()=>img.evaluate(image=>image.complete&&image.naturalWidth>0),{timeout:5000}).toBe(true);
+  await img.evaluate(async image=>{let timer;try{await Promise.race([image.decode(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Personal preview image decode timed out')),5000)})])}finally{clearTimeout(timer)}});
+ }
+ await f.locator('#tsEditor').evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));console.log('personal-preview-ready',JSON.stringify({width,images:await previewImages.count(),decoded:true}));
  await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-personal-preview-${browserName}-${width}.png`),animations:'disabled'});
  await f.locator('#tsEdit').click();await f.locator('#tsAppearance').click();await f.locator('#tsManagerName').fill('Later private edit');await expect.poll(()=>s.snapshot().draft.appearance.manager.name).toBe('Later private edit');await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');await f.locator('#tsAppearanceBack').click();
  await f.locator('#tsHistory').click();await f.getByRole('button',{name:new RegExp('Версия '+publication.draft_version+' ·')}).click();await expect(f.locator('.tsManagerPresentation h4')).toHaveText(manager.name);expect(frozen()).toEqual(publication);
