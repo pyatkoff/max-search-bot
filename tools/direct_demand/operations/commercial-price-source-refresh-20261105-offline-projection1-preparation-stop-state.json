@@ -1,0 +1,15 @@
+{
+  "operation": "commercial-price-source-refresh-20261105-pass1-offline-input-and-search-links1",
+  "state": "PREPARATION_STOP_WRONG_ORIGINAL_READ10_ARTIFACT_DISPLAY_NAME_FIXED_BEFORE_PROJECTION",
+  "run": 41977482389,
+  "job": 127079634998,
+  "source_commit": "24e561fb99608c3c0bd3aad0219227ce9337cf53",
+  "code_executed": false,
+  "source_api_calls": 0,
+  "db_calls": 0,
+  "post_edits": 0,
+  "original_source_searches_repeated": 0,
+  "fix": "Exactauthenticatedartifact13372822872actualnamecommercial-price-monitor-20261104-read10-72h-extension1fromoriginalrunmetadata;no originalreader/quotes/paidsearchrerun.",
+  "preparation_stop_count": 1,
+  "old_fixtures_rerun": 0
+}

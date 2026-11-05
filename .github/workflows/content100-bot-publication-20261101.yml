@@ -37,7 +37,7 @@ jobs:
           path: ${{ runner.temp }}/old-read9
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-read10-72h
+          name: commercial-price-monitor-20261104-read10-72h-extension1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
           run-id: 41934633857
