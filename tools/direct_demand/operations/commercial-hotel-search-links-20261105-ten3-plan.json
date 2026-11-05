@@ -1,0 +1,44 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten3-pass1",
+  "state": "PURE_NOQUOTE_OFFERS_FROM_ORIGINAL_CONTEXT19_BINDINGS_ONLY",
+  "goal": "Prepare10hotel-specificsearchlinksforcurrentlyunlinkedunpricedpublishedpairs preservingwholecurrentcaptionsandall85priorprices.",
+  "native_hotel_ids": [
+    383,
+    384,
+    441,
+    454,
+    456,
+    464,
+    488,
+    1963,
+    1983,
+    12111
+  ],
+  "quote_state": "NOQUOTE",
+  "context_run": 42017191827,
+  "context_artifact": 13408704366,
+  "context_source_sha": "b4a266482184b6c9edff7f0b4c005eddbde0c342",
+  "scope_filename": "commercial-hotel-search-links-20261105-context19-ten3-scope.json",
+  "scope_sha256": "1f2480694661553fc0de7e735d483dcf417970b0993ea84adb355561f4c8af50",
+  "template_sha256": "c0d2e63cdb6c6ba1a89b7c69d320d29aa39b3afe285504b810b5dc7133833af3",
+  "bounds": {
+    "provider_calls": 0,
+    "server_calls": 0,
+    "db_calls": 0,
+    "gateway_quotes": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "max_future_existing_post_edits": 20
+  },
+  "criteria": [
+    "Exactoriginalcurrentcontext19frames/country-native-publisherrole;12111publisher1654 neversearchhotel1654.",
+    "Wholecaptionclosing/body/photo/button/source/tokenpreserved/1024UTF16else defer.",
+    "Exact8publicsearchfilterkeys/Moscow2A/future06..12Nov5..14n/NOQUOTE/notavailability/noinventedquoteSHA-epoch-index-amount.",
+    "Only3NEWPythonoperation/nativeURL-versuspublisher/NOQUOTEindexcases+3NEWnativeoperation/role/NOQUOTEindexcases perreadyhotel;allheaderAPPROVEDreferencesdeclared;oldfixtures0.",
+    "Frozenmanifest+exact5keyapproval+frame+scriptSHA;futureSERIALupdater/privateintent/once/UNKNOWNoriginalfirst/fullfreshsourceandremote21/hostclean/schema-rights."
+  ],
+  "risks": [
+    "Currentcaptionorprodsourcecouldchangebeforeexecution;stopbeforewrite.",
+    "Data-boundhelperhasnofuturepermissiontoskipprior-price/ownedlinkproof;thisscopeunpriced/unlinkedonly."
+  ]
+}
