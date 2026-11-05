@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-offer-update-20261105-normal674-pass1",
-  "state": "ORIGINAL_FIRST_MAX_CONTENT_WRITE_OUTCOME_UNRESOLVED_TG_UNATTEMPTED_OTHER6_UNATTEMPTED",
+  "state": "CLOSED_ORIGINAL_FIRST_FAILED_WRITE_PRIMARY_RESOLVED_SINGLE_REPAIR_AND_EXACT_CONTINUATION_ALL7_PAIRS_COMPLETE",
   "run": 42000246854,
   "job": 127153335683,
   "source": "df5f3614f619e6bc54a7bf3c619bb9ec11a4177e",
@@ -16,5 +16,11 @@
   "unattempted_pairs": 6,
   "original_MAX_readback_must_be_reconciled_before_any_continuation": true,
   "paid_quotes_all7_consumed_no_retry": true,
-  "do_not_repeat_original7_sender": true
+  "do_not_repeat_original7_sender": true,
+  "original_outcome_unresolved": false,
+  "all7_confirmed_pairs": true,
+  "combined_content_attempts": 15,
+  "verified_existing_posts": 14,
+  "continuation_run": 42006307304,
+  "repair_run": 42004597801
 }

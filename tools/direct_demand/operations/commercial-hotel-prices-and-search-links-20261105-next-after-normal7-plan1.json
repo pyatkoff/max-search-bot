@@ -1,0 +1,50 @@
+{
+  "operation": "commercial-hotel-prices-and-search-links-20261105-next-after-normal7-plan1",
+  "state": "NO_ACTIVE_PROVIDER_OPERATION_NO_READY_PRICE_EDITS_OR_NEW_MATERIALS",
+  "goal": "Continue prices first using only genuinely new normal persisted inputs; otherwise finish remaining101 hotel search links with exact current context and explicit no-quote semantics.",
+  "published_pairs": 161,
+  "priced_pairs": 85,
+  "linked_pairs": 60,
+  "unpriced_pairs": 76,
+  "unpriced_admitted_after_review6_exclusion": 70,
+  "unlinked_pairs": 101,
+  "last_normal_scope_closed": {
+    "normal_run": 41982177052,
+    "read14_run": 41993389158,
+    "context16_run": 41996008763,
+    "quote7_run": 41998126412,
+    "actual7_update_final_run": 42006307304
+  },
+  "consumed_fingerprint_sources": [
+    {
+      "read13_original_old_rows": 85,
+      "manual_read13_rows": 104,
+      "unique_old_fingerprints": 185
+    },
+    {
+      "normal_read14_run": 41993389158,
+      "normal_read14_artifact": 13398688427,
+      "rows": 14,
+      "all_conservatively_consumed": true
+    }
+  ],
+  "unique_new_anti_replay_count_must_be_computed_from_original_auth_artifacts_not_assumed_199": true,
+  "next_metadata_window_exclusive_lower": "2026-11-05T08:07:32Z",
+  "do_not_repeat_same_metadata_or_read14_window": true,
+  "pricing_next": [
+    "Only actual NEW normal collector/source tuple justifies a NEW bounded readonly window. Keep user72h/Moscow2A0/RUB/future<=02Feb2027/max2/active-country-name/knownmeal-room and all consumed FP exclusions.",
+    "All7 normal quote contexts consumed, including1291/1582 inclusion-contract not accepted and78251 declared gateway error. Do not guess specific flags or retry alternatives.",
+    "Native1582/27316/3405 now have NEWCURRENT normal674-v1 captions and receipts. Never reuse stale manual1 link-only frames for future edits.",
+    "No more manualsource searches: original one7pass and both permissions consumed. No budget/schedule/transport/observer/config changes."
+  ],
+  "links_next": [
+    "Remaining101 currently unlinked; old plan105 first1422/78251 nowDONE, never replay.",
+    "Prepare a finite next still-unlinked scope from accepted161 minus closed60, use canonical current original/copy/prior-price or owned-offer once receipts and exact current versions/photo/button/source/token. No broad allhistory scan.",
+    "For priced hotels preserve all current price blocks and their original price-check time. Direct hotel search URL uses original anytour.online route/exact nativecountry/hotel/Moscow2A/future filter presets; it is a search filter, not availability.",
+    "Link-only without a real quote must explicitly use NOQUOTE metadata, never invent a quote SHA/epoch or overwrite existing price metadata.",
+    "New functions require native new cases; frozen old54/2/normal7 cases and accepted provider readbacks are closed. Existing serial updater/privateintent/once/UNKNOWN-original-first/fresh current main healthydeployTLSdiag/full21/host/clean/schema-rights."
+  ],
+  "goal500_complete": false,
+  "new_material_ready": 0,
+  "canva_open": 0
+}

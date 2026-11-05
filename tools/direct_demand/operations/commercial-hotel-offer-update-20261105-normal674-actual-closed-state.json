@@ -1,0 +1,86 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-normal674-pass1",
+  "complete": true,
+  "processed_hotels": 7,
+  "content_edit_attempts": 13,
+  "verified_existing_posts": 14,
+  "price_posts_updated": 8,
+  "search_link_posts_updated": 14,
+  "search_link_only_posts_updated": 6,
+  "new_posts": 0,
+  "additional_gateway_calls": 0,
+  "original_initial_content_attempts": 1,
+  "original_repair_content_attempts": 1,
+  "combined_actual_content_edit_attempts": 15,
+  "original_failed_not_applied_attempts": 1,
+  "confirmed_original_MAX157359_reread_or_rewritten": false,
+  "new_price_hotel_pairs": 4,
+  "new_search_link_hotel_pairs": 4,
+  "state": "ACTUAL7_NORMAL_HOTEL_PAIRS14_VERIFIED_POST_UPDATES4_NEW_PRICES4_NEW_SEARCH_LINKS_CLOSED_CONSUMED",
+  "initial_run": 42000246854,
+  "initial_job": 127153335683,
+  "initial_source": "df5f3614f619e6bc54a7bf3c619bb9ec11a4177e",
+  "initial_intent_artifact": 13402486074,
+  "initial_result_artifact": 13401867953,
+  "primary_original_outcome_read_run": 42001874871,
+  "primary_original_outcome_read_artifact": 13403006420,
+  "single_original_known_not_applied_repair_run": 42004597801,
+  "single_original_repair_artifact": 13403428356,
+  "single_original_repair_intent_artifact": 13404710519,
+  "continuation_run": 42006307304,
+  "continuation_job": 127173808552,
+  "continuation_source": "de8eaf0f7b1d2050079b4356d7f60e469d62801c",
+  "continuation_intent_artifact": 13403959859,
+  "continuation_intent_created_at": "2026-11-05T09:55:14Z",
+  "continuation_result_artifact": 13403819255,
+  "continuation_result_created_at": "2026-11-05T09:56:34Z",
+  "intents_before_provider": true,
+  "actually_installed_source": "da54e30f9f8b3bde427554ee3e3a2cc02b9ffd97",
+  "new_price_hotel_ids": [
+    157359,
+    27316,
+    3405,
+    1422
+  ],
+  "new_link_hotel_ids": [
+    157359,
+    1291,
+    1422,
+    78251
+  ],
+  "updated_existing_link_block_hotel_ids": [
+    1582,
+    27316,
+    3405
+  ],
+  "link_only_hotel_ids": [
+    1291,
+    1582,
+    78251
+  ],
+  "new_price_checked_times": [
+    {
+      "native_hotel_id": 157359,
+      "checked_epoch_utc": 1793868909
+    },
+    {
+      "native_hotel_id": 27316,
+      "checked_epoch_utc": 1793868962
+    },
+    {
+      "native_hotel_id": 3405,
+      "checked_epoch_utc": 1793868965
+    },
+    {
+      "native_hotel_id": 1422,
+      "checked_epoch_utc": 1793868968
+    }
+  ],
+  "whole_hotel_body_closing_photo_canonical_button_source_token_preserved": true,
+  "old_owned_link_blocks_exactly_replaced_not_duplicated": true,
+  "paid_quotes_retried": 0,
+  "new_source_searches": 0,
+  "unknown_or_pending": 0,
+  "accepted_provider_readbacks_consumed_do_not_reinspect": true,
+  "completion_reported_to_pavel": true
+}

@@ -21,7 +21,7 @@
     1422,
     78251
   ],
-  "state": "CLOSED_NEW_NORMAL674_WINDOW14_GENUINE_ROWS7_UNPRICED_HOTELS_UNQUOTED_CURRENT_CONTEXTS_NOT_YET_BOUND",
+  "state": "CLOSED_NEW_NORMAL14_RETAINED_ROWS7_HOTELS_ALL7_QUOTED_CONSUMED_4_PRICES4_NEW_LINKS_DELIVERED",
   "run": 41993389158,
   "job": 127130700580,
   "source": "12e97f6bda4e86bcc56b0d72792f5252cf6c0a3b",
@@ -35,8 +35,11 @@
   "old_fixtures_rerun": 0,
   "normal_monthly_stage_succeeded_but_aggregate_workflow_failed": true,
   "do_not_repeat_same_db_window_or_old_manual_scope": true,
-  "paid_quotes_from_this_input": 0,
+  "paid_quotes_from_this_input": 7,
   "provider_post_reads_from_this_input": 0,
   "price_edits_from_this_input": 0,
-  "canonical_contexts_still_required": 7
+  "canonical_contexts_still_required": 0,
+  "current_canonical_context_run": 41996008763,
+  "actual_update_final_run": 42006307304,
+  "all14_rows_conservatively_consumed": true
 }
