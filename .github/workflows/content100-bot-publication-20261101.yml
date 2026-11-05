@@ -1,11 +1,10 @@
-name: Classify only the nine unquoted retained contexts after completing the19 price updates
+name: Prepare nine exact legacy price context bindings without any server or provider calls
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
@@ -21,30 +20,20 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-price-monitor-20261104-read10-72h-extension1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41934633857
-          path: ${{ runner.temp }}/retained-read10
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-price-monitor-20261104-72h-pass1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41935232491
-          path: ${{ runner.temp }}/original-quotes
-      - name: Inspect only remaining unquoted admission reasons without server or provider calls
+      - name: Bind approved legacy source records without publishing or resolving private IDs
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/direct_demand/operations/inspect-read10-unquoted9-20261104.py
-      - name: Retain bounded reason evidence without full private contexts
+          umask 077
+          python3 tools/direct_demand/operations/prepare-legacy9-price-contexts-20261105.py
+          php -l "$RUNNER_TEMP/legacy9-read.php"
+          ANYTOUR_LEGACY9_ROLE_FIXTURE=1 php "$RUNNER_TEMP/legacy9-read.php"
+      - name: Retain private prepared input without approving server execution
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261104-read10-unselected9-inspection1
-          path: ${{ runner.temp }}/read10-unselected9-summary.json
+          name: commercial-price-legacy9-contexts-20261105-read1-prepared
+          path: |
+            ${{ runner.temp }}/legacy9-approved-bindings.private.json
           retention-days: 14
           if-no-files-found: warn

@@ -1,0 +1,50 @@
+{
+  "operation": "commercial-price-legacy9-contexts-20261105-read1",
+  "state": "PURE_PREPARE_BEFORE_ANY_SERVER_READ",
+  "goal": "Recover current exact canonical context for9 unquoted legacy posts, with publisher/native roles and last-authorized-caption proof kept separate",
+  "native_hotel_ids": [
+    240,
+    1981,
+    46672,
+    498,
+    9373,
+    469,
+    381,
+    310,
+    1971
+  ],
+  "typed_bridge_cases": {
+    "240": 80,
+    "498": 228,
+    "1981": 877,
+    "46672": 2432
+  },
+  "source_proof_modes": [
+    "Confirmed historical caption-copy once receipt + current canonical caption/photo signature",
+    "Originalpublisher approved receipt + current canonical exact version",
+    "Bothpublisher andcopy receipts agree on same unchangedpublication"
+  ],
+  "boundaries": [
+    "No paidquotes/provider calls/edits or receipt rewrites",
+    "Only9nativecurrentcatalogLIMIT1 and atmost18existingcanonicalpublication getters in READONLYtransactions",
+    "Canonicalclosedoncefiles read only,cachedperpath; no fullprivatearchiveexport",
+    "Ignore oldpublicpublication/message/versionreferences aslookupauthority; deriveprivateIDs fromoriginalconfirmedcanonicalonce receipts",
+    "Runtimefull21/source/schema/host/channelconfig/currentcaption/nativecountry-active-name/body-photo-button proof before acceptingcontext",
+    "Copy-only existingphotoSignature isexplicitproofkind, notinventedPNGcoverhash",
+    "No oldhuman-copy/initialpublisheroperation rerun; no original IDs rewritten; no source/cron/budget/schema/transport/runtimecontrollerchanges"
+  ],
+  "criteria": [
+    "ThreeNEWidentityrole cases, all9approvedsource-native-name checks andPHP-l in pureCI",
+    "No oldtyped15/14gate/age/updaterfixtures rerun",
+    "Fullcurrentproductiongates before actualSSH, actualreadonlyoutput privateauthartifactonly, consolescopecounts/nativeIDs/reasons"
+  ],
+  "risks": [
+    "Some canonicalsourcefiles can be missing or currentcaption/photo/version changed; defereach affectedhotel without paidcall",
+    "A retained row may expire or departurebecometoday; re-evaluate72h/UTCfuture later before anyquote"
+  ],
+  "max_native_identity_queries": 9,
+  "max_publication_contexts": 18,
+  "max_provider_calls": 0,
+  "max_db_writes": 0,
+  "max_edits": 0
+}
