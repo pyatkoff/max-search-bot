@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-hotel-batch-20261105-49-v1",
+  "state": "PUBLISHED_IN_BOTH_CHANNELS_VERIFIED",
+  "hotel_ids": [
+    1422
+  ],
+  "actual_run": 41961272340,
+  "actual_job": 127027949936,
+  "artifact": 13385671663,
+  "source_commit": "694f9c7176261a9ca6b59ffe4091d69a5b39cac1",
+  "installed_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "manifest_sha256": "530321780d984abea365335c221876998a73c2cdd04107158db3506c928adbd7",
+  "new_posts": 2,
+  "provider_send_attempts": 2,
+  "verified_posts": 2,
+  "reused_existing": 0,
+  "all_body_photo_button_source_verified": true,
+  "logical_hotel_pairs_total": 160,
+  "live_feeds_still_previous159": true,
+  "monitor_append_pending_native_ids": [
+    1422
+  ],
+  "canonical_read16_pending": true,
+  "public_private_receipts_exported": false,
+  "price_edits": 0,
+  "manual_price_collection": false,
+  "repeat_policy": "Actualsend/frozenPNG/CanvaTX/acceptedproviderreadbacks closed. DoNOTresend immutable PREPARED_NOT_SENT manifest, rerun sender or sameposts verification. Only newcanonicalbinding/MAX160/feedappend/monitorappend remain."
+}

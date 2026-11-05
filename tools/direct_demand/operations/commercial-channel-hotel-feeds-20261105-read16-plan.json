@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261105-read16",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Bind only the newly published1422pair to a privateMAXroute and threefeeds, without reading older159currentpublications.",
+  "boundaries": {
+    "hotel_ids": [
+      1422
+    ],
+    "previous159_read": 0,
+    "public_firstline_queries": 1,
+    "public_query_limit_each": 3,
+    "private_exact_url_queries": 1,
+    "private_query_limit_each": 2,
+    "stock_queries": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0
+  },
+  "criteria": [
+    "Actual sender41961272340 verified2new body/photo/button/source posts with no reuse",
+    "Exact actual approved firstline/immutable acceptedPNG inputs from batch49manifest",
+    "Public singletonLIMIT3/private exactURLLIMIT2 query functions BYTEIDENTICAL READ15; threeNEW1422scope cases/PHP-l only, oldfixtures0",
+    "Fresh currentmain/same-source verify+deploy/TLS/currentdiagnostics/fullremote21/hostaccepted25/installedclean/schema/rights/readonlygates beforeSSH",
+    "All privatecanonicalIDs/URLs/fullreceipts remain authenticated artifact only; consolecounts"
+  ],
+  "risks": [
+    "Missing/ambiguous newpair or privatebinding STOP, no prior159registry reread",
+    "No publicpostdestination export except three requestedYML; miniapp publicalias distinct from privatecanonicalpostID"
+  ],
+  "actual_sender_run": 41961272340,
+  "actual_sender_artifact": 13385671663,
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
+}
