@@ -1,0 +1,35 @@
+{
+  "operation": "commercial-price-update-20261105-legacy9-pass1",
+  "state": "PLANNED_ONLY_REAL_BASKETS_EXISTING_SERIAL_EDITS",
+  "quoted_catalog_ids": [
+    240,
+    310,
+    381,
+    469,
+    498,
+    1971,
+    1981,
+    9373,
+    46672
+  ],
+  "max_age_seconds": 259200,
+  "max_existing_edits": 18,
+  "goal": "Preserve complete existing legacy post context and add one independently verified2adult tour basket per admitted hotel",
+  "boundaries": [
+    "No new posts; exact typed publisher/native roles and canonical stable existing photo signatures",
+    "Actual original caption and closing paragraph from recovered current approved receipt; no hardcoded previous hotel CTA",
+    "Current exact registry pub/version/token/button/source/caption/photo checked before writes; unknown stop",
+    "Full real roundtrip, correct dates,2adultwholebasketasreceived,RUB,noPlacesfalse,onDemandfalse,all inclusionflagsfalse; fuel not added",
+    "Prepare manifests only for actual admissible original quotes; no provider retries",
+    "Registrynewversions/onceledger/flock/fsync/nativeprovider readback unchanged"
+  ],
+  "criteria": [
+    "New actual per-input native/logical/photo binding cases and closing cases/PHP-l before edits",
+    "Durable private intent uploaded before serial existing edits",
+    "Two actual body/photo/button/context verifications per accepted hotel"
+  ],
+  "risks": [
+    "Some real responses may not pass fullbasket or caption length; leave unchanged",
+    "Current canonical version may change after capture; stop before write"
+  ]
+}

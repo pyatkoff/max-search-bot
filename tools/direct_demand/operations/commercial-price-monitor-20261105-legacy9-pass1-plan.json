@@ -1,0 +1,48 @@
+{
+  "operation": "commercial-price-monitor-20261105-legacy9-pass1",
+  "state": "PLANNED_NEW_NINE_UNQUOTED_TUPLES_NOT_EXECUTED",
+  "goal": "Add verified complete tour prices to nine early existing hotel post pairs using already recovered canonical identities",
+  "native_hotel_ids": [
+    240,
+    310,
+    381,
+    469,
+    498,
+    1971,
+    1981,
+    9373,
+    46672
+  ],
+  "retained_input": {
+    "run": 41934633857,
+    "artifact": 13372822872,
+    "source_sha": "0a80b95fa31e3a90267daa8984adae24d6aaa6bb"
+  },
+  "canonical_input": {
+    "run": 41944182035,
+    "artifact": 13377767316,
+    "capture_source_sha": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
+  },
+  "expected_current_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "max_age_seconds": 259200,
+  "max_gateway_calls": 9,
+  "automatic_retry": false,
+  "boundaries": [
+    "Only nine previously unquoted contexts, original READ10 and accepted private4+2+3 canonical frames; no DB scope reread",
+    "Native ID and typed original publisher ID remain separate; actual current caption/photoSignature/token/button/source/version are frozen private context",
+    "New legacy updater guard already passed actual9 positive plus27 negative cases in41944182035; no repeat",
+    "One exact observation/current native readonly revalidation per candidate before one justified existing action=flights request",
+    "All private intents uploaded before any gateway; no automatic retries or alternative old tuple",
+    "Future date uses actualUTC05Nov, freshness72h; full real flight basket required before any later edit",
+    "Quotes do not edit posts; no raw cached price or userYML price copied"
+  ],
+  "criteria": [
+    "Freshcurrentmain/sameversion deploy/TLS/diagnostics/fullremote21/host/runtimeclean before SSH",
+    "New three actual-context quote input cases and syntaxchecks before paid calls; old age/native fixtures0",
+    "Retain all original outcomes including known HTTP/gateway error or UNKNOWN; resolve original UNKNOWN before anything else"
+  ],
+  "risks": [
+    "Provider can return error/404/placeholders; then do not edit or retry",
+    "Current runtime may move before execution; source gate must stop safely"
+  ]
+}
