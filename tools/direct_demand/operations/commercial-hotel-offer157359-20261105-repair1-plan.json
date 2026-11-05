@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-normal674-h157359-v1-repair1",
+  "state": "ONE_JUSTIFIED_SAME_OPERATION_REPAIR_AFTER_PRIMARY_PROVED_NOT_APPLIED",
+  "original_run": 42000246854,
+  "primary_read_run": 42001874871,
+  "primary_read_artifact": 13403006420,
+  "native_id": 157359,
+  "why": "Original existing-transport PUT returned false. One actual owned GET confirmed the exact unchanged original body/photo/canonical button, and registry remains the original sent version. This is a known failure, not a blind replay of an unknown/successful write.",
+  "unchanged": [
+    "original perhotel operation and once key",
+    "frozen manifest and price/link payload",
+    "MAX API endpoint, existing MaxTransport method and configured token source",
+    "all installed files, transport libraries, configuration, schedules and budgets"
+  ],
+  "bounds": {
+    "max_additional_content_write_requests": 1,
+    "max_new_owned_provider_reads": 2,
+    "gateway_quotes": 0,
+    "new_source_searches": 0,
+    "new_posts": 0,
+    "other_post_reads": 0
+  },
+  "criteria": [
+    "Fresh current main/healthy same-source deployTLSdiagnostics/full21/host/clean/schema/native and exact canonical original plan/manifest/token/version.",
+    "Original primary old-body proof and original provider return false required; original repair-start marker absent.",
+    "Four NEW witness/native/already-applied/one-write-limit negative cases/PHP-l, old fixtures0.",
+    "Fresh current original post must match old body/photo/button before one exact same payload write. If intended new body already exists, acknowledge only and do not write.",
+    "Durable GHA private intent plus canonical original repair-start before request; permanent marker prevents any second repair/replay.",
+    "Record existing MaxTransport.lastError immediately, only in canonical private journal/original authenticated artifact. No token, endpoint, TLS or transport workaround.",
+    "Only exact intended new body/photo/button and same token/current registry version may confirm MAX; otherwise no more provider writes. Explicit4xx+old body records known no-change; other unknown outcomes remain blocked until primary resolution.",
+    "If all7 pairs later complete, report truthful15contentattempts14verifiedposts when this repair writes once; do not conceal original failed attempt."
+  ]
+}
