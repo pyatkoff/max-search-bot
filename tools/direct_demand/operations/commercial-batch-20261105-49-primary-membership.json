@@ -1,0 +1,42 @@
+{
+  "operation": "commercial-batch-20261105-49-primary-membership",
+  "state": "EXACT_ELEVEN_NEW_OWNER_DECLARED_PHOTO_REFERENCES_FROM_ORIGINAL_SOURCE_ARTIFACTS",
+  "pages": [
+    {
+      "hotel_id": 1421,
+      "source_url": "https://papillon.com.tr/en/papillon-belvil/",
+      "source_run": 41958609449,
+      "source_artifact": 13384421804,
+      "declared_public_image_references": [
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-03-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-05-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-06-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-11-1536x1023.jpg"
+      ]
+    },
+    {
+      "hotel_id": 1422,
+      "source_url": "https://papillon.com.tr/en/papillon-zeugma/",
+      "source_run": 41958609449,
+      "source_artifact": 13384421804,
+      "declared_public_image_references": [
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-03-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-02-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-01-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Bahce-Detaylar-05-min-scaled-1536x1536.webp"
+      ]
+    },
+    {
+      "hotel_id": 78251,
+      "source_url": "https://www.cullinanhotels.com/",
+      "source_run": 41957285388,
+      "source_artifact": 13384271220,
+      "declared_public_image_references": [
+        "https://image-tc.galaxy.tf/wijpeg-2r1kg44j921ryhgmimypckyk1/cullinan-belek-general-4.jpg",
+        "https://image-tc.galaxy.tf/wijpeg-8o82kf9no2tuhwiervvt74d5r/cullinan-belek-general-14.jpg",
+        "https://image-tc.galaxy.tf/wijpeg-e7055vivo4w6ge96txo6v9xk6/008-cullinan-belek-aerial_standard.jpg?crop=108%2C0%2C1705%2C1279&height=605&width=711"
+      ]
+    }
+  ],
+  "full_image_reference_projection": false
+}

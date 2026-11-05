@@ -1,0 +1,50 @@
+{
+  "operation": "commercial-batch-20261105-49-contact",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Inspect a finite pass of eleven different exact owner-declared photographs for two newly resolved Papillon hotels and a different Cullinan aerial view; retain other ready work independently.",
+  "boundaries": {
+    "proven_scope": [
+      1420,
+      1421,
+      1422,
+      1253,
+      15904,
+      15913,
+      78251,
+      27349,
+      108942,
+      1260
+    ],
+    "photo_native_subset": [
+      1421,
+      1422,
+      78251
+    ],
+    "new_exact_photo_gets": 11,
+    "readonly_groups": 3,
+    "max_parallel": 2,
+    "old_urls_excluded": 247,
+    "old_decoded_basenames_excluded": 246,
+    "source_gets": 0,
+    "server_calls": 0,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "All eleven URIs exact owner declarations in original successful property artifacts, not guessed resize/host/query variants",
+    "Belvil source has a shared-navigation Zeugma childfootball image; do not misattribute it. Selected Belvilnameddrone frames only; Zeugma selectednameddrone/gardens only",
+    "Cullinan new general4/general14/aerial008 are different previously unread frames; preserve actual declaredcrop query exactly, do not strip/alter tofit",
+    "Unchanged48raw/query/redirect/byte/format/dimensionguards, oldfixtures0, three newactualscope/native/property reference cases beforeGET",
+    "Wholecomplex/grounds/buildingshero stillmandatory; frontal facade/onepool/room/categorycluster/partialsourceclip cannot be accepted",
+    "Validate allnativechunks/bytes/SHA/dimensions/pixels, newproofonly; noinspection ofclosed48photos again"
+  ],
+  "risks": [
+    "Even nameddrone/aerialframes may miss wholecomplex or exceedbounds; no readiness credit until actualvisualacceptance",
+    "Sevenwholecaptions are not publication; remaining1253/15904/15913 unresolved; current32prices still need genuinelynewinput or explicitpendingmanualpermission"
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}

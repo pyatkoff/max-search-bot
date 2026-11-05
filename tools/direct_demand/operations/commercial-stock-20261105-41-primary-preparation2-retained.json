@@ -1,0 +1,262 @@
+{
+  "operation": "commercial-stock-20261105-41-primary-preparation2-retained",
+  "state": "CLOSED_SELECTED_PUBLIC_METADATA_FULL_TEXT_ONLY_ORIGINAL_AUTH_ARTIFACT",
+  "source_run": 41958609449,
+  "pages": [
+    {
+      "source_url": "https://papillon.com.tr/en/papillon-belvil/",
+      "final_url": "https://papillon.com.tr/en/papillon-belvil/",
+      "page_title": "Papillon Belvil - Papillon Hotels",
+      "image_hosts": [
+        "papillon.com.tr"
+      ],
+      "image_urls": [
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-03-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-05-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-06-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-11-1536x1023.jpg"
+      ],
+      "declared_public_image_references": [
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-03-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-05-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-06-1536x1023.jpg",
+        "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-11-1536x1023.jpg"
+      ],
+      "image_details": [
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-03-1536x1023.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-05-1536x1023.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-06-1536x1023.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-11-1536x1023.jpg",
+          "alt": ""
+        }
+      ],
+      "document_urls": [
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PZ-FactsInfo-Summer-2026-EN.pdf",
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PA-FactsInfo-Summer-2026-EN_V4.pdf",
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PB-FactsInfo-Summer-2026-EN.pdf"
+      ],
+      "website_links": [
+        "https://papillon.com.tr/xmlrpc.php",
+        "https://papillon.com.tr/belvil/",
+        "https://papillon.com.tr/en/papillon-belvil/",
+        "https://papillon.com.tr/de/papillon-belvil-2/",
+        "https://papillon.com.tr/ru/papillon-belvil-3/",
+        "https://papillon.com.tr/en/feed/",
+        "https://papillon.com.tr/en/comments/feed/",
+        "https://papillon.com.tr/en/papillon-belvil",
+        "https://papillon.com.tr/en/papillon-zeugma/",
+        "https://papillon.com.tr/en/papillon-ayscha/",
+        "https://papillon.com.tr/en/loyalty-2/",
+        "https://papillon.com.tr/en/",
+        "https://papillon.com.tr/en/meeting-conference-mice/",
+        "https://papillon.com.tr/en/football/",
+        "https://papillon.com.tr/en/accommodation/",
+        "https://papillon.com.tr/en/adult-comfort-zone-2/",
+        "https://papillon.com.tr/en/gastro-journey-2/",
+        "https://papillon.com.tr/en/reborn-spa-wellness-2/",
+        "https://papillon.com.tr/en/fit-club-2/",
+        "https://papillon.com.tr/en/papy-kids-world/",
+        "https://papillon.com.tr/en/360-tur-2/",
+        "https://papillon.com.tr/en/about-us/",
+        "https://papillon.com.tr/en/contact/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/junior-suite/",
+        "https://papillon.com.tr/en/zeugma/konaklama/dublex-family-room",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/luxury-pool-suite/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/excellent-suite/",
+        "https://papillon.com.tr/en/zeugma/konaklama/presidential-dublex-suite",
+        "https://papillon.com.tr/en/papillon-zeugma/gastro-journey/mosaic/"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-03-1536x1023.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-05-1536x1023.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-06-1536x1023.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2026/01/Papillon-Belvil-Drone-Otel-11-1536x1023.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ],
+      "public_text_sha256": "c1b371c3c66fc1e0aa4d17c41c1504266492474b4187bf85841e8234cb1803b2",
+      "public_text_characters": 10000
+    },
+    {
+      "source_url": "https://papillon.com.tr/en/papillon-zeugma/",
+      "final_url": "https://papillon.com.tr/en/papillon-zeugma/",
+      "page_title": "Papillon Zeugma - Papillon Hotels",
+      "image_hosts": [
+        "papillon.com.tr"
+      ],
+      "image_urls": [
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-03-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-02-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-01-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Bahce-Detaylar-05-min-scaled-1536x1536.webp"
+      ],
+      "declared_public_image_references": [
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-03-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-02-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-01-min-scaled-1536x1536.webp",
+        "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Bahce-Detaylar-05-min-scaled-1536x1536.webp"
+      ],
+      "image_details": [
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-03-min-scaled-1536x1536.webp",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-02-min-scaled-1536x1536.webp",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-01-min-scaled-1536x1536.webp",
+          "alt": ""
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Bahce-Detaylar-05-min-scaled-1536x1536.webp",
+          "alt": ""
+        }
+      ],
+      "document_urls": [
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PZ-FactsInfo-Summer-2026-EN.pdf",
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PA-FactsInfo-Summer-2026-EN_V4.pdf",
+        "https://papillon.com.tr/wp-content/uploads/2026/09/PB-FactsInfo-Summer-2026-EN.pdf"
+      ],
+      "website_links": [
+        "https://papillon.com.tr/xmlrpc.php",
+        "https://papillon.com.tr/zeugma/",
+        "https://papillon.com.tr/en/papillon-zeugma/",
+        "https://papillon.com.tr/de/papillon-zeugma-2/",
+        "https://papillon.com.tr/ru/papillon-zeugma-3/",
+        "https://papillon.com.tr/en/feed/",
+        "https://papillon.com.tr/en/comments/feed/",
+        "https://papillon.com.tr/en/papillon-zeugma",
+        "https://papillon.com.tr/en/papillon-ayscha/",
+        "https://papillon.com.tr/en/papillon-belvil/",
+        "https://papillon.com.tr/en/loyalty-2/",
+        "https://papillon.com.tr/en/",
+        "https://papillon.com.tr/en/meeting-conference-mice/",
+        "https://papillon.com.tr/en/football/",
+        "https://papillon.com.tr/en/accommodation/",
+        "https://papillon.com.tr/en/adult-comfort-zone-2/",
+        "https://papillon.com.tr/en/gastro-journey-2/",
+        "https://papillon.com.tr/en/reborn-spa-wellness-2/",
+        "https://papillon.com.tr/en/fit-club-2/",
+        "https://papillon.com.tr/en/papy-kids-world/",
+        "https://papillon.com.tr/en/360-tur-2/",
+        "https://papillon.com.tr/en/about-us/",
+        "https://papillon.com.tr/en/contact/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/junior-suite/",
+        "https://papillon.com.tr/en/zeugma/konaklama/dublex-family-room",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/luxury-pool-suite/",
+        "https://papillon.com.tr/en/papillon-zeugma/rooms-and-suites/excellent-suite/",
+        "https://papillon.com.tr/en/zeugma/konaklama/presidential-dublex-suite",
+        "https://papillon.com.tr/en/papillon-zeugma/gastro-journey/mosaic/"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-03-min-scaled-1536x1536.webp",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-02-min-scaled-1536x1536.webp",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-01-min-scaled-1536x1536.webp",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Bahce-Detaylar-05-min-scaled-1536x1536.webp",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        }
+      ],
+      "public_text_sha256": "ec4cb725a5a08f7c6892f90405485f13873f142766d21b34b98cf3d5768ed082",
+      "public_text_characters": 10000
+    },
+    {
+      "source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+      "final_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+      "page_title": "Ana Sayfa | IC Santai Family Resort",
+      "image_hosts": [
+        "www.ichotels.com.tr"
+      ],
+      "image_urls": [],
+      "declared_public_image_references": [],
+      "image_details": [],
+      "document_urls": [],
+      "website_links": [
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "https://www.ichotels.com.tr/en/our-hotels/santai-family-resort/",
+        "https://www.ichotels.com.tr/ru/our-hotels/santai-family-resort/",
+        "https://www.ichotels.com.tr/de/unsere-hotels/santai-family-resort/",
+        "https://www.ichotels.com.tr/tr/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/ıc-gourmet/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+        "https://www.ichotels.com.tr/tr/loyalty/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/odalar/standart-oda-kara-manzarali/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/odalar/standart-oda-deniz-manzarali/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/odalar/engelli-odasi/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/suitler/junior-suite/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/suitler/kids-suite/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/suitler/senior-suite/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/suitler/king-suite/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/villalar/sun-swim-up-villa/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/villalar/star-swim-up-villa/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/villalar/selection-villa/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/villalar/king-villa/",
+        "https://www.ichotels.com.tr/tr/ozel-teklifler/villa-konaklamalarina-ozel-10-indirim/",
+        "https://www.ichotels.com.tr/tr/ozel-teklifler/second-home/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/toplanti/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/aktiviteler/",
+        "https://www.ichotels.com.tr/tr/iletisim/",
+        "https://www.ichotels.com.tr/tr/oteller/green-palace-villas/",
+        "https://www.ichotels.com.tr/tr/oteller/airport/"
+      ],
+      "gallery_memberships": [],
+      "public_text_sha256": "f9d0fac09a64d470cf6b5274a7e2e99026a85218f0ee0a93201e3735006ffe65",
+      "public_text_characters": 4882
+    }
+  ],
+  "selected_photo_reference_count": 8,
+  "full_image_reference_projection": false
+}

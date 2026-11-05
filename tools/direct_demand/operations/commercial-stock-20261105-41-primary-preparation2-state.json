@@ -1,0 +1,55 @@
+{
+  "operation": "commercial-stock-20261105-41-primary-preparation2",
+  "state": "CLOSED_THREE_NEW_ACTUAL_DECLARED_OWNER_PAGES_READABLE",
+  "actual_run": 41958609449,
+  "source_commit": "f9d4acde0b2caf5868abb72ca8f24fbcc2d88913",
+  "jobs": [
+    {
+      "id": 127019360432,
+      "name": "inspect (0)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127019360792,
+      "name": "inspect (1)",
+      "conclusion": "success"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13384421804,
+      "name": "commercial-stock41-primary2-0"
+    },
+    {
+      "id": 13383864492,
+      "name": "commercial-stock41-primary2-1"
+    }
+  ],
+  "new_exact_page_gets": 3,
+  "readable_property_pages": 3,
+  "old_owner_get_repeats": 0,
+  "new_native_scope": [
+    1421,
+    1422,
+    1260
+  ],
+  "parent_declaration_source_run": 41957285388,
+  "original_prepare_failure_run": 41958430136,
+  "original_prepare_failure_http_calls": 0,
+  "prepare_stops": 1,
+  "original_three_scope_cases_passed": true,
+  "unchanged_scope_cases_credited_again": 0,
+  "parser_implementation_byteidentical_43": true,
+  "metadata_files_checked": 44,
+  "server_calls": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "photo_gets": 0,
+  "canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "manual_price_collection": false,
+  "repeat_policy": "Both failed preparation and successful actual source pass closed. Do not repeat originaljobs/logs/threepageGETs. Reuse originalauthenticated artifacts for remaining metadata; no shared brand/room/season rights."
+}
