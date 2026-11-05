@@ -1,0 +1,106 @@
+{
+  "operation": "commercial-price-legacy9-contexts-20261105-read2",
+  "state": "CLOSED_ACTUAL_FIVE_ONLY_READ_TWO_CONTEXTS_CAPTURED_THREE_DEFERRED_BY_URL_OR_BUTTON_COMPARISON",
+  "goal": "Recover current exact canonical context for9 unquoted legacy posts, with publisher/native roles and last-authorized-caption proof kept separate",
+  "native_hotel_ids": [
+    240,
+    1981,
+    46672,
+    498,
+    9373
+  ],
+  "typed_bridge_cases": {
+    "240": 80,
+    "498": 228,
+    "1981": 877,
+    "46672": 2432
+  },
+  "source_proof_modes": [
+    "Confirmed historical caption-copy once receipt + current canonical caption/photo signature",
+    "Originalpublisher approved receipt + current canonical exact version",
+    "Bothpublisher andcopy receipts agree on same unchangedpublication"
+  ],
+  "boundaries": [
+    "No paidquotes/provider calls/edits or receipt rewrites",
+    "Only9nativecurrentcatalogLIMIT1 and atmost18existingcanonicalpublication getters in READONLYtransactions",
+    "Canonicalclosedoncefiles read only,cachedperpath; no fullprivatearchiveexport",
+    "Ignore oldpublicpublication/message/versionreferences aslookupauthority; deriveprivateIDs fromoriginalconfirmedcanonicalonce receipts",
+    "Runtimefull21/source/schema/host/channelconfig/currentcaption/nativecountry-active-name/body-photo-button proof before acceptingcontext",
+    "Copy-only existingphotoSignature isexplicitproofkind, notinventedPNGcoverhash",
+    "No oldhuman-copy/initialpublisheroperation rerun; no original IDs rewritten; no source/cron/budget/schema/transport/runtimecontrollerchanges"
+  ],
+  "criteria": [
+    "ThreeNEWreceiptformat cases: completeobjectnoNewline+completejournal, truncatedobjectstops, unterminatedjournalstops",
+    "All originalconfirmed/text/photo/identity/version/source/channel guards unchanged",
+    "Old3role/typed15/native/agefixturesnotrerun; PHP-l beforeSSH"
+  ],
+  "risks": [
+    "Some canonicalsourcefiles can be missing or currentcaption/photo/version changed; defereach affectedhotel without paidcall",
+    "A retained row may expire or departurebecometoday; re-evaluate72h/UTCfuture later before anyquote"
+  ],
+  "max_native_identity_queries": 5,
+  "max_publication_contexts": 10,
+  "max_provider_calls": 0,
+  "max_db_writes": 0,
+  "max_edits": 0,
+  "pure_run": 41940690288,
+  "pure_job": 126960415972,
+  "pure_commit": "63119551de2bd959d3deac79b1927f820c840c5e",
+  "frozen_input_sha256": "9bc8d10e1326522fb11fba91c79cd313ff61562b49bb6e8a6b67e995764c0bb4",
+  "frozen_reader_sha256": "6f224d226bfe164ca1530c6e022a27752333790c9aef66bd462379361f4f6607",
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "deploy_run": 41937182905,
+  "tls_run": 41937963662,
+  "diagnostics_run": 41937963780,
+  "publishing21_unchanged": true,
+  "source_diff_paths": [
+    "services/DialogueController.php",
+    "services/ManagerAiDraftReferenceContext.php",
+    "services/ManagerAiDraftService.php",
+    "services/ManagerSearch3ReferenceContext.php",
+    "services/ModeledConversionEarlyForecast.php",
+    "services/ModeledConversionSemanticPrediction.php",
+    "tests/fixtures/dialogue_manager_interrupt.php",
+    "tests/run_manager_ai_draft_context_regression.php",
+    "tests/run_modeled_conversion_early_forecast_regression.php",
+    "tests/run_modeled_conversion_stream_regression.php",
+    "tests/run_v2_early_action_regression.php"
+  ],
+  "pure_role_case_reruns_on_actual": 0,
+  "readonly_transaction_mode": "Handle either samePDO or separatePDO without nesting; both remain READONLY",
+  "actual_server_reads_so_far": 0,
+  "preserve_original_read1_four_from_artifact": 13375024853,
+  "do_not_reread_accepted_native_ids": [
+    310,
+    469,
+    381,
+    1971
+  ],
+  "root_cause": "Correct data-format handling: approved.json is atomic completeJSON without newline; receipt.jsonl remains newline-terminated journal",
+  "original_input_sha256": "9bc8d10e1326522fb11fba91c79cd313ff61562b49bb6e8a6b67e995764c0bb4",
+  "old_role_fixture_reruns": 0,
+  "run": 41941689331,
+  "job": 126963827258,
+  "source_commit": "915f5abdd6fc7ca1fc81140d7e4406d43fe067ba",
+  "installed_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "result_artifact": 13377185803,
+  "input_artifact": 13376453608,
+  "accepted_native_ids": [
+    240,
+    1981
+  ],
+  "accepted_platform_contexts": 4,
+  "deferred_native_ids": [
+    46672,
+    498,
+    9373
+  ],
+  "deferred_reason": "canonical_source_url_or_button_context_changed",
+  "new_receiptformat_cases_passed": 3,
+  "old_role_cases_rerun": 0,
+  "captured_four_repeated": false,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "gateway_calls": 0,
+  "edits": 0
+}

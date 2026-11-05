@@ -1,0 +1,36 @@
+{
+  "operation": "commercial-price-legacy9-contexts-20261105-read3",
+  "state": "PLAN_TARGET_THREE_NEW_COMPARISON_FAILURES_ONLY_NO_RELAXED_GUARDS",
+  "goal": "Identify precisely which original canonical URL/button/source predicate fails for the three still-unbound legacy posts, without repeating capturedsix",
+  "native_hotel_ids": [
+    46672,
+    498,
+    9373
+  ],
+  "reuse_closed_artifacts": {
+    "four": 13375024853,
+    "two": 13377185803
+  },
+  "boundaries": [
+    "Scopeonly3newdeferredcontexts; no capturedsix/providerreadback",
+    "Allconfirmedoriginalreceipt/native/country/name/caption/photo/version/channel/source/button guards remain unchanged",
+    "Only add booleandiagnostics; no newURLguess/normalization/weakening/metadatawrite",
+    "No provider/paidquote/edits; READONLYtransactions; fullfreshsource21/currentrelease/TLS/diagnostics/hostgates"
+  ],
+  "criteria": [
+    "Exact3subsetfrozeninput fromsame9bc-source andPHP-l",
+    "Do not rerun closed3role or3receiptformatcases; no oldfixtures",
+    "If any mismatchpersists keepdeferred; originalreceiptformatcompleteJSON contract preserved"
+  ],
+  "risks": [
+    "A missing URLfield and a genuinely differentURL require different treatments; do not infer which without actualbooleans",
+    "Currentbutton differences must not be silentlyaccepted for a priceedit"
+  ],
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "frozen_reader_sha256": "9c0854969e8f0233f49db536a93188c4d67fb2064a14cfe699bc792da00b4edb",
+  "max_native_identity_queries": 3,
+  "max_publication_contexts": 6,
+  "max_provider_calls": 0,
+  "max_db_writes": 0,
+  "max_edits": 0
+}
