@@ -1,4 +1,4 @@
-name: Add finite original noquote hotel search links serially
+name: Read only new scheduled674 1526 persisted window for70 admitted unpriced hotels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,12 +10,11 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 5f350e8c3ff238f2fd3794d9d179c93394c416a7
-  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-context24-priced10a-scope.json
-  EXPECTED_LINK_SCOPE_SHA256: abe807e059e7adc4cf9d8b45b5ccc9d2e503ebd3a784a21a4f9d7caa8740139a
-  LINK_EXECUTION_PLAN_FILENAME: commercial-hotel-search-links-20261105-priced10a-execution-source.json
+  EXPECTED_PRODUCTION_SHA: fc8794c67a0f3b50284cff34b4c07ac0a11f9131
+  PRICE15_SCOPE_FILENAME: commercial-price-monitor-20261105-read15-new674-1526-scope.json
+  EXPECTED_PRICE15_SCOPE_SHA256: 489ae471783372a0907adf82aa5889c80776e3479364db050f41173e591e00be
 jobs:
-  update:
+  inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -37,9 +36,9 @@ jobs:
           evidence="$RUNNER_TEMP/commercial-source-evidence"
           mkdir -p "$evidence"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42031354809 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/42031354809/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42032030995 > "$evidence/tls_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42058154644 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42058154644/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42059319309 > "$evidence/tls_run.json"
           gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
@@ -50,7 +49,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42032030674 > "$RUNNER_TEMP/current-diagnostics-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42059318756 > "$RUNNER_TEMP/current-diagnostics-run.json"
           python3 - <<'PY'
           import json,os,pathlib
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'current-diagnostics-run.json').read_text())
@@ -60,26 +59,46 @@ jobs:
           PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-priced10a-prepared1
+          name: commercial-price-source-refresh-20261105-pass1-offline-input-and-search-links1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 42039527841
-          path: ${{ runner.temp }}/prepared-links
-      - name: Bind original exact scripts approvals and syntax without repeating closed cases
+          run-id: 41977589739
+          path: ${{ runner.temp }}/old-source-scope
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261105-read13-approved-manual1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41978466494
+          path: ${{ runner.temp }}/manual-read13
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261105-read14-new674-unpriced1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41993389158
+          path: ${{ runner.temp }}/normal-read14
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+      - name: Bind only new actual seventy scope and all consumed exclusions
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/bind-priced-hotel-search-links-explicit-noquote-20261105.py tools/direct_demand/operations/run-hotel-search-links-explicit-noquote-20261105-data-bound.py
-          python3 tools/direct_demand/operations/bind-priced-hotel-search-links-explicit-noquote-20261105.py
-      - name: Retain private execution intents before any server or provider access
+          python3 -m py_compile tools/direct_demand/operations/prepare-new-normal674-1526-unpriced-read15-20261105.py tools/direct_demand/operations/run-new-normal674-1526-unpriced-read15-20261105.py
+          python3 tools/direct_demand/operations/prepare-new-normal674-1526-unpriced-read15-20261105.py
+          php -l "$RUNNER_TEMP/price15.php"
+          ANYTOUR_PRICE15_NEW_INPUT_CASES=1 php "$RUNNER_TEMP/price15.php"
+      - name: Retain exact private input before any server access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-priced10a-execution1-intent
+          name: commercial-price-monitor-20261105-read15-new674-1526-unpriced70-input
           path: |
-            ${{ runner.temp }}/all-link-execution-intents.private.json
-            ${{ runner.temp }}/link-execution-binding-safe.json
+            ${{ runner.temp }}/price15-input.private.json
+            ${{ runner.temp }}/price15.php
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -120,7 +139,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Update only original finite noquote hotel pairs with serial durable once guards
+      - name: Read one new persisted normal window without provider calls
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -128,21 +147,20 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-hotel-search-links-explicit-noquote-20261105-data-bound.py
-      - name: Retain original private outcomes and safe exact summary
+          python3 tools/direct_demand/operations/run-new-normal674-1526-unpriced-read15-20261105.py
+      - name: Retain original private new tuples and safe public counts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-priced10a-execution1
+          name: commercial-price-monitor-20261105-read15-new674-1526-unpriced70
           path: |
-            ${{ runner.temp }}/prepared-links
-            ${{ runner.temp }}/all-link-execution-intents.private.json
-            ${{ runner.temp }}/link-execution-binding-safe.json
-            ${{ runner.temp }}/link-execution-summary.json
-            ${{ runner.temp }}/link-execution-complete-safe.json
+            ${{ runner.temp }}/price15-input.private.json
+            ${{ runner.temp }}/price15.php
+            ${{ runner.temp }}/price15-readback.private.json
+            ${{ runner.temp }}/price15-summary.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection and execution scripts
+      - name: Remove ephemeral connection and read scripts
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/current-diagnostics-run.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/manual-refresh.php" "$RUNNER_TEMP/current-diagnostics-run.json"

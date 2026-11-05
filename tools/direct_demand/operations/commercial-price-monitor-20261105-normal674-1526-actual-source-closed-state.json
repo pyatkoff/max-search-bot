@@ -1,0 +1,22 @@
+{
+  "run": 42054958159,
+  "job": 127340818871,
+  "source_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "source": "scheduled_monitor",
+  "phase": "TOP500_MONTHLY",
+  "begin_utc": "2026-11-05T15:27:22.1796219Z",
+  "end_utc": "2026-11-05T15:37:12.2027501Z",
+  "window_start_epoch_inclusive": 1793892442,
+  "window_end_epoch_exclusive": 1793893033,
+  "processed": 64,
+  "page_gap_processed": 8,
+  "failed": 0,
+  "partial": 1,
+  "observations_written": 17502,
+  "fresh_targets": 226,
+  "pending_targets": 3963,
+  "complete": false,
+  "aggregate_workflow_success": true,
+  "actual_source_calls_and_persisted_writes": true,
+  "original_logs_closed": true
+}

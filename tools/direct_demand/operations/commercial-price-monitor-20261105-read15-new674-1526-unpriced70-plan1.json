@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261105-read15-new674-1526-unpriced70-plan1",
-  "state": "WAIT_ORIGINAL_NORMAL_COLLECTION_PHASE_PROOF_BEFORE_FREEZING_OR_DB_ACCESS",
+  "state": "FROZEN_NEW_NORMAL_PHASE_DATA_BOUND_CASES_THEN_ONE_READONLY_WINDOW",
   "goal": "Admit only genuinely new persisted scheduled-monitor inputs from original run42054958159 for70 currently unpriced admitted published hotels; no source API, quotes or edits.",
   "normal_run": 42054958159,
   "normal_collect_job": 127340818871,
@@ -10,9 +10,9 @@
     "start": "2026-11-05T15:00:19Z",
     "end": "2026-11-05T15:30:48Z"
   },
-  "source_phase_proof_pending": true,
-  "window_start_epoch_inclusive": null,
-  "window_end_epoch_exclusive": null,
+  "source_phase_proof_pending": false,
+  "window_start_epoch_inclusive": 1793892442,
+  "window_end_epoch_exclusive": 1793893033,
   "public_scope_sources": {
     "manifest": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
     "acceptance": "70a7194dd35d82552a80015adcb1cb76143a2ddb7a3a44863e9eed3be5f4d042",
@@ -158,6 +158,57 @@
     "New window may have no eligible inputs for these70; do not broaden or reuse consumed tuples.",
     "Owner-edited inline price links may differ from old registry captions; future related context must preserve exact current body/entities."
   ],
-  "workflow_activation_authorized_yet": false,
-  "current_collecting_status_asof_utc": "2026-11-05T15:40:50Z"
+  "workflow_activation_authorized_yet": true,
+  "source_phase_proof": {
+    "run": 42054958159,
+    "job": 127340818871,
+    "source_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+    "source": "scheduled_monitor",
+    "phase": "TOP500_MONTHLY",
+    "begin_utc": "2026-11-05T15:27:22.1796219Z",
+    "end_utc": "2026-11-05T15:37:12.2027501Z",
+    "window_start_epoch_inclusive": 1793892442,
+    "window_end_epoch_exclusive": 1793893033,
+    "processed": 64,
+    "page_gap_processed": 8,
+    "failed": 0,
+    "partial": 1,
+    "observations_written": 17502,
+    "fresh_targets": 226,
+    "pending_targets": 3963,
+    "complete": false,
+    "aggregate_workflow_success": true,
+    "actual_source_calls_and_persisted_writes": true,
+    "original_logs_closed": true
+  },
+  "runtime_scope_file": "commercial-price-monitor-20261105-read15-new674-1526-scope.json",
+  "runtime_scope_sha256": "489ae471783372a0907adf82aa5889c80776e3479364db050f41173e591e00be",
+  "expected_installed_source_for_activation": "fc8794c67a0f3b50284cff34b4c07ac0a11f9131",
+  "current_source_health": {
+    "sha": "fc8794c67a0f3b50284cff34b4c07ac0a11f9131",
+    "deploy": 42058154644,
+    "tls": 42059319309,
+    "diag": 42059318756,
+    "independent_diff_paths": [
+      "docs/TOUR_BOOKING.md",
+      "docs/TOUR_CHOICES.md",
+      "manager/assets/workspace-v2-tour-choices.css",
+      "manager/assets/workspace-v2-tour-choices.js",
+      "manager/pipeline-api.php",
+      "services/TourBookingService.php",
+      "services/TourChoiceService.php",
+      "tests/required_checks_manifest.php",
+      "tests/run_manager_tour_choices_regression.js",
+      "tests/run_tour_booking_regression.php",
+      "tests/visual/manager-tour-selection.spec.js",
+      "tests/visual/manager2-workspace.spec.js"
+    ],
+    "publishing21_unchanged": true
+  },
+  "new_native_cases": 8,
+  "new_python_actual_input_cases": 3,
+  "old_fixtures_rerun": 0,
+  "reader": "read-new-normal674-1526-unpriced-20261105-read15.php",
+  "preparer": "prepare-new-normal674-1526-unpriced-read15-20261105.py",
+  "runner": "run-new-normal674-1526-unpriced-read15-20261105.py"
 }
