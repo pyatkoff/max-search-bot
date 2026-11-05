@@ -1,4 +1,4 @@
-name: Check nine canonically bound legacy hotel prices once with existing flights
+name: Add admitted legacy hotel tour prices to their existing channel posts serially
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -57,33 +57,25 @@ jobs:
           PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-legacy9-20261105-canonical-price-inputs
+          name: commercial-price-monitor-20261105-legacy9-pass1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41944182035
-          path: ${{ runner.temp }}/canonical-inputs
-      - name: Bind all newly admitted distinct hotels to their original captions and covers
+          run-id: 41944924563
+          path: ${{ runner.temp }}/price-legacy9-pass1
+      - name: Validate actual full baskets and each original caption before any edit
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 - <<'PY'
-          import ast,pathlib
-          for name in ['prepare-commercial-price-20261105-legacy9-pass1.py','prepare-commercial-price-update-20261105-legacy9-pass1.py','run-commercial-price-20261105-legacy9-pass1.py','run-commercial-price-update-20261105-legacy9-pass1.py']:
-           ast.parse(pathlib.Path('tools/direct_demand/operations',name).read_text())
-          print('LEGACY9_NEW_QUOTE_AND_UPDATE_SYNTAX_OK server_calls=0')
-          PY
-          php -l tools/direct_demand/operations/update-commercial-price-20261105-legacy9-pass1.php
-          python3 tools/direct_demand/operations/prepare-commercial-price-20261105-legacy9-pass1.py
-          find "$RUNNER_TEMP/price-legacy9-pass1" -name quote.php -print0 | while IFS= read -r -d '' file; do
+          python3 tools/direct_demand/operations/prepare-commercial-price-update-20261105-legacy9-pass1.py
+          find "$RUNNER_TEMP/price-legacy9-pass1" -name update.php -print0 | while IFS= read -r -d '' file; do
             php -l "$file"
-            ANYTOUR_LEGACY9_QUOTE_INPUT_CASES=1 php "$file"
           done
-      - name: Retain all distinct private intents before any new justified gateway call
+      - name: Retain distinct private full-basket edit intents before channel writes
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-legacy9-pass1-intents
+          name: commercial-price-update-20261105-legacy9-pass1-intents
           path: ${{ runner.temp }}/price-legacy9-pass1
           retention-days: 14
           if-no-files-found: error
@@ -125,7 +117,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Check distinct remaining hotel quotes serially with no automatic retries
+      - name: Update accepted hotels serially through the existing registry and once ledger
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -133,12 +125,12 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-commercial-price-20261105-legacy9-pass1.py
-      - name: Retain authenticated private original results including unknown outcomes
+          python3 tools/direct_demand/operations/run-commercial-price-update-20261105-legacy9-pass1.py
+      - name: Retain authenticated original edit receipts and all closed no-edit outcomes
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-legacy9-pass1
+          name: commercial-price-update-20261105-legacy9-pass1
           path: ${{ runner.temp }}/price-legacy9-pass1
           retention-days: 14
           if-no-files-found: warn

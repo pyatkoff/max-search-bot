@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-update-20261105-legacy9-pass1",
-  "state": "PLANNED_ONLY_REAL_BASKETS_EXISTING_SERIAL_EDITS",
+  "state": "ACTUAL_ORIGINAL_QUOTES_SEVEN_NONERROR_OPTIONS_PENDING_FULLBASKET_ACCEPTANCE",
   "quoted_catalog_ids": [
     240,
     310,
@@ -31,5 +31,20 @@
   "risks": [
     "Some real responses may not pass fullbasket or caption length; leave unchanged",
     "Current canonical version may change after capture; stop before write"
-  ]
+  ],
+  "nonerror_flight_catalog_ids": [
+    310,
+    381,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "quote_results": {
+    "run": 41944924563,
+    "artifact": 13377692635,
+    "source_sha": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
+  },
+  "expected_current_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
 }
