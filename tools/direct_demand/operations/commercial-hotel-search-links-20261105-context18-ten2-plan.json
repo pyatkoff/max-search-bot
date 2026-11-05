@@ -1,0 +1,51 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context18-ten2",
+  "state": "PREPARED_NATIVE_THREE_NEW_CASES_AND_ONE_FINITE_READONLY_CONTEXT_PASS_FRESH_1FEC_HEALTHY",
+  "goal": "Add hotel search links for ten more currently unlinked unpriced published hotel pairs, without any source searches or quotes.",
+  "native_hotel_ids": [
+    265,
+    269,
+    272,
+    275,
+    282,
+    287,
+    315,
+    328,
+    358,
+    382
+  ],
+  "bounds": {
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "db_writes_in_context_phase": 0,
+    "max_owned_max_reads": 10,
+    "max_channel_rights_checks": 2,
+    "old70_linked_posts_read": 0,
+    "old_price_blocks_touched": 0
+  },
+  "criteria": [
+    "Exactretainednativeidentitiesfrompreviouscanonicalnextplan;currentcountry-active-name/publisherrolescheckedonlythese10.",
+    "Accepted45explicitmanifestallowlist/currentoriginalorconfirmedcopyreceipts/exactcurrentregistrycaption-version-photo-button-token;historicalpublicprivateIDsnotcanonical.",
+    "ExplicitNOQUOTE/dates06..12Nov5..14n/Moscow2A/publicsearchfilterNOTavailability;NOQUOTEdoesnotinventquoteSHA/epoch.",
+    "Newdata-boundnative-scope/identity/NOQUOTEcases3once;noold5/6fixtures. Freshsamecurrentmain/healthydeployTLSdiag/full21/hostaccepted25/clean/read-only/schema-rights.",
+    "Alreadylinked70/priced85excludedbeforeanyserveraccess;currentcaptionrouteguarddeferschanges.",
+    "Readiness≤10beforeseparatefrozenserialexistingpostupdater;preservewholecaptionclosingphotobuttonsourcetoken/1024UTF16."
+  ],
+  "risks": [
+    "Source1fecreleasecurrentlydeploying; no SSH until SAMEreleasehealthycurrentgates, noourforeignfix/rerun.",
+    "Currentpostoridentitycanchange;deferambiguity,neveroverwritewitholdoriginalcaption.",
+    "Noquote linkmetadata must preserve all existing pricecheckfields."
+  ],
+  "native_new_cases": 3,
+  "old_fixtures": 0,
+  "expected_production_sha": "1fec9202b45a8e1a6343750a8896a6e5072e1880",
+  "source_health": {
+    "deploy": 42011406271,
+    "verify_job": 127192407762,
+    "deploy_job": 127192451499,
+    "tls": 42012139611,
+    "diagnostics": 42012139771,
+    "publishing21_unchanged": true
+  }
+}
