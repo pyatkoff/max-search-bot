@@ -1,0 +1,787 @@
+{
+  "operation": "commercial-batch-20261105-50-primary-retained",
+  "state": "CLOSED_SELECTED_PUBLIC_METADATA_FULL_TEXT_ONLY_ORIGINAL_AUTH_ARTIFACT",
+  "source_run": 41966959285,
+  "pages": [
+    {
+      "source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+      "final_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+      "page_title": "Plaj & Havuzlar | IC Hotels Santai Family Resort",
+      "image_hosts": [
+        "www.ichotels.com.tr"
+      ],
+      "image_urls": [
+        "https://www.ichotels.com.tr/favicon/android-icon-48x48.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-57x57.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-60x60.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-72x72.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-76x76.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-114x114.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-120x120.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-144x144.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-152x152.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-180x180.png",
+        "https://www.ichotels.com.tr/favicon/android-icon-192x192.png",
+        "https://www.ichotels.com.tr/favicon/favicon-32x32.png",
+        "https://www.ichotels.com.tr/favicon/favicon-96x96.png",
+        "https://www.ichotels.com.tr/favicon/favicon-16x16.png",
+        "https://www.ichotels.com.tr/favicon/ms-icon-144x144.png",
+        "https://www.ichotels.com.tr/media/vqzpnu20/ic-hotels-santai-family-resort-plaj-ve-havuzlar-banner-m.jpg",
+        "https://www.ichotels.com.tr/media/x5cbq3jc/ic-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/IC-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+        "https://www.ichotels.com.tr/media/s42cluli/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card-m.jpg",
+        "https://www.ichotels.com.tr/media/j3bew4yg/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/IC-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+        "https://www.ichotels.com.tr/media/amrpqhnh/ic-hotels-activity-pool-card-d.jpg",
+        "https://www.ichotels.com.tr/media/pntew1jf/ic-hotels-santai-family-resort-plaj-ve-havuzlar-silence-card.jpg",
+        "https://www.ichotels.com.tr/media/jprfyaz0/ic-hotels-santai-family-resort-plaj-ve-havuzlarkapali-havuz-card.jpg",
+        "https://www.ichotels.com.tr/media/lnqenomm/ic-hotels-santai-family-resort-plaj-ve-havuzlar-mini-club-baby-pool-card.jpg",
+        "https://www.ichotels.com.tr/media/5uwb0x0v/ic-hotels-santai-family-resort-aquapark-card.jpg",
+        "https://www.ichotels.com.tr/media/r3lfig1o/ic-hotels-santai-family-resort-plaj-ve-havuzlar-kapali-cocuk-havuzu-card.jpg",
+        "https://www.ichotels.com.tr/media/2yrb40jn/general-view3-1.jpg",
+        "https://www.ichotels.com.tr/media/tczjamen/ic-hotels-santai-family-resort-plaj-banner.jpg",
+        "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+        "https://www.ichotels.com.tr/Content/images/footer-asset.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.ichotels.com.tr/favicon/android-icon-48x48.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-57x57.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-60x60.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-72x72.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-76x76.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-114x114.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-120x120.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-144x144.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-152x152.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-180x180.png",
+        "https://www.ichotels.com.tr/favicon/android-icon-192x192.png",
+        "https://www.ichotels.com.tr/favicon/favicon-32x32.png",
+        "https://www.ichotels.com.tr/favicon/favicon-96x96.png",
+        "https://www.ichotels.com.tr/favicon/favicon-16x16.png",
+        "https://www.ichotels.com.tr/favicon/ms-icon-144x144.png",
+        "https://www.ichotels.com.tr/media/vqzpnu20/ic-hotels-santai-family-resort-plaj-ve-havuzlar-banner-m.jpg",
+        "https://www.ichotels.com.tr/media/x5cbq3jc/ic-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/IC-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+        "https://www.ichotels.com.tr/media/s42cluli/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card-m.jpg",
+        "https://www.ichotels.com.tr/media/j3bew4yg/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/IC-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+        "https://www.ichotels.com.tr/media/amrpqhnh/ic-hotels-activity-pool-card-d.jpg",
+        "https://www.ichotels.com.tr/media/pntew1jf/ic-hotels-santai-family-resort-plaj-ve-havuzlar-silence-card.jpg",
+        "https://www.ichotels.com.tr/media/jprfyaz0/ic-hotels-santai-family-resort-plaj-ve-havuzlarkapali-havuz-card.jpg",
+        "https://www.ichotels.com.tr/media/lnqenomm/ic-hotels-santai-family-resort-plaj-ve-havuzlar-mini-club-baby-pool-card.jpg",
+        "https://www.ichotels.com.tr/media/5uwb0x0v/ic-hotels-santai-family-resort-aquapark-card.jpg",
+        "https://www.ichotels.com.tr/media/r3lfig1o/ic-hotels-santai-family-resort-plaj-ve-havuzlar-kapali-cocuk-havuzu-card.jpg",
+        "https://www.ichotels.com.tr/media/2yrb40jn/general-view3-1.jpg",
+        "https://www.ichotels.com.tr/media/tczjamen/ic-hotels-santai-family-resort-plaj-banner.jpg",
+        "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+        "https://www.ichotels.com.tr/Content/images/footer-asset.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.ichotels.com.tr/media/x5cbq3jc/ic-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+          "alt": "IC-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/IC-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+          "alt": "IC-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/j3bew4yg/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+          "alt": "IC-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/IC-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+          "alt": "IC-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/amrpqhnh/ic-hotels-activity-pool-card-d.jpg",
+          "alt": "Aktivite Havuzu"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/pntew1jf/ic-hotels-santai-family-resort-plaj-ve-havuzlar-silence-card.jpg",
+          "alt": "Silence Pool"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/jprfyaz0/ic-hotels-santai-family-resort-plaj-ve-havuzlarkapali-havuz-card.jpg",
+          "alt": "Kapalı Havuz"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/lnqenomm/ic-hotels-santai-family-resort-plaj-ve-havuzlar-mini-club-baby-pool-card.jpg",
+          "alt": "Çocuk Havuzu "
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/5uwb0x0v/ic-hotels-santai-family-resort-aquapark-card.jpg",
+          "alt": "Aqua Tower"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/r3lfig1o/ic-hotels-santai-family-resort-plaj-ve-havuzlar-kapali-cocuk-havuzu-card.jpg",
+          "alt": "Kapalı Çocuk Havuzu"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/2yrb40jn/general-view3-1.jpg",
+          "alt": "Sun&Star Swim Up villa Havuzları"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/tczjamen/ic-hotels-santai-family-resort-plaj-banner.jpg",
+          "alt": "Plaj & İskele"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+          "alt": "Clockwork"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/footer-asset.png",
+          "alt": "Footer Bottom Background"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+        "https://www.ichotels.com.tr/en/our-hotels/santai-family-resort/beaches-pools/",
+        "https://www.ichotels.com.tr/ru/our-hotels/santai-family-resort/beach-pools/",
+        "https://www.ichotels.com.tr/de/unsere-hotels/santai-family-resort/strand-pools/",
+        "https://www.ichotels.com.tr/tr/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/ıc-gourmet/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "https://www.ichotels.com.tr/tr/loyalty/",
+        "https://www.ichotels.com.tr/tr/oteller/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/plaj/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/aktivite-havuzu/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/silence-pool/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/kapali-havuz/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/cocuk-havuzu/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/aqua-tower/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/kapali-cocuk-havuzu/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/sun-star-swim-up-villa-havuzlari/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/toplanti/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/aktiviteler/",
+        "https://www.ichotels.com.tr/tr/iletisim/",
+        "https://www.ichotels.com.tr/tr/oteller/green-palace-villas/",
+        "https://www.ichotels.com.tr/tr/oteller/airport/",
+        "https://www.ichotels.com.tr/politikalarimiz/kvkk/",
+        "https://www.ichotels.com.tr/tr/kariyer/",
+        "https://www.ichotels.com.tr/tr/blog/",
+        "https://www.ichotels.com.tr/tr/sikca-sorulan-sorular/"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.ichotels.com.tr/media/x5cbq3jc/ic-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+          "tag": "img",
+          "alt": "IC-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/j3bew4yg/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+          "tag": "img",
+          "alt": "IC-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/amrpqhnh/ic-hotels-activity-pool-card-d.jpg",
+          "tag": "img",
+          "alt": "Aktivite Havuzu",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/pntew1jf/ic-hotels-santai-family-resort-plaj-ve-havuzlar-silence-card.jpg",
+          "tag": "img",
+          "alt": "Silence Pool",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/jprfyaz0/ic-hotels-santai-family-resort-plaj-ve-havuzlarkapali-havuz-card.jpg",
+          "tag": "img",
+          "alt": "Kapalı Havuz",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/lnqenomm/ic-hotels-santai-family-resort-plaj-ve-havuzlar-mini-club-baby-pool-card.jpg",
+          "tag": "img",
+          "alt": "Çocuk Havuzu ",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/5uwb0x0v/ic-hotels-santai-family-resort-aquapark-card.jpg",
+          "tag": "img",
+          "alt": "Aqua Tower",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/r3lfig1o/ic-hotels-santai-family-resort-plaj-ve-havuzlar-kapali-cocuk-havuzu-card.jpg",
+          "tag": "img",
+          "alt": "Kapalı Çocuk Havuzu",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/2yrb40jn/general-view3-1.jpg",
+          "tag": "img",
+          "alt": "Sun&Star Swim Up villa Havuzları",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/tczjamen/ic-hotels-santai-family-resort-plaj-banner.jpg",
+          "tag": "img",
+          "alt": "Plaj & İskele",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+          "tag": "img",
+          "alt": "Clockwork",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/footer-asset.png",
+          "tag": "img",
+          "alt": "Footer Bottom Background",
+          "categories": []
+        }
+      ],
+      "hotel_id": 1260,
+      "public_text_sha256": "489d8d050d99e4096b3d7a3ad0579e1811262022c9f400415d2774f702918957",
+      "public_text_characters": 2134
+    },
+    {
+      "source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+      "final_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+      "page_title": "Mini Club | Santai Family Resort",
+      "image_hosts": [
+        "www.ichotels.com.tr"
+      ],
+      "image_urls": [
+        "https://www.ichotels.com.tr/favicon/android-icon-48x48.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-57x57.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-60x60.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-72x72.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-76x76.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-114x114.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-120x120.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-144x144.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-152x152.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-180x180.png",
+        "https://www.ichotels.com.tr/favicon/android-icon-192x192.png",
+        "https://www.ichotels.com.tr/favicon/favicon-32x32.png",
+        "https://www.ichotels.com.tr/favicon/favicon-96x96.png",
+        "https://www.ichotels.com.tr/favicon/favicon-16x16.png",
+        "https://www.ichotels.com.tr/favicon/ms-icon-144x144.png",
+        "https://www.ichotels.com.tr/media/zsaajtri/ic-hotels-santai-family-resort-mini-club-banner-m.jpg",
+        "https://www.ichotels.com.tr/media/rzcdk1nt/ic-hotels-santai-family-resort-mini-club-banner.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-banner.jpg",
+        "https://www.ichotels.com.tr/media/zbbfp1rc/ic-hotels-santai-family-resort-mini-club-petit-card-m.jpg",
+        "https://www.ichotels.com.tr/media/suum5e1e/ic-hotels-santai-family-resort-mini-club-petit-card.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-petit-card.jpg",
+        "https://www.ichotels.com.tr/media/elbpuyzg/ic-hotels-santai-family-resort-mini-club-groovy-card-m.jpg",
+        "https://www.ichotels.com.tr/media/yecbwn1i/ic-hotels-santai-family-resort-mini-club-groovy-card.jpg",
+        "https://www.ichotels.com.tr/media/etspyv0l/ic-hotels-santai-family-resort-mini-club-groovy-card-1.jpg",
+        "https://www.ichotels.com.tr/media/rpmlcj1u/0e588cf071d46d8c98de8d527939c7df5d166e3e.jpg",
+        "https://www.ichotels.com.tr/media/uw0j4k2a/ic-hotels-santai-family-resort-mini-club-prime-card.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-prime-card.jpg",
+        "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+        "https://www.ichotels.com.tr/Content/images/footer-asset.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.ichotels.com.tr/favicon/android-icon-48x48.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-57x57.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-60x60.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-72x72.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-76x76.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-114x114.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-120x120.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-144x144.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-152x152.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-180x180.png",
+        "https://www.ichotels.com.tr/favicon/android-icon-192x192.png",
+        "https://www.ichotels.com.tr/favicon/favicon-32x32.png",
+        "https://www.ichotels.com.tr/favicon/favicon-96x96.png",
+        "https://www.ichotels.com.tr/favicon/favicon-16x16.png",
+        "https://www.ichotels.com.tr/favicon/ms-icon-144x144.png",
+        "https://www.ichotels.com.tr/media/zsaajtri/ic-hotels-santai-family-resort-mini-club-banner-m.jpg",
+        "https://www.ichotels.com.tr/media/rzcdk1nt/ic-hotels-santai-family-resort-mini-club-banner.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-banner.jpg",
+        "https://www.ichotels.com.tr/media/zbbfp1rc/ic-hotels-santai-family-resort-mini-club-petit-card-m.jpg",
+        "https://www.ichotels.com.tr/media/suum5e1e/ic-hotels-santai-family-resort-mini-club-petit-card.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-petit-card.jpg",
+        "https://www.ichotels.com.tr/media/elbpuyzg/ic-hotels-santai-family-resort-mini-club-groovy-card-m.jpg",
+        "https://www.ichotels.com.tr/media/yecbwn1i/ic-hotels-santai-family-resort-mini-club-groovy-card.jpg",
+        "https://www.ichotels.com.tr/media/etspyv0l/ic-hotels-santai-family-resort-mini-club-groovy-card-1.jpg",
+        "https://www.ichotels.com.tr/media/rpmlcj1u/0e588cf071d46d8c98de8d527939c7df5d166e3e.jpg",
+        "https://www.ichotels.com.tr/media/uw0j4k2a/ic-hotels-santai-family-resort-mini-club-prime-card.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-prime-card.jpg",
+        "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+        "https://www.ichotels.com.tr/Content/images/footer-asset.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.ichotels.com.tr/media/rzcdk1nt/ic-hotels-santai-family-resort-mini-club-banner.jpg",
+          "alt": "IC-hotels-santai-family-resort-mini-club-banner.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-banner.jpg",
+          "alt": "IC-hotels-santai-family-resort-mini-club-banner.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/suum5e1e/ic-hotels-santai-family-resort-mini-club-petit-card.jpg",
+          "alt": "IC-hotels-santai-family-resort-mini-club-petit-card.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-petit-card.jpg",
+          "alt": "IC-hotels-santai-family-resort-mini-club-petit-card.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/yecbwn1i/ic-hotels-santai-family-resort-mini-club-groovy-card.jpg",
+          "alt": "Groovy Kids Club"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/etspyv0l/ic-hotels-santai-family-resort-mini-club-groovy-card-1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/etspyv0l/ic-hotels-santai-family-resort-mini-club-groovy-card-1.jpg",
+          "alt": ""
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/uw0j4k2a/ic-hotels-santai-family-resort-mini-club-prime-card.jpg",
+          "alt": "IC-hotels-santai-family-resort-mini-club-prime-card.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/IC-hotels-santai-family-resort-mini-club-prime-card.jpg",
+          "alt": "IC-hotels-santai-family-resort-mini-club-prime-card.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+          "alt": "Clockwork"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/footer-asset.png",
+          "alt": "Footer Bottom Background"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/en/our-hotels/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/ru/our-hotels/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/de/unsere-hotels/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/tr/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/ıc-gourmet/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "https://www.ichotels.com.tr/tr/loyalty/",
+        "https://www.ichotels.com.tr/tr/oteller/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/petit-club/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/groovy-kids-club/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/prime-kids-club/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/toplanti/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/aktiviteler/",
+        "https://www.ichotels.com.tr/tr/iletisim/",
+        "https://www.ichotels.com.tr/tr/oteller/green-palace-villas/",
+        "https://www.ichotels.com.tr/tr/oteller/airport/",
+        "https://www.ichotels.com.tr/politikalarimiz/kvkk/",
+        "https://www.ichotels.com.tr/tr/kariyer/",
+        "https://www.ichotels.com.tr/tr/blog/",
+        "https://www.ichotels.com.tr/tr/sikca-sorulan-sorular/",
+        "https://www.ichotels.com.tr/tr/factsheet/",
+        "https://www.ichotels.com.tr/tr/surdurulebilirlik/",
+        "https://www.ichotels.com.tr/tr/politikalarimiz/kvkk/"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.ichotels.com.tr/media/rzcdk1nt/ic-hotels-santai-family-resort-mini-club-banner.jpg",
+          "tag": "img",
+          "alt": "IC-hotels-santai-family-resort-mini-club-banner.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/suum5e1e/ic-hotels-santai-family-resort-mini-club-petit-card.jpg",
+          "tag": "img",
+          "alt": "IC-hotels-santai-family-resort-mini-club-petit-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/yecbwn1i/ic-hotels-santai-family-resort-mini-club-groovy-card.jpg",
+          "tag": "img",
+          "alt": "Groovy Kids Club",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/etspyv0l/ic-hotels-santai-family-resort-mini-club-groovy-card-1.jpg",
+          "tag": "img",
+          "alt": "",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/uw0j4k2a/ic-hotels-santai-family-resort-mini-club-prime-card.jpg",
+          "tag": "img",
+          "alt": "IC-hotels-santai-family-resort-mini-club-prime-card.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+          "tag": "img",
+          "alt": "Clockwork",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/footer-asset.png",
+          "tag": "img",
+          "alt": "Footer Bottom Background",
+          "categories": []
+        }
+      ],
+      "hotel_id": 1260,
+      "public_text_sha256": "09b21aab7ea657ea73ecd928d6b98c88eb0a281f6dd33af0daabdf96c674236c",
+      "public_text_characters": 1929
+    },
+    {
+      "source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+      "final_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+      "page_title": "Futbol Merkezi| IC Santai Family Resort",
+      "image_hosts": [
+        "www.ichotels.com.tr"
+      ],
+      "image_urls": [
+        "https://www.ichotels.com.tr/favicon/android-icon-48x48.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-57x57.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-60x60.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-72x72.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-76x76.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-114x114.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-120x120.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-144x144.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-152x152.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-180x180.png",
+        "https://www.ichotels.com.tr/favicon/android-icon-192x192.png",
+        "https://www.ichotels.com.tr/favicon/favicon-32x32.png",
+        "https://www.ichotels.com.tr/favicon/favicon-96x96.png",
+        "https://www.ichotels.com.tr/favicon/favicon-16x16.png",
+        "https://www.ichotels.com.tr/favicon/ms-icon-144x144.png",
+        "https://www.ichotels.com.tr/media/t0yihqsv/ic-hotels-santai-family-resort-futbol-banner-m.jpg",
+        "https://www.ichotels.com.tr/media/sgsfyukq/ic-hotels-santai-family-resort-futbol-banner-d.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-banner-d.jpg",
+        "https://www.ichotels.com.tr/media/wn2dxzh4/ic-hotels-santai-family-resort-futbol-card-1-m.jpg",
+        "https://www.ichotels.com.tr/media/aiujx4eh/ic-hotels-santai-family-resort-futbol-card-1-d.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-card-1-d.jpg",
+        "https://www.ichotels.com.tr/media/ohlop30n/ic-hotels-santai-family-resort-futbol-card-2-m.jpg",
+        "https://www.ichotels.com.tr/media/dioojt2w/ic-hotels-santai-family-resort-futbol-card-2-d.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-card-2-d.jpg",
+        "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+        "https://www.ichotels.com.tr/Content/images/footer-asset.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.ichotels.com.tr/favicon/android-icon-48x48.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-57x57.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-60x60.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-72x72.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-76x76.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-114x114.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-120x120.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-144x144.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-152x152.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-180x180.png",
+        "https://www.ichotels.com.tr/favicon/android-icon-192x192.png",
+        "https://www.ichotels.com.tr/favicon/favicon-32x32.png",
+        "https://www.ichotels.com.tr/favicon/favicon-96x96.png",
+        "https://www.ichotels.com.tr/favicon/favicon-16x16.png",
+        "https://www.ichotels.com.tr/favicon/ms-icon-144x144.png",
+        "https://www.ichotels.com.tr/media/t0yihqsv/ic-hotels-santai-family-resort-futbol-banner-m.jpg",
+        "https://www.ichotels.com.tr/media/sgsfyukq/ic-hotels-santai-family-resort-futbol-banner-d.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-banner-d.jpg",
+        "https://www.ichotels.com.tr/media/wn2dxzh4/ic-hotels-santai-family-resort-futbol-card-1-m.jpg",
+        "https://www.ichotels.com.tr/media/aiujx4eh/ic-hotels-santai-family-resort-futbol-card-1-d.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-card-1-d.jpg",
+        "https://www.ichotels.com.tr/media/ohlop30n/ic-hotels-santai-family-resort-futbol-card-2-m.jpg",
+        "https://www.ichotels.com.tr/media/dioojt2w/ic-hotels-santai-family-resort-futbol-card-2-d.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-card-2-d.jpg",
+        "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+        "https://www.ichotels.com.tr/Content/images/footer-asset.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.ichotels.com.tr/media/sgsfyukq/ic-hotels-santai-family-resort-futbol-banner-d.jpg",
+          "alt": "ic-hotels-santai-family-resort-futbol-banner-d.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-banner-d.jpg",
+          "alt": "ic-hotels-santai-family-resort-futbol-banner-d.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/aiujx4eh/ic-hotels-santai-family-resort-futbol-card-1-d.jpg",
+          "alt": "ic-hotels-santai-family-resort-futbol-card-1-d.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-card-1-d.jpg",
+          "alt": "ic-hotels-santai-family-resort-futbol-card-1-d.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/dioojt2w/ic-hotels-santai-family-resort-futbol-card-2-d.jpg",
+          "alt": "ic-hotels-santai-family-resort-futbol-card-2-d.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/ic-hotels-santai-family-resort-futbol-card-2-d.jpg",
+          "alt": "ic-hotels-santai-family-resort-futbol-card-2-d.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+          "alt": "Clockwork"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/footer-asset.png",
+          "alt": "Footer Bottom Background"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+        "https://www.ichotels.com.tr/en/our-hotels/santai-family-resort/football-center/",
+        "https://www.ichotels.com.tr/ru/our-hotels/santai-family-resort/futbol/",
+        "https://www.ichotels.com.tr/de/unsere-hotels/santai-family-resort/fussball/",
+        "https://www.ichotels.com.tr/tr/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/ıc-gourmet/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "https://www.ichotels.com.tr/tr/loyalty/",
+        "https://www.ichotels.com.tr/tr/oteller/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/toplanti/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/aktiviteler/",
+        "https://www.ichotels.com.tr/tr/iletisim/",
+        "https://www.ichotels.com.tr/tr/oteller/green-palace-villas/",
+        "https://www.ichotels.com.tr/tr/oteller/airport/",
+        "https://www.ichotels.com.tr/politikalarimiz/kvkk/",
+        "https://www.ichotels.com.tr/tr/kariyer/",
+        "https://www.ichotels.com.tr/tr/blog/",
+        "https://www.ichotels.com.tr/tr/sikca-sorulan-sorular/",
+        "https://www.ichotels.com.tr/tr/factsheet/",
+        "https://www.ichotels.com.tr/tr/surdurulebilirlik/",
+        "https://www.ichotels.com.tr/tr/politikalarimiz/kvkk/"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.ichotels.com.tr/media/sgsfyukq/ic-hotels-santai-family-resort-futbol-banner-d.jpg",
+          "tag": "img",
+          "alt": "ic-hotels-santai-family-resort-futbol-banner-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/aiujx4eh/ic-hotels-santai-family-resort-futbol-card-1-d.jpg",
+          "tag": "img",
+          "alt": "ic-hotels-santai-family-resort-futbol-card-1-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/dioojt2w/ic-hotels-santai-family-resort-futbol-card-2-d.jpg",
+          "tag": "img",
+          "alt": "ic-hotels-santai-family-resort-futbol-card-2-d.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+          "tag": "img",
+          "alt": "Clockwork",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/footer-asset.png",
+          "tag": "img",
+          "alt": "Footer Bottom Background",
+          "categories": []
+        }
+      ],
+      "hotel_id": 1260,
+      "public_text_sha256": "d7192ae546774282aa391d297c561ab8fd6dfffb86204a6efe65afc1fcddc4fa",
+      "public_text_characters": 2163
+    },
+    {
+      "source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+      "final_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+      "page_title": "Spa & Wellness | IC Hotels Santai Family Resort",
+      "image_hosts": [
+        "www.ichotels.com.tr"
+      ],
+      "image_urls": [
+        "https://www.ichotels.com.tr/favicon/android-icon-48x48.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-57x57.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-60x60.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-72x72.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-76x76.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-114x114.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-120x120.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-144x144.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-152x152.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-180x180.png",
+        "https://www.ichotels.com.tr/favicon/android-icon-192x192.png",
+        "https://www.ichotels.com.tr/favicon/favicon-32x32.png",
+        "https://www.ichotels.com.tr/favicon/favicon-96x96.png",
+        "https://www.ichotels.com.tr/favicon/favicon-16x16.png",
+        "https://www.ichotels.com.tr/favicon/ms-icon-144x144.png",
+        "https://www.ichotels.com.tr/media/3ipdxdku/ic-hotels-santai-family-resort-spa-banner-m.jpg",
+        "https://www.ichotels.com.tr/media/xhth4eh0/ic-hotels-santai-family-resort-spa-banner.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/IC-hotels-santai-family-resort-spa-banner.jpg",
+        "https://www.ichotels.com.tr/media/4rgno4zc/ic-hotels-santai-family-resort-spa-turk-hamami-card.jpg",
+        "https://www.ichotels.com.tr/media/lgqmryx1/ic-hotels-santai-family-resort-spa-sauna-card.jpg",
+        "https://www.ichotels.com.tr/media/bpnfa1s5/ic-hotels-santai-family-resort-spa-dinlenme-odasi-card.jpg",
+        "https://www.ichotels.com.tr/media/y01iclj5/ic-hotels-santai-family-resort-spa-fitness-card.jpg",
+        "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+        "https://www.ichotels.com.tr/Content/images/footer-asset.png"
+      ],
+      "declared_public_image_references": [
+        "https://www.ichotels.com.tr/favicon/android-icon-48x48.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-57x57.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-60x60.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-72x72.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-76x76.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-114x114.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-120x120.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-144x144.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-152x152.png",
+        "https://www.ichotels.com.tr/favicon/apple-icon-180x180.png",
+        "https://www.ichotels.com.tr/favicon/android-icon-192x192.png",
+        "https://www.ichotels.com.tr/favicon/favicon-32x32.png",
+        "https://www.ichotels.com.tr/favicon/favicon-96x96.png",
+        "https://www.ichotels.com.tr/favicon/favicon-16x16.png",
+        "https://www.ichotels.com.tr/favicon/ms-icon-144x144.png",
+        "https://www.ichotels.com.tr/media/3ipdxdku/ic-hotels-santai-family-resort-spa-banner-m.jpg",
+        "https://www.ichotels.com.tr/media/xhth4eh0/ic-hotels-santai-family-resort-spa-banner.jpg",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/IC-hotels-santai-family-resort-spa-banner.jpg",
+        "https://www.ichotels.com.tr/media/4rgno4zc/ic-hotels-santai-family-resort-spa-turk-hamami-card.jpg",
+        "https://www.ichotels.com.tr/media/lgqmryx1/ic-hotels-santai-family-resort-spa-sauna-card.jpg",
+        "https://www.ichotels.com.tr/media/bpnfa1s5/ic-hotels-santai-family-resort-spa-dinlenme-odasi-card.jpg",
+        "https://www.ichotels.com.tr/media/y01iclj5/ic-hotels-santai-family-resort-spa-fitness-card.jpg",
+        "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+        "https://www.ichotels.com.tr/Content/images/footer-asset.png"
+      ],
+      "image_details": [
+        {
+          "url": "https://www.ichotels.com.tr/media/xhth4eh0/ic-hotels-santai-family-resort-spa-banner.jpg",
+          "alt": "IC-hotels-santai-family-resort-spa-banner.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/IC-hotels-santai-family-resort-spa-banner.jpg",
+          "alt": "IC-hotels-santai-family-resort-spa-banner.jpg"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/4rgno4zc/ic-hotels-santai-family-resort-spa-turk-hamami-card.jpg",
+          "alt": "Türk Hamamı"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/lgqmryx1/ic-hotels-santai-family-resort-spa-sauna-card.jpg",
+          "alt": "Sauna"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/bpnfa1s5/ic-hotels-santai-family-resort-spa-dinlenme-odasi-card.jpg",
+          "alt": "Rahatlama Odaları"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/y01iclj5/ic-hotels-santai-family-resort-spa-fitness-card.jpg",
+          "alt": "Fitness Salonu"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+          "alt": "Clockwork"
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/footer-asset.png",
+          "alt": "Footer Bottom Background"
+        }
+      ],
+      "document_urls": [],
+      "website_links": [
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+        "https://www.ichotels.com.tr/en/our-hotels/santai-family-resort/spa-wellness/",
+        "https://www.ichotels.com.tr/ru/our-hotels/santai-family-resort/spa-wellness/",
+        "https://www.ichotels.com.tr/de/unsere-hotels/santai-family-resort/spa-wellness/",
+        "https://www.ichotels.com.tr/tr/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/konaklama/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/ıc-gourmet/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "https://www.ichotels.com.tr/tr/loyalty/",
+        "https://www.ichotels.com.tr/tr/oteller/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/turk-hamami/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/sauna/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/rahatlama-odalari/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/fitness-salonu/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/toplanti/",
+        "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/aktiviteler/",
+        "https://www.ichotels.com.tr/tr/iletisim/",
+        "https://www.ichotels.com.tr/tr/oteller/green-palace-villas/",
+        "https://www.ichotels.com.tr/tr/oteller/airport/",
+        "https://www.ichotels.com.tr/politikalarimiz/kvkk/",
+        "https://www.ichotels.com.tr/tr/kariyer/",
+        "https://www.ichotels.com.tr/tr/blog/",
+        "https://www.ichotels.com.tr/tr/sikca-sorulan-sorular/",
+        "https://www.ichotels.com.tr/tr/factsheet/",
+        "https://www.ichotels.com.tr/tr/surdurulebilirlik/",
+        "https://www.ichotels.com.tr/tr/politikalarimiz/kvkk/"
+      ],
+      "gallery_memberships": [
+        {
+          "url": "https://www.ichotels.com.tr/media/xhth4eh0/ic-hotels-santai-family-resort-spa-banner.jpg",
+          "tag": "img",
+          "alt": "IC-hotels-santai-family-resort-spa-banner.jpg",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/4rgno4zc/ic-hotels-santai-family-resort-spa-turk-hamami-card.jpg",
+          "tag": "img",
+          "alt": "Türk Hamamı",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/lgqmryx1/ic-hotels-santai-family-resort-spa-sauna-card.jpg",
+          "tag": "img",
+          "alt": "Sauna",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/bpnfa1s5/ic-hotels-santai-family-resort-spa-dinlenme-odasi-card.jpg",
+          "tag": "img",
+          "alt": "Rahatlama Odaları",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/media/y01iclj5/ic-hotels-santai-family-resort-spa-fitness-card.jpg",
+          "tag": "img",
+          "alt": "Fitness Salonu",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/clockwork-logo.png",
+          "tag": "img",
+          "alt": "Clockwork",
+          "categories": []
+        },
+        {
+          "url": "https://www.ichotels.com.tr/Content/images/footer-asset.png",
+          "tag": "img",
+          "alt": "Footer Bottom Background",
+          "categories": []
+        }
+      ],
+      "hotel_id": 1260,
+      "public_text_sha256": "d000c8802d0da86b5fad3a99af60875ad949da22fec54ff6576704fb240957e7",
+      "public_text_characters": 2094
+    }
+  ],
+  "source_artifacts": [
+    {
+      "group": 0,
+      "artifact": 13387827762
+    },
+    {
+      "group": 1,
+      "artifact": 13387468487
+    }
+  ]
+}

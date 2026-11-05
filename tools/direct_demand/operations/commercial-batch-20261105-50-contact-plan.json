@@ -1,0 +1,78 @@
+{
+  "operation": "commercial-batch-20261105-50-contact",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Inspect five genuinelynew owner-declared Santai photographs for wholehotelhero and two lowerphotos within tenprovenunpublishedscope; preserve sixwholecaptions and allclosedmaterial exclusions.",
+  "boundaries": {
+    "native_scope": [
+      1420,
+      1421,
+      1253,
+      15904,
+      15913,
+      78251,
+      27349,
+      108942,
+      1260,
+      1217
+    ],
+    "actual_photo_scope": [
+      1260
+    ],
+    "exact_new_photo_count": 5,
+    "readonly_groups": 1,
+    "max_parallel": 2,
+    "source_http_gets": 0,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "FiveURLs and decodedbasenames all different from closed258URLs/257basenames, exactdeclaredimage membership/property1260 from originalfournewownerpages",
+    "Primarysources alreadyread/closed; no sameGET, variants, querystripping or403bypass. No villa-onlygeneral-viewframe used as wholehero",
+    "Existingquery/redirect/byte/type/format/dimensionguards byteidentical; acceptedephemeralPILdependency step unchanged",
+    "ThreeNEWscope-input negativecases once beforeHTTP; nooldimageguardfixtures",
+    "FullBOMline/timestamp/chunks/decodedbytes/SHA/nativepixels beforemediaacceptance; no readiness solely fromsource/guardpass"
+  ],
+  "risks": [
+    "Banner may show only onepool/beach/details and failwholecomplexhero; no lowercriteria/importenlargement to force readiness",
+    "Beach/spa/aquapark facts do not imply universal free/seasonal access. Preserve room/villa rights and wholecaption"
+  ],
+  "photos": [
+    {
+      "hotel_id": 1260,
+      "url": "https://www.ichotels.com.tr/media/x5cbq3jc/ic-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+      "primary_source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+      "role": "h1260_new50_0"
+    },
+    {
+      "hotel_id": 1260,
+      "url": "https://www.ichotels.com.tr/media/j3bew4yg/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+      "primary_source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+      "role": "h1260_new50_1"
+    },
+    {
+      "hotel_id": 1260,
+      "url": "https://www.ichotels.com.tr/media/amrpqhnh/ic-hotels-activity-pool-card-d.jpg",
+      "primary_source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+      "role": "h1260_new50_2"
+    },
+    {
+      "hotel_id": 1260,
+      "url": "https://www.ichotels.com.tr/media/5uwb0x0v/ic-hotels-santai-family-resort-aquapark-card.jpg",
+      "primary_source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+      "role": "h1260_new50_3"
+    },
+    {
+      "hotel_id": 1260,
+      "url": "https://www.ichotels.com.tr/media/xhth4eh0/ic-hotels-santai-family-resort-spa-banner.jpg",
+      "primary_source_url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+      "role": "h1260_new50_4"
+    }
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
