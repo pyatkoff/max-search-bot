@@ -1,0 +1,34 @@
+{
+  "operation": "commercial-price-legacy381-20261105-contract-inspection1",
+  "state": "CLOSED_ORIGINAL_QUOTE_ONLY_NO_PROVIDER_RETRY",
+  "native_hotel_id": 381,
+  "original_quote_run": 41944924563,
+  "original_update_run": 41945166136,
+  "gateway_declared_error": false,
+  "all_inclusion_flags_false": false,
+  "surcharges_empty": true,
+  "retained_options": 1,
+  "option_contract_flags": [
+    {
+      "dates_match": true,
+      "real_flight_numbers": true,
+      "no_places_all_false": true,
+      "on_demand_all_false": true,
+      "RUB": true
+    }
+  ],
+  "current_caption_utf16_units": 337,
+  "preparation_rejection_type": "AssertionError",
+  "private_rejection_message_present": false,
+  "provider_calls": 0,
+  "db_calls": 0,
+  "price_edits": 0,
+  "actual_run": 41945775526,
+  "actual_job": 126977475798,
+  "artifact": 13377859177,
+  "source_commit": "d3d107ddee8574b2d27f067908a2a272b123acff",
+  "reason": "PACKAGE_INCLUSION_FLAGS_CONTRACT_NOT_ACCEPTED",
+  "gateway_retry_allowed": false,
+  "no_price_edit_intent_created": true,
+  "do_not_repeat_inspection_or_quote": true
+}
