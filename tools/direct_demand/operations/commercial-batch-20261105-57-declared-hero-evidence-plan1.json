@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-batch-20261105-57-declared-hero-evidence-plan1",
+  "state": "ONE_OR_TWO_GENUINELY_NEW_DECLARED_WHOLE_COMPLEX_HERO_POINTERS_REQUIRED_NO_URL_SELECTED",
+  "goal": "Find a supported whole-main-complex owner photo for one retained unpublished property; use accepted current detail-photo evidence only as lower-photo candidates.",
+  "bounds": {
+    "max_property_groups": 2,
+    "max_declared_new_urls_per_group": 2,
+    "max_parallel": 2,
+    "owner_http_before_exact_new_pointer": 0,
+    "raw_photo_http_before_exact_new_membership": 0,
+    "server_calls": 0,
+    "provider_calls": 0,
+    "paid_source_calls": 0,
+    "new_posts": 0,
+    "canva_before_accepted_proof": 0
+  },
+  "preferred_finite_metadata_scope": [
+    {
+      "hotel_id": 67897,
+      "name": "JAZ MARAYA",
+      "current_evidence": "Two56pool/pergola/buildingbanddetailphotos; neitherwholecomplexhero. No filenameOverview/exterior guess or blindvariantGET.",
+      "still_required": "Genuinelynewexplicitwholecomplexhero declaration plusCURRENTexactnative-country-active-name/registry/rights+wholecaption."
+    },
+    {
+      "hotel_id": 4184,
+      "name": "SENTIDO REEF OASIS SENSES RESORT (EX. REEF OASIS SENSES RESORT)",
+      "current_evidence": "Retainedstock51contentverified/generalhotelherodeferred; exactnewprimarymedia pointer notrecovered.",
+      "still_required": "Onlyneededcanonicaladdressedproperty/gallery/pressmetadata. No genericrootrediscovery or sourceURLguess."
+    }
+  ],
+  "criteria": [
+    "Before anyGHA/HTTP freezeexactnewdeclaredURL/source-membership/nativeidentityevidence; ≤2propertygroups/≤2URLs each. Compareclosedmetadata beforewebsearch/HTTP; don'treadmanyoldnotes or printwholebodies.",
+    "Rawphotoexclusions NOW291URLs290decodedbasenames =56indexprior289/288+new_photos2, notold289/288. Also keepfinitecanonicalcontactmetadata exclusions,26fileslastchecked.",
+    "DoNOTreinspect56photos/contact/log/result/cases; 2newpooldetails areclosed and NOThero. Other4oldsource12photo_candidates filenames alone doNOTprovewholecomplex or differentframe; no blindOverview/Exteriorvariant GET.",
+    "53roots254/4185/512 alreadyclosed; Hilton102774root403 and Casa74258gallery403 no retry/alternatehost-path-query-header-cookie-robotsbypass. Nile102031rootclosed/dedupGET0. ExistingMaxx/IC/Adalyaunconsumedpoolchildrenindoor/brandwrongproperty assets no blindhero GET.",
+    "Wholemaincomplexhero+2differentpropertyphotos/rights/currentnativebinding/confirmedfacts/wholecaptions mandatory beforeCanva. Preserveallmissingnativefields asNULL; noinventedregistry0/publisherrole.",
+    "FreshCanvaTXonlyafterproof; protecteddesign/reusepool/EACHthumbnailSHOW/PNGguards/freezeTHENcancel. Ready1..10ONEexistingSERIALpublisher/privateintent/once/UNKNOWNoriginalfirst; do notholdreadyforhardcases.",
+    "Source/evidenceworkdoesnotincrease161materials. OnlyNEWactualpair permitsMAX162/3feed17/monitorappend."
+  ],
+  "risks": [
+    "No declared distinct wholecomplexasset may beavailable; deferwithoutloweringheroquality.",
+    "Currentstockmetadata lacksfullnativefieldsforselectedoldcandidate; photoidentificationalonecannotauthorizeCanvaorpublication."
+  ],
+  "genuinely_new_normal_prices_first": true
+}

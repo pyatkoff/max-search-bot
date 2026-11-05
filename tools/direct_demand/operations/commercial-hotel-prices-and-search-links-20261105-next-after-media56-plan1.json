@@ -1,0 +1,52 @@
+{
+  "operation": "commercial-hotel-prices-and-search-links-20261105-next-after-media56-plan1",
+  "state": "NEW_PRICES_FIRST_THEN_EXACT_REVIEW6_PROOF_THEN_FINITE_DECLARED_HERO_EVIDENCE",
+  "current": {
+    "published_pairs": 161,
+    "prices_in_both": 85,
+    "linked_in_both": 155,
+    "admitted_unpriced": 70,
+    "unlinked_review_only": [
+      482,
+      476,
+      81173,
+      32577,
+      478,
+      80964
+    ],
+    "ready_price_edits": 0,
+    "ready_link_edits": 0,
+    "ready_materials": 0,
+    "open_canva_transactions": 0,
+    "unknown_pending": 0,
+    "active_provider_workflows": 0
+  },
+  "latest_scheduled_metadata": {
+    "operation": "commercial-price-monitor-20261105-metadata29-new-after2024",
+    "state": "CLOSED_NEW_BOUNDED_SCHEDULED_METADATA_ONLY",
+    "created_after": "2026-11-05T20:24:13Z",
+    "query_start_inclusive": "2026-11-05T20:24:14Z",
+    "upper_utc": "2026-11-05T20:40:20Z",
+    "total_count": 0,
+    "returned": 0,
+    "new_normal_or_admitted_tour_tuple": false,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "old_logs_read": 0,
+    "do_not_repeat_same_window": true
+  },
+  "latest_media_state_file": "commercial-batch-20261105-56-contact-state.json",
+  "next_media_plan_file": "commercial-batch-20261105-57-declared-hero-evidence-plan1.json",
+  "current_photo_exclusions": {
+    "urls": 291,
+    "decoded_basenames": 290,
+    "index_file": "commercial-batch-20261105-56-contact-source-index.json",
+    "union": "closedarrays+bothnew_photos"
+  },
+  "old_quote_fingerprints_consumed": 199,
+  "old_manual_source_permissions": "CONSUMED_NO_REPLAY",
+  "review6": "Staticexpectednamesnotgenuineexactnative-product-publisherproof; keepexcluded",
+  "goal500_complete": false,
+  "automation": "Onlyownanytour-max15minACTIVE until500actualpairs+3fullYML+agreedminiappacceptance+savedacceptance",
+  "notify_rule": "Routineunchanged/prep/newphotoevidencewithoutreadydeliveryquiet; notifyactualnewdeliveryoractionableblockeronce"
+}

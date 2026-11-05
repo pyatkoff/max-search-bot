@@ -1,0 +1,113 @@
+{
+  "operation": "commercial-batch-20261105-56-contact1",
+  "state": "CLOSED_TWO_NEW_OWNER_PHOTOS_BYTEGUARDS_PASSED_NO_WHOLE_COMPLEX_HERO_NO_MATERIAL_READY",
+  "run": 42106567909,
+  "jobs": [
+    127522826034
+  ],
+  "source_commit": "e71194fa4e136d76cbf5c6514fc9ff5978a887f4",
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42106567909",
+  "authenticated_artifact_id": 13452017271,
+  "artifact_name": "commercial-batch56-contact-0",
+  "native_scope": [
+    67897
+  ],
+  "original_declaration": "commercial-stock-20261102-12-source-index.json hotel67897 photo_candidates; propertypool64; noownerpageGET",
+  "new_raw_photo_gets": 2,
+  "http200": 2,
+  "guard_passes": 2,
+  "guard_rejects": 0,
+  "new_input_negative_cases_passed": 7,
+  "old_guard_fixtures_rerun": 0,
+  "closed_contact_metadata_files_compared_before_http": 26,
+  "old_photo_get_repeats": 0,
+  "new_total_closed_unique_urls": 291,
+  "new_total_closed_decoded_basenames": 290,
+  "current_closed_photo_index_file": "commercial-batch-20261105-56-contact-source-index.json",
+  "closed_union_rule": "exactpriorclosed_url_exclusions289+bothNEWactuallyfetchednew_photos2; basenameslowercase+percentdecode288+2=290",
+  "contact": {
+    "width": 640,
+    "height": 270,
+    "bytes": 229973,
+    "sha256": "e3e1c2ed6fbaf6f800fb2f20525bcce71dd3114975b92f985e20116ad49375c4",
+    "chunks": 7,
+    "full_chunks_decoded_bytes_sha_and_png_dimensions_verified": true,
+    "shown_once": true
+  },
+  "source_images": [
+    {
+      "hotel_id": 67897,
+      "role": "h67897_new56_0",
+      "index": 0,
+      "format": "JPEG",
+      "width": 800,
+      "height": 600,
+      "bytes": 633574,
+      "sha256": "9748920f2534dc6ff3e744e1fd74eede97a992364b32b667970f58439fd3ee58",
+      "retained_raw_file": "accepted-primary-raw/h67897_new56_0.jpg"
+    },
+    {
+      "hotel_id": 67897,
+      "role": "h67897_new56_1",
+      "index": 1,
+      "format": "JPEG",
+      "width": 800,
+      "height": 600,
+      "bytes": 374931,
+      "sha256": "86dbac6ee5be3898045e20e3b6555d01c603ade657e272a30c7a2dbfe9223af3",
+      "retained_raw_file": "accepted-primary-raw/h67897_new56_1.jpg"
+    }
+  ],
+  "visual_verdicts": [
+    {
+      "hotel_id": 67897,
+      "role": "h67897_new56_0",
+      "verdict": "PROPERTY_POOL_LAWN_AND_BUILDING_BAND_DETAIL_ONLY_NOT_WHOLE_MAIN_COMPLEX_HERO",
+      "potential_future_use": "LOWER_PHOTO_ONLY_AFTER_RIGHTS_AND_CURRENT_NATIVE_PROOF",
+      "no_reinspection": true
+    },
+    {
+      "hotel_id": 67897,
+      "role": "h67897_new56_1",
+      "verdict": "PROPERTY_POOL_SEAFRONT_PERGOLA_DETAIL_ONLY_NOT_WHOLE_MAIN_COMPLEX_HERO",
+      "potential_future_use": "LOWER_PHOTO_ONLY_AFTER_RIGHTS_AND_CURRENT_NATIVE_PROOF",
+      "no_reinspection": true
+    }
+  ],
+  "whole_complex_heroes_accepted": 0,
+  "native_publication_eligibility": "CURRENT_EXACT_NATIVE_COUNTRY_ACTIVE_NAME_REGISTRY_AND_RIGHTS_PROOF_REQUIRED_NO_SEND",
+  "original_missing_native_fields_preserved_as_null": true,
+  "raw_photos_only_original_authenticated_artifact": true,
+  "original_log_result_chunks_and_pixels_closed": true,
+  "initial_preaccess_dependency_stop": {
+    "operation": "commercial-batch-20261105-56-contact1",
+    "state": "PREACCESS_DEPENDENCY_STOP_NO_PIL",
+    "run_id": 42106318201,
+    "job_id": 127522004042,
+    "source_sha": "b5aade5b8889b2d919e61cc385c6af82c319f6e0",
+    "error": "ModuleNotFoundError:PIL",
+    "failed_at": "top_level_import_line3_before_scope_or_HTTP",
+    "new_input_cases_executed": 0,
+    "old_fixtures_rerun": 0,
+    "photo_gets": 0,
+    "owner_gets": 0,
+    "server_calls": 0,
+    "provider_calls": 0,
+    "new_posts": 0,
+    "artifacts": 0,
+    "original_log_closed": true,
+    "correction": "RestoreonlycanonicalPillowworkflowdependency; samefrozeninput/codeoperation, notbusinessretry"
+  },
+  "dependency_correction": "Restoredexactcanonicalaptpython3-pildependency+py_compile; SAMEfrozeninput/code/operation; firstfailurebeforecasesHTTPall0, notbusinessretry.",
+  "canva_transactions": 0,
+  "open_canva_transactions": 0,
+  "new_logical_pairs_actual": 0,
+  "new_posts_actual": 0,
+  "ready_for_send": 0,
+  "provider_calls": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "server_connections": 0,
+  "message_sends": 0,
+  "repeat_policy": "ALL56scope/log/result/newcases/contactpixelsnowCLOSED; no rawGET/oldpixels/case replay. Futurealloweduseonlyspecificartifactmetadata/retainedrawassetthroughauthorizedpipeline, notrepeatinspection."
+}
