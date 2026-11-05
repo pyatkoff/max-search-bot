@@ -23,7 +23,9 @@ file_put_contents($tmp.'/bootstrap.php',$bootstrap);
 $dependencies=['DialogueApplication','DiagnosticLogger','ConversationRecorder','ConversationAttributionService','ConversationControlService','ManagerPushService','MetrikaConversionGoalService','ConversationDb','IntegrationRegistry','ManagerHandoffDispatchService'];
 try {
     foreach($dependencies as $name)file_put_contents($tmp.'/'.$name.'.php',"<?php require_once __DIR__.'/bootstrap.php';");
-    copy($root.'/services/SourceHandlingService.php',$tmp.'/SourceHandlingService.php');
+    foreach (['MissingFieldQuestionService','SourceQualificationPrompt','SourceHandlingService'] as $name) {
+        copy($root.'/services/'.$name.'.php',$tmp.'/'.$name.'.php');
+    }
     copy($root.'/services/IncomingUpdateDispatcher.php',$tmp.'/IncomingUpdateDispatcher.php');
     require $tmp.'/IncomingUpdateDispatcher.php';
     $app=new DialogueApplication();$dispatcher=new IncomingUpdateDispatcher($app);$checks=0;$missing=[];$ownershipFailures=[];

@@ -110,7 +110,7 @@ try {
     $copy=SourceQualificationPrompt::text(['adults','children'],'Rixos Premium Seagate');
     cpeCheck('known date is not asked again',str_contains($copy,'дат')||str_contains($copy,'вылета'),false);
     $copy=SourceQualificationPrompt::text(['adults'],'Rixos Premium Seagate');
-    cpeCheck('known zero children does not ask child count or ages',str_contains($copy,'дет')||str_contains($copy,'возраст'),false);
+    cpeCheck('known zero children asks only the missing adult count',str_ends_with($copy,MissingFieldQuestionService::question('adults'))&&!str_contains($copy,'Будут дети')&&!str_contains($copy,'возраст'),true);
     $copy=SourceQualificationPrompt::text(['child_ages'],'Rixos Premium Seagate');
     cpeCheck('known adults and child count asks only ages',str_contains($copy,'Сколько лет детям?')&&!str_contains($copy,'взросл')&&!str_contains($copy,'дат'),true);
     cpeCheck('hotel name is escaped for messenger HTML',str_contains(SourceQualificationPrompt::text(['date'],'Rixos <Family> & Spa'),'Rixos &lt;Family&gt; &amp; Spa'),true);
