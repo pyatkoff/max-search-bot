@@ -1,0 +1,106 @@
+{
+  "operation": "commercial-batch-20261105-51-canva-78251",
+  "state": "PREPARED_TEMPORARY_COVER_NO_PERMANENT_SAVE",
+  "goal": "Create one genuineCullinanBelek cover from the newnative-verifiedcomplete mainbuilding/groundsphoto and twodistinct newlyverifiedowner lowerphotos.",
+  "hotel_id": 78251,
+  "title": "Cullinan Belek",
+  "design_id": "DAHZx_JlJEM",
+  "protected_original": "DAHZIISS2iY",
+  "sources": [
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_1",
+      "index": 1,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-5gx04isz2w9g2cujfy4vetctz/008-cullinan-belek-exterior.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1152,
+      "bytes": 302335,
+      "sha256": "81ed170f61a9d4bf569d2617ee26f7074319e00426ca202c8f110ccdb234df4e",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_1.jpg",
+      "cover_role": "whole_main_complex_hero"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_4",
+      "index": 4,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-8qhea7whg0b1eye3nktl430bt/cullinan-belek-general-view-3.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1440,
+      "bytes": 625490,
+      "sha256": "b41f9eca7abe0f41e9412c5da07c73a91a8f0c6c86ffd19f743be4b9a377e21a",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_4.jpg",
+      "cover_role": "lower_beach_pier"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_3",
+      "index": 3,
+      "source_url": "https://image-tc.galaxy.tf/wijpeg-d52psyauht4tcyu9974qjuhe3/010-cullinan-belek-exterior.jpg",
+      "format": "JPEG",
+      "width": 1920,
+      "height": 1280,
+      "bytes": 386711,
+      "sha256": "c30b426186cc82f5d5a860ee978f332e8ef4484b9bf91c30f57870d3041636f6",
+      "retained_raw_file": "accepted-primary-raw/h78251_new51_3.jpg",
+      "cover_role": "lower_pool_facade"
+    }
+  ],
+  "boundaries": {
+    "fresh_transaction_required": true,
+    "max_active_transactions": 2,
+    "imports_in_same_object_sequential": true,
+    "original_design_modified": false,
+    "autofill": false,
+    "permanent_save": false,
+    "source_http_inspector_gets": 0,
+    "provider_calls": 0,
+    "db_calls": 0,
+    "publication_writes": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "Freshactualpage/elementIDs; updatebackground+hero+2lowers/title/alt and clearAnyTourlogo/bluebanner",
+    "Hero containscompleteleft-rightmainroofline; cropmayremoveemptysky/rightgolf only. Do not clipmainbuilding or substituteprivatecategorycluster",
+    "ShowEVERYthumbnail/nativePNG, requireactualdimensions/10000..1600000bytes/fullchunks/SHA/nativepixels beforeGitfreeze",
+    "AcceptednativefreezeTHENCANCELexactTX/noPermanentSave/reexport/reupload/closedTXreuse",
+    "Sixwholecaptions unchanged; Cullinantext no golf/free/privatevilla implication; readyonlyafteracceptedcover"
+  ],
+  "risks": [
+    "Image has largeemptysky; templateautocropcanclipbuilding. CorrectonlywithsupportedCanvaelementgeometry;rejectifanymainwinglost",
+    "No post/price/providerwrites duringCanva; currentserverfullgatesstillrequiredbeforeactualpublisher"
+  ],
+  "layout": {
+    "hero_source_native": {
+      "width": 1920,
+      "height": 1152
+    },
+    "possible_supported_hero_element": {
+      "left": 0,
+      "top": -550,
+      "width": 1900,
+      "height": 1140
+    },
+    "visible_hero_region": {
+      "left": 0,
+      "top": 0,
+      "width": 1080,
+      "height": 590
+    },
+    "lower_left": {
+      "left": 0,
+      "top": 598,
+      "width": 536,
+      "height": 379
+    },
+    "lower_right": {
+      "left": 544,
+      "top": 598,
+      "width": 536,
+      "height": 379
+    },
+    "existing_blue_banner_top": 983,
+    "reason": "Removeonlyemptysky/rightgolfwhileleavingentiremainbuildinginsidevisiblepage; nativeCanvapreviewdecidesfinalacceptance."
+  }
+}
