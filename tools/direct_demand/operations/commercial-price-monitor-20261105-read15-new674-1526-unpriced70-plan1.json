@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261105-read15-new674-1526-unpriced70-plan1",
-  "state": "FROZEN_NEW_NORMAL_PHASE_DATA_BOUND_CASES_THEN_ONE_READONLY_WINDOW",
+  "state": "CLOSED_ACTUAL_ONE_READ70_ZERO_NEW_INPUTS_NO_REPLAY",
   "goal": "Admit only genuinely new persisted scheduled-monitor inputs from original run42054958159 for70 currently unpriced admitted published hotels; no source API, quotes or edits.",
   "normal_run": 42054958159,
   "normal_collect_job": 127340818871,
@@ -210,5 +210,12 @@
   "old_fixtures_rerun": 0,
   "reader": "read-new-normal674-1526-unpriced-20261105-read15.php",
   "preparer": "prepare-new-normal674-1526-unpriced-read15-20261105.py",
-  "runner": "run-new-normal674-1526-unpriced-read15-20261105.py"
+  "runner": "run-new-normal674-1526-unpriced-read15-20261105.py",
+  "actual_run": 42060554998,
+  "actual_job": 127360696446,
+  "actual_result_artifact": 13431191959,
+  "actual_admitted_rows": 0,
+  "new_native_cases_closed": 8,
+  "new_python_cases_closed": 3,
+  "computed_unique_excluded_fingerprints": 199
 }

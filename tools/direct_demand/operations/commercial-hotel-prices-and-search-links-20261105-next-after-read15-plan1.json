@@ -1,0 +1,154 @@
+{
+  "operation": "commercial-hotel-prices-and-search-links-20261105-next-after-read15-plan1",
+  "state": "READ15_CLOSED_ZERO_NEW_PRICE_INPUTS_FINITE_PRICED10B_LINK_PREPARATION_NEXT",
+  "goal": "Prices first only genuinelyNEWnormal persisted inputs; otherwise finish22oldpricedsearchlinks with properCURRENTprior-price receipts and6genuine native-name review cases.",
+  "published_pairs": 161,
+  "priced_pairs": 85,
+  "linked_pairs": 133,
+  "unlinked_pairs": 28,
+  "priced_unlinked_native_ids": [
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264,
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246,
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "unpriced_unlinked_admitted_from_original_scope": 0,
+  "unresolved_name_review_native_ids": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "next_finite_priced_unlinked_native_ids": [
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264
+  ],
+  "next_scope_not_executed": true,
+  "next_metadata_window_exclusive_lower": "2026-11-05T15:30:48Z",
+  "new_prior_price_role_helpers": {
+    "reader": "read-priced-hotel-search-links-current-contexts-20261105.php",
+    "reader_sha256": "650c1285cf198b70ef094db9d4d805c5f18c73f54c62d4b7f91b2d68544196bb",
+    "preparer": "prepare-priced-hotel-search-links-current-contexts-20261105.py",
+    "offer_template": "update-priced-hotel-search-links-explicit-noquote-20261105.php",
+    "offer_template_sha256": "dc2a1f05ae2e24b2d599d811a8e933a02349504c0dc96658c61607f54479be6b",
+    "offer_preparer": "prepare-priced-hotel-search-links-explicit-noquote-20261105.py",
+    "binder": "bind-priced-hotel-search-links-explicit-noquote-20261105.py",
+    "runner": "run-hotel-search-links-explicit-noquote-20261105-data-bound.py"
+  },
+  "next_original_sources": {
+    "new_ten_prior_manifests": {
+      "run": 41936372259,
+      "artifact": 13374246397,
+      "name": "commercial-price-update-20261104-72h-pass1-prepared",
+      "project_only_native_ids": [
+        57028,
+        278,
+        260,
+        163,
+        281,
+        293,
+        245,
+        393,
+        465,
+        264
+      ],
+      "operation_prefix": "commercial-price-update-20261104-72h-pass1-h",
+      "operation_suffix": "-v1"
+    },
+    "native_identity_only": {
+      "run": 41934633857,
+      "artifact": 13372822872,
+      "name": "commercial-price-monitor-20261104-read10-72h-extension1",
+      "file": "price-readback.json",
+      "project_only_expected_native_fields": true,
+      "no_observations_fingerprints_or_quotes": true
+    }
+  },
+  "criteria": [
+    "Next10b must preserve the exact CURRENT price metadata and owner formatting/entities. Before any edit implement NEWdata-bound133/85/scope/operation inputs and reviewed inline price link representation; do not reuse first10a hardcoded123 fixtures/constants or rewrite all133 existing captions.",
+    "READ15 window, source logs, 70-hotel DB scope, retained results and11new cases are CLOSED: no replay or broader same-window pass. Its zero is limited evidence, not market absence. GenuinelyNEW persisted inputs first; otherwise properNEWfinitepriced10b context/link role plus inline-price formatting cases.",
+    "PrepareNEWfinitepriced10b scope+publicprior-operation-map fromNEWten nativeIDs; originalprepared19 ONLYtheseNEW10manifests; READ10originalartifact ONLYnew10nativeidentityfields/noDBscope orobservations.",
+    "Currentpricedhelpers have scope/count assertions still explicitly123/85 and projectionfirst10aspecific paths/maps. BEFOREnextpass make properdata-bound counts/operation/file inputs fromnextplan, with NEWactualinputnativecases, NEVERgeneralnumeric123to133orwholeworkflowreplacements.",
+    "KeepAPPROVED_CONTEXT18namespaces/declaredheader;LINK_CONTEXT_SOURCE_SHA=originalinstalledsource,notworkflowcommit. FrozenallPHPbytes/manifestSHA/5keyapprovals;onlyreviewedruntimeEXPECTED_INSTALLED_SHAheaderrebind afterfreshhealthyfull21.",
+    "V8evolvePricedNoQuoteAcceptanceFn isfirst10aACTUALscoped withfixedcontext_run/actualrun/template. Futureacceptance MUSTbindNEWcurrentcontext_run/actualrun/template/fromNEWplan parameters andrequirealltargetIDspreviouslypriced+unlinked; NEVERreuseclosedrunconstants orflipunpricedguard asIDbypass.",
+    "NewCURRENTpriorprice-role validatesexactoperation/native/currentwholecaptionSHA+canonicalownconfirmedjournal/receipt/version+stablephoto/button/source/token+EXACTprice_quote_response_sha256/price_checked_epoch_utc.",
+    "Runtimeexplicitprice metadata checks beforewrite andafterregistryreceipt/wholepricecaptions untouched; linkNOQUOTE newquoteSHA/epoch/index/amountNEVERinvented;newlinkeventseparate/originalpricechecktimeunchanged.",
+    "FuturepricecontextsforFIRST10currentpricedlinksMUSTuseCURRENTcommercial-hotel-search-links-20261105-priced10a-h<ID>-v1 manifests+confirmedonce/receipt,NOToldprice-onlyframe. TEN1-TEN7CURRENTownlinkops remainrequired.",
+    "AfterNEXT10remaining12includeCOPY-ONLY310/469/1971 andtyped1981/498/9373legacy6; currentfirst10nativepublisher-positive role/projectionMUSTNOTforcepublisherNULL/nonNULL orinventPNGhash. Propergenuineprior-copy/priceproof+NEWnativecasesfirst.",
+    "Forcopy-onlystableproviderphotoSignature notPNGhash; historicalpublicprivate/versionIDsNEVERcanonical; allCURRENTIDs onlycanonicaljournal/registry/authartifact.",
+    "Review6needspropernative-product-publisherproof/no wronghotelURL/countcomplete. Wholecaptions≤1024,ready≤10oneSERIALupdater/privateintent/once/freshgates/UNKNOWNoriginalFIRST;deferhardcasesnotreadyothers."
+  ],
+  "no_replay": [
+    "No READ15 source log/result/read-only-window/native-case rerun;0 rows means no fresh quote contexts to reuse.",
+    "No oldprojection1/first10manifestfields/context24ownedreads/acceptedpriced10a providerreadbacks/edits/logs/casesrepeat.",
+    "No closedold19providerresults/oldquote bodies/quote1unbound retry; onlyneededoriginalimmutablepre-providerinputmanifests forNEWfiniteIDs.",
+    "No metadata20window/oldlogs/READ14interval/old185plus14FPquotes/manual7/normal7/56manual/old51quoteor2ndtuple."
+  ],
+  "pricing_criteria": [
+    "OnlygenuinelyNEWactualnormal/sourceinputpermitsNEWboundedreadonlypricewindow/user72h/Moscow2A0RUB/future<=02Feb2027/max2/currentnative/knownmealroom.",
+    "Excludeold185FPsplusALL14READ14retainedrowsconservatively;computeexactuniqueprivatecountoriginalartifacts/notassume199.",
+    "No old7normal/56manual/old51quotesor2ndretainedtupleretry. Native1582/27316/3405CURRENTnormal674-v1proof;TEN1-TEN5CURRENTnoquotelinkproof."
+  ],
+  "new_materials_ready": 0,
+  "ready_price_edits": 0,
+  "ready_link_edits": 0,
+  "open_canva_transactions": 0,
+  "goal500_complete": false,
+  "latest_closed_link_update_run": 42039925798,
+  "latest_closed_context_run": 42038473677,
+  "all_noquote_pairs_closed": 73,
+  "latest_closed_normal_source_run": 42054958159,
+  "latest_closed_new_price_input": {
+    "run": 42060554998,
+    "job": 127360696446,
+    "source_run": 42054958159,
+    "scope": 70,
+    "admitted_rows": 0,
+    "window": [
+      1793892442,
+      1793893033
+    ],
+    "unique_consumed_fingerprints": 199,
+    "results_closed": true
+  },
+  "current_price_provider_workflows": 0,
+  "inline_price_owner_steering": {
+    "state": "BALANCED_COPY_DRAFT_NO_BROAD_CAPTION_REWRITE_AUTHORIZATION",
+    "preserve_current_owner_body_entities_and_inline_price_link": true,
+    "no_blind_visible_url_append": true,
+    "offer_lines": [
+      "✈️ из Москвы • 09.11.2026 • 5 ночей",
+      "👥 2 взрослых • Deluxe • Ультра всё включено",
+      "💰 285 814 ₽ за тур"
+    ],
+    "example_price_is_owner_supplied_not_new_quote": true
+  }
+}

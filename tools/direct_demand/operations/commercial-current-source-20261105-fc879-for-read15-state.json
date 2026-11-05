@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-current-source-20261105-fc879-for-read15",
+  "state": "ACTUALLY_ACCEPTED_BY_READ15_READONLY_FULL21_HOST_CLEAN_CURRENT_NATIVE_SCHEMA",
+  "expected_installed_sha": "fc8794c67a0f3b50284cff34b4c07ac0a11f9131",
+  "previous_accepted_source": "babc36fe207b34ae3434e2b2ddf1dc293d330272",
+  "independent_changed_paths": [
+    "docs/TOUR_BOOKING.md",
+    "docs/TOUR_CHOICES.md",
+    "manager/assets/workspace-v2-tour-choices.css",
+    "manager/assets/workspace-v2-tour-choices.js",
+    "manager/pipeline-api.php",
+    "services/TourBookingService.php",
+    "services/TourChoiceService.php",
+    "tests/required_checks_manifest.php",
+    "tests/run_manager_tour_choices_regression.js",
+    "tests/run_tour_booking_regression.php",
+    "tests/visual/manager-tour-selection.spec.js",
+    "tests/visual/manager2-workspace.spec.js"
+  ],
+  "publishing21_unchanged": true,
+  "deploy_run": 42058154644,
+  "tls_run": 42059319309,
+  "diagnostics_run": 42059318756,
+  "actual_readonly_run": 42060554998,
+  "actual_readonly_job": 127360696446,
+  "full_remote21_hostpin_clean_runtime_native_schema_passed": true,
+  "provider_channel_rights_reads_in_this_read": 0,
+  "no_foreign_release_mutations": true,
+  "no_separate_source_only_server_probe": true,
+  "future_fresh_current_main_gates_always_required": true
+}
