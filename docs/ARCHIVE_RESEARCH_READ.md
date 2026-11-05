@@ -184,3 +184,29 @@ No persistent annotations, source rows, queues, model calls, customer messages
 or ad conversions are written. Returned private contributions can be accumulated
 by the authorized research consumer. Do not expose them in public source,
 tests, CI logs or issue comments.
+
+## Explicit contextual continuation after a metadata checkpoint
+
+A continued ordinary inventory page may offer
+`semantic_scan.resume_from_page`. It contains a newly issued `start_cursor`,
+`range: this_metadata_page_and_following_chats`, `whole_archive: false` and
+`context: fresh_at_next_chat`. Selecting it starts strictly after the incoming
+inventory checkpoint's completed chat, with an empty contextual state. The
+checkpoint chat is not read again and its payment or booking context is not
+inherited. Metadata inventory and offering this descriptor do not read payload.
+
+The existing `semantic_scan.start_cursor` still starts from the beginning of the
+authorized archive. Cursors without a suffix base remain valid for that full
+mode. Suffix cursors carry a validated two-part checkpoint bound to the existing
+connection and permissions; it is a position hint, never an authorization grant.
+Later pages preserve that lower bound, and revoked checkpoint-account access
+invalidates continuation.
+
+Every contextual response identifies `scan_range` as
+`from_archive_beginning` or `suffix_after_inventory_checkpoint`, including an
+empty EOF response. EOF in suffix mode proves only exhaustion after that
+checkpoint within the returned row fence. It does not certify an earlier
+consumer's processed prefix, the historically discussed 16000 membership, or
+completion of the whole archive. Source versions may still change between reads.
+Use this continuation only when the consumer has separately retained its last
+completed-chat checkpoint; it does not restore a stale cursor's trusted context.
