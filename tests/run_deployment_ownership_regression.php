@@ -91,7 +91,7 @@ function deploymentCronRemove(string $directory): void
 }
 
 $cronStart = strpos($production, '      - name: Ensure Metrika offline uploader cron');
-$cronEnd = strpos($production, '      - name: Production smoke checks', $cronStart ?: 0);
+$cronEnd = strpos($production, '      - name: Apply profile and retain exact diagnostic snapshot', $cronStart ?: 0);
 deploymentCronAssert($cronStart !== false && $cronEnd !== false, 'canonical cron step must exist');
 $cronSection = substr($production, $cronStart, $cronEnd - $cronStart);
 $remoteStart = strpos($cronSection, " '\n");

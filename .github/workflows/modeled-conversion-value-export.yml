@@ -1,4 +1,5 @@
 name: Configure AnyTour modeled value goal
+run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Configure AnyTour modeled value goal' }}"
 on:
   workflow_run:
     workflows: [Deploy production]
@@ -115,7 +116,7 @@ jobs:
     needs: configure
     # This is the existing post-deploy tail, not another schedule or dispatcher.
     # Manual value operations never release a publisher.
-    if: always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.run_attempt == 1 && (needs.configure.result == 'success' || needs.configure.result == 'skipped')
+    if: always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.run_attempt == 1 || github.event.workflow_run.run_attempt == 2) && (needs.configure.result == 'success' || needs.configure.result == 'skipped')
     permissions:
       contents: read
       actions: read

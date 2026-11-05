@@ -247,8 +247,8 @@ check(tail_workflow['concurrency'] == {'group':'anytour-modeled-value-configurat
 check(tail_workflow['permissions'] == {'contents':'read', 'actions':'read'}, 'business job permissions unchanged')
 close = tail_workflow['jobs']['release-slot']
 check(close['needs'] == 'configure', 'value operation must finish or be declared skipped before closing')
-expected_close_if = "always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.run_attempt == 1 && (needs.configure.result == 'success' || needs.configure.result == 'skipped')"
-check(close['if'] == expected_close_if, 'no failed, manual, foreign or retried release can close')
+expected_close_if = "always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.run_attempt == 1 || github.event.workflow_run.run_attempt == 2) && (needs.configure.result == 'success' || needs.configure.result == 'skipped')"
+check(close['if'] == expected_close_if, 'only original or proven verification recovery may enter the fail-closed closer')
 check(close['permissions'] == {'contents':'read', 'actions':'read', 'pull-requests':'read', 'issues':'write'},
       'comment capability belongs only to metadata closer')
 check(close['runs-on'] == 'ubuntu-latest' and close['timeout-minutes'] == 20, 'bounded existing server runner')
@@ -263,5 +263,49 @@ check(closing['run'] == 'node tools/release_slot_close.js'
 check('${{ secrets.' not in json.dumps(close), 'closer never receives production credentials')
 check('release-slot-close:v1' in (root/'docs/RELEASE_PRIORITY.md').read_text(),
       'single existing publisher opt-in is documented')
+
+
+# Installation and verification retain the existing job count and serialization.
+deployment = load('deploy.yml')
+dj = deployment['jobs']
+check(set(dj) == {'verify-inventory','verify-syntax','verify-groups','deploy','verify'},
+      'no new release queue or job identifiers')
+check(dj['deploy']['needs'] == ['verify-inventory','verify-syntax','verify-groups']
+      and dj['deploy']['if'] == 'always()', 'source aggregate cannot skip a missing group')
+check(dj['deploy']['steps'][0]['name'] == 'Require the complete deployment verification'
+      and 'test "$GITHUB_RUN_ATTEMPT" = 1' in dj['deploy']['steps'][0]['run'],
+      'installer replay stopped before checkout or protected access')
+check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
+vs = dj['verify']['steps']
+admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')
+key = next(i for i,s in enumerate(vs) if s.get('id') == 'ssh_key')
+check(admit < key and not vs[admit].get('continue-on-error')
+      and '--admit-verification' in vs[admit]['run'], 'read-only admission before verification credential')
+for phase in ['check','download','status','cleanup']:
+    s = next(s for s in vs if s.get('id') == phase)
+    check(not s.get('continue-on-error', False), 'API step conclusion must preserve real failure: '+phase)
+    check("steps.admission.outputs.run_"+phase+" == 'true'" in s['if'],
+          'accepted phase cannot repeat: '+phase)
+check('MAX_SEARCH_APPLY_AI_PROFILE' not in json.dumps(dj['verify'])
+      and '--apply' not in json.dumps(dj['verify'])
+      and 'export_debug_logs.php' not in json.dumps(dj['verify'])
+      and 'git reset --hard' not in json.dumps(dj['verify']),
+      'verification does not repeat installer mutations or export')
+check('--check-only' in next(s for s in vs if s.get('id') == 'check')['run'],
+      'verification uses read-only log boundary checks')
+for job in dj.values():
+    for step in job['steps']:
+        if 'run' in step:
+            check(subprocess.run(['bash','-n'],input=step['run'],text=True,capture_output=True).returncode == 0,
+                  'actual deployment shell syntax: '+step.get('name','unnamed'))
+for filename in ['max-tls-preflight.yml','max-production-health.yml','telegram-production-health.yml',
+                 'publish-conversation-diagnostics.yml','live-session-diagnostics.yml','tour-selection-host.yml',
+                 'modeled-conversion-monitor.yml','modeled-conversion-value-export.yml']:
+    w = load(filename)
+    check("format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt)" in w['run-name'],
+          'exact upstream attempt metadata: '+filename)
+activation = load('modeled-pipeline-monitor-activation.yml')
+check("format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt)" in activation['run-name'],
+      'activation provenance follows the exact original monitor')
 
 print(f'PASS {checks} workflow selection and gate cases')

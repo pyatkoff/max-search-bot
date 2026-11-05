@@ -1,4 +1,5 @@
 name: Publish live session diagnostics
+run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Publish live session diagnostics' }}"
 
 on:
   workflow_run:

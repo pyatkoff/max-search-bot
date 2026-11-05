@@ -66,6 +66,9 @@ $syntaxJob = $deployJobs['verify-syntax'] ?? '';
 $groupsJob = $deployJobs['verify-groups'] ?? '';
 $verifyJob = $deployJobs['verify'] ?? '';
 $deployJob = $deployJobs['deploy'] ?? '';
+$sourceGateRows=[];
+preg_match('/^      - name: Require the complete deployment verification\\n(.*?)(?=^      - name:|\\z)/ms', $deployJob, $sourceGateRows);
+$sourceGate = $sourceGateRows[1] ?? '';
 manifestCheck('deployment retains distinct source checks, aggregate and install jobs',
     $uniqueJobs && $inventoryJob !== '' && $syntaxJob !== '' && $groupsJob !== '' && $verifyJob !== '' && $deployJob !== '');
 manifestCheck('deployment preflight runs architecture once with inventory first',
@@ -113,13 +116,13 @@ manifestCheck('every deployment source check uses the exact SHA and original PHP
 manifestCheck('deployment source checks cannot be conditionally skipped or ignore failures',
     $noIgnoredChecks && preg_match('/^defaults:/m', $deployment) === 0);
 manifestCheck('deployment aggregate always requires all three source-check results',
-    preg_match('/^    if: always\(\)$/m', $verifyJob) === 1
-    && preg_match('/^    needs: \[verify-inventory, verify-syntax, verify-groups\]$/m', $verifyJob) === 1
-    && preg_match_all('/^\s+if:/m', $verifyJob) === 1
-    && preg_match('/^\s+(?:continue-on-error|shell|defaults):/m', $verifyJob) === 0);
+    preg_match('/^    if: always\(\)$/m', $deployJob) === 1
+    && preg_match('/^    needs: \[verify-inventory, verify-syntax, verify-groups\]$/m', $deployJob) === 1
+    && $sourceGate !== '' && !str_contains($sourceGate, 'continue-on-error:')
+    && strpos($deployJob, '- name: Require the complete deployment verification') < strpos($deployJob, '- name: Checkout exact deployment SHA'));
 manifestCheck('production synchronization still requires successful verification',
-    preg_match('/^    needs: verify$/m', $deployJob) === 1
-    && preg_match('/^    (?:if|continue-on-error):/m', $deployJob) === 0
+    preg_match('/^    needs: deploy$/m', $verifyJob) === 1
+    && preg_match('/^    (?:if|continue-on-error):/m', $verifyJob) === 0
     && str_contains($deployment, "concurrency:\n  group: production-deploy\n  cancel-in-progress: false"));
 
 $gateInputs = [
@@ -128,7 +131,7 @@ $gateInputs = [
     'CHECK_GROUPS_RESULT' => 'verify-groups',
 ];
 $environmentRows = [];
-preg_match_all('/^          ([A-Z_]+): ([^\n]+)$/m', $verifyJob, $environmentRows, PREG_SET_ORDER);
+preg_match_all('/^          ([A-Z_]+): ([^\n]+)$/m', $sourceGate, $environmentRows, PREG_SET_ORDER);
 $boundInputs = count($environmentRows) === count($gateInputs);
 $seenInputs = [];
 foreach ($environmentRows as $row) {
@@ -140,12 +143,12 @@ foreach ($environmentRows as $row) {
 manifestCheck('deployment aggregate inputs bind to actual dependency results', $boundInputs);
 
 $gateBlocks = [];
-preg_match_all('/^        run: \|\n((?: {10,}[^\n]*\n)+)/m', $verifyJob, $gateBlocks, PREG_SET_ORDER);
+preg_match_all('/^        run: \|\n((?: {10,}[^\n]*\n)+)/m', $sourceGate, $gateBlocks, PREG_SET_ORDER);
 $gate = count($gateBlocks) === 1 ? (string)preg_replace('/^ {10}/m', '', $gateBlocks[0][1]) : '';
 // Only the finite status-test body is executable in this fixture. Keep the
 // source text itself; the positive/negative checks below do not reimplement it.
 $gateLines = array_values(array_filter(explode("\n", trim($gate)), static fn($line) => trim($line) !== ''));
-$safeGate = count($gateLines) === 3;
+$safeGate = count($gateLines) === 4 && array_shift($gateLines) === 'test "$GITHUB_RUN_ATTEMPT" = 1';
 foreach ($gateLines as $line) {
     $safeGate = $safeGate && preg_match('/^test "\$(?:INVENTORY_RESULT|SYNTAX_RESULT|CHECK_GROUPS_RESULT)" = success$/D', $line) === 1;
 }
@@ -155,7 +158,7 @@ function deployManifestGateExit(string $script, array $results): int
 {
     // The workflow uses the standard Actions bash -e shell. A small environment
     // prevents local BASH_ENV or unrelated settings from changing this fixture.
-    $environment = array_merge(['PATH' => getenv('PATH') ?: '/usr/bin:/bin'], $results);
+    $environment = array_merge(['PATH' => getenv('PATH') ?: '/usr/bin:/bin', 'GITHUB_RUN_ATTEMPT'=>'1'], $results);
     $process = proc_open(['bash', '--noprofile', '--norc', '-e', '-c', $script],
         [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, $environment);
     if (!is_resource($process)) return -1;
@@ -170,6 +173,7 @@ function deployManifestGateExit(string $script, array $results): int
 if ($safeGate) {
     $success = array_fill_keys(array_keys($gateInputs), 'success');
     manifestCheck('actual deployment gate accepts all successful checks', deployManifestGateExit($gate, $success) === 0);
+    foreach (['2','3',''] as $attempt) manifestCheck('installer gate rejects repeated or missing attempt ' . $attempt, deployManifestGateExit($gate, array_merge($success, ['GITHUB_RUN_ATTEMPT'=>$attempt])) > 0);
     foreach ($gateInputs as $input => $_job) {
         foreach (['failure', 'skipped', 'cancelled', ''] as $result) {
             $states = array_replace($success, [$input => $result]);

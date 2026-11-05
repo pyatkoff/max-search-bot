@@ -132,8 +132,8 @@ extra jobs, failed activation and unknown outcomes retain the slot. This closer
 only reads that existing workflow's metadata; it never requests activation or
 changes a schedule. The existing optional configuration job must
 be successful or explicitly skipped. Scheduled/manual checks cannot substitute
-for original post-deploy runs; reruns, duplicate origins or incomplete snapshots
-stop closure. An unclassified new post-deploy workflow also stops closure until
+for original post-deploy runs; duplicate origins or incomplete snapshots stop closure.
+The narrowly admitted verification-only second attempt below is the sole rerun exception. An unclassified new post-deploy workflow also stops closure until
 its gate is included in the same checked package; it is never silently ignored.
 The existing deployment and diagnostic telemetry must also match
 this exact source and deployment run. No new live probe or acceptance is run.
@@ -160,3 +160,44 @@ concurrently. Stop on a conflict instead of taking over another owner's work.
 Behavioral failure, provenance, waiting, mutation and idempotency cases run inside
 the existing CI-scope regression. Its existing workflow-wiring test also checks
 permissions, exact checkout, dependency, timeout, and unchanged triggers.
+
+
+## Recover unfinished verification without another installation
+
+The same Deploy workflow retains six executions (including the two source matrix
+lanes). Its source-result aggregate is now the first step of deploy, before
+checkout or server credentials. It rejects any installer attempt other than 1.
+All sync, migration, ownership, profile, private-log probes and snapshot export
+remain in that first installer. The existing verify job follows installation.
+
+After a failed verification, the same publisher may request exactly one native
+rerun of that failed verify job. This is not a rerun of Deploy, source checks,
+successful siblings or post-deploy workflows. Before protected access, the
+metadata-only admission requires the original failed push, unchanged exact main,
+merged PR binding and active publisher version. Complete job history must prove
+that every source check and installer succeeded in attempt 1. GitHub's copied
+successful parents are accepted only when all execution timestamps, runner and
+step metadata are identical; a real second installer execution is refused.
+Attempt 3, cancelled/unknown history, missing metadata, API refusal and 429 stop.
+
+Within verification, a successful check, transfer, status or cleanup is reused.
+A negative published result is refreshed when the failed check/transfer recovers.
+The original private snapshot has a SHA/run-owned directory outside the webroot,
+one sealed archive and transfer checksum. A failed export is an installer failure
+and cannot use this recovery. Failed transfer retains that exact snapshot; it
+never regenerates diagnostic input. Cleanup follows successful transfer/status,
+reconciles an already absent directory and never deletes original logs or data.
+Raw diagnostics are never committed to the public diagnostics branch.
+
+Existing post-deploy workflows record the upstream deployment ID and attempt in
+their run title. Activation records its exact monitor ID and attempt. On recovery
+the closer may ignore a first-wave result only with an exact original-parent
+title and API proof that every job was skipped with no executed steps. Executed
+monitor/notification/configuration/activation work is never silently replayed.
+All seven mandatory gates still execute once after successful verification.
+The closer itself remains attempt 1, revalidates recovered job history and final
+telemetry, and performs the same single publisher PATCH/readback. No new timer,
+workflow, queue, publisher, customer message or failure experiment is introduced.
+
+Recovery is effective only for releases containing this package. Do not repeat
+an accepted older installation to obtain the new workflow layout.
