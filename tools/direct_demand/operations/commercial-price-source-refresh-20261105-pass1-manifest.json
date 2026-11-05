@@ -1,0 +1,1015 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-price-source-refresh-20261105-pass1",
+  "state": "PREPARED_REQUIRES_EXPLICIT_MANUAL_COLLECTION_APPROVAL",
+  "published_scope_count": 159,
+  "excluded_priced_native_ids": [
+    12114,
+    9432,
+    109,
+    13873,
+    13869,
+    73342,
+    233,
+    253,
+    165,
+    389,
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264,
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246,
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "excluded_name_review_native_ids": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "native_bindings": [
+    {
+      "anytour_id": 81,
+      "local_tv_id": 241,
+      "expected_name": "ALBATROS MAKADI RESORT",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 80,
+      "local_tv_id": 240,
+      "expected_name": "HAPPY LIFE VILLAGE",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 99,
+      "local_tv_id": 268,
+      "expected_name": "JAZ MAKADI SARAYA RESORT (EX. IBEROTEL MAKADI SARAYA RESORT)",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 1654,
+      "local_tv_id": 12111,
+      "expected_name": "MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 2077,
+      "local_tv_id": 28666,
+      "expected_name": "PRIMASOL HANE FAMILY RESORT (EX. FAMILY HANE RESORT)",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 2432,
+      "local_tv_id": 46672,
+      "expected_name": "JADORE DELUXE HOTEL & SPA",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 3726,
+      "local_tv_id": 109900,
+      "expected_name": "DREAM FUN WORLD",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 3742,
+      "local_tv_id": 111129,
+      "expected_name": "SIDE MOON PALACE HOTEL",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 3737,
+      "local_tv_id": 111045,
+      "expected_name": "VOX MARIS RESORT ADULTS ONLY 16+",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 477,
+      "local_tv_id": 1077,
+      "expected_name": "CLUB AQUA PLAZA (EX. SUNEOCLUB AQUA PLAZA)",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 516,
+      "local_tv_id": 1146,
+      "expected_name": "AKRA ANTALYA",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 1554,
+      "local_tv_id": 9374,
+      "expected_name": "SUNRISE ARABIAN BEACH RESORT",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 4101,
+      "local_tv_id": 157359,
+      "expected_name": "AVIA RESORT & SPA",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 4191,
+      "local_tv_id": 4191,
+      "expected_name": "Tropitel Sahl Hasheesh",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 416,
+      "local_tv_id": 416,
+      "expected_name": "SUNRISE Crystal Bay Resort",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 12112,
+      "local_tv_id": 12112,
+      "expected_name": "SUNRISE Aqua Joy Resort",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 77914,
+      "local_tv_id": 77914,
+      "expected_name": "SUNRISE TUCANA RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 237,
+      "local_tv_id": 237,
+      "expected_name": "SUNRISE ALMA BAY RESORT (EX. GRAND SEAS BY SUNRISE)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 32575,
+      "local_tv_id": 32575,
+      "expected_name": "SUNRISE ALORA AQUA PARK RESORT (EX. CAESAR PALACE)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 112914,
+      "local_tv_id": 112914,
+      "expected_name": "SUNRISE ANJUM RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 64895,
+      "local_tv_id": 64895,
+      "expected_name": "MERAKI RESORT ADULTS ONLY 16+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 262,
+      "local_tv_id": 262,
+      "expected_name": "JAZ AQUAMARINE RESORT (EX. IBEROTEL AQUAMARINE RESORT)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 12117,
+      "local_tv_id": 12117,
+      "expected_name": "JAZ BLUEMARINE",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 12119,
+      "local_tv_id": 12119,
+      "expected_name": "STEIGENBERGER AL DAU BEACH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 26044,
+      "local_tv_id": 26044,
+      "expected_name": "STEIGENBERGER AQUA MAGIC",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 66150,
+      "local_tv_id": 66150,
+      "expected_name": "STEIGENBERGER PURE LIFE STYLE ADULTS ONLY 16+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 232,
+      "local_tv_id": 232,
+      "expected_name": "JAZ ELITE CASA DEL MAR BEACH (EX. JAZ CASA DEL MAR BEACH)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 13872,
+      "local_tv_id": 13872,
+      "expected_name": "JAZ MAKADINA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 280,
+      "local_tv_id": 280,
+      "expected_name": "JAZ MAKADI STAR & SPA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 456,
+      "local_tv_id": 456,
+      "expected_name": "JAZ NEO DAR EL MADINA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 265,
+      "local_tv_id": 265,
+      "expected_name": "JAZ LAMAYA RESORT (EX. IBEROTEL LAMAYA RESORT)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 454,
+      "local_tv_id": 454,
+      "expected_name": "JAZ SOLAYA (EX. SOL Y MAR SOLAYA)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 21475,
+      "local_tv_id": 21475,
+      "expected_name": "BARON PALACE RESORT SAHL HASHEESH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 1963,
+      "local_tv_id": 1963,
+      "expected_name": "BARON RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 358,
+      "local_tv_id": 358,
+      "expected_name": "RIXOS SHARM EL SHEIKH ADULTS ONLY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 37668,
+      "local_tv_id": 37668,
+      "expected_name": "RIXOS PREMIUM SEAGATE",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 174,
+      "local_tv_id": 174,
+      "expected_name": "PICKALBATROS DANA BEACH RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 55574,
+      "local_tv_id": 55574,
+      "expected_name": "PICKALBATROS WHITE BEACH RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 383,
+      "local_tv_id": 383,
+      "expected_name": "JAZ GRAND MARSA (EX. JAZ GRAND RESTA)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 108090,
+      "local_tv_id": 108090,
+      "expected_name": "JAZ ELITE AMARA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 150,
+      "local_tv_id": 150,
+      "expected_name": "PICKALBATROS CITADEL RESORT SAHL HASHEESH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 172,
+      "local_tv_id": 172,
+      "expected_name": "PICKALBATROS SANDS PORT GHALIB",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 275,
+      "local_tv_id": 275,
+      "expected_name": "PICKALBATROS THE PALACE PORT GHALIB",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 173,
+      "local_tv_id": 173,
+      "expected_name": "PICKALBATROS OASIS PORT GHALIB",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 110,
+      "local_tv_id": 110,
+      "expected_name": "PICKALBATROS JUNGLE AQUA PARK RESORT NEVERLAND",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 132,
+      "local_tv_id": 132,
+      "expected_name": "BEACH ALBATROS RESORT HURGADA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 178,
+      "local_tv_id": 178,
+      "expected_name": "DESERT ROSE RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 371,
+      "local_tv_id": 371,
+      "expected_name": "REEF OASIS BEACH RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 78898,
+      "local_tv_id": 78898,
+      "expected_name": "PICKALBATROS BLU SPA RESORT HURGHADA ADULTS ONLY 16+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 83105,
+      "local_tv_id": 83105,
+      "expected_name": "PICKALBATROS VITA RESORT PORTOFINO MARSA ALAM",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 69155,
+      "local_tv_id": 69155,
+      "expected_name": "STEIGENBERGER RESORT ALAYA MARSA ALAM ADULTS ONLY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 69409,
+      "local_tv_id": 69409,
+      "expected_name": "STEIGENBERGER RESORT RAS SOMA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 263,
+      "local_tv_id": 263,
+      "expected_name": "STEIGENBERGER CORAYA BEACH ADULTS ONLY 16+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 43204,
+      "local_tv_id": 43204,
+      "expected_name": "STEIGENBERGER ALCAZAR",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 13870,
+      "local_tv_id": 13870,
+      "expected_name": "STEIGENBERGER MAKADI ADULTS ONLY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 1983,
+      "local_tv_id": 1983,
+      "expected_name": "JAZ NEO SHARKS BAY (EX. JAZ SHARKS BAY)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 111801,
+      "local_tv_id": 111801,
+      "expected_name": "JAZ ELITE ASTERIA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 287,
+      "local_tv_id": 287,
+      "expected_name": "KEMPINSKI HOTEL SOMA BAY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 435,
+      "local_tv_id": 435,
+      "expected_name": "SHERATON SOMA BAY RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 109149,
+      "local_tv_id": 109149,
+      "expected_name": "THE BREAKERS DIVING & SURFING LODGE",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 79059,
+      "local_tv_id": 79059,
+      "expected_name": "PICKALBATROS WATER VALLEY RESORT NEVERLAND HURGHADA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 56092,
+      "local_tv_id": 56092,
+      "expected_name": "GRAVITY HOTEL & AQUA PARK HURGHADA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 115918,
+      "local_tv_id": 115918,
+      "expected_name": "RIXOS RADAMIS SHARM EL SHEIKH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 269,
+      "local_tv_id": 269,
+      "expected_name": "JAZ SAMAYA RESORT (EX. IBEROTEL SAMAYA)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 267,
+      "local_tv_id": 267,
+      "expected_name": "IBEROTEL MAKADI BEACH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 384,
+      "expected_name": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 75725,
+      "expected_name": "JAZ COSTA MARES ADULT ONLY (EX. IBEROTEL COSTA MARES)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 249,
+      "expected_name": "HILTON PLAZA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 315,
+      "expected_name": "HURGADA MARRIOTT BEACH RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 272,
+      "expected_name": "CONTINENTAL HOTEL HURGHADA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 273,
+      "expected_name": "PALM ROYALE SOMA BAY (EX. SENTIDO PALM ROYALE)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 381,
+      "expected_name": "REHANA ROYAL BEACH RESORT AQUA PARK & SPA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 408,
+      "expected_name": "SAVOY SHARM EL SHEIKH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 441,
+      "expected_name": "SIVA GRAND BEACH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 60589,
+      "expected_name": "JAZ NEO IVORY (EX. SOLYMAR IVORY SUITES)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 328,
+      "expected_name": "MOVENPICK RESORT & SPA EL GOUNA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 282,
+      "expected_name": "JAZ MIRABEL CLUB",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 235,
+      "expected_name": "GRAND RESORT HURGHADA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 382,
+      "expected_name": "RENAISSANCE GOLDEN VIEW BEACH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 250,
+      "expected_name": "SWISS INN RESORT HURGHADA (EX. HILTON RESORT)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 464,
+      "expected_name": "STEIGENBERGER GOLF RESORT EL GOUNA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 103021,
+      "expected_name": "THE CHEDI EL GOUNA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 129,
+      "expected_name": "COOKS CLUB EL GOUNA ADULTS ONLY 16+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 12116,
+      "expected_name": "CORAL SEA AQUA CLUB",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 111,
+      "expected_name": "PICKALBATROS PALACE RESORT HURGHADA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 67910,
+      "expected_name": "RIXOS PREMIUM MAGAWISH SUITES & VILLAS",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 68323,
+      "expected_name": "SUNRISE SOLARA AQUA PARK RESORT (EX.CAESAR DREAMS RESORT BY SUNRISE)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 56091,
+      "expected_name": "ANCIENT SANDS GOLF RESORT & RESIDENCES",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 103124,
+      "expected_name": "IBEROTEL LUXOR",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 488,
+      "expected_name": "THE THREE CORNERS FAYROUZ PLAZA BEACH RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 98723,
+      "expected_name": "CLEOPATRA LUXURY RESORT SHARM ADULTS ONLY 16+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 139,
+      "expected_name": "BRAYKA BAY RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 342,
+      "expected_name": "THE OBEROI SAHL HASHEESH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 1291,
+      "expected_name": "AKRA KEMER (EX. KEMER BARUT COLLECTION)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 15869,
+      "expected_name": "AKRA SORGUN TUI BLUE SENSATORI",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 75377,
+      "expected_name": "LIBERTY FABAY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 74503,
+      "expected_name": "NG PHASELIS BAY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1582,
+      "expected_name": "VOYAGE BELEK GOLF & SPA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1449,
+      "expected_name": "RIXOS PREMIUM BELEK THE LAND OF LEGENDS FREE ACCESS",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1453,
+      "expected_name": "RIXOS PREMIUM TEKIROVA THE LAND OF LEGENDS FREE ACCESS",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1151,
+      "expected_name": "DELPHIN PALACE DELUXE COLLECTION",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1583,
+      "expected_name": "VOYAGE SORGUN",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1379,
+      "expected_name": "MIRACLE RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1133,
+      "expected_name": "CONCORDE DE LUXE RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 27316,
+      "expected_name": "REGNUM CARYA GOLF & SPA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1559,
+      "expected_name": "TITANIC DELUXE LARA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 3405,
+      "expected_name": "MAXX ROYAL BELEK GOLF & SPA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1417,
+      "expected_name": "PALOMA GRIDA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1348,
+      "expected_name": "SEVEN SEAS HOTEL LIFE (EX. OTIUM HOTEL LIFE)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1199,
+      "expected_name": "GLORIA SERENITY RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1464,
+      "expected_name": "ROYAL WINGS HOTEL",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 9322,
+      "expected_name": "PALOMA PASHA RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1672,
+      "expected_name": "KEMPINSKI BARBAROSS BAY HOTEL",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1659,
+      "expected_name": "TUI BLUE SARIGERME PARK",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 21695,
+      "expected_name": "TUI BLUE SENO ADULTS ONLY 16+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 28668,
+      "expected_name": "RIXOS PREMIUM GOCEK ADULTS ONLY 13+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 55205,
+      "expected_name": "EFTALIA OCEAN",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1334,
+      "expected_name": "LEODIKYA KIRMAN PREMIUM (EX. KIRMAN LEODIKYA RESORT)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1715,
+      "expected_name": "VOYAGE TORBA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1543,
+      "expected_name": "SUSESI LUXURY RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 17480,
+      "expected_name": "TUI BLUE PALM GARDEN",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    }
+  ],
+  "groups": [
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        110,
+        111,
+        129,
+        132,
+        139,
+        150,
+        172,
+        173,
+        174,
+        178,
+        232,
+        235,
+        237,
+        240,
+        241,
+        249,
+        250,
+        262,
+        263,
+        265
+      ]
+    },
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        267,
+        268,
+        269,
+        272,
+        273,
+        275,
+        280,
+        282,
+        287,
+        315,
+        328,
+        342,
+        358,
+        371,
+        381,
+        382,
+        383,
+        384,
+        408,
+        416
+      ]
+    },
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        435,
+        441,
+        454,
+        456,
+        464,
+        488,
+        1963,
+        1983,
+        4191,
+        9374,
+        12111,
+        12112,
+        12116,
+        12117,
+        12119,
+        13870,
+        13872,
+        21475,
+        26044,
+        32575
+      ]
+    },
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        37668,
+        43204,
+        55574,
+        56091,
+        56092,
+        60589,
+        64895,
+        66150,
+        67910,
+        68323,
+        69155,
+        69409,
+        75725,
+        77914,
+        78898,
+        79059,
+        83105,
+        98723,
+        103021,
+        103124
+      ]
+    },
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        108090,
+        109149,
+        111801,
+        112914,
+        115918
+      ]
+    },
+    {
+      "country_id": 4,
+      "hotel_ids": [
+        1077,
+        1133,
+        1146,
+        1151,
+        1199,
+        1291,
+        1334,
+        1348,
+        1379,
+        1417,
+        1449,
+        1453,
+        1464,
+        1543,
+        1559,
+        1582,
+        1583,
+        1659,
+        1672,
+        1715
+      ]
+    },
+    {
+      "country_id": 4,
+      "hotel_ids": [
+        3405,
+        9322,
+        15869,
+        17480,
+        21695,
+        27316,
+        28666,
+        28668,
+        46672,
+        55205,
+        74503,
+        75377,
+        109900,
+        111045,
+        111129,
+        157359
+      ]
+    }
+  ],
+  "departure_id": 1,
+  "adults": 2,
+  "children": 0,
+  "currency": "RUB",
+  "departure_date_from": "2026-11-06",
+  "departure_date_to": "2026-11-12",
+  "nights_from": 5,
+  "nights_to": 14,
+  "max_new_searches": 7,
+  "max_poll_requests_per_search": 20,
+  "max_result_requests_per_search": 1,
+  "max_http_attempts": 154,
+  "automatic_http_retries": false,
+  "source_proof": "normal67241935377716",
+  "retained_catalog_proof_run": 41945775526,
+  "retained_catalog_proof_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
+}

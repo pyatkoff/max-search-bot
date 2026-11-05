@@ -1,0 +1,61 @@
+{
+  "operation": "commercial-price-source-refresh-20261105-pass1",
+  "state": "INACTIVE_EXECUTION_PREPARATION_NO_USER_APPROVAL_NO_SUPPLIER_RUN",
+  "goal": "Make one finite currently prohibited manual source refresh concrete and natively reviewable before requesting an exception",
+  "manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
+  "template_sha256": "1dd5f40e632acbc07ac98f8d65cab279796a1bbfbf9c088cd1ccb77bbb2c5a4a",
+  "native_hotel_count": 121,
+  "groups": 7,
+  "egypt_native_hotels": 85,
+  "turkey_native_hotels": 36,
+  "max_new_searches": 7,
+  "max_status_polls_per_search": 20,
+  "max_result_requests_per_search": 1,
+  "max_http_attempts": 154,
+  "departure": "Moscow",
+  "adults": 2,
+  "children": 0,
+  "nights": [
+    5,
+    14
+  ],
+  "departure_date_from": "2026-11-06",
+  "departure_date_to": "2026-11-12",
+  "source_helper_pins": {
+    "db-v1.php": "ca7f11d6ec53e0cd3d4464e0f645f15b761bb734da1323689479838868d4abc4",
+    "price-observer-v1.php": "7e057905b1218815fc828c1c558f681eca67d079ad220ee3487b315661357843",
+    "top500-daily-plan-v1.php": "2a1440f21d65b6fb8bb5e3539e0edac83a72871135f36999148151d675446099",
+    "tourvisor-client-v1.php": "f669434c2b0bf6af0a68684d02eea964173f2d3c0408e49b94db9606e8273a17",
+    "top500-monthly-plan-v1.php": "3475098786dbd309cd8b2ce9a2c4f73ca6e6c323c19100e24ed6647bb1609a6c",
+    "local-tv-catalog-v1.php": "9dc60eb39100126d97307b83083d6a1b190cfdf8f684a18af47d8edd87b1c3b5",
+    "seasonal-page-gap-plan-v1.php": "3e1ef84ae88979f6e31691241dce13d01fdc40fd41138679043de3b83b616a5f",
+    "hotel-details-v1.php": "137bbf53ef87fab50505ecd41a075cb5f571193480da7f0e3face51190c0f77f"
+  },
+  "manual_collection_approved": false,
+  "execution_route_ready": false,
+  "preflight_expected_current_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "boundaries": [
+    "Actual manual template requires separately recorded explicit user approval; no manufactured permission file",
+    "Inactive prospective workflow stored as .yml.txt, notactivated; currentnativejob ONLY5newpureexecutiongates and read-only source-helperpresence",
+    "Use ONLYexistingbotGHAhost/pin/appsource/fullremote21 before anySSH; normalcollectorhelperroot derivedfromtheexistingnormalworkflow's HOME/www/anytoour.ru/data",
+    "No new host, secret/token export, uploader/controller/schema/config/source/runtimefilewrites",
+    "The eight exact public existing helperbytes must match; missing/mismatched helper files STOP, no copying/fixing/bypass",
+    "Shared original monthlycollector advisorylock onlyifidle; busy STOP, no foreignlease takeover; source/meta/transport implementations unchanged",
+    "Existingattemptstable and privateGHAintent record before eachstart; anyprior targetkey orunknown STOP; no newoperationbypass orautorerun",
+    "Invocationonly nativeHTTP maxattempts1 existingclientoption; originalnormal64/hourly12 budgets/schedule/order unchanged; this would be atmost7ADDITIONALsearches requiring approval",
+    "121currentnativecountry/active/name revalidation beforeprovider,32priced+6review excluded, exact2A0/RUB/next7futureUTCdays/5..14nights; no AnyTour/publisher IDs substituted fornativeTV IDs",
+    "Useunchanged observer onlyafterapprovedsearch tostoreexistingretainedobservations/catalogmetadata; no photosGET/client/orders/chats/messages/ads",
+    "Source refresh is not finalprice. Existing realflights/fullbasket/currentcaption/photo/button/source/token guards remain before anylateredits"
+  ],
+  "criteria": [
+    "Actual7group manifest passes new5manualapproval/unknown/quota/priced/country guards and PHP-l",
+    "Read-only targetroutepreflight exports8publicfilenames+matchbooleans only; no sibling privateconfigimport/DB/API",
+    "Beforeaskingpermission persist exactmanifest/code/prospectiveworkflow and nativevalidation/preflight evidence",
+    "OnlyafteractualPavelapproval write smallapprovalmetadatafromrealreply, thenactivateONEexistingworkflow; date/source changes require appropriate revalidation, not new paidretry"
+  ],
+  "risks": [
+    "Source directory/helper availability andcredentialconfigurationmaystopbeforeprovider; neverguessalternatepaths/hosts orcopysecrets",
+    "One API failure/searchstartUNKNOWN holdsoriginaloperation andremainingsearches; resolve original first",
+    "Even7successful searches mayyieldnofinalbasket ornotall121hotels; no fabricatedprices"
+  ]
+}
