@@ -479,3 +479,42 @@ frozen-work and maximum-wire tests establish delivery and versioning, not model
 quality. Observe new relevant replies separately; do not rewrite old results,
 resume the paused learning/model loop or count calibration as a new holdout.
 
+
+## Incremental clarification and dated child ages
+
+The shared policy applies short, useful initial clarification to ordinary travel
+requests as well as hotel-channel entries. Start with one or two independent
+material questions for the next useful step; packing five fields into one
+sentence does not make it one question. This is a default, not a safety quota:
+a concrete conflict, an explicitly requested exact calculation or a customer
+asking for the full input checklist can justify more. Keep known conditions and
+independent useful answers; never turn optional details into mandatory gates.
+
+A historical age is tied to its stated reference date and child. For the same
+child, reliable dates can support a preliminary age band even when the original
+message is older. Never fabricate a birth date or an exact age, increment an age
+already stated for the trip, or transfer it to a different/uncertain child.
+Clarify when the evidence is ambiguous, a supported tariff threshold is crossed,
+or booking actually needs exact information.
+
+Development calibration for source review only:
+
+| Synthetic context | Expected boundary |
+| --- | --- |
+| A country-only request with no other conditions | Start with the next one or two material questions, rather than a five-field intake form. |
+| Destination, dates, party and origin are already explicit | Retain them; ask only a genuinely missing material condition. |
+| Customer explicitly asks what information is needed for an exact quote | A concise complete checklist is appropriate. |
+| Same identified child, dated age, later trip stays within one supported age band | Use that band for preliminary work; do not ask again solely because the message is old. |
+| The age was explicitly given for the future trip | Preserve it; do not add elapsed time again. |
+| A possible birthday changes a verified fare or exact booking data is needed | Ask only the required age/date-of-birth information. |
+| A new child or unclear age reference appears | Clarify the ambiguity; do not inherit another child's age. |
+| A useful independent question can be answered while age remains uncertain | Answer it and retain the dependent calculation in manager checks. |
+
+This refinement follows a bounded read of eight saved real source prefixes and
+their exact archived virtual answers. They are historical development evidence,
+not fresh November conversations or a new holdout. Saved answers/reviews remain
+unchanged. The ordinary queue was empty at the read. No new author/reviewer model
+run, provider call, customer send or measured quality gain is claimed. Existing
+shared-consumer, revision/frozen-work and maximum-wire checks remain the required
+implementation validation. Applied lesson disposition additionally requires the
+merged installation and separate-case evidence; a PR alone does not satisfy it.
