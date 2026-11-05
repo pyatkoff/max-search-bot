@@ -37,13 +37,13 @@ function context(env, event) {
     && run?.name === 'Deploy production' && run.path === PREFIX + 'deploy.yml'
     && run.event === 'push' && run.head_branch === 'main'
     && run.head_repository?.full_name === REPOSITORY && run.status === 'completed'
-    && run.conclusion === 'success' && run.run_attempt === 1 && id(run.id)
+    && run.conclusion === 'success' && [1,2].includes(run.run_attempt) && id(run.id)
     && sha(run.head_sha) && env.GITHUB_SHA === run.head_sha
     && run.head_commit?.id === run.head_sha && typeof run.head_commit.message === 'string'
     && run.head_commit.message.length <= 65536
     && ['success', 'skipped'].includes(env.CONFIGURE_RESULT), 'untrusted_context');
   return { sha: run.head_sha, deploy: run.id, run: Number(env.GITHUB_RUN_ID),
-    configure: env.CONFIGURE_RESULT, activation: run.head_commit.message.includes(ACTIVATION.marker) };
+    ...(run.run_attempt===2?{deployAttempt:2}:{}), configure: env.CONFIGURE_RESULT, activation: run.head_commit.message.includes(ACTIVATION.marker) };
 }
 function binding(pr, source) {
   requireValue(pr?.merged === true && pr.state === 'closed' && id(pr.number)
@@ -69,7 +69,7 @@ function validRun(run, c, path, event, name) {
   requireValue(id(run?.id) && run.path === path && run.event === event
     && run.name === name && run.head_sha === c.sha && run.head_branch === 'main'
     && run.head_repository?.full_name === REPOSITORY
-    && run.run_attempt === 1 && stamp(run.created_at), 'untrusted_run');
+    && run.run_attempt === (path===PREFIX+'deploy.yml'&&c.recovery?2:1) && stamp(run.created_at), 'untrusted_run');
 }
 function gateState(snapshot, c) {
   requireValue(typeof c.activation === 'boolean', 'activation_context_missing');
@@ -129,6 +129,8 @@ function verifyTelemetry(deploy, ops, c) {
     'metrika_cron', 'smoke', 'diagnostics'];
   requireValue(deploy?.sha === c.sha && String(deploy.run_id) === String(c.deploy)
     && stages.every(key => deploy[key] === 'success'), 'installation_unconfirmed');
+  if(c.recovery)requireValue(deploy.schema===2&&deploy.install_attempt===1&&deploy.install_checks==='success'&&
+    deploy.smoke_attempt===c.recovery.smokeAttempt&&deploy.diagnostics_attempt===c.recovery.diagnosticsAttempt,'recovery_telemetry_unconfirmed');
   requireValue(ops?.sha === c.sha && ['migration', 'snapshot', 'live_sessions',
     'daily_sessions', 'yesterday_sessions', 'architecture_inventory', 'website_smoke', 'health']
     .every(key => ops[key] === 'success'), 'diagnostics_unconfirmed');
@@ -161,6 +163,8 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
     requireValue((await get('/git/ref/heads/main'))?.object?.sha === c.sha, 'main_changed');
   };
   await main();
+  if(c.deployAttempt===2)c.recovery=await readRecovery(get,c);
+  const snapshot=async()=>selectRecoveryRuns(await get('/actions/runs?head_sha='+c.sha+'&per_page=100'),c,get);
   const pulls = await get('/commits/' + c.sha + '/pulls?per_page=100');
   requireValue(Array.isArray(pulls) && pulls.length < 100, 'incomplete_pulls');
   const merged = pulls.filter(p => p.merge_commit_sha === c.sha && p.state === 'closed');
@@ -173,7 +177,7 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
   const deadline = now() + 18 * 60 * 1000;
   while (true) {
     await main();
-    const state = gateState(await get('/actions/runs?head_sha=' + c.sha + '&per_page=100'), c);
+    const state = gateState(await snapshot(), c);
     if (state === 'ready') break;
     requireValue(now() < deadline, 'gate_deadline');
     await sleep(Math.min(20000, deadline - now()));
@@ -187,7 +191,8 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
   const current = binding(await get('/pulls/' + b.pr), c.sha);
   requireValue(JSON.stringify(current) === JSON.stringify(b), 'binding_changed');
   await main();
-  const finalRuns = await get('/actions/runs?head_sha=' + c.sha + '&per_page=100');
+  if(c.recovery)c.recovery=await readRecovery(get,c);
+  const finalRuns = await snapshot();
   requireValue(gateState(finalRuns, c) === 'ready', 'gates_changed');
   const activation = finalRuns.workflow_runs.find(r => r.path === PREFIX + ACTIVATION.file
     && r.event === 'workflow_run');
@@ -205,6 +210,155 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
   requireValue(readback?.id === b.comment_id && readback.body === b.released, 'write_unknown');
   return 'released';
 }
+
+const INSTALL_JOBS = ['verify-inventory','verify-syntax','verify / application','verify / diagnostics','deploy'];
+const VERIFY_STEPS = {check:'Verify installed production checks',download:'Download exact installed diagnostic snapshot',
+  status:'Publish verification stage status',cleanup:'Remove acknowledged diagnostic snapshot'};
+function stepResult(job,name) {
+  requireValue(job && Array.isArray(job.steps),'incomplete_job_steps');
+  const rows=job.steps.filter(s=>s?.name===name);
+  requireValue(rows.length===1&&rows[0].status==='completed'&&['success','failure','skipped'].includes(rows[0].conclusion),'incomplete_job_steps');
+  return rows[0].conclusion;
+}
+function executionShape(j) {
+  return {name:j.name,run_id:j.run_id,head_sha:j.head_sha,status:j.status,conclusion:j.conclusion,
+    started_at:j.started_at,completed_at:j.completed_at,runner_id:j.runner_id,runner_name:j.runner_name,labels:j.labels,
+    steps:(j.steps||[]).map(s=>({number:s.number,name:s.name,status:s.status,conclusion:s.conclusion,
+      started_at:s.started_at,completed_at:s.completed_at}))};
+}
+function copiedExecution(a,b,retryStarted) {
+  return !!b&&a?.status==='completed'&&a.conclusion==='success'&&stamp(a.started_at)&&stamp(a.completed_at)&&
+    Date.parse(a.completed_at)<Date.parse(retryStarted)&&id(a.runner_id)&&typeof a.runner_name==='string'&&a.runner_name.length>0&&
+    Array.isArray(a.labels)&&Array.isArray(a.steps)&&a.steps.length>0&&
+    JSON.stringify(executionShape(a))===JSON.stringify(executionShape(b));
+}
+function trustedAttempt(run,c,attempt,event='push') {
+  requireValue(run?.id===c.deploy&&run.path===PREFIX+'deploy.yml'&&run.name==='Deploy production'&&
+    run.event===event&&run.head_branch==='main'&&run.head_repository?.full_name===REPOSITORY&&
+    run.head_sha===c.sha&&run.head_commit?.id===c.sha&&run.run_attempt===attempt&&
+    stamp(run.created_at)&&stamp(run.run_started_at)&&stamp(run.updated_at),'untrusted_deployment_attempt');
+}
+function deploymentHistory(history,first,current,c,admitting=false) {
+  trustedAttempt(first,c,1);trustedAttempt(current,c,2);
+  requireValue(first.status==='completed'&&first.conclusion==='failure'&&
+    Date.parse(first.updated_at)<Date.parse(current.run_started_at),'original_attempt_not_failed');
+  requireValue(admitting?current.status==='in_progress'&&current.conclusion===null:
+    current.status==='completed'&&current.conclusion==='success','invalid_recovery_attempt');
+  requireValue(Array.isArray(history?.jobs)&&history.total_count===history.jobs.length&&history.jobs.length<100&&
+    history.jobs.every(j=>j&&typeof j==='object'&&!Array.isArray(j))&&
+    new Set(history.jobs.map(j=>j.id)).size===history.jobs.length,'incomplete_deployment_jobs');
+  const names=new Set([...INSTALL_JOBS,'verify']);
+  for(const j of history.jobs)requireValue(id(j.id)&&j.run_id===c.deploy&&j.head_sha===c.sha&&
+    names.has(j.name)&&[1,2].includes(j.run_attempt)&&Array.isArray(j.steps),'untrusted_deployment_job');
+  const at=(name,attempt,required=true)=>{
+    const rows=history.jobs.filter(j=>j.name===name&&j.run_attempt===attempt);
+    requireValue(rows.length<=1&&(!required||rows.length===1),'ambiguous_deployment_job');return rows[0]||null;
+  };
+  for(const name of INSTALL_JOBS) {
+    const old=at(name,1),latest=at(name,2,false);
+    requireValue(old.status==='completed'&&old.conclusion==='success'&&
+      old.steps.length>0&&old.steps.every(s=>s.status==='completed'&&s.conclusion==='success'),'installation_unconfirmed');
+    requireValue(!latest||copiedExecution(old,latest,current.run_started_at),'installation_or_source_replayed');
+  }
+  const old=at('verify',1),latest=at('verify',2);
+  requireValue(old.status==='completed'&&old.conclusion==='failure','original_verification_not_failed');
+  requireValue(admitting?latest.status==='in_progress'&&latest.conclusion===null:
+    latest.status==='completed'&&latest.conclusion==='success','recovery_not_confirmed');
+  const results=Object.fromEntries(Object.entries(VERIFY_STEPS).map(([key,name])=>[key,stepResult(old,name)]));
+  requireValue(results.cleanup!=='success'||(results.download==='success'&&results.status==='success'),'invalid_original_verification');
+  const plan={};
+  for(const key of Object.keys(VERIFY_STEPS)) {
+    // A successful status publisher may have recorded a failed check/copy.
+    const needed=results[key]!=='success'||(key==='status'&&(results.check!=='success'||results.download!=='success'));
+    plan['run_'+key]=needed;
+    plan[key+'_result']=needed?'skipped':'success';
+    if(!admitting)requireValue(stepResult(latest,VERIFY_STEPS[key])===(needed?'success':'skipped'),'accepted_step_replayed_or_unconfirmed');
+  }
+  return {plan,smokeAttempt:results.check==='success'?1:2,
+    diagnosticsAttempt:results.download==='success'?1:2};
+}
+async function readRecovery(get,c,admitting=false) {
+  const first=await get('/actions/runs/'+c.deploy+'/attempts/1');
+  const current=await get('/actions/runs/'+c.deploy+'/attempts/2');
+  const history=await get('/actions/runs/'+c.deploy+'/jobs?filter=all&per_page=100');
+  return deploymentHistory(history,first,current,c,admitting);
+}
+async function admitVerification({env,api}) {
+  requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&(['push','workflow_dispatch'].includes(env.GITHUB_EVENT_NAME))&&
+    (env.GITHUB_EVENT_NAME==='push'||env.GITHUB_RUN_ATTEMPT==='1')&&
+    env.GITHUB_REF==='refs/heads/main'&&env.GITHUB_JOB==='verify'&&
+    ['1','2'].includes(env.GITHUB_RUN_ATTEMPT)&&sha(env.GITHUB_SHA)&&id(Number(env.GITHUB_RUN_ID)),'untrusted_verification_context');
+  const c={sha:env.GITHUB_SHA,deploy:Number(env.GITHUB_RUN_ID)};
+  const get=path=>api('GET','/repos/'+REPOSITORY+path);
+  requireValue((await get('/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  if(env.GITHUB_RUN_ATTEMPT==='1') {
+    const run=await get('/actions/runs/'+c.deploy);
+    trustedAttempt(run,c,1,env.GITHUB_EVENT_NAME);
+    const jobs=await get('/actions/runs/'+c.deploy+'/attempts/1/jobs?per_page=100');
+    requireValue(Array.isArray(jobs?.jobs)&&jobs.total_count===jobs.jobs.length&&jobs.jobs.length<100,'incomplete_deployment_jobs');
+    for(const name of INSTALL_JOBS) {
+      const rows=jobs.jobs.filter(j=>j.name===name);
+      requireValue(rows.length===1&&rows[0].run_id===c.deploy&&rows[0].head_sha===c.sha&&
+        rows[0].status==='completed'&&rows[0].conclusion==='success','installation_unconfirmed');
+    }
+    return {run_check:true,run_download:true,run_status:true,run_cleanup:true,
+      check_result:'skipped',download_result:'skipped',status_result:'skipped',cleanup_result:'skipped',
+      smoke_attempt:1,diagnostics_attempt:1};
+  }
+  const pulls=await get('/commits/'+c.sha+'/pulls?per_page=100');
+  requireValue(Array.isArray(pulls)&&pulls.length<100,'incomplete_pulls');
+  const merged=pulls.filter(p=>p.merge_commit_sha===c.sha&&p.state==='closed');
+  requireValue(merged.length===1,'ambiguous_pull');
+  const b=binding(await get('/pulls/'+merged[0].number),c.sha);
+  requireValue(b!==null,'recovery_not_bound');
+  requireValue(recordState(await get('/issues/comments/'+b.comment_id),b)==='active','record_not_active');
+  const proof=await readRecovery(get,c,true);
+  requireValue((await get('/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+  requireValue(recordState(await get('/issues/comments/'+b.comment_id),b)==='active','record_not_active');
+  return {...proof.plan,smoke_attempt:proof.smokeAttempt,diagnostics_attempt:proof.diagnosticsAttempt};
+}
+async function selectRecoveryRuns(snapshot,c,get) {
+  if(!c.recovery)return snapshot;
+  const runs=snapshot?.workflow_runs;
+  requireValue(Array.isArray(runs)&&snapshot.total_count===runs.length&&runs.length<100,'incomplete_runs');
+  const deployTag=attempt=>'deploy-proof:v1:'+c.deploy+':'+attempt;
+  const monitors=runs.filter(r=>r.path===PREFIX+'modeled-conversion-monitor.yml'&&r.event==='workflow_run');
+  const oldMonitor=monitors.filter(r=>r.display_title===deployTag(1));
+  const newMonitor=monitors.filter(r=>r.display_title===deployTag(2));
+  requireValue(oldMonitor.length<=1&&newMonitor.length<=1,'ambiguous_run');
+  const ignored=new Set(),oldPaths=new Set();
+  const known=new Set(REQUIRED.filter(r=>r[1]==='workflow_run').map(r=>PREFIX+r[0]).concat(CLOSER));
+  for(const run of runs.filter(r=>r.event==='workflow_run')) {
+    requireValue(known.has(run.path),'unclassified_gate');
+    const activation=run.path===PREFIX+ACTIVATION.file;
+    const oldTag=activation&&oldMonitor.length?'monitor-proof:v1:'+oldMonitor[0].id+':1':deployTag(1);
+    const newTag=activation&&newMonitor.length?'monitor-proof:v1:'+newMonitor[0].id+':1':deployTag(2);
+    requireValue(run.display_title===oldTag||run.display_title===newTag,'untrusted_gate_origin');
+    if(run.display_title===oldTag) {
+      requireValue(!oldPaths.has(run.path),'ambiguous_run');oldPaths.add(run.path);
+      requireValue(run.run_attempt===1&&run.head_sha===c.sha&&run.head_branch==='main'&&
+        run.head_repository?.full_name===REPOSITORY&&run.status==='completed'&&
+        ['success','skipped'].includes(run.conclusion),'original_wave_not_skipped');
+      const jobs=await get('/actions/runs/'+run.id+'/attempts/1/jobs?per_page=100');
+      requireValue(Array.isArray(jobs?.jobs)&&jobs.total_count===jobs.jobs.length&&jobs.jobs.length>0&&jobs.jobs.length<100&&
+        jobs.jobs.every(j=>j.run_id===run.id&&j.head_sha===c.sha&&j.status==='completed'&&
+          j.conclusion==='skipped'&&Array.isArray(j.steps)&&j.steps.length===0),'original_wave_executed');
+      ignored.add(run.id);
+    }
+  }
+  const selected=runs.filter(r=>!ignored.has(r.id));
+  return {...snapshot,total_count:selected.length,workflow_runs:selected};
+}
+function stageStatus(env) {
+  requireValue(sha(env.GITHUB_SHA)&&id(Number(env.GITHUB_RUN_ID))&&['1','2'].includes(env.GITHUB_RUN_ATTEMPT),'invalid_status_context');
+  const outcome=(key)=>env[key+'_OUTCOME']==='success'||env[key+'_ACCEPTED']==='success'?'success':'failure';
+  return {schema:2,sha:env.GITHUB_SHA,run_id:env.GITHUB_RUN_ID,install_attempt:1,
+    smoke_attempt:Number(env.SMOKE_ATTEMPT),diagnostics_attempt:Number(env.DIAGNOSTICS_ATTEMPT),
+    provenance:'success',key:'success',bundle:'success',sync:'success',migration:'success',
+    max_webhook:'success',metrika_cron:'success',install_checks:'success',
+    smoke:outcome('CHECK'),diagnostics:outcome('DOWNLOAD')};
+}
+
 function makeApi(token, fetchImpl = globalThis.fetch) {
   requireValue(typeof token === 'string' && token.length > 0 && typeof fetchImpl === 'function', 'missing_capability');
   return async (method, path, body, raw = false) => {
@@ -230,10 +384,19 @@ function makeApi(token, fetchImpl = globalThis.fetch) {
   };
 }
 module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
-  verifyConfigure, verifyActivation, closeRelease, makeApi };
+  verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_STEPS, stepResult, copiedExecution,
+  deploymentHistory, admitVerification, selectRecoveryRuns, stageStatus };
 if (typeof require === 'function' && require.main === module) {
   (async () => {
-    const api = makeApi(process.env.GITHUB_TOKEN);
+    const mode=process.argv.slice(2);
+    if(mode.length) {
+      requireValue(mode.length===1&&['--admit-verification','--stage-status'].includes(mode[0]),'invalid_mode');
+      const result=mode[0]==='--stage-status'?stageStatus(process.env):await admitVerification({env:process.env,api:makeApi(process.env.GITHUB_TOKEN)});
+      if(mode[0]==='--stage-status')process.stdout.write(JSON.stringify(result)+'\n');
+      else for(const [key,value] of Object.entries(result))process.stdout.write(key+'='+String(value)+'\n');
+      return;
+    }
+    const api=makeApi(process.env.GITHUB_TOKEN);
     let event;
     try { event = JSON.parse(require('node:fs').readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')); }
     catch { throw new Refusal('invalid_event'); }

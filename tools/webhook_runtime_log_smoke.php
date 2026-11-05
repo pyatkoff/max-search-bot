@@ -10,8 +10,9 @@ if (PHP_SAPI !== 'cli') {
 $root = dirname(__DIR__);
 require_once $root . '/services/WebhookRuntimeLogger.php';
 
-$written = WebhookRuntimeLogger::input('[deployment webhook log boundary check]');
-$file = WebhookRuntimeLogger::inputFile();
+$checkOnly = in_array('--check-only', $argv, true);
+$written = $checkOnly || WebhookRuntimeLogger::input('[deployment webhook log boundary check]');
+$file = WebhookRuntimeLogger::inputFile(!$checkOnly);
 $dir = $file !== '' ? realpath(dirname($file)) : false;
 $project = realpath($root);
 $outsideProject = is_string($dir)

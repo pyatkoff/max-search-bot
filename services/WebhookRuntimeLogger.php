@@ -25,9 +25,9 @@ final class WebhookRuntimeLogger
         return self::append('webhook_output.log', $message);
     }
 
-    public static function inputFile(): string
+    public static function inputFile(bool $prepare = true): string
     {
-        return self::file('webhook_input.log');
+        return self::file('webhook_input.log', $prepare);
     }
 
     public static function outputFile(): string
@@ -67,13 +67,13 @@ final class WebhookRuntimeLogger
         return $ok;
     }
 
-    private static function file(string $name): string
+    private static function file(string $name, bool $prepare = true): string
     {
-        $dir = self::directory();
+        $dir = self::directory($prepare);
         return $dir === '' ? '' : $dir . DIRECTORY_SEPARATOR . $name;
     }
 
-    private static function directory(): string
+    private static function directory(bool $prepare = true): string
     {
         $configured = trim((string)(getenv('MAX_SEARCH_WEBHOOK_LOG_DIR') ?: ''));
         $dir = $configured !== ''
@@ -90,8 +90,9 @@ final class WebhookRuntimeLogger
             return '';
         }
 
-        if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) return '';
-        @chmod($dir, 0700);
+        if (!$prepare && !is_dir($dir)) return '';
+        if ($prepare && !is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) return '';
+        if ($prepare) @chmod($dir, 0700);
 
         $resolved = realpath($dir);
         if ($resolved === false
