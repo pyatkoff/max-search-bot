@@ -226,3 +226,49 @@ test('new-trip choice never imports a proposal from the previous trip',async({pa
   await expect(field(page,'dates').locator('[data-value=text]')).toBeEmpty();
   expect(app.calls.filter(c=>c.action==='save')).toHaveLength(0);
 });
+
+// Exercise the shipped panel in a native DOM with synthetic authorized reads.
+// Provider calls and all other network destinations are deliberately excluded.
+for(const width of [390,1440])test(`current request stays independent of the optional AI host at ${width}px`,async({page})=>{
+  const errors=[],unexpected=[];
+  const onError=error=>errors.push(error.message);page.on('pageerror',onError);
+  await page.setViewportSize({width,height:700});
+  await page.route('**/*',route=>{
+    const url=new URL(route.request().url());
+    if(url.origin==='https://request-profile.invalid'&&['/','/manager2/request-profile.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:url.pathname==='/'?
+      '<!doctype html><body class="manager2"><section id="conversationZone"><header class="conversationHead">Клиент</header><div id="optionalAiHost" hidden></div><div id="handoffContext">Исходные условия</div><div id="messages" style="height:80px;overflow:auto"><div style="height:600px">История</div></div><textarea id="replyText"></textarea><input id="replyFile" type="file"><div id="profileTools"></div></section></body>':'<!doctype html><title>Protected profile fixture</title>'});
+    unexpected.push(route.request().url());return route.abort();
+  });
+  try{
+    await page.goto('https://request-profile.invalid/');
+    await page.evaluate(({width})=>{
+      const S={current:11,manager:{id:7,role:'manager'},authExpired:false,authGeneration:1,detail:{conversation:{id:11,project_key:'anytour',manager_id:7,status:'manager',channel:'telegram',customer_id:101,customer_channel_id:'fixture'},messages:[]}};
+      const p=window.profileHostProbe={calls:[],hostReads:0,mayRead:true};
+      window.WorkspaceV2={S,$:id=>document.getElementById(id),showAuthRecovery:()=>{throw new Error('unexpected_auth_recovery')},request:async(endpoint,action,args)=>{
+        p.calls.push({endpoint,action,conversation:args.conversation_id});
+        return {ok:true,viewer_id:7,conversation_id:args.conversation_id,profile:{label:'Текущая поездка',status:'fresh',fields:{dates:{value:'20 декабря'},party:{value:{adults:2,children:0}},budget:{value:'200 000 ₽ за всех'}}}};
+      }};
+      window.WorkspaceV2Conversation={hasReadAccess:()=>p.mayRead,getOpenGeneration:()=>1};
+      window.Manager2Presentation={registerConversationTool:button=>{document.getElementById('profileTools').appendChild(button);return true},focusConversationTool:id=>document.getElementById(id).focus()};
+      window.WorkspaceV2AiDraft={host(){p.hostReads++;if(width===1440)throw new Error('unavailable_optional_ai_host');return document.getElementById('optionalAiHost')},resetSession(){},sync(){}};
+      const reply=document.getElementById('replyText');reply.value='Несохранённый ответ';reply.setSelectionRange(2,8);
+      const transfer=new DataTransfer();p.file=new File(['synthetic'],'draft.txt',{type:'text/plain'});transfer.items.add(p.file);document.getElementById('replyFile').files=transfer.files;p.file=document.getElementById('replyFile').files[0];
+      document.getElementById('messages').scrollTop=75;
+    },{width});
+    await page.addScriptTag({path:path.join(root,'manager2/assets/request-profile-panel.js')});
+    const trip=page.locator('#m2CurrentTrip');await expect(trip).toBeVisible();await expect(trip.locator('small')).toContainText('20 декабря');
+    expect(await trip.evaluate(node=>node.parentElement.id==='conversationZone'&&node.previousElementSibling.classList.contains('conversationHead'))).toBe(true);
+    await expect(page.locator('#optionalAiHost #m2CurrentTrip')).toHaveCount(0);
+    expect(await page.evaluate(()=>profileHostProbe.hostReads)).toBe(0);
+    await page.evaluate(()=>{document.getElementById('optionalAiHost').remove();delete window.WorkspaceV2AiDraft;WorkspaceV2RequestProfile.sync()});
+    await expect(trip).toBeVisible();await expect(trip.locator('small')).toContainText('200 000 ₽ за всех');
+    expect(await page.evaluate(()=>profileHostProbe.calls.length)).toBe(1);
+    await page.locator('#m2RequestProfileOpen').click();await expect(page.locator('#m2RequestProfilePanel')).toBeVisible();
+    await page.locator('#m2RequestProfilePanel button').click();await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
+    expect(await page.evaluate(()=>({text:document.getElementById('replyText').value,file:document.getElementById('replyFile').files[0]===profileHostProbe.file,scroll:document.getElementById('messages').scrollTop}))).toEqual({text:'Несохранённый ответ',file:true,scroll:75});
+    await page.evaluate(()=>{profileHostProbe.mayRead=false;WorkspaceV2RequestProfile.sync()});
+    await expect(trip).toBeHidden();await expect(trip.locator('small')).toBeEmpty();await expect(page.locator('#m2RequestProfileOpen')).toBeHidden();
+    expect(await page.evaluate(()=>profileHostProbe.calls.every(call=>call.endpoint==='request-profile-api.php'&&call.action==='get'&&call.conversation===11))).toBe(true);
+    expect(errors).toEqual([]);expect(unexpected).toEqual([]);
+  }finally{page.off('pageerror',onError)}
+});
