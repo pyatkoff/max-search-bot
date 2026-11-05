@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-batch51-native-hero-candidate-view1",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Resolve wholemaincomplex/grounds completeness of exactlyone newCullinancandidate beforeanyCanva imports, usingonlyoriginalacceptedrawartifactwithoutHTTP.",
+  "boundaries": {
+    "original_run": 41968724003,
+    "original_artifact": 13389375231,
+    "original_artifact_name": "commercial-batch51-contact-0",
+    "exact_role": "h78251_new51_1",
+    "native_hotel_id": 78251,
+    "source_gets": 0,
+    "photo_http_gets": 0,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "canva_transactions": 0
+  },
+  "criteria": [
+    "Verifyexactoriginalreceiptrole/native/bytes/SHA/format/dimensions andemitunmodifiedoriginalnativebytes",
+    "FullBOM/chunks/decodedbytes/SHA thenSHOWoriginalimage, no old49candidate/closed50pixels reinspection",
+    "Do not accept croppedmainwing/category/golf-only panorama as wholehotelhero"
+  ],
+  "risks": [
+    "Wideviewmaystillcropgrounds/mainwings orshowwholehoteltoosmall;deferwithoutloweringcriterion"
+  ],
+  "item": {
+    "hotel_id": 78251,
+    "role": "h78251_new51_1",
+    "dir": "cullinan",
+    "width": 1920,
+    "height": 1152,
+    "bytes": 302335,
+    "sha256": "81ed170f61a9d4bf569d2617ee26f7074319e00426ca202c8f110ccdb234df4e",
+    "format": "JPEG"
+  }
+}
