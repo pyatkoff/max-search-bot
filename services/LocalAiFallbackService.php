@@ -102,14 +102,9 @@ class LocalAiFallbackService
 
     public static function applyDestinationDefaults(array $params, array $current): array
     {
-        if (empty($params)) return $params;
-
-        $country = (string)($params['country'] ?? ($current['country'] ?? ''));
-        if (preg_match('/^(?:турция|египет)$/ui', trim($country))) {
-            if (empty($current['meal'])) $params['meal'] = 'all_inclusive';
-            if (empty($current['stars'])) $params['stars'] = 4;
-        }
-
+        // Hotel category and meal are optional refinements. A destination alone
+        // is not customer evidence for either value, so keep them unknown unless
+        // they were explicitly extracted into $params or already exist in state.
         return $params;
     }
 
