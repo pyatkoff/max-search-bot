@@ -1,0 +1,60 @@
+{
+  "operation": "commercial-price-monitor-20261105-manual1-quote-pass2-two-copy",
+  "state": "ACTUAL_TWO_FIRST_QUOTES_CLOSED_CONSUMED_NO_RETRY",
+  "run": 41990592178,
+  "job": 127121623658,
+  "source": "4d22b719865667871b9f2eaae044311c7851fcb4",
+  "installed": "95dcf9893fb161b1e4fb52c02ad2d982604e7518",
+  "intent_artifact": 13398715089,
+  "intent_created_at": "2026-11-05T07:55:18Z",
+  "result_artifact": 13397523246,
+  "result_created_at": "2026-11-05T07:55:26Z",
+  "native_ids": [
+    67910,
+    68323
+  ],
+  "gateway_calls": 2,
+  "http200": 2,
+  "declared_errors": 0,
+  "flight_option_counts": [
+    3,
+    3
+  ],
+  "unknown": 0,
+  "source_searches": 0,
+  "old54_requoted": 0,
+  "old_retained85_excluded": true,
+  "other54_read13_rows_conservatively_excluded": 100,
+  "quote_summaries": [
+    {
+      "operation": "commercial-price-monitor-20261105-manual1-h67910-v1",
+      "ok": true,
+      "error": null,
+      "catalog_id": 67910,
+      "gateway_requests_attempted": 1,
+      "quote_state": "RESPONSE_RETAINED_AMOUNT_CONTRACT_REQUIRES_REVIEW",
+      "http_status": 200,
+      "response_bytes": 4288,
+      "request_started_epoch_utc": 1793865322,
+      "response_received_epoch_utc": 1793865323,
+      "automatic_retry_allowed": false,
+      "declared_gateway_error": false,
+      "retained_flight_options": 3
+    },
+    {
+      "operation": "commercial-price-monitor-20261105-manual1-h68323-v1",
+      "ok": true,
+      "error": null,
+      "catalog_id": 68323,
+      "gateway_requests_attempted": 1,
+      "quote_state": "RESPONSE_RETAINED_AMOUNT_CONTRACT_REQUIRES_REVIEW",
+      "http_status": 200,
+      "response_bytes": 4288,
+      "request_started_epoch_utc": 1793865325,
+      "response_received_epoch_utc": 1793865325,
+      "automatic_retry_allowed": false,
+      "declared_gateway_error": false,
+      "retained_flight_options": 3
+    }
+  ]
+}
