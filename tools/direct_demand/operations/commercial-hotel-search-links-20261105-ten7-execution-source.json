@@ -1,0 +1,43 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten7-pass1",
+  "state": "EXECUTE_ONLY_ORIGINAL_FROZEN3_NOQUOTE_PAIRS_AFTER_FRESH_SOURCE_GATES",
+  "goal": "Add3 nativehotel searchlinks to6 existingposts with preservedhotelcontent and85pricecheckmetadata.",
+  "hotel_ids": [
+    28668,
+    55205,
+    75377
+  ],
+  "prepared_run": 42033961794,
+  "prepared_artifact": 13416764048,
+  "context_run": 42033586245,
+  "context_artifact": 13418010219,
+  "context_source_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "context_workflow_source_sha": "bd89267c30b622ee83772f89ae9853461955e0a2",
+  "frozen_prepared_source": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "expected_source": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "scope_sha256": "fd44f7822e44d4c9941323907da8dbd88de795723a520e3ced73ca78406c7f84",
+  "template_sha256": "2bbea83f52ba3f6cb517303793180a1ebeb39852cf4dd0722229927599baa6ad",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": false,
+  "limits": {
+    "one_serial_run": true,
+    "min_hotels": 1,
+    "max_hotels": 10,
+    "actual_hotels": 3,
+    "max_existing_post_content_edits": 6,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "automatic_retry": false
+  },
+  "criteria": [
+    "Exactoriginalfrozenframe-manifest-approval5keys-scriptbytes/NOQUOTE/syntaxonly/no closedcasesrerun.",
+    "FreshSAMEcurrenthealthydeployverifyTLSdiag/FULLremote21/hostaccepted25/clean/runtime/native/schema-rights.",
+    "PrivateallhotelintentartifactBEFOREANYserver/provideraccess/perpostdurableonceBEFOREwrite.",
+    "Wholebodyclosingphotobuttonsourcetoken/85pricecheckmetadatapreserved;NOQUOTE/noinventedquoteSHA-epoch-index-amount.",
+    "UNKNOWN/failurestopseries/resolveoriginalFIRST/no newoperationIDorautomaticretry."
+  ],
+  "risks": [
+    "Postorproductioncouldchange;guardsstopbeforewrite.",
+    "Providereditcouldapplywithfailedfinalread;no blindseriesreplay."
+  ]
+}

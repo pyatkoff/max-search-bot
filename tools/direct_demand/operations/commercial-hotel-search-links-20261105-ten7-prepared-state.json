@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten7-pass1",
+  "prepared_hotels": 3,
+  "prepared_native_ids": [
+    28668,
+    55205,
+    75377
+  ],
+  "scope_native_ids": [
+    28668,
+    55205,
+    75377
+  ],
+  "quote_state": "NOQUOTE",
+  "prepared_prices": 0,
+  "max_existing_content_edits": 6,
+  "closed_no_edit": [],
+  "context_deferred": [],
+  "new_python_cases_per_hotel": 3,
+  "new_native_php_cases_per_hotel": 3,
+  "old_fixtures": 0,
+  "provider_calls": 0,
+  "gateway_calls": 0,
+  "new_posts": 0,
+  "template_sha256": "2bbea83f52ba3f6cb517303793180a1ebeb39852cf4dd0722229927599baa6ad",
+  "context_run": 42033586245,
+  "context_source_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "prepared_source_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "scope_filename": "commercial-hotel-search-links-20261105-context23-ten7-scope.json",
+  "scope_sha256": "fd44f7822e44d4c9941323907da8dbd88de795723a520e3ced73ca78406c7f84",
+  "state": "FROZEN3_NOQUOTE_LINK_PAIRS_CONTEXT23_AND_NEW_BOUNDED_SCOPE_ACCEPTED",
+  "run": 42033961794,
+  "job": 127267157475,
+  "source": "412e32c1d98a7c67f0ba5be8906b757323863815",
+  "result_artifact": 13416764048,
+  "bounded_functional_contract_run": 42033271803,
+  "closed_cases_must_not_rerun": true
+}
