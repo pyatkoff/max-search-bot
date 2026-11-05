@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "operation": "commercial-hotel-search-links-20261105-legacy6-input-projection1",
+  "state": "PURE_NEW_LEGACY_SIX_PREPROVIDER_MANIFEST_AND_ORIGIN_ROLE_PROJECTION",
+  "goal": "Recover only six NEW still-unlinked priced hotel's immutable pre-provider manifests/native identity/explicit original publisher role and stable photo proof for later CURRENT canonical context.",
+  "native_hotel_ids": [
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "expected_linked_count": 149,
+  "expected_priced_count": 85,
+  "expected_published_pairs": 161,
+  "role": "current_confirmed_own_legacy_price_manifest_and_receipt",
+  "legacy_roles": {
+    "310": {
+      "publisher_hotel_id": null,
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read1",
+      "capture_run": 41941025252
+    },
+    "469": {
+      "publisher_hotel_id": null,
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read1",
+      "capture_run": 41941025252
+    },
+    "498": {
+      "publisher_hotel_id": 228,
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read4",
+      "capture_run": 41943048307
+    },
+    "1971": {
+      "publisher_hotel_id": null,
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read1",
+      "capture_run": 41941025252
+    },
+    "1981": {
+      "publisher_hotel_id": 877,
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read2",
+      "capture_run": 41941689331
+    },
+    "9373": {
+      "publisher_hotel_id": 9373,
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read4",
+      "capture_run": 41943048307
+    }
+  },
+  "prior_price_operations": {
+    "310": "commercial-price-update-20261105-legacy9-pass1-h310-v1",
+    "469": "commercial-price-update-20261105-legacy9-pass1-h469-v1",
+    "498": "commercial-price-update-20261105-legacy9-pass1-h498-v1",
+    "1971": "commercial-price-update-20261105-legacy9-pass1-h1971-v1",
+    "1981": "commercial-price-update-20261105-legacy9-pass1-h1981-v1",
+    "9373": "commercial-price-update-20261105-legacy9-pass1-h9373-v1"
+  },
+  "original_preprovider_source": {
+    "run": 41945166136,
+    "artifact": 13377888476,
+    "name": "commercial-price-update-20261105-legacy9-pass1-intents",
+    "folder": "legacy-original-intents",
+    "index": "update-index.json",
+    "open_only_files_for_exact_six": [
+      "update-manifest.json",
+      "candidate.json"
+    ],
+    "original_source_sha": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+    "do_not_open": [
+      "quote-result.json",
+      "update-result.json",
+      "gateway_response",
+      "retained"
+    ]
+  },
+  "origin_role_code": {
+    "path": "update-commercial-price-20261105-legacy9-pass1.php",
+    "function": "legacyPriceRoleOk",
+    "roles_recovered_from_canonical_code": true
+  },
+  "bounds": {
+    "hotels": 6,
+    "ssh": 0,
+    "db": 0,
+    "provider": 0,
+    "searches": 0,
+    "quotes": 0,
+    "edits": 0,
+    "old_quote_bodies_read": 0,
+    "old_provider_results_read": 0,
+    "observation_fields_projected": 0
+  },
+  "criteria": [
+    "Select only exact six update-index entries and open pre-provider manifest/candidate input; never open original quote-result/update-result or rerun old quote/preparer cases.",
+    "Validate exact operation/nativeID/bodySHAs/originframeSHA+capture source/operation/run/explicit nullable publisher identity/country/provenance/stable photo signatures against public roles recovered from canonical code.",
+    "Six NEW actual-input negatives perhotel=36, oldfixtures0; missingpublisherNULL, forcedpublisher, origin tamper, wrongnative/operation/caption must reject.",
+    "Output origin role proof is immutable origin witness ONLY. Current canonical journal/receipt/version/body/entities/photo/button/source/token/priceSHA-checkepoch still required before any write; historical publicationIDs nevercanonical.",
+    "Keep private body/IDs/hashproofs only authartifact; safe counts/nativeIDs public. No source/provider/DB/server or post edits."
+  ],
+  "risks": [
+    "CopyNULL requires proper new native role support before current-context access/update; existing positivepublisher reader must still reject.",
+    "Oldoriginproof does not establish currentversion/ownerformat; later finite CURRENT context must reject conflicts."
+  ]
+}
