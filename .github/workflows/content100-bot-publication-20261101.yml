@@ -1,4 +1,4 @@
-name: Prepare exact verified prices and feed-style search links without changing posts
+name: Update54 existing hotel pairs with47 verified prices and54 search links serially
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,11 +10,12 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 8f209b1ac93090ab399c1b8225151849fceb4fd0
+  EXPECTED_PRODUCTION_SHA: 95dcf9893fb161b1e4fb52c02ad2d982604e7518
 jobs:
   inspect:
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,35 +24,126 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41983171785 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/41983171785/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41983787852 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+      - name: Require successful current-source production diagnostics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/pyatkoff/max-search-bot/actions/runs/41983787855 > "$RUNNER_TEMP/current-diagnostics-run.json"
+          python3 - <<'PY'
+          import json,os,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'current-diagnostics-run.json').read_text())
+          assert d['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['path']=='.github/workflows/publish-conversation-diagnostics.yml'
+          assert d['status']=='completed' and d['conclusion']=='success'
+          print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
+          PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-manual1-quote-pass1
+          name: commercial-hotel-offer-update-20261105-manual1-prepared1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41980943154
-          path: ${{ runner.temp }}/original-quotes
-      - name: Admit whole real baskets and build hotel-specific search link fallback
+          run-id: 41982673887
+          path: ${{ runner.temp }}/prepared-offers
+      - name: Bind exact frozen scripts and manifests to freshly accepted current source
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/prepare-current-hotel-offer-updates-20261105-manual1.py
-          for script in "$RUNNER_TEMP"/price-manual1-pass1/*/update.php; do
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          python3 -m py_compile tools/direct_demand/operations/bind-prepared-current-hotel-offers-20261105.py tools/direct_demand/operations/run-current-hotel-offer-updates-20261105.py
+          python3 tools/direct_demand/operations/bind-prepared-current-hotel-offers-20261105.py
+          for script in "$RUNNER_TEMP"/prepared-offers/*/execution.php; do
             php -l "$script"
-            ANYTOUR_OFFER1_NEW_BOUND_INPUT_CASES=1 php "$script"
           done
-      - uses: actions/upload-artifact@v4
+      - name: Retain all exact private edit intents before any provider access
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-offer-update-20261105-manual1-prepared1
+          name: commercial-hotel-offer-update-20261105-manual1-pass1-intent
           path: |
-            ${{ runner.temp }}/price-manual1-pass1/update-index.json
-            ${{ runner.temp }}/price-manual1-pass1/prepare-summary.json
-            ${{ runner.temp }}/price-manual1-pass1/closed-no-edit.json
-            ${{ runner.temp }}/price-manual1-pass1/all-update-intents.json
-            ${{ runner.temp }}/price-manual1-pass1/*/update.php
-            ${{ runner.temp }}/price-manual1-pass1/*/update-manifest.json
-            ${{ runner.temp }}/price-manual1-pass1/*/update-approval.json
-            ${{ runner.temp }}/price-manual1-pass1/*/update-intent.json
-            ${{ runner.temp }}/price-manual1-pass1/*/candidate.json
+            ${{ runner.temp }}/all-offer-execution-intents.private.json
+            ${{ runner.temp }}/offer-execution-binding-safe.json
           retention-days: 14
           if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Update only the54 frozen existing hotel pairs in one serial pass
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 tools/direct_demand/operations/run-current-hotel-offer-updates-20261105.py
+      - name: Retain original private edit outcomes including partial or unknown results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-hotel-offer-update-20261105-manual1-pass1
+          path: |
+            ${{ runner.temp }}/offer-execution-summary.json
+            ${{ runner.temp }}/offer-execution-complete-safe.json
+            ${{ runner.temp }}/all-offer-execution-intents.private.json
+            ${{ runner.temp }}/prepared-offers/*/update-result.private.json
+            ${{ runner.temp }}/prepared-offers/*/update-attempt-started.private.json
+            ${{ runner.temp }}/prepared-offers/*/execution-approval.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and read scripts
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/manual-refresh.php" "$RUNNER_TEMP/current-diagnostics-run.json"
