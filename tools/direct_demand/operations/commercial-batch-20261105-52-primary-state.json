@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-batch-20261105-52-primary-preparation1",
+  "state": "CLOSED_FOUR_NEW_DECLARED_OWNER_PAGES_NO_PHOTO_OR_DELIVERY_ACCEPTANCE",
+  "run": 41973260232,
+  "jobs": [
+    127066146323,
+    127066146483
+  ],
+  "source_commit": "9d8b0f4ca4d824e9434f765b37266be7585bbd8b",
+  "source_artifacts": [
+    {
+      "name": "commercial-batch52-primary-1",
+      "artifact": 13389853601
+    },
+    {
+      "name": "commercial-batch52-primary-0",
+      "artifact": 13389814893
+    }
+  ],
+  "new_owner_http_gets": 4,
+  "readable_pages": 4,
+  "http403": 0,
+  "old_owner_get_repeats": 0,
+  "readonly_groups": 2,
+  "max_parallel": 2,
+  "new_input_negative_cases_passed": 3,
+  "old_parser_fixtures_rerun": 0,
+  "parser_functionality_byteidentical": true,
+  "metadata_files_checked": 53,
+  "old_metadata_url_count": 587,
+  "wholecaptions_retained_unchanged": 4,
+  "six_other_captions_deferred_until_exact_facts_bound": true,
+  "elite_page_bliss_named_images_excluded": true,
+  "booking_widget_unexpected_error_not_supplier_availability_claim": true,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "photo_gets": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "new_posts": 0,
+  "ready_for_send": 0,
+  "do_not_repeat_four_gets": true
+}

@@ -1,0 +1,123 @@
+{
+  "operation": "commercial-batch-20261105-52-contact",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Inspecttwelve genuinelydifferent owner-declaredphotos forfour provenunpublishedhotelswithinretainedtenhotelgroup;prices/manualcollectionunchanged.",
+  "boundaries": {
+    "native_scope": [
+      47025,
+      21642,
+      948,
+      1217,
+      1369,
+      1370,
+      1420,
+      1421,
+      27349,
+      108942
+    ],
+    "actual_photo_scope": [
+      47025,
+      21642,
+      1217,
+      1369
+    ],
+    "exact_new_photo_count": 12,
+    "readonly_groups": 4,
+    "max_parallel": 2,
+    "source_http_gets": 0,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "All12URLs/querylessbasenamesdifferentfromclosed277URLs/276basenames;exactURIsactuallydeclarednotstripped/guessed. No relativealttextlookalikes",
+    "Adalyaexacttargetprefix/propertypage;EXCLUDEBlissnamedimagesappearingonElitepage,nosharednavrights",
+    "Melasnative1369 ONLYactualdeclaredstaticproperty3namespace;notMelasResortproperty2/arbitraryCDN. TwoNEWunusedrootURIsretained,notold45three",
+    "Query/redirect/byte/type/format/dimensionguardsBYTEIDENTICAL51/PILunchanged;3NEWbindingnegativecasesoncegroup0/oldguardfixtures0",
+    "FullBOM/timestamps/chunks/decodedbytes/SHA/nativepixels;wholemaincomplexheroNOTonepool/detail. Newwholecaptiononlyafterexactroot/bodyfactsbound"
+  ],
+  "risks": [
+    "Bannerscouldstillclipmainwing/onepool;rejectwithoutloweringhero orrequestingvariants",
+    "Photoassets/propertynamespaceNOTuniversalroom/swimup/free/season2027accessproof;noavailabilityclaimfrombookingwidgettext"
+  ],
+  "photos": [
+    {
+      "hotel_id": 47025,
+      "url": "https://www.adalyahotels.com/media/yupafx1o/adalya-elit-lara-plaj-havuz-banner-1.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/",
+      "role": "h47025_new52_0"
+    },
+    {
+      "hotel_id": 47025,
+      "url": "https://www.adalyahotels.com/media/purnokyl/adalya-elite-lara-plaj-iskele-card.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/",
+      "role": "h47025_new52_1"
+    },
+    {
+      "hotel_id": 47025,
+      "url": "https://www.adalyahotels.com/media/oicjagn3/adalya-elite-lara-acik-havuz-card.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/",
+      "role": "h47025_new52_2"
+    },
+    {
+      "hotel_id": 21642,
+      "url": "https://www.adalyahotels.com/media/dl5cl400/adalya-ocean-deluxe-plaj-havuz-banner-1-1.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/beaches-pools/",
+      "role": "h21642_new52_0"
+    },
+    {
+      "hotel_id": 21642,
+      "url": "https://www.adalyahotels.com/media/iiyd4dy0/adalya-ocean-plaj-list-card-1.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/beaches-pools/",
+      "role": "h21642_new52_1"
+    },
+    {
+      "hotel_id": 21642,
+      "url": "https://www.adalyahotels.com/media/giqa4rpn/adalya-hotels-ocean-beach-and-pool-outdoor-pool-list-card.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/beaches-pools/",
+      "role": "h21642_new52_2"
+    },
+    {
+      "hotel_id": 1217,
+      "url": "https://www.adalyahotels.com/media/kezbknjh/adalya-art-side-plaj-havuz-banner11.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+      "role": "h1217_new52_0"
+    },
+    {
+      "hotel_id": 1217,
+      "url": "https://www.adalyahotels.com/media/cjzobanp/adalya-art-side-plaj-havuz-plaj-card.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+      "role": "h1217_new52_1"
+    },
+    {
+      "hotel_id": 1217,
+      "url": "https://www.adalyahotels.com/media/lgidt5gs/adalya-art-side-acik-havuz-list-card.jpg",
+      "primary_source_url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+      "role": "h1217_new52_2"
+    },
+    {
+      "hotel_id": 1369,
+      "url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260601100949957_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-lara-hotel/gallery",
+      "role": "h1369_new52_0"
+    },
+    {
+      "hotel_id": 1369,
+      "url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430125018613_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "role": "h1369_new52_1"
+    },
+    {
+      "hotel_id": 1369,
+      "url": "https://static.melashotels.com/networks/1/properties/3/multimedia/20260430125018608_org.webp",
+      "primary_source_url": "https://www.melashotels.com/en/melas-lara-hotel",
+      "role": "h1369_new52_2"
+    }
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}
