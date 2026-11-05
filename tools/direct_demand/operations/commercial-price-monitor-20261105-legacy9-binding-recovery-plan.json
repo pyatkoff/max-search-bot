@@ -1,0 +1,114 @@
+{
+  "operation": "commercial-price-monitor-20261105-legacy9-binding-recovery-plan",
+  "state": "NINE_UNQUOTED_RETAINED_CONTEXTS_NEED_EXACT_CURRENT_LEGACY_PUBLICATION_PROOF_NOT_READY_FOR_PAID_QUOTE",
+  "goal": "Finish price coverage for nine earlier published hotels omitted by the commercial-batch-only manifest locator without resending any old publication",
+  "native_hotel_ids": [
+    240,
+    1981,
+    46672,
+    498,
+    9373,
+    469,
+    381,
+    310,
+    1971
+  ],
+  "retained_context_source_run": 41934633857,
+  "retained_context_source_artifact": 13372822872,
+  "max_age_seconds": 259200,
+  "scope_bindings": [
+    {
+      "anytour_id": 80,
+      "local_tv_id": 240,
+      "expected_name": "HAPPY LIFE VILLAGE",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 877,
+      "local_tv_id": 1981,
+      "expected_name": "JAZ NEO NAAMA BAY (EX. SOLYMAR NAAMA BAY)",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 2432,
+      "local_tv_id": 46672,
+      "expected_name": "JADORE DELUXE HOTEL & SPA",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 4
+    },
+    {
+      "anytour_id": 228,
+      "local_tv_id": 498,
+      "expected_name": "TITANIC BEACH SPA & AQUA PARK",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 9373,
+      "local_tv_id": 9373,
+      "expected_name": "SUNRISE Diamond Beach Resort",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 469,
+      "expected_name": "SULTAN GARDENS RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 381,
+      "expected_name": "REHANA ROYAL BEACH RESORT AQUA PARK & SPA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 310,
+      "expected_name": "PICKALBATROS GOLF BEACH RESORT (EX. GOLF BEACH RESORT MANAGED BY RIXOS)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 1971,
+      "expected_name": "PICKALBATROS PALACE RESORT SHARM EL SHEIKH (EX. CYRENE GRAND)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    }
+  ],
+  "new_evidence": [
+    "Git tree path inventory only, not579texts/allhistory; exactly one early-nine and four addressed legacy manifest files read",
+    "Early historical manifests store original publisher AnyTour hotel_id while read10 uses native Tourvisor local_tv_id; typed15 explicitly binds the two roles",
+    "Example accepted original bridge AnyTour80→native240 and AnyTour877→native1981; do not mutate original IDs or use generalnumericreplace",
+    "Human-copy manifests are text UPDATE intents, contain new_text and historical publication/version references, and may lack hotel_id/photo_sha256; they are not ordinary original publication manifests"
+  ],
+  "addressed_source_files": [
+    "commercial-human-copy-early-nine-manifest.json",
+    "commercial-human-copy-three-manifest.json",
+    "commercial-next-three-manifest.json",
+    "commercial-four-update-manifest.json",
+    "commercial-final-two-manifest.json"
+  ],
+  "next_necessary_proofs": [
+    "Recover only exact original publisher manifests/receipt references for these9, preserving native vs publisher identity roles and original logical/source keys",
+    "Bind latest actually confirmed human-copy caption SHA separately from original publication operation/media proof; no assumption that original initial caption is still live",
+    "Fresh gated read-only canonical registry/once receipts for only these9 as needed; full private IDs/text/photo signatures only authenticated artifact, consolecounts",
+    "For legacy photos use explicit original accepted coverhash or exact canonical stable photo signature with declared proofkind; never invent a PNG coverhash or import photos to satisfy price proof",
+    "Re-evaluate future dates nowUTC05Nov and72h before any quote; some retaineddepartures05Nov no longer satisfy future-date gate",
+    "Only after exact current caption/photo/button/source/token/logical/native correspondence: own durable newquoteintent and ONEjustifiedflights per previously unquoted tuple, then realbasket/serialexistingupdates"
+  ],
+  "boundaries": [
+    "Current26pricehotels/38newedits are CLOSED; no readback/rerun/requote them",
+    "All28paid72hpass1quotes are CONSUMED including3declarederrors and6HTTP404; no samehotel alternate oldtuple fallback",
+    "Do not re-run the one-time historical human-copy or initial publication operations; their old paused-automation prose is historical data, not a live pause instruction",
+    "Do not copy historical public privatepublication/message/version values into newpublicplans; canonicalcurrentproof must be private",
+    "No source/observer/collector/budget/cron/transport/runtimecontroller change; existingcloudGHA/strictsource21/hostaccepted25/readonlygates only",
+    "No rawphotoGET/Canva/2legacyimagegapwholepass; price edit preserves current photos",
+    "No old14gate/14adapter/old30h/MAXsignedfixtures rerun unchanged"
+  ],
+  "source_gets": 0,
+  "new_db_reads": 0,
+  "provider_calls": 0,
+  "price_edits": 0
+}
