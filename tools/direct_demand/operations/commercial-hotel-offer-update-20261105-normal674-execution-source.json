@@ -1,0 +1,13 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-normal674-pass1",
+  "expected_source": "da54e30f9f8b3bde427554ee3e3a2cc02b9ffd97",
+  "frozen_prepared_source": "da54e30f9f8b3bde427554ee3e3a2cc02b9ffd97",
+  "prepared_run": 41999314350,
+  "prepared_artifact": 13401766643,
+  "context16_run": 41996008763,
+  "quote_run": 41998126412,
+  "expected_hotels": 7,
+  "price_hotels": 4,
+  "new_link_hotels": 4,
+  "max_content_edits": 14
+}

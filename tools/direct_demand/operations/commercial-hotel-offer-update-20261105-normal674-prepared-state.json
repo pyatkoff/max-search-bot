@@ -1,0 +1,77 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-normal674-pass1",
+  "prepared_hotels": 7,
+  "prepared_price_hotel_ids": [
+    157359,
+    27316,
+    3405,
+    1422
+  ],
+  "prepared_price_hotels": 4,
+  "prepared_search_link_hotel_ids": [
+    157359,
+    1291,
+    1582,
+    27316,
+    3405,
+    1422,
+    78251
+  ],
+  "prepared_search_link_hotels": 7,
+  "prepared_link_only_hotel_ids": [
+    1291,
+    1582,
+    78251
+  ],
+  "prepared_link_only_hotels": 3,
+  "price_not_admitted_reasons": [
+    {
+      "hotel_id": 1291,
+      "price_not_added_reason": "PACKAGE_INCLUSION_FLAGS_CONTRACT_NOT_ACCEPTED"
+    },
+    {
+      "hotel_id": 1582,
+      "price_not_added_reason": "PACKAGE_INCLUSION_FLAGS_CONTRACT_NOT_ACCEPTED"
+    },
+    {
+      "hotel_id": 78251,
+      "price_not_added_reason": "DECLARED_GATEWAY_ERROR_OR_HTTP_NOT_ACCEPTED"
+    }
+  ],
+  "closed_no_edit": [],
+  "max_existing_content_edits": 14,
+  "new_posts": 0,
+  "provider_calls": 0,
+  "new_python_cases_per_hotel": 8,
+  "new_native_php_cases_per_hotel_prepared": 6,
+  "old_fixtures_rerun": 0,
+  "template_sha256": "1a5c2c00a82ab59833d74bc8d2cd86ba01eab5dcf31c5f9bda0b87ca668806a8",
+  "prepared_new_link_hotel_ids": [
+    157359,
+    1291,
+    1422,
+    78251
+  ],
+  "prepared_existing_link_hotel_ids": [
+    1582,
+    27316,
+    3405
+  ],
+  "source_normal_run": 41982177052,
+  "source_read14_run": 41993389158,
+  "replaced_owned_offer_ids": [
+    1582,
+    27316,
+    3405
+  ],
+  "state": "FROZEN7_NEW_NORMAL_OFFERS4_NEW_PRICES4_NEW_LINKS3_OWNED_LINK_REPLACEMENTS_READY_NOT_SENT",
+  "run": 41999314350,
+  "job": 127150243576,
+  "source": "008aa27efc29f6247877f5988a6f2aee37c24378",
+  "artifact": 13401766643,
+  "expected_source": "da54e30f9f8b3bde427554ee3e3a2cc02b9ffd97",
+  "old_cases_rerun": 0,
+  "quote_run": 41998126412,
+  "quote_contexts_all_consumed": true,
+  "old_unrelated56_posts_touched": 0
+}
