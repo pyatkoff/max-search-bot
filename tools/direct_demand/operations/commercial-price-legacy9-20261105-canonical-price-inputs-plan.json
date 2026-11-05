@@ -1,0 +1,62 @@
+{
+  "operation": "commercial-price-legacy9-20261105-canonical-merge-and-updater-prepare",
+  "goal": "Prepare executable-safe existing-post legacy price guards and exact unquoted input contexts before any new paid price actualization",
+  "state": "PURE_MERGE_AND_NEW_UPDATER_BINDING_CASES_NOT_QUOTES_NOT_EDITS",
+  "sources": [
+    {
+      "run": 41941025252,
+      "artifact": 13375024853,
+      "native_ids": [
+        310,
+        469,
+        381,
+        1971
+      ]
+    },
+    {
+      "run": 41941689331,
+      "artifact": 13377185803,
+      "native_ids": [
+        240,
+        1981
+      ]
+    },
+    {
+      "run": 41943048307,
+      "artifact": 13375829640,
+      "native_ids": [
+        46672,
+        498,
+        9373
+      ]
+    }
+  ],
+  "original_retained_source": {
+    "run": 41934633857,
+    "artifact": 13372822872,
+    "installed_sha": "0a80b95fa31e3a90267daa8984adae24d6aaa6bb"
+  },
+  "canonical_capture_source_sha": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "max_age_seconds": 259200,
+  "boundaries": [
+    "Merge only original accepted4+2+3 authenticated contexts, no source/DB/provider rereads",
+    "Explicitpublisher/native role guards and exact privatepub/version/photoSignature/token/button/source/currentcaption binding for futureupdates",
+    "No invented PNGcoverSHA for copy-onlyoldphotos; explicitstableproviderphotoSignature kind",
+    "RealownedMAXbuttonverification andcurrentTelegramtransportreceipt are sourceproof, not keyboardrepair",
+    "Onlynewlegacypriceoperationnames; nooldhuman-copy/publisherreplay, no newcontroller/schema/budget/transport/cron",
+    "No paidquotes before updater guardpath has been nativelyvalidated; no fakeprice data or availabilityclaims",
+    "Re-evaluate UTC05Nov/current72h/party/RUB/room/meal/fingerprint usingoriginalunquotedREAD10context"
+  ],
+  "criteria": [
+    "Nineexactcanonicalframes18platformcontexts; typed4publisherrolespreserved",
+    "ThreeNEWupdaterbindingnegativecases peractualframe/PHP-l, nooldrole/format/age/updaterfixtures",
+    "Futureproviderintents andrealflight/fullbasketvalidator stillrequired before anyexistingpostedit"
+  ],
+  "risks": [
+    "Someoriginalretainedtuplesdepart05Novandnowfailfuturedatecondition; do notforce",
+    "Contextsource25 is historicalprovenance; futureproductionindependentlyfreshgated"
+  ],
+  "provider_calls": 0,
+  "db_calls": 0,
+  "new_price_edits": 0
+}

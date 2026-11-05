@@ -1,0 +1,62 @@
+{
+  "operation": "commercial-price-legacy9-contexts-20261105-read4",
+  "state": "CLOSED_THREE_LEGACY_SNAPSHOT_KEYBOARD_GAPS_PROVEN_WITHOUT_REPAIR_OR_PRICE_EDIT",
+  "goal": "Distinguish a missing legacy canonical keyboard snapshot from an actual changed button without repairing or editing anything",
+  "native_hotel_ids": [
+    46672,
+    498,
+    9373
+  ],
+  "context_reuse_artifacts": [
+    13375024853,
+    13377185803
+  ],
+  "boundaries": [
+    "No accepted6canonical contexts repeated",
+    "Exactoriginalapprovedreceipt/currentversion/currentcaption/photo/source/token/channel/nativecountry/name remain mandatory",
+    "Conflicting nonemptycanonicalkeyboard NEVERaccepted",
+    "MAX:oneownedprivate-messageGETperhotel, exactlivecaption/photo/url andonlyexpectedbutton required",
+    "Telegram:no inventedgetMessage/no writes; onlymissingcanonicalkeyboard canrelyoncurrentversionconfirmedbuttontransportreceipt plusoriginalconfirmedreceipt",
+    "No paidflights/sourcecollector/priceedits/keyboardrepair/registrymetadatawrite"
+  ],
+  "criteria": [
+    "ThreeNEWbutton-evidencemodecases/PHP-l, nooldrole/receiptformat/native/agefixturesrerun",
+    "ReadonlySQLtransactions and fullfreshsource25/21/TLS/diagnostics/host/schema beforeSSH",
+    "ConsoleonlyIDs/counts/booleanchecks; fullprivatecontextauthartifactonly"
+  ],
+  "risks": [
+    "IfactualownedMAXkeyboardwrongorTelegramtransportreceiptunverified,deferwithoutpricecall",
+    "LiveGETs newnecessaryproof onlyfor these3unquotedcontexts, not repeatclosed26pricepostreadbacks"
+  ],
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "frozen_reader_sha256": "e611aab4a73d1e0441730a259d1a7e9c141c7ca8fd8340a18e0d612ac1e97595",
+  "max_native_identity_queries": 3,
+  "max_owned_max_message_gets": 3,
+  "max_paid_gateway_calls": 0,
+  "max_db_writes": 0,
+  "max_edits": 0,
+  "run": 41943048307,
+  "job": 126968359444,
+  "source_commit": "216818740e3300afe2e0fa28a0d3bdb1255b7ccc",
+  "result_artifact": 13375829640,
+  "input_artifact": 13377156989,
+  "installed_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "accepted_native_ids": [
+    46672,
+    498,
+    9373
+  ],
+  "accepted_platform_contexts": 6,
+  "actual_owned_max_message_gets": 3,
+  "actual_paid_gateway_calls": 0,
+  "db_writes": 0,
+  "edits": 0,
+  "all_three_live_max_bodies_photos_urls_only_expected_button_verified": true,
+  "all_three_telegram_current_transport_receipts_verified": true,
+  "all_canonical_snapshot_keyboard_arrays_empty": true,
+  "conflicting_keyboard_accepted": false,
+  "buttons_not_broken_and_not_repaired": true,
+  "new_button_evidence_cases_passed": 3,
+  "old_cases_rerun": 0,
+  "do_not_repeat_this_read_or_live_provider_checks": true
+}
