@@ -1,0 +1,64 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261105-update15",
+  "state": "PREPARED_PURE_EXACT_ONE_PAIR_APPEND_AFTER_NATIVE_MAX160",
+  "goal": "Append only actually published PapillonZeugma1422 to allthreeexisting publicfeeds after realMAX160native installation.",
+  "boundaries": [
+    "Only three existing publicXML exports, previous159offerblocks/MAX159URLs byteidentical",
+    "No publication/quote/provider/DB/ads/controller writes inpreparation",
+    "Privatecanonicalinputs only originalREAD16artifact; MAX160safeactualJSON only fromauthorizedoriginalTourjobconnector, no Tourprivateartifact download"
+  ],
+  "criteria": [
+    "ActualMAX160install41964055740/job127036830809 accepted, one newnative1422route/private404/save0; original159prefix preserved",
+    "Exactprevious3SHA, one actualnewcanonicalpair, target160/160/320 and exactunion",
+    "ThreeNEW160append rejection cases; oldfixtures0, fullnativechunks/bytes/SHA/UTF8frozen beforeexistingstaticwriter",
+    "Names/descriptionsgenericunchangedpolicy, no price/availabilityfields or naturalpaidlaunchclaim"
+  ],
+  "risks": [
+    "Anycurrentproduction/hash/UNKNOWNmismatch stops, no foreignfix or unreviewedrepin",
+    "Threefeeds are still159/159/318 until later actualwriter+HTTPSexactbytes accepted"
+  ],
+  "previous_files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "rows": 159,
+      "bytes": 102954,
+      "sha256": "faa90b713faaf4e5a56b4ca8789b32fcb162b3dcb1584aad9f7cf6565441c79a"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "rows": 159,
+      "bytes": 129817,
+      "sha256": "967e080de651bb9db2263644c2732657e767234d38f80423443efe156850c417"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "rows": 318,
+      "bytes": 232398,
+      "sha256": "70d304ad6f214e9d6c2648a68f7275daa6eae18cb30a84b13f8a8c2a692a56d7"
+    }
+  ],
+  "new_hotel_ids": [
+    1422
+  ],
+  "new_hotel_names": [
+    {
+      "hotel_id": 1422,
+      "name": "Papillon Zeugma Relaxury"
+    }
+  ],
+  "target_rows": [
+    160,
+    160,
+    320
+  ],
+  "read16_run": 41961641655,
+  "read16_artifact": 13385159205,
+  "max160_install_run": 41964055740,
+  "max160_install_job": 127036830809,
+  "source_sha": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "source_deploy": 41962033993,
+  "source_tls": 41962668602,
+  "current_diagnostics": 41962668530,
+  "current_native_full21_run": 41963598875,
+  "previous_source_xml_commit": "3eb5f6ddab6cf94fb2eefee60fac2aa67452cbbc"
+}

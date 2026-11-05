@@ -1,0 +1,50 @@
+{
+  "operation": "commercial-max160-private-route-extension-20261105-49-install1",
+  "state": "CLOSED_INSTALLED_AND_NATIVE_VERIFIED",
+  "run": 41964055740,
+  "job": 127036830809,
+  "source_commit": "5798d5b68f58433575009522cb917e9a8400b1bd",
+  "candidate_run": 41962088117,
+  "candidate_artifact": 13386215345,
+  "previous_count": 159,
+  "logical_hotels": 160,
+  "new_hotel_ids": [
+    1422
+  ],
+  "files": [
+    {
+      "bytes": 34252,
+      "name": "anytour-hotel-feed-routes-v160-20261105-49.private.php",
+      "sha256": "b7104027372bf53d3537b015485b3fccbda6292ed4298b4dc3895aca0b05e217"
+    },
+    {
+      "bytes": 3780,
+      "name": "anytour-hotel-feed-context.php",
+      "sha256": "3e5b56451eee15b33e9c2acf4319ce2920ed39853142825b13d37d3ebff7dae1"
+    }
+  ],
+  "previous159_rows_identical": true,
+  "previous_module_sha256": "f4009432e4c8c5346a7db6991d9f1d1a065eeae5b5c657020db12ae55bbc9a20",
+  "intent_artifact": 13387300059,
+  "intent_created_at": "2026-11-05T03:50:28Z",
+  "result_artifact": 13387001143,
+  "result_created_at": "2026-11-05T03:50:39Z",
+  "new_scope_transaction_cases_passed": 3,
+  "old150signed_or159transaction_fixtures_rerun": 0,
+  "old159_db_read": 0,
+  "actual_new_native_routes_verified": 1,
+  "private_projection_http_status": 404,
+  "save_calls": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "feed_writes": 0,
+  "natural_paid_signed_launch_observed": false,
+  "source_stop_prepare1_count": 1,
+  "source_stop_run": 41962947214,
+  "source_stop_before_intent_tests_ssh_mutations": true,
+  "current_bot_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "current_bot_full21_run": 41963598875,
+  "original_read16_installed_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "repeat_policy": "Actualinstallation/intent/nativeproject-counter-schema/newcanonical/private404/save0 checks closed. No samehelper/old159DB/nativeacceptedreadback rerun. Future161use original160candidate41962088117/art13386215345 plus only genuinelynew published binding."
+}

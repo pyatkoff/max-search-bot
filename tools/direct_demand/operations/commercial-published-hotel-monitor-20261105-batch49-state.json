@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-published-hotel-monitor-20261105-batch49",
+  "state": "CLOSED_EXACT_REVIEWED_HEAD_MERGED_CONFIGURED673",
+  "pr": 4996,
+  "pr_url": "https://github.com/pyatkoff/poisk-turov-test/pull/4996",
+  "reviewed_head": "98965883720c960b42af27624356ac766ed17149",
+  "merge_sha": "ecb0ad9841892407bd80e9b1dbf021f9b4495610",
+  "new_native_ids": [
+    1422
+  ],
+  "previous_count": 672,
+  "configured_active": 673,
+  "original492_unchanged": true,
+  "previous672_id_order_and_target_prefix_preserved": true,
+  "native_focused_validate_run": 41963873029,
+  "native_focused_validate_job": 127036247870,
+  "guard_run": 41963873032,
+  "sync_run": 41963873033,
+  "collect_production_in_ci": "skipped",
+  "sync_production_in_ci": "skipped",
+  "native_focus_count": 673,
+  "existing_search_resumed": true,
+  "mixed_countries_preserved": true,
+  "missing_inactive_new_hotel_no_false_credit": true,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "manual_collect": 0,
+  "normal673_actual_collection_observed": false,
+  "repeat_policy": "Do not rerun closedPR/nativeCI/focused checks. Standingactualpublishedappendonly authorization used; normal673needs genuinelynew actualevidence, not673verifiedprices."
+}

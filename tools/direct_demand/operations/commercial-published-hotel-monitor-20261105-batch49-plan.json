@@ -1,0 +1,34 @@
+{
+  "operation": "commercial-published-hotel-monitor-20261105-batch49",
+  "state": "PREPARED_APPEND_ONLY_NATIVE1422_AFTER_ACTUAL_PUBLICATION",
+  "goal": "Admit only actually published native1422 into existing normal monitor after exact original492+672 native dedup, preserving existing target identities and budgets.",
+  "boundaries": {
+    "actual_published_native_ids": [
+      1422
+    ],
+    "source_publication_run": 41961272340,
+    "canonical_read_run": 41961641655,
+    "previous_configured": 672,
+    "target_configured": 673,
+    "files": [
+      "v2/data/published-hotels-monitor-v1.php",
+      "tests/published-hotels-monitor-smoke.php"
+    ],
+    "provider_calls": 0,
+    "manual_collection": false,
+    "db_writes": 0,
+    "transport_schedule_budget_observer_config_changes": false
+  },
+  "criteria": [
+    "Original492literal list unchanged; previous672IDorder byteidentical and1422absent from allcohorts",
+    "Append independent publication_stock_20261105_1 cohort; currentnativecountry4active/name alreadyproven",
+    "New focused nativecases673/previous672targets/resumeexistingbatch43search/mixedcountry/missing/inactive; existingnativeCI required once, no closedCIreruns",
+    "Only exactreviewedPRhead merge after passingguard/collectvalidate/sync; do not manuallycollect or changehourly12/budget64/pendingsearches/locks"
+  ],
+  "risks": [
+    "Configured673 is not673verifiedprices; normal673collector unobserved until native actualevidence",
+    "Ifconcurrentadmission or branchheadmoves resolve actualstate before merge, no duplicatecohort/bypass"
+  ],
+  "standing_pavel_authorization": "PR4992 and future actually published hotels",
+  "base_commit": "196f16c9dbf3e24d05d8be6e2f53e3beee1f2f27"
+}
