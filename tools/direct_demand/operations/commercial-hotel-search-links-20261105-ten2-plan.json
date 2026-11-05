@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten2-pass1",
+  "state": "PURE_ORIGINAL_CONTEXT18_METADATA_VALIDATION_THEN_NOQUOTE_OFFER_PREPARATION_ONLY",
+  "goal": "Use only the originally retained10canonical bindings, validate exact finalmetadata-only error offline, and prepare still-unlinked hotel search links.",
+  "native_ids": [
+    265,
+    269,
+    272,
+    275,
+    282,
+    287,
+    315,
+    328,
+    358,
+    382
+  ],
+  "original_context_run": 42012518360,
+  "original_context_artifact": 13406909136,
+  "quote_state": "NOQUOTE",
+  "bounds": {
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "server_calls_in_pure_stage": 0,
+    "owned_MAX_read_replays": 0,
+    "max_future_content_edits": 20
+  },
+  "criteria": [
+    "Exact originalreader/preparerimmutablepublicSHA and private originalinput/readback;raworiginalfalse/errorunchanged.",
+    "Two NEWnative finalmetadata cases plusall10frame/native/publisher/currentcaption/ownedphoto-button-source-tokenproof consistency beforeadmission; separateprivateadmittedwitness.",
+    "Frozenwholecaption+closing+link≤1024UTF16,5keyapproval,hashes;3NEWPython+3NEWnative inputcasesperhotel/old0.",
+    "No inventedquoteSHA/epoch/amount/index;preserve85priceblocks/pricecheckmetadata;searchfilterNOTavailability.",
+    "Ready subset≤10oneexistingSERIALupdater onlyafterfreshcurrenthealthyproduction/full21/host/schema-rights/privateintent/once/UNKNOWNoriginalfirst."
+  ],
+  "risks": [
+    "Do not extrapolate another unknown server failure into metadata-only exception; exact code/output ordering required.",
+    "No rereads/replayoforiginalcontext18 DB/provider/readproofs. Ifofflineproof fails,defer that scope honestly."
+  ],
+  "template_sha256": "c98e9d95bbc53adedc5b8979616e995f8e3d26e23dc3119ca5ae967ccc38b609",
+  "expected_installed_sha": "1fec9202b45a8e1a6343750a8896a6e5072e1880"
+}

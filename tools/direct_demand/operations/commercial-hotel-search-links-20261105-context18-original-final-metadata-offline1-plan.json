@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context18-original-final-metadata-offline1",
+  "state": "PURE_ORIGINAL_ARTIFACT_VALIDATION_ONLY_NO_SERVER_PROVIDER_REPLAY",
+  "goal": "Validate the original ten completed canonical bindings without repeating any DB or owned MAX reads after a final output metadata constant typo.",
+  "original_run": 42012518360,
+  "original_artifact": 13406909136,
+  "original_job": 127194829064,
+  "original_source_commit": "182d52db6fd9538221440506380f7ea3ce1cb564",
+  "root_cause": "Only final output field references obsolete APPROVED_CONTEXT17_INPUT_SHA256; this field is after all ten bindings, readonly rollbacks, captured_epoch and installed_sha.",
+  "original_ok_must_remain_false": true,
+  "criteria": [
+    "Immutableoriginalreader/preparerbytes match pinnedpublicSHA; exact sole oldconstant reference is finalmetadata line.",
+    "Two NEWnative cases reproduceoriginalUndefinedconstant and correctedactualprivateinput metadata without includes/IO beyondoriginalartifact.",
+    "Alltenframeinputhashes/native/publisher/currentcaption/photo/button/source/token/ownedMAXproofs must match original privateinput/readback; no normalized body rewrite.",
+    "Keep raw original failed output untouched; produce separately labeled private admitted-binding witness, never relabel original GHA SUCCESS.",
+    "No server/DB/provider/search/quote calls or oldfixtures; fix future source line only; no originaljobrerun."
+  ],
+  "risks": [
+    "Do not generalize another runtime failure into finalmetadata-only recovery; exact source structure and all10proofs are mandatory."
+  ]
+}
