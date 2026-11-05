@@ -5,15 +5,13 @@
   "goal_complete": false,
   "user_prices_first": true,
   "logical_hotels_published_per_channel": 160,
-  "new_materials_this_pass": 1,
-  "new_native_ids": [
-    1422
-  ],
+  "new_materials_this_pass": 0,
+  "new_native_ids": [],
   "last_material_send_run": 41961272340,
   "last_material_send_job": 127027949936,
-  "new_post_sends_this_pass": 2,
-  "new_post_attempts_this_pass": 2,
-  "new_posts_verified_this_pass": 2,
+  "new_post_sends_this_pass": 0,
+  "new_post_attempts_this_pass": 0,
+  "new_posts_verified_this_pass": 0,
   "new_reused_posts": 0,
   "new_paid_quotes_this_pass": 0,
   "new_price_edits_this_pass": 0,
@@ -101,7 +99,7 @@
   "configured_price_max_age_seconds": 259200,
   "configured_price_max_age_hours": 72,
   "price_checked_times_all_within_configured_window": true,
-  "price_freshness_definition": "Historical checked times within user72h asof05Nov04:07UTC; not a guarantee of current provider availability",
+  "price_freshness_definition": "Historicalcheckedtimeswithinuser72h asof05Nov04:21UTC;notguaranteeofcurrentavailability",
   "last_price_update_run": 41945166136,
   "last_price_checked_utc": "2026-11-05T00:56:31Z",
   "last_price_delivery_previously_reported": true,
@@ -120,10 +118,10 @@
   "manual_source_searches": 0,
   "xml_price_unit_question_pending": true,
   "latest_scheduled_metadata": {
-    "operation": "commercial-price-monitor-20261105-rollout8-metadata6",
+    "operation": "commercial-price-monitor-20261105-rollout8-metadata7",
     "state": "CLOSED_NEW_BOUNDED_SCHEDULED_WINDOW_ZERO_RUNS",
-    "created_after": "2026-11-05T03:24:01Z",
-    "checked_at_utc": "2026-11-05 04:07:19 UTC",
+    "created_after": "2026-11-05T04:07:19Z",
+    "checked_at_utc": "2026-11-05 04:18:21 UTC",
     "scheduled_run_count": 0,
     "new_normal_collectors": 0,
     "normal672_actual_verified": true,
@@ -146,5 +144,10 @@
     469
   ],
   "direct_import_moderation_campaign_done": false,
-  "all_closed_operations_must_not_replay": true
+  "all_closed_operations_must_not_replay": true,
+  "last_material_delivery_reported": true,
+  "latest_media_pass50_run": 41967195073,
+  "latest_media_pass50_state": "CLOSED_FIVE_NEW_OWNER_PHOTOS_NO_WHOLE_HOTEL_HERO_NO_READY_NO_DELIVERY",
+  "latest_primary_pass50_run": 41966959285,
+  "current_workflow_role": "CLOSED_CONTACT50_NOT_PRICE_MANUAL_SOURCE_OR_PUBLISHER"
 }

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261105-50-source-notes",
-  "state": "TEN_PROVEN_SIX_RETAINED_WHOLE_CAPTIONS_NEW_SANTAI_SOURCE_DISCOVERY_ONLY",
+  "state": "TEN_PROVEN_SIX_RETAINED_WHOLE_CAPTIONS_SANTAI_CONTACT_CLOSED_NO_READY",
   "proven_scope": [
     1420,
     1421,
@@ -65,5 +65,44 @@
     1217
   ],
   "ready_for_send": 0,
-  "new_posts": 0
+  "new_posts": 0,
+  "source_fact_constraints": [
+    "CurrentSantai ownerchildpages confirm300mprivatebeach/pooltypes/spa/childrenclubprograms; no free/seasonal/2027oruniversalprivatevilla-pavilionrights claim",
+    "PrivateSunStarSwimUpvilla categorygeneral-viewphoto not requested forwholehotelhero",
+    "Originalsixwholecaptions unchanged; no newcaptionrewrite merelyfromnewsourcefacts"
+  ],
+  "new_source_pass": 41966959285,
+  "new_contact_pass": 41967195073,
+  "caption_proofs": [
+    {
+      "hotel_id": 1260,
+      "sha256": "e1bfbbefe4b373a440fb406396da907c27ff9323515cd230655586322302bf08",
+      "utf16_units": 268
+    },
+    {
+      "hotel_id": 1420,
+      "sha256": "09ba41a1b1e111c7cad8b84f7bb0b9c10d2a39aa3d2f1995b3622160669b79b1",
+      "utf16_units": 258
+    },
+    {
+      "hotel_id": 1421,
+      "sha256": "7bdbf9439938c823257060fe9d7a0512b9530de3fceb5649a6d221cde2552953",
+      "utf16_units": 258
+    },
+    {
+      "hotel_id": 27349,
+      "sha256": "304d2ee78261d58db630c90cb67cc688469c5054ea8b32e0dac4a75c23f46a9c",
+      "utf16_units": 290
+    },
+    {
+      "hotel_id": 78251,
+      "sha256": "7c7dfbdd4e384ce34de1465f7ed57bf46570b216228d4c7b84c8f412ff4ff829",
+      "utf16_units": 297
+    },
+    {
+      "hotel_id": 108942,
+      "sha256": "0d0a2254175eb96709b7bf97314ab3598bb55a43795c4716032052025762a902",
+      "utf16_units": 289
+    }
+  ]
 }

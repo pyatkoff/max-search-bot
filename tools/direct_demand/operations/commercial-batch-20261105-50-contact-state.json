@@ -1,0 +1,149 @@
+{
+  "operation": "commercial-batch-20261105-50-contact",
+  "state": "CLOSED_FIVE_NEW_OWNER_PHOTOS_NO_WHOLE_HOTEL_HERO_NO_READY_NO_DELIVERY",
+  "run": 41967195073,
+  "job": 127046817998,
+  "source_commit": "8612b1301fee28b5e0d32297e3259af0ccf936bc",
+  "artifact": 13388530092,
+  "proven_scope": [
+    1420,
+    1421,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260,
+    1217
+  ],
+  "actual_photo_scope": [
+    1260
+  ],
+  "new_raw_photo_gets": 5,
+  "http200": 5,
+  "http403": 0,
+  "guard_passes": 5,
+  "guard_rejects": 0,
+  "readonly_groups": 1,
+  "max_parallel": 2,
+  "new_input_negative_cases_passed": 3,
+  "old_image_guard_fixtures_rerun": 0,
+  "raw_query_redirect_format_byte_dimension_guards_byteidentical": true,
+  "pil_dependency_step_byteidentical_accepted49": true,
+  "closed_old_url_exclusions": 258,
+  "closed_old_decoded_basename_exclusions": 257,
+  "new_total_closed_unique_urls": 263,
+  "new_total_closed_decoded_basenames": 262,
+  "contact": {
+    "kind": "contact",
+    "group": 0,
+    "width": 960,
+    "height": 540,
+    "bytes": 554469,
+    "sha256": "5d7aee637adf7c63d12b7cd204b947989fe2e3a4bca3e1f4fb40eeb9079cdcc2",
+    "chunks": 16,
+    "bom_per_logline_removed": true,
+    "timestamps_removed": true,
+    "complete_chunks_verified": true,
+    "decoded_bytes_sha256_and_native_pixels_verified": true
+  },
+  "verdicts": [
+    {
+      "role": "h1260_new50_0",
+      "verdict": "BEACH_PAVILION_DETAIL_NOT_WHOLE_HOTEL_HERO",
+      "universal_private_pavilion_rights_claimed": false
+    },
+    {
+      "role": "h1260_new50_1",
+      "verdict": "BEACH_PIER_NO_WHOLE_HOTEL_BUILDINGS"
+    },
+    {
+      "role": "h1260_new50_2",
+      "verdict": "ONE_POOL_AND_FRONT_FACADE_RIGHT_WING_CLIPPED_NOT_WHOLE_COMPLEX_HERO"
+    },
+    {
+      "role": "h1260_new50_3",
+      "verdict": "AQUAPARK_DETAIL_NOT_WHOLE_COMPLEX_HERO"
+    },
+    {
+      "role": "h1260_new50_4",
+      "verdict": "SPA_INTERIOR_NOT_WHOLE_COMPLEX_HERO"
+    }
+  ],
+  "source_images": [
+    {
+      "hotel_id": 1260,
+      "role": "h1260_new50_0",
+      "index": 0,
+      "source_url": "https://www.ichotels.com.tr/media/x5cbq3jc/ic-hotels-santai-family-resort-plaj-ve-havuzlar-banner.jpg",
+      "format": "JPEG",
+      "width": 2160,
+      "height": 1350,
+      "bytes": 309474,
+      "sha256": "c8d776018c11de8f5750347633a4be3da1e62ba1793254f4b16feafebf95497e",
+      "retained_raw_file": "accepted-primary-raw/h1260_new50_0.jpg"
+    },
+    {
+      "hotel_id": 1260,
+      "role": "h1260_new50_1",
+      "index": 1,
+      "source_url": "https://www.ichotels.com.tr/media/j3bew4yg/ic-hotels-santai-family-resort-plaj-ve-havuzlar-plaj-card.jpg",
+      "format": "JPEG",
+      "width": 1005,
+      "height": 705,
+      "bytes": 196025,
+      "sha256": "27ff38d3afbb88af13e6f76a391d8023f9aaadc092b3cc99972d009adf58e0c5",
+      "retained_raw_file": "accepted-primary-raw/h1260_new50_1.jpg"
+    },
+    {
+      "hotel_id": 1260,
+      "role": "h1260_new50_2",
+      "index": 2,
+      "source_url": "https://www.ichotels.com.tr/media/amrpqhnh/ic-hotels-activity-pool-card-d.jpg",
+      "format": "JPEG",
+      "width": 833,
+      "height": 555,
+      "bytes": 266498,
+      "sha256": "4d4d475f36fae9504afab621cb1a117a0ecd0d2ef8a9c70f597d8f6a196dd1a8",
+      "retained_raw_file": "accepted-primary-raw/h1260_new50_2.jpg"
+    },
+    {
+      "hotel_id": 1260,
+      "role": "h1260_new50_3",
+      "index": 3,
+      "source_url": "https://www.ichotels.com.tr/media/5uwb0x0v/ic-hotels-santai-family-resort-aquapark-card.jpg",
+      "format": "JPEG",
+      "width": 555,
+      "height": 470,
+      "bytes": 203609,
+      "sha256": "98dc02d893280e52c676d53b16b9ed7402f48fa992db1ae382633afc99b0b21c",
+      "retained_raw_file": "accepted-primary-raw/h1260_new50_3.jpg"
+    },
+    {
+      "hotel_id": 1260,
+      "role": "h1260_new50_4",
+      "index": 4,
+      "source_url": "https://www.ichotels.com.tr/media/xhth4eh0/ic-hotels-santai-family-resort-spa-banner.jpg",
+      "format": "JPEG",
+      "width": 1440,
+      "height": 900,
+      "bytes": 211527,
+      "sha256": "698ad8e60cef08b54d927dc8217e268fa55482d226db7c64e5b86318d50b3fbd",
+      "retained_raw_file": "accepted-primary-raw/h1260_new50_4.jpg"
+    }
+  ],
+  "raw_photos_retained_only_original_authenticated_artifact": true,
+  "canva_transactions": 0,
+  "imports": 0,
+  "covers_accepted": 0,
+  "publication_manifest_or_approval_created": false,
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "new_posts": 0,
+  "ready_for_send": 0,
+  "repeat_policy": "Five exactURLs/decodedbasenames andcontact/log/pixelsclosed, no GET/variants/reinspection/importtoforcehero. NoCanva opened. Sixwholecaptionsretained unchanged; sourcefacts/rawguardpassesnotdelivery."
+}
