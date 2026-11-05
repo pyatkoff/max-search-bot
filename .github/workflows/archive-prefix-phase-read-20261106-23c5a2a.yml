@@ -1,0 +1,258 @@
+name: Read only archive derivation diagnosis
+on:
+  push:
+    branches: [ops/archive-prefix-phase-read-20261106-23c5a2a]
+    paths: [.github/workflows/archive-prefix-phase-read-20261106-23c5a2a.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-private-archive-predictive-study
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/ops/archive-prefix-phase-read-20261106-23c5a2a' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate the one purpose source envelope
+        env:
+          API_TOKEN: ${{ github.token }}
+          ACCEPTED_MAIN_SHA: 23c5a2a8bd7c919d7e248ffd77306f3c8eaadee1
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,stat,subprocess,urllib.request
+          def git(*args):
+              return subprocess.check_output(['git',*args],stderr=subprocess.DEVNULL)
+          try:
+              expected=os.environ['ACCEPTED_MAIN_SHA']
+              head=os.environ['GITHUB_SHA']
+              event=json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+              assert len(expected)==40 and all(c in '0123456789abcdef' for c in expected)
+              assert event['repository']['full_name']=='pyatkoff/max-search-bot'
+              assert event['ref']=='refs/heads/ops/archive-prefix-phase-read-20261106-23c5a2a'
+              assert event['before']==expected and event['after']==head
+              assert not event.get('forced') and not event.get('deleted')
+              assert git('rev-parse','HEAD').decode().strip()==head
+              assert git('rev-list','--parents','-n','1',head).decode().split()==[head,expected]
+              changed=git('diff','--name-status',expected,head).decode()
+              assert changed=='A\t.github/workflows/archive-prefix-phase-read-20261106-23c5a2a.yml\n'
+              request=urllib.request.Request(
+                  'https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/main',
+                  headers={'Authorization':'Bearer '+os.environ['API_TOKEN'],
+                           'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+              with urllib.request.urlopen(request,timeout=20) as response:
+                  assert json.load(response)['object']['sha']==expected
+              paths=[
+                  'services/ArchiveResearchReadService.php','services/ArchiveResearchSemanticExtractor.php',
+                  'services/ManagerAiTextRedactor.php','services/InternalOwnerDialogueScope.php',
+                  'services/ModeledConversionSemanticPrediction.php','services/ArchivePredictiveStudyAtoms.php',
+                  'services/ModeledConversionTextSignals.php','services/ArchivePredictiveStudyStore.php',
+                  'services/ArchivePredictiveRelativeWeights.php','tools/archive_predictive_study.php',
+                  'tools/archive_predictive_study.py']
+              hashes={}
+              for name in paths:
+                  source=git('show',expected+':'+name)
+                  path=pathlib.Path(name)
+                  assert stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert path.read_bytes()==source
+                  hashes[name]=hashlib.sha256(source).hexdigest()
+              destination=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-source.json'
+              destination.write_text(json.dumps({'source_commit':expected,'hashes':hashes},separators=(',',':')))
+              destination.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"source_envelope_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"source_envelope_verified":true}')
+          PY
+      - name: Prepare the existing identity and strict canonical host pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              key=os.environ['K']
+              raw=key.replace('\\n','\n').replace('\r','').encode() if 'PRIVATE KEY' in key else base64.b64decode(key,validate=True)
+              keypath=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-key'
+              keypath.write_bytes(raw.rstrip(b'\n')+b'\n')
+              keypath.chmod(0o600)
+              check=subprocess.run(['ssh-keygen','-y','-f',str(keypath)],capture_output=True,timeout=10)
+              assert check.returncode==0
+              approved=set()
+              for attempt in range(2):
+                  try:
+                      scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+                      lines=scan.stdout.splitlines()
+                  except subprocess.TimeoutExpired as error:
+                      output=error.stdout or b''
+                      lines=(output.decode(errors='replace') if isinstance(output,bytes) else output).splitlines()
+                  for line in lines:
+                      fields=line.split()
+                      if len(fields)!=3 or fields[1]!='ssh-ed25519':continue
+                      try:
+                          material=base64.b64decode(fields[2],validate=True)
+                      except ValueError:continue
+                      fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(material).digest()).decode().rstrip('=')
+                      if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':
+                          approved.add(host+' ssh-ed25519 '+fields[2])
+                  if approved:break
+              assert len(approved)==1
+              known=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-hosts'
+              known.write_text('\n'.join(sorted(approved))+'\n')
+              known.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"canonical_host_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"canonical_host_verified":true}')
+          PY
+      - name: Read fixed derivation status and private preflight flags
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_ACCOUNT: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import json,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              account=os.environ['SSH_ACCOUNT']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert re.fullmatch(r'[a-z_][a-z0-9_-]{0,31}',account)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+              contract=json.loads((temporary/'study-source.json').read_text())
+              remote_header='CONTRACT='+repr(contract)+'\nRUN_ID="archive-prefix-v2-20261106-23c5a2a"\nPARENT_RUN_ID="archive-prefix-study-20261105-d2505db"\n'
+              remote_body=r"""
+          import hashlib,json,os,pathlib,re,stat,subprocess,sys
+          receipt={'ok':False,'operator_verified':False,'source_verified':False,'diagnostic_completed':False,
+                   'parent_status_ok':False,'parent_exists':False,'parent_capture_complete':False,'parent_analysis_complete':False,
+                   'child_status_ok':False,'child_exists':False,'child_capture_complete':False,'child_analysis_complete_status':False,
+                   'reason':'none','stage':'operator'}
+          def verify_source(root):
+              environment=dict(os.environ)
+              environment['GIT_OPTIONAL_LOCKS']='0'
+              head=subprocess.check_output(['/usr/bin/git','-C',str(root),'rev-parse','HEAD'],
+                                           stderr=subprocess.DEVNULL,timeout=10,env=environment).decode().strip()
+              assert head==CONTRACT['source_commit']
+              for arguments in (['diff','--quiet','HEAD'],['diff','--cached','--quiet']):
+                  subprocess.run(['/usr/bin/git','-C',str(root),*arguments],stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL,timeout=10,check=True,env=environment)
+              for name,digest in CONTRACT['hashes'].items():
+                  path=root/name
+                  assert path.resolve()==path and stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
+          try:
+              assert re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,63}',RUN_ID) and re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,63}',PARENT_RUN_ID)
+              assert RUN_ID!=PARENT_RUN_ID
+              root=pathlib.Path('/var/www/anytoour/data/www/app.anytoour.ru')
+              assert root.resolve()==root and root.stat().st_uid==1012 and os.geteuid()==1012
+              os.chdir(root)
+              receipt['operator_verified']=True
+              verify_source(root)
+              receipt['source_verified']=True
+              php=['/usr/bin/php','-d','auto_prepend_file=','-d','auto_append_file=',
+                   '-d','opcache.enable_cli=0','-d','display_errors=0','-d','log_errors=0']
+              status_issue=None
+              for label,run in (('parent',PARENT_RUN_ID),('child',RUN_ID)):
+                  receipt['stage']=label+'_status'
+                  result=subprocess.run(php+['tools/archive_predictive_study.php','status',run,CONTRACT['source_commit']],
+                                        capture_output=True,timeout=90)
+                  assert len(result.stdout)<=8192 and len(result.stderr)<=8192
+                  value=json.loads(result.stdout)
+                  assert isinstance(value,dict) and isinstance(value.get('ok'),bool)
+                  assert set(value).issubset({'ok','exists','capture_complete','analysis_complete','reason','stage'})
+                  assert all(isinstance(v,bool) for k,v in value.items() if k not in ('reason','stage'))
+                  receipt[label+'_status_ok']=result.returncode==0 and value['ok']
+                  receipt[label+'_exists']=value.get('exists',False)
+                  receipt[label+'_capture_complete']=value.get('capture_complete',False)
+                  receipt['parent_analysis_complete' if label=='parent' else 'child_analysis_complete_status']=value.get('analysis_complete',False)
+                  if not receipt[label+'_status_ok']:
+                      reasons={'study_busy','study_arguments','study_operator_denied','study_installed_source_changed','study_source_unavailable',
+                               'study_source_changed','study_operation_failed','study_file','study_file_changed','study_file_limit',
+                               'study_directory','study_directory_sync','study_checkpoint','study_derive_state_changed'}
+                      stages={'arguments','operator','store'}
+                      receipt['reason']=value.get('reason') if value.get('reason') in reasons else 'status_failed'
+                      receipt['stage']=value.get('stage') if value.get('stage') in stages else label+'_status'
+                      if status_issue is None:status_issue=(receipt['reason'],receipt['stage'])
+              receipt['stage']='private_preflight'
+              probe="<?php\ndeclare(strict_types=1);\nini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$level=ob_get_level();ob_start(static fn(string $bytes):string=>'');\n$out=['ok'=>false,'diagnostic_completed'=>false,'parent_manifest_matches_checkpoint'=>false,\n    'parent_receipt_hashes_match'=>false,'parent_capture_eof'=>false,'disk_has_headroom'=>false,\n    'producer_reader_match'=>false,'producer_extractor_match'=>false,'producer_redactor_match'=>false,\n    'producer_owner_scope_match'=>false,'producer_atoms_match'=>false,'producer_text_signals_match'=>false,\n    'child_derive_intent'=>false,'child_checkpoint'=>false,'child_manifest'=>false,'child_analysis_intent'=>false,\n    'child_analysis_directory'=>false,'child_summary'=>false,'child_candidate'=>false,'child_audits'=>false,\n    'child_prefixes'=>false,'child_analysis_complete'=>false,'reason'=>'none','stage'=>'private_preflight'];\ntry{\n    $private='/var/www/anytoour/data/private/archive-predictive-study';\n    $root='/var/www/anytoour/data/www/app.anytoour.ru';$parent='archive-prefix-study-20261105-d2505db';$child='archive-prefix-v2-20261106-23c5a2a';\n    $hashes=json_decode('__SOURCE_HASHES_JSON__',true,32,JSON_THROW_ON_ERROR);\n    if(PHP_SAPI!=='cli'||!function_exists('posix_geteuid')||posix_geteuid()!==1012\n        ||realpath((string)getcwd())!==$root\n        ||preg_match('/\\\\A[a-z0-9][a-z0-9_-]{0,63}\\\\z/D',$parent)!==1\n        ||preg_match('/\\\\A[a-z0-9][a-z0-9_-]{0,63}\\\\z/D',$child)!==1||$parent===$child)\n        throw new RuntimeException();\n    $read=static function(string $path,int $limit):string{\n        clearstatcache(true,$path);$s=@lstat($path);\n        if(!is_array($s)||is_link($path)||($s['mode']&0170000)!==0100000||($s['mode']&0077)!==0\n            ||$s['uid']!==1012||$s['nlink']!==1||$s['size']>$limit)throw new RuntimeException();\n        $raw=file_get_contents($path);if(!is_string($raw)||strlen($raw)!==$s['size'])throw new RuntimeException();\n        return$raw;\n    };\n    $artifacts=['child_derive_intent'=>'derive-intent.json','child_checkpoint'=>'checkpoint.json',\n        'child_manifest'=>'manifest.json','child_analysis_intent'=>'analysis-intent.json',\n        'child_analysis_directory'=>'analysis','child_summary'=>'analysis/summary.json',\n        'child_candidate'=>'analysis/candidate_weights.json','child_audits'=>'analysis/case_audits.jsonl',\n        'child_prefixes'=>'analysis/prefixes.jsonl','child_analysis_complete'=>'analysis-complete.json'];\n    foreach($artifacts as$key=>$name)$out[$key]=file_exists($private.'/'.$child.'/'.$name)||is_link($private.'/'.$child.'/'.$name);\n    $out['stage']='parent_checkpoint';\n    $checkpoint=json_decode($read($private.'/'.$parent.'/checkpoint.json',262144),true,64,JSON_THROW_ON_ERROR);\n    if(!is_array($checkpoint))throw new RuntimeException();\n    $out['parent_capture_eof']=($checkpoint['complete']??null)===true\n        &&array_key_exists('position',$checkpoint)&&$checkpoint['position']===null;\n    $free=disk_free_space($private);$size=$checkpoint['total_chunk_bytes']??null;\n    $out['disk_has_headroom']=(is_float($free)||is_int($free))&&is_finite((float)$free)\n        &&is_int($size)&&$size>=0&&$free>=$size+134217728;\n    $out['stage']='parent_manifest';\n    require_once $root.'/services/ArchivePredictiveStudyStore.php';\n    $projection=new ReflectionMethod(ArchivePredictiveStudyStore::class,'manifest');\n    $manifestRaw=$read($private.'/'.$parent.'/manifest.json',262144);\n    $expected=json_encode($projection->invoke(null,$checkpoint),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);\n    $out['parent_manifest_matches_checkpoint']=hash_equals($expected,$manifestRaw);\n    $out['stage']='producer_hashes';$p=$checkpoint['provenance']??[];\n    $producers=['producer_reader_match'=>'services/ArchiveResearchReadService.php',\n        'producer_extractor_match'=>'services/ArchiveResearchSemanticExtractor.php',\n        'producer_redactor_match'=>'services/ManagerAiTextRedactor.php',\n        'producer_owner_scope_match'=>'services/InternalOwnerDialogueScope.php',\n        'producer_atoms_match'=>'services/ArchivePredictiveStudyAtoms.php',\n        'producer_text_signals_match'=>'services/ModeledConversionTextSignals.php'];\n    foreach($producers as$key=>$name)$out[$key]=is_string($p['code_hashes'][$name]??null)\n        &&is_string($hashes[$name]??null)&&hash_equals($p['code_hashes'][$name],$hashes[$name]);\n    $out['producer_extractor_match']=$out['producer_extractor_match']\n        &&($p['extractor_sha256']??null)===($p['code_hashes']['services/ArchiveResearchSemanticExtractor.php']??null);\n    $out['producer_text_signals_match']=$out['producer_text_signals_match']\n        &&($p['text_features_sha256']??null)===($p['code_hashes']['services/ModeledConversionTextSignals.php']??null);\n    $out['stage']='parent_receipt';\n    $receipt=json_decode($read($private.'/'.$parent.'/analysis-complete.json',4096),true,32,JSON_THROW_ON_ERROR);\n    $actual=['schema'=>1,'run_id'=>$parent,'manifest_sha256'=>hash('sha256',$manifestRaw)];\n    foreach(['summary_sha256'=>'summary.json','candidate_sha256'=>'candidate_weights.json',\n        'audits_sha256'=>'case_audits.jsonl','prefixes_sha256'=>'prefixes.jsonl']as$key=>$name){\n        $path=$private.'/'.$parent.'/analysis/'.$name;$readLimit=in_array($name,['summary.json','candidate_weights.json'],true)?16384:536870912;\n        clearstatcache(true,$path);$s=@lstat($path);\n        if(!is_array($s)||is_link($path)||($s['mode']&0170000)!==0100000||($s['mode']&0077)!==0\n            ||$s['uid']!==1012||$s['nlink']!==1||$s['size']>$readLimit)throw new RuntimeException();\n        $digest=hash_file('sha256',$path);if(!is_string($digest))throw new RuntimeException();$actual[$key]=$digest;\n    }\n    $out['parent_receipt_hashes_match']=$receipt===$actual;\n    $out['ok']=true;$out['diagnostic_completed']=true;$out['stage']='complete';\n}catch(Throwable $ignored){$out['reason']='private_preflight_failed';}\nfinally{while(ob_get_level()>$level)ob_end_clean();}\necho json_encode($out,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES).PHP_EOL;\nexit($out['ok']?0:1);\n"
+              probe=probe.replace('archive-prefix-v2-20261106-23c5a2a',RUN_ID).replace('archive-prefix-study-20261105-d2505db',PARENT_RUN_ID)
+              probe=probe.replace('__SOURCE_HASHES_JSON__',json.dumps(CONTRACT['hashes'],separators=(',',':')))
+              result=subprocess.run(php,input=probe.encode(),capture_output=True,timeout=120)
+              assert len(result.stdout)<=12288 and len(result.stderr)<=8192
+              value=json.loads(result.stdout)
+              boolkeys={'ok','diagnostic_completed','parent_manifest_matches_checkpoint','parent_receipt_hashes_match','parent_capture_eof',
+                        'disk_has_headroom','producer_reader_match','producer_extractor_match','producer_redactor_match',
+                        'producer_owner_scope_match','producer_atoms_match','producer_text_signals_match',
+                        'child_derive_intent','child_checkpoint','child_manifest','child_analysis_intent','child_analysis_directory',
+                        'child_summary','child_candidate','child_audits','child_prefixes','child_analysis_complete'}
+              assert isinstance(value,dict) and set(value)==boolkeys|{'reason','stage'}
+              assert all(isinstance(value[key],bool) for key in boolkeys)
+              assert value['reason'] in {'none','private_preflight_failed'}
+              assert value['stage'] in {'private_preflight','parent_checkpoint','parent_manifest','producer_hashes','parent_receipt','complete'}
+              receipt.update(value)
+              if status_issue is not None and receipt['diagnostic_completed']:
+                  receipt['reason'],receipt['stage']=status_issue
+              verify_source(root)
+          except Exception:
+              receipt['ok']=False
+              if receipt['reason']=='none':receipt['reason']='diagnostic_failed'
+          print(json.dumps(receipt,separators=(',',':')))
+          sys.exit(0 if receipt['ok'] and receipt['diagnostic_completed'] else 1)
+          """
+              command=['ssh','-i',str(temporary/'study-key'),
+                       '-o','BatchMode=yes','-o','IdentitiesOnly=yes',
+                       '-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+str(temporary/'study-hosts'),
+                       '-o','HostKeyAlgorithms=ssh-ed25519','-o','ConnectTimeout=10',
+                       '-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3',
+                       account+'@'+host,'/usr/bin/python3 -I -B -']
+              result=subprocess.run(command,input=(remote_header+remote_body).encode(),
+                                    capture_output=True,timeout=360)
+              assert len(result.stdout)<=8192 and len(result.stderr)<=8192
+              proof=json.loads(result.stdout)
+              reasons={'none','study_busy','study_arguments','study_operator_denied','study_installed_source_changed',
+                       'study_source_unavailable','study_source_changed','study_operation_failed','study_file',
+                       'study_file_changed','study_file_limit','study_directory','study_directory_sync','study_checkpoint',
+                       'study_derive_state_changed','status_failed','private_preflight_failed','diagnostic_failed'}
+              stages={'arguments','operator','store','parent_status','child_status','private_preflight','parent_checkpoint',
+                      'parent_manifest','producer_hashes','parent_receipt','complete'}
+              allowed={'ok','operator_verified','source_verified','diagnostic_completed','parent_status_ok','parent_exists',
+                       'parent_capture_complete','parent_analysis_complete','child_status_ok','child_exists','child_capture_complete',
+                       'child_analysis_complete_status','parent_manifest_matches_checkpoint','parent_receipt_hashes_match',
+                       'parent_capture_eof','disk_has_headroom','producer_reader_match','producer_extractor_match',
+                       'producer_redactor_match','producer_owner_scope_match','producer_atoms_match','producer_text_signals_match',
+                       'child_derive_intent','child_checkpoint','child_manifest','child_analysis_intent','child_analysis_directory',
+                       'child_summary','child_candidate','child_audits','child_prefixes','child_analysis_complete','reason','stage'}
+              assert isinstance(proof,dict) and set(proof).issubset(allowed)
+              assert proof.get('reason') in reasons and proof.get('stage') in stages
+              assert all(isinstance(value,bool) for key,value in proof.items() if key not in ('reason','stage'))
+              print(json.dumps(proof,separators=(',',':')))
+              raise SystemExit(0 if result.returncode==0 and proof.get('ok') and proof.get('diagnostic_completed') else 1)
+          except Exception:
+              print('{"ok":false,"technical_receipt_verified":false}')
+              raise SystemExit(1)
+          PY
+      - name: Remove runner credentials and temporary technical files
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,pathlib
+          temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+          for name in ('study-key','study-hosts','study-source.json'):
+              (temporary/name).unlink(missing_ok=True)
+          print('{"ok":true,"runner_credentials_removed":true}')
+          PY
