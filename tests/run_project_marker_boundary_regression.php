@@ -259,5 +259,34 @@ pcReject('the generic repair template does not resolve the AppleService39 key',
     fn()=>RepairOfferDraft::prepare($repair, $offer), 'repair_offer_business_mismatch');
 pcCheck('repair preview leaves AnyTour config intact', ProjectConfig::all(), $legacy);
 
+$catalog = ['schema_version'=>1,'business_key'=>'appleservice39','entries'=>[]];
+foreach ($offer['source_rows'] as $index => $row) {
+    $catalog['entries'][] = [
+        'id'=>$offer['catalog_entry_ids'][$index], 'business_key'=>'appleservice39', 'operation_key'=>'battery_replacement',
+        'model_scope'=>['kind'=>'model','label'=>'iPhone X','model_keys'=>['iphone_x']], 'source_url'=>$row['url'],
+        'source_table'=>1,'source_row'=>$index+1,'source_cells'=>[$row['label_raw']], 'review_flags'=>['duration_conflict'],
+        'price'=>['currency'=>'RUB','raw'=>$row['price_raw']], 'warranty'=>['raw'=>$row['warranty_raw']], 'duration_raw'=>$row['duration_raw'],
+    ];
+}
+$fromCatalog = RepairOfferDraft::prepare($apple, RepairOfferDraft::catalogItem($catalog, $offer));
+pcCheck('archive adapter keeps the two pinned source row references and exact price',
+    [$fromCatalog['price_rub'], array_column(array_column($fromCatalog['source_rows'], 'catalog_ref'), 'entry_id')],
+    [3500, $offer['catalog_entry_ids']]);
+$changedCatalog = $catalog;
+$changedCatalog['entries'][0]['review_flags'][] = 'possible_price_scope_conflict';
+pcCheck('archive price-review flag suppresses a matching exact price',
+    RepairOfferDraft::prepare($apple, RepairOfferDraft::catalogItem($changedCatalog, $offer))['price_rub'], null);
+$changedCatalog['entries'][0]['operation_key'] = 'diagnostics';
+pcReject('archive row ID does not bypass exact service identity',
+    fn()=>RepairOfferDraft::catalogItem($changedCatalog, $offer), 'repair_offer_catalog_row_mismatch');
+$changedCatalog = $catalog;
+$changedCatalog['entries'][0]['model_scope']['model_keys'] = ['iphone_xs'];
+pcReject('archive row ID does not bypass exact model identity',
+    fn()=>RepairOfferDraft::catalogItem($changedCatalog, $offer), 'repair_offer_catalog_row_mismatch');
+$changedCatalog = $catalog;
+array_pop($changedCatalog['entries']);
+pcReject('a missing pinned row cannot silently fall back to another one',
+    fn()=>RepairOfferDraft::catalogItem($changedCatalog, $offer), 'repair_offer_catalog_row_missing');
+
 echo "\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";
 exit($failed > 0 ? 1 : 0);

@@ -13,6 +13,47 @@ final class RepairOfferDraft
         'display-replacement' => 'Замена дисплея',
     ];
 
+    /** Select only the source rows pinned to a reviewed offer. */
+    public static function catalogItem(array $catalog, array $item): array
+    {
+        $ids = $item['catalog_entry_ids'];
+        if (($catalog['schema_version'] ?? null) !== 1 || ($catalog['business_key'] ?? null) !== $item['business_key']
+            || !is_array($catalog['entries'] ?? null) || !array_is_list($catalog['entries'])) {
+            throw new InvalidArgumentException('repair_offer_catalog_mismatch');
+        }
+        $rows = [];
+        foreach ($catalog['entries'] as $entry) {
+            if (!is_array($entry) || !in_array($entry['id'] ?? null, $ids, true)) continue;
+            $id = $entry['id'];
+            $scope = $entry['model_scope'] ?? [];
+            $flags = $entry['review_flags'] ?? null;
+            if (isset($rows[$id]) || ($entry['business_key'] ?? null) !== $item['business_key']
+                || ($entry['operation_key'] ?? null) !== str_replace('-', '_', $item['operation'])
+                || ($scope['kind'] ?? null) !== 'model' || ($scope['label'] ?? null) !== $item['model']
+                || ($scope['model_keys'] ?? null) !== [str_replace('-', '_', $item['model_key'])]
+                || ($entry['price']['currency'] ?? null) !== 'RUB' || !is_array($flags) || !array_is_list($flags)
+                || !is_int($entry['source_table'] ?? null) || $entry['source_table'] < 1
+                || !is_int($entry['source_row'] ?? null) || $entry['source_row'] < 1) {
+                throw new InvalidArgumentException('repair_offer_catalog_row_mismatch');
+            }
+            foreach ($flags as $flag) {
+                if (!is_string($flag)) throw new InvalidArgumentException('repair_offer_catalog_row_mismatch');
+                if ($flag !== 'duration_conflict') $item['price_review_required'] = true;
+            }
+            $rows[$id] = [
+                'url' => $entry['source_url'] ?? null,
+                'label_raw' => $entry['source_cells'][0] ?? null,
+                'price_raw' => $entry['price']['raw'] ?? null,
+                'warranty_raw' => $entry['warranty']['raw'] ?? null,
+                'duration_raw' => $entry['duration_raw'] ?? null,
+                'catalog_ref' => ['entry_id' => $id, 'table' => $entry['source_table'], 'row' => $entry['source_row']],
+            ];
+        }
+        if (count($rows) !== count($ids)) throw new InvalidArgumentException('repair_offer_catalog_row_missing');
+        $item['source_rows'] = array_values($rows);
+        return $item;
+    }
+
     public static function prepare(ProjectConfiguration $project, array $item): array
     {
         $businessKey = $project->get('business.key');
@@ -61,6 +102,7 @@ final class RepairOfferDraft
                 'warranty_raw' => self::optionalLabel($source['warranty_raw'] ?? null),
                 'duration_raw' => self::optionalLabel($source['duration_raw'] ?? null),
             ];
+            if (isset($source['catalog_ref'])) $rows[$sourceKey]['catalog_ref'] = $source['catalog_ref'];
         }
         ksort($rows, SORT_STRING);
         $rows = array_values($rows);
@@ -104,7 +146,7 @@ final class RepairOfferDraft
 
     private static function price(string $raw): array
     {
-        if (preg_match('/\A(?:уточняйте|по запросу)\z/iu', $raw)) return ['on_request', null];
+        if (preg_match('/\A(?:уточняйте|по запросу)\.?\z/iu', $raw)) return ['on_request', null];
         if (preg_match('/\Aбесплатно\z/iu', $raw)) return ['free', 0];
         if (!preg_match('/\A(от\h+)?(0|[1-9][0-9]{0,8}|[1-9][0-9]{0,2}(?:\h[0-9]{3}){1,2})\h*(?:руб\.?|₽)\z/iu', $raw, $parts)) {
             return ['unrecognized', null];

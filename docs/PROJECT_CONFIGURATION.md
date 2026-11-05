@@ -75,6 +75,15 @@ advertises a third duration, so the pilot uses a separate illustration without
 a time claim. The live button URL and message/version identifiers belong to the
 existing channel post registry after observation of a real publication.
 
+Use `--catalog /path/to/catalog.json` with the extracted onboarding catalog to
+resolve the two pinned original row IDs. The preview checks business, operation
+and exact model and retains the table and row coordinates. Unknown review flags
+hide the price. With `--cover /path/to/reviewed.png`, it additionally accepts
+the owner-provided iPhone X cover only when the bytes match and the catalog
+still supports both printed claims: 3,500 RUB and free iPhone X diagnostics.
+The resulting asset name is `appleservice39-iphone-x-3500-reviewed.png`.
+The onboarding catalog and the reviewed cover remain operator inputs.
+
 For repair ads, the candidate is the [universal CSV feed](https://yandex.ru/support/direct/ru/feeds/requirements-other-categories#universal),
 with a stable offer ID and a verified offer-page URL. A preview creates no feed
 row, since this example has no verified offer-to-bot landing URL. It does not
