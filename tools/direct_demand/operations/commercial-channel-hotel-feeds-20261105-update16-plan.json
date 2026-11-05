@@ -1,6 +1,6 @@
 {
   "operation": "commercial-channel-hotel-feeds-20261105-update16",
-  "state": "PREPARED_NOT_EXECUTED",
+  "state": "EXACT_FROZEN_THREE_FILE_WRITER_SUBMITTED_AFTER_NATIVE_MAX161",
   "goal": "AppendonlyactualpublishedCullinan78251 toallthreeexistingpublicfeeds afterrealMAX161nativeinstallation,preserveall160offerblocks/MAXURLs.",
   "boundaries": [
     "OnlythreeexistingXMLexports;noDB/provider/messages/ads/controllerchanges",
@@ -61,5 +61,34 @@
   "current_diagnostics": 41962668530,
   "current_native_full21_read17_run": 41970261735,
   "previous_source_xml_commit": "e718c94b86452433adf6acc4ec8bc0adbcd13af0",
-  "writer_sha256": "2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e"
+  "writer_sha256": "2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e",
+  "candidate_run": 41971359499,
+  "candidate_job": 127060133393,
+  "candidate_artifact": 13389806712,
+  "native_new_append_cases": 3,
+  "unchanged_old_fixtures_rerun": 0,
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 104218,
+      "rows": 161,
+      "sha256": "9574b065aca33fd6ca55503571fa3a7c5d2ef1fdfd12f871d54d5664eab640a5",
+      "expected_previous_sha256": "31e34eaf75a5a4b7dadd87758db2e3bfb13790f468284400e2a3e8c23d40e317"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 131396,
+      "rows": 161,
+      "sha256": "6b7fce87d6df21e2037cb75709950edf943dc80dab15633fc741da0848b52f59",
+      "expected_previous_sha256": "559a57004b00c907a6c5ba76a95fd42b1545f8752875f84ae4d734274a17ac12"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 235241,
+      "rows": 322,
+      "sha256": "5f8e752f7ec8357db1190fc5eb9258f1d435df215dace8c51db2b9ce5dea8450",
+      "expected_previous_sha256": "4ecf19079cef41b1faad578e2d3bea70094bf473ec5437c64d3a3d74f55fa4cb"
+    }
+  ],
+  "source_xml_commit": "cf48bcff7b881f602f09dcb8c5067abab9c18808"
 }
