@@ -70,5 +70,29 @@
   "risks": [
     "Template crop may cut buildings; nativefinalview can reject cover",
     "Only this one verified hotel currently has a whole-complex hero; do not create covers for otherbadframes or weaken criterion"
-  ]
+  ],
+  "layout": {
+    "main_hero": {
+      "left": 0,
+      "top": 0,
+      "width": 1080,
+      "height": 740
+    },
+    "lower_left": {
+      "left": 0,
+      "top": 748,
+      "width": 536,
+      "height": 229
+    },
+    "lower_right": {
+      "left": 544,
+      "top": 748,
+      "width": 536,
+      "height": 229
+    },
+    "existing_blue_banner_top": 983,
+    "reason": "Keep complete twin rooflines and grounds visible from square source while retaining two readable lower photographs and blue title banner."
+  },
+  "transaction_id": "3034821431815808944",
+  "fresh_page_id": "PBLTXr2l141RGFDL"
 }

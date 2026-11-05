@@ -1,0 +1,54 @@
+{
+  "operation": "commercial-batch-20261105-49-canva-1422",
+  "state": "ONE_TEMPORARY_TRANSACTION_OPEN_THREE_VERIFIED_PHOTOS_IMPORTED_AND_PREVIEW_REQUESTED",
+  "hotel_id": 1422,
+  "transaction_id": "3034821431815808944",
+  "design_id": "DAHZx_JlJEM",
+  "page_id": "PBLTXr2l141RGFDL",
+  "protected_original_modified": false,
+  "imports": [
+    {
+      "role": "h1422_new49_2",
+      "asset_id": "MAHaAzoDbQI"
+    },
+    {
+      "role": "h1422_new49_0",
+      "asset_id": "MAHaA_CIs7s"
+    },
+    {
+      "role": "h1422_new49_1",
+      "asset_id": "MAHaA1KWDOM"
+    }
+  ],
+  "background_hero_lowers_title_alt_updated": true,
+  "layout": {
+    "main_hero": {
+      "left": 0,
+      "top": 0,
+      "width": 1080,
+      "height": 740
+    },
+    "lower_left": {
+      "left": 0,
+      "top": 748,
+      "width": 536,
+      "height": 229
+    },
+    "lower_right": {
+      "left": 544,
+      "top": 748,
+      "width": 536,
+      "height": 229
+    },
+    "existing_blue_banner_top": 983,
+    "reason": "Keep complete twin rooflines and grounds visible from square source while retaining two readable lower photographs and blue title banner."
+  },
+  "thumbnail_requests": 1,
+  "thumbnail_native_png_pending": true,
+  "thumbnail_shown": false,
+  "permanent_saves": 0,
+  "accepted_native_pngs": 0,
+  "new_posts": 0,
+  "manual_price_collection": false,
+  "repeat_policy": "This exact transaction remains open only until nativePNG/chunks/SHA/pixels acceptance and freeze; then cancelEXACTtransaction. Each thumbnail must be shown. No oldphoto GET, no permanentSave."
+}

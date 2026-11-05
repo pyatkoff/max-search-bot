@@ -1,18 +1,22 @@
-name: View only two original photo49 hero candidates at native resolution without requests
+name: Inspect the current temporary Papillon Zeugma native Canva PNG preview
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        media_group: [0]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,19 +25,15 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - uses: actions/download-artifact@v4
+      - name: Read fixed official public sources without server or provider calls
+        env:
+          COVER_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261105-49.py
+      - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch49-contact-0
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41959091900
-          path: ${{ runner.temp }}/photo49-belvil
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-batch49-contact-1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41959091900
-          path: ${{ runner.temp }}/photo49-zeugma
-      - name: Read only exact two original role files and emit original native bytes
-        run: python3 tools/direct_demand/operations/view-native-photo49-hero-candidates-20261105.py
+          name: commercial-batch49-native-cover-${{ matrix.media_group }}
+          path: |
+            covers
+            native-cover-receipt.json
+          retention-days: 14
+          if-no-files-found: error
