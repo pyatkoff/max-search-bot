@@ -870,6 +870,42 @@ async function verifyReleaseRecovery() {
   }),'original_wave_executed','executed notification or gate cannot replay');
   const unknown=copy(snapshot);unknown.workflow_runs[2].display_title='unknown';
   await rejects(()=>M.selectRecoveryRuns(unknown,{...f.c,recovery:{}},skipped),'untrusted_gate_origin','timing is not provenance');
+  // Exercise the real terminal closer with a recovered deployment, both
+  // provenance waves, original successful parents, and exactly one publisher.
+  const gateRuns=M.REQUIRED.map(([file,event,name],i)=>({id:100+i,path:'.github/workflows/'+file,name,event,
+    head_sha:source,head_branch:'main',head_repository:{full_name:repository},run_attempt:i===0?2:1,
+    created_at:'2026-11-01T01:20:00Z',status:'completed',conclusion:'success'}));
+  const monitor=gateRuns.find(r=>r.path.endsWith('/modeled-conversion-monitor.yml'));
+  for(const r of gateRuns.filter(r=>r.event==='workflow_run'))r.display_title=r.path.endsWith('/'+M.ACTIVATION.file)?
+    'monitor-proof:v1:'+monitor.id+':1':'deploy-proof:v1:100:2';
+  const own={id:200,path:M.CLOSER,name:'Configure AnyTour modeled value goal',event:'workflow_run',
+    display_title:'deploy-proof:v1:100:2',head_sha:source,head_branch:'main',head_repository:{full_name:repository},
+    run_attempt:1,created_at:'2026-11-01T01:20:00Z',status:'in_progress',conclusion:null};
+  const originals=gateRuns.filter(r=>r.event==='workflow_run').map(r=>({...copy(r),id:r.id+500,display_title:'deploy-proof:v1:100:1'}));
+  originals.find(r=>r.path.endsWith('/'+M.ACTIVATION.file)).display_title='monitor-proof:v1:'+(monitor.id+500)+':1';
+  const allRuns={workflow_runs:[...gateRuns,own,...originals],total_count:gateRuns.length+1+originals.length};
+  let saved=copy(record),writes=0;
+  const closerApi=async(method,path,body)=>{
+    if(method==='PATCH'){writes++;saved={...saved,body:body.body};return copy(saved);}
+    if(path.includes('/actions/runs?'))return copy(allRuns);
+    if(path.includes('/issues/comments/'))return copy(saved);
+    if(path.endsWith('/attempts/2'))return copy(f.current);
+    if(path.includes('/jobs?filter=all'))return copy(f.history);
+    if(path.includes('/actions/runs/200/attempts/1/jobs?'))return {total_count:1,jobs:[{name:'configure',run_id:200,head_sha:source,status:'completed',conclusion:'skipped'}]};
+    const activation=gateRuns.find(r=>r.path.endsWith('/'+M.ACTIVATION.file));
+    if(path.includes('/actions/runs/'+activation.id+'/attempts/1/jobs?'))return{total_count:1,jobs:[{name:'activate',run_id:activation.id,head_sha:source,status:'completed',conclusion:'skipped'}]};
+    if(path.includes('/attempts/1/jobs?'))return skipped(path.replace(prefix,''));
+    if(path.includes('/contents/deploy_status'))return deploy;
+    if(path.includes('/contents/ops_status'))return Object.fromEntries(['migration','snapshot','live_sessions','daily_sessions','yesterday_sessions','architecture_inventory','website_smoke','health'].map(k=>[k,'success']).concat([['sha',source]]));
+    return api(method,path);
+  };
+  const closeEnv={...env,GITHUB_EVENT_NAME:'workflow_run',GITHUB_RUN_ID:'200',GITHUB_RUN_ATTEMPT:'1',CONFIGURE_RESULT:'skipped'};
+  const closeEvent={action:'completed',repository:{full_name:repository},
+    workflow_run:{...copy(gateRuns[0]),head_commit:{id:source,message:'Product release'}}};
+  check(await M.closeRelease({env:closeEnv,event:closeEvent,api:closerApi,sleep:async()=>{throw Error('unexpected wait');}}),
+    'released','verification recovery: recovered run closes through real final guard');
+  check(writes,1,'verification recovery: same publisher updated exactly once');
+
 }
 
 verifyReleasePriority().then(verifyReleaseRecovery).then(verifyReleaseSlot).then(verifyReleaseSlotActivation).then(() => {

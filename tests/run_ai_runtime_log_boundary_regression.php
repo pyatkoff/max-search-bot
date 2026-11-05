@@ -41,6 +41,17 @@ try {
     exec($smokeCommand, $readOnlyOutput, $readOnlyCode);
     clearstatcache();
     aiLogCheck('check-only CLI succeeds without appending a probe', $readOnlyCode === 0 && file_get_contents($debug) === $beforeContents);
+
+    $original = file_get_contents($debug);
+    unlink($debug);
+    file_put_contents($tmp . '/canary', 'private synthetic canary');
+    chmod($tmp . '/canary', 0600);
+    symlink($tmp . '/canary', $debug);
+    exec($smokeCommand, $symlinkOutput, $symlinkCode);
+    aiLogCheck('check-only refuses a linked log without touching its target', $symlinkCode !== 0 && file_get_contents($tmp . '/canary') === 'private synthetic canary');
+    unlink($debug); unlink($tmp . '/canary');
+    file_put_contents($debug, $original); chmod($debug, 0600);
+
     chmod($tmp, 0750);
     exec($smokeCommand, $badModeOutput, $badModeCode);
     clearstatcache();

@@ -39,6 +39,17 @@ try {
     exec($smokeCommand, $readOnlyOutput, $readOnlyCode);
     clearstatcache();
     webhookLogCheck('check-only CLI succeeds without appending a probe', $readOnlyCode === 0 && file_get_contents($input) === $beforeContents);
+
+    $original = file_get_contents($input);
+    unlink($input);
+    file_put_contents($tmp . '/canary', 'private synthetic canary');
+    chmod($tmp . '/canary', 0600);
+    symlink($tmp . '/canary', $input);
+    exec($smokeCommand, $symlinkOutput, $symlinkCode);
+    webhookLogCheck('check-only refuses a linked log without touching its target', $symlinkCode !== 0 && file_get_contents($tmp . '/canary') === 'private synthetic canary');
+    unlink($input); unlink($tmp . '/canary');
+    file_put_contents($input, $original); chmod($input, 0600);
+
     chmod($tmp, 0750);
     exec($smokeCommand, $badModeOutput, $badModeCode);
     clearstatcache();

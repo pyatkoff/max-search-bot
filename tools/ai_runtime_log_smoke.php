@@ -23,6 +23,7 @@ $directoryMode = is_string($dir) && is_dir($dir) ? (fileperms($dir) & 0777) : 0;
 $fileMode = $file !== '' && is_file($file) ? (fileperms($file) & 0777) : 0;
 
 $ok = $written
+    && $file !== '' && !is_link($file)
     && $outsideProject
     && $directoryMode === 0700
     && $fileMode === 0600;

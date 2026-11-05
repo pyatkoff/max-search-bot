@@ -356,7 +356,7 @@ jobs:
           [[ "$run_id" =~ ^[1-9][0-9]*$ ]]
           cd /var/www/anytoour/data/www/app.anytoour.ru
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
-          MAX_SEARCH_APPLY_AI_PROFILE=1 php tools/ai_profile_rollout.php --apply
+          MAX_SEARCH_APPLY_AI_PROFILE=1 php tools/ai_profile_rollout.php --apply; php tools/ai_profile_rollout.php --verify;
           rm -f ai_debug.log handlers/ai_debug.log handlers/ai_errors.log tmp_in.txt tmp_out.txt
           php tools/ai_runtime_log_smoke.php
           php tools/webhook_runtime_log_smoke.php
@@ -444,7 +444,6 @@ jobs:
           set -euo pipefail
           cd /var/www/anytoour/data/www/app.anytoour.ru
           test "$(git rev-parse HEAD)" = "$1"
-          php tools/ai_profile_rollout.php --verify
           php -l webhook.php
           php -l telegram_webhook.php
           php -l telegram_webhook_admin.php
@@ -511,7 +510,10 @@ jobs:
           git commit -m "Report installed verification status" || true
           for attempt in 1 2 3; do
             if git push origin diagnostics; then exit 0; fi
-            git pull --rebase origin diagnostics
+            git fetch origin diagnostics
+            git show origin/diagnostics:deploy_status.json > "$RUNNER_TEMP/remote-deploy-status.json"
+            if node -e 'const fs=require("node:fs");const a=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/remote-deploy-status.json"));const b=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/deploy-status.json"));delete a.reported_at;process.exit(JSON.stringify(a)===JSON.stringify(b)?0:1)'; then exit 0; fi
+            git rebase origin/diagnostics
           done
           exit 1
 
