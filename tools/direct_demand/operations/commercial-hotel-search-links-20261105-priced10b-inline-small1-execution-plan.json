@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced10b-inline-small1-pass1",
+  "state": "EXECUTE_ONE_FROZEN_INLINE_SEARCH_LINK_PAIR_AFTER_CURRENT_HEALTHY_SOURCE_GATES",
+  "scope_sha256": "ecf66257db9d6a87c63f5913de810ff9ffb0723396e6e5c6f55b3d09642ca9c9",
+  "expected_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "hotel_ids": [
+    57028
+  ],
+  "prepared_run": 42086454851,
+  "prepared_artifact": 13443196663,
+  "context_run": 42084757556,
+  "context_source_sha": "446531f0ae40e14a7cf8b08fb7ae3beba770630d",
+  "frozen_prepared_source": "446531f0ae40e14a7cf8b08fb7ae3beba770630d",
+  "template_sha256": "aaf6cbe778fc4ba1fdeaedb7cfa0c1d6b25fb89aaf0e4f2e130fbff9103d55b0",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": true,
+  "new_native_cases_already_closed": 9,
+  "new_python_cases_already_closed": 4,
+  "old_fixtures_to_rerun": 0,
+  "source_delta_paths": [
+    "docs/ARCHIVE_RESEARCH_LABELS_V1.md",
+    "services/ArchiveResearchReadService.php",
+    "services/ArchiveResearchSemanticExtractor.php",
+    "tests/run_archive_research_read_regression.php",
+    "tests/run_archive_research_semantic_regression.php",
+    "tests/run_modeled_conversion_early_forecast_regression.php"
+  ],
+  "bounds": {
+    "max_existing_content_edits": 2,
+    "new_posts": 0,
+    "price_edits": 0,
+    "quote_calls": 0,
+    "source_searches": 0
+  },
+  "criteria": [
+    "Reconstruct ALL frozen PHP bytes/approval/manifest/frame before execution; change only reviewed runtime EXPECTED_INSTALLED_SHA and approval source header.",
+    "Fresh current main+same healthy DeployTLSdiag/FULL21/accepted25 host/installedclean/runtime/native/schema-rights/UNKNOWNoriginalfirst.",
+    "Private intent durable before any server/provider access; exactly one existing serial updater, original once IDs; no automatic retry.",
+    "Caption text, price amount/check metadata, photo, canonical button/source/token/publication identity preserved; both native entity readbacks must prove the link at price.",
+    "Any partial/unknown outcome stops continuation and resolves SAMEoriginal operation first."
+  ]
+}
