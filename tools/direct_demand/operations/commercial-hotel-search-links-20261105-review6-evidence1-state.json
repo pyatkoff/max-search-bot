@@ -1,0 +1,62 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-review6-evidence1",
+  "state": "RETAINED_EXPECTED_PUBLISHER_NAMES_RECOVERED_NO_NEW_EXACT_NATIVE_PRODUCT_PROOF_NO_LINK_EDIT",
+  "native_hotel_ids": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "retained_expected_bindings": [
+    {
+      "local_tv_id": 482,
+      "expected_name": "SUNRISE Mamlouk Palace Resort",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 476,
+      "expected_name": "SUNRISE Garden Beach Resort",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 81173,
+      "expected_name": "White Hills Resort",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 32577,
+      "expected_name": "SUNRISE Montemare Resort",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 478,
+      "expected_name": "SUNRISE Holidays Resort",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 80964,
+      "expected_name": "MERAKI RESORT SHARM EL SHEIKH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    }
+  ],
+  "source_code_ref": "d3d107ddee8574b2d27f067908a2a272b123acff",
+  "source_code_file": "read-commercial-price-monitor-20261105-read11-new672.php",
+  "old_scope_not_rerun": true,
+  "old_observation_rows_or_quote_bodies_read": 0,
+  "old_provider_readbacks_results_logs_or_cases_replayed": 0,
+  "new_native_catalog_groups_queried": 0,
+  "current_registry_or_provider_posts_read": 0,
+  "source_searches": 0,
+  "price_edits": 0,
+  "link_edits": 0,
+  "remaining_excluded": true,
+  "reason": "Retained expected post names alone are not genuine new exact native-product-publisher proof; preserve review exclusion until such proof is available."
+}

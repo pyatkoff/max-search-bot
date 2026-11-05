@@ -1,0 +1,92 @@
+{
+  "operation": "commercial-batch-20261105-53-primary-preparation1",
+  "sources": [
+    {
+      "hotel_id": 254,
+      "url": "https://threecorners.com/red-sea/sea-beach-resort/",
+      "owner_host": "threecorners.com",
+      "identity_tokens": [
+        "three",
+        "corners",
+        "sea",
+        "beach"
+      ],
+      "native_country_id": 1,
+      "group": 0,
+      "discovery_query": "site:threecorners.com \"Sea Beach\" resort",
+      "discovery_title": "Sea Beach Resort**** | Three Corners Hotels & Resorts",
+      "declared_url": "https://threecorners.com/red-sea/sea-beach-resort/",
+      "discovery_proof": "public_primary_official_property_search_result"
+    },
+    {
+      "hotel_id": 4185,
+      "url": "https://braykaresorts.com/royal-brayka-resort/overview",
+      "owner_host": "braykaresorts.com",
+      "identity_tokens": [
+        "royal",
+        "brayka"
+      ],
+      "native_country_id": 1,
+      "group": 0,
+      "discovery_query": "site:braykaresorts.com \"Royal Brayka\"",
+      "discovery_title": "Royal Brayka Resort",
+      "declared_url": "https://braykaresorts.com/royal-brayka-resort/overview",
+      "discovery_proof": "public_primary_official_property_search_result"
+    },
+    {
+      "hotel_id": 512,
+      "url": "https://www.tropitelhotels.com/tropitel-dahab-oasis",
+      "owner_host": "www.tropitelhotels.com",
+      "identity_tokens": [
+        "tropitel",
+        "dahab",
+        "oasis"
+      ],
+      "native_country_id": 1,
+      "group": 1,
+      "discovery_query": "\"Tropitel Dahab Oasis\" official website",
+      "discovery_title": "Tropitel Dahab Oasis by Tropitel Hotels",
+      "declared_url": "https://www.tropitelhotels.com/tropitel-dahab-oasis",
+      "discovery_proof": "public_primary_official_property_search_result"
+    },
+    {
+      "hotel_id": 102774,
+      "url": "https://www.hilton.com/en/hotels/luxhitw-hilton-luxor-resort-and-spa/",
+      "owner_host": "www.hilton.com",
+      "identity_tokens": [
+        "hilton",
+        "luxor"
+      ],
+      "native_country_id": 1,
+      "group": 1,
+      "discovery_query": "\"Hilton Luxor Resort & Spa\" site:hilton.com",
+      "discovery_title": "Hilton Luxor | Best resort hotel in East Bank, Luxor",
+      "declared_url": "https://www.hilton.com/en/hotels/luxhitw-hilton-luxor-resort-and-spa/",
+      "discovery_proof": "public_primary_official_property_search_result"
+    }
+  ],
+  "closed_source_exclusions": [
+    "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+    "https://www.adalyahotels.com/en/our-hotels/",
+    "https://www.melashotels.com/en/melas-lara-hotel",
+    "https://www.melashotels.com/en/melas-resort-hotel",
+    "https://www.melashotels.com/en",
+    "https://www.elitabeachresort.com/",
+    "https://www.kumkoybeachresort.com/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+    "https://www.melashotels.com/en/club-melas-prive",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/beaches-pools/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+    "https://www.melashotels.com/en/melas-lara-hotel/gallery"
+  ],
+  "native_scope_file": "commercial-batch-20261105-53-native-scope.json",
+  "native_ids": [
+    254,
+    4185,
+    512,
+    102774
+  ]
+}

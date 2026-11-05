@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-batch-20261105-53-primary-preparation1",
+  "state": "RETAINED_NATIVE_STOCK_IDENTITIES_ONLY_NOT_A_NEW_DB_READ",
+  "original_stock_file": "commercial-stock-20261105-51-inventory.json",
+  "native_identities": [
+    {
+      "hotel_id": 254,
+      "name": "THE THREE CORNERS SEA BEACH RESORT",
+      "country_id": 1,
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "region": "Марса Алам"
+    },
+    {
+      "hotel_id": 4185,
+      "name": "ROYAL BRAYKA BEACH RESORT",
+      "country_id": 1,
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "region": "Марса Алам"
+    },
+    {
+      "hotel_id": 512,
+      "name": "TROPITEL DAHAB OASIS",
+      "country_id": 1,
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "region": "Дахаб"
+    },
+    {
+      "hotel_id": 102774,
+      "name": "HILTON LUXOR RESORT & SPA",
+      "country_id": 1,
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "region": "Люксор"
+    }
+  ],
+  "db_rereads": 0,
+  "ready_for_send": 0
+}

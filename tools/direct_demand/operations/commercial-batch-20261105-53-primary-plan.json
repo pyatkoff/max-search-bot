@@ -1,0 +1,132 @@
+{
+  "operation": "commercial-batch-20261105-53-primary-preparation1",
+  "state": "PREPARED_NEW_FOUR_PRIMARY_SEARCH_DECLARED_OWNER_PAGES_NO_HTTP_YET",
+  "goal": "Resume500 with four previously proven unpublished hotels by discovering genuinelyNEW exact official property pages and property-owned photo references, preserving all closed source/photo exclusions.",
+  "native_bindings": [
+    {
+      "native_hotel_id": 254,
+      "name": "THE THREE CORNERS SEA BEACH RESORT",
+      "country_id": 1,
+      "region": "Марса Алам",
+      "is_active": 1,
+      "registry_matches_at_original_proof": 0
+    },
+    {
+      "native_hotel_id": 4185,
+      "name": "ROYAL BRAYKA BEACH RESORT",
+      "country_id": 1,
+      "region": "Марса Алам",
+      "is_active": 1,
+      "registry_matches_at_original_proof": 0
+    },
+    {
+      "native_hotel_id": 512,
+      "name": "TROPITEL DAHAB OASIS",
+      "country_id": 1,
+      "region": "Дахаб",
+      "is_active": 1,
+      "registry_matches_at_original_proof": 0
+    },
+    {
+      "native_hotel_id": 102774,
+      "name": "HILTON LUXOR RESORT & SPA",
+      "country_id": 1,
+      "region": "Люксор",
+      "is_active": 1,
+      "registry_matches_at_original_proof": 0
+    }
+  ],
+  "bounds": {
+    "new_owner_groups": 4,
+    "max_parallel": 2,
+    "max_first_property_page_gets": 4,
+    "max_later_declared_photo_gets": 8,
+    "source_api_calls": 0,
+    "paid_quotes": 0,
+    "server_db_calls": 0,
+    "new_posts": 0,
+    "canva_transactions_before_accepted_media": 0
+  },
+  "criteria": [
+    "Find publicPRIMARY official property URLs by search, neverguess paths/CDN/assets or alternate403host/query.",
+    "Before ownerHTTP confirm exact native identity/property and dedup addressed canonical primary source indices/plans; all oldclosed ownerURLs/photos/basenames/variants excluded.",
+    "Only four first declared official propertypages/oneGETeach; no redirects/cookies/headers/robotsbypass/retry. Thenatmosttwo declaredNEWexactphotoURLs perproperty ifsupported; no inventedURL or propertyrights frombrandnav/sharedCDN.",
+    "Propertywholemaincomplexhero mandatory, confirmedfacts/wholecaptions/nativebinding/realownerphotos/rights; noAIstock or loweringheroquality. Notreadyphotos meannoCanvaTX/no newmaterial.",
+    "No repeated old52pages/photos/pixels/fixtures or unrelatedcustomer/registryreads. Readonlyprogress/prep is notdelivery and routinequiet."
+  ],
+  "risks": [
+    "Officialsite canredirect/403 or exposeonlyroom/pooldetails; thosehotelsdeferwithoutbypass.",
+    "Sourcephotos maynotshowwholecomplex or providerights; no fabricatedreadiness."
+  ],
+  "new_exact_owner_pages": [
+    {
+      "hotel_id": 254,
+      "url": "https://threecorners.com/red-sea/sea-beach-resort/",
+      "owner_host": "threecorners.com",
+      "identity_tokens": [
+        "three",
+        "corners",
+        "sea",
+        "beach"
+      ],
+      "native_country_id": 1,
+      "group": 0,
+      "discovery_query": "site:threecorners.com \"Sea Beach\" resort",
+      "discovery_title": "Sea Beach Resort**** | Three Corners Hotels & Resorts",
+      "declared_url": "https://threecorners.com/red-sea/sea-beach-resort/",
+      "discovery_proof": "public_primary_official_property_search_result"
+    },
+    {
+      "hotel_id": 4185,
+      "url": "https://braykaresorts.com/royal-brayka-resort/overview",
+      "owner_host": "braykaresorts.com",
+      "identity_tokens": [
+        "royal",
+        "brayka"
+      ],
+      "native_country_id": 1,
+      "group": 0,
+      "discovery_query": "site:braykaresorts.com \"Royal Brayka\"",
+      "discovery_title": "Royal Brayka Resort",
+      "declared_url": "https://braykaresorts.com/royal-brayka-resort/overview",
+      "discovery_proof": "public_primary_official_property_search_result"
+    },
+    {
+      "hotel_id": 512,
+      "url": "https://www.tropitelhotels.com/tropitel-dahab-oasis",
+      "owner_host": "www.tropitelhotels.com",
+      "identity_tokens": [
+        "tropitel",
+        "dahab",
+        "oasis"
+      ],
+      "native_country_id": 1,
+      "group": 1,
+      "discovery_query": "\"Tropitel Dahab Oasis\" official website",
+      "discovery_title": "Tropitel Dahab Oasis by Tropitel Hotels",
+      "declared_url": "https://www.tropitelhotels.com/tropitel-dahab-oasis",
+      "discovery_proof": "public_primary_official_property_search_result"
+    },
+    {
+      "hotel_id": 102774,
+      "url": "https://www.hilton.com/en/hotels/luxhitw-hilton-luxor-resort-and-spa/",
+      "owner_host": "www.hilton.com",
+      "identity_tokens": [
+        "hilton",
+        "luxor"
+      ],
+      "native_country_id": 1,
+      "group": 1,
+      "discovery_query": "\"Hilton Luxor Resort & Spa\" site:hilton.com",
+      "discovery_title": "Hilton Luxor | Best resort hotel in East Bank, Luxor",
+      "declared_url": "https://www.hilton.com/en/hotels/luxhitw-hilton-luxor-resort-and-spa/",
+      "discovery_proof": "public_primary_official_property_search_result"
+    }
+  ],
+  "expected_source_index_filename": "commercial-batch-20261105-53-source-index.json",
+  "expected_native_scope_filename": "commercial-batch-20261105-53-native-scope.json",
+  "new_input_cases": 8,
+  "old_parser_fixtures_rerun": 0,
+  "parser_functionality_unchanged_except_new_scope_and_safe_log_projection": true,
+  "counts_not_delivery": true
+}
