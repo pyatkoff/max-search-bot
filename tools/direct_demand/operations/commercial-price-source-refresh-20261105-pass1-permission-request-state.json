@@ -1,12 +1,14 @@
 {
-  "state": "EXPLICIT_MANUAL_COLLECTION_PERMISSION_REQUESTED_AWAITING_REPLY",
-  "requested_at_utc": "2026-11-05 01:48:31 UTC",
-  "question": "Разрешаете один адресный проход по121отелю безцены:до7дополнительныхпоисков изМосквы,2взрослых,вылет вближайшие7дней на момент запуска,5..14ночей;расписание/настройкилимитов неизменны;полнаякорзина/перелёты передпостами",
-  "options": [
-    "Да, один проход",
-    "Только штатный сбор"
-  ],
-  "manual_collection_approved": false,
+  "operation": "commercial-price-source-refresh-20261105-pass1",
+  "state": "EXPLICIT_USER_MANUAL_COLLECTION_APPROVAL_RECEIVED",
+  "question_requested_at_utc": "2026-11-05T01:48:31Z",
+  "actual_approval_recorded_at_utc": "2026-11-05T05:31:15Z",
+  "manual_collection_approved": true,
+  "permission_text_sha256": "0adb1f28139607ed220644388f1a075d3e18a609be68ecabda52660a222043d3",
+  "manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
+  "max_new_searches": 7,
+  "native_scope_count": 121,
   "do_not_repeat_question": true,
-  "pending_xml_price_unit_question_is_separate": true
+  "xml_price_unit_question_still_pending": true,
+  "new_source_searches_before_execution": 0
 }

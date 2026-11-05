@@ -1,0 +1,12 @@
+{
+  "state": "EXPLICIT_USER_MANUAL_COLLECTION_APPROVAL_RECORDED",
+  "operation": "commercial-price-source-refresh-20261105-pass1",
+  "manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
+  "max_new_searches": 7,
+  "permission_text_sha256": "0adb1f28139607ed220644388f1a075d3e18a609be68ecabda52660a222043d3",
+  "granted_at_utc": "2026-11-05T05:31:15Z",
+  "granted_at_time_basis": "first_UTC_clock_read_after_actual_explicit_reply",
+  "approval_context": "Reply_to_pending_121hotel_sevensearch_manual_collection_question;XML_price_unit_remains_unanswered",
+  "exact_original_unpriced_native_scope_count": 121,
+  "newly_published_1422_78251_not_added": true
+}

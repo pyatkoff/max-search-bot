@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-source-refresh-20261105-pass1",
-  "state": "FULLY_PREPARED_INACTIVE_AWAITING_EXPLICIT_REPLY_TO_REQUESTED_MANUAL_PERMISSION",
+  "state": "EXPLICIT_USER_APPROVAL_RECORDED_EXACT_ONE_PASS_ACTIVATED_PENDING_ORIGINAL_OUTCOME",
   "goal": "Make one finite currently prohibited manual source refresh concrete and natively reviewable before requesting an exception",
   "manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
   "template_sha256": "1dd5f40e632acbc07ac98f8d65cab279796a1bbfbf9c088cd1ccb77bbb2c5a4a",
@@ -31,7 +31,7 @@
     "seasonal-page-gap-plan-v1.php": "3e1ef84ae88979f6e31691241dce13d01fdc40fd41138679043de3b83b616a5f",
     "hotel-details-v1.php": "137bbf53ef87fab50505ecd41a075cb5f571193480da7f0e3face51190c0f77f"
   },
-  "manual_collection_approved": false,
+  "manual_collection_approved": true,
   "execution_route_ready": true,
   "preflight_expected_current_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
   "boundaries": [
@@ -58,7 +58,7 @@
     "One API failure/searchstartUNKNOWN holdsoriginaloperation andremainingsearches; resolve original first",
     "Even7successful searches mayyieldnofinalbasket ornotall121hotels; no fabricatedprices"
   ],
-  "execution_activated": false,
+  "execution_activated": true,
   "actual_source_presence_run": 41949629294,
   "actual_source_presence_job": 126990218556,
   "source_presence_artifact": 13380043228,
@@ -71,9 +71,9 @@
   "db_calls": 0,
   "source_writes": 0,
   "post_edits": 0,
-  "request_policy": "One finite pass, atmost7ADDITIONALhotel-batchsearches/121unpricedhotels/Moscow2A0RUB/5..14nights/next7futureUTCdeparture days atlaunch. Originaldefaultbudgets/order/schedulesunchanged. Approvalnotreceived; do notactivateorcreateapprovalrecord.",
-  "approval_usage": "Permissionneededbecausecurrenttaskboundaryprohibitsmanualcollector. MeaningfulexplicitreplytoNEWmanualcollectionquestiononly; pendingXMLpriceunitreplydoesnotauthorizecollection. No elapsedtime/selectiondefaultcountsasapproval.",
-  "next_step": "AwaitactualexplicitreplytoNEWmanualcollectionpermissionquestion. No provider/manualcollection or approvalmetadatafile until reply. Ifyes, recordgenuineapproval and activateONEalreadypreparedexistingworkflow afterfreshsource/full21/host/runtime/date/native/unknownchecks. DoNOTaskagain. Ifno, preserveprohibition andcontinueonlyschedulednewinput/independentauthorizedmaterialwork. PendingXMLpriceunitanswerisNOTmanualcollectionpermission.",
+  "request_policy": "One real explicitly approved finite pass only. Original121nativeIDs/7additionalstarts/Moscow2A0RUB/5..14nights/06..12Nov2026. Normalbudgets/schedulesunchanged.",
+  "approval_usage": "ActualPavelreply 'да, разрешаю' recorded;do notaskagain. XMLpriceunitremainsunanswered.",
+  "next_step": "FollowONLYtheoriginalGHAfromactivationcommit. IntentartifactbeforeANYprovider. ReconcileUNKNOWNfirst. Afteractualsearches,useONLYactualoriginalsearchIDs/native121/terms/72h/genuinenewfingerprints and currentcanonicalcaption/photo/button/source/once proof beforeONEexistingflights/fullbasket andserialedits.",
   "permission_question_sent": true,
   "permission_question_requested_at_utc": "2026-11-05 01:48:31 UTC",
   "permission_question_options": [
@@ -83,5 +83,21 @@
   "permission_question_do_not_repeat": true,
   "read12_unread_cache_intervals_closed_run": 41950617284,
   "read12_new_eligible_rows": 0,
-  "latest_counts_diagnostic_run": 41946730487
+  "latest_counts_diagnostic_run": 41946730487,
+  "approval_granted_at_utc": "2026-11-05T05:31:15Z",
+  "approval_file": "commercial-price-source-refresh-20261105-pass1-user-approval.json",
+  "approval_text_sha256": "0adb1f28139607ed220644388f1a075d3e18a609be68ecabda52660a222043d3",
+  "expected_current_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "fresh_current_main_checked_at_utc": "2026-11-05T05:31:15Z",
+  "current_deploy_run": 41962033993,
+  "current_verify_job": 127031499856,
+  "current_deploy_job": 127031537900,
+  "current_tls_run": 41962668602,
+  "current_diagnostics_run": 41962668530,
+  "current_tg_health_run": 41962668598,
+  "current_max_health_run": 41962668559,
+  "current_live_run": 41962668590,
+  "latest_published_pairs": 161,
+  "original_manual_native_scope_not_expanded_to_new1422_or78251": true,
+  "old_guard_fixtures_rerun_on_activation": 0
 }
