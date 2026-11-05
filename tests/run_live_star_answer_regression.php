@@ -10,6 +10,8 @@ $cases = [
     ['slash list', '3/5', 3],
     ['single star preserved', '4', 4],
     ['not important preserved', 'не важно', 1],
+    ['explicit correction prefers positive replacement', 'не 3 звезды, а 4 звезды', 4],
+    ['rejected-only category stays unresolved', 'не 3 звезды', null],
     ['invalid category rejected', '3,6', null],
     ['unrelated number list rejected', '3,4,10', null],
 ];
