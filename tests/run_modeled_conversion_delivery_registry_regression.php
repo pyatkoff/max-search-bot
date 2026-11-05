@@ -3,6 +3,9 @@ declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once __DIR__.'/run_modeled_conversion_value_export_regression.php';
 require_once dirname(__DIR__).'/services/ModeledConversionDeliveryRegistry.php';
+require_once dirname(__DIR__).'/services/ModeledConversionDailyReconciliationReader.php';
+require_once dirname(__DIR__).'/services/ModeledConversionDailyReconciliationView.php';
+require_once __DIR__.'/fixtures/modeled_forecast_payment_checks.php';
 
 function deliveryRegistrySchema(PDO $p):void
 {
@@ -45,9 +48,182 @@ function deliveryRegistryDataDigest(PDO $p):string
         $data[$table]=$p->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
     return hash('sha256',json_encode($data,JSON_THROW_ON_ERROR));
 }
+
+/** Shared SQLite/native-MySQL assertions. Real-data identities never enter this fixture. */
+function dailyReconciliationAssertions(PDO $p,callable $check):void
+{
+    $zone=new DateTimeZone('Europe/Kaliningrad');$date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',$zone);
+    $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$now=$until+3600;
+    $auth=static function():void{};$ids=[];
+    $event=static function(int $conversation,int $rank,int $at,array $options=[])use($p,&$ids):string{
+        $id=deliveryRegistryFixtureEvent($p,$conversation,$rank,$at,$options);$ids[$conversation.':'.$rank]=$id;return$id;
+    };
+    $set=static function(string $id,array $values)use($p):void{
+        $fields=array_map(static fn(string $key):string=>$key.'=?',array_keys($values));
+        $p->prepare('UPDATE max_channel_conversion_outbox SET '.implode(',',$fields).' WHERE id=?')->execute([...array_values($values),$id]);
+    };
+    try{
+        $a=$event(400,1,$from,['name'=>'Private reconciliation <script>fixtureName</script>']);
+        $b=$event(400,2,$from+100,['value'=>833,'state'=>'processed']);
+        $c=$event(401,1,$from-86400+100,['state'=>'accepted']);
+        $set($c,['claimed_at_unix'=>$from+10,'value_api_accepted_at_unix'=>$from+20]);
+        $d=$event(402,1,$from+200,['state'=>'ready','origin'=>'owner_day_review_v1']);
+        $set($d,['client_id'=>'fixturePrivateClientIdentifier']);
+        $event(403,1,$from+300,['state'=>'unknown']);
+        $f=$event(404,1,$from-86400+400,['state'=>'processed','legacy_clock'=>true,'origin'=>'owner_fortnight_review_v1']);
+        $set($f,['claimed_at_unix'=>$from+40,'value_processed_at_unix'=>null]);
+        $g=$event(405,1,$from-1,['state'=>'accepted']);
+        $set($g,['claimed_at_unix'=>$from-1,'value_api_accepted_at_unix'=>$from-1]);
+        $event(406,1,$until);
+        $event(407,1,$from-1);
+        $j=$event(408,1,$from+400,['state'=>'accepted']);
+        $set($j,['value_api_accepted_at_unix'=>$until]);
+        $k=$event(409,1,$from+500,['state'=>'processed']);
+        $set($k,['value_processed_at_unix'=>$until]);
+        $event(410,1,$from+600,['state'=>'failed']);
+        $event(411,1,$from+700,['state'=>'expired']);
+        $event(412,1,$from+800,['state'=>'unmatched']);
+        $o=$event(413,1,$from+900,['state'=>'uploading']);
+        $set($o,['claimed_at_unix'=>$from+901,'client_id'=>'fixturePrivateClientIdentifier']);
+        // Same exact admission predicate as the owner ledger, including native and bound-chat identity.
+        $event(1,1,$from+1,['platform'=>'telegram']);$event(2,1,$from+2,['platform'=>'max']);
+        $event(420,1,$from+3,['test'=>1]);
+        $badPeer=$event(421,1,$from+4);$set($badPeer,['external_user_id'=>'fixtureWrongPeer']);
+        $event(422,1,$from+5);$p->exec("UPDATE customer_channels SET external_chat_id='fixtureWrongChat' WHERE id=422");
+        $badCounter=$event(423,1,$from+6);$set($badCounter,['counter_id'=>'other']);
+        $badContract=$event(424,1,$from+7);$set($badContract,['value_contract'=>'foreign_contract']);
+        $badTarget=$event(425,1,$from+8);$set($badTarget,['transport_target'=>'foreign_target']);
+        $badProject=$event(426,1,$from+9);$set($badProject,['project_key'=>'foreign']);
+        $before=deliveryRegistryDataDigest($p);
+        $read=static fn(array $input=[]):array=>(new ModeledConversionDailyReconciliationReader($p,$auth))->read(['date'=>$date]+$input,$now);
+        $page=$read();
+        $check('daily reconciliation uses the real shared schema on each SQL driver',($page['available']??false)===true);
+        $check('owner reconciliation fixes Kaliningrad calendar midnight independently of UTC',
+            $page['date']===$date&&$page['timezone']==='Europe/Kaliningrad'
+            &&$page['window']===['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)]
+            &&$page['as_of']===gmdate('Y-m-d\TH:i:s\Z',$now));
+        $accrual=$page['calendar']['accruals'];
+        $check('accrual totals use distinct conversations and exclude every foreign owner native or test scope',
+            $accrual['events']===10&&$accrual['conversations']===9&&$accrual['value_rub']===12083
+            &&$accrual['by_platform']['max']===['events'=>6,'conversations'=>5,'value_rub'=>7083]
+            &&$accrual['by_platform']['telegram']===['events'=>4,'conversations'=>4,'value_rub'=>5000]);
+        $claims=$page['calendar']['upload_claims'];
+        $check('last saved claim day includes older accruals without becoming an HTTP attempt counter',
+            $claims['events']===6&&$claims['conversations']===6&&$claims['value_rub']===7083
+            &&$claims['by_platform']['max']['value_rub']===3333&&$claims['by_platform']['telegram']['value_rub']===3750
+            &&$claims['basis']==='last_current_persisted_claim_not_http_send_count');
+        $api=$page['calendar']['api_receipts'];$processed=$page['calendar']['processed'];
+        $check('API and processed cohorts use their own first observation day rather than accrual or claim day',
+            $api['events']===3&&$api['conversations']===3&&$api['value_rub']===3333
+            &&$api['by_platform']['max']['value_rub']===833&&$api['by_platform']['telegram']['value_rub']===2500
+            &&$processed['events']===1&&$processed['conversations']===1&&$processed['value_rub']===833
+            &&$processed['basis']==='first_server_observation_of_processed_rows');
+        $check('origin is independent of every calendar cohort and conserves value',
+            $accrual['origins']['live']['value_rub']===10833&&$accrual['origins']['historical_review']['value_rub']===1250
+            &&$claims['origins']['historical_review']['value_rub']===1250);
+        $status=$page['current_statuses'];
+        $check('selected day states are current and expose waiting problem and stored-identity subsets',
+            count($status['by_state'])===9&&$status['by_state']['processed']===['events'=>2,'conversations'=>2,'value_rub'=>2083]
+            &&$status['waiting']===['events'=>3,'conversations'=>3,'value_rub'=>3750]
+            &&$status['problems']===['events'=>4,'conversations'=>4,'value_rub'=>5000]
+            &&$status['waiting_identity']===['events'=>1,'conversations'=>1,'value_rub'=>1250]
+            &&$status['basis']==='current_state_of_selected_day_accruals');
+        $unknownApi=$page['coverage']['api_receipts_without_observed_clock'];$unknownProcessed=$page['coverage']['processed_without_observed_clock'];
+        $check('legacy receipts with no observation clocks remain unknown rather than backfilled to a claim date',
+            $unknownApi['events']===1&&$unknownApi['value_rub']===1250&&$unknownProcessed['events']===1
+            &&$unknownProcessed['value_rub']===1250&&$unknownApi['origins']['historical_review']['events']===1
+            &&$unknownApi['basis']==='all_current_scope_receipts_not_assigned_to_any_day');
+        $check('per-event visit matching remains unavailable instead of accepting processed as a match',
+            $page['coverage']['per_event_visit_match']===['status'=>'unavailable','reason'=>'not_recorded_per_conversion']
+            &&$page['interpretation']['receipt_and_processing_are_not_individual_visit_linkage']===true);
+        foreach(['max','telegram']as$platform){
+            $filtered=$read(['platform'=>$platform]);
+            $check('calendar platform filter preserves exact '.$platform.' totals and selected-day statuses',
+                $filtered['available']&&$filtered['platform']===$platform
+                &&$filtered['calendar']['accruals']['events']===$accrual['by_platform'][$platform]['events']
+                &&$filtered['calendar']['accruals']['conversations']===$accrual['by_platform'][$platform]['conversations']
+                &&$filtered['calendar']['accruals']['value_rub']===$accrual['by_platform'][$platform]['value_rub']
+                &&$filtered['calendar']['accruals']['by_platform'][$platform==='max'?'telegram':'max']['events']===0);
+        }
+        $empty=(new ModeledConversionDailyReconciliationReader($p,$auth))->read(['date'=>'2026-10-20'],$now);
+        $check('an empty calendar day is complete zero while global legacy-clock coverage remains explicit',
+            $empty['available']&&$empty['calendar']['accruals']['events']===0&&$empty['calendar']['api_receipts']['events']===0
+            &&$empty['coverage']['api_receipts_without_observed_clock']['events']===1);
+        $wire=json_encode($page,JSON_THROW_ON_ERROR);
+        $check('aggregate projection contains no customer name client identifier upload receipt or raw rows',
+            !str_contains($wire,'fixturePrivateClientIdentifier')&&!str_contains($wire,'fixtureUploadId')
+            &&!str_contains($wire,'fixtureName')&&!array_key_exists('rows',$page));
+        $html=ModeledConversionDailyReconciliationView::render($page);
+        $check('owner view separates movement current states unknown visits and legacy coverage',
+            str_contains($html,'12 083,00 ₽')&&str_contains($html,'Приём API подтверждён')
+            &&str_contains($html,'Это неизвестность, а не ноль совпадений.')
+            &&str_contains($html,'Это весь текущий допущенный охват выбранного канала')
+            &&str_contains($html,'не восстановленная очередь на конец суток')
+            &&str_contains($html,'view=delivery&amp;date=2026-11-02&amp;platform=all'));
+        $tg=ModeledConversionDailyReconciliationView::render($read(['platform'=>'telegram']));
+        $check('detail navigation preserves selected date and channel and never invents excluded-lane totals',
+            str_contains($tg,'view=delivery&amp;date=2026-11-02&amp;platform=telegram')
+            &&str_contains($tg,'<th>Telegram</th>')&&!str_contains($tg,'<th>MAX</th>'));
+        $malformed=$page;$malformed['calendar']['accruals']['value_rub']++;
+        $hidden=ModeledConversionDailyReconciliationView::render($malformed);
+        $closed=ModeledConversionDailyReconciliationView::render(null,['date'=>'"><script>fixtureBad</script>','platform'=>'"><script>fixtureBad</script>']);
+        $check('invalid or unavailable reports hide all amount tables and normalize hostile filters',
+            str_contains($hidden,'Сверка сейчас недоступна')&&!str_contains($hidden,'<table>')
+            &&!str_contains($hidden,'12 083,00 ₽')&&!str_contains($closed,'<script>fixtureBad</script>'));
+        $check('all successful reconciliation reads are byte-identical and close their read-only snapshots',
+            deliveryRegistryDataDigest($p)===$before&&!$p->inTransaction());
+        foreach([['date'=>'2026-02-30'],['date'=>'2026-11-04'],['platform'=>'MAX'],['cursor'=>'foreign'],['date'=>[]]]as$input){
+            $invalid=(new ModeledConversionDailyReconciliationReader($p,$auth))->read($input,$now);
+            $check('invalid reconciliation selection is closed without changing data '.json_encode(array_keys($input)),
+                $invalid===['available'=>false,'reason'=>'invalid_request']&&!$p->inTransaction());
+        }
+        $p->beginTransaction();$outer=$read();
+        $check('reconciliation refuses a caller-owned snapshot and leaves it open',
+            $outer===['available'=>false,'reason'=>'outer_transaction']&&$p->inTransaction());$p->rollBack();
+        $outside=0;$revoked=false;
+        try{(new ModeledConversionDailyReconciliationReader($p,static function()use($p,&$outside):void{
+            if(!$p->inTransaction()&&++$outside>1)throw new DomainException('fixture_revoked');
+        }))->read(['date'=>$date],$now);}catch(DomainException $ignored){$revoked=true;}
+        $check('final authorization can revoke a complete aggregate after the read-only transaction',
+            $revoked&&!$p->inTransaction());
+        $clock=0.0;$limited=(new ModeledConversionDailyReconciliationReader($p,$auth,static function()use(&$clock):float{return$clock+=4.0;}))->read(['date'=>$date],$now);
+        $check('reconciliation deadline fails closed and releases its snapshot',
+            $limited===['available'=>false,'reason'=>'read_limit']&&!$p->inTransaction());
+        $set($a,['value_stage'=>'Interest']);$invalid=$read();$set($a,['value_stage'=>'interest']);
+        $check('case-insensitive native collation cannot admit a foreign financial stage into global sums',
+            $invalid===['available'=>false,'reason'=>'invalid_aggregate']&&!$p->inTransaction());
+        $set($a,['value_api_accepted_at_unix'=>$from+1]);$invalid=$read();$set($a,['value_api_accepted_at_unix'=>null]);
+        $check('receipt observation without a stored API receipt withholds every aggregate',
+            $invalid===['available'=>false,'reason'=>'invalid_aggregate']&&!$p->inTransaction());
+        $set($a,['value_receipt_basis'=>'PrivateUnexpectedBasis']);$invalid=$read();$set($a,['value_receipt_basis'=>null]);
+        $check('unrecognized receipt evidence cannot become a calendar total or a raw error label',
+            $invalid===['available'=>false,'reason'=>'invalid_aggregate']
+            &&!str_contains(json_encode($invalid,JSON_THROW_ON_ERROR),'PrivateUnexpectedBasis'));
+        $set($ids['403:1'],['state'=>'accepted']);$invalid=$read();$set($ids['403:1'],['state'=>'unknown']);
+        $check('accepted or processed labels without any stored receipt withhold all totals',
+            $invalid===['available'=>false,'reason'=>'invalid_aggregate']&&!$p->inTransaction());
+        $check('closed and rejected reads preserve the full fixture state',deliveryRegistryDataDigest($p)===$before&&!$p->inTransaction());
+        $event(440,1,$from+1000,['value'=>0.01]);$event(441,1,$from+1001,['value'=>0.10]);$event(442,1,$from+1002,['value'=>0.20]);
+        $decimalBefore=deliveryRegistryDataDigest($p);$decimal=$read();$dc=$decimal['calendar']['accruals']??[];
+        $check('native DECIMAL and SQLite floating sums preserve one ten and twenty kopeck increments',
+            ($decimal['available']??false)===true&&($dc['events']??null)===13
+            &&(int)round(($dc['value_rub']??0)*100)===1208331
+            &&(int)round(($dc['by_platform']['max']['value_rub']??0)*100)===708321
+            &&(int)round(($dc['by_platform']['telegram']['value_rub']??0)*100)===500010
+            &&deliveryRegistryDataDigest($p)===$decimalBefore&&!$p->inTransaction());
+
+    }finally{
+        if($p->inTransaction())$p->rollBack();
+        foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
+    }
+}
+
 function deliveryRegistryAssertions(PDO $p,callable $check):void
 {
+    // The dedicated forecast fixture cleans its disposable schema before the ledger suite resets it.
+    forecastPaymentAssertions($p,$check);
     deliveryRegistrySchema($p);
+    dailyReconciliationAssertions($p,$check);
     $date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Kaliningrad'));
     $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$now=$until+3600;
     $key=str_repeat('fixture-session-key-only-',3);$auth=static function():void{};

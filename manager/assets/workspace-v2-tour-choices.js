@@ -17,8 +17,12 @@ function price(snapshot){
 function bookingButton(kind,id){
   return typeof W.pipe==='function'&&Number.isSafeInteger(id)&&id>0?'<button type="button" class="actionBtn" data-booking-kind="'+kind+'" data-booking-source="'+id+'">Оформление бронирования</button>':'';
 }
+function bookingAmount(value){
+  const amount=String(value||'').trim().replace(/[ \u00a0\u202f]/g,'');
+  return /^\d{1,12}(?:[.,]\d{1,2})?$/.test(amount)?amount.replace(',','.'):null;
+}
 function bookingFieldsMarkup(fields={},editable=false){
-  const input=(key,label,max=300,type='text')=>'<label>'+esc(label)+'<input class="stageSelect" data-booking-field="'+key+'" type="'+type+'" maxlength="'+max+'" value="'+esc(type==='datetime-local'?(fields._localDates?(fields[key]||''):(window.ManagerTime?.toInput(fields[key])||'')):(fields[key]||''))+'"></label>';
+  const input=(key,label,max=300,type='text')=>'<label>'+esc(label)+'<input class="stageSelect" data-booking-field="'+key+'" type="'+type+'" '+(key==='amount'?'inputmode="decimal" ':'')+'maxlength="'+max+'" value="'+esc(type==='datetime-local'?(fields._localDates?(fields[key]||''):(window.ManagerTime?.toInput(fields[key])||'')):(fields[key]||''))+'"></label>';
   const area=(key,label,max)=>'<label>'+esc(label)+'<textarea class="outcomeNote" data-booking-field="'+key+'" maxlength="'+max+'">'+esc(fields[key]||'')+'</textarea></label>';
   return '<fieldset '+(editable?'':'disabled')+'><label>Состояние<select class="stageSelect" data-booking-field="state">'+Object.entries({checking:'Проверяем условия',ready:'Условия согласованы',confirmed:'Бронь подтверждена оператором',cancelled:'Отменено'}).map(([v,label])=>'<option value="'+v+'" '+((fields.state||'checking')===v?'selected':'')+'>'+label+'</option>').join('')+'</select></label>'+
     input('amount','Подтверждённая полная сумма за всех',16)+input('currency','Валюта: RUB, EUR или USD',3)+
@@ -82,7 +86,7 @@ function bindBookings(root,conversation){
             const iso=node.value?window.ManagerTime?.fromInput(node.value):'';
             if(node.value&&!iso){say('Укажите корректное время по Москве.');return}
             fields[name]=iso?new Date(iso).toISOString().replace(/\.\d{3}Z$/,'Z'):'';
-          }else fields[name]=node.value.trim();
+          }else if(name==='amount'&&node.value.trim()){const amount=bookingAmount(node.value);if(amount===null){say('Укажите сумму числом; копейки можно отделить запятой или точкой.');return}fields[name]=amount}else fields[name]=name==='currency'?node.value.trim().toUpperCase():node.value.trim();
         }
         let op;
         try{
@@ -150,5 +154,5 @@ function enhanceCard(conversation){
   const hero=root.querySelector('.leadHero');if(hero)hero.insertAdjacentHTML('afterend',html);else root.insertAdjacentHTML('beforeend',html);
   bindBookings(root,id);
 }
-window.WorkspaceV2TourChoices={markup,enhanceCard,bookingFieldsMarkup,bookingError};
+window.WorkspaceV2TourChoices={markup,enhanceCard,bookingFieldsMarkup,bookingError,bookingAmount};
 })();

@@ -57,6 +57,8 @@ class TelegramWebhookHandler
             if ($post) {
                 $incoming['source_key']=$post['source_key'];
                 $incoming['entry_kind']='channel_post';
+                require_once __DIR__.'/../services/SourceQualificationPrompt.php';
+                $incoming['source_post_context']=SourceQualificationPrompt::publicationContext($post);
             }
         }
 

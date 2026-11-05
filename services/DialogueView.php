@@ -89,24 +89,14 @@ class DialogueView
     }
 
     /** Start only the source-specific qualification; retain all saved needs. */
-    public static function sourceQualificationStart($chatId,array $missing,bool $greet=true): bool
+    public static function sourceQualificationStart($chatId,array $missing,bool $greet=true,string $hotelName=''): bool
     {
-        $ordered=array_values(array_intersect(['date','adults','child_ages','nights','city','country','children'],$missing));
-        if(in_array('date',$ordered,true)&&in_array('adults',$ordered,true)){
-            $question='На какие даты планируете поездку и сколько человек поедет?';
-        }else{
-            require_once __DIR__.'/MissingFieldQuestionService.php';
-            $questions=[];
-            foreach(array_slice($ordered,0,2) as $field){
-                $questions[]=$field==='adults'?'Сколько человек поедет?':MissingFieldQuestionService::question($field);
-            }
-            $question=$questions?implode(' ',$questions):'Что хотите уточнить по этому варианту?';
-        }
+        require_once __DIR__.'/SourceQualificationPrompt.php';
         // Delivery failure must not leave the next real reply on an old check
         // surface. This changes mode, never resets or replaces the collected trip.
         MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);
         return(bool)IntegrationRegistry::messenger()->sendWithButtons($chatId,
-            ($greet?"Здравствуйте! 👋\n":'').$question,
+            SourceQualificationPrompt::text($missing,$hotelName,$greet),
             [[['text'=>'Позвать менеджера','callback_data'=>'source_choice_manager']]]
         );
     }

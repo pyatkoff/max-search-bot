@@ -134,5 +134,9 @@ check('booking fields distinguish verification agreement and actual operator rec
 check('booking refusal explains missing proof rather than claiming a booking',()=>{
  for(const code of ['conflict','verification_required','verification_expired','booking_evidence_required','invalid_transition','context_changed'])assert(ui.bookingError(code).length>25);
 });
+check('booking amount accepts displayed Russian decimals without guessing labels or arithmetic',()=>{
+ for(const [input,value] of [['180 000,50','180000.50'],['180 000.50','180000.50'],['180000','180000'],['0,50','0.50']])assert.equal(ui.bookingAmount(input),value);
+ for(const input of ['180000 RUB','180000 + 500','100,20.10','1e5','-100'])assert.equal(ui.bookingAmount(input),null);
+});
 console.log('PASS manager tour choices '+checks+' checks');
 

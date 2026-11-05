@@ -1234,7 +1234,7 @@ for(const width of [390,1440]){
   s.setBookingHandler(async data=>{
    expect(data).toMatchObject({conversation_id:11,source_kind:'native',source_id:17});
    if(data.action==='booking_save'){
-    expect(data.fields).toMatchObject({state:'checking',amount:'',currency:'',available:false,customer_agreed:false});
+    expect(data.fields).toMatchObject({state:'checking',amount:'181500.50',currency:'RUB',available:false,customer_agreed:false});
     record={revision:1,fields:data.fields};return {body:{ok:true,record,saved_revision:1,operation_found:true}};
    }
    return {body:{ok:true,can_edit:true,record,operation_found:false}};
@@ -1244,7 +1244,7 @@ for(const width of [390,1440]){
   const panel=page.locator('[data-booking-panel]');await expect(panel.locator('form')).toBeVisible();
   await expect(panel.locator('[data-booking-field="amount"]')).toHaveValue('');
   await expect(panel).toContainText('не становится подтверждённой автоматически');
-  await panel.locator('[data-booking-field="terms"]').fill('Данные пока проверяются');
+  await panel.locator('[data-booking-field="terms"]').fill('Данные пока проверяются');await panel.locator('[data-booking-field="amount"]').fill('181 500,50');await panel.locator('[data-booking-field="currency"]').fill('rub');
   await panel.getByRole('button',{name:'Сохранить оформление'}).click();
   await expect(panel).toContainText('Оформление сохранено');
   expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);

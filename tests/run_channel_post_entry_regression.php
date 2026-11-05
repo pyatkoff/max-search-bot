@@ -95,6 +95,62 @@ try {
     cpeCheck('new TG post start is consumed without invented tourist words', count($applicationMessages), $appsBefore);
     cpeCheck('new TG post entry records immutable version pointer', $registry->managerContext((int)$new['id'], 'anytour')['current']['version_id'] ?? null, $publications['telegram']['version_id']);
 
+    // Current post introduction is a presentation contract, not a trip default.
+    cpeCheck('unknown publication has no invented hotel',SourceQualificationPrompt::publicationContext(null),[]);
+    $foreign=$publications['max'];$foreign['project_key']='other';
+    cpeCheck('foreign publication has no hotel greeting',SourceQualificationPrompt::publicationContext($foreign),[]);
+    $heading=$publications['max'];$heading['snapshot']['text']="✈️ Rixos Premium Seagate 5★\nТур с перелётом";
+    cpeCheck('hotel heading drops presentation emoji and stars',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'Rixos Premium Seagate');
+    $heading['snapshot']['text']="Тур с перелётом в Египет\nRixos Premium Seagate";
+    cpeCheck('ordinary caption never guesses a hotel from a later line',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'');
+    $copy=SourceQualificationPrompt::text(['date','adults','children'],'Rixos Premium Seagate');
+    cpeCheck('new hotel asks dates and explicit party',str_contains($copy,'Rixos Premium Seagate')&&str_contains($copy,'На какие даты')&&str_contains($copy,'Сколько взрослых и детей'),true);
+    $copy=SourceQualificationPrompt::text(['date'],'Rixos Premium Seagate');
+    cpeCheck('known party is not asked again',str_contains($copy,'взросл')||str_contains($copy,'дет'),false);
+    $copy=SourceQualificationPrompt::text(['adults','children'],'Rixos Premium Seagate');
+    cpeCheck('known date is not asked again',str_contains($copy,'дат')||str_contains($copy,'вылета'),false);
+    $copy=SourceQualificationPrompt::text(['adults'],'Rixos Premium Seagate');
+    cpeCheck('known zero children asks only the missing adult count',str_ends_with($copy,MissingFieldQuestionService::question('adults'))&&!str_contains($copy,'Будут дети')&&!str_contains($copy,'возраст'),true);
+    $copy=SourceQualificationPrompt::text(['child_ages'],'Rixos Premium Seagate');
+    cpeCheck('known adults and child count asks only ages',str_contains($copy,'Сколько лет детям?')&&!str_contains($copy,'взросл')&&!str_contains($copy,'дат'),true);
+    cpeCheck('hotel name is escaped for messenger HTML',str_contains(SourceQualificationPrompt::text(['date'],'Rixos <Family> & Spa'),'Rixos &lt;Family&gt; &amp; Spa'),true);
+    cpeCheck('complete known trip does not restart date questions',str_contains(SourceQualificationPrompt::text([],'Rixos Premium Seagate'),'дат'),false);
+
+    foreach(['max','telegram'] as $index=>$platform){
+        $basePost=$publications[$platform];$user=88877100+$index;$chat=$platform==='max'?-$user:$user;
+        $known=['city'=>'Москва','country'=>'Египет','adults'=>2,'children'=>0,'nights'=>'5'];
+        MaxSearchApi::$needContexts[$chat]=$known;MaxSearchApi::$missingNeeds[$chat]=['date'];
+        $named=[];
+        foreach(['Rixos Premium Seagate','Papillon Zeugma'] as $variant=>$hotel){
+            $message=$platform==='max'?'mid.greeting.'.($variant+1):(string)(951+$variant);
+            $url=$platform==='max'?'https://max.ru/c/-80095447388179/greeting'.($variant+1):'https://t.me/c/1234567890/'.$message;
+            $named[]=$registry->registerPublication('anytour',$platform,$basePost['bot_key'],$basePost['channel_id'],$message,
+                ['text'=>"✈️ ".$hotel." 5★\nТур с перелётом",'format'=>'native','post_url'=>$url]);
+        }
+        $beforeSent=count($sent);$beforeResets=count(MaxSearchApi::$resets);$beforeApplied=count(MaxSearchApi::$needApplications);
+        if($platform==='max')cpeStartMax($user,$named[0]['start_payload'],8800+$index);
+        else cpeStartTelegram($user,$named[0]['start_payload'],$dispatcher,$messenger,8800+$index);
+        $text=$sent[$beforeSent]['payload']['text']??'';
+        cpeCheck('actual current post names hotel before entry ledger write: '.$platform,str_contains($text,'Rixos Premium Seagate'),true);
+        cpeCheck('current entry asks only missing date: '.$platform,str_contains($text,'дата вылета')&&!str_contains($text,'взросл')&&!str_contains($text,'дет'),true);
+        cpeCheck('post dates and party do not mutate tourist needs: '.$platform,[MaxSearchApi::$needContexts[$chat],count(MaxSearchApi::$needApplications),count(MaxSearchApi::$resets)],[$known,$beforeApplied,$beforeResets]);
+        $afterFirst=count($sent);
+        if($platform==='max')cpeStartMax($user,$named[0]['start_payload'],8810+$index);
+        else cpeStartTelegram($user,$named[0]['start_payload'],$dispatcher,$messenger,8810+$index);
+        cpeCheck('same current post repeats silently: '.$platform,count($sent),$afterFirst);
+        if($platform==='max')cpeStartMax($user,$named[1]['start_payload'],8820+$index);
+        else cpeStartTelegram($user,$named[1]['start_payload'],$dispatcher,$messenger,8820+$index);
+        $text=$sent[$afterFirst]['payload']['text']??'';
+        cpeCheck('different current post introduces its own hotel once: '.$platform,count($sent)===$afterFirst+1&&str_contains($text,'Papillon Zeugma')&&!str_contains($text,'Rixos Premium Seagate'),true);
+        $conversation=cpeConversation($platform,$user);
+        $pdo->prepare("UPDATE conversations SET status='waiting_manager' WHERE id=?")->execute([(int)$conversation['id']]);
+        $ownedSent=count($sent);
+        if($platform==='max')cpeStartMax($user,$named[0]['start_payload'],8830+$index);
+        else cpeStartTelegram($user,$named[0]['start_payload'],$dispatcher,$messenger,8830+$index);
+        cpeCheck('assigned or waiting hotel entry keeps quiet: '.$platform,count($sent),$ownedSent);
+        cpeCheck('contextual greeting never queues manager prematurely: '.$platform,cpeEventCount((int)$conversation['id'],'manager_request'),0);
+    }
+
     // Real entry/source/application/progression/handoff owners, with only the
     // existing legacy need-storage and transport boundaries replaced by fixtures.
     foreach(['max','telegram'] as $index=>$platform){
