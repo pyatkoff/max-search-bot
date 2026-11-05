@@ -1,0 +1,63 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context24-priced10a",
+  "state": "ONE_NEW_FINITE_CURRENT_PRIOR_PRICE_CONTEXT_PASS_BEFORE_NOQUOTE_LINKS",
+  "goal": "Bind ONLY10still-unlinkedpricedhotel currentcaptions/pricecheckmetadata via exactownprice manifest+canonicalconfirmedreceipt+currentregistry+newrelatedMAXproof.",
+  "native_hotel_ids": [
+    12114,
+    9432,
+    109,
+    13873,
+    13869,
+    73342,
+    233,
+    253,
+    165,
+    389
+  ],
+  "expected_prior_price_operations": {
+    "109": "commercial-price-update-20261104-3-v1",
+    "165": "commercial-price-update-20261104-72h-pass1-h165-v1",
+    "233": "commercial-price-update-20261104-8-v1",
+    "253": "commercial-price-update-20261104-72h-pass1-h253-v1",
+    "389": "commercial-price-update-20261104-72h-pass1-h389-v1",
+    "9432": "commercial-price-update-20261104-2-v1",
+    "12114": "commercial-price-update-20261103-1-v1",
+    "13869": "commercial-price-update-20261104-5-v1",
+    "13873": "commercial-price-update-20261104-4-v1",
+    "73342": "commercial-price-update-20261104-6-v1"
+  },
+  "expected_installed_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "scope_sha256": "abe807e059e7adc4cf9d8b45b5ccc9d2e503ebd3a784a21a4f9d7caa8740139a",
+  "reader_sha256": "650c1285cf198b70ef094db9d4d805c5f18c73f54c62d4b7f91b2d68544196bb",
+  "original_projection_run": 42037116858,
+  "original_projection_artifact": 13419690093,
+  "expected_base": {
+    "published": 161,
+    "priced": 85,
+    "linked": 123
+  },
+  "bounds": {
+    "max_hotels": 10,
+    "max_owned_MAX_reads": 10,
+    "max_channel_rights_checks": 2,
+    "canonical_price_journal_files": 10,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "gateway_quotes": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "old123_linked_post_reads": 0
+  },
+  "criteria": [
+    "Newrole10nativecases+2newheadercases beforeSSH/fullnativeGHA;oldfixtures0.",
+    "FrozenoriginalpricepayloadSHA+canonicaljournalhash+exactoperation/native/key/logical;no historicalpublicprivateIDsascanonical.",
+    "Canonicalpricejournalconfirmedreceipt resolves publicationID/currentversion/wholecaption/photo/button/source/token, then exactCURRENTprice_quote_response_sha256+price_checked_epoch_utc; nonemptyconflictingbuttonSTOP.",
+    "FreshSAMEhealthycurrentmain/deployverifyTLSdiag/fullREMOTE21/hostaccepted25/installedclean/runtime/read-only/catalogactive-native-country-name/schema-rights.",
+    "OneownedMAXGETpernewrelatedscope/TGcurrentconfirmedreceipt;futurelinkpreservesentirepricecaption/closing/photo/token/exactpricecheckmetadata;no oldquotes/providerresultsrepeat."
+  ],
+  "risks": [
+    "Oldmanifestmaynotmatchcurrentpriceversion;deferhardcases/notinitialcaption or IDbypass.",
+    "Currentproductionmaychange;mandatoryfreshgatesstopbeforeaccess.",
+    "Originalprice metadata is copied, never a freshpricecheck oravailabilityguarantee."
+  ]
+}
