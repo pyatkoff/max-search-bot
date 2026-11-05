@@ -1,4 +1,4 @@
-name: Inspect two exact newly declared JAZ Maraya photos without provider access
+name: Inspect one newly declared Old Palace property gallery without provider access
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -9,12 +9,18 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  CONTACT_SOURCE_INDEX_FILENAME: commercial-batch-20261105-56-contact-source-index.json
-  EXPECTED_CONTACT_SOURCE_INDEX_SHA256: 808ecb5a8273a9d934047a6c31f212081c0faf6e967a861b1002af30963487b4
+  PRIMARY_SOURCE_INDEX_FILENAME: commercial-batch-20261105-58-source-index.json
+  EXPECTED_PRIMARY_SOURCE_INDEX_SHA256: d47fd3ded62727030c89f569289347828949988551436ea95e19424efe9b36f0
+  EXPECTED_PRIMARY_NATIVE_SCOPE_SHA256: d4601d24d56d64b723eb6e61cd5b921c2c55c15ceab6d6a0e29badbe9f9f4cab
 jobs:
   inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        media_group: [0]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,22 +29,16 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Validate new declared photo inputs before bounded raw GETs
+      - name: Check new scope and dedup metadata before one exact official gallery GET
         env:
-          MEDIA_GROUP: '0'
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq python3-pil
-          python3 -m py_compile tools/direct_demand/operations/inspect-hotel-primary-images-20261105-batch56.py
-          python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261105-batch56.py
+          MEDIA_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-batch58.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: commercial-batch56-contact-0
+          name: commercial-batch58-primary-${{ matrix.media_group }}
           path: |
-            primary-image-inspection.json
-            contact.png
-            accepted-primary-raw
+            public-media-sources.json
+            public-media-sources-summary.json
           retention-days: 14
           if-no-files-found: warn

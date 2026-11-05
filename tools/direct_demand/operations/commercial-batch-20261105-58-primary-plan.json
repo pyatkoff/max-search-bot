@@ -1,0 +1,77 @@
+{
+  "operation": "commercial-batch-20261105-58-primary-preparation1",
+  "state": "ONE_NEW_DECLARED_OLD_PALACE_GALLERY_FROZEN_BEFORE_DEDUP_AND_OWNER_HTTP",
+  "goal": "Find a genuinely new exact owner gallery/press source with whole-main-complex property imagery for another retained unpublished hotel; avoid repeated closedpointerqueries.",
+  "bounds": {
+    "new_owner_groups": 1,
+    "max_owner_gets": 1,
+    "max_parallel": 1,
+    "new_actual_input_cases": 11,
+    "old_parser_fixtures": 0,
+    "server_calls": 0,
+    "provider_calls": 0,
+    "raw_photo_gets": 0,
+    "canva_transactions": 0,
+    "new_posts": 0
+  },
+  "finite_target_metadata": [
+    {
+      "hotel_id": 83563,
+      "name": "SERRY BEACH RESORT",
+      "retained_source_index": "commercial-stock-20261103-23-source-index.json",
+      "known_property_pointer": "https://www.theserry.com/beach-resort",
+      "property_constraint": "Familybeachresort, notseparate16+sister; noManarasuitelounge/shareddiningrights generalizedtoallrooms.",
+      "next_evidence": "OnlyNEWexactdeclaredpropertygallery/press/assetpointer. Do notrediscover/requestknownroot."
+    },
+    {
+      "hotel_id": 343,
+      "name": "OLD PALACE RESORT SAHL HASHESH",
+      "retained_source_index": "commercial-stock-20261103-23-source-index.json",
+      "known_property_pointer": null,
+      "property_constraint": "Currentexactprimaryfacts/photosrequired; no guessedownerhost/propertypath/nativecountry.",
+      "next_evidence": "Ifneeded onefiniteofficialproperty-gallery/presspointersearch; do notguessURL or useOTA/sharedbrandphotos asownerproof."
+    }
+  ],
+  "criteria": [
+    "GenuinelyNEWnormalpersistedpriceinputsfirst, thenproperNEWreview6native-product-publisherproof; nooldquotes/DBscopes/manualsourcepass.",
+    "Beforeanysearch/ownerHTTP compareknownclosedmetadata; exactreturnedprimarypropertymediaURL mustbefrozenbeforeGHA. ≤2propertygroups/≤2newdeclaredURLs each; no broadnotes/historyscan/rootrediscovery/wholebodyconsole.",
+    "Allsource≤57closed. Specific57SentidoofficialgalleryqueryandJAZowner-domainimagequeryclosed/unproductiveonlywithinboundedscope; noabsenceclaim orautomaticrepeat. 56JAZ2pooldetailsclosed/nothero; remainingOverview/Exteriornamesnotproofofdifferentwholecomplexframe.",
+    "Rawphotoexclusions291URLs/290decodedbasenames via56indexclosedarrays+bothnew_photos; futureexactURL+decodedbasename/variantguardbeforeanyGET andfinitecanonicalcontactmetadataexclusions.",
+    "Wholemaincomplexhero+2differentpropertyphotos/rights/currentexactnative-country-active-name/registry/facts/wholecaptionsmandatorybeforeCanva/publisher. MissingnativefieldsremainNULL/unverified, neverinvented0.",
+    "No403retry/alternatehost-path-query/headercookie/robotsbypass: Hilton102774root, Casa74258galleryclosed. 53knownroots254/4185/512andNile102031rootclosedGET0. No oldphoto/pixel/log/result/PNG/TX/case replay.",
+    "FreshCanvaTXonlyafteracceptedproof; originaldesignprotected/reusepool/EACHthumbnailSHOW/PNGguards/freezeTHENcancel. Ready1..10ONEexistingSERIAL/privateintent/once/UNKNOWNoriginalFIRST; do notholdreadyforhardcases.",
+    "OnlyNEWactualmaterialpair changes161 and permitsMAX162/3feed17/monitorappend. Source/search/preparationdoesnotcountasdelivery.",
+    "Executeonly supportedOldPalaceHTMLgallerynow; do notholditforSerryPDFmethod. BeforeoneGET dedup ALLcanonicalsourceindices/primaryplans andclosedvariants; oldURLskip0; redirect/403no retries/bypass.",
+    "AcceptedHTMLextractorfunctions unchanged; 11NEWactualscope negativecases only beforeHTTP. Rawtext/declaredrefs onlyauthartifact; safeconsoleSHA/count/status."
+  ],
+  "risks": [
+    "SearchcanreturnonlyOTA/brandaggregateorclosedroot; deferwithoutrequestingoldURL.",
+    "Photosmaystillbeonlypool/details/wrongproperty; neverlowerwholecomplexheroqualityorclaimrightsfromfilename."
+  ],
+  "selected_new_owner_url": {
+    "hotel_id": 343,
+    "url": "https://www.oldpalaceresort.com/en/gallery/",
+    "declared_url": "https://www.oldpalaceresort.com/en/gallery/",
+    "owner_host": "www.oldpalaceresort.com",
+    "identity_tokens": [
+      "old",
+      "palace",
+      "resort"
+    ],
+    "native_country_id": null,
+    "group": 0,
+    "discovery_query": "\"Old Palace Resort Sahl Hasheesh\" official gallery",
+    "discovery_title": "Gallery",
+    "discovery_proof": "public_primary_official_property_search_result"
+  },
+  "source_index_file": "commercial-batch-20261105-58-source-index.json",
+  "native_scope_file": "commercial-batch-20261105-58-native-scope.json",
+  "deferred_other_supported_pointer": {
+    "hotel_id": 83563,
+    "url": "https://theserry.com/pdf/new/Serry_Brochure.pdf",
+    "title": "Serry_Brochure.pdf",
+    "state": "SEARCH_DECLARED_OFFICIAL_OWNER_PDF_METADATA_ONLY_NOT_REQUESTED_OR_ACCEPTED",
+    "constraint": "Separate16+sister/propertyrights mustnotbeconflated; exactPDFnewness/currentbinding/contentnotverified. Do notguessPDFimages orrequestwwwvariant."
+  },
+  "publication_constraint": "Native343ID/name are retainedexactly; missingcountry/active/registry remainNULL/UNVERIFIED_NO_SEND. OwnerHTMLread cannotauthorizeCanva/publisher. CURRENTfullproof required beforefuturewrite."
+}

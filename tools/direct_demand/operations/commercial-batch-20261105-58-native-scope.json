@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-batch-20261105-58-primary-preparation1",
+  "state": "RETAINED_NATIVE_ID_NAME_OWNER_READ_ONLY_FULL_PUBLICATION_PROOF_UNVERIFIED",
+  "native_identities": [
+    {
+      "hotel_id": 343,
+      "name": "OLD PALACE RESORT SAHL HASHESH",
+      "country_id": null,
+      "is_active": null,
+      "registry_matches": {
+        "telegram": null,
+        "max": null
+      },
+      "publication_eligibility": "UNVERIFIED_NO_SEND",
+      "provenance": {
+        "inventory": "commercial-stock-20261105-51-inventory.json",
+        "inventory_ref": "4ae826a9d24f6666752dd3ac4df1ce33e5eade6f",
+        "exact_candidate_sha256": "d84c7a97e07449d942926fd6d6f418a4abe7a3039d3e9b50f8c21a91c051a7ec"
+      }
+    }
+  ]
+}
