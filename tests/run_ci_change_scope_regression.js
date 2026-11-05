@@ -585,6 +585,24 @@ async function verifyReleaseSlot() {
     return { options:{env,event,api,now:()=>time,sleep:async(ms)=>{time+=ms;}},
       calls, writes:()=>writes, time:()=>time };
   }
+  const tagged = copy(snapshot);
+  const taggedMonitor = tagged.workflow_runs.find(r=>r.path.endsWith('/modeled-conversion-monitor.yml'));
+  for(const run of tagged.workflow_runs.filter(r=>r.event==='workflow_run')) {
+    run.display_title=run.path.endsWith('/'+ACTIVATION.file)?'monitor-proof:v1:'+taggedMonitor.id+':1':'deploy-proof:v1:100:1';
+    run.name=run.display_title;
+  }
+  check(gateState(tagged,c),'ready','release slot: actual API exposes exact run title as name');
+  const wrongTitle=copy(tagged);wrongTitle.workflow_runs[2].display_title='deploy-proof:v1:999:1';
+  await rejects(()=>gateState(wrongTitle,c),'untrusted_run','matching name cannot hide foreign display title');
+  const wrongParent=copy(tagged);wrongParent.workflow_runs[2].name=wrongParent.workflow_runs[2].display_title='deploy-proof:v1:999:1';
+  await rejects(()=>gateState(wrongParent,c),'untrusted_run','foreign parent cannot masquerade as workflow name');
+  const wrongMonitor=copy(tagged);const act=wrongMonitor.workflow_runs.find(r=>r.path.endsWith('/'+ACTIVATION.file));
+  act.name=act.display_title='monitor-proof:v1:999:1';
+  await rejects(()=>gateState(wrongMonitor,c),'untrusted_run','activation requires exact monitor parent');
+  let taggedFixture=fixture(({path})=>path.includes('/actions/runs?')?copy(tagged):undefined);
+  check(await closeRelease(taggedFixture.options),'released','release slot: actual tagged API closes through complete normal path');
+  check(taggedFixture.writes(),1,'release slot: tagged API still writes only the bound publisher once');
+
   let f=fixture();
   check(await closeRelease(f.options),'released','release slot: successful original path closes');
   check(f.writes(),1,'release slot: exactly one update, no create/dispatch');
@@ -895,11 +913,13 @@ async function verifyReleaseRecovery() {
   const monitor=gateRuns.find(r=>r.path.endsWith('/modeled-conversion-monitor.yml'));
   for(const r of gateRuns.filter(r=>r.event==='workflow_run'))r.display_title=r.path.endsWith('/'+M.ACTIVATION.file)?
     'monitor-proof:v1:'+monitor.id+':1':'deploy-proof:v1:100:2';
-  const own={id:200,path:M.CLOSER,name:'Configure AnyTour modeled value goal',event:'workflow_run',
+  for(const run of gateRuns.filter(r=>r.event==='workflow_run'))run.name=run.display_title;
+  const own={id:200,path:M.CLOSER,name:'deploy-proof:v1:100:2',event:'workflow_run',
     display_title:'deploy-proof:v1:100:2',head_sha:source,head_branch:'main',head_repository:{full_name:repository},
     run_attempt:1,created_at:'2026-11-01T01:20:00Z',status:'in_progress',conclusion:null};
   const originals=gateRuns.filter(r=>r.event==='workflow_run').map(r=>({...copy(r),id:r.id+500,display_title:'deploy-proof:v1:100:1'}));
   originals.find(r=>r.path.endsWith('/'+M.ACTIVATION.file)).display_title='monitor-proof:v1:'+(monitor.id+500)+':1';
+  for(const run of originals)run.name=run.display_title;
   const allRuns={workflow_runs:[...gateRuns,own,...originals],total_count:gateRuns.length+1+originals.length};
   let saved=copy(record),writes=0;
   const closerApi=async(method,path,body)=>{
