@@ -1,0 +1,46 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten3-pass1",
+  "state": "EXECUTE_ONLY_EXACT_FROZEN10_NOQUOTE_PAIRS_WITH_FRESH_SOURCE_AND_SERIAL_ONCE",
+  "hotel_ids": [
+    383,
+    384,
+    441,
+    454,
+    456,
+    464,
+    488,
+    1963,
+    1983,
+    12111
+  ],
+  "prepared_run": 42017666944,
+  "prepared_artifact": 13410106930,
+  "context_run": 42017191827,
+  "context_artifact": 13408704366,
+  "context_source_sha": "b4a266482184b6c9edff7f0b4c005eddbde0c342",
+  "frozen_prepared_source": "b4a266482184b6c9edff7f0b4c005eddbde0c342",
+  "expected_source": "b4a266482184b6c9edff7f0b4c005eddbde0c342",
+  "scope_sha256": "1f2480694661553fc0de7e735d483dcf417970b0993ea84adb355561f4c8af50",
+  "template_sha256": "c0d2e63cdb6c6ba1a89b7c69d320d29aa39b3afe285504b810b5dc7133833af3",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": false,
+  "limits": {
+    "one_serial_run": true,
+    "max_hotels": 10,
+    "max_existing_post_content_edits": 20,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "automatic_retry": false
+  },
+  "criteria": [
+    "Exactfrozenmanifest/script/frameSHA+5keyapproval+originalcontextprovenance;alloperation-ownedconstantreferencesdeclared.",
+    "Freshsamecurrenthealthyproduction/deployTLSdiag/FULLremote21/accepted25hostpin/clean/runtime/native/schema-rights.",
+    "PrivateallhotelintentartifactBEFOREANYserver/provideraccess plusdurableperpostoncebeforewrite.",
+    "Wholecurrentcaptionclosingphotobuttonsourcetoken/85pricecheckmetadatapreserved/NOQUOTEseparatesearchlinkmetadata.",
+    "UNKNOWN/failurestopresolveoriginalfirst;nonewoperationIDreplay/automaticretry."
+  ],
+  "risks": [
+    "Currentpostorproductioncouldchangebeforewrite;guardstops.",
+    "Aneditmayapplywithfailedfinalread;originaloutcomeFIRST,no blindseriesretry."
+  ]
+}
