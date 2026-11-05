@@ -1,4 +1,4 @@
-name: Add next ten data-bound noquote hotel search links serially
+name: Bind ten current hotel contexts from an immutable finite noquote scope
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,12 +10,11 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: b4a266482184b6c9edff7f0b4c005eddbde0c342
-  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-context19-ten3-scope.json
-  EXPECTED_LINK_SCOPE_SHA256: 1f2480694661553fc0de7e735d483dcf417970b0993ea84adb355561f4c8af50
-  LINK_EXECUTION_PLAN_FILENAME: commercial-hotel-search-links-20261105-ten3-execution-source.json
+  EXPECTED_PRODUCTION_SHA: b051ce3969f23fe0e0358091684dac74fa511a32
+  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-context20-ten4-scope.json
+  EXPECTED_LINK_SCOPE_SHA256: a240d038ab8ec895922c4db82682594a9d0dfcacd443c8aff75c0fb185cb09a5
 jobs:
-  update:
+  inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -37,9 +36,9 @@ jobs:
           evidence="$RUNNER_TEMP/commercial-source-evidence"
           mkdir -p "$evidence"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42016045552 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/42016045552/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42016848258 > "$evidence/tls_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42021860052 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42021860052/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42022673994 > "$evidence/tls_run.json"
           gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
@@ -50,7 +49,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42016848326 > "$RUNNER_TEMP/current-diagnostics-run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42022674067 > "$RUNNER_TEMP/current-diagnostics-run.json"
           python3 - <<'PY'
           import json,os,pathlib
           d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'current-diagnostics-run.json').read_text())
@@ -58,28 +57,21 @@ jobs:
           assert d['status']=='completed' and d['conclusion']=='success'
           print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
           PY
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-hotel-search-links-20261105-ten3-prepared1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 42017666944
-          path: ${{ runner.temp }}/prepared-links
-      - name: Bind exact frozen approved scripts and syntax without repeating closed native cases
+      - name: Prepare immutable finite input and complete declarations before new native cases
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/bind-hotel-search-links-explicit-noquote-20261105-data-bound.py tools/direct_demand/operations/run-hotel-search-links-explicit-noquote-20261105-data-bound.py
-          python3 tools/direct_demand/operations/bind-hotel-search-links-explicit-noquote-20261105-data-bound.py
-      - name: Retain private execution intents before any server or provider access
+          python3 -m py_compile tools/direct_demand/operations/prepare-hotel-search-links-current-contexts-20261105-data-bound.py tools/direct_demand/operations/run-hotel-search-links-current-contexts-20261105-data-bound.py
+          python3 tools/direct_demand/operations/prepare-hotel-search-links-current-contexts-20261105-data-bound.py
+          php -l "$RUNNER_TEMP/link-context.php"
+          ANYTOUR_CURRENT_LINK_CONTEXT_NEW_INPUT_CASES=1 php "$RUNNER_TEMP/link-context.php"
+      - name: Retain private finite input before any owned provider read
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-ten3-execution1-intent
-          path: |
-            ${{ runner.temp }}/all-link-execution-intents.private.json
-            ${{ runner.temp }}/link-execution-binding-safe.json
+          name: commercial-hotel-search-links-20261105-context20-ten4-input
+          path: ${{ runner.temp }}/link-context-input.private.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -120,7 +112,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Update only ten original noquote hotel pairs with serial durable once guards
+      - name: Bind only finite new current captions photos buttons sources and tokens
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -128,21 +120,19 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-hotel-search-links-explicit-noquote-20261105-data-bound.py
-      - name: Retain original private outcomes and safe exact summary
+          python3 tools/direct_demand/operations/run-hotel-search-links-current-contexts-20261105-data-bound.py
+      - name: Retain original private contexts and safe summary
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-ten3-execution1
+          name: commercial-hotel-search-links-20261105-context20-ten4
           path: |
-            ${{ runner.temp }}/prepared-links
-            ${{ runner.temp }}/all-link-execution-intents.private.json
-            ${{ runner.temp }}/link-execution-binding-safe.json
-            ${{ runner.temp }}/link-execution-summary.json
-            ${{ runner.temp }}/link-execution-complete-safe.json
+            ${{ runner.temp }}/link-context-input.private.json
+            ${{ runner.temp }}/link-context-readback.private.json
+            ${{ runner.temp }}/link-context-summary.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection and execution scripts
+      - name: Remove ephemeral connection and read scripts
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/current-diagnostics-run.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/link-context.php" "$RUNNER_TEMP/current-diagnostics-run.json"

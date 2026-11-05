@@ -1,0 +1,65 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context20-ten4",
+  "state": "ONE_NEW_FINITE_CURRENT_CONTEXT_PASS_DATA_ONLY_USING_ACCEPTED_HELPERS",
+  "goal": "Bind10still-unlinkedunpricedpublishedhotels to exactcurrentcontext beforeNOQUOTEsearchlinks.",
+  "native_hotel_ids": [
+    12116,
+    12117,
+    12119,
+    13872,
+    21475,
+    56091,
+    56092,
+    60589,
+    64895,
+    66150
+  ],
+  "expected_base": {
+    "published": 161,
+    "priced": 85,
+    "linked": 90
+  },
+  "expected_installed_sha": "b051ce3969f23fe0e0358091684dac74fa511a32",
+  "scope_sha256": "a240d038ab8ec895922c4db82682594a9d0dfcacd443c8aff75c0fb185cb09a5",
+  "bounds": {
+    "max_owned_MAX_reads": 10,
+    "max_channel_rights_checks": 2,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "gateway_quotes": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "old90_linked_posts_read": 0
+  },
+  "criteria": [
+    "Retainednativebindingsfromcanonicalnextplan;currentnative-country-active-name+typedpublisherrole;notoldcataloguegroupquery.",
+    "Acceptedunchangeddata-boundhelpers/scopeSHA/exactcurrentoriginalorlatestconfirmedcopyreceipt/version/photo/button/source/token;deferambiguity.",
+    "3NEWactualnative/name/NOQUOTEinputcases+2generatedheaderdeclarationcases BEFORESSH/oldfixtures0;allAPPROVEDconstantsdeclared/consistentnamespace.",
+    "FreshcurrentSAMEhealthydeployverifyTLSdiag/FULLremote21/hostaccepted25/clean/runtime/schema-rights.",
+    "No price/availabilityclaims/NOQUOTE/no fakequoteSHA-epoch-index-amount/all85pricesuntouched;currentcaptionspreserved."
+  ],
+  "risks": [
+    "Source/identity/currentpostcanchange;stopordeferwithoutoldreadreplay.",
+    "Helperoriginal-publisher-onlyrolecannotshortcutcurrentpricedorownedupdatedcaptions."
+  ],
+  "unchanged_helpers": {
+    "reader_sha256": "b662a2263f5d7f4be0417918fdce498b0d5db46a2c3eab75ca8b5bbc8c29a7d5",
+    "updater_sha256": "c0d2e63cdb6c6ba1a89b7c69d320d29aa39b3afe285504b810b5dc7133833af3"
+  },
+  "source_transition": {
+    "from": "b4a266482184b6c9edff7f0b4c005eddbde0c342",
+    "to": "b051ce3969f23fe0e0358091684dac74fa511a32",
+    "commits": 2,
+    "files": [
+      "tests/run_ci_change_scope_regression.js",
+      "tools/release_slot_close.js"
+    ],
+    "publishing21_unchanged": true,
+    "deploy": 42021860052,
+    "verify_job": 127228670418,
+    "deploy_job": 127227696546,
+    "tls": 42022673994,
+    "diagnostics": 42022674067,
+    "no_our_foreign_mutations": true
+  }
+}

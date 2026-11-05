@@ -1,0 +1,52 @@
+{
+  "operation": "commercial-price-monitor-20261105-rollout8-metadata16",
+  "state": "CLOSED_NEW_BOUNDED_SCHEDULED_METADATA_ONLY",
+  "created_after": "2026-11-05T11:00:55Z",
+  "exclusive_lower_query_start": "2026-11-05T11:00:56Z",
+  "upper_utc": "2026-11-05T11:47:39Z",
+  "checked_at_utc": "2026-11-05 11:47:39 UTC",
+  "total_count": 3,
+  "returned": 3,
+  "runs": [
+    {
+      "id": 42019360076,
+      "name": "Enforce SEO hotel review route lock",
+      "path": ".github/workflows/materialize-seo-core-hotel-review.yml",
+      "created_at": "2026-11-05T11:29:24Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42018979805,
+      "name": "Check AnyTour collection coverage",
+      "path": ".github/workflows/check-anytour-collection-coverage.yml",
+      "created_at": "2026-11-05T11:26:30Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 42018910106,
+      "name": "Collect AnyTour hotel details",
+      "path": ".github/workflows/collect-hotel-details.yml",
+      "created_at": "2026-11-05T11:25:58Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "db_calls": 0,
+  "provider_calls": 0,
+  "old_logs_read": 0,
+  "do_not_repeat_same_window": true,
+  "new_normal_collectors": 0,
+  "new_metadata_workflow_sources_reviewed_only": [
+    ".github/workflows/collect-hotel-details.yml",
+    ".github/workflows/check-anytour-collection-coverage.yml"
+  ],
+  "details_route_declared": "/hotels/{hotelId}",
+  "coverage_declares_readonly_statistics": true,
+  "no_new_admitted_tour_price_tuple_proven": true,
+  "other_workflow_logs_read": 0
+}
