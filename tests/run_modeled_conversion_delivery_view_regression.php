@@ -119,5 +119,28 @@ foreach(['admin'=>200,'admin_previous_day'=>200,'manager'=>403,'inactive'=>401,'
     else $check(!str_contains($body,'Синтетический турист: проверка доступа')&&!str_contains($body,'1 250 ₽'),'denied endpoint returns no private rows: '.$case);
 }
 
+
+$check(str_contains($html,'view=reconciliation')&&str_contains($html,'view=forecast-payments'),'closed ledger links to daily reconciliation and forecast-payment views');
+foreach(['reconciliation','forecast-payments']as$analyticsView){
+    foreach(['admin'=>200,'admin_previous_day'=>200,'manager'=>403,'inactive'=>401,'no_project'=>403,'foreign'=>404,
+        'post'=>405,'parameters'=>422,'session_changed'=>401,'anonymous'=>401]as$case=>$expected){
+        $process=proc_open([PHP_BINARY,__DIR__.'/fixtures/modeled_delivery_route.php',$case,$analyticsView],
+            [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,dirname(__DIR__));
+        if(!is_resource($process))throw new RuntimeException('analytics_route_fixture_process');
+        fclose($pipes[0]);$body=stream_get_contents($pipes[1]);$errors=stream_get_contents($pipes[2]);
+        fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($process);
+        $matched=is_string($body)&&preg_match('/\\nMDR-RESULT:(\\{[^\\n]+\\})\\n/',$body,$match)===1;
+        $result=$matched?json_decode($match[1],true):null;
+        $check($exit===0&&$matched&&($result['status']??null)===$expected
+            &&($result['unchanged']??false)===true&&$errors==='','new private GET route: '.$analyticsView.' / '.$case);
+        if(in_array($case,['admin','admin_previous_day'],true)){
+            $check(str_contains($body,'Закрытый просмотр')&&str_contains($body,'method="get"'),'new owner view is composed by its real read-only endpoint: '.$analyticsView.' / '.$case);
+            if($analyticsView==='forecast-payments')
+                $check(str_contains($body,'Синтетический турист: проверка доступа')&&str_contains($body,'оценка v1')
+                    &&!str_contains($body,'Сопоставление сейчас недоступно'),'real owner route renders an admitted saved early forecast: '.$case);
+        }else $check(!str_contains($body,'1 250 ₽')&&!str_contains($body,'Синтетический турист: проверка доступа'),'new denied owner view releases no fixture records: '.$analyticsView.' / '.$case);
+    }
+}
+
 if($failures){fwrite(STDERR,implode(PHP_EOL,$failures).PHP_EOL);exit(1);}
 echo 'modeled delivery view: '.$checks.' checks passed'.PHP_EOL;
