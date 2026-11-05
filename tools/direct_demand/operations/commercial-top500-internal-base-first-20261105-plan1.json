@@ -1,0 +1,51 @@
+{
+  "operation": "commercial-top500-internal-base-first-20261105-plan1",
+  "state": "OWNER_STEERING_ACCEPTED_CANONICAL_TOP500_SOURCE_NOT_YET_VERIFIED_INTERNAL_DATA_FIRST",
+  "owner_instruction": "Useraskedwhetherhotelsarefromourtоp500andnotedprices/photosshouldalreadybeinthebase. Prioritizecanonicalinternalmembershipandretaineddata beforeexternalresearch.",
+  "goal": "IdentifytheexactcurrentownerTOP500listandjoinitusingproventypedhotelidentitiestosavedphotos,pricesandpublicationregistry. Useexistinginternalmaterialfirst; externalownerresearchonlyforprovenmissingfields.",
+  "current_facts_preserved": {
+    "published_pairs_total": 161,
+    "prices_in_both": 85,
+    "links_in_both": 155,
+    "top500_membership_of_working_stock": "NOT_VERIFIED",
+    "published_pairs_verified_as_top500": "UNKNOWN_NOT_INFERRED_FROM161",
+    "new_posts_this_action": 0,
+    "new_prices_this_action": 0,
+    "new_links_this_action": 0
+  },
+  "stage1_completed": {
+    "read_only_code_discovery": true,
+    "source_revision": "d2505db57af06246f1b9b28d9aefc5bd2f44c2d0",
+    "internal_photo_reader": "services/Search3TourHandoffPhoto.php",
+    "photo_reader_contract": "Existingcontent-onlylocalTVcrosswalkreturnsprimaryImage/imagesandusesexistingprivatebytecache. oldLocalId/tourvisorHotelId/sourceUIidarenotinterchangeablewithAnyTourpublisher/nativeIDs.",
+    "hotel_research_reader": "services/ManagerHotelKnowledge.php",
+    "research_reader_limit": "Admittedhotel-referencefactsareseparatefromtheTOP500membershiplistandhaveprice_authority:none; donotmistakethisonebundleforwhole500base.",
+    "retained_offer_reader_evidence": "Connectedread_tour_candidatesreadsretainedSearch3candidatesonlyforcompleteexplicitrequestconditions; notinvoked/noinventeddates-party."
+  },
+  "bounds": {
+    "external_owner_http": 0,
+    "raw_photo_gets": 0,
+    "server_or_db_calls_this_stage": 0,
+    "provider_or_supplier_calls": 0,
+    "quotes": 0,
+    "post_edits": 0,
+    "new_posts": 0,
+    "new_work_queues_or_agents": 0,
+    "other_automations": 0
+  },
+  "criteria": [
+    "RecoverexactcanonicalTOP500membershipsource/currentrevisionandfielddefinitionsbeforeclaimingworkingstockbelongs. No assumptionthat25+62stockor674monitor equalsTOP500.",
+    "UseraskedonceforlinktotheTOP500sectionbecausenocanonical500listsourcewasestablishedfromconnectedcode. Questionpending; do notrepeatit. Continueonlyindependentreadonlydiscoverywhilewaiting; no broadprivatehistory/indexscan.",
+    "Aftercanonicalsourceproof planonefinite≤10relatedhotelmetadataread: exacttypedTOP500record→localTV/native/provider/publishermapping, savedphotos/source/reuseproof, savedpricecheckedtime/party/date/nights/room/meal/basketstatus andcurrentregistry. No guessedidentity/country/joinbynamealone.",
+    "Useexistinginternalphotosandpricesfirst. Pricefreshness72huserpolicy/realbasketrequirementsunchanged; no claimcurrentavailabilityfromstoredrow. GenuinelyNEWpersistedtuplesonly/nooldquote/2ndtuple/manual7refresh orpaidretry.",
+    "BeforeANYfutureproductionserver/DB/provideraction: freshcurrentmain+samehealthyDeployTLSdiag/FULLREMOTE21/hostaccepted25BYTEIDENTICAL/clean/runtime/native/schema-rights/UNKNOWNoriginalFIRST/privateintent. ExistingSSH/GHAroleandoriginaloperationsonly; nousersteeringwaiver.",
+    "Alloldproviderreads/results/quotes/cases/photos/pixels/PNG/TX remainclosed. Currentphotoexclusions293URLs292basenames; internalbaseisnotpermissiontoreinspectoldbadframesorfetchtokenizedFirebase. Usepropercurrentproof/authorizedretainedassets, neverinventPNG/publisherNULLness.",
+    "Wholemaincomplexhero+2differentpropertyphotos/rights/nativebinding/facts/wholecaptions unchanged. Internalrecordexistencealoneisnotreadycredit; noAIstock/qualitylowering.",
+    "Onlyprovenmissinginternalfieldspermitfiniteexternalpropertyresearch. SerryPDF59currentlyNOTEXECUTEDanddeferreduntilinternalcoveragegapisproved; typeddeclared-not-requestedmetadata-rulepreserved.",
+    "Nochangesalreadyinstalledgreeting/miniapps/feed161/MAX161/monitor674. OnlyactualNEWpairpermitsMAX/feed/monitorappend. Onlyownanytour-max15minACTIVE;500NOTcomplete/no delete."
+  ],
+  "risks": [
+    "UserTOP500mayuseadifferentIDnamespacefromretainednativeworkingstock; mistakingIDs couldselectwronghotel.",
+    "Internalphotos/pricesmayexistbutcoverageandpriceagearenotyetchecked; do notclaimall500readyorabsencewhenlookupmissing."
+  ]
+}
