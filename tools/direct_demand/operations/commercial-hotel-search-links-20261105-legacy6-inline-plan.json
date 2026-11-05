@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-legacy6-inline-pass1",
+  "state": "PREPARE_EXPLICIT_LEGACY_NULL_AND_TYPED_NATIVE_INLINE_LINKS_NO_PROVIDER",
+  "goal": "Freeze six new legacy inlineprice links with explicit copyNULL/typed/direct native proof, preserving text/nativeentities and exact oldpriceSHA/checktime.",
+  "hotel_ids": [
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "context_run": 42097711121,
+  "context_artifact": 13448197405,
+  "context_source_sha": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+  "expected_source": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+  "bounds": {
+    "max_hotels": 6,
+    "max_future_existing_content_edits": 12,
+    "server_db_provider_calls": 0,
+    "new_posts": 0,
+    "new_prices": 0,
+    "quotes": 0
+  },
+  "criteria": [
+    "Fork only legacyrole guards from accepted inline template; explicit NULL keys and originaloriginframe/source/capture/photos must match declared rolemap and newcanonical currentprice frame. No blanketIDbypass/inventPNG.",
+    "15NEW native casegroups +8NEW Python cases perNEW readyhotel, oldfixtures0; currentcontext81+projection36 remainclosed/notrerun.",
+    "PreservewholeCURRENTtext byte-identical/nativeentities/photo/button/source/token/versions/amount+EXACToldprice metadata. Uniquepriceanchor/bothnativeentityreadbacks; unsupportedformat defer.",
+    "FreezeALLPHPbytes/frame/manifest/exact5keyapproval/intents; ALLrefsdeclaredbeforelaterSSH; laterONEserialonce/privateintent/freshfull21/host25/native/schema required."
+  ],
+  "risks": [
+    "Unsupported owner formatting may defer, neverflatten. No write occurs in pure preparation."
+  ],
+  "template_filename": "update-legacy-priced-hotel-inline-price-search-link-20261105.php",
+  "template_sha256": "9b3d2964f4970948f174cb44e1412faabc856c8f33dfb35643f6d7c04fec2975",
+  "scope_filename": "commercial-hotel-search-links-20261105-legacy6-inline-scope.json",
+  "scope_sha256": "c3cd22b1b1d7dd754e177659fbbdbf278e9ee0c4f01e2d3ca57395ff1414ed45"
+}
