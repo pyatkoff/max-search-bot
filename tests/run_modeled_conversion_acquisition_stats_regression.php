@@ -201,6 +201,86 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     foreach([['date'=>'2026-02-30'],['date'=>'2026-11-05'],['period'=>8],['period'=>'30'],['platform'=>'other']]as$invalid){
         $rejected=false;try{$read($invalid);}catch(InvalidArgumentException $e){$rejected=true;}$check($rejected,'invalid filter remains rejected '.json_encode($invalid));
     }
+    // Candidate capsule shape failures keep the same eligibility and diagnostic
+    // counters. JSON null is a retained value, not a missing path or an array.
+    $capsuleShapes=['missing_evidence','null_evidence','missing_sources','null_sources','missing_events','null_events'];
+    if($mysql)$capsuleShapes=[...$capsuleShapes,'scalar_evidence','scalar_sources','scalar_events'];
+    foreach($capsuleShapes as$shape){
+        $reset();$person(10,'max');
+        $packet(10,'max',10,[['at'=>$now-3600]],$now-60,static function(array &$p)use($shape):void{
+            if($shape==='missing_evidence')unset($p['profile']['observation_input']['evidence']);
+            if($shape==='null_evidence')$p['profile']['observation_input']['evidence']=null;
+            if($shape==='scalar_evidence')$p['profile']['observation_input']['evidence']='not_an_array';
+            if($shape==='missing_sources')unset($p['source_references']);
+            if($shape==='null_sources')$p['source_references']=null;
+            if($shape==='scalar_sources')$p['source_references']='not_an_array';
+            if($shape==='missing_events')unset($p['contextual_signals']['events']);
+            if($shape==='null_events')$p['contextual_signals']['events']=null;
+            if($shape==='scalar_events')$p['contextual_signals']['events']='not_an_array';
+        });
+        $join(10,$now-7200,$now-30);$r=$read();
+        $hasTarget=!str_ends_with($shape,'events');
+        $check($r['available']&&$m($r)['inquiries']===0&&$r['sources']['profiles_examined']===1
+            &&$r['sources']['unusable_semantic_candidates']===($hasTarget?1:0)
+            &&$r['sources']['missing_clock']===0&&$r['sources']['revised_sources']===0
+            &&!$pdo->inTransaction(),'missing/null/nonarray capsule input preserves rejection counters: '.$shape);
+    }
+
+    // Packing the saved source may not coerce its clock type, shift a missing
+    // middle slot, or hide an already known source revision behind missing data.
+    foreach(['missing_snapshot_direction','string_snapshot_clock','revised_missing_snapshot']as$shape){
+        $reset();$person(10,'max');
+        $packet(10,'max',10,[['at'=>$now-3600,'version'=>$shape==='revised_missing_snapshot'?2:1]],$now-60);
+        $join(10,$now-7200,$now-30);
+        $saved=$pdo->query('SELECT id,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id LIMIT 1')->fetch(PDO::FETCH_ASSOC);
+        $snapshot=json_decode((string)$saved['snapshot_json'],true,512,JSON_THROW_ON_ERROR);
+        if($shape==='string_snapshot_clock')$snapshot['source_created_at_unix']=(string)$snapshot['source_created_at_unix'];
+        else unset($snapshot['payload']['direction']);
+        $exec('UPDATE modeled_conversion_stream_versions SET snapshot_json=? WHERE id=?',[$json($snapshot),$saved['id']]);
+        $r=$read();$revised=$shape==='revised_missing_snapshot';
+        $check($r['available']&&$m($r)['inquiries']===0&&$r['sources']['unusable_semantic_candidates']===0
+            &&$r['sources']['revised_sources']===($revised?1:0)&&$r['sources']['missing_clock']===($revised?0:1)
+            &&!$pdo->inTransaction(),'saved scalar capsule preserves strict types and revision/clock rejection precedence: '.$shape);
+    }
+
+    // JSON_TABLE JSON columns must retain the original JSON type. Required
+    // identity metadata never becomes a string through SQL column coercion.
+    foreach(['null'=>null,'number'=>17,'boolean'=>true,'array'=>['max']]as$type=>$value){
+        $reset();$person(10,'max');
+        $packet(10,'max',10,[['at'=>$now-3600]],$now-60,static function(array &$p)use($value):void{
+            $p['profile']['observation_input']['subject']['platform']=$value;
+        });
+        $join(10,$now-7200,$now-30);$r=$read();
+        $check($r['available']&&$m($r)['inquiries']===0&&$r['sources']['profiles_examined']===1
+            &&$r['sources']['profiles_without_usable_packet']===1
+            &&$r['sources']['unusable_semantic_candidates']===0,
+            'required raw metadata type is not coerced by projection: '.$type);
+    }
+    $optionalShapes=['missing_limited','null_limited','array_limited','missing_events','null_events'];
+    if($mysql)$optionalShapes[]='string_true_limited';
+    foreach($optionalShapes as$shape){
+        $reset();$person(10,'max');
+        $packet(10,'max',10,[['at'=>$now-3600]],$now-60,static function(array &$p)use($shape):void{
+            if($shape==='missing_limited')unset($p['coverage']['window_limited']);
+            if($shape==='null_limited')$p['coverage']['window_limited']=null;
+            if($shape==='array_limited')$p['coverage']['window_limited']=[true];
+            if($shape==='string_true_limited')$p['coverage']['window_limited']='true';
+            if($shape==='missing_events')unset($p['contextual_signals']['events']);
+            if($shape==='null_events')$p['contextual_signals']['events']=null;
+        });
+        $join(10,$now-7200,$now-30);$r=$read();$hasGoal=!str_ends_with($shape,'events');
+        $check($r['available']&&$r['sources']['profiles_examined']===1
+            &&$r['sources']['profiles_without_usable_packet']===0
+            &&$m($r)['inquiries']===($hasGoal?1:0)&&$m($r)['valid_pairs']===($hasGoal?1:0)
+            &&$r['sources']['limited_profile_windows']===($shape==='string_true_limited'?1:0),
+            'optional metadata absence/null/type preserves packet admission and goal search: '.$shape);
+    }
+    $reset();$person(10,'max');$tooManyGoals=[];
+    for($i=0;$i<51;$i++)$tooManyGoals[]=['at'=>$now-3600+$i];
+    $packet(10,'max',10,$tooManyGoals,$now-60);$join(10,$now-7200,$now-30);$r=$read();
+    $check(!$r['available']&&$r['reason']==='source_shape_limit'&&$r['platforms']===null&&!$pdo->inTransaction(),
+        'raw events array keeps all goal indices and enforces the existing fifty-target shape limit');
+
     // The live failure was below the work cap: latest allowed JSON was revisited
     // for every historical version. Build a real-shaped service-only history and
     // one latest 50-message packet, rather than testing only the >50k early exit.
@@ -289,6 +369,61 @@ function modeledAcquisitionAssertions(PDO $pdo):int
         &&$m($r)['valid_pairs']+array_sum($m($r)['excluded'])===250,'one admission handles 250 diverse large latest scopes and all historical versions');
     $check($scaleDigest()===$diverseBefore&&!$pdo->inTransaction()
         &&!str_contains(json_encode($r),'SYNTHETIC_PRIVATE_TEXT'),'diverse full-history read preserves rows and returns no private body');
+
+    if($mysql){
+        // Real MEDIUMTEXT profiles can carry irrelevant large private sections.
+        // Fifty substantive targets per profile must not copy the whole document
+        // through every target/ref/search materialization. SQLite stays unchanged.
+        $reset();$pdo->beginTransaction();$minimumWideBytes=PHP_INT_MAX;
+        $wideMarker='SYNTHETIC_IRRELEVANT_PRIVATE_PADDING_NOT_PROJECTED_';
+        $widePadding=$wideMarker.str_repeat('w',2*1024*1024);
+        for($offset=0;$offset<16;$offset++){
+            $customer=700+$offset;$person($customer,'max');$moments=[];
+            for($i=0;$i<50;$i++)$moments[]=['at'=>$now-7200+$offset+$i];
+            $wideProfile=$packet($customer,'max',$customer,$moments,$now-60,
+                static function(array &$p)use($widePadding):void{$p['unrelated_private_padding']=$widePadding;});
+            $minimumWideBytes=min($minimumWideBytes,strlen($json($wideProfile)));
+            $join($customer,$now-10800+$offset,$now-30);
+        }
+        $pdo->commit();unset($wideProfile,$widePadding);
+        $wideBefore=$scaleDigest();$wideStarted=microtime(true);$r=$read(['period'=>7]);
+        $wideElapsed=(int)round((microtime(true)-$wideStarted)*1000);
+        echo 'ACQUISITION_COMPACT_CAPSULE_FIXTURE_TECHNICAL '.json_encode([
+            'available'=>$r['available'],'reason'=>$r['reason'],'profiles_examined'=>$r['sources']['profiles_examined'],
+            'query_count'=>$r['query_count'],'elapsed_ms'=>$wideElapsed,'smallest_profile_bytes'=>$minimumWideBytes
+        ],JSON_THROW_ON_ERROR).PHP_EOL;
+        $check($r['available']&&$minimumWideBytes>2*1024*1024&&$r['sources']['profiles_examined']===16
+            &&$m($r)['inquiries']===16&&$m($r)['valid_pairs']===16&&$m($r)['median_seconds']===3600
+            &&$m($r)['p90_seconds']===3600&&array_sum($m($r)['bins'])===16
+            &&$m($r)['valid_pairs']+array_sum($m($r)['excluded'])===16
+            &&$wideElapsed<=5000,
+            'wide native profiles and repeated semantic targets preserve exact pairs inside the unchanged read budget');
+        $check($scaleDigest()===$wideBefore&&!$pdo->inTransaction()
+            &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),$wideMarker)
+            &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'SYNTHETIC_PRIVATE_TEXT'),
+            'wide native candidate read preserves all source rows and returns no irrelevant private sections');
+    }
+
+    // Metadata pages must retain malformed rows rather than shorten a 128-row
+    // page and hide a later valid first inquiry. None of these clocks is private.
+    $reset();$person(40,'max');$pdo->beginTransaction();
+    for($i=0;$i<130;$i++){
+        $packet(40,'max',40,[['at'=>$now-10000+$i,'goal'=>$i===129?'substantive_interest':'office_question']],$now-8000+$i,
+            static function(array &$p)use($i):void{
+                if($i===10)$p['profile']['observation_input']['subject']['platform']=null;
+                if($i===64)$p['profile']['observation_input']['subject']['platform']=['max'];
+                if($i===127)$p['profile']['observation_input']['subject']['platform']=17;
+            });
+        if($i===70)$exec('UPDATE modeled_conversion_profile_versions SET profile_json=? WHERE id=?',['null',$profileId]);
+    }
+    $join(40,$now-10000+129-3600,$now-30);$pdo->commit();
+    $boundaryBefore=$scaleDigest();$r=$read(['period'=>7]);
+    $check($r['available']&&$r['sources']['profiles_examined']===130
+        &&$r['sources']['profiles_without_usable_packet']===4&&$m($r)['inquiries']===1
+        &&$m($r)['valid_pairs']===1&&$m($r)['median_seconds']===3600,
+        'raw scalar metadata keeps malformed middle packets and reaches the first inquiry beyond page 128');
+    $check($scaleDigest()===$boundaryBefore&&!$pdo->inTransaction(),
+        'metadata page-boundary scan preserves all fixture sources and closes its read transaction');
 
     // Sixty-five conversations force a person's histories across a 64-scope
     // boundary regardless of ordering. They share the one canonical channel row.

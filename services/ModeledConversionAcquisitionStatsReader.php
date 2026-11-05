@@ -9,8 +9,9 @@ final class ModeledConversionAcquisitionStatsReader
     public const RULE_VERSION='saved_substantive_interest_v1';
     public const MAX_RECORDS=50000;
     public const MAX_BYTES=8388608;
-    public const MAX_SECONDS=5;
+    public const MAX_SECONDS=15;
     private bool $mysql;
+    private bool $jsonTable=false;
     private $authorize;
     private float $deadline;
     private int $records=0,$bytes=0,$queries=0;
@@ -21,6 +22,14 @@ final class ModeledConversionAcquisitionStatsReader
         $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if(!in_array($driver,['mysql','sqlite'],true))throw new InvalidArgumentException('acquisition_driver');
         $this->mysql=$driver==='mysql';$this->authorize=$authorize;
+        if($this->mysql){
+            try{
+                $version=(string)$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+                $this->jsonTable=stripos($version,'mariadb')===false
+                    &&preg_match('/\A([0-9]+\.[0-9]+\.[0-9]+)/',$version,$parts)===1
+                    &&version_compare($parts[1],'8.0.21','>=');
+            }catch(Throwable $ignored){$this->jsonTable=false;}
+        }
     }
     public function read(array $input,int $now):array
     {
@@ -103,20 +112,48 @@ final class ModeledConversionAcquisitionStatsReader
                         'cutoff'=>'$.contextual_signals.input_cutoff_at','input_prediction'=>'$.profile.observation_input.prediction_at',
                         'context_prediction'=>'$.contextual_signals.prediction_at','fence'=>'$.source_fence_journal_id'];
                     // Select cheap IDs first; JSON work cannot move before this bounded page.
-                    $selected='SELECT p.id '.$this->profileFrom(false).' WHERE '.$where.' AND p.id>? ORDER BY p.id LIMIT 128';
+                    $selected='SELECT p.id '.$this->profileFrom(false,true).' WHERE '.$where.' AND p.id>? ORDER BY p.id LIMIT 128';
                     $pageFrom=' FROM ('.$selected.') selected_page JOIN modeled_conversion_profile_versions p ON p.id=selected_page.id';
                     if($this->mysql){
                         // Parse the large historical document once for these fixed, mandatory paths.
                         // A second LIMIT prevents derived merging from repeating the parse per field.
-                        $packed=[...$native,'JSON_EXTRACT('.$doc.','.implode(',',array_map(fn(string $path):string=>$this->lit($path),array_values($paths))).') AS metadata_values',
-                            $this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited',
-                            $this->interestPaths($doc).' AS interest_paths'];
-                        $bounded='SELECT '.implode(',',$packed).$pageFrom.' ORDER BY p.id LIMIT 128';
+                        if($this->jsonTable){
+                            // JSON-typed columns keep strings/numbers/arrays/objects,
+                            // rather than coercing metadata through VARCHAR/INTEGER.
+                            // LEFT JOIN at root '$' preserves one row even for a null/invalid packet.
+                            $columns=[];$raw=[];$index=0;
+                            foreach($paths as$alias=>$path){
+                                $column='j'.$index++;$raw[]='jt.'.$column.' AS '.$alias.'_raw';
+                                $columns[]=$column.' JSON PATH '.$this->lit($path).' NULL ON EMPTY NULL ON ERROR';
+                            }
+                            $columns[]='limited_value JSON PATH '.$this->lit('$.coverage.window_limited').' NULL ON EMPTY NULL ON ERROR';
+                            $columns[]='events_value JSON PATH '.$this->lit('$.contextual_signals.events').' NULL ON EMPTY NULL ON ERROR';
+                            $events="JSON_OBJECT('contextual_signals',JSON_OBJECT('events',jt.events_value))";
+                            $packed=[...$native,...$raw,
+                                $this->boolean('jt.limited_value',$this->lit('$')).' AS limited',
+                                $this->interestPaths($events).' AS interest_paths'];
+                            $bounded='SELECT '.implode(',',$packed).$pageFrom
+                                .' LEFT JOIN JSON_TABLE('.$doc.','.$this->lit('$').' COLUMNS ('.implode(',',$columns).')) jt ON TRUE'
+                                .' ORDER BY p.id LIMIT 128';
+                        }else{
+                            $packed=[...$native,'JSON_EXTRACT('.$doc.','.implode(',',array_map(fn(string $path):string=>$this->lit($path),array_values($paths))).') AS metadata_values',
+                                $this->boolean($doc,$this->lit('$.coverage.window_limited')).' AS limited',
+                                $this->interestPaths($doc).' AS interest_paths'];
+                            $bounded='SELECT '.implode(',',$packed).$pageFrom.' ORDER BY p.id LIMIT 128';
+                        }
                         // Multi-path extraction omits absent paths. Every one is already mandatory
                         // in validPacket: reject the entire short array rather than shift identities.
-                        $small="CASE WHEN JSON_TYPE(p.metadata_values)='ARRAY' AND JSON_LENGTH(p.metadata_values)=15 THEN p.metadata_values ELSE '{}' END";
-                        $fields=$native;$index=0;
-                        foreach($paths as$alias=>$unused)$fields[]=$this->str($small,$this->lit('$['.$index++.']')).' AS '.$alias;
+                        $fields=$native;
+                        if($this->jsonTable){
+                            foreach($paths as$alias=>$unused){
+                                $raw='p.'.$alias.'_raw';$unquoted='JSON_UNQUOTE('.$raw.')';
+                                $fields[]="CASE WHEN JSON_TYPE($raw)='STRING' AND LENGTH($unquoted)<=128 THEN $unquoted ELSE NULL END AS $alias";
+                            }
+                        }else{
+                            $small="CASE WHEN JSON_TYPE(p.metadata_values)='ARRAY' AND JSON_LENGTH(p.metadata_values)=15 THEN p.metadata_values ELSE '{}' END";
+                            $index=0;
+                            foreach($paths as$alias=>$unused)$fields[]=$this->str($small,$this->lit('$['.$index++.']')).' AS '.$alias;
+                        }
                         $fields[]='p.limited';$fields[]='p.interest_paths';
                         $page=$this->rows('SELECT '.implode(',',$fields).' FROM ('.$bounded.') p ORDER BY p.id',[...$scopeArgs,$after]);
                     }else{
@@ -230,13 +267,84 @@ final class ModeledConversionAcquisitionStatsReader
         $parts=[];$args=[];
         foreach($targets as[$id,$path]){$parts[]='SELECT ? AS pid,? AS ep';$args[]=$id;$args[]=$path;}
         $doc=$this->safe('p.profile_json');
-        // Keep the private document as native binary JSON inside MySQL only.
-        // No document/body is returned by the final closed scalar projection.
-        if($this->mysql)$doc='CAST('.$doc.' AS JSON)';
-        $base='SELECT p.id AS pid,t.ep,'.$doc.' AS doc FROM ('.implode(' UNION ALL ',$parts).') t JOIN modeled_conversion_profile_versions p ON p.id=t.pid'.$materialize;
+        if($this->mysql){
+            // Parse each selected profile once, before expanding its semantic targets.
+            // LIMIT keeps both private capsule layers materialized; only the three
+            // original subtrees cross the existing target/ref/search boundaries.
+            $ids=array_values(array_unique(array_column($targets,0),SORT_STRING));
+            $uniqueCount=count($ids);$marks=implode(',',array_fill(0,$uniqueCount,'?'));
+            $profileParts='SELECT p.id AS pid,JSON_EXTRACT('.$doc.','.$this->lit('$.contextual_signals.events').','
+                .$this->lit('$.profile.observation_input.evidence').','.$this->lit('$.source_references').') AS parts'
+                .' FROM modeled_conversion_profile_versions p WHERE p.id IN ('.$marks.') LIMIT '.$uniqueCount;
+            // Multi-path JSON_EXTRACT omits absent paths. Never shift a missing
+            // subtree into another position; all three are mandatory for a candidate.
+            // Explicit JSON null/scalar/object values retain their original type.
+            $rebuilt="JSON_OBJECT('contextual_signals',JSON_OBJECT('events',JSON_EXTRACT(c.parts,'$[0]')),"
+                ."'profile',JSON_OBJECT('observation_input',JSON_OBJECT('evidence',JSON_EXTRACT(c.parts,'$[1]'))),"
+                ."'source_references',JSON_EXTRACT(c.parts,'$[2]'))";
+            $compact='SELECT c.pid,CAST(CASE WHEN JSON_TYPE(c.parts)='.$this->lit('ARRAY')
+                .' AND JSON_LENGTH(c.parts)=3 THEN '.$rebuilt.' ELSE JSON_OBJECT() END AS JSON) AS doc'
+                .' FROM ('.$profileParts.') c LIMIT '.$uniqueCount;
+            $base='SELECT c.pid,t.ep,c.doc FROM ('.implode(' UNION ALL ',$parts).') t JOIN ('.$compact.') c ON c.pid=t.pid'.$materialize;
+            // The target UNION appears before the compact profile IN placeholders.
+            array_push($args,...$ids);
+        }else{
+            $base='SELECT p.id AS pid,t.ep,'.$doc.' AS doc FROM ('.implode(' UNION ALL ',$parts).') t JOIN modeled_conversion_profile_versions p ON p.id=t.pid'.$materialize;
+        }
         $a='SELECT z.*,'.$this->str('z.doc',$this->cat('z.ep',$this->lit('.source_ref'))).' AS ref,'
             .$this->str('z.doc',$this->cat('z.ep',$this->lit('.goal'))).' AS goal FROM ('.$base.') z'.$materialize;
         $b='SELECT a.*,'.$this->findPath('a.doc','a.ref',false).' AS epath,'.$this->findPath('a.doc','a.ref',true).' AS spath FROM ('.$a.') a'.$materialize;
+        if($this->mysql){
+            // Extract each evidence/source value once from the compact private
+            // document. The final helpers inspect typed scalar columns directly.
+            $evidencePaths=['kind'=>'.kind','eid'=>'.id','eat'=>'.at','eavailable'=>'.available_at',
+                'eproject'=>'.subject.project_key','eplatform'=>'.subject.platform','ecustomer'=>'.subject.customer_key','econversation'=>'.subject.conversation_id',
+                'rsource'=>'.references[0].source','rid'=>'.references[0].id','rat'=>'.references[0].at','ravailable'=>'.references[0].available_at'];
+            $sourcePaths=['journal_id'=>'.journal_id','reference_source_id'=>'.source_id','source_kind'=>'.source_kind',
+                'source_status'=>'.source_status','source_observed'=>'.observed_at'];
+            $values=[];
+            foreach($evidencePaths as$alias=>$suffix){
+                $values[]='JSON_EXTRACT(b.doc,'.$this->cat('b.epath',$this->lit($suffix)).') AS '.$alias.'_raw';
+            }
+            $values[]='JSON_EXTRACT(b.doc,'.$this->cat('b.epath',$this->lit('.references')).') AS references_raw';
+            foreach($sourcePaths as$alias=>$suffix){
+                $values[]='JSON_EXTRACT(b.doc,'.$this->cat('b.spath',$this->lit($suffix)).') AS '.$alias.'_raw';
+            }
+            $values[]='JSON_EXTRACT(b.doc,'.$this->cat('b.spath',$this->lit('.source_version_no')).') AS source_version_raw';
+            $savedPaths=['saved_snapshot_kind'=>'$.source_kind','saved_snapshot_id'=>'$.source_id','saved_status'=>'$.source_status',
+                'saved_basis'=>'$.source_timestamp_basis','saved_project'=>'$.project_key','saved_platform'=>'$.platform',
+                'saved_customer'=>'$.customer_key','saved_conversation'=>'$.conversation_id',
+                'saved_direction'=>'$.payload.direction','saved_sender'=>'$.payload.sender_type','saved_at'=>'$.source_created_at_unix'];
+            $joined=['b.pid','b.ref','b.goal','b.epath','b.spath',...$values,
+                'sj.id AS saved_journal_id','sj.version_no AS saved_version','sj.observed_at_unix AS saved_available',
+                'sj.source_kind AS saved_kind','sj.source_id AS saved_source_id',
+                'm.id AS native_id','m.conversation_id AS native_conversation','m.channel AS native_channel',
+                'm.direction AS native_direction','m.sender_type AS native_sender',
+                'JSON_EXTRACT('.$this->safe('sj.snapshot_json').','.implode(',',array_map(fn(string $path):string=>$this->lit($path),array_values($savedPaths))).') AS saved_values'];
+            $packed='SELECT '.implode(',',$joined).' FROM ('.$b.') b LEFT JOIN modeled_conversion_stream_versions sj ON sj.id=CAST(SUBSTR(b.ref,9) AS UNSIGNED)'
+                ." AND HEX(sj.project_key)=HEX('anytour') LEFT JOIN messages m ON m.id=sj.source_id".$materialize;
+            $rawString=static function(string $raw):string{
+                $unquoted='JSON_UNQUOTE('.$raw.')';
+                return"CASE WHEN JSON_TYPE($raw)='STRING' AND LENGTH($unquoted)<=128 THEN $unquoted ELSE NULL END";
+            };
+            $fields=['v.pid','v.ref','v.goal','v.epath','v.spath'];
+            foreach($evidencePaths as$alias=>$unused)$fields[]=$rawString('v.'.$alias.'_raw').' AS '.$alias;
+            $fields[]="CASE WHEN JSON_TYPE(v.references_raw)='ARRAY' THEN JSON_LENGTH(v.references_raw) ELSE NULL END AS reference_count";
+            foreach($sourcePaths as$alias=>$unused)$fields[]=$rawString('v.'.$alias.'_raw').' AS '.$alias;
+            $fields[]="CASE WHEN JSON_TYPE(v.source_version_raw)='INTEGER' THEN v.source_version_raw ELSE NULL END AS source_version";
+            foreach(['saved_journal_id','saved_version','saved_available','saved_kind','saved_source_id',
+                'native_id','native_conversation','native_channel','native_direction','native_sender']as$alias)$fields[]='v.'.$alias;
+            // Every saved path is required by candidate(). Missing paths reject
+            // the packet; the length guard prevents omitted-path slot shifting.
+            $saved="CASE WHEN JSON_TYPE(v.saved_values)='ARRAY' AND JSON_LENGTH(v.saved_values)=11 THEN v.saved_values ELSE '{}' END";
+            $index=0;
+            foreach($savedPaths as$alias=>$unused){
+                $path=$this->lit('$['.$index++.']');
+                $fields[]=($alias==='saved_at'?$this->integer($saved,$path)
+                    :(in_array($alias,['saved_customer','saved_conversation'],true)?$this->identity($saved,$path):$this->str($saved,$path))).' AS '.$alias;
+            }
+            return$this->rows('SELECT '.implode(',',$fields).' FROM ('.$packed.') v',$args);
+        }
         $fields=['b.pid','b.ref','b.goal','b.epath','b.spath'];
         foreach(['kind'=>'.kind','eid'=>'.id','eat'=>'.at','eavailable'=>'.available_at',
             'eproject'=>'.subject.project_key','eplatform'=>'.subject.platform','ecustomer'=>'.subject.customer_key','econversation'=>'.subject.conversation_id',
@@ -298,9 +406,11 @@ final class ModeledConversionAcquisitionStatsReader
         }
         return ['at'=>$at,'journal'=>$match[1]];
     }
-    private function profileFrom(bool $admitted=true):string
+    private function profileFrom(bool $admitted=true,bool $scopeIndex=false):string
     {
         $from=$admitted?' FROM ('.$this->admittedScopeSql.') p':' FROM modeled_conversion_profile_versions p';
+        // A bounded scope page must use its scope index rather than walk unrelated profile IDs.
+        if(!$admitted&&$this->mysql&&$scopeIndex)$from.=' FORCE INDEX (ix_profile_scope_time)';
         return $from
             .' JOIN conversations c ON c.id=CAST(p.conversation_id AS '.($this->mysql?'UNSIGNED':'INTEGER').') AND c.customer_id=CAST(p.customer_key AS '.($this->mysql?'UNSIGNED':'INTEGER').') AND HEX(CAST(c.id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(p.conversation_id) AND HEX(CAST(c.customer_id AS '.($this->mysql?'CHAR':'TEXT').'))=HEX(p.customer_key) AND c.project_key=p.project_key AND c.channel=p.platform AND HEX(c.project_key)=HEX(p.project_key) AND HEX(c.channel)=HEX(p.platform)'
             .' JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel)';
@@ -334,9 +444,18 @@ final class ModeledConversionAcquisitionStatsReader
             ." AND n.id<=$fence AND n.observed_at_unix<=$now GROUP BY ".implode(',',array_map(static fn(string $k):string=>'n.'.$k,$keys));
         $columns=implode(',',array_map(static fn(string $k):string=>'g.'.$k,$keys));
         $equal=implode(' AND ',array_map(static fn(string $k):string=>'lp.'.$k.'=g.'.$k.' AND HEX(lp.'.$k.')=HEX(g.'.$k.')',$keys));
-        // Both grouped derived tables are deliberate materialization boundaries.
         // MAX sees every version before access admission; latest denial cannot revive older facts.
-        // Access JSON is evaluated once per latest scope, never correlated to each historical row.
+        // The conservative input count has already proved that there are at most MAX_RECORDS
+        // versions, hence at most that many latest scopes. LIMIT materializes only coordinates
+        // and the small access value so type/length checks never reparse the full document.
+        if($this->mysql){
+            $access='SELECT '.$columns.',JSON_EXTRACT('.$this->safe('lp.profile_json').",".$this->lit('$.access_status').') AS access_value'
+                .' FROM ('.$inner.') g JOIN modeled_conversion_profile_versions lp ON lp.id=g.latest_id AND '.$equal
+                .' LIMIT '.self::MAX_RECORDS;
+            $output=implode(',',array_map(static fn(string $k):string=>'a.'.$k,$keys));
+            return 'SELECT '.$output.' FROM ('.$access.') a WHERE HEX('.$this->str('a.access_value',$this->lit('$')).")=HEX('allowed')"
+                .' GROUP BY '.$output;
+        }
         return 'SELECT '.$columns.' FROM ('.$inner.') g JOIN modeled_conversion_profile_versions lp ON lp.id=g.latest_id AND '.$equal
             .' WHERE HEX('.$this->str($this->safe('lp.profile_json'),$this->lit('$.access_status')).")=HEX('allowed')"
             .' GROUP BY '.$columns;
