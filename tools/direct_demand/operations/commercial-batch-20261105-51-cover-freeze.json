@@ -1,0 +1,60 @@
+{
+  "operation": "commercial-batch-20261105-51-cover-freeze",
+  "state": "NATIVE_OWNER_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+  "hotel_id": 78251,
+  "design_id": "DAHZx_JlJEM",
+  "transaction_id": "902367014632901527",
+  "native_png_run": 41969448408,
+  "native_png_job": 127054016453,
+  "width": 600,
+  "height": 600,
+  "bytes": 734595,
+  "sha256": "d05d7ffb3c6f5f225027337f840f53a49cd91020363c5014af9bb17e55b18a27",
+  "path": ".github/traffic-publish/commercial-batch-20261105-51/78251.png",
+  "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+  "complete_main_roofline_and_ground_visible": true,
+  "anytour_logo_blue_banner_single_line_title_readable": true,
+  "thumbnail_shown_in_chat": true,
+  "all_native_chunks_bytes_sha256_dimensions_verified": true,
+  "source_roles": [
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_1",
+      "cover_role": "whole_main_complex_hero",
+      "sha256": "81ed170f61a9d4bf569d2617ee26f7074319e00426ca202c8f110ccdb234df4e"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_4",
+      "cover_role": "lower_beach_pier",
+      "sha256": "b41f9eca7abe0f41e9412c5da07c73a91a8f0c6c86ffd19f743be4b9a377e21a"
+    },
+    {
+      "hotel_id": 78251,
+      "role": "h78251_new51_3",
+      "cover_role": "lower_pool_facade",
+      "sha256": "c30b426186cc82f5d5a860ee978f332e8ef4484b9bf91c30f57870d3041636f6"
+    }
+  ],
+  "imported_assets": [
+    {
+      "cover_role": "whole_main_complex_hero",
+      "role": "h78251_new51_1",
+      "asset_id": "MAHaBP_AgJ4"
+    },
+    {
+      "cover_role": "lower_beach_pier",
+      "role": "h78251_new51_4",
+      "asset_id": "MAHaBLMCjRs"
+    },
+    {
+      "cover_role": "lower_pool_facade",
+      "role": "h78251_new51_3",
+      "asset_id": "MAHaBBdYfZU"
+    }
+  ],
+  "permanent_save": false,
+  "transaction_cancel_pending": true,
+  "source_photos_reexported_to_public_git": false,
+  "new_posts": 0
+}
