@@ -43,7 +43,8 @@
     button.setAttribute('aria-describedby',state.id);
     button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>open(button));content.appendChild(button);
     handoffSlot=document.createElement('div');handoffSlot.className='m2RequestSource';content.appendChild(handoffSlot);row.appendChild(content);
-    const host=window.WorkspaceV2AiDraft?.host?.();if(host)host.insertBefore(row,host.firstChild);else head.after(row);
+    // The trip belongs to the conversation, never to an optional AI panel.
+    head.after(row);
     profileInMenu=window.Manager2Presentation?.registerConversationTool(button)===true;
   }
   function placeSummary(){

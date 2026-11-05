@@ -7,6 +7,140 @@ const fs=require('node:fs');
 const path=require('node:path');
 const inventory=require('./manager2_visual_inventory.js');
 const reuse=require('./manager2_visual_reuse.js');
+const caseParts = (() => {
+// Only the large, per-test isolated selection spec is distributed by cases.
+// Other specs, daily-cache ownership and workers=1 retain their existing path.
+const cp = require('node:child_process');
+const SELECTION_SPEC = 'tests/visual/manager-tour-selection.spec.js';
+const MIN_CASES = 128;
+// Original run 42072803983: non-selection WebKit parts took about 435/593/523s.
+// Equal quarters add work to the already slowest part. Keep its whole specs,
+// and send 20/0/10/70 percent of selection identities to residual capacity.
+// This fixed cycle changes ownership only; it never removes a case or runner.
+const CASE_PART_CYCLE = Object.freeze([0, 3, 3, 2, 3, 0, 3, 3, 3, 3]);
+function requireValue(value, message) { if (!value) throw new Error(message); }
+const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+function selection({browser, part, partCount, selectedSpecs, wholeSpecs, expected}) {
+  requireValue(['chromium', 'webkit'].includes(browser), 'Unknown partition browser');
+  requireValue(partCount === 4 && Number.isInteger(part) && part >= 0 && part < partCount,
+    'Expected one of the existing four partitions');
+  requireValue(Array.isArray(selectedSpecs) && new Set(selectedSpecs).size === selectedSpecs.length &&
+    Array.isArray(wholeSpecs) && new Set(wholeSpecs).size === wholeSpecs.length,
+    'Invalid spec selection');
+  requireValue(Array.isArray(expected), 'Original native listing is required');
+  const keys = new Set();
+  for (const row of expected) {
+    requireValue(row && typeof row.spec === 'string' && row.project === browser &&
+      Array.isArray(row.title) && row.title.length && row.title.every(title => typeof title === 'string' && title.length > 0) &&
+      row.key === JSON.stringify([browser, browser, row.spec, row.title]) && !keys.has(row.key),
+      'Invalid or duplicate case in native listing');
+    keys.add(row.key);
+  }
+  const ordered = expected.filter(row => row.spec === SELECTION_SPEC)
+    .sort((left, right) => left.key < right.key ? -1 : left.key > right.key ? 1 : 0);
+  const split = selectedSpecs.includes(SELECTION_SPEC) && ordered.length >= MIN_CASES;
+  const owned = new Set(split ? ordered.filter((_, index) => CASE_PART_CYCLE[index % CASE_PART_CYCLE.length] === part).map(row => row.key) : []);
+  const cases = expected.filter(row => selectedSpecs.includes(row.spec) &&
+    (split && row.spec === SELECTION_SPEC ? owned.has(row.key) : wholeSpecs.includes(row.spec)));
+  const specs = selectedSpecs.filter(spec => cases.some(row => row.spec === spec));
+  if (!split) return {split: false, specs, cases, grep: null};
+
+  // The literal full title is anchored after the file label. Reject flattening
+  // collisions: a nested suite title must never select another case by accident.
+  const flattened = new Set();
+  for (const row of expected.filter(row => selectedSpecs.includes(row.spec))) {
+    const full = path.posix.basename(row.spec) + ' ' + row.title.join(' ');
+    requireValue(!/[\r\n\0]/.test(full) && !flattened.has(full), 'Ambiguous full test title');
+    flattened.add(full);
+  }
+  const alternatives = cases.map(row => {
+    const file = escape(path.posix.basename(row.spec));
+    return row.spec === SELECTION_SPEC
+      ? file + ' ' + escape(row.title.join(' ')) + '$'
+      : file + ' ';
+  });
+  const grep = '^' + escape(browser) + ' (?:tests/visual/|visual/)?(?:' + [...new Set(alternatives)].join('|') + ')';
+  requireValue(cases.length > 0 && Buffer.byteLength(grep) < 60000, 'Invalid or oversized case filter');
+  const regex = new RegExp(grep);
+  for (const row of expected.filter(row => selectedSpecs.includes(row.spec))) {
+    requireValue(regex.test(browser + ' ' + path.posix.basename(row.spec) + ' ' + row.title.join(' ')) ===
+      cases.some(item => item.key === row.key), 'Case filter differs from intended ownership');
+  }
+  return {split: true, specs, cases, grep};
+}
+
+function run({root, browser, selection: plan, collectCases, exactCases, exec = cp.execFileSync}) {
+  requireValue(plan.split === true && plan.specs.length && plan.cases.length && typeof plan.grep === 'string',
+    'An exact split selection is required');
+  const directory = path.join(root, 'visual-reports');
+  fs.mkdirSync(directory, {recursive: true});
+  const args = ['playwright', 'test', ...plan.specs, '--browser=' + browser,
+    '--workers=1', '--grep=' + plan.grep];
+  const env = {...process.env};
+  for (const key of ['PLAYWRIGHT_JSON_OUTPUT_NAME', 'PLAYWRIGHT_JSON_OUTPUT_FILE', 'PLAYWRIGHT_JSON_OUTPUT_DIR']) delete env[key];
+  // Verify what the pinned native runner will actually execute, before opening
+  // a browser. Selection errors are not successful empty or partial runs.
+  const listed = JSON.parse(exec('npx', [...args, '--reporter=json', '--list'],
+    {cwd: root, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024}));
+  exactCases(collectCases(listed, {browser, expectedFiles: plan.specs, listing: true}), plan.cases,
+    'Native filtered partition listing');
+  env.PLAYWRIGHT_JSON_OUTPUT_NAME = path.join(directory, 'main.json');
+  exec('npx', [...args, '--reporter=line,json'], {cwd: root, env, stdio: 'inherit'});
+}
+
+// Several existing cases intentionally reuse a screenshot basename. Each
+// native part must retain its own bytes before the ordinary strict assembly.
+function namespaceScreenshots({root, part, outputDirs}) {
+  requireValue(Number.isInteger(part) && part >= 0 && part < 4, 'Invalid screenshot part');
+  requireValue(Array.isArray(outputDirs) && outputDirs.length && new Set(outputDirs).size === outputDirs.length,
+    'Invalid screenshot directories');
+  // Keep PNGs at the existing upload glob's top level; encode nested names
+  // injectively rather than losing them or changing workflow collection rules.
+  const namespace = 'case-part-' + part + '--', moves = [];
+  for (const directory of outputDirs) {
+    requireValue(typeof directory === 'string' && /^[a-z0-9-]+$/.test(directory), 'Invalid screenshot directory');
+    if (directory === 'report-attachment-artifacts') continue;
+    const top = path.join(root, directory);
+    if (!fs.lstatSync(top, {throwIfNoEntry: false})) continue;
+    const visit = current => {
+      const stat = fs.lstatSync(current);
+      requireValue(stat.isDirectory() && !stat.isSymbolicLink(), 'Unsafe screenshot directory');
+      for (const entry of fs.readdirSync(current, {withFileTypes: true})) {
+        requireValue(!entry.isSymbolicLink(), 'Screenshot symlinks are forbidden');
+        requireValue(current !== top || !/^case-part-[0-9]+(?:--|$)/.test(entry.name), 'Screenshot namespace already exists');
+        const source = path.join(current, entry.name);
+        if (entry.isDirectory()) visit(source);
+        else if (entry.isFile() && entry.name.endsWith('.png')) {
+          const target = path.join(top, namespace + encodeURIComponent(path.relative(top, source).split(path.sep).join('/')));
+          requireValue(!fs.existsSync(target), 'Screenshot namespace collision');
+          moves.push({source, target});
+        }
+      }
+    };
+    visit(top);
+  }
+  // Complete validation before moving any file; a failed operation is not retried.
+  for (const {source, target} of moves) {
+    fs.mkdirSync(path.dirname(target), {recursive: true});
+    fs.renameSync(source, target);
+  }
+  return moves.length;
+}
+function assertScreenshotNamespace(files, part) {
+  requireValue(Array.isArray(files) && Number.isInteger(part) && part >= 0 && part < 4,
+    'Invalid screenshot ownership');
+  for (const file of files) {
+    requireValue(typeof file?.path === 'string', 'Invalid screenshot path');
+    if (file.path.startsWith('report-attachment-artifacts/')) continue;
+    const pieces = file.path.split('/');
+    requireValue(pieces.length === 2 && pieces[1].startsWith('case-part-' + part + '--'),
+      'Screenshot belongs to another or unpartitioned namespace');
+  }
+}
+
+return {SELECTION_SPEC, MIN_CASES, selection, run, namespaceScreenshots, assertScreenshotNamespace};
+})();
 const PROTOCOL='manager2-partition-v1';
 const read=file=>JSON.parse(fs.readFileSync(file,'utf8'));
 const save=(file,value)=>{fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(value,null,2)+'\n');};
@@ -18,11 +152,17 @@ function nativeStats(report,cases) {
   check(stats&&Number.isFinite(Date.parse(stats.startTime))&&Number.isFinite(stats.duration)&&stats.duration>=0,'Invalid native partition report timing');
   check(stats.expected===cases.length&&stats.skipped===0&&stats.unexpected===0&&stats.flaky===0,'Native partition statistics differ from successful case union');
 }
-function partSpecs(browser,part,plan) {
+function partSelection(browser,part,plan,expected) {
+  return caseParts.selection({browser,part,partCount:inventory.PART_COUNT,
+    selectedSpecs:reuse.selectedSpecs(browser,plan),
+    wholeSpecs:inventory.partitionSpecs(browser,part),expected});
+}
+function partSpecs(browser,part,plan,expected=null) {
+  if(expected)return partSelection(browser,part,plan,expected).specs;
   return inventory.partitionSpecs(browser,part).filter(spec=>reuse.selectedSpecs(browser,plan).includes(spec));
 }
 function reportCases(root,browser,part,plan) {
-  const expected=reuse.reports(root,browser,true), selected=partSpecs(browser,part,plan);
+  const expected=reuse.reports(root,browser,true), allocation=partSelection(browser,part,plan,expected), selected=allocation.specs;
   const mainFile=path.join(root,'visual-reports','main.json');
   let main=[];
   if(selected.length) {
@@ -34,7 +174,7 @@ function reportCases(root,browser,part,plan) {
   if(part===0)nativeStats(read(cacheFile),cache);
   if(part!==0)check(!fs.existsSync(cacheFile),'Daily cache may execute only in partition zero');
   const fresh=[...cache,...main];
-  reuse.exactCases(fresh,expected.filter(row=>selected.includes(row.spec)||(part===0&&row.spec===inventory.allSpecs(browser)[0])),'Partition execution');
+  reuse.exactCases(fresh,[...allocation.cases,...expected.filter(row=>part===0&&row.spec===inventory.allSpecs(browser)[0])],'Partition execution');
   return {expected,fresh};
 }
 function envelope({root,browser,part,plan,p,artifacts}) {
@@ -42,6 +182,7 @@ function envelope({root,browser,part,plan,p,artifacts}) {
   check(['full','affected'].includes(plan.mode)&&inventory.validManifest(plan.inputs),'Invalid partition plan/inputs');
   require('./browser_qa_environment.js').assertSourceExecution(p.execution,plan.inputs);
   const {expected,fresh}=reportCases(root,browser,part,plan);
+  if(partSelection(browser,part,plan,expected).split)caseParts.assertScreenshotNamespace(artifacts,part);
   for(const name of ['cache','main']) {
     const file=path.join(root,'visual-reports',name+'.json');
     if(fs.existsSync(file))reuse.validatePNGAttachments(read(file),artifacts);
@@ -50,7 +191,7 @@ function envelope({root,browser,part,plan,p,artifacts}) {
   check(artifacts.filter(file=>file.path.startsWith('visual-artifacts/')).length===captureCount,'Partition capture inventory is incomplete');
   return {schema:inventory.SCHEMA,protocol:PROTOCOL,...p,browser,part,partCount:inventory.PART_COUNT,
     executionRole:'browser-partition',mode:plan.mode,inputs:plan.inputs,changedSpecs:plan.changedSpecs,donor:plan.donor,
-    toolchain:inventory.TOOLCHAIN,specs:partSpecs(browser,part,plan),captureCount,completed:true,
+    toolchain:inventory.TOOLCHAIN,specs:partSpecs(browser,part,plan,expected),captureCount,completed:true,
     expectedCases:expected,expectedDigest:digest(expected),freshCases:fresh,freshDigest:digest(fresh),files:artifacts};
 }
 function recordPart({root,browser,part,plan,p,sourceRoot=root}) {
@@ -100,7 +241,7 @@ function validateParts(parts) {
   for(const part of parts) {
     for(const field of ['mode','inputs','changedSpecs','donor','expectedCases','expectedDigest'])check(same(part[field],first[field]),'Partitions disagree on '+field);
   }
-  const fresh=parts.flatMap(part=>part.freshCases),plan=receiptPlan(first);
+  const fresh=parts.flatMap(part=>part.freshCases),plan=receiptPlan(parts[0]);
   reuse.exactCases(fresh,first.expectedCases.filter(row=>reuse.selectedSpecs(first.browser,plan).includes(row.spec)||row.spec===inventory.allSpecs(first.browser)[0]),'All partitions');
   return ownedFiles(parts);
 }
@@ -202,11 +343,14 @@ if(require.main===module) {
       const plan=reuse.validatePlan(read(path.join(root,'selection-plan.json')),p,root);
       if(command==='inventory')reuse.runPlaywright(root,browser,inventory.allSpecs(browser),{listing:true,report:'expected'});
       else if(command==='run-part') {
-        const specs=partSpecs(browser,part,plan);
-        if(specs.length)reuse.runPlaywright(root,browser,specs,{report:'main'});
+        const allocation=partSelection(browser,part,plan,reuse.reports(root,browser,true)),specs=allocation.specs;
+        if(allocation.split)caseParts.run({root,browser,selection:allocation,collectCases:inventory.collectCases,exactCases:reuse.exactCases});
+        else if(specs.length)reuse.runPlaywright(root,browser,specs,{report:'main'});
         else check(!fs.existsSync(path.join(root,'visual-reports','main.json')),'Unexpected report in empty selected partition');
       } else if(command==='record-part') {
         const names=['main',...(part===0?['cache']:[])].filter(name=>fs.existsSync(path.join(root,'visual-reports',name+'.json')));
+        if(partSelection(browser,part,plan,reuse.reports(root,browser,true)).split)
+          caseParts.namespaceScreenshots({root,part,outputDirs:reuse.OUTPUT_DIRS});
         reuse.compactReports(root,names);
         if(part===0&&plan.mode==='affected') {
           const baseline=path.join(root,'baseline',browser),target=path.join(root,'donor');
@@ -218,4 +362,4 @@ if(require.main===module) {
     }
   } catch(error){process.stderr.write(error.stack+'\n');process.exitCode=1;}
 }
-module.exports={PROTOCOL,parsePart,partSpecs,recordPart,validatePart,validateParts,ownedFiles,mergedMain,assemble,verifyPartitionedEvidence,assertPartsResult};
+module.exports={PROTOCOL,caseParts,partSelection,parsePart,partSpecs,recordPart,validatePart,validateParts,ownedFiles,mergedMain,assemble,verifyPartitionedEvidence,assertPartsResult};

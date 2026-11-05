@@ -36,6 +36,44 @@ final class ModeledConversionValueRegistry
             'telegram_membership'=>'not_available_from_max_bridge','export_allowed'=>false,'conversion_uploads'=>0];
     }
 
+    /** A read-only history projection, deliberately separate from assigned-value members. */
+    public function historyMembers(array $page,string $sourceAfter,string $cursorKey,int $now):array
+    {
+        require_once __DIR__.'/MaxTrackerLookupClient.php';
+        require_once __DIR__.'/MaxMemberHistoryViewCursor.php';
+        $page=MaxTrackerLookupClient::validateHistoryMemberPage(['ok'=>true,'version'=>1,'counter_id'=>'98615635',
+            'tracker_timezone'=>'Europe/London','history_member_page'=>$page],'98615635',$sourceAfter,$now);
+        if($this->pdo->inTransaction())throw new RuntimeException('member_history_auth_snapshot');
+        if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql')
+            $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY');
+        $this->pdo->beginTransaction();
+        try{
+            $rows=[];$omitted=0;
+            foreach($page['rows']as$member){
+                $base=" FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id"
+                    ." AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.project_key='anytour' AND c.channel='max'"
+                    ." AND cc.external_user_id=? AND c.external_chat_id=?";
+                $args=[$member['external_user_id'],'-'.$member['external_user_id']];
+                $q=$this->pdo->prepare("SELECT 1".$base." AND (c.is_test=1 OR ".InternalOwnerDialogueScope::conversationSql('c').") LIMIT 1");
+                $q->execute($args);$blocked=$q->fetchColumn()!==false;$q->closeCursor();
+                if($blocked){$omitted++;continue;}
+                $q=$this->pdo->prepare("SELECT c.id,(SELECT SUBSTR(COALESCE(cu.display_name,''),1,120) FROM customers cu WHERE cu.id=c.customer_id) AS display_name"
+                    .$base." AND c.is_test=0 ORDER BY c.id DESC LIMIT 2");
+                $q->execute($args);$bindings=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
+                $label='Пользователь MAX '.$member['external_user_id'];
+                if(count($bindings)===1&&is_string($bindings[0]['display_name'])&&trim($bindings[0]['display_name'])!==''
+                    &&strlen($bindings[0]['display_name'])<=480&&preg_match('//u',$bindings[0]['display_name'])===1)
+                    $label=trim($bindings[0]['display_name']);
+                $rows[]=['member'=>$member,'display_name'=>$label];
+            }
+            $next=$page['next_cursor']===null?null:MaxMemberHistoryViewCursor::wrap($page['next_cursor'],$cursorKey,$now);
+            return ['basis'=>$page['basis'],'rows'=>$rows,'cutoff_unix'=>$page['cutoff_unix'],
+                'history_fence_id'=>$page['history_fence_id'],'next_after'=>$next,'has_more'=>$page['has_more'],
+                'scanned_event_count'=>$page['scanned_event_count'],'omitted_unknown_count'=>$page['omitted_unknown_count'],
+                'omitted_owner_or_test'=>$omitted,'coverage'=>$page['coverage']];
+        }finally{if($this->pdo->inTransaction())$this->pdo->rollBack();}
+    }
+
     /** Existing admitted current dialogue snapshots; member identity is not guessed. */
     public function profiles(string $after,int $now):array
     {

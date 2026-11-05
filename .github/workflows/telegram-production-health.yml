@@ -1,4 +1,5 @@
 name: Inspect production Telegram webhook
+run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Inspect production Telegram webhook' }}"
 
 on:
   workflow_run:

@@ -43,7 +43,7 @@ final class ArchiveResearchReadService
             $currentFence=$this->fence();$fence=$state['f']??$currentFence;
             if(self::decimalGreater($fence,$currentFence))self::fail('stale_cursor');
             if(in_array($state['k']??null,['feature_inventory','semantic_inventory'],true))return$this->featureInventory($state,$args['limit']??25,$key,$admin,$connection);
-            $expiry=$state['e']??($this->now()+self::CURSOR_TTL);
+            $expiry=$this->now()+self::CURSOR_TTL;
             $summary=$state===null?$this->summary($fence):null;
             $limit=$args['limit']??25;
             [$rows,$more]=$this->inventoryRows($fence,$state['a']??'0',$state['c']??'0',$limit);$chats=[];
@@ -59,7 +59,7 @@ final class ArchiveResearchReadService
                 'c'=>(string)$last['chat_id'],'f'=>$fence,'e'=>$expiry],$key,$admin,$connection);}
             return $this->base($fence)+['totals'=>$summary['totals']??null,'accounts'=>$summary['accounts']??null,
                 'summary_not_recomputed'=>$state!==null,'feature_scan'=>$this->featureDescriptor($fence,$key,$admin,$connection),
-                'semantic_scan'=>$this->semanticDescriptor($fence,$key,$admin,$connection),
+                'semantic_scan'=>$this->semanticDescriptor($fence,$key,$admin,$connection,$state),
                 'chats'=>$chats,'has_more'=>$more,'next_cursor'=>$next];
         });
     }
@@ -298,10 +298,11 @@ final class ArchiveResearchReadService
     }
 
     /** Explicit opt-in: contextual rules, not model predictions or authoritative business state. */
-    private function semanticDescriptor(string$fence,string$key,int$admin,string$connection):array
+    private function semanticDescriptor(string$fence,string$key,int$admin,string$connection,?array$checkpoint=null):array
     {
-        return['operation'=>'contextual_semantic_inventory','invoked'=>false,'explicit_stored_text_read'=>true,
-            'label_set_version'=>ArchiveResearchSemanticExtractor::VERSION,'semantics'=>'contextual_rule_candidates_not_verified_outcomes',
+        $descriptor=['operation'=>'contextual_semantic_inventory','invoked'=>false,'explicit_stored_text_read'=>true,
+            'label_set_version'=>ArchiveResearchSemanticExtractor::VERSION,'rule_revision'=>ArchiveResearchSemanticExtractor::RULE_REVISION,
+            'semantics'=>'contextual_rule_candidates_not_verified_outcomes',
             'model_calls'=>0,'database_writes'=>0,'media_contents_read'=>false,
             'budgets'=>['max_chat_windows'=>50,'max_metadata_rows'=>self::FEATURE_METADATA_ROWS,'max_window_records'=>100,
                 'max_source_json_bytes'=>self::FEATURE_SOURCE_BYTES,'max_output_bytes'=>self::MAX_RESPONSE_BYTES,
@@ -309,6 +310,15 @@ final class ArchiveResearchReadService
             'start_cursor'=>$this->encode(['v'=>1,'k'=>'semantic_inventory','a'=>'0','c'=>'0','n'=>'0','f'=>$fence,
                 'x'=>bin2hex(random_bytes(16)),'s'=>ArchiveResearchSemanticExtractor::initialState(),
                 'e'=>$this->now()+self::CURSOR_TTL],$key,$admin,$connection)];
+        if(($checkpoint['k']??null)==='inventory'&&$checkpoint['a']!=='0'&&$checkpoint['c']!=='0'
+            &&isset($this->accountAliases[$checkpoint['a']])){
+            $bound=[$checkpoint['a'],$checkpoint['c']];
+            $descriptor['resume_from_page']=['start_cursor'=>$this->encode(['v'=>1,'k'=>'semantic_inventory',
+                'a'=>$bound[0],'c'=>$bound[1],'n'=>'0','f'=>$fence,'x'=>bin2hex(random_bytes(16)),
+                's'=>ArchiveResearchSemanticExtractor::initialState(),'b'=>$bound,'e'=>$this->now()+self::CURSOR_TTL],$key,$admin,$connection),
+                'range'=>'this_metadata_page_and_following_chats','whole_archive'=>false,'context'=>'fresh_at_next_chat'];
+        }
+        return$descriptor;
     }
 
     /** Explicit stored-text mode only. Cursor fields are positions, never authorization or cumulative counts. */
@@ -317,6 +327,8 @@ final class ArchiveResearchReadService
         if($state['a']!=='0'&&!isset($this->accountAliases[$state['a']]))self::fail('forbidden');
         $semantic=$state['k']==='semantic_inventory';$semanticState=$semantic?$state['s']:null;
         $position=['a'=>$state['a'],'c'=>$state['c'],'n'=>$state['n']];$current=$state['a']!=='0';
+        // The metadata checkpoint is exclusive; its chat's money/context must not enter the suffix.
+        if($semantic&&isset($state['b'])&&$state['n']==='0'&&[$state['a'],$state['c']]===$state['b'])$current=false;
         $windows=[];$metadataRows=0;$sourceBytes=0;$processed=0;$evidenceLeft=8;$controlsLeft=4;$exhausted=false;
         $anchor=$current;$expiry=$this->now()+self::CURSOR_TTL;$semanticEvidenceLeft=12;
         while(count($windows)<$limit&&$metadataRows<self::FEATURE_METADATA_ROWS){
@@ -369,11 +381,14 @@ final class ArchiveResearchReadService
         $make=function(array$items,bool$more)use($state,$key,$admin,$connection,$metadataRows,$sourceBytes,$processed,$expiry,$semantic):array{
             $last=$items?$items[count($items)-1]['position']:['a'=>$state['a'],'c'=>$state['c'],'n'=>$state['n']];
             $cursorState=$semantic?['s'=>$items?$items[count($items)-1]['semantic_state']:$state['s']]:[];
+            if($semantic&&isset($state['b']))$cursorState['b']=$state['b'];
             $next=$more?$this->encode(['v'=>1,'k'=>$state['k'],...$last,'f'=>$state['f'],'x'=>$state['x'],
                 ...$cursorState,'e'=>$expiry],$key,$admin,$connection):null;
             $returned=array_sum(array_map(static fn($w)=>$w['result']['source_records'],$items));
-            return$this->base($state['f'])+['operation'=>$semantic?'contextual_semantic_inventory':'lexical_feature_inventory',
+            return$this->base($state['f'])+($semantic?['scan_range'=>isset($state['b'])?'suffix_after_inventory_checkpoint':'from_archive_beginning']:[])
+                +['operation'=>$semantic?'contextual_semantic_inventory':'lexical_feature_inventory',
                 'label_set_version'=>$semantic?ArchiveResearchSemanticExtractor::VERSION:null,
+                'rule_revision'=>$semantic?ArchiveResearchSemanticExtractor::RULE_REVISION:null,
                 'pattern_set_version'=>ArchiveResearchFeatureExtractor::PATTERN_SET_VERSION,'timing_set_version'=>self::TIMING_SET_VERSION,
                 'semantics'=>$semantic?'contextual_rule_candidates_not_verified_outcomes':'lexical_candidates_not_events_or_probabilities','stored_text_read'=>true,'model_calls'=>0,
                 'media_contents_read'=>false,'media_observation'=>'stored_references_only; omitted_record_media_unknown',
@@ -435,7 +450,7 @@ final class ArchiveResearchReadService
         }
         $chat=hash_hmac('sha256',"archive-semantic-chat-v1\0".$run."\0".$position['a']."\0".$position['c'],$key);
         return['chat_key'=>$chat,'account_alias'=>$this->accountAliases[$position['a']],
-            'source_window_id'=>hash_hmac('sha256',"archive-semantic-window-v1\0".ArchiveResearchSemanticExtractor::VERSION."\0".$run."\0".$chat."\0".self::json([$versions,$inputState,$state]),$key),
+            'source_window_id'=>hash_hmac('sha256',"archive-semantic-window-v1\0".ArchiveResearchSemanticExtractor::VERSION."\0".ArchiveResearchSemanticExtractor::RULE_REVISION."\0".$run."\0".$chat."\0".self::json([$versions,$inputState,$state]),$key),
             'source_records'=>count($selected),'source_kind_counts'=>$sourceKinds,
             'read_status_counts'=>$statuses,'label_status_counts'=>$labels,'flag_counts'=>$flags,
             'goal_event_counts'=>$counts,'episode_boundary_counts'=>$boundaries,'episode_candidates_started'=>array_sum($boundaries),
@@ -644,7 +659,9 @@ final class ArchiveResearchReadService
         try{$v=json_decode((string)$body,true,16,JSON_THROW_ON_ERROR);}catch(Throwable$e){self::fail('stale_cursor');}
         if($kind==='inventory_or_features')$kind=is_array($v)&&in_array($v['k']??null,['feature_inventory','semantic_inventory'],true)?$v['k']:'inventory';
         $keys=$kind==='history'?['v','k','a','c','f','n','r','e']:(in_array($kind,['feature_inventory','semantic_inventory'],true)?['v','k','a','c','f','n','x','e']:['v','k','a','c','f','e']);
-        if($kind==='semantic_inventory')$keys[]='s';
+        if($kind==='semantic_inventory'){
+            $keys[]='s';if(is_array($v)&&array_key_exists('b',$v))$keys[]='b';
+        }
         if(!is_array($v)||count($v)!==count($keys)||array_diff(array_keys($v),$keys)||($v['v']??null)!==1
             ||($v['k']??null)!==$kind||!is_int($v['e'])||$v['e']<$this->now()||$v['e']>$this->now()+self::CURSOR_TTL)self::fail('stale_cursor');
         foreach(['a','c','f']as$field)if(!is_string($v[$field])||!self::decimal($v[$field],in_array($kind,['inventory','feature_inventory','semantic_inventory'],true)||$field==='f'))self::fail('stale_cursor');
@@ -654,6 +671,15 @@ final class ArchiveResearchReadService
             ||(($v['a']==='0'||$v['c']==='0')&&($v['a']!=='0'||$v['c']!=='0'||$v['n']!=='0'))))self::fail('stale_cursor');
         if($kind==='semantic_inventory'&&(!is_array($v['s'])||strlen(self::json($v['s']))>1024
             ||!ArchiveResearchSemanticExtractor::validState($v['s'])))self::fail('stale_cursor');
+        if($kind==='semantic_inventory'&&array_key_exists('b',$v)){
+            $bound=$v['b'];
+            if(!is_array($bound)||!array_is_list($bound)||count($bound)!==2
+                ||!is_string($bound[0])||!self::decimal($bound[0],false)
+                ||!is_string($bound[1])||!self::decimal($bound[1],false)
+                ||self::decimalGreater($bound[0],$v['a'])
+                ||($bound[0]===$v['a']&&self::decimalGreater($bound[1],$v['c'])))self::fail('stale_cursor');
+            if(!isset($this->accountAliases[$bound[0]]))self::fail('forbidden');
+        }
         return$v;
     }
     private static function arguments(array$args,array$allowed,int$max):void

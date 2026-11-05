@@ -92,6 +92,15 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
             for changes in ({'issued_at': now - 91}, {'counter_id': '999'}, {'user_ids': ['1', '1']}, {'user_ids': ['-123']}, {'user_ids': list(map(str, range(1, 27)))}, {'user_ids': [123]}):
                 bad = encoded({**data, **changes})
                 check(request(bad, signed=signature(bad))[0] == 401, 'signed invalid body rejected')
+            for changes in (
+                {'history_member_page_after': '0'},
+                {'user_ids': [], 'history_member_page_after': '0', 'member_page_after': '0'},
+                {'user_ids': [], 'history_member_page_after': '0', 'membership': {'not_before_unix': now - 3600, 'cutoff_unix': now}},
+                {'user_ids': [], 'history_member_page_after': 'mh1.invalid'},
+                {'user_ids': [], 'history_member_page_after': 0},
+            ):
+                bad = encoded({**data, **changes})
+                check(request(bad, signed=signature(bad))[0] == 401, 'history selector rejects users, mixed purposes, or malformed cursors before database access')
             status, result = request(body, signed=signature(body))
             if native:
                 check(status == 200, 'authenticated lookup reaches native MySQL')
@@ -109,6 +118,34 @@ with tempfile.TemporaryDirectory(prefix='max-attribution-http-') as directory:
                 status, result = request(member_page, signed=signature(member_page))
                 check(status == 503 and result.get('error') == 'lookup_unavailable', 'signed legacy member page is explicitly unavailable')
                 check('member_page' not in result and 'users' not in result, 'unavailable legacy page exposes no subscribers or billable member values')
+                history = encoded({**data, 'user_ids': [], 'history_member_page_after': '0'})
+                status, result = request(history, signed=signature(history))
+                check(status == 200, 'signed observed-history lookup reaches the canonical endpoint')
+                check(set(result) == {'ok', 'version', 'counter_id', 'tracker_timezone', 'history_member_page'}, 'history wire exposes a separate exact response without identity lookup or legacy members')
+                page = result['history_member_page']
+                page_keys = {'basis', 'rows', 'cutoff_unix', 'history_fence_id', 'next_cursor', 'has_more', 'scanned_event_count', 'omitted_unknown_count', 'coverage'}
+                row_keys = {'external_user_id', 'source_id', 'state', 'last_event_record_id', 'last_event_recorded_at_unix', 'episode_join_record_id', 'episode_join_recorded_at_unix', 'entry_basis'}
+                check(set(page) == page_keys, 'history wire page has only evidence and bounded coverage metadata')
+                check(page['basis'] == 'retained_membership_history_v1' and page['coverage'] == 'bounded_retained_history_not_live_platform_verification', 'history wire states its source and live-verification limit')
+                check(isinstance(page['rows'], list) and 1 <= len(page['rows']) <= 5, 'native history wire returns bounded real fixture observations')
+                check(type(page['cutoff_unix']) is int and page['cutoff_unix'] <= int(time.time()) and isinstance(page['history_fence_id'], str), 'history wire preserves cutoff and exact fence types')
+                check(type(page['has_more']) is bool and type(page['scanned_event_count']) is int and 0 <= page['scanned_event_count'] <= 64 and type(page['omitted_unknown_count']) is int and 0 <= page['omitted_unknown_count'] <= 64, 'history wire reports bounded scans and unknown omissions')
+                seen_history = set()
+                for row in page['rows']:
+                    check(set(row) == row_keys and row['state'] == 'observed_subscribed', 'history wire has no CID, amounts, or live subscribed claim')
+                    check(row['entry_basis'] in {'first_retained_join', 'after_observed_leave'}, 'history wire distinguishes retained first join and observed rejoin')
+                    seen_history.add((row['external_user_id'], row['source_id']))
+                check(len(seen_history) == len(page['rows']), 'history wire does not duplicate a person and channel within one page')
+                if page['has_more']:
+                    check(isinstance(page['next_cursor'], str) and page['next_cursor'].startswith('mh1.'), 'history wire continuation is purpose-specific')
+                    continuation = encoded({**data, 'user_ids': [], 'history_member_page_after': page['next_cursor']})
+                    status, continued = request(continuation, signed=signature(continuation))
+                    check(status == 200 and set(continued) == set(result), 'signed history continuation keeps the same endpoint contract')
+                    next_page = continued['history_member_page']
+                    check(set(next_page) == page_keys and (next_page['cutoff_unix'], next_page['history_fence_id']) == (page['cutoff_unix'], page['history_fence_id']), 'history continuation preserves its initial snapshot')
+                    check(all(set(row) == row_keys and row['state'] == 'observed_subscribed' and (row['external_user_id'], row['source_id']) not in seen_history for row in next_page['rows']), 'history continuation contains only distinct evidence rows without financial fields')
+                else:
+                    check(page['next_cursor'] is None, 'terminal history wire page has no continuation')
                 empty = encoded({**data, 'user_ids': []})
                 status, result = request(empty, signed=signature(empty))
                 check(status == 200 and result['users'] == [], 'signed empty probe')

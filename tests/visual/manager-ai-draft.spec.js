@@ -544,7 +544,13 @@ test('current-trip panel closes on conversation and account change, ignores late
   await expect(page.locator('#m2CurrentTrip strong')).toHaveText('Семейная поездка в Турцию');
   await openRequestProfile(page);
   await expect(page.frameLocator('#m2RequestProfilePanel iframe').locator('#profileLabel')).toHaveValue('Семейная поездка в Турцию');
-  await page.locator('#m2RequestProfilePanel').evaluate(el=>el.close());
+  // Finish the native close's same-document Back before arranging the held read.
+  await Promise.all([
+    page.waitForEvent('framenavigated',{predicate:frame=>frame===page.mainFrame(),timeout:5000}),
+    page.locator('#m2RequestProfilePanel').evaluate(el=>el.close())
+  ]);
+  await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>({conversation:WorkspaceV2.S.current,screen:WorkspaceV2Mobile.getScreen(),historyConversation:history.state?.conversation_id,overlay:history.state?.workspaceV2Overlay?.id??null}))).toEqual({conversation:11,screen:'conversation',historyConversation:11,overlay:null});
   let release,entered;const waiting=new Promise(resolve=>{entered=resolve});
   state.setProfileHandler(async data=>{if(data.action!=='get'||data.conversation_id!==11)return;entered();await new Promise(resolve=>{release=resolve});return {body:{ok:true,viewer_id:7,conversation_id:11,profile:{label:'OLD PRIVATE TRIP',status:'fresh'}}};});
   await page.evaluate(()=>{WorkspaceV2.S.detail.messages.push({id:999,text:'Уточнение'});WorkspaceV2RequestProfile.sync()});await waiting;

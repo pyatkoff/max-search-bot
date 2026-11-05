@@ -78,6 +78,52 @@ def fitted_state():
 
 
 class RuntimeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._fitted_template = None
+        cls._fitted_reader_sha = READER_SHA
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._fitted_template = None
+        super().tearDownClass()
+
+    def fitted_fixture(self):
+        # Reuse only the common synthetic starting state, never a test result.
+        # Every consumer gets its own nested data. The actual fitting lifecycle
+        # and PHP reader-specific persistence test still build from scratch.
+        cls = type(self)
+        self.assertEqual(READER_SHA, cls._fitted_reader_sha,
+                         'fixture reader changed; use fitted_state() instead')
+        if cls._fitted_template is None:
+            cls._fitted_template = fitted_state()
+        return copy.deepcopy(cls._fitted_template)
+
+    def test_fitted_fixture_copies_have_no_shared_mutable_state(self):
+        def mutable_ids(value):
+            if isinstance(value, dict):
+                return {id(value)}.union(*(mutable_ids(v) for v in value.values()))
+            if isinstance(value, (list, tuple)):
+                own = {id(value)} if isinstance(value, list) else set()
+                return own.union(*(mutable_ids(v) for v in value))
+            return set()
+
+        left, right = self.fitted_fixture(), self.fitted_fixture()
+        template = type(self)._fitted_template
+        self.assertEqual(left, right)
+        self.assertEqual(right, template)
+        for first, second in [(left, right), (left, template), (right, template)]:
+            self.assertFalse(mutable_ids(first) & mutable_ids(second))
+        left[0]['summary']['model_fitted'] = -1
+        left[1][0]['packet']['person_group'] = 'changed only in this copy'
+        left[2].clear()
+        self.assertEqual(right, self.fitted_fixture())
+        self.assertEqual(right, template)
+        with patch(__name__+'.READER_SHA', 'f'*64):
+            with self.assertRaisesRegex(AssertionError, 'fixture reader changed'):
+                self.fitted_fixture()
+
     @unittest.skipUnless(shutil.which('php'), 'PHP available in required CI; local Python-only runtime')
     def test_actual_php_private_store_preserves_fitted_model_and_forecasts_for_evaluation(self):
         # Actual PHP owner methods, not a replacement JSON persistence algorithm.
@@ -156,6 +202,7 @@ class RuntimeTests(unittest.TestCase):
 
     def test_fit_once_future_forecast_and_paired_mature_comparison(self):
         result, train, before_fit = fitted_state()
+        self.assertEqual((result, train, before_fit), self.fitted_fixture())
         state = json.loads(result['state_json'])
         self.assertEqual(result['summary']['model_fitted'], 1)
         self.assertEqual(result['summary']['predictions'], 0)
@@ -259,7 +306,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertLessEqual(len(result['state_json'].encode()), runtime.MAX_STATE_BYTES)
 
     def test_control_arm_has_its_own_first_seen_quota(self):
-        result, _, _ = fitted_state()
+        result, _, _ = self.fitted_fixture()
         controls = [case('quota-control-limit:'+str(i), CONTROL, i % 2, i % 2, 'control') for i in range(129)]
         result = add_cases(result['state_json'], controls, PREDICT, 42)
         state = json.loads(result['state_json'])
@@ -269,7 +316,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(state['exclusions'][controls[-1]['packet']['person_group']]['reason'], 'control_person_quota')
 
     def test_training_byte_quota_is_sticky_and_does_not_block_future_control(self):
-        result, _, _ = fitted_state()
+        result, _, _ = self.fitted_fixture()
         state = json.loads(result['state_json'])
         training_bytes = len(runtime.encoded(state['cases']).encode())
         new_train = case('quota-training-bytes', CONTROL, 1, 1)
@@ -284,7 +331,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(json.loads(result['state_json'])['profile_cursor'], '43')
 
     def test_unstorable_training_correction_persists_small_fail_closed_disposition(self):
-        initial, train, _ = fitted_state()
+        initial, train, _ = self.fitted_fixture()
         before = json.loads(initial['state_json'])
         revised = copy.deepcopy(train[0])
         r = receipt(revised['packet'], 'won', 2, later(TRAIN, days=2))
@@ -309,7 +356,7 @@ class RuntimeTests(unittest.TestCase):
                 self.assertIsNone(state['evaluation'])
 
     def test_bounded_exclusion_compaction_keeps_cases_and_allows_new_future_controls(self):
-        result, _, _ = fitted_state()
+        result, _, _ = self.fitted_fixture()
         kept = case('ledger-retained-control', CONTROL, 1, 1, 'control')
         result = add_cases(result['state_json'], [kept], PREDICT, 42)
         denied = update(kept, 'denied')
@@ -486,7 +533,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result['summary']['excluded_people'], 1)
 
     def test_revoked_training_scope_invalidates_frozen_model_and_stops_forecasts(self):
-        result, train, controls = fitted_state()
+        result, train, controls = self.fitted_fixture()
         result = call(request(FIT, result['state_json'], cursor='41', updates=[update(train[0], 'denied')]))
         self.assertEqual(result['summary']['model_invalidated'], 1)
         new = case('runtime-after-revoke', CONTROL, 1, 1, 'control')
@@ -495,7 +542,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result['summary']['comparison_available'], 0)
 
     def test_late_training_target_revision_invalidates_without_rewriting_model_or_truth(self):
-        initial, train, _ = fitted_state()
+        initial, train, _ = self.fitted_fixture()
         before = json.loads(initial['state_json'])
         for index, new_outcome in [(0, 'won'), (1, 'open')]:
             with self.subTest(outcome=new_outcome):
@@ -518,7 +565,7 @@ class RuntimeTests(unittest.TestCase):
                 self.assertEqual(again['summary']['model_invalidated'], 1)
 
     def test_transient_training_partial_and_post_horizon_receipt_preserve_model(self):
-        result, train, _ = fitted_state()
+        result, train, _ = self.fitted_fixture()
         original = json.loads(result['state_json'])
         changed = copy.deepcopy(train[0])
         changed['coverage'].update(status='partial', through=EVALUATE, available_at=EVALUATE)
@@ -536,7 +583,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(final['training_truth'], original['training_truth'])
 
     def test_late_control_recording_excludes_only_that_person_and_clears_stale_comparison(self):
-        result, train, _ = fitted_state()
+        result, train, _ = self.fitted_fixture()
         controls = [case('runtime-late-control:'+str(i), CONTROL, i % 2, i % 2, 'control') for i in range(40)]
         result = add_cases(result['state_json'], controls, PREDICT, 42)
         result = confirm_forecasts(result['state_json'], later(PREDICT, seconds=1))
@@ -567,7 +614,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(json.loads(retry['state_json'])['predictions'], saved['predictions'])
 
     def test_cpu_forecast_then_outcome_before_delayed_persistence_is_excluded_on_next_read(self):
-        result, _, _ = fitted_state()
+        result, _, _ = self.fitted_fixture()
         control = case('persistence-race', CONTROL, 1, 1, 'control')
         result = add_cases(result['state_json'], [control], PREDICT, 42)
         saved = json.loads(result['state_json'])
@@ -594,7 +641,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result['summary']['control_resolved'], 0)
 
     def test_saved_forecast_confirmed_before_truly_later_outcome_remains_eligible(self):
-        result, _, _ = fitted_state()
+        result, _, _ = self.fitted_fixture()
         control = case('persistence-later-outcome', CONTROL, 1, 1, 'control')
         result = add_cases(result['state_json'], [control], PREDICT, 42)
         saved = json.loads(result['state_json'])
@@ -613,7 +660,7 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(state['prediction_confirmations'], confirmed['prediction_confirmations'])
 
     def test_confirmation_artifact_binding_clocks_and_32_pending_byte_reserve(self):
-        result, _, _ = fitted_state()
+        result, _, _ = self.fitted_fixture()
         controls = [case('pending-confirmation:'+str(i), CONTROL, i % 2, i % 2, 'control') for i in range(32)]
         # One supported CLI batch: every prediction is computed in this pass.
         result = call(request(PREDICT, result['state_json'], cursor='73',
@@ -657,7 +704,7 @@ class RuntimeTests(unittest.TestCase):
                     call(request(later(PREDICT, seconds=1), runtime.encoded(runtime.seal(bad)), cursor='73'))
 
     def test_training_truth_missing_corrupt_or_material_access_unknown_fails_closed(self):
-        result, train, _ = fitted_state()
+        result, train, _ = self.fitted_fixture()
         original = json.loads(result['state_json'])
         for mutation in ('missing', 'label', 'packet'):
             bad = copy.deepcopy(original); group = train[0]['packet']['person_group']

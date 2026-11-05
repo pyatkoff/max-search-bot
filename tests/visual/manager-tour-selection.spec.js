@@ -260,7 +260,7 @@ for(const viewport of [{width:390,height:900},{width:430,height:900},{width:768,
   expect(await page.evaluate(()=>WorkspaceV2Conversation.refreshVisible())).toBe(true);await page.locator('#conversationTitle.m2ClientCardButton, #mobileLeadBtn:visible').first().click();const panel=page.locator('#leadCard [data-tour-choices]');await expect(panel).toBeVisible();await panel.locator('summary').click();
   for(const value of ['Выбранные туры из поиска','Синтетический выбранный отель у моря','Family sea view','Возраст детей: 0, 0, 12','12.06.2027','Полную стоимость и наличие необходимо подтвердить','ANEX'])await expect(panel).toContainText(value);
   if(mode==='selected'){for(const value of ['231 456,50 ₽ за всех','Outward selected 10:00 synthetic','Inward selected 19:00 synthetic'])await expect(panel).toContainText(value)}else{await expect(panel).toContainText('Цена не указана');await expect(panel).toContainText('Подбор рейсов с менеджером');await expect(panel).not.toContainText('Outward selected')}
-  for(const value of ['Понравившиеся туры','record_id','anex_online:','s3_','19.06.2027'])await expect(panel).not.toContainText(value);await expect(panel.locator('button,form')).toHaveCount(0);
+  for(const value of ['Понравившиеся туры','record_id','anex_online:','s3_','19.06.2027'])await expect(panel).not.toContainText(value);await expect(panel.locator('form')).toHaveCount(0);await expect(panel.getByRole('button',{name:'Оформление бронирования',exact:true})).toHaveCount(1);await expect(panel.locator('[data-booking-kind="search"]')).toHaveAttribute('data-booking-source',String(detail.tour_choices.search_inquiries[0].inquiry_id));
   await panel.evaluate(el=>Promise.all(el.getAnimations({subtree:true}).map(a=>a.finished.catch(()=>{}))));expect(await panel.evaluate(el=>el.scrollWidth<=el.clientWidth+1)).toBe(true);
   await expect(page.locator('#replyText')).toHaveValue('Мой новый ответ, который нельзя потерять');await expect(page.locator('#mediaSelection')).toContainText('search3-inquiry.txt');
   fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({animations:'disabled',path:path.join(root,'manager2-artifacts',`tour-selection-search3-${browserName}-${mode}-${viewport.width}x${viewport.height}.png`)});clean(s);
@@ -1941,4 +1941,83 @@ test('offer comparison rejects late history and a stored send handler',async({pa
  await f.locator('#tsHistory').click();const old=f.locator('#tsRecovery button').first();await expect(old).toBeVisible();await old.evaluate(el=>window.detachedCompareHistory=el);await old.click();await expect.poll(()=>!!release).toBe(true);const before=copy(s.snapshot());await f.locator('#tsCompareOffers').click();await expect(f.locator('#tsSend')).toBeDisabled();await f.locator('body').evaluate(()=>{window.detachedCompareHistory.click();return window.comparisonOldSend()});
  const response=page.waitForResponse(result=>result.url().includes('/manager/tour-selection-editor-api.php')&&result.request().postDataJSON().action==='publication');release();await response;await f.locator('body').evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await expect(f.locator('#tsOfferCompare')).toBeVisible();await expect(f.locator('.tsPreviewCard')).toHaveCount(0);await expect(f.locator('#tsSend')).toBeHidden();expect(publicationReads).toBe(1);expect(s.snapshot()).toEqual(before);expect(s.calls.filter(x=>['save','send','publish','revoke'].includes(x.action))).toEqual([]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+// Append to the admitted canonical selection spec after preserving PR1350 cases.
+// Uses its existing protected editor harness, real PHP renderer and synthetic photos.
+for(const count of [1,2])test('personal mobile gallery preserves actual photo count '+count,async({page,browserName})=>{
+ await page.setViewportSize({width:390,height:900});
+ const offer={index:0,hotel:'Synthetic gallery hotel',destination:'Synthetic destination',departure:'Москва',date_from:'2077-06-05',nights:7,adults:2,children:0,room:'Standard',meal:'BB',amount:'345678',currency:'RUB',rationale:'Synthetic recommendation',compromise:'',flights:'',inclusions:'',constraints:'',observed_at:'',photos:Array.from({length:count},(_,i)=>'photo.php?photo='+i),photo_layout:'gallery-v1',bot_links:[]};
+ const selection={title:'Synthetic gallery',intro:'',version:1,updated_at:'2077-01-01 00:00:00',appearance:{template:'personal',palette:'forest',agency_name:'Synthetic agency'},offers:[offer]};
+ const html=execFileSync('php',['-r',`$selection=json_decode(stream_get_contents(STDIN),true);$h=static fn(string $s):string=>htmlspecialchars($s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');require 'selection/view.php';`],{cwd:root,input:JSON.stringify(selection),encoding:'utf8'});
+ await page.route('http://127.0.0.1:4173/personal-gallery/**',route=>{const u=new URL(route.request().url());if(u.pathname.endsWith('/selection.css'))return route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'selection/selection.css'))});if(u.pathname.endsWith('/photo.php'))return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))});return route.fulfill({contentType:'text/html',body:html})});
+ await page.goto('http://127.0.0.1:4173/personal-gallery/');await expect(page.locator('.photos img')).toHaveCount(count);for(const img of await page.locator('.photos img').all())await expect.poll(()=>img.evaluate(x=>x.complete&&x.naturalWidth>0)).toBe(true);
+ const geometry=await page.locator('.photos').evaluate(el=>({width:el.clientWidth,columns:getComputedStyle(el).gridTemplateColumns.split(' ').length,figures:[...el.querySelectorAll('figure')].map(x=>x.getBoundingClientRect().width)}));expect(geometry.columns).toBe(count);if(count===1)expect(Math.abs(geometry.width-geometry.figures[0])).toBeLessThanOrEqual(1);else expect(Math.abs(geometry.figures[0]-geometry.figures[1])).toBeLessThanOrEqual(1);
+ await expect(page.locator('.price')).toHaveCSS('color','rgb(8, 118, 84)');await expect(page.locator('.personalManager,.personalComparison')).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-personal-gallery-${count}-${browserName}-390.png`),fullPage:true,animations:'disabled'});
+});
+
+for(const width of [390,430,768,1440])test('personal client page exact conditions and expandable comparison '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const requests=[];
+ const manager={name:'Синтетический менеджер <script>текст</script>',note:'Помогу сравнить варианты и уточню условия. <svg> — обычный текст.',phone:'+7 (000) 000-00-00',email:'manager@example.invalid'};
+ const offer={index:0,hotel:'Синтетический отель у моря',destination:'Синтетическое направление',departure:'Москва',date_from:'2077-11-20',nights:8,adults:2,children:2,child_ages:[4,4],room:'Standard Garden View',meal:'AI',amount:'345678',currency:'RUB',price_qualifier:'from',rationale:'Для спокойного отдыха на большой территории',compromise:'Вторая линия, автобус до пляжа',flights:'Туда: синтетический рейс 20.11, 22:00 → 02:45 (+1 день)\nОбратно: синтетический рейс 29.11',inclusions:'Перелёт, проживание, питание AI. Остальное уточняется.',constraints:'Багаж и обязательные доплаты требуют проверки.',observed_at:'2077-11-01T12:00:00Z',photos:[0,1,2].map(i=>'photo.php?card=0&photo='+i),photo_layout:'gallery-v1',bot_links:{telegram:'https://t.me/synthetic_bot?start=exact_publication_v3_card0'}};
+ const second={...copy(offer),index:1,hotel:'Другой синтетический отель',room:'Family Pool View',meal:'BB',amount:'1234.50',currency:'EUR',price_qualifier:'fixed',child_ages:[0,6],photos:[0,1,2].map(i=>'photo.php?card=1&photo='+i),bot_links:{telegram:'https://t.me/synthetic_bot?start=exact_publication_v3_card1'}};
+ const palette=width===390?'forest':width===430?'sunset':'ocean'; const selection={title:'Ваш отдых — персональная подборка',intro:'Несколько вариантов с разными условиями. Выберите, что ближе именно вам.',version:3,updated_at:'2077-11-01 12:00:00',appearance:{template:'personal',palette,agency_name:'Синтетическое агентство',manager},offers:[offer,second]};
+ const html=execFileSync('php',['-r',`$selection=json_decode(stream_get_contents(STDIN),true);$h=static fn(string $s):string=>htmlspecialchars($s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');require 'selection/view.php';`],{cwd:root,input:JSON.stringify(selection),encoding:'utf8'});
+ const csp=fs.readFileSync(path.join(root,'selection/index.php'),'utf8').match(/header\("Content-Security-Policy: ([^"]+)"\)/)[1];
+ await page.route('**/*',async route=>{
+  const url=new URL(route.request().url());requests.push(url.pathname);if(url.origin!=='http://127.0.0.1:4173')throw Error('Unexpected external personal-template request');
+  if(url.pathname==='/personal-page/')return route.fulfill({contentType:'text/html',headers:{'Content-Security-Policy':csp},body:html});
+  if(url.pathname==='/personal-page/selection.css')return route.fulfill({contentType:'text/css',body:fs.readFileSync(path.join(root,'selection/selection.css'))});
+  if(url.pathname==='/personal-page/photo.php')return route.fulfill({contentType:'image/jpeg',body:fs.readFileSync(path.join(root,'assets/owner-tour-cards/compact-v1/cover.jpg'))});
+  throw Error('Unexpected personal-template resource');
+ });
+ await page.goto('http://127.0.0.1:4173/personal-page/');
+ await expect(page.locator('.personalManager h2')).toHaveText(manager.name);await expect(page.locator('.price').first()).toHaveCSS('color',{forest:'rgb(8, 118, 84)',sunset:'rgb(161, 68, 39)',ocean:'rgb(23, 102, 161)'}[palette]);await expect(page.locator('.personalManager')).toContainText(manager.note);
+ await expect(page.locator('.personalManager script,.personalManager svg')).toHaveCount(0);
+ await expect(page.locator('.managerContacts a[href^="tel:"]')).toHaveAttribute('href','tel:+70000000000');
+ await expect(page.locator('.managerContacts a[href^="mailto:"]')).toHaveAttribute('href','mailto:manager%40example.invalid');
+ await expect(page.locator('.offer')).toHaveCount(2);await expect(page.locator('.photos img')).toHaveCount(6);
+ for(const img of await page.locator('.photos img').all()){await img.scrollIntoViewIfNeeded();await expect.poll(()=>img.evaluate(i=>i.complete&&i.naturalWidth>0)).toBe(true)}
+ const fillGaps=await page.locator('.photos').first().evaluate(el=>[...el.querySelectorAll('figure')].map(figure=>{const f=figure.getBoundingClientRect(),i=figure.querySelector('img').getBoundingClientRect();return Math.max(Math.abs(f.top-i.top),Math.abs(f.bottom-i.bottom))}));expect(Math.max(...fillGaps)).toBeLessThanOrEqual(1);console.log('personal-gallery-fill',JSON.stringify({width,fillGaps}));
+ const details=page.locator('.personalDetails').first();await expect(details).not.toHaveAttribute('open','');await expect(page.locator('.personalRecommendation').first()).toBeVisible();await expect(page.locator('.personalCompromise').first()).toContainText(offer.compromise);
+ await details.locator('summary').click();await expect(details).toHaveAttribute('open','');await expect(details).toContainText(offer.flights);await expect(details).toContainText(offer.constraints);
+ await details.locator('summary').focus();await page.keyboard.press('Enter');await expect(details).not.toHaveAttribute('open','');await page.keyboard.press('Enter');await expect(details).toHaveAttribute('open','');
+ await expect(page.locator('.personalSummary').first()).toContainText('4, 4');await expect(page.locator('.fareNotice').first()).toContainText(offer.observed_at);
+ await expect(page.locator('.comparisonScroll tbody tr')).toHaveCount(2);await expect(page.locator('.comparisonScroll tbody tr').first()).toContainText('от 345 678,00 RUB');await expect(page.locator('.comparisonScroll tbody tr').nth(1)).toContainText('1 234,50 EUR');
+ await expect(page.locator('.comparisonScroll tbody tr').nth(1)).toContainText('0, 6');await expect(page.locator('.comparisonScroll tbody tr').nth(1)).toContainText(second.room);
+ await expect(page.locator('#variant-1 .botActions a')).toHaveAttribute('href',offer.bot_links.telegram);await expect(page.locator('#variant-2 .botActions a')).toHaveAttribute('href',second.bot_links.telegram);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);expect(await page.locator('main.selection').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+ for(const item of await page.locator('.personalDetails summary,.managerContacts a,.personalNavigation a').all())expect(await item.evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ await page.locator('.personalManager').scrollIntoViewIfNeeded();fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-personal-public-${browserName}-${width}.png`),fullPage:true,animations:'disabled'});
+ await page.locator('.comparisonScroll a').nth(1).click();await expect(page).toHaveURL(/#variant-2$/);expect(requests.filter(p=>p.endsWith('/photo.php'))).toHaveLength(6);
+});
+
+for(const width of [390,1440])test('personal template manager can assemble and retain exact frozen presentation '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const original=completeDraft(),s=await privateEditor(page,{draft:original}),f=s.editor,frozen=await appearancePrivatePreview(page,s);
+ await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsAppearance').click();await f.locator('#tsAppearanceTemplate').selectOption('personal');
+ const manager={name:'Синтетический менеджер <img src=x>',note:'Моя рекомендация: сравните условия и обсудим варианты.',phone:'+7 (000) 000-00-00',email:'manager@example.invalid'};
+ for(const key of ['Name','Note','Phone','Email'])await f.locator('#tsManager'+key).fill(manager[key.toLowerCase()]);
+ await expect.poll(()=>s.snapshot().draft.appearance?.manager).toEqual(manager);await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');expect(s.snapshot().draft.offers).toEqual(original.offers);
+ for(const id of ['tsManagerName','tsManagerPhone','tsManagerEmail'])expect(await f.locator('#'+id).evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ expect(await f.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-personal-settings-${browserName}-${width}.png`),animations:'disabled'});
+ await f.locator('#tsAppearanceBack').click();await f.locator('#tsPreview').click();await expect(f.locator('.tsManagerPresentation h4')).toHaveText(manager.name);await expect(f.locator('.tsManagerPresentation img')).toHaveCount(0);await expect(f.locator('.tsManagerPresentation')).toContainText(manager.email);
+ const publication=frozen();expect(publication.appearance.manager).toEqual(manager);expect(publication.appearance.template).toBe('personal');
+ const previewImages=f.locator('.tsPhotos img');await expect(previewImages).toHaveCount(publication.cards.reduce((sum,card)=>sum+card.photos.length,0));
+ for(const img of await previewImages.all()){
+  await expect.poll(()=>img.evaluate(image=>image.complete&&image.naturalWidth>0),{timeout:5000}).toBe(true);
+  await img.evaluate(async image=>{let timer;try{await Promise.race([image.decode(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Personal preview image decode timed out')),5000)})])}finally{clearTimeout(timer)}});
+ }
+ await f.locator('#tsEditor').evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));console.log('personal-preview-ready',JSON.stringify({width,images:await previewImages.count(),decoded:true}));
+ await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-personal-preview-${browserName}-${width}.png`),animations:'disabled'});
+ await f.locator('#tsEdit').click();await f.locator('#tsAppearance').click();await f.locator('#tsManagerName').fill('Later private edit');await expect.poll(()=>s.snapshot().draft.appearance.manager.name).toBe('Later private edit');await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');await f.locator('#tsAppearanceBack').click();
+ await f.locator('#tsHistory').click();await f.getByRole('button',{name:new RegExp('Версия '+publication.draft_version+' ·')}).click();await expect(f.locator('.tsManagerPresentation h4')).toHaveText(manager.name);expect(frozen()).toEqual(publication);
+ expect(s.calls.some(c=>['send','publish','biblio_add','onetouch_add','collector_import'].includes(c.action))).toBe(false);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+test('detached personal contact editor cannot modify returned offer editing',async({page})=>{
+ const s=await privateEditor(page,{draft:completeDraft()}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsAppearance').click();await f.locator('#tsAppearanceTemplate').selectOption('personal');await f.locator('#tsManagerName').fill('Synthetic manager');await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');
+ await f.locator('#tsManagerName').evaluate(el=>window.detachedPersonalInput=el.oninput);await f.locator('#tsAppearanceBack').click();const prior=copy(s.snapshot().draft),saved=s.calls.filter(x=>x.action==='save').length;
+ const frame=page.frames().find(x=>x.url().startsWith('https://app.anytoour.ru/manager/tour-selection-editor.php'));await frame.evaluate(()=>window.detachedPersonalInput({target:{value:'Detached malicious edit'}}));await frame.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ expect(s.snapshot().draft).toEqual(prior);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(saved);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });

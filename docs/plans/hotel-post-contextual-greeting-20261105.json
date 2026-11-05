@@ -1,0 +1,39 @@
+{
+  "operation": "hotel-post-contextual-greeting-20261105",
+  "state": "IMPLEMENTING_OWNER_AUTHORIZED_DIALOGUE_PRESENTATION",
+  "goal": "Use the hotel from the current validated post link in the first bot greeting and ask only canonical missing trip needs in MAX and Telegram.",
+  "user_authorization": "да, сделай так, чтобы бот сразу подставлял название отеля из поста и спрашивал только недостающие данные",
+  "base_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "boundaries": [
+    "Only max-search-bot greeting presentation and authenticated MAX/TG post-entry context propagation.",
+    "No customer transcript reads or production test conversations/messages; behavioral fixtures only.",
+    "Preserve trip values and canonical missing-field owner; no source search/API/quote/config/schema/observer/cron/manager-routing changes.",
+    "Preserve manager-owned quiet reentry; same post stays quiet, a different validated post can show its own introduction once.",
+    "Publishing21 files and host/fullREMOTE21 guards unchanged; no TG miniapp frontend installation.",
+    "Post-copy editing remains a separate balanced draft; existing owner edits and inline price link must not be overwritten."
+  ],
+  "criteria": [
+    "Real MAX and Telegram handlers pass a bounded context only after canonical token resolution; no inherited/invalid/foreign post identity.",
+    "Greeting names a safely escaped hotel heading from that current immutable publication, with generic fallback when a hotel cannot be identified.",
+    "Ask only fields returned by canonical missing needs; known adults/children/date not requested again, zero children does not prompt child ages.",
+    "No reset, premature manager handoff, attribution changes or automatic paid requests.",
+    "Native behavior regression, required regression+guard, normal PR release and exact-source healthy production verification; natural customer use remains unobserved until it occurs."
+  ],
+  "risks": [
+    "Entry is recorded after current greeting; solve by carrying current resolved publication, not reading last historical entry.",
+    "Post headings may be missing/unrecognized; fail safely to generic greeting rather than invent a hotel.",
+    "HTML must be escaped; dates/party defaults in a post or search filter do not prove user choices.",
+    "Required existing publisher admission may block a release; never take another owner's record or bypass failed gates."
+  ],
+  "rollback": "Forward revert of this narrow change through the existing PR/CI/deploy gates; no data migration or cleanup.",
+  "post_copy_owner_preference": {
+    "state": "BALANCED_DRAFT_ONLY_NO_EXISTING_POST_WRITES",
+    "description": "Keep short hotel description, four benefits and Aqua second-line caveat; preserve inline price link and native CTA; owner selected exactly three compact tour-parameter lines.",
+    "offer_lines": [
+      "✈️ из Москвы • 09.11.2026 • 5 ночей",
+      "👥 2 взрослых • Deluxe • Ультра всё включено",
+      "💰 285 814 ₽ за тур"
+    ],
+    "existing_owner_manual_edits_must_not_be_overwritten": true
+  }
+}

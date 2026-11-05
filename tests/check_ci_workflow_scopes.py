@@ -61,7 +61,7 @@ check(not aggregate.get('continue-on-error', False), 'aggregate cannot hide admi
 check(aggregate.get('permissions') == {'contents': 'read', 'pull-requests': 'read'}, 'release admission cannot mutate GitHub state')
 check(admission.get('env', {}).get('GITHUB_TOKEN') == '${{ secrets.GITHUB_TOKEN }}', 'admission uses only the built-in read capability')
 checkout = next(s for s in aggregate['steps'] if s.get('uses') == 'actions/checkout@v4')
-check(aggregate['steps'].index(checkout) < aggregate['steps'].index(admission) and checkout.get('with', {}).get('persist-credentials') is False, 'admission reads checked source without persisted credentials')
+check(aggregate['steps'].index(checkout) < aggregate['steps'].index(admission) and checkout.get('with', {}).get('persist-credentials') is False, 'admission reads checked source without persisted token')
 check(set(visual['screenshots']['needs']) == {'change-scope','full-screenshots','oauth-browser','tour-browser'}, 'visual aggregate must await all profile branches')
 for name in ['regression-tests.yml','workspace-v2-visual-qa.yml','workspace-sound.yml','channel-post-context.yml']:
     check(load(name)['jobs']['change-scope']['uses'] == './.github/workflows/ci-change-scope.yml', name + ' must use canonical selector')
@@ -70,8 +70,20 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
         check(load(name)['jobs'][job]['if'] == "needs.change-scope.outputs.mode == 'full'", name + '/' + job + ' must require full mode')
         check('change-scope' in load(name)['jobs'][job]['needs'], name + '/' + job + ' must await selector')
 for job in ['required','prepared-mysql']:
-    check(regression[job]['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'selection retains full backend and MySQL: '+job)
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
+check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
+check(regression['prepared-mysql']['if'] == "needs.change-scope.outputs.mode == 'full' || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
+expected_exclude = "${{ fromJSON(needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style' && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || '[]') }}"
+check(regression['required']['strategy']['matrix'] == {
+    'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
+    'styling excludes exactly four unchanged server groups; other profiles keep all five')
+check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
+scope_document = load('ci-change-scope.yml')
+scope_events = scope_document.get('on',scope_document.get(True))
+check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.scope.outputs.backend }}'
+      and scope_document['jobs']['scope']['outputs']['backend'] == '${{ steps.scope.outputs.backend }}',
+      'backend profile is bound through the canonical scope job')
+check('node tests/check_ci_selection_style_scope.js' in policy['run'], 'style selector selftests are mandatory')
 check("needs.change-scope.outputs.mode == 'full'" in visual['browser-tests']['if'], 'full browser assembler must not run after OAuth-only skips')
 check(set(visual['full-screenshots']['needs']) == {'browser-tests','firefox-history','firefox-notifications'}, 'full screenshot proof preserves all engines and Firefox')
 check(visual['oauth-browser']['strategy']['matrix']['browser'] == ['chromium','webkit'], 'OAuth requires both browser engines')
@@ -179,7 +191,7 @@ for value in ['123','', '0','01','1,2','foreign','-1']:
     check((result==0)==(value=='123'),'plan artifact ID guard rejected wrong value: '+value)
 for mode in ['oauth','full','tour-selection','', 'invalid']:
     full_backend=mode in ['full','tour-selection']
-    valid = dict(CI_MODE=mode,SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',REQUIRED_RESULT='success' if full_backend else 'skipped',PREPARED_MYSQL_RESULT='success' if full_backend else 'skipped',OAUTH_RESULT='success' if mode=='oauth' else 'skipped')
+    valid = dict(CI_MODE=mode,BACKEND_PROFILE='full',SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',REQUIRED_RESULT='success' if full_backend else 'skipped',PREPARED_MYSQL_RESULT='success' if full_backend else 'skipped',OAUTH_RESULT='success' if mode=='oauth' else 'skipped')
     cases=[valid]
     for key in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
         for value in ['success','failure','skipped','cancelled']:
@@ -187,6 +199,27 @@ for mode in ['oauth','full','tour-selection','', 'invalid']:
     for env in cases:
         expected = env['SCOPE_RESULT'] == env['INVENTORY_RESULT'] == env['SYNTAX_RESULT'] == 'success' and ((mode == 'oauth' and env['OAUTH_RESULT'] == 'success' and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == 'skipped') or (full_backend and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == 'success' and env['OAUTH_RESULT'] == 'skipped'))
         check(gate_passes(regression['regression'],env,'Require every gate') == expected, 'regression gate accepted wrong results: ' + str(env))
+# Exercise the actual aggregate, including absent/foreign profile results.
+style_valid = dict(CI_MODE='tour-selection',BACKEND_PROFILE='selection-style',
+    SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',
+    REQUIRED_RESULT='success',PREPARED_MYSQL_RESULT='skipped',OAUTH_RESULT='skipped')
+check(gate_passes(aggregate,style_valid,'Require every gate'),'audited styling baseline passes')
+for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
+    for value in ['success','failure','skipped','cancelled','timed_out','']:
+        check(gate_passes(aggregate,{**style_valid,field:value},'Require every gate') == (value == style_valid[field]),
+              'styling gate cannot hide a missing or incorrect result: '+field+'='+value)
+for mode,profile in itertools.product(['oauth','full','tour-selection','','unknown'],['selection-style','full','','unknown']):
+    check(gate_passes(aggregate,{**style_valid,'CI_MODE':mode,'BACKEND_PROFILE':profile},'Require every gate')
+          == (mode == 'tour-selection' and profile == 'selection-style'),
+          'a styling result cannot certify another or missing profile')
+for mode in ['full','tour-selection','oauth']:
+    backend = mode != 'oauth'
+    full_valid = dict(CI_MODE=mode,SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',
+        REQUIRED_RESULT='success' if backend else 'skipped',PREPARED_MYSQL_RESULT='success' if backend else 'skipped',
+        OAUTH_RESULT='skipped' if backend else 'success')
+    for profile in ['', 'unknown', 'selection-style']:
+        check(not gate_passes(aggregate,{**full_valid,'BACKEND_PROFILE':profile},'Require every gate'),
+              'full/OAuth results need their exact declared profile')
 for mode,scope,full,oauth in itertools.product(['oauth','full','','invalid'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled']):
     env=dict(CI_MODE=mode,SCOPE_RESULT=scope,FULL_RESULT=full,OAUTH_RESULT=oauth,TOUR_RESULT='skipped',TOUR_PROOF='false')
     expected=scope=='success' and ((mode=='oauth' and oauth=='success' and full=='skipped') or (mode=='full' and full=='success' and oauth=='skipped'))
@@ -214,8 +247,8 @@ check(tail_workflow['concurrency'] == {'group':'anytour-modeled-value-configurat
 check(tail_workflow['permissions'] == {'contents':'read', 'actions':'read'}, 'business job permissions unchanged')
 close = tail_workflow['jobs']['release-slot']
 check(close['needs'] == 'configure', 'value operation must finish or be declared skipped before closing')
-expected_close_if = "always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.run_attempt == 1 && (needs.configure.result == 'success' || needs.configure.result == 'skipped')"
-check(close['if'] == expected_close_if, 'no failed, manual, foreign or retried release can close')
+expected_close_if = "always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.run_attempt == 1 || github.event.workflow_run.run_attempt == 2) && (needs.configure.result == 'success' || needs.configure.result == 'skipped')"
+check(close['if'] == expected_close_if, 'only original or proven verification recovery may enter the fail-closed closer')
 check(close['permissions'] == {'contents':'read', 'actions':'read', 'pull-requests':'read', 'issues':'write'},
       'comment capability belongs only to metadata closer')
 check(close['runs-on'] == 'ubuntu-latest' and close['timeout-minutes'] == 20, 'bounded existing server runner')
@@ -230,5 +263,49 @@ check(closing['run'] == 'node tools/release_slot_close.js'
 check('${{ secrets.' not in json.dumps(close), 'closer never receives production credentials')
 check('release-slot-close:v1' in (root/'docs/RELEASE_PRIORITY.md').read_text(),
       'single existing publisher opt-in is documented')
+
+
+# Installation and verification retain the existing job count and serialization.
+deployment = load('deploy.yml')
+dj = deployment['jobs']
+check(set(dj) == {'verify-inventory','verify-syntax','verify-groups','deploy','verify'},
+      'no new release queue or job identifiers')
+check(dj['deploy']['needs'] == ['verify-inventory','verify-syntax','verify-groups']
+      and dj['deploy']['if'] == 'always()', 'source aggregate cannot skip a missing group')
+check(dj['deploy']['steps'][0]['name'] == 'Require the complete deployment verification'
+      and 'test "$GITHUB_RUN_ATTEMPT" = 1' in dj['deploy']['steps'][0]['run'],
+      'installer replay stopped before checkout or protected access')
+check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
+vs = dj['verify']['steps']
+admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')
+key = next(i for i,s in enumerate(vs) if s.get('id') == 'ssh_key')
+check(admit < key and not vs[admit].get('continue-on-error')
+      and '--admit-verification' in vs[admit]['run'], 'read-only admission before verification credential')
+for phase in ['check','download','status','cleanup']:
+    s = next(s for s in vs if s.get('id') == phase)
+    check(not s.get('continue-on-error', False), 'API step conclusion must preserve real failure: '+phase)
+    check("steps.admission.outputs.run_"+phase+" == 'true'" in s['if'],
+          'accepted phase cannot repeat: '+phase)
+check('MAX_SEARCH_APPLY_AI_PROFILE' not in json.dumps(dj['verify'])
+      and '--apply' not in json.dumps(dj['verify'])
+      and 'export_debug_logs.php' not in json.dumps(dj['verify'])
+      and 'git reset --hard' not in json.dumps(dj['verify']),
+      'verification does not repeat installer mutations or export')
+check('--check-only' in next(s for s in vs if s.get('id') == 'check')['run'],
+      'verification uses read-only log boundary checks')
+for job in dj.values():
+    for step in job['steps']:
+        if 'run' in step:
+            check(subprocess.run(['bash','-n'],input=step['run'],text=True,capture_output=True).returncode == 0,
+                  'actual deployment shell syntax: '+step.get('name','unnamed'))
+for filename in ['max-tls-preflight.yml','max-production-health.yml','telegram-production-health.yml',
+                 'publish-conversation-diagnostics.yml','live-session-diagnostics.yml','tour-selection-host.yml',
+                 'modeled-conversion-monitor.yml','modeled-conversion-value-export.yml']:
+    w = load(filename)
+    check("format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt)" in w['run-name'],
+          'exact upstream attempt metadata: '+filename)
+activation = load('modeled-pipeline-monitor-activation.yml')
+check("format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt)" in activation['run-name'],
+      'activation provenance follows the exact original monitor')
 
 print(f'PASS {checks} workflow selection and gate cases')

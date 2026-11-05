@@ -502,7 +502,9 @@ function archiveResearchReadRegression(PDO $pdo): int
         $semStart=$semMeta['semantic_scan']['start_cursor'];$semToken=$decodeToken($semStart);
         $check($semToken['k']==='semantic_inventory'&&ArchiveResearchSemanticExtractor::validState($semToken['s'])
             &&strlen($semStart)<=2048,'semantic_start_has_valid_bounded_initial_state');
-        foreach([['unexpected'=>1],['e'=>-1],['money'=>'foreign:path'],['q'=>'unrecognized']]as$alter){
+        $check($semMeta['semantic_scan']['rule_revision']===ArchiveResearchSemanticExtractor::RULE_REVISION,
+            'semantic_descriptor_identifies_rule_revision');
+        foreach([['unexpected'=>1],['v'=>2],['e'=>-1],['money'=>'foreign:path'],['q'=>'unrecognized']]as$alter){
             $bad=$semToken;$bad['s']=array_replace($bad['s'],$alter);
             $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'stale_cursor');
         }
@@ -523,6 +525,8 @@ function archiveResearchReadRegression(PDO $pdo): int
         $semFirst=$service->inventory(1,$connection,['cursor'=>$sign($semState),'limit'=>1]);
         $check($semFirst['operation']==='contextual_semantic_inventory'&&$semFirst['model_calls']===0
             &&$semFirst['database_writes']===0&&!$semFirst['persistent_annotations_written'],'semantic_pass_is_read_only_and_explicit');
+        $check($semFirst['rule_revision']===ArchiveResearchSemanticExtractor::RULE_REVISION,
+            'semantic_page_identifies_rule_revision');
         $w=$semFirst['windows'][0];
         $check($w['source_records']===100&&($w['goal_event_counts']['manager_payment_ack']??0)===1
             &&!isset($w['goal_event_counts']['purchase_supported_candidate']),'semantic_first_window_stops_before_later_booking');
@@ -567,6 +571,126 @@ function archiveResearchReadRegression(PDO $pdo): int
         }while($denseCursor!==null);
         $check($denseRows===100&&count($denseSeen)===50&&count(array_unique($denseSeen))===50,
             'semantic_returned_prefix_has_no_skips_or_duplicates');
+        // Independent synthetic population for an explicit metadata-issued suffix.
+        $pdo->exec("UPDATE telegram_archive_accounts SET provider_enabled=0");
+        foreach([[120,'ResumeA','resume-a'],[121,'ResumeB','resume-b']]as[$a,$bot,$conn]){
+            $pdo->prepare('INSERT INTO telegram_archive_accounts VALUES(?,?,?,?,1,1,NULL)')
+                ->execute(['anytour',$bot,$a,$conn]);
+            $pdo->prepare('INSERT INTO telegram_dialogue_connections VALUES(?,?,?,?,1)')
+                ->execute(['anytour',$bot,$conn,$a]);
+        }
+        $seed(30001,120,40000,1,'Нужен тур.',['created_at'=>1699999800]);
+        $seed(30002,120,40000,2,'Оплату получила.',
+            ['sender_id'=>'120','sender_type'=>'manager','direction'=>'outbound','created_at'=>1699999801]);
+        $seed(30003,120,40001,1,'Тур подтверждён.',
+            ['sender_id'=>'120','sender_type'=>'manager','direction'=>'outbound','created_at'=>1699999850]);
+        for($n=1;$n<=130;$n++){
+            $text=$n===1?'Нужен тур.':($n===99?'Оплату получила.':($n===101?'Тур подтверждён.':'Спасибо.'));
+            $extra=['created_at'=>1699999900+$n];
+            if(in_array($n,[99,101],true))$extra+=['sender_id'=>'120','sender_type'=>'manager','direction'=>'outbound'];
+            $seed(31000+$n,120,40002,$n,$text,$extra);
+        }
+        $seed(32001,121,50000,1,'Ищем тур в июле.',['created_at'=>1699999900]);
+        $resumeBefore=$fingerprint();$blockedWrite=false;ArchiveResearchTraceStatement::$queries=[];
+        $resumeMetaFirst=$service->inventory(1,$connection,['limit'=>1]);
+        $ordinaryCheckpoint=$decodeToken($resumeMetaFirst['next_cursor']);
+        $check($ordinaryCheckpoint['k']==='inventory'&&$ordinaryCheckpoint['a']==='120'
+            &&$ordinaryCheckpoint['c']==='40000'&&!isset($resumeMetaFirst['semantic_scan']['resume_from_page']),
+            'suffix_fixture_obtains_an_actual_exclusive_metadata_checkpoint');
+        $resumeMeta=$service->inventory(1,$connection,['cursor'=>$resumeMetaFirst['next_cursor'],'limit'=>1]);
+        $resume=$resumeMeta['semantic_scan']['resume_from_page']??null;
+        $check(is_array($resume)&&count($resume)===4
+            &&!array_diff(array_keys($resume),['start_cursor','range','whole_archive','context'])
+            &&is_string($resume['start_cursor']??null)&&$resume['range']==='this_metadata_page_and_following_chats'
+            &&$resume['whole_archive']===false&&$resume['context']==='fresh_at_next_chat',
+            'ordinary_metadata_continuation_offers_only_explicit_fresh_suffix_semantics');
+        $payloadQueries=array_filter(ArchiveResearchTraceStatement::$queries,
+            static fn($sql)=>str_contains($sql,'SELECT m.id,m.record_json'));
+        $check(!$payloadQueries,'suffix_descriptor_does_not_read_payload_before_explicit_selection');
+        $resumeCursor=$resume['start_cursor'];$resumeState=$decodeToken($resumeCursor);
+        $fullState=$decodeToken($resumeMeta['semantic_scan']['start_cursor']);$base=['120','40000'];
+        $metadataClockBefore=$now;$now=1700000200;ArchiveResearchTraceStatement::$queries=[];
+        $renewedMetadata=$service->inventory(1,$connection,['cursor'=>$resumeMetaFirst['next_cursor'],'limit'=>1]);
+        $metadataPayloadQueries=array_filter(ArchiveResearchTraceStatement::$queries,
+            static fn($sql)=>str_contains($sql,'SELECT m.id,m.record_json'));
+        $check($decodeToken($renewedMetadata['next_cursor'])['e']===1700001400
+            &&$decodeToken($renewedMetadata['chats'][0]['chat_ref'])['e']===1700001400&&!$metadataPayloadQueries,
+            'valid_ordinary_metadata_continuation_renews_reference_expiry_without_payload');
+        $now=$ordinaryCheckpoint['e']+1;
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$resumeMetaFirst['next_cursor'],'limit'=>1]),'stale_cursor');
+        $now=$metadataClockBefore;
+        $check($resumeState['k']==='semantic_inventory'&&$resumeState['a']===$base[0]&&$resumeState['c']===$base[1]
+            &&$resumeState['n']==='0'&&$resumeState['b']===$base
+            &&$resumeState['s']===ArchiveResearchSemanticExtractor::initialState()
+            &&$resumeState['f']===$ordinaryCheckpoint['f']&&$resumeState['e']===$now+ArchiveResearchReadService::CURSOR_TTL
+            &&$resumeState['x']!==$fullState['x']&&strlen($resumeCursor)<=2048,
+            'suffix_cursor_binds_checkpoint_fence_fresh_run_expiry_and_empty_context');
+        $check($fullState['a']==='0'&&$fullState['c']==='0'&&$fullState['n']==='0'&&!isset($fullState['b']),
+            'ordinary_metadata_continuation_preserves_the_original_full_archive_start');
+        $fullRead=$service->inventory(1,$connection,['cursor'=>$resumeMeta['semantic_scan']['start_cursor'],'limit'=>1]);
+        $check($fullRead['scan_range']==='from_archive_beginning'
+            &&$fullRead['windows'][0]['source_records']===2
+            &&($fullRead['windows'][0]['goal_event_counts']['manager_payment_ack']??0)===1
+            &&!isset($decodeToken($fullRead['next_cursor'])['b']),
+            'full_semantic_cursors_without_suffix_base_remain_valid_and_honest');
+        $suffixFirst=$service->inventory(1,$connection,['cursor'=>$resumeCursor,'limit'=>1]);
+        $suffixWindow=$suffixFirst['windows'][0];
+        $check($suffixFirst['scan_range']==='suffix_after_inventory_checkpoint'
+            &&$suffixWindow['source_records']===1
+            &&$suffixWindow['episode_windows'][0]['first_source_ref']==='archive_message:30003'
+            &&($suffixWindow['goal_event_counts']['booking_confirmation']??0)===1
+            &&!isset($suffixWindow['goal_event_counts']['manager_payment_ack'])
+            &&!isset($suffixWindow['goal_event_counts']['purchase_supported_candidate'])
+            &&$suffixWindow['context_after']['linked_purchase_candidate']===false,
+            'suffix_skips_checkpoint_chat_and_cannot_inherit_its_money');
+        $suffixRows=$suffixWindow['source_records'];$suffixIds=[$suffixWindow['source_window_id']];
+        $suffixCursor=$suffixFirst['next_cursor'];$suffixPages=0;$sawWithinChatPurchase=false;$crossAccountCursor=null;
+        while($suffixCursor!==null){
+            $continuation=$decodeToken($suffixCursor);
+            $check(($continuation['b']??null)===$base&&strlen($suffixCursor)<=2048,
+                'every_suffix_continuation_preserves_the_original_base');
+            if($continuation['a']==='121')$crossAccountCursor=$suffixCursor;
+            $suffixPage=$service->inventory(1,$connection,['cursor'=>$suffixCursor,'limit'=>1]);
+            $check($suffixPage['scan_range']==='suffix_after_inventory_checkpoint'
+                &&$suffixPage['rule_revision']===ArchiveResearchSemanticExtractor::RULE_REVISION,
+                'every_suffix_page_including_eof_retains_its_scope_and_rule_revision');
+            foreach($suffixPage['windows']as$window){
+                $suffixRows+=$window['source_records'];$suffixIds[]=$window['source_window_id'];
+                if(($window['goal_event_counts']['purchase_supported_candidate']??0)===1)$sawWithinChatPurchase=true;
+            }
+            $suffixCursor=$suffixPage['next_cursor'];
+            if(++$suffixPages>8)throw new RuntimeException('suffix_fixture_did_not_advance');
+        }
+        $check($suffixRows===132&&count($suffixIds)===4&&count(array_unique($suffixIds))===4&&$sawWithinChatPurchase,
+            'suffix_continuation_covers_only_remaining_records_and_keeps_legitimate_same_chat_context');
+        $check(!$suffixPage['has_more']&&$suffixPage['windows']===[]&&$suffixPage['next_cursor']===null
+            &&$suffixPage['scan_traversal_exhausted_within_fence']
+            &&$suffixPage['scan_range']==='suffix_after_inventory_checkpoint',
+            'suffix_eof_is_exhaustion_of_the_suffix_not_a_full_archive_claim');
+        foreach([null,'invalid',[],['120'],['120','40000','extra'],['account'=>'120','chat'=>'40000'],
+            ['0','40000'],['120','0'],[120,'40000'],['120',40000],['0120','40000']]as$badBase){
+            $bad=$resumeState;$bad['b']=$badBase;
+            $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'stale_cursor');
+        }
+        foreach([['120','40001'],['121','50000']]as$futureBase){
+            $bad=$resumeState;$bad['b']=$futureBase;
+            $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'stale_cursor');
+        }
+        $bad=$resumeState;$bad['b']=['102','300'];
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'forbidden');
+        $bad=$ordinaryCheckpoint;$bad['b']=$base;
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'stale_cursor');
+        $bad=$decodeToken($resumeMeta['feature_scan']['start_cursor']);$bad['b']=$base;
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'stale_cursor');
+        $reject(fn()=>$service->inventory(2,$connection,['cursor'=>$resumeCursor]),'stale_cursor');
+        $reject(fn()=>$service->inventory(1,str_repeat('d',43),['cursor'=>$resumeCursor]),'stale_cursor');
+        $check(is_string($crossAccountCursor),'suffix_fixture_reaches_a_later_allowed_account');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=120");
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$crossAccountCursor]),'forbidden');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=120");
+        $check($resumeBefore===$fingerprint()&&$blockedWrite&&!$pdo->inTransaction()
+            &&(int)$pdo->query('SELECT COUNT(*) FROM projects')->fetchColumn()===2,
+            'suffix_reads_reject_business_writes_preserve_sources_and_close_transactions');
         echo 'Archive research read checks: '.$checks." passed.\n";
         return$checks;
     }finally{

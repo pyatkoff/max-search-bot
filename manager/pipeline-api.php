@@ -86,6 +86,31 @@ if($action==='detail'){
     $salesDataComplete=!in_array('pipeline',$degraded,true)&&!in_array('tasks',$degraded,true);
     ManagerHttp::respond(['ok'=>true,'can_edit_pipeline'=>$can&&$salesDataComplete,'pipeline'=>$pipeline,'tasks'=>$tasks,'trip'=>pipelineTrip($c),'contact'=>['phone'=>$c['phone']??null,'email'=>$c['email']??null],'source'=>['origin_label'=>ManagerLeadInboxService::originLabel($c),'project_label'=>ManagerLeadInboxService::projectLabel($c),'project'=>$c['project_name']??$c['project_key']??null,'source'=>$c['source_name']??null,'channel'=>$c['channel']??null,'entry_channel'=>$c['entry_channel']??null,'attribution_region'=>$c['attribution_region']??null,'attribution_campaign'=>$c['attribution_campaign']??null],'handoff'=>['technical_status'=>$c['status']??null,'manager_name'=>$c['manager_name']??null,'delivery_failure'=>$deliveryFailure],'degraded_components'=>$degraded]);
 }
+if(in_array($action,['booking_read','booking_save'],true)){
+    require_once $baseDir.'/services/TourBookingService.php';
+    $kind=$data['source_kind']??null;$sourceId=$data['source_id']??null;
+    if(!is_string($kind)||!is_int($sourceId))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_source'],422);
+    try{
+        if($action==='booking_save'){
+            ManagerHttp::requireConversationEdit($c,$m);
+            $result=TourBookingService::save(ConversationDb::connection(),(int)$m['id'],$id,$data,static function()use($id,$m):bool{
+                $fresh=ManagerAuthService::byId((int)$m['id']);
+                $visible=ManagerConversationService::visibleConversation($id,(int)$m['id']);
+                return $fresh&&!empty($fresh['is_active'])&&$visible&&ManagerHttp::canEditConversation($visible,$fresh);
+            });
+        }else{
+            $op=$data['operation_id']??'';
+            if(!is_string($op))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_operation'],422);
+            session_write_close();
+            $result=TourBookingService::read(ConversationDb::connection(),$id,$kind,$sourceId,$op,(int)$m['id']);
+            $result['can_edit']=$can&&$c['status']!=='closed';
+        }
+    }catch(Throwable $e){
+        error_log('TOUR_BOOKING_FAILURE '.get_class($e));
+        ManagerHttp::respond(['ok'=>false,'error'=>'storage_unavailable'],503);
+    }
+    ManagerHttp::respond($result,!empty($result['ok'])?200:match($result['error']??''){'forbidden'=>403,'conflict','context_changed','operation_mismatch','invalid_transition'=>409,default=>422});
+}
 if($action==='set_stage'){
     ManagerHttp::requireConversationEdit($c,$m);
     $ok=SalesPipelineService::setStage($id,(string)($data['stage_key']??''),(int)$m['id']);

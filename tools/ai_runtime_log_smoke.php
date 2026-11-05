@@ -10,8 +10,9 @@ if (PHP_SAPI !== 'cli') {
 $root = dirname(__DIR__);
 require_once $root . '/services/AiRuntimeLogger.php';
 
-$written = AiRuntimeLogger::debug('[deployment AI log boundary check]');
-$file = AiRuntimeLogger::debugFile();
+$checkOnly = in_array('--check-only', $argv, true);
+$written = $checkOnly || AiRuntimeLogger::debug('[deployment AI log boundary check]');
+$file = AiRuntimeLogger::debugFile(!$checkOnly);
 $dir = $file !== '' ? realpath(dirname($file)) : false;
 $project = realpath($root);
 $outsideProject = is_string($dir)
@@ -22,6 +23,7 @@ $directoryMode = is_string($dir) && is_dir($dir) ? (fileperms($dir) & 0777) : 0;
 $fileMode = $file !== '' && is_file($file) ? (fileperms($file) & 0777) : 0;
 
 $ok = $written
+    && $file !== '' && !is_link($file)
     && $outsideProject
     && $directoryMode === 0700
     && $fileMode === 0600;

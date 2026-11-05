@@ -8,14 +8,18 @@ const root=path.resolve(__dirname,'../..'),origin='http://127.0.0.1:4173';
 // Render the actual PHP shell; no copied HTML or production traffic.
 const shell=execFileSync('php',['manager2/index.php'],{cwd:root,encoding:'utf8'});
 const stages=[['new','Новый лид'],['working','В работе'],['selection','Подбираем'],['proposal','Предложение отправлено'],['sold','Продано']].map(([stage_key,display_name],i)=>({id:i+1,stage_key,display_name,sort_order:i,is_terminal:stage_key==='sold'?1:0,is_won:stage_key==='sold'?1:0}));
-async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null}={}){
+async function setup(page,{anonymous=false,otherOwner=false,role='manager',serviceEvents=false,taskResult='success',holdCreate=false,holdMetadata='',waitForInbox=true,savedFilters=null,replyAudio=false,tourChoices=null,selectionEditorEntry=null,selectionAssetPackage=null}={}){
   const pushProtocol=lifecycle(7);
   // Model the existing server admission field, retaining the real shell/assets.
   // This fixture does not claim an installed or authenticated production editor.
-  const workspaceShell=selectionEditorEntry===null?shell:shell.replace(/(<meta name="selection-editor-entry" content=")[^"]*(")/,(_match,before,after)=>before+selectionEditorEntry.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+after);
+  let workspaceShell=selectionEditorEntry===null?shell:shell.replace(/(<meta name="selection-editor-entry" content=")[^"]*(")/,(_match,before,after)=>before+selectionEditorEntry.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+after);
+  if(selectionAssetPackage){
+    expect(selectionAssetPackage).toMatch(/^[a-f0-9]{64}$/);
+    for(const [kind,asset] of Object.entries({script:'editor.js',host:'manager2-host.js',style:'editor.css'}))workspaceShell=workspaceShell.replace(new RegExp('(<meta name="m2-selection-'+kind+'" content=")[^"]*(")'),(_match,before,after)=>before+'/manager/tour-selection-editor.php?asset='+asset+'&amp;package='+selectionAssetPackage+after);
+  }
   const calls=[],unexpected=[],errors=[],sends=[],pendingCreates=[],pendingMetadata=[];
   let authenticated=!anonymous,subscribed=false,currentTourChoices=tourChoices;
-  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map();
+  let lifecycleHandler=null,stateHandler=null,readHandler=null,logoutHandler=null,bookingHandler=null;const conversationOverrides=new Map(),inboxOverrides=new Map(),pipelineOverrides=new Map();
   const manager={id:7,role,display_name:'Мария',is_working:true};
   const tasks=[{id:21,title:'Проверить отели у моря в бюджете',status:'open',due_state:'today',due_at_utc:'2026-10-14 07:00:00',is_pinned:true,assigned_manager_name:'Мария'},{id:22,title:'Отправить подборку клиенту',status:'open',due_state:'overdue',due_at_utc:'2026-10-13 09:00:00',assigned_manager_name:'Мария'},{id:23,title:'Уточнить состав туристов',status:'done',due_state:'done',assigned_manager_name:'Мария'}];
   const conversation=id=>({id,manager_id:otherOwner?8:7,manager_name:otherOwner?'Людмила':'Мария',status:'manager',channel:'telegram',source_id:1,source_name:'AnyTour',display_name:id===11?'Анна Морозова':'Алексей Иванов',...conversationOverrides.get(id)});
@@ -42,6 +46,11 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   // Optional portraits are absent for these synthetic clients; the dedicated avatar suite covers images/ACL.
   if(req.method()==='GET'&&url.pathname==='/manager/customer-avatar.php'){expect([...url.searchParams.keys()]).toEqual(['conversation_id','account','channel']);expect(url.searchParams.get('account')).toBe(String(manager.id));expect(url.searchParams.get('channel')).toBe(conversation(Number(url.searchParams.get('conversation_id'))).channel);expect(['11','12']).toContain(url.searchParams.get('conversation_id'));return route.fulfill({status:404,body:''})}
     if(url.pathname.startsWith('/manager/assets/')||url.pathname.startsWith('/manager2/assets/')){const asset=path.resolve(root,'.'+url.pathname);if(!asset.startsWith(root+path.sep))return route.abort();return route.fulfill({contentType:url.pathname.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(asset)})}
+    if(req.method()==='GET'&&selectionAssetPackage&&url.pathname==='/manager/tour-selection-editor.php'){
+      expect([...url.searchParams.keys()].sort()).toEqual(['asset','package']);expect(url.searchParams.get('package')).toBe(selectionAssetPackage);
+      const file={'editor.js':'workspace-v2-tour-selection.js','manager2-host.js':'workspace-v2-tour-selection-host.js','editor.css':'workspace-v2-tour-selection.css'}[url.searchParams.get('asset')];
+      expect(file).toBeTruthy();return route.fulfill({contentType:file.endsWith('.css')?'text/css':'text/javascript',body:fs.readFileSync(path.join(root,'manager/assets',file))});
+    }
     if(!url.pathname.endsWith('.php'))return route.continue();
     if(!url.pathname.startsWith('/manager/')){unexpected.push(req.method()+' '+url.pathname);return route.abort()}
     const data=req.method()==='POST'?req.postDataJSON()||{}:{};
@@ -90,6 +99,10 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
         const status=await new Promise(resolve=>pendingMetadata.push({request:req,release:resolve}));
         if(status!==200){if(status===401)authenticated=false;return reply({ok:false,error:status===401?'unauthorized':'synthetic_metadata_unavailable'},status)}
       }
+      if(['booking_read','booking_save'].includes(data.action)&&bookingHandler){
+        const result=await bookingHandler(data);if(result.abort)return route.abort('failed');
+        return reply(result.body,result.status||200);
+      }
       if(data.action==='catalog')return reply({ok:true,stages,tags:[{id:1,display_name:'Семья'}],outcomes:{open:'В работе',won:'Продажа',lost:'Отказ'},close_reasons:{price:'Цена'}});
       if(data.action==='filter_options')return reply({ok:true,filters:{sources:[],managers:[manager]}});
       if(data.action==='list')return reply({ok:true,conversations:rows()});
@@ -124,7 +137,7 @@ async function setup(page,{anonymous=false,otherOwner=false,role='manager',servi
   });
   await page.goto(origin+'/manager2/index.php?qa=1');
   if(!anonymous&&waitForInbox)await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);
-  return {calls,unexpected,errors,sends,tasks,manager,setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
+  return {calls,unexpected,errors,sends,tasks,manager,setBookingHandler:fn=>{bookingHandler=fn},setLogoutHandler:fn=>{logoutHandler=fn},setTourChoices:value=>{currentTourChoices=value},setConversation:(id,patch)=>conversationOverrides.set(id,{...conversationOverrides.get(id),...patch}),setInboxRow:(id,patch)=>inboxOverrides.set(id,{...inboxOverrides.get(id),...patch}),setReadHandler:fn=>{readHandler=fn},setLifecycleHandler:fn=>{lifecycleHandler=fn},setStateHandler:fn=>{stateHandler=fn},releaseCreate:()=>pendingCreates.shift()?.(),metadataPending:()=>pendingMetadata.length,
     async releaseMetadata(status=200){const pending=pendingMetadata.splice(0);pending.forEach(item=>item.release(status));await Promise.all(pending.map(async item=>{const response=await item.request.response();if(response)await response.finished()}))}};
 }
 async function openLead(page,id=11){
@@ -154,6 +167,37 @@ async function readable(page,selector){
 }
 async function capture(page,browser,width,state){fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({animations:'disabled',path:`manager2-artifacts/${browser}-${width}-${state}.png`})}
 
+function selectionAssetRequests(page){
+  const requests=[];
+  page.on('request',request=>{
+    const url=new URL(request.url());
+    const name=url.pathname==='/manager/tour-selection-editor.php'?url.searchParams.get('asset'):url.pathname.split('/').pop();
+    const kind={'workspace-v2-tour-selection.js':'script','workspace-v2-tour-selection-host.js':'host','workspace-v2-tour-selection.css':'style','editor.js':'script','manager2-host.js':'host','editor.css':'style'}[name];
+    if(kind)requests.push(kind);
+  });
+  return requests;
+}
+async function selectionReadFixture(page,conversation=11){
+  const reads=[];
+  await page.route('**/manager/tour-selections-api.php',route=>{
+    const d=route.request().postDataJSON();reads.push(d);expect(d.action).toBe('get');expect(d.conversation_id).toBe(conversation);expect(d.csrf).toBe('synthetic-csrf');
+    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,selection:{conversation_id:conversation,version:0,draft:{title:'Синтетическая подборка',intro:'',offers:[]},can_edit:true,updated_at:null,updated_by_manager_id:null}})});
+  });
+  return reads;
+}
+async function observeSelectionHostLoad(page){
+  await page.evaluate(()=>{
+    window.selectionHostLoaded=false;
+    document.addEventListener('load',event=>{
+      if(event.target instanceof HTMLScriptElement&&new URL(event.target.src).pathname==='/manager/assets/workspace-v2-tour-selection-host.js')window.selectionHostLoaded=true;
+    },true);
+  });
+}
+async function openSelectionInPanel(page){
+  const control=page.locator('#m2SelectionInPanel');if(!await control.isVisible())await page.locator('#m2ConversationMenuToggle').click();
+  await control.click();
+}
+
 async function selectionEntryDraft(page){
   await page.locator('#replyText').fill('Ответ клиенту остаётся в переписке');
   // Observe the actual File handed to the preview; the native picker may clear
@@ -179,7 +223,7 @@ async function retainedSelectionEntryDraft(page){
   expect(retained).toEqual({reply:true,form:true,input:true,file:true,preview:true,selection:[3,11,'backward'],anchor:true,current:true,auth:true,open:true});
 }
 for(const width of [390,1440])test('Manager2 standalone selection entry preserves the original conversation at '+width,async({page})=>{
-  const admitted='https://tours.anytoour.ru/editor.php',navigations=[],unexpected=[];
+  const assets=selectionAssetRequests(page),admitted='https://tours.anytoour.ru/editor.php',navigations=[],unexpected=[];
   // Intercept the first popup request at context level. Only navigation is under
   // test here; the protected editor has its own existing native fixture suite.
   await page.context().route('https://tours.anytoour.ru/**',route=>{
@@ -188,6 +232,7 @@ for(const width of [390,1440])test('Manager2 standalone selection entry preserve
     navigations.push(url.href);return route.fulfill({contentType:'text/html',body:'<!doctype html><html><head><title>Synthetic selection entry</title><link rel="icon" href="data:,"></head><body><main>Синтетический адрес редактора</main></body></html>'});
   });
   await page.setViewportSize({width,height:900});const s=await setup(page,{selectionEditorEntry:admitted});await openLead(page);await selectionEntryDraft(page);
+  expect(assets).toEqual([]);
   const primary=page.locator('#tourSelectionOpen');if(!await primary.isVisible())await page.locator('#m2ConversationMenuToggle').click();
   await expect(primary).toHaveAttribute('aria-label',/отдельной вкладке/);await expect(primary).not.toHaveAttribute('aria-haspopup','dialog');
   const originalUrl=page.url(),initialPages=page.context().pages().length,popupPromise=page.context().waitForEvent('page');
@@ -197,17 +242,13 @@ for(const width of [390,1440])test('Manager2 standalone selection entry preserve
   await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(page.url()).toBe(originalUrl);
   if(width===390){await expect(page.locator('.m2ConversationMenu')).not.toHaveAttribute('open','');await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused()}
   await popup.close();await page.bringToFront();await retainedSelectionEntryDraft(page);
-  expect(s.calls.filter(call=>/tour-selection/.test(call.path))).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+  expect(assets).toEqual([]);expect(s.calls.filter(call=>/tour-selection/.test(call.path))).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
-test('Manager2 standalone selection entry retains an explicit same-tab editor action',async({page})=>{
-  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);await selectionEntryDraft(page);
-  const editorReads=[];
-  await page.route('**/manager/tour-selections-api.php',route=>{
-    const d=route.request().postDataJSON();editorReads.push(d);expect(d.action).toBe('get');expect(d.conversation_id).toBe(11);expect(d.csrf).toBe('synthetic-csrf');
-    return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,selection:{conversation_id:11,version:0,draft:{title:'Синтетическая подборка',intro:'',offers:[]},can_edit:true,updated_at:null,updated_by_manager_id:null}})});
-  });
+for(const packageId of [null,'a'.repeat(64)])test('Manager2 loads the same-tab editor on demand and reuses its '+(packageId?'sealed':'workspace')+' assets',async({page})=>{
+  const assets=selectionAssetRequests(page);
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php',selectionAssetPackage:packageId});await openLead(page);await selectionEntryDraft(page);
+  expect(assets).toEqual([]);const editorReads=await selectionReadFixture(page);
   await page.evaluate(()=>{
-    // Keep the frozen core intact and delegate through a temporary call spy.
     const core=window.WorkspaceV2TourSelection;window.selectionEntryCore=core;window.selectionPanelCalls=[];
     window.WorkspaceV2TourSelection={...core,open(...args){selectionPanelCalls.push(args[0].id);return core.open(...args)}};
   });
@@ -215,10 +256,77 @@ test('Manager2 standalone selection entry retains an explicit same-tab editor ac
   await expect(secondary).toHaveAttribute('aria-haspopup','dialog');await expect(secondary).toHaveAttribute('aria-controls','tourSelectionDialog');
   const pages=page.context().pages().length;await secondary.click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText('загружен');
   expect(await page.evaluate(()=>selectionPanelCalls)).toEqual([11]);expect(editorReads).toHaveLength(1);expect(page.context().pages()).toHaveLength(pages);
+  expect(assets.slice().sort()).toEqual(['host','script','style']);
+  // Loading the stylesheet late must keep the original presentation precedence.
+  expect(await page.evaluate(()=>{const links=[...document.head.querySelectorAll('link[rel="stylesheet"]')];return links.findIndex(link=>/workspace-v2-tour-selection\.css|asset=editor\.css/.test(link.href))<links.findIndex(link=>link.href.includes('/manager2/assets/manager2.css?'))})).toBe(true);
   await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused();
   await page.evaluate(()=>{window.WorkspaceV2TourSelection=window.selectionEntryCore;delete window.selectionEntryCore});
+  await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');await expect(page.locator('#tourSelectionDialog')).toBeVisible();
+  expect(editorReads).toHaveLength(2);expect(assets.slice().sort()).toEqual(['host','script','style']);
+  await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);
   expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
+
+test('Manager2 cancel during editor loading keeps the native reply and prevents a late open',async({page})=>{
+  const assets=selectionAssetRequests(page);await page.setViewportSize({width:390,height:900});
+  const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);await selectionEntryDraft(page);const reads=await selectionReadFixture(page);
+  let release;const held=new Promise(resolve=>{release=resolve});
+  await page.route('**/manager/assets/workspace-v2-tour-selection.js?*',async route=>{await held;return route.fallback()});
+  await observeSelectionHostLoad(page);
+  await openSelectionInPanel(page);await expect(page.locator('#m2SelectionLoading')).toBeVisible();await expect(page.locator('#m2SelectionCancel')).toBeInViewport();
+  await page.locator('#m2SelectionCancel').click();await expect(page.locator('#m2SelectionLoading')).not.toBeVisible();await retainedSelectionEntryDraft(page);await expect(page.locator('#m2ConversationMenuToggle')).toBeFocused();
+  release();await page.waitForFunction(()=>window.selectionHostLoaded);
+  await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(reads).toEqual([]);
+  await openSelectionInPanel(page);await expect(page.locator('#tsStatus')).toContainText('загружен');
+  expect(reads).toHaveLength(1);expect(assets.slice().sort()).toEqual(['host','script','style']);
+  await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+test('Manager2 retries only a failed editor asset after an explicit action',async({page})=>{
+  const assets=selectionAssetRequests(page);await page.setViewportSize({width:390,height:900});
+  const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);await selectionEntryDraft(page);const reads=await selectionReadFixture(page);
+  let attempts=0;
+  await page.route('**/manager/assets/workspace-v2-tour-selection-host.js?*',route=>++attempts===1?route.abort('failed'):route.fallback());
+  await openSelectionInPanel(page);await expect(page.locator('#m2SelectionLoadingStatus')).toContainText('Не удалось открыть подборку');await expect(page.locator('#m2SelectionRetry')).toBeVisible();
+  expect(assets.slice().sort()).toEqual(['host','script','style']);expect(reads).toEqual([]);expect(attempts).toBe(1);
+  await page.locator('#m2SelectionRetry').click();await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText('загружен');
+  expect(assets.slice().sort()).toEqual(['host','host','script','style']);expect(reads).toHaveLength(1);
+  await page.locator('#tsClose').click();await retainedSelectionEntryDraft(page);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const stale of ['actor','auth','conversation','open'])test('Manager2 ignores an editor load after its '+stale+' context changes',async({page})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});await openLead(page);const reads=await selectionReadFixture(page);
+  let release;const held=new Promise(resolve=>{release=resolve});
+  await page.route('**/manager/assets/workspace-v2-tour-selection.js?*',async route=>{await held;return route.fallback()});
+  await observeSelectionHostLoad(page);
+  await openSelectionInPanel(page);await expect(page.locator('#m2SelectionLoading')).toBeVisible();
+  // Change one identity dimension while the real host is still unavailable.
+  // No production request, navigation, authentication or data write is simulated.
+  await page.evaluate(stale=>{
+    if(stale==='actor')WorkspaceV2.S.manager={...WorkspaceV2.S.manager,id:8};
+    if(stale==='auth')WorkspaceV2.S.authGeneration++;
+    if(stale==='conversation')WorkspaceV2.S.current=12;
+    if(stale==='open'){const owner=WorkspaceV2Conversation,generation=owner.getOpenGeneration();window.WorkspaceV2Conversation={...owner,getOpenGeneration:()=>generation+1}}
+  },stale);
+  release();await page.waitForFunction(()=>window.selectionHostLoaded);
+  await expect(page.locator('#m2SelectionLoading')).not.toBeVisible();await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();
+  expect(reads).toEqual([]);expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
+for(const actor of [7,8])test('Manager2 consumes a collector return once for actor '+actor,async({page})=>{
+  await page.setViewportSize({width:390,height:900});const s=await setup(page,{selectionEditorEntry:'https://tours.anytoour.ru/editor.php'});
+  const assets=selectionAssetRequests(page),reads=await selectionReadFixture(page);
+  await page.goto(origin+'/manager2/index.php?selection=11&collector_actor='+actor+'#conversation=11');await expect(page.locator('#conversationTitle')).toHaveText('Анна Морозова');
+  await expect.poll(()=>new URL(page.url()).searchParams.has('selection')).toBe(false);expect(new URL(page.url()).searchParams.has('collector_actor')).toBe(false);
+  if(actor===7){
+    await expect(page.locator('#tourSelectionDialog')).toBeVisible();await expect(page.locator('#tsStatus')).toContainText('загружен');expect(reads).toHaveLength(1);expect(assets.slice().sort()).toEqual(['host','script','style']);
+    await page.locator('#tsClose').click();await page.evaluate(()=>WorkspaceV2TourSelection.sync(WorkspaceV2.S.detail.conversation));await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(reads).toHaveLength(1);
+  }else{await expect(page.locator('#tourSelectionDialog')).not.toBeVisible();expect(reads).toEqual([]);expect(assets).toEqual([])}
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+
 
 // Check the first rendered viewport before Playwright can scroll a button into view.
 async function exitInitiallyReachable(page){
@@ -1115,3 +1223,101 @@ for(const width of [390,1440])test('Sales uses explicit scope and saves custom c
   await page.locator('#leadSaleAmount').fill('250000');await page.locator('#leadSaleDate').fill('2026-11-02');await page.locator('#saveOutcome').click();await expect.poll(()=>s.calls.filter(c=>c.action==='set_outcome').length).toBe(1);expect(s.calls.find(c=>c.action==='set_outcome')).toMatchObject({conversation_id:11,stage_key:'sold',expected_stage_key:'working',outcome:'won',sale_amount:'250000',sale_date:'2026-11-02'});expect(s.calls.filter(c=>c.action==='set_stage')).toEqual([]);await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
 
+
+function bookingChoiceFixture(){
+ return {offers:[{offer_id:17,liked_at:'2026-10-23 10:00:00',delivered_at:'2026-10-23 09:59:00',snapshot:{hotel:'Booking synthetic hotel',departure:'Москва',date_from:'2027-06-12',date_to:'2027-06-19',nights:7,adults:2,child_ages:[5,5],room:'Family exact variant',meal:'AI',flights:[],amount:'180000.50',currency:'RUB',price_basis:'party',is_demo:false}}]};
+}
+for(const width of [390,1440]){
+ test('exact selected variant opens booking without send at '+width,async({page})=>{
+  await page.setViewportSize({width,height:844});const s=await setup(page,{tourChoices:bookingChoiceFixture()});
+  let record=null;
+  s.setBookingHandler(async data=>{
+   expect(data).toMatchObject({conversation_id:11,source_kind:'native',source_id:17});
+   if(data.action==='booking_save'){
+    expect(data.fields).toMatchObject({state:'checking',amount:'181500.50',currency:'RUB',available:false,customer_agreed:false});
+    record={revision:1,fields:data.fields};return {body:{ok:true,record,saved_revision:1,operation_found:true}};
+   }
+   return {body:{ok:true,can_edit:true,record,operation_found:false}};
+  });
+  await openLead(page);await showCard(page);
+  await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+  const panel=page.locator('[data-booking-panel]');await expect(panel.locator('form')).toBeVisible();
+  await expect(panel.locator('[data-booking-field="amount"]')).toHaveValue('');
+  await expect(panel).toContainText('не становится подтверждённой автоматически');
+  await panel.locator('[data-booking-field="terms"]').fill('Данные пока проверяются');await panel.locator('[data-booking-field="amount"]').fill('181 500,50');await panel.locator('[data-booking-field="currency"]').fill('rub');
+  await panel.getByRole('button',{name:'Сохранить оформление'}).click();
+  await expect(panel).toContainText('Оформление сохранено');
+  expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);
+  const box=await panel.boundingBox();expect(box.width).toBeGreaterThan(100);expect(box.x+box.width).toBeLessThanOrEqual(width+1);
+  expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+ });
+}
+test('booking lost response reconciles original operation without another write',async({page})=>{
+ const choices=bookingChoiceFixture(),s=await setup(page,{tourChoices:choices});let record=null,op='';
+ s.setBookingHandler(async data=>{
+  if(data.action==='booking_save'){op=data.operation_id;record={revision:1,fields:data.fields};return {abort:true}}
+  return {body:{ok:true,can_edit:true,record,operation_found:!!op&&data.operation_id===op,saved_revision:1}};
+ });
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ const panel=page.locator('[data-booking-panel]');await expect(panel.locator('form')).toBeVisible();
+ await panel.getByRole('button',{name:'Сохранить оформление'}).click();
+ await expect(panel).toContainText('Исход сохранения неизвестен');await expect(panel.locator('[data-booking-field="terms"]')).toBeDisabled();
+ await panel.getByRole('button',{name:'Проверить сохранение'}).click();
+ await expect(panel).toContainText('Сохранение подтверждено');
+ expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);
+ expect(s.calls.filter(c=>c.action==='booking_read').at(-1).operation_id).toBe(op);
+ expect(await page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('anytour-booking-v1:')))).toEqual([]);
+ expect(s.sends).toEqual([]);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('unresolved booking receipt stays fenced across same-account page reload',async({page})=>{
+ const s=await setup(page,{tourChoices:bookingChoiceFixture()});let op='';
+ s.setBookingHandler(async data=>{
+  if(data.action==='booking_save'){op=data.operation_id;return {abort:true}}
+  return {body:{ok:true,can_edit:true,record:null,operation_found:false}};
+ });
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ await page.locator('[data-booking-panel]').getByRole('button',{name:'Сохранить оформление'}).click();await expect(page.locator('[data-booking-panel]')).toContainText('Исход сохранения неизвестен');
+ await page.reload();await expect(page.locator('#inboxList .leadItem')).toHaveCount(2);await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ const panel=page.locator('[data-booking-panel]');await expect(panel).toContainText('Исход сохранения пока неизвестен');await expect(panel.locator('[data-booking-field="terms"]')).toBeDisabled();
+ expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(1);
+ expect(s.calls.filter(c=>c.action==='booking_read').at(-1).operation_id).toBe(op);expect(s.sends).toEqual([]);
+});
+test('booking read for another owner is readonly and does not replace transcript',async({page})=>{
+ const s=await setup(page,{tourChoices:bookingChoiceFixture(),otherOwner:true});
+ s.setBookingHandler(async data=>({body:{ok:true,can_edit:false,record:null,operation_found:false}}));
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ await expect(page.locator('[data-booking-panel] [data-booking-field="terms"]')).toBeDisabled();expect(s.calls.filter(c=>c.action==='booking_save')).toEqual([]);expect(s.sends).toEqual([]);
+});
+
+test('unsaved booking conditions survive same-account card rerender without adopting a newer revision',async({page})=>{
+ const s=await setup(page,{tourChoices:bookingChoiceFixture()});
+ s.setBookingHandler(async data=>({body:{ok:true,can_edit:true,record:null,operation_found:false}}));
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ const terms=page.locator('[data-booking-field="terms"]');await terms.fill('Unsaved exact terms for this client');
+ await page.evaluate(()=>WorkspaceV2TourChoices.enhanceCard(WorkspaceV2.S.detail.conversation));
+ await page.locator('.tourChoice>summary').click();await page.getByRole('button',{name:'Оформление бронирования'}).click();
+ await expect(page.locator('[data-booking-field="terms"]')).toHaveValue('Unsaved exact terms for this client');
+ expect(s.calls.filter(c=>c.action==='booking_save')).toEqual([]);expect(s.sends).toEqual([]);
+});
+
+test('late original booking response cannot clear a newer save fence',async({page})=>{
+ const s=await setup(page,{tourChoices:bookingChoiceFixture()});let record=null,firstRelease,secondRelease;const ops=[];
+ s.setBookingHandler(async data=>{
+  if(data.action==='booking_save'){
+   ops.push(data.operation_id);record={revision:ops.length,fields:data.fields};
+   const body={ok:true,record,saved_revision:ops.length,operation_found:true};
+   return await new Promise(resolve=>{if(ops.length===1)firstRelease=()=>resolve({body});else secondRelease=()=>resolve({abort:true})});
+  }
+  return {body:{ok:true,can_edit:true,record,operation_found:ops.includes(data.operation_id),saved_revision:1}};
+ });
+ await openLead(page);await showCard(page);await page.locator('.tourChoice>summary').click();
+ const button=page.getByRole('button',{name:'Оформление бронирования'});await button.click();
+ await page.locator('[data-booking-panel]').getByRole('button',{name:'Сохранить оформление'}).click();
+ await expect.poll(()=>ops.length).toBe(1);
+ await button.click();await button.click();await expect(page.locator('[data-booking-panel]')).toContainText('Сохранение подтверждено');
+ await page.locator('[data-booking-field="terms"]').fill('A newer unsaved condition');
+ await page.locator('[data-booking-panel]').getByRole('button',{name:'Сохранить оформление'}).click();await expect.poll(()=>ops.length).toBe(2);
+ firstRelease();await expect.poll(async()=>page.evaluate(()=>Object.entries(sessionStorage).filter(([k])=>k.startsWith('anytour-booking-v1:')).map(([,v])=>v))).toEqual([ops[1]]);
+ secondRelease();await expect(page.locator('[data-booking-panel]')).toContainText('Исход сохранения неизвестен');
+ expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(2);expect(s.sends).toEqual([]);
+});

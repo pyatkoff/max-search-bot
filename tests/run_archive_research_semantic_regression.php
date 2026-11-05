@@ -290,4 +290,87 @@ foreach(['Я работаю дистанционно','Дистанционно 
 $r=single('customer','Хочу купить тур оператора Anex');
 check(has($r,'general_purchase_intent')&&!has($r,'agency_purchase_intent'),'operator_preference_is_not_current_agency_choice');
 
+
+// Rule revision 3 keeps the V2 event format, while old contextual continuations expire.
+check(ArchiveResearchSemanticExtractor::RULE_REVISION===3,'rule_revision_3');
+$state2=ArchiveResearchSemanticExtractor::initialState();$state2['v']=2;
+check(!ArchiveResearchSemanticExtractor::validState($state2),'previous_rule_revision_state_rejected');
+try{ArchiveResearchSemanticExtractor::step(message('customer','Подберите тур'),$state2);check(false,'old_rule_revision_must_throw');}
+catch(InvalidArgumentException$e){check($e->getMessage()==='archive_semantic_invalid_state','old_rule_revision_rejected_before_processing');}
+$trip=message('customer','Подберите тур для двоих на август',1);
+foreach([
+    'Выбрали отель Fixture Bay, давайте начнем оформлять бронь.',
+    'Выбрал отель Fixture Coast, думаю можем уже начать сделать бронь.',
+    'Выбрала отель Fixture Coast, готова оформить бронь.'
+]as$statement){
+    $r=runMessages([$trip,message('customer',$statement,2,1700000001)]);
+    $last=$r['outputs'][1];$lastGoals=array_column($last['events'],'goal');
+    check(in_array('general_purchase_intent',$lastGoals,true)&&in_array('agency_purchase_intent',$lastGoals,true),
+        'selected_travel_option_and_direct_booking_commitment_'.$statement);
+    check(!in_array('payment_self_report',$lastGoals,true)&&!in_array('manager_payment_ack',$lastGoals,true)
+        &&!in_array('purchase_supported_candidate',$lastGoals,true),'booking_commitment_not_payment_'.$statement);
+    check($last['rule_revision']===3&&$last['version']==='ru_archive_contextual_v2','revision_not_event_format_change_'.$statement);
+    foreach($last['events']as$event)if(in_array($event['goal'],['general_purchase_intent','agency_purchase_intent'],true))
+        check(in_array($event['rule'],['direct_customer_booking_or_payment_intent','response_to_current_booking_context'],true),
+            'live_prediction_recognizes_existing_rule_code_'.$event['goal']);
+}
+foreach([
+    'Выбрали отель Fixture Bay, давайте начнем оформлять бронь?',
+    'Если выбрали отель Fixture Bay, можем оформить бронь.',
+    'Не выбрали отель Fixture Bay, можем оформить бронь.',
+    'Клиент написал «Выбрали отель Fixture Bay, можем оформить бронь».',
+    'В прошлом году выбрали отель Fixture Bay, можем оформить бронь.',
+    'Выбрали отель Fixture Bay, можем оформить бронь в другом агентстве.',
+    'Выбрали отель Fixture Bay.',
+    'Можем оформить бронь.',
+    'Выбрали этот перелёт, можем оформить бронь.',
+    'Выбрали место, можем оформить бронь.',
+    'Выбрали страховку, можем оформить бронь.'
+]as$statement){
+    $r=runMessages([$trip,message('customer',$statement,2,1700000001)]);
+    $lastGoals=array_column($r['outputs'][1]['events'],'goal');
+    check(!in_array('general_purchase_intent',$lastGoals,true)&&!in_array('agency_purchase_intent',$lastGoals,true),
+        'uncommitted_nontravel_or_nonasserted_choice_not_readiness_'.$statement);
+}
+foreach([
+    'Можно приобрести у вас авиабилеты только? Потом забронируем дом сами.',
+    'Можно купить перелёт только? Затем забронируем виллу отдельно.'
+]as$statement){
+    $r=runMessages([$trip,message('customer',$statement,2,1700000001)]);
+    $last=$r['outputs'][1];$lastGoals=array_column($last['events'],'goal');
+    check(!in_array('general_purchase_intent',$lastGoals,true)&&!in_array('agency_purchase_intent',$lastGoals,true),
+        'flight_only_question_and_separate_accommodation_not_tour_commitment_'.$statement);
+    check(($last['flags']['product_changed_or_alternative']??false)===true&&$last['state']['p']==='mixed',
+        'flight_only_reverse_word_order_breaks_prior_tour_context_'.$statement);
+}
+foreach(['Потом забронируем дом.','Забронируем места в самолете.','Забронируем этот рейс.']as$statement){
+    $r=runMessages([$trip,message('customer',$statement,2,1700000001)]);
+    $lastGoals=array_column($r['outputs'][1]['events'],'goal');
+    check(!in_array('general_purchase_intent',$lastGoals,true)&&!in_array('agency_purchase_intent',$lastGoals,true),
+        'unanchored_future_booking_not_current_seller_readiness_'.$statement);
+}
+foreach(['Бронируем этот тур.','Забронируем выбранный отель.']as$statement){
+    $r=single('customer',$statement);
+    check(has($r,'general_purchase_intent')&&has($r,'agency_purchase_intent'),'current_selected_booking_kept_'.$statement);
+}
+check(has(single('customer','Готовы бронировать тур.'),'general_purchase_intent'),'direct_ready_to_book_kept');
+$r=runMessages([$trip,message('manager','Бронируем?',2,1700000001),message('customer','Бронируем.',3,1700000002)]);
+check(has($r,'general_purchase_intent')&&has($r,'agency_purchase_intent'),'bare_booking_still_accepts_current_booking_question');
+$r=runMessages([$trip,message('customer','Внесли доплату за багаж.',2,1700000001),
+    message('customer','Выбрали места, можем оформить бронь.',3,1700000002)]);
+$lastGoals=array_column($r['outputs'][2]['events'],'goal');
+check(!in_array('general_purchase_intent',$lastGoals,true)&&!in_array('agency_purchase_intent',$lastGoals,true),
+    'addon_context_not_promoted_by_seat_selection');
+$revisionFlow=[$trip,message('manager','Бронируем?',2,1700000001),
+    message('customer','Бронируем.',3,1700000002),
+    message('customer','Можно купить перелёт только? Потом забронируем дом сами.',4,1700000003),
+    message('customer','Подберите тур на сентябрь.',5,1700000004),
+    message('customer','Выбрали отель Fixture Bay, давайте начнем оформлять бронь.',6,1700000005)];
+$wholeRevision=runMessages($revisionFlow);
+for($split=0;$split<=count($revisionFlow);$split++){
+    $a=runMessages(array_slice($revisionFlow,0,$split));$b=runMessages(array_slice($revisionFlow,$split),$a['state']);
+    check($wholeRevision['state']===$b['state']&&$wholeRevision['outputs']===[...$a['outputs'],...$b['outputs']],
+        'revision3_split_invariance_'.$split);
+}
+
 echo "Archive semantic extractor: ".$checks." checks passed\n";

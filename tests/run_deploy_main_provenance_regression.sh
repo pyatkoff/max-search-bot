@@ -88,9 +88,13 @@ grep -Fq "if: steps.provenance.outcome == 'success'" "$WORKFLOW" \
   || fail "SSH preparation is not gated by provenance"
 grep -Fq 'PROVENANCE_OUTCOME: ${{ steps.provenance.outcome }}' "$WORKFLOW" \
   || fail "deploy telemetry does not capture provenance outcome"
-grep -Fq '"provenance":"%s"' "$WORKFLOW" \
-  || fail "deploy status does not expose provenance outcome"
-grep -Fq 'test "$PROVENANCE_OUTCOME" = "success"' "$WORKFLOW" \
+grep -Fq 'node tools/release_slot_close.js --stage-status' "$WORKFLOW" \
+  || fail "deploy status must use the canonical metadata renderer"
+grep -Fq "provenance:'success'" "$ROOT/tools/release_slot_close.js" \
+  || fail "canonical renderer must expose accepted installation provenance"
+grep -Fq 'needs: deploy' "$WORKFLOW" \
+  || fail "status verification must depend on successful installation"
+grep -Fq 'test "$PROVENANCE_OUTCOME" = success' "$WORKFLOW" \
   || fail "final deployment health gate does not require provenance"
 pass "workflow gates credentials, bundle and sync on published provenance"
 

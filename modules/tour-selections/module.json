@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "name": "anytour-selection-public",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "contract": "selection-php-view-v1",
   "files": {
     "view.php": "selection/view.php",
