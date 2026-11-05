@@ -1,0 +1,14 @@
+{
+  "operation": "commercial-price-monitor-20261105-rollout8-metadata11",
+  "state": "CLOSED_NEW_BOUNDED_SCHEDULED_WINDOW_ZERO_RUNS",
+  "created_after": "2026-11-05T05:17:21Z",
+  "checked_at_utc": "2026-11-05 05:41:05 UTC",
+  "scheduled_run_count": 0,
+  "new_normal_collectors": 0,
+  "normal672_actual_verified": true,
+  "normal674_actual_collection_observed": false,
+  "source_or_provider_calls": 0,
+  "db_calls": 0,
+  "manual_collection_approved": true,
+  "do_not_repeat_same_window": true
+}

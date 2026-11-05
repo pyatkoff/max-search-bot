@@ -1,0 +1,61 @@
+{
+  "operation": "commercial-price-source-refresh-20261105-single-attempt-proposal1",
+  "state": "NATIVE_NEW_FIVE_CASES_AND_PHP_L_PASSED_SPECIFIC_EXCEPTION_AWAITING_USER",
+  "goal": "Completealreadyapprovedoriginal121hotel/sevensearchpassafteroriginalzeroAPIstop,withoutinstallingorrestoringanyserverfile.",
+  "original_manual_approval_still_valid": true,
+  "original_operation": "commercial-price-source-refresh-20261105-pass1",
+  "original_manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
+  "original_zero_api_stopped_run": 41974771766,
+  "exact_current_helper_drift_diagnostic_run": 41975111324,
+  "reviewed_public_repository_source": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "four_changed_helpers": [
+    "db-v1.php",
+    "price-observer-v1.php",
+    "tourvisor-client-v1.php",
+    "hotel-details-v1.php"
+  ],
+  "actual_server_hashes_match_reviewed_public_bytes": true,
+  "reviewed_current_helper_pins": {
+    "db-v1.php": "c1c841d38c62845bc36e559183da17e0411c1c5bdd909517ffc02b5fbb1e2f13",
+    "price-observer-v1.php": "51a2f7e8cfbb4a9ceadf177bcc34f49a1fa731166e4526040398773bd49ebe66",
+    "top500-daily-plan-v1.php": "2a1440f21d65b6fb8bb5e3539e0edac83a72871135f36999148151d675446099",
+    "tourvisor-client-v1.php": "03764ec6732eb7a698b5090fee20675438db1fd43c5f26ae85b9c8c374d46167",
+    "top500-monthly-plan-v1.php": "3475098786dbd309cd8b2ce9a2c4f73ca6e6c323c19100e24ed6647bb1609a6c",
+    "local-tv-catalog-v1.php": "9dc60eb39100126d97307b83083d6a1b190cfdf8f684a18af47d8edd87b1c3b5",
+    "seasonal-page-gap-plan-v1.php": "3e1ef84ae88979f6e31691241dce13d01fdc40fd41138679043de3b83b616a5f",
+    "hotel-details-v1.php": "0dda878062ab4ecca327025caf26ec40bd6f474d69699e805e18d8293c583ed9"
+  },
+  "candidate_template_sha256": "007830e74bfb63fb0333e7ef5809c2d138ff177e4feaa450ea309a5ce3240ec7",
+  "candidate_php": "execute-published-price-source-refresh-20261105-single-attempt-candidate.php",
+  "candidate_preparer": "prepare-published-price-single-attempt-candidate-20261105.py",
+  "specific_exception_approved": false,
+  "exception_file_must_not_exist_until_actual_reply": "commercial-price-source-refresh-20261105-single-attempt-user-approval.json",
+  "changes": [
+    "Acceptonlytheeightfreshlyverifiedexistingpublichelperbytes;install/copy/restoreNOserverfiles.",
+    "UseoneephemeralmanualOneHttp curl_exec perlogicalrequestwithredirectsfalsenoretries;existingconfiguredtoken/queryhelperremainserveronly;installedv2_data_tv_getdefaultfourretriesnotcalled.",
+    "Alloriginalmanifest/native/party/dates/7starts/154attempts/onceledger/monthlylock/20min/intents/observer/currentcaption/flights/fullbasketguardsunchanged.",
+    "Requirebothgenuineoriginal121/7approvalandalatergenuinespecificexceptionapprovalBEFOREexecution. Currentpurejobonly5newoneattemptcases/PHP-l,nooldfixtures/SSH/privateconfig/provider/DB."
+  ],
+  "criteria": [
+    "5actualnewresponsecases429/503/timeout/invalidJSON/successallmakeexactlyoneinjectedrequestandproperreject/accept.",
+    "NativePHP-l/sourceprepareoriginalscopehashandcandidateSHArequired.",
+    "Nohelpers/config/observer/normaltransport/schedule/budget/installedruntimechange;allnewsecrets/providertuplesstayinoriginalauthartifactsonly."
+  ],
+  "risks": [
+    "Currentinstalledclientcannotdisableautomaticretriesandlacksoldmaxattemptcounterinterfaces;simplehashrepinningwouldviolateapprovedattemptlimits.",
+    "ThisephemeralHTTPrequestfunctionandreviewedcurrenthelperpinsareoutsideoldtransport/pinnedbytesinstruction;obtainexplicitpermissionbeforeexecution.",
+    "Original0APIresultknown;candidateMUSTusesameoriginaloperation/targetkeysandrecheckledger,notnewoperationbypass."
+  ],
+  "native_pure_run": 41975513624,
+  "native_pure_job": 127073312492,
+  "native_source_commit": "0f595b2ac0a9c472b9033a8a1cd48fb4226d26ce",
+  "new_cases_passed": 5,
+  "old_fixtures_rerun": 0,
+  "php_l_passed": true,
+  "server_connections": 0,
+  "provider_calls": 0,
+  "db_calls": 0,
+  "source_execution_active": false,
+  "prepared_inactive_execution_workflow": "commercial-price-source-refresh-20261105-single-attempt-workflow.yml.txt",
+  "next_step": "RequestspecificpermissionforonlyreviewedcurrenthelperpinsandephemeraloneattemptHTTPfunction;originalmanual121/7approvalalreadyreceivedandmustnotbeaskedagain. No exceptionmetadata/activationuntilactualspecificreply."
+}

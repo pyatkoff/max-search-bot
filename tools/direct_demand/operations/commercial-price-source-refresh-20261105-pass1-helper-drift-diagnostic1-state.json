@@ -1,0 +1,87 @@
+{
+  "operation": "commercial-price-source-refresh-20261105-pass1-helper-drift-diagnostic1",
+  "state": "CLOSED_EIGHT_PUBLIC_HELPER_HASHES_FOUR_CHANGED_NO_PRIVATE_CAPTURE",
+  "run": 41975111324,
+  "job": 127072021200,
+  "source_commit": "9295594f2c775b8fe41f52d71d0fb050fc9bd7e6",
+  "artifact": 13391446458,
+  "ok": true,
+  "provider_calls": 0,
+  "db_calls": 0,
+  "writes": 0,
+  "private_source_config_read": false,
+  "secret_values_exported": 0,
+  "manual_capture": false,
+  "installed_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "publishing_blob_count": 21,
+  "helper_hashes": [
+    {
+      "file": "db-v1.php",
+      "regular_file": true,
+      "symlink": false,
+      "sha256": "c1c841d38c62845bc36e559183da17e0411c1c5bdd909517ffc02b5fbb1e2f13",
+      "matches_approved": false
+    },
+    {
+      "file": "price-observer-v1.php",
+      "regular_file": true,
+      "symlink": false,
+      "sha256": "51a2f7e8cfbb4a9ceadf177bcc34f49a1fa731166e4526040398773bd49ebe66",
+      "matches_approved": false
+    },
+    {
+      "file": "top500-daily-plan-v1.php",
+      "regular_file": true,
+      "symlink": false,
+      "sha256": "2a1440f21d65b6fb8bb5e3539e0edac83a72871135f36999148151d675446099",
+      "matches_approved": true
+    },
+    {
+      "file": "tourvisor-client-v1.php",
+      "regular_file": true,
+      "symlink": false,
+      "sha256": "03764ec6732eb7a698b5090fee20675438db1fd43c5f26ae85b9c8c374d46167",
+      "matches_approved": false
+    },
+    {
+      "file": "top500-monthly-plan-v1.php",
+      "regular_file": true,
+      "symlink": false,
+      "sha256": "3475098786dbd309cd8b2ce9a2c4f73ca6e6c323c19100e24ed6647bb1609a6c",
+      "matches_approved": true
+    },
+    {
+      "file": "local-tv-catalog-v1.php",
+      "regular_file": true,
+      "symlink": false,
+      "sha256": "9dc60eb39100126d97307b83083d6a1b190cfdf8f684a18af47d8edd87b1c3b5",
+      "matches_approved": true
+    },
+    {
+      "file": "seasonal-page-gap-plan-v1.php",
+      "regular_file": true,
+      "symlink": false,
+      "sha256": "3e1ef84ae88979f6e31691241dce13d01fdc40fd41138679043de3b83b616a5f",
+      "matches_approved": true
+    },
+    {
+      "file": "hotel-details-v1.php",
+      "regular_file": true,
+      "symlink": false,
+      "sha256": "0dda878062ab4ecca327025caf26ec40bd6f474d69699e805e18d8293c583ed9",
+      "matches_approved": false
+    }
+  ],
+  "changed_helpers": [
+    "db-v1.php",
+    "price-observer-v1.php",
+    "tourvisor-client-v1.php",
+    "hotel-details-v1.php"
+  ],
+  "four_changed_server_files_byteidentical_to_public_source": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "reviewed_current_client_has_fixed_max_attempts": 4,
+  "reviewed_current_client_lacks_per_invocation_maxattempts_and_http_counter_functions": true,
+  "server_file_modifications": 0,
+  "manual_source_retry": 0,
+  "do_not_repeat_same_diagnostic": true
+}
