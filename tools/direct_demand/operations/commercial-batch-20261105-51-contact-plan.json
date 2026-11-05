@@ -1,0 +1,134 @@
+{
+  "operation": "commercial-batch-20261105-51-contact",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Inspect fourteen different exactlydeclared ownerphotographs for three provenunpublishedhotels, preserve wholehotelhero criterion and allclosed50URLs/basenames.",
+  "boundaries": {
+    "native_scope": [
+      1420,
+      1421,
+      1253,
+      15904,
+      15913,
+      78251,
+      27349,
+      108942,
+      1260,
+      1217
+    ],
+    "actual_photo_scope": [
+      78251,
+      27349,
+      108942
+    ],
+    "exact_new_photo_count": 14,
+    "readonly_groups": 3,
+    "max_parallel": 2,
+    "source_http_gets": 0,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "EachquerylessURI appearsEXACTLY in neworiginalownerpage declared_public_image_references; notderivedbyqueryremoval. Targetfilename/propertynative bindingmandatory",
+    "All14URLs+decodedbasenamesdifferentfrom263closedURLs/262names. No oldAyschadronevariants/closedKemeroversizevariants",
+    "Cullinanexplicitpropertygallery plusnamedtargetURLs; Maxxpropertyspecificpages+native-specificfilenames,neverbrandnav/librarypermission",
+    "Query/redirect/byte/type/format/dimensionguardsBYTEIDENTICALaccepted50; PILephemeraldependencyunchanged;3newbindingnegativecasesONCEgroup0/oldguardfixtures0",
+    "FullBOMperline/timestamps/chunks/decodedbytes/SHA/nativepixels required; guardpassNOTwholehero/photoacceptance, preservecompletehotelbuildings/grounds"
+  ],
+  "risks": [
+    "Generalview/exterior names may stillshowonlyonepool/partialfacade; reject withoutloweringhero,do notholdactualreadyothers",
+    "No availability/price/free/seasonal/privatevilla-pavilionbenefitclaimsfromphotos;no fullsite/archiveimport"
+  ],
+  "photos": [
+    {
+      "hotel_id": 78251,
+      "url": "https://image-tc.galaxy.tf/wijpeg-13stbqytzq47csslb2kngj1ho/007-cullinan-belek-exterior.jpg",
+      "primary_source_url": "https://www.cullinanhotels.com/gallery",
+      "role": "h78251_new51_0"
+    },
+    {
+      "hotel_id": 78251,
+      "url": "https://image-tc.galaxy.tf/wijpeg-5gx04isz2w9g2cujfy4vetctz/008-cullinan-belek-exterior.jpg",
+      "primary_source_url": "https://www.cullinanhotels.com/gallery",
+      "role": "h78251_new51_1"
+    },
+    {
+      "hotel_id": 78251,
+      "url": "https://image-tc.galaxy.tf/wijpeg-2xvc1jdz3mnv4lf40agrcil2n/009-cullinan-belek-exterior.jpg",
+      "primary_source_url": "https://www.cullinanhotels.com/gallery",
+      "role": "h78251_new51_2"
+    },
+    {
+      "hotel_id": 78251,
+      "url": "https://image-tc.galaxy.tf/wijpeg-d52psyauht4tcyu9974qjuhe3/010-cullinan-belek-exterior.jpg",
+      "primary_source_url": "https://www.cullinanhotels.com/gallery",
+      "role": "h78251_new51_3"
+    },
+    {
+      "hotel_id": 78251,
+      "url": "https://image-tc.galaxy.tf/wijpeg-8qhea7whg0b1eye3nktl430bt/cullinan-belek-general-view-3.jpg",
+      "primary_source_url": "https://www.cullinanhotels.com/gallery",
+      "role": "h78251_new51_4"
+    },
+    {
+      "hotel_id": 78251,
+      "url": "https://image-tc.galaxy.tf/wijpeg-xoe8lp1vl5vws44p7iav7b81/cullinan-belek-general-view-4.jpg",
+      "primary_source_url": "https://www.cullinanhotels.com/gallery",
+      "role": "h78251_new51_5"
+    },
+    {
+      "hotel_id": 27349,
+      "url": "https://www.maxxroyal.com/media/13if4tbi/maxxroyalkemerlongbeach1.jpg",
+      "primary_source_url": "https://www.maxxroyal.com/maxx-royal-kemer/experiences/pool-and-beach",
+      "role": "h27349_new51_0"
+    },
+    {
+      "hotel_id": 27349,
+      "url": "https://www.maxxroyal.com/media/ohfiagxb/maxxroyalkemermainpool2.jpg",
+      "primary_source_url": "https://www.maxxroyal.com/maxx-royal-kemer/experiences/pool-and-beach",
+      "role": "h27349_new51_1"
+    },
+    {
+      "hotel_id": 27349,
+      "url": "https://www.maxxroyal.com/media/wr2p1mr0/maxxroyalkemermiddlebay4.jpg",
+      "primary_source_url": "https://www.maxxroyal.com/maxx-royal-kemer/experiences/pool-and-beach",
+      "role": "h27349_new51_2"
+    },
+    {
+      "hotel_id": 27349,
+      "url": "https://www.maxxroyal.com/media/lgrlu3tj/maxxroyalkemerlongbeach4.jpg",
+      "primary_source_url": "https://www.maxxroyal.com/maxx-royal-kemer/experiences/pool-and-beach",
+      "role": "h27349_new51_3"
+    },
+    {
+      "hotel_id": 108942,
+      "url": "https://www.maxxroyal.com/media/haofx0sw/maxx_royal_bodrum_mainpool_main.jpg",
+      "primary_source_url": "https://www.maxxroyal.com/maxx-royal-bodrum/experiences/pool-and-beach",
+      "role": "h108942_new51_0"
+    },
+    {
+      "hotel_id": 108942,
+      "url": "https://www.maxxroyal.com/media/zheduupv/maxx_royal_bodrum_mainpool.jpg",
+      "primary_source_url": "https://www.maxxroyal.com/maxx-royal-bodrum/experiences/pool-and-beach",
+      "role": "h108942_new51_1"
+    },
+    {
+      "hotel_id": 108942,
+      "url": "https://www.maxxroyal.com/media/cy0ppelm/maxx_royal-bodrum_whitedeck.jpg",
+      "primary_source_url": "https://www.maxxroyal.com/maxx-royal-bodrum/experiences/pool-and-beach",
+      "role": "h108942_new51_2"
+    },
+    {
+      "hotel_id": 108942,
+      "url": "https://www.maxxroyal.com/media/myynqk1g/maxx_royal_bodrum_beach.jpg",
+      "primary_source_url": "https://www.maxxroyal.com/maxx-royal-bodrum/experiences/pool-and-beach",
+      "role": "h108942_new51_3"
+    }
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}

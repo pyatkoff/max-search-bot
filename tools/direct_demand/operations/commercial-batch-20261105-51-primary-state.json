@@ -1,0 +1,46 @@
+{
+  "operation": "commercial-batch-20261105-51-primary-preparation1",
+  "state": "CLOSED_FOUR_NEW_DECLARED_OWNER_PAGES_NOT_PHOTO_OR_DELIVERY_ACCEPTANCE",
+  "run": 41968470694,
+  "jobs": [
+    127050900378,
+    127050900611
+  ],
+  "source_commit": "092978f23415c6303d84d56a9e131a31cc2f3a88",
+  "source_artifacts": [
+    {
+      "name": "commercial-batch51-primary-0",
+      "artifact": 13388691311
+    },
+    {
+      "name": "commercial-batch51-primary-1",
+      "artifact": 13387939829
+    }
+  ],
+  "new_owner_http_gets": 4,
+  "readable_pages": 4,
+  "http403": 0,
+  "old_owner_get_repeats": 0,
+  "readonly_groups": 2,
+  "max_parallel": 2,
+  "new_input_negative_cases_passed": 3,
+  "old_parser_fixtures_rerun": 0,
+  "parser_functionality_byteidentical": true,
+  "metadata_files_checked": 50,
+  "old_metadata_url_count": 569,
+  "wholecaptions_retained_unchanged": 6,
+  "old_ayscha_sameframe_original_variants_deferred_no_get": true,
+  "maxx_root_query_uris_not_stripped_or_requested": true,
+  "only_new_childpage_actually_declared_queryless_uris_may_be_requested": true,
+  "cullinan_target_photo_binding": "Actualpropertygallerytitle+explicitCullinannamedURLs+ownerdownloadinvitation,notgenericCDNalone",
+  "server_connections": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "photo_gets": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "new_posts": 0,
+  "ready_for_send": 0,
+  "do_not_repeat_four_gets": true
+}
