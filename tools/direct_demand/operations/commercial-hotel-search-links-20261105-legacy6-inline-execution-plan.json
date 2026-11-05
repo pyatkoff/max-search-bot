@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-legacy6-inline-pass1",
+  "state": "EXECUTE_SIX_EXPLICIT_LEGACY_COPY_NULL_TYPED_INLINE_PAIRS_WITH_FROZEN_PROOFS",
+  "scope_sha256": "c3cd22b1b1d7dd754e177659fbbdbf278e9ee0c4f01e2d3ca57395ff1414ed45",
+  "expected_source": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+  "hotel_ids": [
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "prepared_run": 42098270300,
+  "prepared_artifact": 13448425593,
+  "context_run": 42097711121,
+  "context_source_sha": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+  "frozen_prepared_source": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+  "template_sha256": "9b3d2964f4970948f174cb44e1412faabc856c8f33dfb35643f6d7c04fec2975",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": false,
+  "new_native_case_groups_already_closed_per_hotel": 15,
+  "new_python_cases_already_closed_per_hotel": 8,
+  "old_fixtures_to_rerun": 0,
+  "role": "current_confirmed_own_legacy_price_manifest_and_receipt",
+  "bounds": {
+    "max_existing_content_edits": 12,
+    "new_posts": 0,
+    "price_edits": 0,
+    "quote_calls": 0,
+    "source_searches": 0
+  },
+  "criteria": [
+    "Reconstruct ALL frozenPHPbytes/frame/manifest/exact5keyapproval/newlegacyroleconstantnamespace; samea0bsource/noheaderrebind/casesnotrerun.",
+    "Explicit copyNULL3/typed2/direct1 currentcanonicalpriceproof +originwitness, no inventedPNG/forcedpublisher; allruntimeprice/native/onceguards retained.",
+    "Freshmain/samehealthyDeployTLSdiag/FULL21/accepted25host/clean/runtime/native/schema-rights/UNKNOWNoriginalfirst.",
+    "Private exact intents BEFOREANYserver-provider; ONEexistingSERIAL updater/originalonce/noautomaticretry.",
+    "Bothnativeentityreadbacks proveoriginalpriceURL, textbyte-identical/allentities/photo/button/source/token/versions/amount+EXACToldpriceSHA/checkepoch beforeandafter.",
+    "Any partial/unknown stops and resolves SAMEoriginal outcome first; no newop/IDbypass."
+  ]
+}
