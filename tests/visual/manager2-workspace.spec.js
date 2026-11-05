@@ -969,7 +969,9 @@ test('Manager2 reply editor grows and preserves its native draft '+viewport.widt
   if(narrow){
     await reply.press('Enter');await expect(reply).toHaveValue('Здравствуйте!\n');const entered=await editorGeometry(page);
     stablePhoneWidth(entered);expect(entered.height).toBeGreaterThan(short.height+10);await controlsInsideVisualViewport(page,['replyText','m2ReplyExpand','sendReply']);
-    await reply.press('Backspace');await expect(reply).toHaveValue('Здравствуйте!');const deleted=await editorGeometry(page);
+    await reply.press('Backspace');await expect(reply).toHaveValue('Здравствуйте!');
+    let deleted;
+    await expect.poll(async()=>{deleted=await editorGeometry(page);return deleted.height}).toBe(short.height);
     stablePhoneWidth(deleted);expect(deleted.height).toBe(short.height);await controlsInsideVisualViewport(page,['replyText','m2ReplyExpand','sendReply']);
   }
   await reply.fill('Первая строка\nВторая строка');const twoLines=await editorGeometry(page);expect(twoLines.height).toBeGreaterThan(short.height+10);

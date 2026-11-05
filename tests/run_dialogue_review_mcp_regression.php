@@ -1,0 +1,312 @@
+<?php
+declare(strict_types=1);
+
+if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
+require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
+require_once dirname(__DIR__).'/services/SeparatedMcpService.php';
+
+$passed=0;
+function dialogueMcpCheck(string $name,bool $ok): void
+{
+    global $passed;
+    if(!$ok)throw new RuntimeException('FAIL '.$name);
+    ++$passed;echo 'PASS '.$name."\n";
+}
+function dialogueMcpRpc(string $name,array $args=[],int|string $id=1): array
+{
+    return ['jsonrpc'=>'2.0','id'=>$id,'method'=>'tools/call','params'=>['name'=>$name,'arguments'=>$args]];
+}
+function dialogueMcpGrant(ManagerPreparationOAuth $oauth,string $client,string $scope,string $profile=ManagerPreparationOAuth::PROFILE_LEGACY): array
+{
+    $resource=ManagerPreparationOAuth::profileDefinition($profile)['resource'];
+    $verifier=str_repeat('v',43);$session=['csrf'=>'synthetic-dialogue-csrf'];
+    $pending=$oauth->beginAuthorization($session,['client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
+        'response_type'=>'code','resource'=>$resource,'scope'=>$scope,'state'=>'synthetic-dialogue-state',
+        'code_challenge_method'=>'S256','code_challenge'=>rtrim(strtr(base64_encode(hash('sha256',$verifier,true)),'+/','-_'),'=')]);
+    $redirect=$oauth->completeAuthorization($session,$pending,1,$session['csrf'],true);
+    parse_str((string)parse_url($redirect,PHP_URL_QUERY),$query);
+    $token=$oauth->exchange(['grant_type'=>'authorization_code','client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
+        'resource'=>$resource,'code'=>$query['code'],'code_verifier'=>$verifier]);
+    $context=$oauth->contextForBearer('Bearer '.$token['access_token']);
+    if(!is_array($context))throw new RuntimeException('FAIL real consent did not produce a bearer context');
+    return [$token,$context];
+}
+function dialogueMcpChallenge(array $response): string
+{
+    return (string)($response['result']['_meta']['mcp/www_authenticate'][0]??'');
+}
+function dialogueMcpCredentialRows(PDO $pdo): array
+{
+    return [
+        $pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll(),
+        $pdo->query('SELECT * FROM manager_preparation_oauth_codes ORDER BY code_hash')->fetchAll(),
+        $pdo->query('SELECT * FROM manager_preparation_oauth_tokens ORDER BY token_hash')->fetchAll(),
+    ];
+}
+
+try{
+    $pdo=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+    (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
+    (new ReflectionProperty(ProjectAccessService::class,'schemaReady'))->setValue(null,false);
+    ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic dialogue review']]);
+    $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER);
+        CREATE TABLE managers(id INTEGER PRIMARY KEY,role TEXT,is_active INTEGER,is_working INTEGER);
+        CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
+        CREATE TABLE manager_preparation_oauth_clients(client_id TEXT PRIMARY KEY,redirect_uri TEXT,registration_bucket TEXT,created_at INTEGER);
+        CREATE TABLE manager_preparation_oauth_grants(grant_id TEXT PRIMARY KEY,client_id TEXT,admin_id INTEGER,project_key TEXT,resource TEXT,scopes TEXT CHECK(length(scopes)<=128),created_at INTEGER,expires_at INTEGER,revoked_at INTEGER);
+        CREATE TABLE manager_preparation_oauth_codes(code_hash TEXT PRIMARY KEY,grant_id TEXT,redirect_uri TEXT,code_challenge TEXT,expires_at INTEGER,consumed_at INTEGER);
+        CREATE TABLE manager_preparation_oauth_tokens(token_hash TEXT PRIMARY KEY,grant_id TEXT,token_kind TEXT,expires_at INTEGER,consumed_at INTEGER);
+        INSERT INTO projects VALUES(1,'anytour','Synthetic dialogue review',1),(2,'other','Other',1);
+        INSERT INTO managers VALUES(1,'admin',1,0),(2,'manager',1,1),(3,'admin',1,0),(4,'admin',0,0);
+        INSERT INTO manager_projects VALUES(1,1),(2,1),(3,2),(4,1);
+        CREATE TABLE messages(id INTEGER PRIMARY KEY,text TEXT);
+        INSERT INTO messages VALUES(1,'Synthetic stored customer text');
+        CREATE TABLE manager_conversation_reads(manager_id INTEGER,conversation_id INTEGER,last_read_id INTEGER);
+        INSERT INTO manager_conversation_reads VALUES(1,5,1);
+        CREATE TABLE manager_preparation_events(subscription_id TEXT PRIMARY KEY,pending_body TEXT);
+        INSERT INTO manager_preparation_events VALUES('existing-event','unchanged');
+        CREATE TABLE manager_prepared_replies(job_id TEXT PRIMARY KEY,status TEXT);
+        INSERT INTO manager_prepared_replies VALUES('existing-job','pending');");
+    $now=1793790000;$clock=static function()use(&$now):int{return $now;};
+    $oauth=new ManagerPreparationOAuth($pdo,$clock);
+    $registration=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'synthetic-dialogue-client');
+    $client=$registration['client_id'];
+    $legacyScope=implode(' ',ManagerPreparationOAuth::SCOPES);
+    $archiveScope=ManagerPreparationOAuth::ARCHIVE_SCOPE;
+    $forecastScope=ManagerPreparationOAuth::FORECAST_SCOPE;
+    $dialogueScope=ManagerPreparationOAuth::DIALOGUE_SCOPE;
+    $allScope=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
+    $profiles=[$legacyScope,$archiveScope,$forecastScope,$dialogueScope,
+        $legacyScope.' '.$dialogueScope,$archiveScope.' '.$dialogueScope,$forecastScope.' '.$dialogueScope,$allScope];
+    $tokens=[];$contexts=[];
+    foreach($profiles as $scope){
+        [$tokens[$scope],$contexts[$scope]]=dialogueMcpGrant($oauth,$client,$scope);
+        dialogueMcpCheck('explicit consent stores exactly its requested canonical scopes '.$scope,
+            $tokens[$scope]['scope']===$scope&&$contexts[$scope]['scopes']===explode(' ',$scope));
+    }
+    $connection=$contexts[$dialogueScope]['connection_id'];$legacy=$contexts[$legacyScope]['connection_id'];
+    dialogueMcpCheck('ordinary registration and defaults grant no live transcript access',
+        $registration['scope']===$legacyScope&&ManagerPreparationOAuth::SCOPES===['queue:read','prepared:write']
+        &&!$oauth->connectionAuthorized($legacy,1,[$dialogueScope]));
+    dialogueMcpCheck('all explicit capabilities fit the forward 128-byte scope column',strlen($allScope)===125&&strlen($allScope)<=128);
+    $before=dialogueMcpCredentialRows($pdo);
+    try{
+        $oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,
+            'refresh_token'=>$tokens[$legacyScope]['refresh_token'],'scope'=>$legacyScope.' '.$dialogueScope]);
+        throw new RuntimeException('FAIL refresh added dialogue scope');
+    }catch(InvalidArgumentException $error){
+        dialogueMcpCheck('old refresh cannot silently add dialogue access',
+            $error->getMessage()==='invalid_scope'&&dialogueMcpCredentialRows($pdo)===$before
+            &&!$oauth->connectionAuthorized($legacy,1,[$dialogueScope]));
+    }
+    $changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $key=$oauth->dialogueCursorKey($connection,1);
+    $both=$contexts[$archiveScope.' '.$dialogueScope]['connection_id'];
+    $bothToken=$tokens[$archiveScope.' '.$dialogueScope]['access_token'];
+    $archiveKey=$oauth->archiveCursorKey($both,1);
+    $expectedArchive=hash_hmac('sha256',"anytour.archive-research.cursor.v1\0".'1'."\0".$both,hash('sha256',$bothToken,true),true);
+    dialogueMcpCheck('live cursor keys are private fixed-width projections tied to their family',
+        strlen($key)===32&&hash_equals($key,$oauth->dialogueCursorKey($connection,1))
+        &&!hash_equals($key,hash('sha256',$tokens[$dialogueScope]['access_token'],true))
+        &&!hash_equals($key,$oauth->dialogueCursorKey($both,1)));
+    dialogueMcpCheck('archive key bytes remain unchanged and cannot authorize a live cursor',
+        hash_equals($archiveKey,$expectedArchive)&&!hash_equals($archiveKey,$oauth->dialogueCursorKey($both,1)));
+    foreach([[$legacy,1],[$contexts[$archiveScope]['connection_id'],1],[$contexts[$forecastScope]['connection_id'],1],[$connection,2],[$connection,3],[str_repeat('9',32),1]]as [$family,$actor]){
+        try{$oauth->dialogueCursorKey($family,$actor);throw new RuntimeException('FAIL foreign cursor key accepted');}
+        catch(DomainException $error){dialogueMcpCheck('cursor key requires its exact active administrator and dialogue grant',true);}
+    }
+    dialogueMcpCheck('cursor authorization and derivation perform no writes',(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes);
+    $pdo->beginTransaction();
+    try{$oauth->dialogueCursorKey($connection,1);throw new RuntimeException('FAIL borrowed transaction authorized a cursor');}
+    catch(DomainException $error){dialogueMcpCheck('cursor authorization refuses a borrowed transaction without ending it',$pdo->inTransaction());}
+    finally{$pdo->rollBack();}
+
+    $calls=[];$ordinaryCalls=0;$hook=null;$override=null;
+    $ordinary=static function()use(&$ordinaryCalls):array{++$ordinaryCalls;return [];};
+    $store=static function(string $operation,array $arguments)use(&$calls,&$hook,&$override):mixed{
+        $calls[]=[$operation,$arguments];
+        if($hook!==null){$run=$hook;$hook=null;$run();}
+        if($override!==null)return $override;
+        return ['ok'=>true,'project_key'=>'anytour','schema_version'=>1,'operation'=>$operation,
+            'dialogues'=>$operation==='inventory'?[['dialogue_ref'=>'synthetic.ref','channel'=>'max','status'=>'ai']]:[],
+            'messages'=>$operation==='context'?[['sender_type'=>'customer','text'=>'PRIVATE synthetic dialogue text']]:[],
+            'has_more'=>false,'next_cursor'=>null];
+    };
+    $service=new ManagerPreparationMcpService($pdo,$ordinary,clock:$clock,dialogueStore:$store);
+    $invoke=static fn(string $name,array $args=[],int $actor=1,?string $family=null,?array $scopes=null):array=>
+        $service->handle(dialogueMcpRpc($name,$args),$actor,$family??$connection,$scopes??[$dialogueScope]);
+    $list=static fn(string $family,array $scopes):array=>
+        $service->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],1,$family,$scopes)['result']['tools'];
+    $before=dialogueMcpCredentialRows($pdo);$changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $dialogueTools=$list($connection,[$dialogueScope]);
+    dialogueMcpCheck('dialogue-only discovery exposes two readers and separate aggregate forecast consent',
+        array_column($dialogueTools,'name')===array_merge([ModeledConversionStatusMcpAdapter::NAME],DialogueReviewMcpAdapter::NAMES,ManagerTourSelectionMcpAdapter::NAMES)
+        &&$calls===[]&&$ordinaryCalls===0);
+    foreach($dialogueTools as $tool){
+        if(!in_array($tool['name'],DialogueReviewMcpAdapter::NAMES,true))continue;
+        dialogueMcpCheck('review tool declares bounded readonly explicit dialogue permission '.$tool['name'],
+            $tool['inputSchema']['additionalProperties']===false&&$tool['annotations']['readOnlyHint']===true
+            &&$tool['annotations']['destructiveHint']===false&&$tool['annotations']['idempotentHint']===true
+            &&$tool['annotations']['openWorldHint']===false
+            &&$tool['securitySchemes']===[['type'=>'oauth2','scopes'=>[$dialogueScope]]]
+            &&$tool['_meta']['securitySchemes']===$tool['securitySchemes']);
+    }
+    $byName=array_column($dialogueTools,null,'name');
+    dialogueMcpCheck('metadata and transcript have independent bounded pages and opaque references',
+        $byName['list_current_dialogues']['inputSchema']['properties']['limit']['maximum']===50
+        &&$byName['get_dialogue_review_context']['inputSchema']['properties']['limit']['maximum']===100
+        &&$byName['get_dialogue_review_context']['inputSchema']['required']===['dialogue_ref']);
+    foreach([$legacyScope,$forecastScope]as $scope){
+        $family=$contexts[$scope]['connection_id'];$scopes=explode(' ',$scope);
+        dialogueMcpCheck('existing capability discovers live review without gaining it '.$scope,
+            array_values(array_intersect(array_column($list($family,$scopes),'name'),DialogueReviewMcpAdapter::NAMES))===DialogueReviewMcpAdapter::NAMES
+            &&!$oauth->connectionAuthorized($family,1,[$dialogueScope]));
+        $response=$invoke('get_dialogue_review_context',['dialogue_ref'=>'PRIVATE.synthetic.ref'],1,$family,$scopes);
+        $challenge=dialogueMcpChallenge($response);
+        dialogueMcpCheck('explicit step-up precedes every transcript read '.$scope,
+            ($response['result']['isError']??false)===true&&str_contains($challenge,'error="insufficient_scope"')
+            &&str_contains($challenge,'scope="'.$scope.' '.$dialogueScope.'"')
+            &&$calls===[]&&!str_contains(json_encode($response),'PRIVATE.synthetic.ref'));
+    }
+    dialogueMcpCheck('advertising and requesting live review do not mutate existing credentials',
+        dialogueMcpCredentialRows($pdo)===$before&&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes);
+    $inventory=$invoke('list_current_dialogues',['limit'=>3]);
+    dialogueMcpCheck('inventory dispatch uses trusted actor and connection with no arbitrary account selector',
+        ($inventory['result']['structuredContent']['operation']??null)==='inventory'
+        &&end($calls)===['inventory',[1,$connection,['limit'=>3]]]);
+    $contextArgs=['dialogue_ref'=>'synthetic.ref','cursor'=>'synthetic.cursor','limit'=>10];
+    $context=$invoke('get_dialogue_review_context',$contextArgs);
+    dialogueMcpCheck('context dispatch preserves exact arguments and both returned JSON representations',
+        ($context['result']['structuredContent']['operation']??null)==='context'
+        &&end($calls)===['context',[1,$connection,$contextArgs]]
+        &&json_decode($context['result']['content'][0]['text'],true)===$context['result']['structuredContent']);
+    $beforeCalls=count($calls);
+    $badArgs=[
+        ['list_current_dialogues',['limit'=>0]],['list_current_dialogues',['limit'=>51]],
+        ['list_current_dialogues',['limit'=>'3']],['list_current_dialogues',['cursor'=>null]],
+        ['list_current_dialogues',['cursor'=>'']],['list_current_dialogues',['project_key'=>'other']],
+        ['list_current_dialogues',['account_id'=>1]],['list_current_dialogues',['after_id'=>1]],
+        ['get_dialogue_review_context',[]],['get_dialogue_review_context',['dialogue_ref'=>[]]],
+        ['get_dialogue_review_context',['dialogue_ref'=>'bad/route']],['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','limit'=>101]],
+        ['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','limit'=>0]],['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','limit'=>'3']],
+        ['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','cursor'=>str_repeat('a',2049)]],
+        ['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','conversation_id'=>9]],
+        ['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','admin_id'=>2]],
+        ['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','connection_id'=>$legacy]],
+        ['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','mark_read'=>true]],
+        ['get_dialogue_review_context',['dialogue_ref'=>str_repeat('a',2049)]],
+    ];
+    foreach($badArgs as [$name,$args]){
+        $denied=$invoke($name,$args);
+        dialogueMcpCheck('invalid or caller-selected source argument is refused before the reader '.$name,
+            ($denied['error']['code']??null)===-32602&&count($calls)===$beforeCalls);
+    }
+    foreach([0,2,3,4]as $actor){
+        $denied=$invoke('list_current_dialogues',[],$actor);
+        dialogueMcpCheck('current active project administrator is required '.$actor,
+            ($denied['error']['code']??null)===-32001&&count($calls)===$beforeCalls);
+    }
+    foreach([null,$legacy,str_repeat('9',32)]as $family){
+        $denied=$service->handle(dialogueMcpRpc('list_current_dialogues'),1,$family,[$dialogueScope]);
+        dialogueMcpCheck('missing foreign and caller-forged dialogue grants cannot reach the reader',
+            ($denied['error']['code']??null)===-32001&&count($calls)===$beforeCalls);
+    }
+    $oversized=$service->handle(dialogueMcpRpc('list_current_dialogues',[],str_repeat('x',129)),1,$connection,[$dialogueScope]);
+    dialogueMcpCheck('oversized direct RPC identifier is rejected without reflection or a source read',
+        ($oversized['error']['code']??null)===-32600&&array_key_exists('id',$oversized)&&$oversized['id']===null
+        &&count($calls)===$beforeCalls&&strlen(json_encode($oversized))<512);
+    foreach(['list_pending_replies','get_reply_context','save_prepared_reply','capture_virtual_replies','customers/send']as $name){
+        $denied=$invoke($name);
+        dialogueMcpCheck('dialogue-only grant cannot prepare learn or send '.$name,
+            ($denied['error']['code']??null)===-32001&&$ordinaryCalls===0&&count($calls)===$beforeCalls);
+    }
+    dialogueMcpCheck('successful reads and rejected calls do not write source jobs read markers or credentials',
+        (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes&&dialogueMcpCredentialRows($pdo)===$before
+        &&$pdo->query('SELECT text FROM messages WHERE id=1')->fetchColumn()==='Synthetic stored customer text'
+        &&(int)$pdo->query('SELECT last_read_id FROM manager_conversation_reads')->fetchColumn()===1
+        &&$pdo->query('SELECT status FROM manager_prepared_replies')->fetchColumn()==='pending'
+        &&$pdo->query('SELECT pending_body FROM manager_preparation_events')->fetchColumn()==='unchanged'
+        &&(int)$pdo->query('SELECT is_working FROM managers WHERE id=1')->fetchColumn()===0);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$legacy]);
+    $revokedStepUp=$invoke('list_current_dialogues',[],1,$legacy,ManagerPreparationOAuth::SCOPES);
+    dialogueMcpCheck('revoked old connection is denied instead of receiving dialogue step-up',
+        ($revokedStepUp['error']['code']??null)===-32001&&dialogueMcpChallenge($revokedStepUp)===''
+        &&count($calls)===$beforeCalls);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$legacy]);
+
+    // Use actual audience-bound grants, not caller-provided scope stand-ins.
+    foreach([ManagerPreparationOAuth::PROFILE_REPLIES,ManagerPreparationOAuth::PROFILE_HOTELS]as $profile){
+        $profileOauth=new ManagerPreparationOAuth($pdo,$clock,$profile);
+        $registered=$profileOauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'synthetic-dialogue-'.$profile);
+        [$profileToken,$profileContext]=dialogueMcpGrant($profileOauth,$registered['client_id'],$registered['scope'],$profile);
+        $surface=new SeparatedMcpService($profile,$pdo,$ordinary,$clock);
+        $listed=$surface->handle(['jsonrpc'=>'2.0','id'=>1,'method'=>'tools/list'],1,$profileContext['connection_id'],$profileContext['scopes']);
+        dialogueMcpCheck('dedicated audience never advertises live-dialogue readers '.$profile,
+            isset($listed['result']['tools'])&&array_intersect(array_column($listed['result']['tools'],'name'),DialogueReviewMcpAdapter::NAMES)===[]);
+        foreach(DialogueReviewMcpAdapter::NAMES as $name){
+            $denied=$surface->handle(dialogueMcpRpc($name,['dialogue_ref'=>'PRIVATE.synthetic.ref']),1,$profileContext['connection_id'],$profileContext['scopes']);
+            dialogueMcpCheck('dedicated audience refuses live-dialogue dispatch and step-up '.$profile.'/'.$name,
+                ($denied['error']['code']??null)===-32601&&!isset($denied['result'])
+                &&$ordinaryCalls===0&&count($calls)===$beforeCalls);
+        }
+        $denied=$surface->handle(dialogueMcpRpc('list_current_dialogues'),1,$connection,[$dialogueScope]);
+        dialogueMcpCheck('legacy dialogue grant cannot cross a dedicated audience '.$profile,
+            ($denied['error']['code']??null)===-32001&&count($calls)===$beforeCalls);
+        try{
+            $profileOauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>$dialogueScope],'synthetic-dialogue-rejected');
+            throw new RuntimeException('FAIL dedicated issuer accepted dialogue scope');
+        }catch(InvalidArgumentException $error){dialogueMcpCheck('dedicated issuer cannot register live access '.$profile,$error->getMessage()==='invalid_scope');}
+    }
+
+    $withdrawals=[
+        ["UPDATE managers SET is_active=0 WHERE id=1","UPDATE managers SET is_active=1 WHERE id=1"],
+        ["UPDATE managers SET role='manager' WHERE id=1","UPDATE managers SET role='admin' WHERE id=1"],
+        ["DELETE FROM manager_projects WHERE manager_id=1 AND project_id=1","INSERT INTO manager_projects VALUES(1,1)"],
+        ["UPDATE projects SET is_active=0 WHERE id=1","UPDATE projects SET is_active=1 WHERE id=1"],
+    ];
+    foreach($withdrawals as [$withdraw,$restore]){
+        $hook=static function()use($pdo,$withdraw):void{$pdo->exec($withdraw);};
+        $denied=$invoke('get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref']);
+        dialogueMcpCheck('authorization withdrawn during context reading withholds the complete result',
+            ($denied['error']['code']??null)===-32001&&!isset($denied['result'])&&!str_contains(json_encode($denied),'PRIVATE'));
+        $pdo->exec($restore);
+    }
+    foreach(['revoked_at','scopes']as $withdraw){
+        $hook=static function()use($pdo,$connection,$now,$legacyScope,$withdraw):void{
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET '.$withdraw.'=? WHERE grant_id=?')
+                ->execute([$withdraw==='revoked_at'?$now:$legacyScope,$connection]);
+        };
+        $denied=$invoke('get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref']);
+        dialogueMcpCheck('withdrawn connection or capability cannot disclose a completed context '.$withdraw,
+            ($denied['error']['code']??null)===-32001&&!isset($denied['result'])&&!str_contains(json_encode($denied),'PRIVATE'));
+        $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL,scopes=? WHERE grant_id=?')->execute([$dialogueScope,$connection]);
+    }
+    $hook=static function():void{throw new RuntimeException('PRIVATE SQL and token details');};
+    $failure=$invoke('list_current_dialogues');
+    dialogueMcpCheck('unexpected reader errors never expose source or credential details',
+        ($failure['error']['code']??null)===-32603&&!str_contains(json_encode($failure),'PRIVATE'));
+    $bounded=['ok'=>true,'payload'=>''];
+    $payloadBytes=65536-strlen(json_encode($bounded,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+    $bounded['payload']=str_repeat('"',intdiv($payloadBytes,2)).str_repeat('x',$payloadBytes%2);
+    $override=$bounded;
+    $boundedResponse=$service->handle(dialogueMcpRpc('list_current_dialogues',[],str_repeat('i',128)),1,$connection,[$dialogueScope]);
+    dialogueMcpCheck('exact64KiB structured data and128-byte identifier remain within complete256KiB wire bound',
+        strlen(json_encode($bounded,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))===65536
+        &&($boundedResponse['result']['structuredContent']??null)===$bounded
+        &&json_decode($boundedResponse['result']['content'][0]['text'],true)===$bounded
+        &&strlen(json_encode($boundedResponse,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=262144);
+    $oneByteOver=$bounded;$oneByteOver['payload'].='x';
+    foreach([[],$oneByteOver,['ok'=>true,'payload'=>"\xff"]]as $invalid){
+        $override=$invalid;$failure=$invoke('list_current_dialogues');
+        dialogueMcpCheck('invalid oversized and non-UTF8 reader responses are wholly refused',
+            ($failure['error']['code']??null)===-32603&&!isset($failure['result']));
+    }
+    $override=null;
+    $beforeRefreshKey=$oauth->dialogueCursorKey($connection,1);$now+=60;
+    $rotated=$oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,
+        'refresh_token'=>$tokens[$dialogueScope]['refresh_token']]);
+    dialogueMcpCheck('ordinary token refresh retains exact rights and stales previous cursor key',
+        $rotated['scope']===$dialogueScope&&$oauth->contextForBearer('Bearer '.$rotated['access_token'])['connection_id']===$connection
+        &&!hash_equals($beforeRefreshKey,$oauth->dialogueCursorKey($connection,1)));
+    echo 'Dialogue review MCP regression: '.$passed." checks passed\n";
+}catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}
