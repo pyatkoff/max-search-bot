@@ -24,27 +24,10 @@ for p in sorted(set(base.glob('commercial-*-source-index.json'))|set(base.glob('
  d=json.loads(p.read_text());excluded.update(metadata_urls(d));metadata_files.append(p.name)
 hits=[u for u in pages if u in excluded]
 assert not hits,('CLOSED_OLD_PRIMARY_URL_DEFERRED_NO_GET',hits)
-print(json.dumps({'operation':operation,'state':'THREE_NEW_DECLARED_PROPERTY_HREFS_SCOPE_OK','new_input_cases':3,'old_parser_fixtures_rerun':0,'metadata_files_checked':len(metadata_files),'new_owner_pages':3,'old_owner_get_repeats':0,'server_calls':0,'photo_gets':0}),flush=True)
+print(json.dumps({'operation':operation,'state':'THREE_NEW_DECLARED_PROPERTY_HREFS_SCOPE_OK','new_input_cases':0,'previous_scope_cases_passed_run':41958430136,'old_parser_fixtures_rerun':0,'metadata_files_checked':len(metadata_files),'new_owner_pages':3,'old_owner_get_repeats':0,'server_calls':0,'photo_gets':0}),flush=True)
 group=int(os.environ['MEDIA_GROUP']);assert 0<=group<2
 pages=[r['url'] for r in index['sources'] if r['group']==group]
 assert len(pages)==(2 if group==0 else 1)
-hosts=set(["papillon.com.tr","www.papillon.com.tr","kayahotels.com","www.kayahotels.com","www.kayapalazzohotels.com","www.titanic.com.tr","www.cullinanhotels.com","www.maxxroyal.com","www.ichotels.com.tr"])
-assert pages==expected_pages and all(urllib.parse.urlsplit(u).scheme=='https' and urllib.parse.urlsplit(u).hostname in source_hosts and not urllib.parse.urlsplit(u).query and not urllib.parse.urlsplit(u).fragment for u in pages)
-def metadata_urls(v):
- if isinstance(v,str):return [v] if v.startswith('https://') else []
- if isinstance(v,list):return [u for x in v for u in metadata_urls(x)]
- if isinstance(v,dict):return [u for x in v.values() for u in metadata_urls(x)]
- return []
-excluded=set(index['closed_source_exclusions']);metadata_files=[]
-for p in sorted(set(base.glob('commercial-*-source-index.json'))|set(base.glob('commercial-*-primary*plan.json'))):
- if p.name.startswith('commercial-stock-20261105-41-') or 'miniapp' in p.name:continue
- d=json.loads(p.read_text());excluded.update(metadata_urls(d));metadata_files.append(p.name)
-hits=[{'url':u,'reason':'EXACT_OLDER_PRIMARY_METADATA_URI'} for u in pages if u in excluded]
-assert not hits,('CLOSED_OLD_PRIMARY_URL_DEFERRED_NO_GET',hits)
-print(json.dumps({'operation':operation,'state':'NEW_PRIMARY_SCOPE_METADATA_DEDUP_PASSED','new_input_cases':3,'old_parser_fixtures_rerun':0,'metadata_files_checked':len(metadata_files),'metadata_filenames':metadata_files,'old_metadata_url_count':len(excluded),'new_owner_pages':len(pages),'duplicate_old_page_gets':0,'photo_gets':0,'server_calls':0}),flush=True)
-group=int(os.environ['MEDIA_GROUP']);assert 0<=group<4
-pages=[r['url'] for r in index['sources'] if r['group']==group]
-assert len(pages)==(1 if group==3 else 3)
 hosts=set(["www.elgouna.com","elgouna.com","cms.elgouna.com","backend.elgouna.com","www.jazhotels.com","jazhotels.com","partner.jazhotels.com","hrewards.com","www.hrewards.com","www.hilton.com","hilton.com","www.oberoihotels.com","oberoihotels.com","threecorners.com","www.threecorners.com","braykaresorts.com","www.braykaresorts.com","cdn.braykaresorts.com","www.ahstatic.com","m.ahstatic.com","assets.hiltonstatic.com","image-tc.galaxy.tf","www.tropitelhotels.com","tropitelhotels.com","irp.cdn-website.com","www.safirhotels.com","safirhotels.com","www.cleopatraluxuryhotels.com","cleopatraluxuryhotels.com","baronhotels.com","www.baronhotels.com","www.akrahotels.com","baruthemera.com","barutarum.com","bayouacanthus.com","barutandiz.com","www.libertyhotels.com","ngphaselisbay.com","www.voyagehotel.com","akrahotels-gvhpewgeadfsftcj.a01.azurefd.net","api.baruthotelsgroup.com","voyagecdn.blob.core.windows.net","www.baruthemera.com","www.barutarum.com","www.bayouacanthus.com","www.barutandiz.com","www.ngphaselisbay.com","all.accor.com","bayoulara.com","www.bayoulara.com","www.delphinhotel.com","delphinhotel.com","lujohotel.com","www.lujohotel.com","barutlara.com","www.barutlara.com","miraclehotel.com","www.miraclehotel.com","concordehotels.com","www.concordehotels.com","www.limakhotels.com","limakhotels.com","trendy.com.tr","www.trendy.com.tr","www.titanic.com.tr","titanic.com.tr","www.regnumhotels.com","regnumhotels.com","www.maxxroyal.com","maxxroyal.com","www.palomahotels.com","palomahotels.com","sevenseashotels.com","www.sevenseashotels.com","www.belazur.com.tr","belazur.com.tr","luxuryresortbelek.selectumhotels.com","dmarisbay.com","www.dmarisbay.com","www.dresortgocek.com","dresortgocek.com","www.clubmarvy.com","clubmarvy.com","www.gloria.com.tr","gloria.com.tr","www.susesihotel.com","susesihotel.com","corneliaresort.com","www.corneliaresort.com","www.royalwingshotel.com","royalwingshotel.com","www.alibey.com","www.hillsidebeachclub.com","www.kempinski.com","www.mandarinoriental.com","photos.mandarinoriental.com","www.tui-blue.com","tui-blue.com","granada.com.tr","www.granada.com.tr","eftaliahotels.com","www.eftaliahotels.com","www.kirmanpremium.com","kirmanpremium.com","crystalhotels.com.tr","www.crystalhotels.com.tr","www.nirvanahotels.com.tr","nirvanahotels.com.tr","www.guralpremier.com","clubhotelsera.com.tr","www.orangecounty.com.tr","mice.robinson.com"])
 hosts.update(["papillon.com.tr","www.papillon.com.tr","kayahotels.com","www.kayahotels.com","www.kayapalazzohotels.com","www.titanic.com.tr","www.cullinanhotels.com","www.maxxroyal.com","www.ichotels.com.tr"])
 class Redirect(urllib.request.HTTPRedirectHandler):

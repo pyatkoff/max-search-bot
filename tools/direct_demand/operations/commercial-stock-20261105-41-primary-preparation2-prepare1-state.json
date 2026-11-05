@@ -1,0 +1,24 @@
+{
+  "operation": "commercial-stock-20261105-41-primary-preparation2-prepare1",
+  "state": "CLOSED_HEADER_BOUNDARY_NAMEERROR_BEFORE_ANY_SOURCE_GET",
+  "run": 41958430136,
+  "source": "771544389e697427bb8c7a549972c5faf10cc31b",
+  "jobs": [
+    127018783367,
+    127018783514
+  ],
+  "input_scope_native_cases_passed": 3,
+  "metadata_files_checked": 44,
+  "error": "NameError expected_pages undefined caused by copied header starting inside source_hosts identifier instead of standalone hosts assignment",
+  "owner_http_gets": 0,
+  "photo_gets": 0,
+  "server_calls": 0,
+  "db_calls": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "correction": "Use exact unique standalone newline hosts assignment boundary; no old duplicated preparation block. Three unchanged scope cases no longer credited as new; runtime input guards retained.",
+  "repeat_policy": "Do not rerun failed original jobs/logs. No source HTTP occurred, so execute same planned three genuine owner hrefs only from corrected owned code."
+}

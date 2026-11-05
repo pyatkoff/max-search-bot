@@ -1,4 +1,4 @@
-name: Read three new owner declared property hrefs without repeating closed pointers
+name: Read three owner declared property hrefs after closing the zero HTTP preparation failure
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
