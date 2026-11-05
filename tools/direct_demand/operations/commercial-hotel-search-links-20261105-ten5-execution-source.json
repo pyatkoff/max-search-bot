@@ -1,0 +1,57 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten5-pass1",
+  "state": "EXECUTE_ONLY_ORIGINAL_FROZEN10_NOQUOTE_PAIRS_AFTER_FRESH_SOURCE_GATES",
+  "hotel_ids": [
+    69155,
+    75725,
+    83105,
+    98723,
+    103021,
+    103124,
+    109149,
+    1077,
+    1133,
+    1146
+  ],
+  "prepared_run": 42027274219,
+  "prepared_artifact": 13413354768,
+  "context_run": 42026797964,
+  "context_artifact": 13414536621,
+  "context_source_sha": "b051ce3969f23fe0e0358091684dac74fa511a32",
+  "frozen_prepared_source": "b051ce3969f23fe0e0358091684dac74fa511a32",
+  "expected_source": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+  "scope_sha256": "7557d54a116b397be2b95becde141b76f619a271d641a305910919aaf98cc5d8",
+  "template_sha256": "c0d2e63cdb6c6ba1a89b7c69d320d29aa39b3afe285504b810b5dc7133833af3",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": true,
+  "limits": {
+    "one_serial_run": true,
+    "max_hotels": 10,
+    "max_existing_post_content_edits": 20,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "automatic_retry": false
+  },
+  "criteria": [
+    "Exactoriginalfrozenframe-manifest-approval5keys-scriptbytes/NOQUOTE.",
+    "FreshcurrentSAMEhealthydeployverifyTLSdiag/FULLremote21/hostaccepted25/clean/runtime/native/schema-rights.",
+    "PrivateallhotelintentartifactBEFOREANYserver/provideraccess/perpostdurableonceBEFOREwrite.",
+    "Wholebodyclosingphotobuttonsourcetoken/85pricecheckmetadatapreserved;NOQUOTE/no inventedquoteSHA-epoch-index-amount.",
+    "UNKNOWN/failurestopseries/resolveoriginalFIRST/no newoperationIDorautomaticretry."
+  ],
+  "risks": [
+    "Postorproductioncouldchange;guardstopsbeforewrite.",
+    "Aprovidereditcouldapplywithfailedfinalread;no blindseriesreplay."
+  ],
+  "source_transition": {
+    "from": "b051ce3969f23fe0e0358091684dac74fa511a32",
+    "to": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+    "commits": 3,
+    "files": [
+      ".github/workflows/manager-read-profile.yml"
+    ],
+    "publishing21_unchanged": true,
+    "healthy_original_deploy": 42027049158,
+    "no_our_foreign_mutations": true
+  }
+}
