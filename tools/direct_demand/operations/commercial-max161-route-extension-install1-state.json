@@ -1,0 +1,47 @@
+{
+  "operation": "commercial-max161-private-route-extension-20261105-51-install1",
+  "state": "CLOSED_INSTALLED_AND_NATIVE_VERIFIED",
+  "run": 41971118490,
+  "job": 127059370272,
+  "source_commit": "a33a8f59fa3cd8f7f01c28b121112a3ca1d2a025",
+  "candidate_run": 41970714235,
+  "candidate_artifact": 13388679331,
+  "previous_count": 160,
+  "logical_hotels": 161,
+  "new_hotel_ids": [
+    78251
+  ],
+  "files": [
+    {
+      "bytes": 34468,
+      "name": "anytour-hotel-feed-routes-v161-20261105-51.private.php",
+      "sha256": "6cc61bddc4a5aa3e0edd5bc8cfb6a30560ec64f2db78587473e4eb25eb94597f"
+    },
+    {
+      "bytes": 3780,
+      "name": "anytour-hotel-feed-context.php",
+      "sha256": "116333bcaddc75b254659ab4141e6247723c591daefe7febc5bb3bcb7f1596ed"
+    }
+  ],
+  "previous160_rows_identical": true,
+  "previous_module_sha256": "3e5b56451eee15b33e9c2acf4319ce2920ed39853142825b13d37d3ebff7dae1",
+  "intent_artifact": 13388714672,
+  "intent_created_at": "2026-11-05T04:59:19Z",
+  "result_artifact": 13389093728,
+  "result_created_at": "2026-11-05T04:59:27Z",
+  "new_scope_transaction_cases_passed": 3,
+  "old150signed_or160transaction_fixtures_rerun": 0,
+  "old160_db_read": 0,
+  "actual_new_native_routes_verified": 1,
+  "private_projection_http_status": 404,
+  "save_calls": 0,
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "feed_writes": 0,
+  "natural_paid_signed_launch_observed": false,
+  "source_stops": 0,
+  "current_bot_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "fresh_current_bot_read17_run": 41970261735,
+  "repeat_policy": "Actualinstallation/private404/nativepreflightconsumed,no samehelper/install/nativeold160DB/readbackreplay.Future162useORIGINAL161candidate41970714235/art13388679331+onlygenuinelynewpublishedbinding."
+}

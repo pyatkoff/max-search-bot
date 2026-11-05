@@ -1,0 +1,36 @@
+{
+  "repository": "pyatkoff/tour-max",
+  "run_id": 41971118490,
+  "job_id": 127059370272,
+  "source_commit": "a33a8f59fa3cd8f7f01c28b121112a3ca1d2a025",
+  "result": {
+    "candidate_module_sha256": "116333bcaddc75b254659ab4141e6247723c591daefe7febc5bb3bcb7f1596ed",
+    "changed_files": [
+      "anytour-hotel-feed-routes-v161-20261105-51.private.php",
+      "anytour-hotel-feed-context.php"
+    ],
+    "checks": {
+      "counter_config_matches": true,
+      "db_writes": 0,
+      "exact_total_routes": 161,
+      "message_sends": 0,
+      "natural_signed_user_launch_verified": false,
+      "new_native_routes_verified": 1,
+      "ok": true,
+      "previous160_rows_identical": true,
+      "private_projection_http_status": 404,
+      "project_active": true,
+      "provider_calls": 0,
+      "required_post_fields_ready": true,
+      "save_calls": 0
+    },
+    "db_writes": 0,
+    "feed_writes": 0,
+    "message_sends": 0,
+    "ok": true,
+    "operation": "commercial-max161-private-route-extension-20261105-51-install1",
+    "previous_module_sha256": "3e5b56451eee15b33e9c2acf4319ce2920ed39853142825b13d37d3ebff7dae1",
+    "provider_calls": 0,
+    "state": "INSTALLED_AND_NATIVE_VERIFIED"
+  }
+}

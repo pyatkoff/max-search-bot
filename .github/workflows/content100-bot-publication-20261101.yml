@@ -1,4 +1,4 @@
-name: Read only the newly published batch51 canonical pair
+name: Prepare the new161 public feed offers after actual native MAX161 installation
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -22,8 +22,11 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
           sparse-checkout: |
-            tools/direct_demand/operations
-          sparse-checkout-cone-mode: true
+            /tools/direct_demand/operations/
+            /.github/traffic-publish/hotel-posts-telegram.xml
+            /.github/traffic-publish/hotel-posts-max.xml
+            /.github/traffic-publish/hotel-posts-all.xml
+          sparse-checkout-cone-mode: false
       - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -55,90 +58,23 @@ jobs:
           assert d['status']=='completed' and d['conclusion']=='success'
           print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
           PY
-      - name: Prepare exact new1 bounded canonical reader
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 - <<'PY'
-          import base64,hashlib,json,os,pathlib
-          base=pathlib.Path('tools/direct_demand/operations')
-          source=(base/'read-commercial-channel-hotel-feeds-20261105-17.php').read_text()
-          inputs=(base/'commercial-channel-hotel-feeds-20261105-read17-inputs.json').read_bytes()
-          rows=json.loads(inputs);assert [r['hotel_id'] for r in rows]==[78251]
-          prefix="<?php\ndeclare(strict_types=1);\n";assert source.startswith(prefix)
-          header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const FEED_EXPORT_INPUT_B64='"+base64.b64encode(inputs).decode()+"';\n"+"const FEED_EXPORT_INPUT_SHA256='"+hashlib.sha256(inputs).hexdigest()+"';\n"
-          pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.php').write_text(header+source[len(prefix):])
-          PY
-          php -l "$RUNNER_TEMP/channel-preflight.php"
-          ANYTOUR_CHANNEL_BATCH51_SCOPE_FIXTURE=1 php "$RUNNER_TEMP/channel-preflight.php"
-      - name: Prepare existing server connection
+      - name: Download only original new1 canonical artifact
         env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Read only allowed public feed fields and current paired material counts
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
-          python3 - <<'PY'
-          import pathlib,json,os
-          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
-          d=json.loads(lines[-1])
-          print(json.dumps({k:d[k] for k in ['operation','ok','scope_hotels','feed_rows','deferred_count','private_binding_count','db_writes','provider_calls','message_sends']},sort_keys=True))
-          assert d['operation']=='commercial-channel-hotel-feeds-20261105-read17' and d['mode']=='read_bounded_public_channel_post_feed_inputs'
-          assert d['ok'] is True and d['scope_hotels']==1 and d['feed_rows']==1 and d['deferred_count']==0 and d['private_binding_count']==1
-          assert d['db_writes']==0 and d['provider_calls']==0 and d['message_sends']==0
-          PY
-          test "${probe_status:-0}" = 0
-      - name: Retain authenticated new1 canonical binding evidence
-        if: always()
+          gh run download 41970261735 --repo pyatkoff/max-search-bot --name commercial-channel-hotel-feeds-20261105-read17 --dir "$RUNNER_TEMP/new1"
+      - name: Prepare new161 feed append and three new rejection cases
+        run: python3 tools/direct_demand/operations/prepare-commercial-max161-feeds-20261105.py
+      - name: Retain three public XML exports and validator baseline
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261105-read17
-          path: ${{ runner.temp }}/channel-preflight.json
+          name: commercial-channel-hotel-feeds-20261105-update16-candidate
+          path: |
+            ${{ runner.temp }}/hotel-posts-telegram.xml
+            ${{ runner.temp }}/hotel-posts-max.xml
+            ${{ runner.temp }}/hotel-posts-all.xml
+            ${{ runner.temp }}/feed161-baseline.json
           retention-days: 14
-          if-no-files-found: warn
-      - name: Remove ephemeral connection and script files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+          if-no-files-found: error
