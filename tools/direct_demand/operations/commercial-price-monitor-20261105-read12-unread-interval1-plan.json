@@ -1,0 +1,92 @@
+{
+  "operation": "commercial-price-monitor-20261105-read12-unread-interval1",
+  "state": "ONE_NEW_PROVEN_UNREAD_RETAINED_INTERVAL_NOT_OLD_SCOPE_REPLAY",
+  "goal": "Exhaust genuinely unread retained time intervals before asking for currently prohibited manual paid collection",
+  "published_scope_hotels": 159,
+  "old159_native_scope_and_typed15_byte_identical": true,
+  "max_age_seconds": 259200,
+  "future_departures": "actualUTCdate05Nov exclusive through02Feb2027",
+  "bounds": {
+    "old157_scheduled_lower": 1793820511,
+    "old157_user_hot_lower": 1793820951,
+    "new2_all_sources_lower": 1793835214,
+    "exclusive_upper": 1793835598
+  },
+  "bounds_evidence": {
+    "old157_scheduled_original_artifact": 13356926446,
+    "scheduled_artifact_created_at": "2026-11-04T19:28:30Z",
+    "old157_user_hot_original_artifact": 13357152456,
+    "user_hot_artifact_created_at": "2026-11-04T19:35:50Z",
+    "new2_read10_readback_epoch": 1793835213,
+    "new2_read10_had_fixed_upper_readback_plus1": true,
+    "new672_first_start_epoch": 1793835598
+  },
+  "prior_read9_observation_id_exclusion_count": 16,
+  "priced_native_ids_excluded": [
+    12114,
+    9432,
+    109,
+    13873,
+    13869,
+    73342,
+    233,
+    253,
+    165,
+    389,
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264,
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246,
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "name_review_ids_excluded": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "allowed_sources": [
+    "scheduled_monitor",
+    "user_search",
+    "hot_tours"
+  ],
+  "max_rows_per_hotel": 2,
+  "reader_sha256": "db2db6f63e26cb0f199ad0f68d2ab23b7edbea2e68724181e6ef2598b5867e08",
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "boundaries": [
+    "Newdisjointtimeintervals afteroriginalread8/read9completedartifacttimestamps and afternew2read10fixedupper, exclusivebeforeREAD11sourcecut; do not rereadoldclosedtime slices",
+    "OriginalREAD9artifact reused ONLYtoextract16alreadyexported observationIDs for explicitanti-replay NOTIN guard; no oldtuple quote/providerreadback/fixture reruns",
+    "159nativeprefix/typed15/country/currentname/activity/2A0/emptychildsig/RUB/72h/future mandatory",
+    "Unpricedpreviouslyquotedhotels mayappear onlywithgenuinelyNEWfingerprints; mandatorydedupagainstALLoldconsumedprivateintents beforepaidquote, no automaticretry/newoperationbypass",
+    "Rawnewrows are not finalbasket or availability; exactcurrentcaption/photo/button/source/token+ownintent/ONErealflights stillrequired",
+    "Manualfallback121/7 remainsprepared/inactive/UNAPPROVED; no approvalquestion yet because this independentunusedretained interval exists"
+  ],
+  "criteria": [
+    "Freshcurrentmain/sameversiondeploy/TLS/diagnostics/fullremote21/host/runtimeclean beforeSSH",
+    "New3interval/priorrow/pricedexclusioncases/PHP-l only; no oldscope/agefixtures",
+    "Privateactualrows andanti-replayIDs onlyauthenticatedartifact; consolecounts"
+  ],
+  "risks": [
+    "Unreadinterval can still contain no appropriate2Atour or duplicatedtourfingerprint, no falseavailabilityclaim",
+    "Publication/runtimeUTCdate/source canchange; stopunlessfreshgatespass"
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-source-refresh-20261105-pass1",
-  "state": "FULLY_PREPARED_INACTIVE_NATIVE_GUARDS_AND_SOURCE_PRESENCE_VERIFIED_AWAITING_EXPLICIT_MANUAL_PERMISSION",
+  "state": "PREPARED_INACTIVE_MANUAL_FALLBACK_NO_PERMISSION_QUESTION_YET_UNREAD_CACHE_INTERVAL_FOUND",
   "goal": "Make one finite currently prohibited manual source refresh concrete and natively reviewable before requesting an exception",
   "manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
   "template_sha256": "1dd5f40e632acbc07ac98f8d65cab279796a1bbfbf9c088cd1ccb77bbb2c5a4a",
@@ -73,5 +73,6 @@
   "post_edits": 0,
   "request_policy": "One finite pass, atmost7ADDITIONALhotel-batchsearches/121unpricedhotels/Moscow2A0RUB/5..14nights/next7futureUTCdeparture days atlaunch. Originaldefaultbudgets/order/schedulesunchanged. Approvalnotreceived; do notactivateorcreateapprovalrecord.",
   "approval_usage": "Permissionneededbecausecurrenttaskboundaryprohibitsmanualcollector. MeaningfulexplicitreplytoNEWmanualcollectionquestiononly; pendingXMLpriceunitreplydoesnotauthorizecollection. No elapsedtime/selectiondefaultcountsasapproval.",
-  "next_step": "Ask exact one-time manual-collection permission after this preparedcode/manifest/nativeevidence checkpoint; before liveactivation freshcurrent source/full21/host/runtime/approval/date checks. Ifdatechanges whilewaiting recomputeonlyfuturedateinputunderstatednext7dayspolicy, no silentparty/scope/quotaexpansion."
+  "next_step": "First executeprovenunread retainedinterval12 withoutmanualcollection. Ifnoappropriateunusedcontexts remain, the7searchmanualfallbackisalreadyfullyprepared/nativelyvalidated and canbereviewedwithPavel; do notaskwhileusefulauthorizedcacheworkexists.",
+  "permission_question_sent": false
 }
