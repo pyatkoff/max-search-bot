@@ -1,0 +1,35 @@
+{
+  "operation": "commercial-current-source-20261105-627-full21-read1",
+  "state": "CLOSED_CURRENT627_FULL21_INSTALLED_CLEAN_SOURCE_ONLY_NATIVE_VERIFIED",
+  "run_id": 41963598875,
+  "job_id": 127035380318,
+  "source_commit": "3cfb121b96ee91dc4cfb2900e3a889f9e15a222e",
+  "installed_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "result": {
+    "db_reads": 0,
+    "db_writes": 0,
+    "installed_clean": true,
+    "installed_sha": "627a9c6284624e63b24287bea61277ef6c8f5364",
+    "manual_capture": false,
+    "message_sends": 0,
+    "mode": "source_only_existing_runtime_gate",
+    "ok": true,
+    "operation": "commercial-current-source-20261105-627-full21-read1",
+    "private_config_read": false,
+    "provider_calls": 0,
+    "publishing_blobs_verified": 21
+  },
+  "deploy_run": 41962033993,
+  "tls_run": 41962668602,
+  "current_diagnostics_run": 41962668530,
+  "reviewed_previous_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "diff_paths": [
+    ".github/workflows/ci-change-scope.yml",
+    "tests/check_ci_public_manifest_scope.js",
+    "tools/ci_change_scope.js"
+  ],
+  "publishing21_unchanged": true,
+  "foreign_release_fix_or_rerun": false,
+  "encrypted_private_diagnostics_capture": false,
+  "future_rule": "Alwaysfreshcurrentmain/sameversiondeploy-verify/TLS/currentdiagnostics/full21/installedclean/hostaccepted25/runtime/schema/rights/UNKNOWN.627notforever."
+}
