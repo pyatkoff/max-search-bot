@@ -46,12 +46,24 @@ final class ManagerTourSelectionDraft
     /** Plain text and fixed presentation choices only; no URLs, CSS or uploads. */
     public static function appearance($input): ?array
     {
-        if (!is_array($input) || count($input)!==3 || array_diff(array_keys($input),['template','palette','agency_name'])
-            || !in_array($input['template']??null,['photo','compact'],true)
+        if (!is_array($input) || array_diff(array_keys($input),['template','palette','agency_name','manager'])
+            || !in_array($input['template']??null,['photo','compact','personal'],true)
             || !in_array($input['palette']??null,['forest','ocean','sunset'],true)) return null;
         $agency=self::text($input['agency_name']??null,80);
         if ($agency===null || $agency==='') return null;
-        return ['template'=>$input['template'],'palette'=>$input['palette'],'agency_name'=>$agency];
+        $result=['template'=>$input['template'],'palette'=>$input['palette'],'agency_name'=>$agency];
+        // Explicit public presentation only. Never copy account/customer data.
+        // Omit on old snapshots so their canonical hashes remain unchanged.
+        if (array_key_exists('manager',$input)) {
+            $manager=$input['manager'];
+            if (!is_array($manager) || count($manager)!==4 || array_diff(array_keys($manager),['name','note','phone','email'])) return null;
+            foreach (['name'=>100,'note'=>300,'phone'=>40,'email'=>160] as $key=>$limit) {
+                $text=self::text($manager[$key]??null,$limit,$key==='note');
+                if ($text===null) return null;
+                $result['manager'][$key]=$text;
+            }
+        }
+        return $result;
     }
 
     private static function offer($input,bool $stored): ?array

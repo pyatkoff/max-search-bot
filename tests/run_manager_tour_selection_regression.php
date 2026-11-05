@@ -46,6 +46,18 @@ foreach ([null,[],['template'=>'photo','palette'=>'ocean'],['template'=>'script'
     $invalid=$draft;$invalid['appearance']=$badAppearance;
     tsCheck('malformed or executable appearance rejected',ManagerTourSelectionDraft::normalize($invalid)===null);
 }
+$personalDraft=$draft;
+$personalDraft['appearance']=['template'=>'personal','palette'=>'ocean','agency_name'=>'Synthetic agency','manager'=>['name'=>'  Synthetic <manager>  ','note'=>"Personal introduction\nSecond line",'phone'=>'+7 (000) 000-00-00','email'=>'manager@example.invalid']];
+$personalNormalized=ManagerTourSelectionDraft::normalize($personalDraft);
+tsCheck('personal presentation is explicit bounded text and preserves every offer',$personalNormalized['appearance']['manager']['name']==='Synthetic <manager>'&&$personalNormalized['offers']===$normalized['offers']);
+$savedAppearance=json_encode($personalNormalized['appearance'],JSON_THROW_ON_ERROR);$later=$personalDraft;$later['appearance']['manager']['name']='Later working draft';
+tsCheck('normalizing later manager edits cannot mutate prior presentation',ManagerTourSelectionDraft::normalize($later)['appearance']['manager']['name']==='Later working draft'&&json_encode($personalNormalized['appearance'],JSON_THROW_ON_ERROR)===$savedAppearance);
+foreach ([null,[],['name'=>'x','note'=>'','phone'=>'','email'=>'','account_id'=>99],['name'=>str_repeat('x',101),'note'=>'','phone'=>'','email'=>''],['name'=>'x','note'=>'','phone'=>"123\r\nInjected",'email'=>''],['name'=>'x','note'=>'','phone'=>'','email'=>[]]] as $badManager) {
+    $bad=$personalDraft;$bad['appearance']['manager']=$badManager;
+    tsCheck('personal presentation rejects unknown fields types bounds and control characters',ManagerTourSelectionDraft::normalize($bad)===null);
+}
+$personalDraft['appearance']['manager']=['name'=>'','note'=>'','phone'=>'','email'=>''];
+tsCheck('blank optional manager presentation is editable without fabricated account data',ManagerTourSelectionDraft::normalize($personalDraft)['appearance']['manager']===['name'=>'','note'=>'','phone'=>'','email'=>'']);
 // Existing CI uses no selector and continues through all previous cases.
 if(in_array('--appearance-only',$argv,true)){echo "TOTAL {$passed} | PASS {$passed} | FAIL 0\n";exit;}
 tsCheck('complete draft preserves repeated child ages and infant',$normalized!==null&&$normalized['offers'][0]['child_ages']===[0,4,4]);

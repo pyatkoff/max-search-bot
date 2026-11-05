@@ -111,24 +111,43 @@ function id(){const data=new Uint8Array(16);crypto.getRandomValues(data);return 
 function empty(){return {title:'Подборка туров',intro:'',offers:[]}}
 const appearancePalettes={forest:'#087654',ocean:'#1766a1',sunset:'#a14427'};
 function appearanceSettings(value){
-  const valid=value&&['photo','compact'].includes(value.template)&&Object.hasOwn(appearancePalettes,value.palette)&&typeof value.agency_name==='string';
-  return valid?{template:value.template,palette:value.palette,agency_name:value.agency_name,accent:appearancePalettes[value.palette]}:{template:'legacy',palette:'forest',agency_name:'AnyTour',accent:appearancePalettes.forest};
+  const valid=value&&['photo','compact','personal'].includes(value.template)&&Object.hasOwn(appearancePalettes,value.palette)&&typeof value.agency_name==='string';
+  return valid?{template:value.template,palette:value.palette,agency_name:value.agency_name,accent:appearancePalettes[value.palette],...(value.manager?{manager:clone(value.manager)}:{})}:{template:'legacy',palette:'forest',agency_name:'AnyTour',accent:appearancePalettes.forest};
 }
 function applyAppearance(root,value){
-  for(const key of ['photo','compact'])root.classList.remove('tsTemplate-'+key);
+  for(const key of ['photo','compact','personal'])root.classList.remove('tsTemplate-'+key);
   for(const key of Object.keys(appearancePalettes))root.classList.remove('tsPalette-'+key);
   const a=appearanceSettings(value);if(a.template!=='legacy')root.classList.add('tsTemplate-'+a.template,'tsPalette-'+a.palette);
 }
 function showAppearance(){if(!editable()||busy||tripPanel)return;historyView++;recovery('');appearancePanel=true;render();$('tsSelectionTitle')?.focus()}
+function managerPresentation(value){
+  const a=appearanceSettings(value),m=a.template==='personal'?a.manager:null;if(!m?.name)return null;
+  const root=document.createElement('section');root.className='tsManagerPresentation';root.setAttribute('aria-label','Представление менеджера');
+  for(const [tag,text] of [['small','Ваш персональный менеджер'],['h4',m.name],['p',m.note],['p',[m.phone,m.email].filter(Boolean).join(' · ')]]){
+    if(!text)continue;const el=document.createElement(tag);el.textContent=text;root.append(el);
+  }
+  return root;
+}
 function renderAppearance(){
   const root=$('tsEditor'),a=appearanceSettings(draft.appearance);
-  root.innerHTML='<section class="tsAppearance"><h3>Оформление подборки</h3><p>Заголовок, вступление и оформление сохраняются вместе с версией подборки. Уже подготовленные версии не меняются.</p><label>Заголовок подборки<input id="tsSelectionTitle" maxlength="120"></label><label>Вступление для клиента<textarea id="tsSelectionIntro" rows="3" maxlength="1200"></textarea></label><label>Макет<select id="tsAppearanceTemplate"><option value="">Стандартное AnyTour</option><option value="photo">С фото</option><option value="compact">Для сравнения</option></select></label><label>Цвет<select id="tsAppearancePalette"><option value="forest">Зелёный</option><option value="ocean">Синий</option><option value="sunset">Терракотовый</option></select></label><label>Название агентства<input id="tsAppearanceAgency" maxlength="80"></label><p>Выберите макет, чтобы задать название агентства и цвет. Все фотографии, цены, условия и предупреждения сохраняются в любом макете.</p><button id="tsAppearanceBack" type="button">К вариантам</button></section>';
+  root.innerHTML='<section class="tsAppearance"><h3>Оформление подборки</h3><p>Заголовок, вступление и оформление сохраняются вместе с версией подборки. Уже подготовленные версии не меняются.</p><label>Заголовок подборки<input id="tsSelectionTitle" maxlength="120"></label><label>Вступление для клиента<textarea id="tsSelectionIntro" rows="3" maxlength="1200"></textarea></label><label>Макет<select id="tsAppearanceTemplate"><option value="">Стандартное AnyTour</option><option value="photo">С фото</option><option value="compact">Для сравнения</option><option value="personal">Персональная подборка</option></select></label><label>Цвет<select id="tsAppearancePalette"><option value="forest">Зелёный</option><option value="ocean">Синий</option><option value="sunset">Терракотовый</option></select></label><label>Название агентства<input id="tsAppearanceAgency" maxlength="80"></label><fieldset id="tsPersonalFields"><legend>Представление менеджера на клиентской странице</legend><p>Заполните только те данные, которые хотите показать туристу. Они сохранятся в опубликованной версии. Данные аккаунта автоматически не подставляются.</p><label>Имя менеджера<input id="tsManagerName" maxlength="100" autocomplete="off"></label><label>Личное вступление менеджера<textarea id="tsManagerNote" rows="3" maxlength="300"></textarea></label><label>Телефон для клиента<input id="tsManagerPhone" maxlength="40" inputmode="tel" autocomplete="off"></label><label>Электронная почта для клиента<input id="tsManagerEmail" maxlength="160" inputmode="email" autocomplete="off"></label><p>На странице будут крупные фотографии, комментарий к каждому варианту, раскрываемые условия и таблица сравнения. Комментарии и существенные нюансы заполните в условиях вариантов.</p></fieldset><p>Выберите макет, чтобы задать название агентства и цвет. Все фотографии, цены, условия и предупреждения сохраняются в любом макете.</p><button id="tsAppearanceBack" type="button">К вариантам</button></section>';
   $('tsSelectionTitle').value=draft.title;$('tsSelectionIntro').value=draft.intro;$('tsAppearanceAgency').value=a.agency_name;
   $('tsAppearanceTemplate').value=a.template==='legacy'?'':a.template;$('tsAppearancePalette').value=a.palette;
-  $('tsSelectionTitle').oninput=e=>{if(!editable()||busy)return;draft.title=e.target.value.trim()||'Подборка туров';changed()};
-  $('tsSelectionIntro').oninput=e=>{if(!editable()||busy)return;draft.intro=e.target.value;changed()};
-  const update=()=>{if(!editable()||busy)return;const template=$('tsAppearanceTemplate').value;if(!template)delete draft.appearance;else draft.appearance={template,palette:$('tsAppearancePalette').value,agency_name:$('tsAppearanceAgency').value.trim()||'AnyTour'};changed()};
+  $('tsPersonalFields').hidden=a.template!=='personal';
+  for(const key of ['Name','Note','Phone','Email'])$('tsManager'+key).value=a.manager?.[key.toLowerCase()]||'';
+  $('tsSelectionTitle').oninput=e=>{if(!appearancePanel||!current()||!editable()||busy)return;draft.title=e.target.value.trim()||'Подборка туров';changed()};
+  $('tsSelectionIntro').oninput=e=>{if(!appearancePanel||!current()||!editable()||busy)return;draft.intro=e.target.value;changed()};
+  const update=()=>{
+    if(!appearancePanel||!current()||!editable()||busy)return;const template=$('tsAppearanceTemplate').value;
+    if(!template)delete draft.appearance;
+    else{
+      const manager=Object.fromEntries(['Name','Note','Phone','Email'].map(key=>[key.toLowerCase(),$('tsManager'+key).value.trim()]));
+      draft.appearance={template,palette:$('tsAppearancePalette').value,agency_name:$('tsAppearanceAgency').value.trim()||'AnyTour',...(template==='personal'||draft.appearance?.manager?{manager}:{})};
+    }
+    changed();
+  };
   $('tsAppearanceTemplate').onchange=()=>{update();render()};$('tsAppearancePalette').onchange=update;$('tsAppearanceAgency').oninput=update;
+  for(const key of ['Name','Note','Phone','Email'])$('tsManager'+key).oninput=update;
   $('tsAppearanceBack').onclick=()=>{if(busy)return;appearancePanel=false;render();$('tsAppearance')?.focus()};
 }
 function canCompareOffers(){return current()&&dialog?.open&&draft?.offers.length>=2&&!loading&&!busy&&!pending&&!conflict&&!preview&&!sending&&!sharing&&!photoUpload&&!bulkPrice&&!tripPanel&&!biblioPanel&&!oneTouchPanel&&!appearancePanel}
@@ -829,7 +848,7 @@ function controls(){
     for(const id of ['tsAdd','tsHistory','tsCollector','tsBulkPrices','tsTripAdd','tsBiblio','tsOneTouch'])$(id).disabled=true;
     $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=true});
     const legacy=!$('tsAppearanceTemplate')?.value;
-    for(const id of ['tsAppearanceAgency','tsAppearancePalette'])if($(id))$(id).disabled=disabled||busy||legacy;
+    for(const id of ['tsAppearanceAgency','tsAppearancePalette','tsManagerName','tsManagerNote','tsManagerPhone','tsManagerEmail'])if($(id))$(id).disabled=disabled||busy||legacy;
     if($('tsAppearanceBack'))$('tsAppearanceBack').disabled=busy;
   }
   if(biblioPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector','tsBulkPrices','tsTripAdd'])$(id).disabled=true;$('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=true});biblioControls();}
@@ -932,6 +951,7 @@ function drawExportImage(card,title,version,images,appearance=null,intro=''){
   const text=(value,font,color,lineHeight,gap=0)=>{const lines=exportLines(context,value,font,width);blocks.push({lines,font,color,lineHeight,y});y+=lines.length*lineHeight+gap;};
   const design=appearanceSettings(appearance);
   text(design.agency_name,'bold 28px Arial',design.accent,38,12);
+  if(design.template==='personal'&&design.manager?.name){text('Ваш персональный менеджер: '+design.manager.name,'bold 24px Arial',design.accent,32,8);if(design.manager.note)text(design.manager.note,'22px Arial','#354a40',30,8);const contacts=[design.manager.phone,design.manager.email].filter(Boolean).join(' · ');if(contacts)text(contacts,'20px Arial','#354a40',28,8)}
   text(title,'bold 34px Arial','#18312b',44,10);
   if(intro)text(intro,'24px Arial','#52695c',34,12);
   text('Вариант '+(card.index+1)+' · Версия подборки '+version,'24px Arial','#52695c',34,24);
@@ -1003,7 +1023,7 @@ function printPreview(){
   const root=document.createElement('section');root.className='tsPrintProposal';root.setAttribute('aria-label','Подборка для печати');
   const text=(tag,value,parent=root)=>{const el=document.createElement(tag);el.textContent=value;parent.append(el);return el};
   applyAppearance(root,publication.appearance);
-  text('p',appearanceSettings(publication.appearance).agency_name).className='tsPrintBrand';text('h1',publication.title);
+  text('p',appearanceSettings(publication.appearance).agency_name).className='tsPrintBrand';const manager=managerPresentation(publication.appearance);if(manager)root.append(manager);text('h1',publication.title);
   if(publication.intro)text('p',publication.intro).className='tsPrintIntro';
   text('p','Версия подборки '+publication.draft_version).className='tsPrintVersion';
   printProposal={root,images:[]};
@@ -1033,7 +1053,7 @@ function renderPreview(){
     const brand=document.createElement('p');brand.className='tsSelectionBrand';brand.textContent=design.agency_name;header.append(brand);
     const title=document.createElement('h4');title.textContent=publication.title;header.append(title);
     if(publication.intro){const intro=document.createElement('p');intro.className='tsSelectionIntro';intro.textContent=publication.intro;header.append(intro)}
-    heading.append(header);
+    const manager=managerPresentation(publication.appearance);if(manager)header.prepend(manager);heading.append(header);
   }
   $('tsEditor').scrollTop=0;
   $('tsEditor').querySelectorAll('.tsPreviewCard').forEach(card=>{

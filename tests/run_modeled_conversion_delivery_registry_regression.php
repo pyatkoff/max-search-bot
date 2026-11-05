@@ -60,6 +60,9 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
     };
     $set=static function(string $id,array $values)use($p):void{
         $fields=array_map(static fn(string $key):string=>$key.'=?',array_keys($values));
+        // Deliberate fixture probes must not advance native ON UPDATE metadata.
+        // The reader's full-state digest still includes updated_at.
+        if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'&&!array_key_exists('updated_at',$values))$fields[]='updated_at=updated_at';
         $p->prepare('UPDATE max_channel_conversion_outbox SET '.implode(',',$fields).' WHERE id=?')->execute([...array_values($values),$id]);
     };
     try{
@@ -94,6 +97,15 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
         $badContract=$event(424,1,$from+7);$set($badContract,['value_contract'=>'foreign_contract']);
         $badTarget=$event(425,1,$from+8);$set($badTarget,['transport_target'=>'foreign_target']);
         $badProject=$event(426,1,$from+9);$set($badProject,['project_key'=>'foreign']);
+        if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+            // Make the original helper fail deterministically, without sleep or SET TIMESTAMP.
+            $fixtureClock='2001-01-01 00:00:00';
+            $p->prepare('UPDATE max_channel_conversion_outbox SET updated_at=? WHERE id=?')->execute([$fixtureClock,$a]);
+            $storedClock=$p->prepare('SELECT updated_at FROM max_channel_conversion_outbox WHERE id=?');$storedClock->execute([$a]);
+            $check('native fixture stored clock differs from the probe-write clock',
+                (string)$p->query('SELECT CURRENT_TIMESTAMP')->fetchColumn()!==$fixtureClock
+                &&$storedClock->fetchColumn()===$fixtureClock);
+        }
         $before=deliveryRegistryDataDigest($p);
         $read=static fn(array $input=[]):array=>(new ModeledConversionDailyReconciliationReader($p,$auth))->read(['date'=>$date]+$input,$now);
         $page=$read();
