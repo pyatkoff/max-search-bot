@@ -710,7 +710,7 @@ function archiveResearchReadRegression(PDO $pdo): int
             if($pdo->inTransaction())throw new RuntimeException('authority_in_snapshot');$operatorCalls++;
         };
         ArchiveResearchTraceStatement::$duringExecute=static function(string$sql)use($pdo,&$operatorWriteDenied):void{
-            if(!str_contains($sql,'SELECT m.id,m.record_json'))return;
+            if(!str_contains($sql,'m.id,m.record_json FROM telegram_dialogue_messages'))return;
             ArchiveResearchTraceStatement::$duringExecute=null;
             try{$pdo->exec("INSERT INTO projects VALUES(99,'operator_must_not_write',1)");}
             catch(PDOException$e){$operatorWriteDenied=true;}
@@ -783,11 +783,16 @@ function archiveResearchReadRegression(PDO $pdo): int
         $pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=121");
         $reject(fn()=>$operator->operatorStudyPage($operatorAuthority,$pinned,2),'permission_changed');
         $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=121");
-        $guardCalls=0;
-        $reject(fn()=>$operator->operatorStudyPage(static function()use(&$guardCalls):void{
+        $guardCalls=0;$revokedPage=null;
+        $revokedAuthority=static function()use($pdo,&$guardCalls):void{
+            if($pdo->inTransaction())throw new RuntimeException('authority_in_snapshot');
             if(++$guardCalls===2)throw new RuntimeException('private_authority_failure');
-        },[],1),'forbidden');
-        $check($guardCalls===2&&!$pdo->inTransaction(),'operator_authority_revocation_after_snapshot_withholds_the_page');
+        };
+        $reject(static function()use($operator,$revokedAuthority,&$revokedPage):void{
+            $revokedPage=$operator->operatorStudyPage($revokedAuthority,[],1);
+        },'forbidden');
+        $check($guardCalls===2&&$revokedPage===null&&!$pdo->inTransaction(),
+            'operator_authority_revocation_after_snapshot_withholds_the_page');
         $permissionCalls=0;
         $reject(fn()=>$operator->operatorStudyPage(static function()use($pdo,&$permissionCalls):void{
             if($pdo->inTransaction())throw new RuntimeException('authority_in_snapshot');
@@ -797,7 +802,7 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check(!$pdo->inTransaction(),'operator_current_account_policy_is_rechecked_outside_the_snapshot');
         $pdo->beginTransaction();$reject(fn()=>$operator->operatorStudyPage($operatorAuthority,[],1),'transaction_active');
         $check($pdo->inTransaction(),'operator_does_not_close_a_callers_transaction');$pdo->rollBack();
-        ArchiveResearchTraceStatement::$failureNeedle='SELECT m.id,m.record_json';
+        ArchiveResearchTraceStatement::$failureNeedle='m.id,m.record_json FROM telegram_dialogue_messages';
         ArchiveResearchTraceStatement::$failure=new PDOException('PrivateOperatorFixtureMessage');
         $reject(fn()=>$operator->operatorStudyPage($operatorAuthority,[],1),'unavailable');
         ArchiveResearchTraceStatement::$failure=null;ArchiveResearchTraceStatement::$failureNeedle=null;
