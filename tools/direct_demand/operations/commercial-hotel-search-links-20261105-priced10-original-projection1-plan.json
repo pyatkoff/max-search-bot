@@ -1,0 +1,133 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced10-original-projection1",
+  "state": "PREPARED_BOUNDED_ORIGINAL_INTENT_MANIFESTS_AND_NATIVE_IDENTITY_ONLY",
+  "goal": "Recover exactcurrent-prior-price manifestinputs for NEWsearchlinks in10still-unlinkedpricedhotels without touching source/quotes/provider/DB.",
+  "native_hotel_ids": [
+    12114,
+    9432,
+    109,
+    13873,
+    13869,
+    73342,
+    233,
+    253,
+    165,
+    389
+  ],
+  "expected_base": {
+    "published": 161,
+    "priced": 85,
+    "linked": 123
+  },
+  "original_sources": [
+    {
+      "folder": "prior2",
+      "run": 41792503183,
+      "artifact": "commercial-price-update-20261104-2-intent",
+      "id": 13304505545,
+      "file": "price-update2-manifest.json",
+      "hotel_ids": [
+        9432
+      ]
+    },
+    {
+      "folder": "prior3",
+      "run": 41900165853,
+      "artifact": "commercial-price-update-20261104-3-intent",
+      "id": 13358085259,
+      "file": "price-update3-manifest.json",
+      "hotel_ids": [
+        109
+      ]
+    },
+    {
+      "folder": "prior4",
+      "run": 41906507292,
+      "artifact": "commercial-price-update-20261104-4-intent",
+      "id": 13360406939,
+      "file": "price-update4-manifest.json",
+      "hotel_ids": [
+        13873
+      ]
+    },
+    {
+      "folder": "prior5",
+      "run": 41916096810,
+      "artifact": "commercial-price-update-20261104-5-intent",
+      "id": 13365600200,
+      "file": "price-update5-manifest.json",
+      "hotel_ids": [
+        13869
+      ]
+    },
+    {
+      "folder": "prior6",
+      "run": 41919613567,
+      "artifact": "commercial-price-update-20261104-6-intent",
+      "id": 13367300066,
+      "file": "price-update6-manifest.json",
+      "hotel_ids": [
+        73342
+      ]
+    },
+    {
+      "folder": "prior8",
+      "run": 41926364313,
+      "artifact": "commercial-price-update-20261104-8-intent",
+      "id": 13370500055,
+      "file": "price-update8-manifest.json",
+      "hotel_ids": [
+        233
+      ]
+    },
+    {
+      "folder": "prior19",
+      "run": 41936372259,
+      "artifact": "commercial-price-update-20261104-72h-pass1-prepared",
+      "id": 13374246397,
+      "hotel_ids": [
+        253,
+        165,
+        389
+      ]
+    },
+    {
+      "folder": "identity10",
+      "run": 41934633857,
+      "artifact": "commercial-price-monitor-20261104-read10-72h-extension1",
+      "id": 13372822872,
+      "file": "price-readback.json",
+      "identity_only": true
+    }
+  ],
+  "legacy_first_manifest": {
+    "hotel_id": 12114,
+    "path": "commercial-price-update-20261103-1-manifest.json",
+    "source_operation": "commercial-price-update-20261103-1-v1"
+  },
+  "boundaries": {
+    "max_hotels": 10,
+    "old_provider_results_read": 0,
+    "old_quote_bodies_read": 0,
+    "observation_rows_projected": 0,
+    "provider_calls": 0,
+    "db_calls": 0,
+    "ssh_calls": 0,
+    "source_searches": 0,
+    "quotes": 0,
+    "edits": 0,
+    "new_public_private_data": 0
+  },
+  "criteria": [
+    "ONLY exact declaredoriginalpre-providerintent manifests orprepared19; no originalproviderresult/readback/logreinspection.",
+    "READ10originalauthartifact ONLYnativehotelidentity fields for10ids; no observations/fingerprints/paidquote selection/noDBreread.",
+    "Legacypublicmanifestfirst1 maycontainhistoricalprivate/versionIDs; neveruse themascanonical. LatercurrentpublicationIDs ONLYcanonicalownconfirmedjournal/registry.",
+    "Validateexactownoperation/nativeid/wholeold-newcaptionSHA/rawmanifestSHA+canonicaljournalhash/pricequotemetadata;3NEWactualprojectionnegativecasesperhotel/old0.",
+    "OutputwholeprivatepayloadONLYauthenticatedartifact;publicconsole counts/nativeIDs/source refs only. Currentreceipt+version/livephotobuttonproofandNEWnativeprice-roleCI stillrequiredBEFOREanyproviderwrite."
+  ],
+  "risks": [
+    "Artifactmaylackneededexactmetadata;deferhardcasehonestly,do not guess.",
+    "HistoricalmanifestdoesnotproveCURRENTcaption; required canonicaljournal+registry/newrelatedownedproof later.",
+    "This isNOQUOTElinkpreparation,notfreshavailabilityornewcheckedprice."
+  ]
+}

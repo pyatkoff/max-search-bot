@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-price-monitor-20261105-rollout8-metadata20",
+  "state": "CLOSED_NEW_BOUNDED_SCHEDULED_METADATA_ONLY",
+  "created_after": "2026-11-05T13:04:26Z",
+  "exclusive_lower_query_start": "2026-11-05T13:04:27Z",
+  "upper_utc": "2026-11-05T13:24:31Z",
+  "checked_at_utc": "2026-11-05 13:24:31 UTC",
+  "total_count": 1,
+  "returned": 1,
+  "runs": [
+    {
+      "id": 42034240216,
+      "name": "Collect SEO Yandex Webmaster feedback",
+      "path": ".github/workflows/collect-seo-yandex-webmaster-feedback.yml",
+      "created_at": "2026-11-05T13:15:58Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "new_normal_or_admitted_tour_tuple": false,
+  "db_calls": 0,
+  "provider_calls": 0,
+  "old_logs_read": 0,
+  "do_not_repeat_same_window": true
+}
