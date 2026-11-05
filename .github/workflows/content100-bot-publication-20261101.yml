@@ -1,26 +1,22 @@
-name: Inspect one newly declared Old Palace property gallery without provider access
+name: Project current Old Palace gallery declarations without repeating owner access
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  PRIMARY_SOURCE_INDEX_FILENAME: commercial-batch-20261105-58-source-index.json
-  EXPECTED_PRIMARY_SOURCE_INDEX_SHA256: d47fd3ded62727030c89f569289347828949988551436ea95e19424efe9b36f0
-  EXPECTED_PRIMARY_NATIVE_SCOPE_SHA256: d4601d24d56d64b723eb6e61cd5b921c2c55c15ceab6d6a0e29badbe9f9f4cab
+  SOURCE_METADATA_PROJECTION_PLAN_FILENAME: commercial-batch-20261105-58-primary-metadata-projection1-plan.json
+  EXPECTED_SOURCE_METADATA_PROJECTION_PLAN_SHA256: 490e7dffdde1fa9a1613aa7e89b3732ae56019bbc3ef99e7f0295bb06097582a
 jobs:
-  inspect:
+  prepare:
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        media_group: [0]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,16 +25,25 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Check new scope and dedup metadata before one exact official gallery GET
-        env:
-          MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-batch58.py
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-batch58-primary-0
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 42110612108
+          path: ${{ runner.temp }}/source58
+      - name: Validate original current owner source and project only declaration metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          python3 -m py_compile tools/direct_demand/operations/project-hotel-primary-metadata-20261105-batch58.py
+          python3 tools/direct_demand/operations/project-hotel-primary-metadata-20261105-batch58.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: commercial-batch58-primary-${{ matrix.media_group }}
-          path: |
-            public-media-sources.json
-            public-media-sources-summary.json
+          name: commercial-batch58-current-owner-metadata1
+          path: ${{ runner.temp }}/source58-owner-metadata.json
           retention-days: 14
           if-no-files-found: warn
