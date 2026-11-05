@@ -6,6 +6,7 @@ require_once __DIR__.'/lib/ManagerHttp.php';
 require_once dirname(__DIR__).'/services/ModeledConversionValueRegistryView.php';
 require_once dirname(__DIR__).'/services/ModeledConversionDeliveryRegistryView.php';
 require_once dirname(__DIR__).'/services/ModeledConversionAcquisitionStatsView.php';
+require_once dirname(__DIR__).'/services/MaxMemberHistoryView.php';
 
 ManagerHttp::startJson();
 header('Cache-Control: private, no-store');
@@ -50,6 +51,10 @@ try{
             ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
         $acquisitionInput['period']=(int)$acquisitionInput['period'];
         $acquisitionInput['platform']=$acquisitionInput['platform']??'all';
+    }elseif($view==='members'){
+        if(isset($_GET['after'])&&(!is_string($_GET['after'])||!MaxMemberHistoryViewCursor::shape($_GET['after'])))
+            ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
+        $after=$_GET['after']??'0';
     }else{
         if(isset($_GET['after'])&&(!is_string($_GET['after'])||preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$_GET['after'])!==1))
             ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
@@ -60,6 +65,7 @@ try{
     $pdo=ConversationDb::connection();
     if($pdo->inTransaction())throw new RuntimeException('auth_snapshot');
     $cursorKey=hash('sha256',session_id().'|modeled-delivery-registry-v1|'.$actor);
+    $memberCursorBinding=session_id().'|max-history-owner-view-v1|'.$actor;
     session_write_close();
 
     $page=null;$unavailable=false;
@@ -92,7 +98,9 @@ try{
             // Preserve the legacy, separately labelled research views.
             if($view==='members'){
                 require_once dirname(__DIR__).'/services/MaxTrackerLookupClient.php';
-                $page=$registry->members((new MaxTrackerLookupClient())->currentMemberPage('98615635',$after));
+                $memberCursorKey=hash_hmac('sha256',$memberCursorBinding,MaxTrackerLookupConfig::privateKey());
+                $sourceAfter=MaxMemberHistoryViewCursor::unwrap($after,$memberCursorKey,time());
+                $page=$registry->historyMembers((new MaxTrackerLookupClient())->historyMemberPage('98615635',$sourceAfter),$sourceAfter,$memberCursorKey,time());
             }else{
                 $page=$registry->profiles($after,time());
             }
@@ -115,12 +123,14 @@ try{
     echo $view==='delivery'
         ?ModeledConversionDeliveryRegistryView::render($page,$deliveryInput,$monitor,$unavailable)
         :($view==='acquisition'?ModeledConversionAcquisitionStatsView::render($page,$acquisitionInput,$unavailable)
-            :ModeledConversionValueRegistryView::render($view,$page,$after,$unavailable));
+            :($view==='members'?MaxMemberHistoryView::render($page,$unavailable)
+                :ModeledConversionValueRegistryView::render($view,$page,$after,$unavailable)));
 }catch(Throwable $ignored){
     http_response_code(503);
     header('Content-Type: text/html; charset=utf-8');
     echo $view==='delivery'
         ?ModeledConversionDeliveryRegistryView::render(null,$deliveryInput,[],true)
         :($view==='acquisition'?ModeledConversionAcquisitionStatsView::render(null,$acquisitionInput,true)
-            :ModeledConversionValueRegistryView::render($view,null,$after,true));
+            :($view==='members'?MaxMemberHistoryView::render(null,true)
+                :ModeledConversionValueRegistryView::render($view,null,$after,true)));
 }

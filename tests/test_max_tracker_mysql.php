@@ -11,7 +11,7 @@ $p->exec('CREATE TABLE max_sub_links (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(2
 $p->exec('CREATE TABLE b_iblock_property (ID BIGINT PRIMARY KEY,IBLOCK_ID BIGINT,CODE VARCHAR(64))');
 $p->exec('CREATE TABLE b_iblock_element_property (IBLOCK_PROPERTY_ID BIGINT,IBLOCK_ELEMENT_ID BIGINT,VALUE VARCHAR(64))');
 $p->exec('CREATE TABLE b_hlblock_entity (ID BIGINT PRIMARY KEY,TABLE_NAME VARCHAR(64))');
-$p->exec('CREATE TABLE max_membership_events (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_SOURCE VARCHAR(20),UF_TYPE INTEGER,UF_DATE DATETIME)');
+$p->exec('CREATE TABLE max_membership_events (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_SOURCE VARCHAR(20),UF_TYPE INTEGER,UF_DATE DATETIME,KEY membership_user_date(UF_CHAT_ID,UF_SOURCE,UF_DATE,ID)) ENGINE=InnoDB');
 $p->exec('CREATE TABLE max_no_unsub_goals (ID BIGINT PRIMARY KEY,UF_SUB_ID BIGINT,UF_DATE DATETIME,UF_EXPORTED INTEGER)');
 $p->exec("INSERT INTO b_hlblock_entity VALUES(9,'max_sub_links'),(10,'max_membership_events'),(12,'max_no_unsub_goals')");
 $p->exec("INSERT INTO b_iblock_property VALUES(1,8,'YA_METRIK_ID'),(2,8,'CHANEL_ID'),(3,7,'YA_METRIK_ID')");
@@ -176,6 +176,143 @@ $membershipActivation=(string)$p->query("SELECT membership_receipts_activated_at
 $p->exec(file_get_contents(dirname(__DIR__).'/migrations/068_max_membership_receipt_bridge.sql'));
 same((string)$p->query("SELECT membership_receipts_activated_at_unix FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn(),$membershipActivation,'membership migration is idempotent and preserves prospective fence');
 same((string)$p->query("SELECT membership_receipts_outbox_cursor FROM max_channel_attribution_settings WHERE project_key='anytour'")->fetchColumn(),'9','membership migration is idempotent and preserves work cursor');
+
+// History pages are a separate, observed-history contract. They never revive legacy member credit.
+function historyExact(callable $f,string $expected,string $name):void{
+    try{$f();}catch(RuntimeException|InvalidArgumentException $e){same($e->getMessage(),$expected,$name);return;}
+    throw new RuntimeException('FAIL '.$name);
+}
+function historyPage(MaxTrackerLookupRepository $repo,string $after,int $now):array{
+    $page=$repo->historyMemberPage('98615635',$after,$now);
+    $keys=array_keys($page);sort($keys);
+    $expected=['basis','rows','cutoff_unix','history_fence_id','next_cursor','has_more','scanned_event_count','omitted_unknown_count','coverage'];sort($expected);
+    same($keys,$expected,'history page has an exact bounded nonfinancial shape');
+    same($page['basis'],'retained_membership_history_v1','history page states its retained-history basis');
+    same($page['coverage'],'bounded_retained_history_not_live_platform_verification','history page never claims live platform membership');
+    same(is_array($page['rows'])&&array_is_list($page['rows'])&&count($page['rows'])<=5,true,'history page returns at most five rows');
+    same(is_int($page['cutoff_unix'])&&$page['cutoff_unix']<=$now,true,'history snapshot has an explicit nonfuture cutoff');
+    same(is_string($page['history_fence_id'])&&preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$page['history_fence_id'])===1,true,'history fence remains an exact decimal string');
+    same(is_bool($page['has_more'])&&is_int($page['scanned_event_count'])&&$page['scanned_event_count']>=0&&$page['scanned_event_count']<=64,true,'history scan and continuation are bounded');
+    same(is_int($page['omitted_unknown_count'])&&$page['omitted_unknown_count']>=0&&$page['omitted_unknown_count']<=64,true,'unknown history omissions are counted separately');
+    same($page['has_more']?(is_string($page['next_cursor'])&&str_starts_with($page['next_cursor'],'mh1.')):$page['next_cursor']===null,true,'history continuation is opaque or explicitly terminal');
+    foreach($page['rows']as$row){
+        $keys=array_keys($row);sort($keys);
+        $expected=['external_user_id','source_id','state','last_event_record_id','last_event_recorded_at_unix','episode_join_record_id','episode_join_recorded_at_unix','entry_basis'];sort($expected);
+        same($keys,$expected,'history row contains evidence fields and no CID or money');
+        foreach(['external_user_id','source_id','last_event_record_id','episode_join_record_id']as$key)
+            same(MaxTrackerLookupProtocol::id($row[$key]),true,'history identity and evidence IDs stay exact strings');
+        same($row['state'],'observed_subscribed','history state is observed rather than live verified');
+        same(is_int($row['episode_join_recorded_at_unix'])&&is_int($row['last_event_recorded_at_unix'])
+            &&$row['episode_join_recorded_at_unix']<=$row['last_event_recorded_at_unix']
+            &&$row['last_event_recorded_at_unix']<=$page['cutoff_unix'],true,'history episode clocks are ordered inside the snapshot');
+        same(in_array($row['entry_basis'],['after_observed_leave','first_retained_join'],true),true,'history entry basis is explicit');
+    }
+    return$page;
+}
+function historyAll(MaxTrackerLookupRepository $repo,int $now):array{
+    $after='0';$rows=[];$fence=null;$cutoff=null;$omitted=0;
+    for($i=0;$i<20;$i++){
+        $page=historyPage($repo,$after,$now);
+        if($fence===null){$fence=$page['history_fence_id'];$cutoff=$page['cutoff_unix'];}
+        same([$page['history_fence_id'],$page['cutoff_unix']],[$fence,$cutoff],'history continuation keeps its original snapshot');
+        foreach($page['rows']as$row){
+            $key=$row['external_user_id'].':'.$row['source_id'];
+            same(isset($rows[$key]),false,'history pages never repeat a person and physical channel');
+            $rows[$key]=$row;
+        }
+        $omitted+=$page['omitted_unknown_count'];
+        if(!$page['has_more'])return['rows'=>$rows,'omitted'=>$omitted,'fence'=>$fence];
+        same($page['next_cursor']!==$after,true,'history cursor advances after every bounded scan');
+        $after=$page['next_cursor'];
+    }
+    throw new RuntimeException('FAIL history continuation did not terminate');
+}
+$historyNow=strtotime('2026-11-05 12:00:00 UTC');
+$historyOriginalTables=$p->query('SELECT ID,TABLE_NAME FROM b_hlblock_entity ORDER BY ID')->fetchAll(PDO::FETCH_ASSOC);
+$historyOriginalMain=(string)$p->query('SELECT COUNT(*) FROM max_sub_links')->fetchColumn();
+$historyOriginalEvents=(string)$p->query('SELECT COUNT(*) FROM max_membership_events')->fetchColumn();
+$historyOriginalSources=$p->query('SELECT IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE FROM b_iblock_element_property ORDER BY IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE')->fetchAll(PDO::FETCH_ASSOC);
+$p->exec('CREATE TABLE max_history_page_fixture (ID BIGINT PRIMARY KEY,UF_CHAT_ID VARCHAR(20),UF_SOURCE INT,UF_TYPE INT,UF_DATE DATETIME NULL,KEY history_user_date(UF_CHAT_ID,UF_SOURCE,UF_DATE,ID)) ENGINE=InnoDB');
+$p->exec("UPDATE b_hlblock_entity SET TABLE_NAME='max_history_page_fixture' WHERE ID=10");
+$p->exec("UPDATE b_hlblock_entity SET TABLE_NAME='max_history_page_no_main' WHERE ID=9");
+$historyInsert=$p->prepare('INSERT INTO max_history_page_fixture VALUES(?,?,?,?,?)');
+try{
+    $empty=historyPage($repo,'0',$historyNow);
+    same([$empty['rows'],$empty['history_fence_id'],$empty['next_cursor'],$empty['has_more'],$empty['scanned_event_count'],$empty['omitted_unknown_count']],[[],'0',null,false,0,0],'an empty saved history is explicit and not a missing-state guess');
+    foreach([
+        [1,'20001',10,3,'2026-11-05 11:00:00'],
+        [2,'20002',10,3,'2026-11-05 11:00:00'],[3,'20002',10,3,'2026-11-05 11:05:00'],
+        [4,'20003',10,3,'2026-11-05 10:00:00'],[5,'20003',10,4,'2026-11-05 10:30:00'],[6,'20003',10,3,'2026-11-05 11:00:00'],
+        [7,'20004',10,3,'2026-11-05 11:00:00'],[8,'20004',10,4,'2026-11-05 11:30:00'],
+        [9,'20005',10,3,'2026-11-05 11:00:00'],[10,'20005',10,4,'2026-11-05 11:00:00'],
+        [11,'20006',10,4,'2026-11-05 11:00:00'],[12,'20006',10,3,'2026-11-05 11:00:00'],
+        [13,'20001',20,3,'2026-11-05 11:10:00'],[14,'20007',11,3,'2026-11-05 11:00:00'],
+        [15,'20008',10,3,'2026-10-25 01:30:00'],[16,'20009',10,3,null],
+        [17,'20010',10,3,'2026-11-05 11:00:00'],[18,'20010',10,4,'2026-11-05 13:00:00'],
+        [19,'20011',10,3,'2026-11-05 11:00:00'],[20,'20011',10,3,'2026-11-05 13:00:00'],
+        [21,'20012',10,3,'2026-11-05 13:00:00']
+    ]as$row)$historyInsert->execute($row);
+    $basicCount=(string)$p->query('SELECT COUNT(*) FROM max_history_page_fixture')->fetchColumn();
+    $basic=historyAll($repo,$historyNow);$observed=$basic['rows'];$keys=array_keys($observed);sort($keys);
+    same($keys,['20001:10','20001:20','20002:10','20003:10','20006:10'],'history includes open episodes only, by exact person and physical channel');
+    same([$observed['20002:10']['last_event_record_id'],$observed['20002:10']['episode_join_record_id']],['3','2'],'duplicate joins keep the first observed join of the open episode');
+    same([$observed['20003:10']['episode_join_record_id'],$observed['20003:10']['entry_basis']],['6','after_observed_leave'],'leave then rejoin starts a new observed episode');
+    same([$observed['20006:10']['episode_join_record_id'],$observed['20006:10']['entry_basis']],['12','after_observed_leave'],'same-clock event ID breaks a leave/join tie');
+    same($observed['20001:10']['entry_basis'],'first_retained_join','a retained first join is not asserted to be first ever');
+    same($basic['omitted']>=2,true,'ambiguous London and NULL clocks are omitted as unknown');
+    same($basic['fence'],'21','the snapshot fence includes already retained events with future clocks');
+    same(array_intersect(array_keys($observed),['20010:10','20011:10','20012:10']),[],'a retained future leave or join cannot revive an older subscribed episode');
+    same($basic['omitted']>=5,true,'retained future clocks are reported as unknown alongside ambiguous and missing clocks');
+    same((string)$p->query('SELECT COUNT(*) FROM max_history_page_fixture')->fetchColumn(),$basicCount,'history reads never mutate event rows');
+    same($p->inTransaction(),false,'history page transaction is closed');
+
+    $p->exec('DELETE FROM max_history_page_fixture');
+    $historyInsert->execute([9000,'30001',10,3,'2026-09-01 11:00:00']);
+    for($i=0;$i<70;$i++){
+        $historyInsert->execute([10000+$i*2,(string)(31000+$i),10,3,'2026-11-05 10:00:00']);
+        $historyInsert->execute([10001+$i*2,(string)(31000+$i),10,4,'2026-11-05 11:00:00']);
+    }
+    $first=historyPage($repo,'0',$historyNow);
+    same([$first['rows'],$first['scanned_event_count'],$first['has_more']],[[],64,true],'sixty-four closed candidates yield an empty intermediate page with continuation');
+    $cursor=$first['next_cursor'];
+    same(is_array(MaxTrackerLookupProtocol::historyCursor($cursor,$historyNow,'98615635')),true,'a generated history cursor validates in its own snapshot');
+    historyExact(fn()=>MaxTrackerLookupProtocol::historyCursor($cursor,$historyNow+901,'98615635'),'lookup_invalid_history_cursor','expired history cursor fails explicitly');
+    historyExact(fn()=>MaxTrackerLookupProtocol::historyCursor($cursor,$historyNow,'999'),'lookup_invalid_history_cursor','history cursor is bound to its counter');
+    historyExact(fn()=>MaxTrackerLookupProtocol::historyCursor('mh1.invalid',$historyNow,'98615635'),'lookup_invalid_history_cursor','malformed history cursor fails explicitly');
+    $historyInsert->execute([20000,'39999',10,3,'2026-11-05 11:59:00']);
+    $continued=historyPage($repo,$cursor,$historyNow);
+    same(array_column($continued['rows'],'external_user_id'),['30001'],'an active person older than fifty newer events remains reachable');
+    same([$continued['history_fence_id'],$continued['cutoff_unix']],[$first['history_fence_id'],$first['cutoff_unix']],'continuation freezes the history fence and cutoff');
+    same($continued['next_cursor'],null,'the old snapshot terminates without the appended join');
+    same($continued['has_more'],false,'post-fence append cannot create a new snapshot page');
+    $fresh=historyAll($repo,$historyNow);
+    same(isset($fresh['rows']['39999:10']),true,'a fresh snapshot observes the later appended event');
+    $p->prepare("INSERT INTO b_iblock_element_property VALUES(1,?,'98615635')")->execute([700]);
+    historyExact(fn()=>$repo->historyMemberPage('98615635',$cursor,$historyNow),'tracker_history_snapshot_changed','source-map changes invalidate an existing snapshot instead of mixing scope');
+    $p->exec('DELETE FROM b_iblock_element_property WHERE IBLOCK_PROPERTY_ID=1 AND IBLOCK_ELEMENT_ID=700');
+
+    $p->exec('DELETE FROM max_history_page_fixture');
+    for($i=0;$i<8;$i++)$historyInsert->execute([30000+$i,(string)(40000+$i),10,3,'2026-11-05 11:00:00']);
+    $limited=historyPage($repo,'0',$historyNow);
+    same([count($limited['rows']),$limited['has_more']],[5,true],'five-row page cap retains a continuation');
+    $all=historyAll($repo,$historyNow);
+    same(count($all['rows']),8,'bounded history pages cover all active retained episodes without duplicates');
+    $p->beginTransaction();
+    historyExact(fn()=>$repo->historyMemberPage('98615635','0',$historyNow),'tracker_readonly_required','history reader refuses a caller-owned transaction');
+    same($p->inTransaction(),true,'history refusal preserves the caller transaction');
+    $p->rollBack();
+}finally{
+    if($p->inTransaction())$p->rollBack();
+    $p->exec("UPDATE b_hlblock_entity SET TABLE_NAME='max_sub_links' WHERE ID=9");
+    $p->exec("UPDATE b_hlblock_entity SET TABLE_NAME='max_membership_events' WHERE ID=10");
+    $p->exec('DELETE FROM b_iblock_element_property WHERE IBLOCK_PROPERTY_ID=1 AND IBLOCK_ELEMENT_ID=700');
+    $p->exec('DROP TABLE max_history_page_fixture');
+}
+same($p->query('SELECT ID,TABLE_NAME FROM b_hlblock_entity ORDER BY ID')->fetchAll(PDO::FETCH_ASSOC),$historyOriginalTables,'history test restores metadata exactly for existing lookup consumers');
+same((string)$p->query('SELECT COUNT(*) FROM max_sub_links')->fetchColumn(),$historyOriginalMain,'history pages need no HL9 rows or processing-state writes');
+same((string)$p->query('SELECT COUNT(*) FROM max_membership_events')->fetchColumn(),$historyOriginalEvents,'history pages preserve the existing native receipt fixture');
+same($p->query('SELECT IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE FROM b_iblock_element_property ORDER BY IBLOCK_PROPERTY_ID,IBLOCK_ELEMENT_ID,VALUE')->fetchAll(PDO::FETCH_ASSOC),$historyOriginalSources,'history reads and cursor refusals leave source mappings unchanged');
+
 echo 'PASS '.$checks." native MySQL tracker/queue checks\n";
 
 
