@@ -1,0 +1,82 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context19-ten3",
+  "state": "FINITE_NEW_CONTEXT_INPUT_READY_FOR_NATIVE_CURRENT_SCOPE_CASES_AND_ONE_READONLY_CAPTURE",
+  "goal": "Bind only next10currentlyunlinked/unpricedhotelposts to exactcurrentcanonicalcontext before noquote search links.",
+  "native_hotel_ids": [
+    383,
+    384,
+    441,
+    454,
+    456,
+    464,
+    488,
+    1963,
+    1983,
+    12111
+  ],
+  "expected_base": {
+    "published": 161,
+    "priced": 85,
+    "linked": 80
+  },
+  "expected_installed_sha": "b4a266482184b6c9edff7f0b4c005eddbde0c342",
+  "bounds": {
+    "max_owned_MAX_reads": 10,
+    "max_channel_rights_checks": 2,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "gateway_calls": 0,
+    "source_searches": 0,
+    "old80_post_reads": 0,
+    "new_posts": 0
+  },
+  "criteria": [
+    "Exactretainednative-country-active-nameandtypedpublisherrole;native12111 originalpublisher1654 NOTnative1654.",
+    "Onlyaccepted45manifestallowlist/currentoriginalorconfirmedcopyreceipt/currentcaption-version-photo-button-source-token;deferambiguity.",
+    "OneconsistentAPPROVED_CONTEXT18constantnamespace retained as code labels;contextoperation/IDs/counts are exactscope data.",
+    "GeneratedheaderallAPPROVEDreferencesdeclared;2NEWcurrentinputmissing/wrongnamespacenegativecases BEFORESSH.",
+    "3NEWcurrentdata-scope/name/NOQUOTE nativecases,oldfixtures0;freshcurrenthealthyprod/full21/hostpin25/clean/read-only/schema-rights.",
+    "Noquote/publicfuturesearchfilternotavailability;noquoteSHA/epochinvented;all85existingpricesuntouched."
+  ],
+  "risks": [
+    "Currentversion/identitycanchange;stopordeferwithoutoldpostreadreplays.",
+    "ImmutablepublicscopeSHA+exactinputdatarestrict reusablehelpertofiniteapproved10;nonewinstalledcontroller/config/schema/transport."
+  ],
+  "source_transition": {
+    "from": "1fec9202b45a8e1a6343750a8896a6e5072e1880",
+    "to": "b4a266482184b6c9edff7f0b4c005eddbde0c342",
+    "commits": 6,
+    "files": [
+      ".github/workflows/deploy.yml",
+      ".github/workflows/live-session-diagnostics.yml",
+      ".github/workflows/max-production-health.yml",
+      ".github/workflows/max-tls-preflight.yml",
+      ".github/workflows/modeled-conversion-monitor.yml",
+      ".github/workflows/modeled-conversion-value-export.yml",
+      ".github/workflows/modeled-pipeline-monitor-activation.yml",
+      ".github/workflows/publish-conversation-diagnostics.yml",
+      ".github/workflows/telegram-production-health.yml",
+      ".github/workflows/tour-selection-host.yml",
+      "docs/RELEASE_PRIORITY.md",
+      "services/AiRuntimeLogger.php",
+      "services/WebhookRuntimeLogger.php",
+      "tests/check_ci_workflow_scopes.py",
+      "tests/run_ai_runtime_log_boundary_regression.php",
+      "tests/run_ci_change_scope_regression.js",
+      "tests/run_deploy_diagnostics_contract_regression.php",
+      "tests/run_deploy_main_provenance_regression.sh",
+      "tests/run_deployment_ownership_regression.php",
+      "tests/run_production_gate_sequence_regression.py",
+      "tests/run_public_diagnostics_privacy_regression.php",
+      "tests/run_required_checks_manifest_regression.php",
+      "tests/run_webhook_runtime_log_boundary_regression.php",
+      "tools/ai_runtime_log_smoke.php",
+      "tools/release_slot_close.js",
+      "tools/webhook_runtime_log_smoke.php"
+    ],
+    "publishing21_unchanged": true,
+    "changed_deploy_gate_workflows_reviewed": true,
+    "verification_helper_remains_unchanged": true,
+    "no_foreign_release_or_lease_mutations": true
+  }
+}
