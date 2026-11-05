@@ -54,7 +54,8 @@ $code='require '.var_export($template,true).';require '.var_export(dirname(__DIR
 $p=proc_open([PHP_BINARY,'-r',$code],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);fclose($pipes[0]);$v=stream_get_contents($pipes[1]);fclose($pipes[1]);$e=stream_get_contents($pipes[2]);fclose($pipes[2]);
 profileCheck(proc_close($p)===0 && $e==='' && json_decode($v,true)['model']==='gpt-6.1-sol','new-environment config selects Sol');
 $deploy=file_get_contents(dirname(__DIR__).'/.github/workflows/deploy.yml');
-profileCheck(str_contains($deploy,'MAX_SEARCH_APPLY_AI_PROFILE=1 php tools/ai_profile_rollout.php --apply; php tools/ai_profile_rollout.php --verify;'),'canonical deploy applies then verifies runtime overrides');
+profileCheck(str_contains($deploy,"MAX_SEARCH_APPLY_AI_PROFILE=1 php tools/ai_profile_rollout.php --apply; bash tools/deploy_application_check.sh '\$EXPECTED_SHA';"),'canonical deploy applies the profile before separate verification');
+require __DIR__.'/deploy_application_check_cases.php';
 $p=proc_open([PHP_BINARY,dirname(__DIR__).'/tools/ai_profile_rollout.php','--apply'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
 fclose($pipes[0]);$out=stream_get_contents($pipes[1]);fclose($pipes[1]);$error=stream_get_contents($pipes[2]);fclose($pipes[2]);
 profileCheck(proc_close($p)===2 && $out==='' && $error==="AI_PROFILE_CHECK=FAILED (config contents withheld)\n",'apply refuses a noncanonical checkout without exposing config');
