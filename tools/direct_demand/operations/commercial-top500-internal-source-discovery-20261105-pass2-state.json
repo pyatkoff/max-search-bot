@@ -1,0 +1,72 @@
+{
+  "operation": "commercial-top500-internal-source-discovery-20261105-pass2",
+  "state": "BOUNDED_READONLY_CODE_DISCOVERY_CLOSED_CANONICAL_TOP500_SOURCE_STILL_UNVERIFIED",
+  "goal": "LocateinternalcanonicalTOP500membership/sourcecontractswithoutreadingcustomerhistoryorproductiondataandwithoutusingunrelatedlimits/asifrankings.",
+  "source_revision": "d2505db57af06246f1b9b28d9aefc5bd2f44c2d0",
+  "public_metadata_scope": [
+    "repositoryroot/docs/services/search3treeentrynames",
+    "AGENTS.md",
+    "START_HERE.md"
+  ],
+  "bounded_code_readers": [
+    {
+      "path": "services/HotelDatabase.php",
+      "finding": "Separatehotel/catalogPDOconnectionboundaryexists. RuntimeconfigurationanddataNOTread; nocredentialvaluesaccessed."
+    },
+    {
+      "path": "services/DestinationCatalogRepository.php",
+      "finding": "Catalogqueryboundarycatalog_hotels/catalog_countries/catalog_regions. Numeric500isquerylimit, NOTproofTOP500membershiporrank. Nocatalogqueryexecuted."
+    },
+    {
+      "path": "services/ManagerHotelDemandInventory.php",
+      "finding": "Latestimmutablemanagerpublication/inquiryevidence, explicitlynotpopularityranking. NotTOP500source; NEVERinvokeitforthistask/customerdata."
+    },
+    {
+      "path": "services/HotelRetainedBaseline.php",
+      "finding": "Preparedclaim/sourceacceptanceJSON/JSONLmanifests, NOThotelprice/photo/TOP500inventory. Noprivatebaselinefiles/archivesread."
+    },
+    {
+      "path": "services/HotelServerCatalogProjector.php",
+      "finding": "Researchdocumentreceiptprojection, NOTproofordinaryhotelcatalog/TOP500consumersuseit. Noexecution/DBwrites."
+    },
+    {
+      "path": "docs/HOTEL_SERVER_CYCLE.md",
+      "finding": "Researchclaimsourceadmissioncontract; noauthorizationforprivatehistoricalindexscanorqueue/workerchanges."
+    }
+  ],
+  "new_code_queries": [
+    "top-500",
+    "hotel statistics"
+  ],
+  "canonical_top500_list_located": false,
+  "canonical_top500_revision": null,
+  "actual_500_membership_verified": false,
+  "actual_saved_photos_or_prices_read": 0,
+  "owner_source_link_question": "ALREADY_ASKED_ONCE_PENDING_DO_NOT_REPEAT",
+  "bounds_observed": {
+    "production_server_calls": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "supplier_calls": 0,
+    "raw_photo_gets": 0,
+    "external_gallery_pdf_http": 0,
+    "customer_or_archive_reads": 0,
+    "queue_worker_timer_changes": 0,
+    "new_posts": 0,
+    "new_prices": 0,
+    "new_links": 0,
+    "new_cases_or_old_fixtures_rerun": 0,
+    "functionality_changes": 0
+  },
+  "unchanged_counts": {
+    "published_pairs_total": 161,
+    "prices": 85,
+    "links": 155,
+    "verified_top500_membership": "UNKNOWN",
+    "ready_materials": 0,
+    "open_canva_transactions": 0,
+    "unknown_pending": 0
+  },
+  "next": "Waitforcanonicalsourcepointerwhileallowingonlyneededindependentreadonlysource-contractdiscovery. No runtimeTOP500read/assumedranklist/arbitraryLIMIT500ornamejoin. Aftercanonicalsourceproof freezeonefinite≤10metadatareadwithfullfreshproductiongates/privateintent. ExternalSerryPDF59remainsdeferred."
+}
