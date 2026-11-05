@@ -1,4 +1,4 @@
-name: Read only new scheduled674 1526 persisted window for70 admitted unpriced hotels
+name: Project only ten new priced unlinked hotel manifests and native identities
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,14 +10,13 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: fc8794c67a0f3b50284cff34b4c07ac0a11f9131
-  PRICE15_SCOPE_FILENAME: commercial-price-monitor-20261105-read15-new674-1526-scope.json
-  EXPECTED_PRICE15_SCOPE_SHA256: 489ae471783372a0907adf82aa5889c80776e3479364db050f41173e591e00be
+  LINK_PROJECTION_PLAN_FILENAME: commercial-hotel-search-links-20261105-priced10b-original-projection1-plan.json
+  EXPECTED_LINK_PROJECTION_PLAN_SHA256: 9fa20acd0195f6fd492240ec79e3d73d617bdf8ca869c75593e2145389c0d372
 jobs:
-  inspect:
+  prepare:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,141 +25,35 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Verify exact reviewed current publishing source
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42058154644 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/42058154644/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42059319309 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Require successful same-source production diagnostics
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42059318756 > "$RUNNER_TEMP/current-diagnostics-run.json"
-          python3 - <<'PY'
-          import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'current-diagnostics-run.json').read_text())
-          assert d['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['path']=='.github/workflows/publish-conversation-diagnostics.yml'
-          assert d['status']=='completed' and d['conclusion']=='success'
-          print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
-          PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-source-refresh-20261105-pass1-offline-input-and-search-links1
+          name: commercial-price-update-20261104-72h-pass1-prepared
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41977589739
-          path: ${{ runner.temp }}/old-source-scope
+          run-id: 41936372259
+          path: ${{ runner.temp }}/prior19
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-read13-approved-manual1
+          name: commercial-price-monitor-20261104-read10-72h-extension1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41978466494
-          path: ${{ runner.temp }}/manual-read13
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-price-monitor-20261105-read14-new674-unpriced1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41993389158
-          path: ${{ runner.temp }}/normal-read14
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring
-      - name: Bind only new actual seventy scope and all consumed exclusions
+          run-id: 41934633857
+          path: ${{ runner.temp }}/identity10
+      - name: Project only the new finite ten and exercise their three negative bindings
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/prepare-new-normal674-1526-unpriced-read15-20261105.py tools/direct_demand/operations/run-new-normal674-1526-unpriced-read15-20261105.py
-          python3 tools/direct_demand/operations/prepare-new-normal674-1526-unpriced-read15-20261105.py
-          php -l "$RUNNER_TEMP/price15.php"
-          ANYTOUR_PRICE15_NEW_INPUT_CASES=1 php "$RUNNER_TEMP/price15.php"
-      - name: Retain exact private input before any server access
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-price-monitor-20261105-read15-new674-1526-unpriced70-input
-          path: |
-            ${{ runner.temp }}/price15-input.private.json
-            ${{ runner.temp }}/price15.php
-          retention-days: 14
-          if-no-files-found: error
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Read one new persisted normal window without provider calls
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 tools/direct_demand/operations/run-new-normal674-1526-unpriced-read15-20261105.py
-      - name: Retain original private new tuples and safe public counts
+          python3 -m py_compile tools/direct_demand/operations/project-priced-hotel-search-link-manifests-20261105-priced10b.py
+          python3 tools/direct_demand/operations/project-priced-hotel-search-link-manifests-20261105-priced10b.py
+      - name: Retain exact private original inputs and safe counts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-read15-new674-1526-unpriced70
+          name: commercial-hotel-search-links-20261105-priced10b-original-projection1
           path: |
-            ${{ runner.temp }}/price15-input.private.json
-            ${{ runner.temp }}/price15.php
-            ${{ runner.temp }}/price15-readback.private.json
-            ${{ runner.temp }}/price15-summary.json
+            ${{ runner.temp }}/priced-original-input.private.json
+            ${{ runner.temp }}/priced-original-summary.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection and read scripts
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/manual-refresh.php" "$RUNNER_TEMP/current-diagnostics-run.json"

@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "operation": "commercial-hotel-search-links-20261105-priced10b-original-projection1",
+  "state": "PURE_NEW_FINITE_ORIGINAL_MANIFEST_PROJECTION_CURRENT_RECEIPTS_STILL_REQUIRED",
+  "goal": "Project only the ten still-unlinked priced hotel's original manifests and native identity fields, without re-reading quote bodies, provider results or old DB scopes.",
+  "native_hotel_ids": [
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264
+  ],
+  "expected_linked_count": 133,
+  "expected_priced_count": 85,
+  "expected_published_pairs": 161,
+  "role": "current_confirmed_own_price_manifest_and_receipt",
+  "prior_price_operations": {
+    "163": "commercial-price-update-20261104-72h-pass1-h163-v1",
+    "245": "commercial-price-update-20261104-72h-pass1-h245-v1",
+    "260": "commercial-price-update-20261104-72h-pass1-h260-v1",
+    "264": "commercial-price-update-20261104-72h-pass1-h264-v1",
+    "278": "commercial-price-update-20261104-72h-pass1-h278-v1",
+    "281": "commercial-price-update-20261104-72h-pass1-h281-v1",
+    "293": "commercial-price-update-20261104-72h-pass1-h293-v1",
+    "393": "commercial-price-update-20261104-72h-pass1-h393-v1",
+    "465": "commercial-price-update-20261104-72h-pass1-h465-v1",
+    "57028": "commercial-price-update-20261104-72h-pass1-h57028-v1"
+  },
+  "original_sources": [
+    {
+      "folder": "prior19",
+      "run": 41936372259,
+      "artifact": 13374246397,
+      "name": "commercial-price-update-20261104-72h-pass1-prepared",
+      "index_file": "update-index.json",
+      "hotel_ids": [
+        57028,
+        278,
+        260,
+        163,
+        281,
+        293,
+        245,
+        393,
+        465,
+        264
+      ]
+    },
+    {
+      "folder": "identity10",
+      "run": 41934633857,
+      "artifact": 13372822872,
+      "name": "commercial-price-monitor-20261104-read10-72h-extension1",
+      "file": "price-readback.json",
+      "identity_only": true
+    }
+  ],
+  "bounds": {
+    "ssh": 0,
+    "db": 0,
+    "provider": 0,
+    "searches": 0,
+    "quotes": 0,
+    "edits": 0,
+    "old_quote_bodies_read": 0,
+    "old_provider_results_read": 0,
+    "observation_rows_projected": 0
+  },
+  "criteria": [
+    "Only NEWten source manifests selected through exact original index; no legacy12114/first10a or all-history scan.",
+    "Native identity only expected fields; publisher AnyTour identity never substituted for local nativehotelID.",
+    "Each current original manifest's operation/nativeID/captionSHA and prior-price metadata shape must bind;30negative cases fromtheseNEW10 actualinputs/oldfixtures0.",
+    "Private bodies/IDs/oldhashes only authenticated artifact; public safe counts/nativeIDs/runURL.",
+    "Next related CURRENT context must resolve own confirmed price journal+receipt/version/caption/photo/button/source/token. Historical manifest IDs are not canonical.",
+    "Before any post write, implement proper data-bound counts/operations and reviewed inline-price formatting with NEWnative cases. Preserve amount/checktime and owner edits. No blind rawURL append or broad133-caption rewrite."
+  ],
+  "risks": [
+    "Original manifest can be obsolete versus current provider body; later CURRENT context must stop on conflict.",
+    "Inline links need actual native entity/readback validation; this pure projection authorizes no post write.",
+    "Missing exact source proof defers the hotel, never guesses identity, quote or publisher."
+  ],
+  "new_projection_negative_cases_per_hotel": 3,
+  "old_fixtures_rerun": 0
+}
