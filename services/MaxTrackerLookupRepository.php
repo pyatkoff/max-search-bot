@@ -152,6 +152,194 @@ final class MaxTrackerLookupRepository
         throw new RuntimeException('tracker_current_membership_unavailable');
     }
 
+
+    /**
+     * Display-only membership observed in retained HL10 events. It never reads
+     * an HL9 processing marker, creates money, or verifies live platform state.
+     */
+    public function historyMemberPage(string $counterId,string $after,int $now):array
+    {
+        $cursor=MaxTrackerLookupProtocol::historyCursor($after,$now,$counterId);
+        if($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)!=='mysql'||$this->pdo->inTransaction())
+            throw new RuntimeException('tracker_readonly_required');
+        $version=(string)$this->pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+        if(stripos($version,'mariadb')!==false||!preg_match('/\A[0-9]+\.[0-9]+\.[0-9]+/',$version,$v)
+            ||version_compare($v[0],'5.7.8','<'))throw new RuntimeException('tracker_history_unavailable');
+        $started=hrtime(true);$bytes=0;
+        $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY');
+        $this->pdo->beginTransaction();
+        try{
+            $metadata=$this->historySelect('SELECT /* history_timeout */ TABLE_NAME FROM b_hlblock_entity WHERE ID=10 LIMIT 2',[],2,$started,$bytes);
+            $table=(string)($metadata[0]['TABLE_NAME']??'');
+            if(count($metadata)!==1||preg_match('/\A[A-Za-z0-9_]{1,64}\z/D',$table)!==1)
+                throw new RuntimeException('tracker_history_unavailable');
+            $engines=$this->historySelect('SELECT /* history_timeout */ TABLE_NAME,ENGINE FROM information_schema.TABLES'
+                .' WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE=\'BASE TABLE\' AND TABLE_NAME IN (?,?,?,?)',
+                [$table,'b_hlblock_entity','b_iblock_property','b_iblock_element_property'],4,$started,$bytes);
+            $expected=array_fill_keys([$table,'b_hlblock_entity','b_iblock_property','b_iblock_element_property'],true);
+            foreach($engines as$engine){
+                $name=(string)($engine['TABLE_NAME']??'');
+                if(!isset($expected[$name])||strtoupper((string)($engine['ENGINE']??''))!=='INNODB')
+                    throw new RuntimeException('tracker_history_unavailable');
+                unset($expected[$name]);
+            }
+            if($expected)throw new RuntimeException('tracker_history_unavailable');
+            $sourceRows=$this->historySelect('SELECT /* history_timeout */ DISTINCT ep.IBLOCK_ELEMENT_ID AS source_id'
+                .' FROM b_iblock_element_property ep JOIN b_iblock_property p ON p.ID=ep.IBLOCK_PROPERTY_ID'
+                ." WHERE p.IBLOCK_ID=8 AND p.CODE='YA_METRIK_ID' AND ep.VALUE=? ORDER BY ep.IBLOCK_ELEMENT_ID LIMIT 257",
+                [$counterId],257,$started,$bytes);
+            if(count($sourceRows)>256)throw new RuntimeException('tracker_history_unavailable');
+            $sources=[];
+            foreach($sourceRows as$source){
+                $id=(string)($source['source_id']??'');
+                if(!MaxTrackerLookupProtocol::id($id)||self::historyDecimal($id,(string)PHP_INT_MAX)>0)
+                    throw new RuntimeException('tracker_history_unavailable');
+                $sources[]=$id;
+            }
+            usort($sources,[self::class,'historyDecimal']);
+            if(count(array_unique($sources))!==count($sources))throw new RuntimeException('tracker_history_unavailable');
+            $sourceHash=hash('sha256',json_encode($sources,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+            if($cursor!==null&&!hash_equals($cursor['source_sha256'],$sourceHash))
+                throw new RuntimeException('tracker_history_snapshot_changed');
+            $cutoff=$cursor['cutoff_unix']??$now;
+            if(!$sources)return self::historyPage([], $cutoff,'0',null,false,0,0);
+            $sourceParams=array_map(static fn(string $id):int=>(int)$id,$sources);
+            $in=implode(',',array_fill(0,count($sources),'?'));
+            $quoted='`'.$table.'`';
+            $zone=new DateTimeZone('Europe/London');
+            // Freeze all retained event IDs, including uncertain or future clocks.
+            // A bad later clock must not revive an older subscribed observation.
+            if($cursor===null){
+                $f=$this->historySelect('SELECT /* history_timeout */ h.ID FROM '.$quoted.' h'
+                    .' WHERE h.UF_SOURCE IN ('.$in.') AND h.UF_TYPE IN (3,4)'
+                    .' ORDER BY h.ID DESC LIMIT 1',$sourceParams,1,$started,$bytes);
+                $fence=$f?(string)$f[0]['ID']:'0';
+                if($fence!=='0'&&!MaxTrackerLookupProtocol::id($fence))throw new RuntimeException('tracker_history_invalid_record');
+            }else{$fence=$cursor['history_fence_id'];}
+            if($fence==='0')return self::historyPage([],$cutoff,'0',null,false,0,0);
+            $params=array_merge($sourceParams,[$fence]);
+            $before='';
+            if($cursor!==null){$before=' AND h.ID<?';$params[]=$cursor['before_id'];}
+            $candidates=$this->historySelect('SELECT /* history_timeout */ h.ID,h.UF_CHAT_ID,h.UF_SOURCE,h.UF_DATE FROM '.$quoted.' h'
+                .' WHERE h.UF_SOURCE IN ('.$in.') AND h.ID<=? AND h.UF_TYPE=3'.$before
+                .' ORDER BY h.ID DESC LIMIT 65',$params,65,$started,$bytes);
+            if(!$candidates)return self::historyPage([],$cutoff,$fence,null,false,0,0);
+            $indexes=$this->historySelect('SELECT /* history_timeout */ INDEX_NAME FROM information_schema.STATISTICS'
+                ." WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND SEQ_IN_INDEX=1 AND COLUMN_NAME='UF_CHAT_ID'"
+                .' ORDER BY NON_UNIQUE,INDEX_NAME LIMIT 16',[$table],16,$started,$bytes);
+            $index=(string)($indexes[0]['INDEX_NAME']??'');
+            if(preg_match('/\A[A-Za-z0-9_]{1,64}\z/D',$index)!==1)throw new RuntimeException('tracker_history_unavailable');
+            $pointFrom=$quoted.' h FORCE INDEX (`'.$index.'`)';
+            $pointWhere='h.UF_CHAT_ID=? AND BINARY h.UF_CHAT_ID=BINARY ? AND h.UF_SOURCE=? AND h.ID<=?';
+            $unknownOrder='(h.UF_DATE IS NULL OR h.UF_DATE<\'2000-01-01 00:00:00\' OR MONTH(h.UF_DATE)=0 OR DAYOFMONTH(h.UF_DATE)=0) DESC,';
+            $rows=[];$scanned=0;$unknown=0;$lastScanned=null;$decisions=[];
+            foreach($candidates as$candidate){
+                if($scanned===64||count($rows)===5)break;
+                $scanned++;$record=(string)($candidate['ID']??'');$lastScanned=$record;
+                $user=(string)($candidate['UF_CHAT_ID']??'');$source=(string)($candidate['UF_SOURCE']??'');
+                if(!MaxTrackerLookupProtocol::id($record)||!MaxTrackerLookupProtocol::id($user)
+                    ||!MaxTrackerLookupProtocol::id($source)||!in_array($source,$sources,true)){
+                    $unknown++;continue;
+                }
+                try{$candidateAt=self::historyTime($candidate['UF_DATE']??null,$zone,$cutoff);}
+                catch(InvalidArgumentException $ignored){$unknown++;continue;}
+                $key=$user.':'.$source;
+                if(!array_key_exists($key,$decisions)){
+                    $pointParams=[$user,$user,(int)$source,$fence];
+                    $latest=$this->historySelect('SELECT /* history_timeout */ h.ID,h.UF_TYPE,h.UF_DATE FROM '.$pointFrom
+                        .' WHERE '.$pointWhere.' AND h.UF_TYPE IN (3,4) ORDER BY '.$unknownOrder.'h.UF_DATE DESC,h.ID DESC LIMIT 1',
+                        $pointParams,1,$started,$bytes);
+                    if(!$latest){$decisions[$key]=null;}
+                    else{
+                        $last=$latest[0];$lastId=(string)($last['ID']??'');$type=(string)($last['UF_TYPE']??'');
+                        try{$lastAt=self::historyTime($last['UF_DATE']??null,$zone,$cutoff);}
+                        catch(InvalidArgumentException $ignored){$lastAt=null;}
+                        if(!MaxTrackerLookupProtocol::id($lastId)||!in_array($type,['3','4'],true)||$lastAt===null)
+                            $decisions[$key]=null;
+                        else $decisions[$key]=['ID'=>$lastId,'type'=>$type,'date'=>$last['UF_DATE'],'at'=>$lastAt];
+                    }
+                }
+                $last=$decisions[$key];
+                if($last===null){$unknown++;continue;}
+                if($last['type']!=='3'||$last['ID']!==$record)continue;
+                $pointParams=[$user,$user,(int)$source,$fence];
+                $left=$this->historySelect('SELECT /* history_timeout */ h.ID,h.UF_DATE FROM '.$pointFrom
+                    .' WHERE '.$pointWhere.' AND h.UF_TYPE=4 ORDER BY '.$unknownOrder.'h.UF_DATE DESC,h.ID DESC LIMIT 1',
+                    $pointParams,1,$started,$bytes);
+                $entryBasis='first_retained_join';$afterLeft='';$joinParams=$pointParams;
+                if($left){
+                    $leftId=(string)($left[0]['ID']??'');
+                    try{$leftAt=self::historyTime($left[0]['UF_DATE']??null,$zone,$cutoff);}
+                    catch(InvalidArgumentException $ignored){$unknown++;continue;}
+                    if(!MaxTrackerLookupProtocol::id($leftId)||$leftAt>$last['at']
+                        ||($leftAt===$last['at']&&self::historyDecimal($leftId,$last['ID'])>=0)){$unknown++;continue;}
+                    $entryBasis='after_observed_leave';
+                    $afterLeft=' AND (h.UF_DATE>? OR (h.UF_DATE=? AND h.ID>?))';
+                    array_push($joinParams,$left[0]['UF_DATE'],$left[0]['UF_DATE'],$leftId);
+                }
+                $first=$this->historySelect('SELECT /* history_timeout */ h.ID,h.UF_DATE FROM '.$pointFrom
+                    .' WHERE '.$pointWhere.' AND h.UF_TYPE=3'.$afterLeft.' ORDER BY h.UF_DATE,h.ID LIMIT 1',
+                    $joinParams,1,$started,$bytes);
+                if(!$first){$unknown++;continue;}
+                $firstId=(string)($first[0]['ID']??'');
+                try{$firstAt=self::historyTime($first[0]['UF_DATE']??null,$zone,$cutoff);}
+                catch(InvalidArgumentException $ignored){$unknown++;continue;}
+                if(!MaxTrackerLookupProtocol::id($firstId)||$firstAt>$last['at']){$unknown++;continue;}
+                $rows[]=['external_user_id'=>$user,'source_id'=>$source,'state'=>'observed_subscribed',
+                    'last_event_record_id'=>$last['ID'],'last_event_recorded_at_unix'=>$last['at'],
+                    'episode_join_record_id'=>$firstId,'episode_join_recorded_at_unix'=>$firstAt,'entry_basis'=>$entryBasis];
+            }
+            $more=count($candidates)>$scanned;
+            $next=$more&&$lastScanned!==null?MaxTrackerLookupProtocol::encodeHistoryCursor($counterId,$cutoff,$fence,$lastScanned,$sourceHash):null;
+            self::historyBudget($started,$bytes);
+            return self::historyPage($rows,$cutoff,$fence,$next,$more,$scanned,$unknown);
+        }finally{if($this->pdo->inTransaction())$this->pdo->rollBack();}
+    }
+
+    private function historySelect(string $sql,array $params,int $limit,int $started,int &$bytes):array
+    {
+        self::historyBudget($started,$bytes);
+        $remaining=(int)floor((6000000000-(hrtime(true)-$started))/1000000);
+        if($remaining<1)throw new RuntimeException('tracker_history_budget_exceeded');
+        $sql=str_replace('/* history_timeout */','/*+ MAX_EXECUTION_TIME('.min(1000,$remaining).') */',$sql);
+        $q=$this->pdo->prepare($sql);
+        try{
+            foreach($params as$i=>$value)$q->bindValue($i+1,$value,is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
+            $q->execute();$rows=[];
+            while(($row=$q->fetch(PDO::FETCH_ASSOC))!==false){
+                if(count($rows)>=$limit)throw new RuntimeException('tracker_history_unavailable');
+                foreach($row as$value){if($value!==null)$bytes+=strlen((string)$value);}
+                self::historyBudget($started,$bytes);$rows[]=$row;
+            }
+            self::historyBudget($started,$bytes);
+            return $rows;
+        }finally{$q->closeCursor();}
+    }
+
+    private static function historyBudget(int $started,int $bytes):void
+    {
+        if(hrtime(true)-$started>6000000000||$bytes>524288)throw new RuntimeException('tracker_history_budget_exceeded');
+    }
+
+    private static function historyTime($date,DateTimeZone $zone,int $cutoff):int
+    {
+        $at=MaxSubscriptionAttributionPolicy::eventTimeUnix($date,$zone);
+        if($at<946684800||$at>$cutoff)throw new InvalidArgumentException('tracker_history_clock_unknown');
+        return $at;
+    }
+
+    private static function historyDecimal(string $a,string $b):int
+    {
+        return strlen($a)<=>strlen($b)?:strcmp($a,$b);
+    }
+
+    private static function historyPage(array $rows,int $cutoff,string $fence,?string $next,bool $more,int $scanned,int $unknown):array
+    {
+        return ['basis'=>'retained_membership_history_v1','rows'=>$rows,'cutoff_unix'=>$cutoff,'history_fence_id'=>$fence,
+            'next_cursor'=>$next,'has_more'=>$more,'scanned_event_count'=>$scanned,'omitted_unknown_count'=>$unknown,
+            'coverage'=>'bounded_retained_history_not_live_platform_verification'];
+    }
+
     private function tableName(int $id): string
     {
         $q=$this->pdo->prepare('SELECT TABLE_NAME FROM b_hlblock_entity WHERE ID=?');$q->execute([$id]);$table=(string)$q->fetchColumn();
