@@ -442,6 +442,6 @@
     67910,
     68323
   ],
-  "latest_price_delivery_pending_notification_in_this_heartbeat_final": true,
+  "latest_price_delivery_pending_notification_in_this_heartbeat_final": false,
   "current_full_remote21_readonly_run": 41993389158
 }

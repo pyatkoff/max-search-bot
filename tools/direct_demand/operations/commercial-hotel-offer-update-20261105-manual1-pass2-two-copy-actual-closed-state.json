@@ -43,5 +43,6 @@
   "new_native_php_cases_per_hotel": 5,
   "old_fixtures_rerun": 0,
   "accepted_provider_readbacks_consumed": true,
-  "completion_notification_pending_this_heartbeat_final": true
+  "completion_notification_pending_this_heartbeat_final": false,
+  "completion_reported_to_pavel": true
 }
