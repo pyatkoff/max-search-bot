@@ -215,6 +215,23 @@ function classifySelectionCompanionChanges(changes, readManifest) {
   return { ...result, reason: 'bounded_tour_selection_with_public_version' };
 }
 
+// Backend coverage may narrow only after the existing component and manifest
+// checks have passed. CSS cannot change PHP/SQL owners; the full component
+// browser and package/host gates still test its actual interface effects.
+function selectionStyleOnlyChanges(changes) {
+  const styles = new Set([
+    'manager/assets/workspace-v2-tour-selection.css',
+    'selection/selection.css',
+  ]);
+  const companions = new Set([
+    EDITOR_MANIFEST, PUBLIC_MANIFEST, 'tests/visual/manager-tour-selection.spec.js',
+  ]);
+  return Array.isArray(changes) && changes.some(change => styles.has(change?.path)) &&
+    changes.every(change => change && change.status === 'M' &&
+      change.previousPath === undefined && change.oldMode === '100644' &&
+      change.newMode === '100644' && (styles.has(change.path) || companions.has(change.path)));
+}
+
 function selectScope(env = process.env) {
   if (env.GITHUB_EVENT_NAME !== 'pull_request') return full('not_pull_request');
   if (!env.GITHUB_EVENT_PATH) return full('missing_event_path');
@@ -255,7 +272,9 @@ function selectScope(env = process.env) {
     }
     // CI-rule edits retain full coverage AND exercise the new scoped runner.
     // Ordinary full changes do not pay for this additional commissioning proof.
-    return { ...result, proveTourSelection: result.mode === 'full' && changes.some(change => TOUR_CI_PROOF_PATHS.has(change.path)) };
+    return { ...result,
+      backend: result.mode === 'tour-selection' && selectionStyleOnlyChanges(changes) ? 'selection-style' : 'full',
+      proveTourSelection: result.mode === 'full' && changes.some(change => TOUR_CI_PROOF_PATHS.has(change.path)) };
   } catch (_) { return full('diff_unavailable'); }
 }
 
@@ -271,4 +290,4 @@ if (require.main === module) {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectScope };
+module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectionStyleOnlyChanges, selectScope };
