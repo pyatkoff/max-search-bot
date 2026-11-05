@@ -1,0 +1,46 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-remaining107-plan1",
+  "state": "PLANNED_NOT_EXECUTED_CURRENT54_ACCEPTED_NO_PENDING_PROVIDER_OPERATION",
+  "goal": "Continue Pavel's hotel-specific tour selection link request for the remaining107 actual published hotels while preserving all current verified price blocks and canonical photo/button/source/token.",
+  "completed": {
+    "hotel_pairs": 54,
+    "verified_posts": 108,
+    "original_execution_run": 41984228461,
+    "continuation_run": 41988333335
+  },
+  "remaining": {
+    "published_hotel_pairs": 107,
+    "first_two_with_unquoted_original_source_candidates": [
+      67910,
+      68323
+    ],
+    "other_hotel_pairs": 105
+  },
+  "boundaries": [
+    "No more source searches: original approved7 pass is consumed.",
+    "Do not re-read/rewrite the54 accepted post pairs or re-quote their54 consumed fingerprints.",
+    "For the2 unquoted candidates, recover current canonical receipts only from addressed early-nine copy operation, not historical public IDs or invented publisher/photo hashes; current native/country/name/caption/photo/button/source/token plus canonical once proof before one quote.",
+    "For other105 link-only candidates, use exact admitted native country/hotel and a clearly stated future search preset for Moscow2adults; preserve all current price text. A link is a search filter, never a final price or availability proof.",
+    "Every remaining group requires its own explicit finite manifest of still-unlinked actual published hotels and exact current caption/version proof. No full channel/history scans or repeated old DB scopes.",
+    "Existing serial updater/once ledger/intents/UNKNOWN-original-first and fresh production gates apply; no new controller/cron/observer/transport changes."
+  ],
+  "search_route": "https://anytour.online/poisk-turov/",
+  "exact_query_keys": [
+    "days_from",
+    "days_till",
+    "from",
+    "count_people",
+    "country",
+    "hotel",
+    "date_from",
+    "date_till"
+  ],
+  "canonical_first_two_operation": "commercial-human-copy-early-nine-20261102-v1",
+  "first_two_historical_manifest": "commercial-human-copy-early-nine-manifest.json",
+  "private_data_storage": "Only canonical registry/once/authenticated artifacts. No private publication IDs, buttons, receipts, tuples, fingerprints or quotes in public checkpoint files.",
+  "criteria": [
+    "Only actual newly verified link pairs count as delivered.",
+    "All previous price/caption/photo/canonical button/source/token/logical publication data preserved.",
+    "New posts0; no feed/MAX route/monitor append for body edits."
+  ]
+}

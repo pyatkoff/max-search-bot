@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-offer-update-20261105-manual1-pass1",
-  "state": "ORIGINAL13_PAIRS_CONFIRMED_MAX273_ORIGINAL_WRITE_RECONCILED_TG_AND40_PAIRS_CONTINUING",
+  "state": "CLOSED_ORIGINAL_PARTIAL_RESOLVED_THROUGH_EXACT_CONTINUATION_ALL54_PAIRS_COMPLETE",
   "run": 41984228461,
   "job": 127101100534,
   "source": "2dc47c07735b5c05fd3a66b1469bd0a92db60f73",
@@ -32,6 +32,9 @@
   "no_original54_pass_replay": true,
   "continuation_run": 41988333335,
   "continuation_source": "750065a927d81739ba69425f4985b46f6ddecdff",
-  "continuation_state": "IN_PROGRESS_ONLY273_TG_AND40_UNATTEMPTED_PAIRS_NOT_YET_ACCEPTED",
-  "max_continuation_content_edits": 81
+  "continuation_state": "ACTUAL_SUCCESS54_COMBINED_PAIRS108_VERIFIED_NO_ORIGINAL_MAX273_REWRITE",
+  "max_continuation_content_edits": 81,
+  "combined_completed_pairs": 54,
+  "combined_actual_content_edits": 108,
+  "original_pending_outcomes": 0
 }

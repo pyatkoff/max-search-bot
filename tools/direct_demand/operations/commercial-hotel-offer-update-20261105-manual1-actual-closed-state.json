@@ -1,0 +1,342 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-manual1-pass1",
+  "complete": true,
+  "confirmed_logical_hotel_pairs": 54,
+  "verified_existing_posts": 108,
+  "actual_content_edit_attempts_combined": 108,
+  "new_content_edits_this_continuation": 81,
+  "price_posts_updated": 94,
+  "search_link_posts_updated": 108,
+  "search_link_only_posts_updated": 14,
+  "new_posts": 0,
+  "additional_gateway_calls": 0,
+  "original273_max_provider_write_repeated": false,
+  "state": "ACTUAL54_PAIRS108_CONTENT_EDITS108_VERIFIED47_NEW_PRICES54_HOTEL_SEARCH_LINKS_CLOSED_CONSUMED",
+  "initial_run": 41984228461,
+  "initial_job": 127101100534,
+  "initial_source": "2dc47c07735b5c05fd3a66b1469bd0a92db60f73",
+  "initial_intent_artifact": 13394957541,
+  "initial_result_artifact": 13394843412,
+  "original273_reconciliation_run": 41986606018,
+  "original273_reconciliation_provider_writes": 0,
+  "continuation_run": 41988333335,
+  "continuation_job": 127114299693,
+  "continuation_source": "750065a927d81739ba69425f4985b46f6ddecdff",
+  "actually_installed_source": "95dcf9893fb161b1e4fb52c02ad2d982604e7518",
+  "continuation_intent_artifact": 13397426111,
+  "continuation_intent_created_at": "2026-11-05T07:35:58Z",
+  "continuation_result_artifact": 13397034149,
+  "continuation_result_created_at": "2026-11-05T07:43:32Z",
+  "intent_before_provider": true,
+  "original_max273_write_repeated": false,
+  "new_price_native_ids": [
+    240,
+    381,
+    268,
+    46672,
+    28666,
+    235,
+    110,
+    132,
+    111,
+    262,
+    237,
+    174,
+    178,
+    273,
+    408,
+    416,
+    342,
+    267,
+    371,
+    280,
+    32575,
+    12112,
+    4191,
+    26044,
+    435,
+    9374,
+    13870,
+    79059,
+    55574,
+    78898,
+    43204,
+    37668,
+    77914,
+    69409,
+    111801,
+    115918,
+    112914,
+    1348,
+    1379,
+    1559,
+    1543,
+    1449,
+    1199,
+    111129,
+    109900,
+    111045,
+    74503
+  ],
+  "search_link_native_ids": [
+    240,
+    381,
+    268,
+    46672,
+    28666,
+    235,
+    110,
+    132,
+    111,
+    262,
+    237,
+    174,
+    178,
+    273,
+    408,
+    416,
+    342,
+    267,
+    371,
+    280,
+    32575,
+    12112,
+    4191,
+    26044,
+    435,
+    9374,
+    13870,
+    79059,
+    55574,
+    78898,
+    43204,
+    37668,
+    77914,
+    69409,
+    111801,
+    115918,
+    112914,
+    108090,
+    1348,
+    1379,
+    1583,
+    1559,
+    1453,
+    1543,
+    1582,
+    1449,
+    1199,
+    111129,
+    109900,
+    111045,
+    15869,
+    74503,
+    27316,
+    3405
+  ],
+  "link_only_native_ids": [
+    108090,
+    1583,
+    1453,
+    1582,
+    15869,
+    27316,
+    3405
+  ],
+  "new_price_checked_times": [
+    {
+      "native_hotel_id": 240,
+      "checked_epoch_utc": 1793860292
+    },
+    {
+      "native_hotel_id": 381,
+      "checked_epoch_utc": 1793860306
+    },
+    {
+      "native_hotel_id": 268,
+      "checked_epoch_utc": 1793860309
+    },
+    {
+      "native_hotel_id": 46672,
+      "checked_epoch_utc": 1793860340
+    },
+    {
+      "native_hotel_id": 28666,
+      "checked_epoch_utc": 1793860345
+    },
+    {
+      "native_hotel_id": 235,
+      "checked_epoch_utc": 1793860348
+    },
+    {
+      "native_hotel_id": 110,
+      "checked_epoch_utc": 1793860351
+    },
+    {
+      "native_hotel_id": 132,
+      "checked_epoch_utc": 1793860355
+    },
+    {
+      "native_hotel_id": 111,
+      "checked_epoch_utc": 1793860358
+    },
+    {
+      "native_hotel_id": 262,
+      "checked_epoch_utc": 1793860361
+    },
+    {
+      "native_hotel_id": 237,
+      "checked_epoch_utc": 1793860368
+    },
+    {
+      "native_hotel_id": 174,
+      "checked_epoch_utc": 1793860371
+    },
+    {
+      "native_hotel_id": 178,
+      "checked_epoch_utc": 1793860374
+    },
+    {
+      "native_hotel_id": 273,
+      "checked_epoch_utc": 1793860378
+    },
+    {
+      "native_hotel_id": 408,
+      "checked_epoch_utc": 1793860381
+    },
+    {
+      "native_hotel_id": 416,
+      "checked_epoch_utc": 1793860385
+    },
+    {
+      "native_hotel_id": 342,
+      "checked_epoch_utc": 1793860388
+    },
+    {
+      "native_hotel_id": 267,
+      "checked_epoch_utc": 1793860395
+    },
+    {
+      "native_hotel_id": 371,
+      "checked_epoch_utc": 1793860398
+    },
+    {
+      "native_hotel_id": 280,
+      "checked_epoch_utc": 1793860401
+    },
+    {
+      "native_hotel_id": 32575,
+      "checked_epoch_utc": 1793860407
+    },
+    {
+      "native_hotel_id": 12112,
+      "checked_epoch_utc": 1793860411
+    },
+    {
+      "native_hotel_id": 4191,
+      "checked_epoch_utc": 1793860414
+    },
+    {
+      "native_hotel_id": 26044,
+      "checked_epoch_utc": 1793860417
+    },
+    {
+      "native_hotel_id": 435,
+      "checked_epoch_utc": 1793860420
+    },
+    {
+      "native_hotel_id": 9374,
+      "checked_epoch_utc": 1793860423
+    },
+    {
+      "native_hotel_id": 13870,
+      "checked_epoch_utc": 1793860425
+    },
+    {
+      "native_hotel_id": 79059,
+      "checked_epoch_utc": 1793860429
+    },
+    {
+      "native_hotel_id": 55574,
+      "checked_epoch_utc": 1793860433
+    },
+    {
+      "native_hotel_id": 78898,
+      "checked_epoch_utc": 1793860437
+    },
+    {
+      "native_hotel_id": 43204,
+      "checked_epoch_utc": 1793860440
+    },
+    {
+      "native_hotel_id": 37668,
+      "checked_epoch_utc": 1793860444
+    },
+    {
+      "native_hotel_id": 77914,
+      "checked_epoch_utc": 1793860448
+    },
+    {
+      "native_hotel_id": 69409,
+      "checked_epoch_utc": 1793860453
+    },
+    {
+      "native_hotel_id": 111801,
+      "checked_epoch_utc": 1793860456
+    },
+    {
+      "native_hotel_id": 115918,
+      "checked_epoch_utc": 1793860459
+    },
+    {
+      "native_hotel_id": 112914,
+      "checked_epoch_utc": 1793860462
+    },
+    {
+      "native_hotel_id": 1348,
+      "checked_epoch_utc": 1793860468
+    },
+    {
+      "native_hotel_id": 1379,
+      "checked_epoch_utc": 1793860470
+    },
+    {
+      "native_hotel_id": 1559,
+      "checked_epoch_utc": 1793860490
+    },
+    {
+      "native_hotel_id": 1543,
+      "checked_epoch_utc": 1793860512
+    },
+    {
+      "native_hotel_id": 1449,
+      "checked_epoch_utc": 1793860537
+    },
+    {
+      "native_hotel_id": 1199,
+      "checked_epoch_utc": 1793860540
+    },
+    {
+      "native_hotel_id": 111129,
+      "checked_epoch_utc": 1793860543
+    },
+    {
+      "native_hotel_id": 109900,
+      "checked_epoch_utc": 1793860547
+    },
+    {
+      "native_hotel_id": 111045,
+      "checked_epoch_utc": 1793860550
+    },
+    {
+      "native_hotel_id": 74503,
+      "checked_epoch_utc": 1793860568
+    }
+  ],
+  "all_frozen_caption_photo_button_source_token_logical_publication_preserved": true,
+  "source_searches_repeated": 0,
+  "old_fixtures_rerun": 0,
+  "unknown_or_pending": 0,
+  "provider_readbacks_consumed_no_reinspection": true,
+  "completion_reported_to_pavel": true
+}

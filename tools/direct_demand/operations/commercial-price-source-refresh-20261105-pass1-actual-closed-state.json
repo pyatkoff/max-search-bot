@@ -1,0 +1,88 @@
+{
+  "operation": "commercial-price-source-refresh-20261105-pass1",
+  "state": "ACTUAL_SEVEN_APPROVED_SINGLE_ATTEMPT_SEARCHES_COMPLETE_ORIGINAL_RESULT_CLOSED_NO_FINAL_PRICES_YET",
+  "run": 41976677950,
+  "job": 127077039901,
+  "source_commit": "69ca2baf119071e804225820eb5d7d92eededf55",
+  "installed_source": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "intent_artifact": 13391913167,
+  "intent_created_at_utc": "2026-11-05T05:52:07Z",
+  "result_artifact": 13391673842,
+  "result_created_at_utc": "2026-11-05T05:53:25Z",
+  "intent_before_any_provider": true,
+  "original_zero_api_source_stop_run": 41974771766,
+  "both_actual_user_approvals_recorded": true,
+  "ok": true,
+  "error": null,
+  "complete": true,
+  "new_searches_attempted": 7,
+  "http_attempts": 40,
+  "observation_rows_written": 1736,
+  "post_edits": 0,
+  "new_posts": 0,
+  "installed_runtime_changes": 0,
+  "automatic_retry": false,
+  "group_outcomes": [
+    {
+      "group_index": 0,
+      "state": "success",
+      "poll_requests": 5,
+      "result_requests": 1,
+      "accepted_native_hotels": 9,
+      "observations_written": 84
+    },
+    {
+      "group_index": 1,
+      "state": "success",
+      "poll_requests": 4,
+      "result_requests": 1,
+      "accepted_native_hotels": 9,
+      "observations_written": 65
+    },
+    {
+      "group_index": 2,
+      "state": "success",
+      "poll_requests": 4,
+      "result_requests": 1,
+      "accepted_native_hotels": 7,
+      "observations_written": 132
+    },
+    {
+      "group_index": 3,
+      "state": "success",
+      "poll_requests": 4,
+      "result_requests": 1,
+      "accepted_native_hotels": 9,
+      "observations_written": 157
+    },
+    {
+      "group_index": 4,
+      "state": "success",
+      "poll_requests": 3,
+      "result_requests": 1,
+      "accepted_native_hotels": 4,
+      "observations_written": 241
+    },
+    {
+      "group_index": 5,
+      "state": "success",
+      "poll_requests": 3,
+      "result_requests": 1,
+      "accepted_native_hotels": 9,
+      "observations_written": 479
+    },
+    {
+      "group_index": 6,
+      "state": "success",
+      "poll_requests": 3,
+      "result_requests": 1,
+      "accepted_native_hotels": 9,
+      "observations_written": 578
+    }
+  ],
+  "actual_distinct_source_hotels": 56,
+  "unknown_source_start_outcomes": 0,
+  "source_collection_is_not_final_price_or_availability": true,
+  "original_logs_consumed_once": true,
+  "no_search_retry_or_new_operation_bypass": true
+}
