@@ -1,0 +1,85 @@
+{
+  "operation": "commercial-price-monitor-20261105-context16-new674-seven-plan1",
+  "state": "EXACT_NEW_NORMAL_SEVEN_CANONICAL_BINDER_PREPARED_BEFORE_ANY_OWNED_READ_OR_QUOTES",
+  "goal": "Bind current canonical post contexts for the seven genuinely new normal674 hotel candidates, then one justified flights/fullbasket quote per unique admitted fingerprint and actual serial price/link edits.",
+  "read14_run": 41993389158,
+  "read14_artifact": 13398688427,
+  "normal_run": 41982177052,
+  "exact_native_ids": [
+    157359,
+    1291,
+    1582,
+    27316,
+    3405,
+    1422,
+    78251
+  ],
+  "input_rows": 14,
+  "max_new_gateway_quotes_after_full_context_binding": 7,
+  "prior_consumed_fingerprints_excluded": 185,
+  "source_provenance": "New normal674 persisted interval1793861003..1793861528, not original manual7 search scope.",
+  "current_owned_offer_contexts": [
+    {
+      "native": 1582,
+      "operation": "commercial-hotel-offer-update-20261105-manual1-h1582-v1"
+    },
+    {
+      "native": 27316,
+      "operation": "commercial-hotel-offer-update-20261105-manual1-h27316-v1"
+    },
+    {
+      "native": 3405,
+      "operation": "commercial-hotel-offer-update-20261105-manual1-h3405-v1"
+    }
+  ],
+  "current_owned_offer_proof": {
+    "prepared_run": 41982673887,
+    "prepared_artifact": 13394403052,
+    "actual_continuation_run": 41988333335,
+    "actual_continuation_artifact": 13397034149,
+    "read_only_related_reuse": "For these3 NEW normal fingerprints only, project prior update-manifest row and current own once confirmed receipts. No old quote/body or unrelated accepted result inspection."
+  },
+  "original_publisher_contexts": {
+    "native_ids": [
+      157359,
+      1291,
+      1422,
+      78251
+    ],
+    "source_manifest_allowlist_from_existing_context13_plan": true,
+    "known_new_actual_publishers": [
+      {
+        "native": 1422,
+        "manifest": "commercial-batch-20261105-49-manifest.json"
+      },
+      {
+        "native": 78251,
+        "manifest": "commercial-batch-20261105-51-manifest.json"
+      }
+    ],
+    "typed_bridge_native_and_publisher_roles_must_remain_explicit": true
+  },
+  "boundaries": {
+    "old74_db_window_reread": 0,
+    "new_source_searches": 0,
+    "old_consumed_fingerprint_requotes": 0,
+    "new_posts": 0,
+    "unrelated_accepted56_provider_post_reads": 0,
+    "max_owned_MAX_reads_for_new_related_contexts": 7
+  },
+  "criteria": [
+    "Prepare only original READ14 private rows for exact7 IDs; retain actual source window/search IDs/native country/current names/party/RUB/72h/future upper02Feb2027.",
+    "For3 current link-only posts use CURRENT new caption and confirmed canonical own offer receipt/current version, not initial publisher caption or stale original frame.",
+    "For4 original publisher posts resolve exact source manifest/confirmed atomic publisher receipt/latest authorized copy if any/current native country-active-name/photo/button/token. If missing publisher proof, defer honestly; no public historical private ID as canonical truth or invented PNG SHA.",
+    "Empty stored keyboard may use one exact owned current MAX message proof plus confirmed current TG transport receipt. Conflicting nonempty keyboard stops.",
+    "Genuinely new source fingerprints are already checked against185 unique old+manual contexts; recheck exact observation and canonical current context before durable private intent then ONE existing flights/RUB call per admitted hotel. No automatic retry/alternate retained tuple.",
+    "Strict dated real roundtrip/2A0/RUB/fullbasket flags false/surcharges absent/fuel not added; raw source price not availability.",
+    "For3 current owned link-only blocks, replace only the exact previously owned added block with newly verified price+current search link, preserving hotel description/closing/photo/canonical button/source/token. Bind prior manifest/receipt/current whole-caption hashes and add new native rejection cases for any foreign old block. Do not append conflicting duplicate links or invent no-quote metadata.",
+    "Forother4 append price+search link before current final CTA as accepted, retain whole hotel text,<=1024UTF16. Send entire actually ready subset without holding it for deferred harder cases.",
+    "Existing serial updater/once/flock/fsync/private intents beforeprovider/UNKNOWN original-outcome-first/fresh current main healthy deployTLSdiagnostics/full21/host/clean/schema/rights. New changed functionality native cases; old54/2 fixtures not rerun."
+  ],
+  "native_new_scope_cases": 3,
+  "max_new_provider_post_reads": 7,
+  "old_accepted56_unrelated_post_reads": 0,
+  "current_expected_source": "5ca5abcec260c41e73884e08f0f45c0617c21785"
+}
