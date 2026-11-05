@@ -1,4 +1,4 @@
-name: Reconcile only original273 MAX write without repeating any caption write
+name: Finish original Telegram273 plus40 unattempted hotel offer pairs serially
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -69,19 +69,32 @@ jobs:
           repository: pyatkoff/max-search-bot
           run-id: 41984228461
           path: ${{ runner.temp }}/original-execution
-      - name: Bind exact one original partial write and validate three new scopes
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-hotel-offer273-20261105-reconcile1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41986606018
+          path: ${{ runner.temp }}/original-reconciliation
+      - name: Exclude completed13 pairs and bind only confirmed MAX273 Telegram continuation plus40 unattempted pairs
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/prepare-original-hotel-offer273-reconcile-20261105.py
-          php -l "$RUNNER_TEMP/reconcile273.php"
-          ANYTOUR_RECONCILE273_NEW_INPUT_CASES=1 php "$RUNNER_TEMP/reconcile273.php"
-      - name: Retain exact original reconciliation intent before one owned read
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          python3 -m py_compile tools/direct_demand/operations/prepare-hotel-offer-original-continuation-20261105.py tools/direct_demand/operations/run-hotel-offer-original-continuation-20261105.py
+          python3 tools/direct_demand/operations/prepare-hotel-offer-original-continuation-20261105.py
+          for script in "$RUNNER_TEMP"/prepared-offers/*/continuation.php; do
+            php -l "$script"
+          done
+          ANYTOUR_RESUME273_NEW_WITNESS_CASES=1 php "$RUNNER_TEMP/prepared-offers/273/continuation.php"
+      - name: Retain exact original continuation intents before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-offer273-20261105-reconcile1-intent
-          path: ${{ runner.temp }}/original273-reconcile-intent.private.json
+          name: commercial-hotel-offer-update-20261105-manual1-continuation1-intent
+          path: |
+            ${{ runner.temp }}/offer-continuation-intents.private.json
+            ${{ runner.temp }}/offer-continuation-binding-safe.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -122,7 +135,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Confirm original MAX body photo button and acknowledge only its own registry result
+      - name: Continue only original273 Telegram and40 unattempted hotel pairs serially
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -130,15 +143,19 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-original-hotel-offer273-reconcile-20261105.py
-      - name: Retain original bounded reconciliation proof
+          python3 tools/direct_demand/operations/run-hotel-offer-original-continuation-20261105.py
+      - name: Retain original continuation outcomes including partial or unknown results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-offer273-20261105-reconcile1
+          name: commercial-hotel-offer-update-20261105-manual1-continuation1
           path: |
-            ${{ runner.temp }}/original273-reconcile-result.private.json
-            ${{ runner.temp }}/original273-reconcile-intent.private.json
+            ${{ runner.temp }}/offer-continuation-summary.json
+            ${{ runner.temp }}/offer-continuation-complete-safe.json
+            ${{ runner.temp }}/offer-continuation-binding-safe.json
+            ${{ runner.temp }}/offer-continuation-intents.private.json
+            ${{ runner.temp }}/prepared-offers/*/continuation-result.private.json
+            ${{ runner.temp }}/prepared-offers/*/continuation-attempt-started.private.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and read scripts

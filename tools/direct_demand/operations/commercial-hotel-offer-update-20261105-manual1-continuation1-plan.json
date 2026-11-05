@@ -1,0 +1,27 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-manual1-pass1-continuation1",
+  "goal": "Finish the already-authorized frozen54-hotel price and search-link update by continuing Telegram273 once and the40 wholly unattempted pairs.",
+  "source": "95dcf9893fb161b1e4fb52c02ad2d982604e7518",
+  "bounds": {
+    "original_completed_pairs_excluded": 13,
+    "confirmed_original_MAX273_never_reread_or_rewritten": true,
+    "original_operation_and_manifest_retained": true,
+    "continuation_hotels": 41,
+    "new_content_edits_max": 81,
+    "new_posts": 0,
+    "new_gateway_calls": 0,
+    "new_supplier_searches": 0,
+    "foreign_release_changes": 0
+  },
+  "criteria": [
+    "Original273 reconciliation witness and canonical once state both match.",
+    "Three new resume-witness negative cases and PHP lint pass; unchanged old fixtures are not rerun.",
+    "Fresh current-source deployment/TLS/diagnostics/full21/host/clean/schema/rights pass.",
+    "Private intents precede provider access; one serial execution; UNKNOWN original outcome stops.",
+    "Final original+continuation totals54 unique pairs,108 verified existing posts,94 price-post updates,108 search-link-post updates and108 actual combined content writes."
+  ],
+  "risks": [
+    "Provider failure can leave one original partial outcome; reconcile that original once state before any continuation.",
+    "Frozen source8f provenance is retained while actual execution binding uses independently healthy current95; no caption or price recomputation."
+  ]
+}
