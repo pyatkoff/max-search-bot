@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten5-pass1",
+  "state": "PURE_NOQUOTE_OFFERS_FROM_ONLY_ORIGINAL_CONTEXT21",
+  "goal": "Prepare only10newmixed-countryhotel-specificsearchlinkswithoutquoteclaims.",
+  "native_hotel_ids": [
+    69155,
+    75725,
+    83105,
+    98723,
+    103021,
+    103124,
+    109149,
+    1077,
+    1133,
+    1146
+  ],
+  "quote_state": "NOQUOTE",
+  "context_run": 42026797964,
+  "context_artifact": 13414536621,
+  "context_source_sha": "b051ce3969f23fe0e0358091684dac74fa511a32",
+  "scope_filename": "commercial-hotel-search-links-20261105-context21-ten5-scope.json",
+  "scope_sha256": "7557d54a116b397be2b95becde141b76f619a271d641a305910919aaf98cc5d8",
+  "template_sha256": "c0d2e63cdb6c6ba1a89b7c69d320d29aa39b3afe285504b810b5dc7133833af3",
+  "unchanged_accepted_helpers": true,
+  "bounds": {
+    "server_calls": 0,
+    "provider_calls": 0,
+    "db_calls": 0,
+    "gateway_quotes": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "max_future_content_edits": 20
+  },
+  "criteria": [
+    "Originalcontext21/currentcanonicalreceipt-version-caption-photo-button-source-token/nativecountry-name;AnyTour516→native1146only.",
+    "Wholecaptionclosing≤1024UTF16else defer/nottruncate;preserveall85prices/checktimes.",
+    "NOQUOTE/no inventedquoteSHA-epoch-index-amount;futureMoscow2A06..12Nov5..14n publicfilternotavailability.",
+    "3NEWPython+3NEWnativeactualinputcases/PHP-lperreadyhotel/allAPPROVEDconstantsdeclared/oldfixtures0.",
+    "Ready≤10ONEexistingSERIALupdater/fullfreshhealthycurrentprod21/hostclean/schema-rights/privateintent/once/UNKNOWNoriginalfirst."
+  ],
+  "risks": [
+    "Currentidentity/post/sourcecanchange;stopordefer.",
+    "NeverholdreadysubsetforhardcasesorusewrongpublisherIDasnativeURL."
+  ]
+}
