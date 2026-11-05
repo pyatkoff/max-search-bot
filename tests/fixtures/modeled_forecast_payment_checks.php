@@ -22,7 +22,7 @@ function forecastPaymentFixtureSchema(PDO $p):void
     $p->exec("CREATE TABLE customers(id BIGINT PRIMARY KEY,display_name VARCHAR(1024))");
     $p->exec("CREATE TABLE customer_channels(id BIGINT PRIMARY KEY,customer_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),external_user_id VARCHAR(20),external_chat_id VARCHAR(32))");
     $p->exec("CREATE TABLE conversations(id BIGINT PRIMARY KEY,customer_id BIGINT,customer_channel_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),is_test INT,external_chat_id VARCHAR(32))");
-    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id $auto,project_key VARCHAR(64),platform VARCHAR(16),customer_key VARCHAR(20),conversation_id BIGINT,journal_cursor VARCHAR(20),observed_at_unix BIGINT,input_sha256 VARCHAR(64),profile_json ".($mysql?'JSON':'TEXT').")");
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id $auto,project_key VARCHAR(64),platform VARCHAR(16),customer_key VARCHAR(20),conversation_id VARCHAR(40),journal_cursor VARCHAR(20),observed_at_unix BIGINT,input_sha256 VARCHAR(64),profile_json ".($mysql?'JSON':'TEXT').")");
 }
 function forecastPaymentFixtureBinding(PDO $p,int $id,string $platform='max',string $name='Турист',int $test=0):array
 {
@@ -83,6 +83,8 @@ function forecastPaymentAssertions(PDO $p,callable $check):void
     try{
         $s=forecastPaymentFixtureBinding($p,81001,'max','<script>alert("synthetic")</script>');
         $base=forecastPaymentFixtureWrapper($s,$now-14400,$now-14500);
+        $admission=ModeledConversionValueRegistry::predictionFields($base);
+        $check('forecast synthetic producer block passes shared admission',($admission['semantic_prediction']['availability']??null)==='available');
         $baselineId=forecastPaymentFixtureSave($p,$base);
         forecastPaymentFixtureSave($p,forecastPaymentFixtureWrapper($s,$now-10800,$now-14500,'intent',120));
         forecastPaymentFixtureSave($p,forecastPaymentFixtureWrapper($s,$now-3600,$now-14500,'payment',200));
@@ -118,9 +120,11 @@ function forecastPaymentAssertions(PDO $p,callable $check):void
         $old=forecastPaymentFixtureBinding($p,81012);
         forecastPaymentFixtureSave($p,forecastPaymentFixtureWrapper($old,$now-45*86400,$now-45*86400-100));
         forecastPaymentFixtureSave($p,forecastPaymentFixtureWrapper($old,$now-4000,$now-45*86400-100,'request',110));
-        $before=forecastPaymentFixtureDigest($p);$all=[];$input=$filters;$pages=0;
+        $before=forecastPaymentFixtureDigest($p);$all=[];$input=$filters;$pages=0;$syntheticPages=[];
         do{
             $page=$reader->read($input,$now);$pages++;
+            $syntheticPages[]=['available'=>$page['available']??null,'reason'=>$page['reason']??null,'coverage'=>$page['coverage']??null,'has_more'=>$page['has_more']??null];
+            if(($page['available']??false)!==true)fwrite(STDERR,'SYNTHETIC_ONLY_FORECAST_PAGES '.json_encode($syntheticPages,JSON_THROW_ON_ERROR).PHP_EOL);
             $check('forecast payment page available '.$pages,$page['available']===true);
             if(!$page['available'])break;
             foreach($page['rows']as$row)$all[]=$row;
@@ -129,7 +133,9 @@ function forecastPaymentAssertions(PDO $p,callable $check):void
             $input=$filters+($page['has_more']?['cursor'=>$page['next_cursor']]:[]);
         }while($page['has_more']&&$pages<10);
         $by=[];foreach($all as$row)$by[$row['conversation_id']]=$row;
-        $check('forecast earliest baseline occurs once across all pages',!($page['has_more']??true)&&count($all)===count($by)&&count(array_filter($all,static fn(array $r):bool=>$r['conversation_id']==='81001'))===1);
+        $earliestOnce=!($page['has_more']??true)&&count($all)===count($by)&&count(array_filter($all,static fn(array $r):bool=>$r['conversation_id']==='81001'))===1;
+        if(!$earliestOnce)fwrite(STDERR,'SYNTHETIC_ONLY_FORECAST_PAGES '.json_encode($syntheticPages,JSON_THROW_ON_ERROR).PHP_EOL);
+        $check('forecast earliest baseline occurs once across all pages',$earliestOnce);
         $first=$by['81001']??[];
         $check('forecast immutable first estimate survives stronger later stage',($first['profile_id']??null)===$baselineId
             &&($first['forecast']['estimated_probability']??null)===$base['semantic_prediction']['estimated_probability']
