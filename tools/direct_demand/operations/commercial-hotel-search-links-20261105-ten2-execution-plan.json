@@ -1,0 +1,44 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten2-pass1",
+  "state": "EXECUTE_ONLY_ORIGINAL10_FROZEN_NOQUOTE_PAIRS_AFTER_EXACT_OFFLINE_CONTEXT_PROOF_AND_FRESH_GATES",
+  "native_hotel_ids": [
+    265,
+    269,
+    272,
+    275,
+    282,
+    287,
+    315,
+    328,
+    358,
+    382
+  ],
+  "prepared_run": 42013766459,
+  "prepared_artifact": 13407943212,
+  "original_context_run": 42012518360,
+  "original_context_original_ok": false,
+  "original_context_final_metadata_fault_verified_offline": true,
+  "original_context_reads_replayed": 0,
+  "expected_source": "1fec9202b45a8e1a6343750a8896a6e5072e1880",
+  "template_sha256": "c98e9d95bbc53adedc5b8979616e995f8e3d26e23dc3119ca5ae967ccc38b609",
+  "limits": {
+    "one_serial_run": true,
+    "max_hotels": 10,
+    "max_existing_content_edits": 20,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "automatic_retry": false
+  },
+  "criteria": [
+    "Exactfrozenoriginalprivateframes/manifests/scripts/5keyapprovals andoriginalmetadatafailureofflinewitness.",
+    "Freshcurrentmain+SAMEversionhealthydeployTLSdiag/full21/accepted25hostpin/clean/runtime/native/schema-rights.",
+    "Privateall-hotelintentartifactBEFOREANYserver/provideraccess andperpostdurableonceintentBEFOREwrite.",
+    "Preservewholebodyclosingphotobuttonsourcetoken andall85price/checkmetadata;explicitNOQUOTEseparatesearchmetadata.",
+    "AnyUNKNOWN/failurestopseriesandresolveORIGINALoutcomefirst;no newoperationID/retrybypass."
+  ],
+  "risks": [
+    "Currentversionorproductioncouldchange;stopbeforewrite.",
+    "Provider mayapplyaneditwithfailedfinalread;no blindseriesreplay."
+  ]
+}
