@@ -1,4 +1,4 @@
-name: Inspect five new exact owner declared Santai photographs without server calls
+name: Read four different owner declared gallery and property pages without supplier calls
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -11,12 +11,12 @@ concurrency:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 6
     strategy:
       fail-fast: false
       max-parallel: 2
       matrix:
-        media_group: [0]
+        media_group: [0, 1]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,21 +25,13 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Inspect only fixed public owner material without server calls
+      - name: Read only four fixed new declared owner pages
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq python3-pil
-          python3 -m py_compile tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
-          python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
+        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-batch51.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch50-contact-${{ matrix.media_group }}
-          path: |
-            primary-image-inspection.json
-            contact.png
-            accepted-primary-raw
+          name: commercial-batch51-primary-${{ matrix.media_group }}
+          path: public-media-sources.json
           retention-days: 14
           if-no-files-found: error
