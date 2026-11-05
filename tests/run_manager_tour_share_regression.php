@@ -102,6 +102,17 @@ CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version
         $changed=$draft;$changed['appearance']=['template'=>'photo','palette'=>'sunset','agency_name'=>'Another agency'];deliverySave($changed,2);ManagerTourSelectionDeliveryService::prepare(7,1,3);
         deliveryCheck('later draft appearance never silently replaces frozen public branding',ManagerTourSelectionShareService::read($token)['appearance']===$draft['appearance']);
         deliveryCheck('old immutable legacy publication still omits appearance',!array_key_exists('appearance',ManagerTourSelectionDeliveryService::get(7,1,$legacy['id'])['publication']));
+        $personalInput=$changed;$personalInput['appearance']=['template'=>'personal','palette'=>'ocean','agency_name'=>'Synthetic agency','manager'=>['name'=>'Synthetic <script>manager</script>','note'=>'Personal <svg> introduction','phone'=>'+7 (000) 000-00-00','email'=>'manager@example.invalid']];
+        deliverySave($personalInput,3);$personalPub=ManagerTourSelectionDeliveryService::prepare(7,1,4)['publication'];cachePublication($personalPub['id']);
+        deliveryCheck('preparing personal template alone leaves existing public selection untouched',ManagerTourSelectionShareService::read($token)['appearance']===$draft['appearance']);
+        $personalShare=shareCommand(7,1,2,$personalPub['id'],true);$selection=ManagerTourSelectionShareService::read($token);$frozenPersonal=$selection;
+        deliveryCheck('explicit personal publish freezes manager and existing exact terms',$personalShare['ok']&&$selection['appearance']===$personalInput['appearance']&&$terms($selection['offers'])===$terms($old['offers']));
+        deliveryCheck('public party preserves exact saved ages including repeated ages',array_column($selection['offers'],'child_ages')===array_map(static fn(array $o):array=>$o['child_ages'],$personalInput['offers']));
+        ob_start();require dirname(__DIR__).'/selection/view.php';$html=ob_get_clean();
+        deliveryCheck('personal public renderer escapes identity and keeps native conditions',str_contains($html,'selectionTemplate-personal')&&str_contains($html,'Synthetic &lt;script&gt;manager&lt;/script&gt;')&&!str_contains($html,'<script>manager')&&!str_contains($html,'<svg>')&&str_contains($html,'personalDetails'));
+        deliveryCheck('personal contact actions only use constructed telephone and email links',str_contains($html,'href="tel:+70000000000"')&&str_contains($html,'href="mailto:manager%40example.invalid"'));
+        $personalInput['appearance']['manager']['name']='Later private edit';$personalInput['offers'][0]['amount']='999999';deliverySave($personalInput,4);
+        deliveryCheck('later private edit preserves exact personal public version and price',ManagerTourSelectionShareService::read($token)===$frozenPersonal&&ManagerTourSelectionDeliveryService::get(7,1,$personalPub['id'])['publication']['appearance']['manager']['name']==='Synthetic <script>manager</script>');
     } finally {DiagnosticLogger::setFile($originalLog);$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$original);}
 }
 try {
