@@ -1,4 +1,4 @@
-name: Add finite original noquote hotel search links serially
+name: Bind ten current hotel contexts from an immutable finite noquote scope
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -11,11 +11,10 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: f486099f3aaaa79b4eccad148eb2d4a80981688a
-  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-context21-ten5-scope.json
-  EXPECTED_LINK_SCOPE_SHA256: 7557d54a116b397be2b95becde141b76f619a271d641a305910919aaf98cc5d8
-  LINK_EXECUTION_PLAN_FILENAME: commercial-hotel-search-links-20261105-ten5-execution-source.json
+  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-context22-ten6-scope.json
+  EXPECTED_LINK_SCOPE_SHA256: 79649aec85cb577cfd08dafa709e4d97e76228b669bc5889ba77e489b3b3b07e
 jobs:
-  update:
+  inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -58,28 +57,21 @@ jobs:
           assert d['status']=='completed' and d['conclusion']=='success'
           print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
           PY
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-hotel-search-links-20261105-ten5-prepared1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 42027274219
-          path: ${{ runner.temp }}/prepared-links
-      - name: Bind original exact scripts approvals and syntax without repeating closed cases
+      - name: Prepare immutable finite input and complete declarations before new native cases
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/bind-hotel-search-links-explicit-noquote-20261105-data-bound.py tools/direct_demand/operations/run-hotel-search-links-explicit-noquote-20261105-data-bound.py
-          python3 tools/direct_demand/operations/bind-hotel-search-links-explicit-noquote-20261105-data-bound.py
-      - name: Retain private execution intents before any server or provider access
+          python3 -m py_compile tools/direct_demand/operations/prepare-hotel-search-links-current-contexts-20261105-data-bound.py tools/direct_demand/operations/run-hotel-search-links-current-contexts-20261105-data-bound.py
+          python3 tools/direct_demand/operations/prepare-hotel-search-links-current-contexts-20261105-data-bound.py
+          php -l "$RUNNER_TEMP/link-context.php"
+          ANYTOUR_CURRENT_LINK_CONTEXT_NEW_INPUT_CASES=1 php "$RUNNER_TEMP/link-context.php"
+      - name: Retain private finite input before any owned provider read
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-ten5-execution1-intent
-          path: |
-            ${{ runner.temp }}/all-link-execution-intents.private.json
-            ${{ runner.temp }}/link-execution-binding-safe.json
+          name: commercial-hotel-search-links-20261105-context22-ten6-input
+          path: ${{ runner.temp }}/link-context-input.private.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -120,7 +112,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Update only original finite noquote hotel pairs with serial durable once guards
+      - name: Bind only finite new current captions photos buttons sources and tokens
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -128,21 +120,19 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-hotel-search-links-explicit-noquote-20261105-data-bound.py
-      - name: Retain original private outcomes and safe exact summary
+          python3 tools/direct_demand/operations/run-hotel-search-links-current-contexts-20261105-data-bound.py
+      - name: Retain original private contexts and safe summary
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-ten5-execution1
+          name: commercial-hotel-search-links-20261105-context22-ten6
           path: |
-            ${{ runner.temp }}/prepared-links
-            ${{ runner.temp }}/all-link-execution-intents.private.json
-            ${{ runner.temp }}/link-execution-binding-safe.json
-            ${{ runner.temp }}/link-execution-summary.json
-            ${{ runner.temp }}/link-execution-complete-safe.json
+            ${{ runner.temp }}/link-context-input.private.json
+            ${{ runner.temp }}/link-context-readback.private.json
+            ${{ runner.temp }}/link-context-summary.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral connection and execution scripts
+      - name: Remove ephemeral connection and read scripts
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/current-diagnostics-run.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/link-context.php" "$RUNNER_TEMP/current-diagnostics-run.json"

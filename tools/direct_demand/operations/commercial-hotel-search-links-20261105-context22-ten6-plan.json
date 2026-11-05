@@ -1,0 +1,106 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context22-ten6",
+  "state": "ONE_NEW_FINITE_CURRENT_CONTEXT_PASS_DATA_ONLY_USING_ACCEPTED_HELPERS",
+  "goal": "Bind only10 new still-unlinked unpriced published hotel contexts before NOQUOTE search links.",
+  "native_hotel_ids": [
+    1151,
+    1334,
+    1417,
+    1464,
+    1659,
+    1672,
+    1715,
+    9322,
+    17480,
+    21695
+  ],
+  "native_bindings": [
+    {
+      "local_tv_id": 1151,
+      "expected_name": "DELPHIN PALACE DELUXE COLLECTION",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1334,
+      "expected_name": "LEODIKYA KIRMAN PREMIUM (EX. KIRMAN LEODIKYA RESORT)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1417,
+      "expected_name": "PALOMA GRIDA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1464,
+      "expected_name": "ROYAL WINGS HOTEL",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1659,
+      "expected_name": "TUI BLUE SARIGERME PARK",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1672,
+      "expected_name": "KEMPINSKI BARBAROSS BAY HOTEL",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 1715,
+      "expected_name": "VOYAGE TORBA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 9322,
+      "expected_name": "PALOMA PASHA RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 17480,
+      "expected_name": "TUI BLUE PALM GARDEN",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 21695,
+      "expected_name": "TUI BLUE SENO ADULTS ONLY 16+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    }
+  ],
+  "expected_base": {
+    "published": 161,
+    "priced": 85,
+    "linked": 110
+  },
+  "expected_installed_sha": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+  "scope_sha256": "79649aec85cb577cfd08dafa709e4d97e76228b669bc5889ba77e489b3b3b07e",
+  "bounds": {
+    "max_owned_MAX_reads": 10,
+    "max_channel_rights_checks": 2,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "gateway_quotes": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "old110_linked_posts_read": 0
+  },
+  "criteria": [
+    "Retained exactnative-country-active-name/currentcanonicalpublisher or confirmedcopyreceipt/version/photo/button/source/token;no oldcataloguegroupquery.",
+    "Unchangedaccepteddata-boundhelpers/strictscopeSHA/consistentAPPROVED_CONTEXT18labels;3NEWcurrentnative/name/NOQUOTEcases+2headerdeclarationcases/old0 beforeSSH.",
+    "FreshSAMEcurrenthealthydeployverifyTLSdiag/fullremote21/hostaccepted25/clean/runtime/read-only/schema-rights.",
+    "NOQUOTE/notavailability/noinventedquoteSHA-epoch-index-amount;wholebody/closing/photo/button/source/tokenpreserved/all85pricesuntouched;readyothersnotheldforhardcases."
+  ],
+  "risks": [
+    "Originalpublisher/caption/identitymaychange;deferambiguity/notforcenullpublisher/alias.",
+    "Currentprodsourcecanchange;freshgatesstopbeforeaccess."
+  ]
+}
