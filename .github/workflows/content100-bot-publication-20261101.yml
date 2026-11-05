@@ -1,4 +1,4 @@
-name: Inspect one official Nile Palace pointer after closed metadata dedup
+name: Inspect two exact newly declared JAZ Maraya photos without provider access
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -9,18 +9,12 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  PRIMARY_SOURCE_INDEX_FILENAME: commercial-batch-20261105-55-source-index.json
-  EXPECTED_PRIMARY_SOURCE_INDEX_SHA256: f1e7c534a0e5f6d11285270d061a7e32310a895e6cadf2cdd3391fdcce25f289
-  EXPECTED_PRIMARY_NATIVE_SCOPE_SHA256: cf5e651bf143fc8e0adf32f457f6fc257717608038bfceb57ac95281fdd411d4
+  CONTACT_SOURCE_INDEX_FILENAME: commercial-batch-20261105-56-contact-source-index.json
+  EXPECTED_CONTACT_SOURCE_INDEX_SHA256: 808ecb5a8273a9d934047a6c31f212081c0faf6e967a861b1002af30963487b4
 jobs:
   inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        media_group: [0]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,16 +23,17 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Check exact new Nile scope and dedup metadata before at most one GET
+      - name: Validate new declared photo inputs before bounded raw GETs
         env:
-          MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-batch55.py
+          MEDIA_GROUP: '0'
+        run: python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261105-batch56.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: commercial-batch55-primary-${{ matrix.media_group }}
+          name: commercial-batch56-contact-0
           path: |
-            public-media-sources.json
-            public-media-sources-summary.json
+            primary-image-inspection.json
+            contact.png
+            accepted-primary-raw
           retention-days: 14
           if-no-files-found: warn
