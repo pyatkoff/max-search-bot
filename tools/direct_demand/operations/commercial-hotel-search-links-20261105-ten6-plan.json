@@ -1,0 +1,43 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten6-pass1",
+  "state": "PREPARE_ONE_FINITE10_NOQUOTE_LINK_BATCH_FROM_ORIGINAL_CONTEXT22_ONLY",
+  "goal": "Freeze only these10 exact existinghotelpair searchlinks from original authenticated current contexts; prices untouched.",
+  "hotel_ids": [
+    1151,
+    1334,
+    1417,
+    1464,
+    1659,
+    1672,
+    1715,
+    9322,
+    17480,
+    21695
+  ],
+  "context_run": 42030425796,
+  "context_source_sha": "28e3741fa40240e4287c8f3b0340891f3b57beab",
+  "context_artifact": 13415153847,
+  "scope_sha256": "79649aec85cb577cfd08dafa709e4d97e76228b669bc5889ba77e489b3b3b07e",
+  "expected_source": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+  "template_sha256": "c0d2e63cdb6c6ba1a89b7c69d320d29aa39b3afe285504b810b5dc7133833af3",
+  "bounds": {
+    "max_hotels": 10,
+    "max_existing_content_edits": 20,
+    "gateway_quotes": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "provider_or_db_in_pure": 0,
+    "old_fixtures_rerun": 0
+  },
+  "criteria": [
+    "Originalcontext22artifact/frame-native-role-binding+exactscopeSHA;no old110providerreads.",
+    "Wholecurrentcaptionclosingphotobuttonsourcetokenpreserved/UTF16max1024/85pricechecksuntouched.",
+    "ExplicitNOQUOTE/noquoteSHA-epoch-index-amountinvented/searchfilterNOTavailability.",
+    "3NEWPython+3NEWnativeinputcasesperreadyhotel/PHP-l;notoldfixture reruns.",
+    "Frozenexact5keyapprovals/manifests/frame/scriptSHA/oneexistingserialupdaterlateronlyafterfreshsourcegates/privateintents."
+  ],
+  "risks": [
+    "Nativebinding/captionmayconflict or length exceed bound;deferhonestly,do not forcehardcases.",
+    "Futureprod/captioncouldchange;executionmustbindexactfrozenbytesandfreshguards."
+  ]
+}
