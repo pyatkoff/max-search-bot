@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "operation": "commercial-hotel-search-links-20261105-context28-legacy6",
+  "update_operation": "commercial-hotel-search-links-20261105-legacy6-inline-pass1",
+  "native_hotel_ids": [
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "projection_native_ids": [
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "projection_operation": "commercial-hotel-search-links-20261105-legacy6-input-projection1",
+  "role": "current_confirmed_own_legacy_price_manifest_and_receipt",
+  "expected_linked_count": 149,
+  "expected_priced_count": 85,
+  "expected_published_pairs": 161,
+  "max_hotels": 6,
+  "max_owned_max_reads": 6,
+  "prior_price_operations": {
+    "310": "commercial-price-update-20261105-legacy9-pass1-h310-v1",
+    "469": "commercial-price-update-20261105-legacy9-pass1-h469-v1",
+    "498": "commercial-price-update-20261105-legacy9-pass1-h498-v1",
+    "1971": "commercial-price-update-20261105-legacy9-pass1-h1971-v1",
+    "1981": "commercial-price-update-20261105-legacy9-pass1-h1981-v1",
+    "9373": "commercial-price-update-20261105-legacy9-pass1-h9373-v1"
+  },
+  "prior_price_operation_prefix": "commercial-price-update-20261105-legacy9-pass1-h",
+  "prior_price_operation_suffix": "-v1",
+  "legacy_roles": {
+    "310": {
+      "publisher_hotel_id": null,
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read1",
+      "capture_run": 41941025252
+    },
+    "469": {
+      "publisher_hotel_id": null,
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read1",
+      "capture_run": 41941025252
+    },
+    "498": {
+      "publisher_hotel_id": 228,
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read4",
+      "capture_run": 41943048307
+    },
+    "1971": {
+      "publisher_hotel_id": null,
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read1",
+      "capture_run": 41941025252
+    },
+    "1981": {
+      "publisher_hotel_id": 877,
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read2",
+      "capture_run": 41941689331
+    },
+    "9373": {
+      "publisher_hotel_id": 9373,
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1,
+      "capture_operation": "commercial-price-legacy9-contexts-20261105-read4",
+      "capture_run": 41943048307
+    }
+  },
+  "legacy_origin_source_sha": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "presets": {
+    "departure_id": 1,
+    "adults": 2,
+    "children": 0,
+    "currency": "RUB",
+    "departure_date_from": "2026-11-06",
+    "departure_date_to": "2026-11-12",
+    "nights_from": 5,
+    "nights_to": 14
+  },
+  "capture_native_entities_before_first_owned_get": true,
+  "new_native_cases": 81,
+  "new_python_actual_scope_cases": 9,
+  "noquote": true,
+  "bounds": {
+    "gateway": 0,
+    "db_writes": 0,
+    "provider_post_reads": 6,
+    "edits": 0
+  },
+  "context_reader_filename": "read-legacy-priced-hotel-inline-contexts-20261105.php",
+  "scope_filename": "commercial-hotel-search-links-20261105-context28-legacy6-scope.json",
+  "context_reader_sha256": "899126768bf42f9e1489be79e2c1996d0e67a99adf54ee9099aaa00061103ab5"
+}

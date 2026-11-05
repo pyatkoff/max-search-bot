@@ -1,0 +1,64 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context28-legacy6",
+  "state": "NEW_EXPLICIT_LEGACY_COPY_NULL_AND_TYPED_CURRENT_PRICE_CONTEXT_IMPLEMENTATION_PLAN",
+  "goal": "Bind six NEW current prior-price contexts including three explicitly copy-only publisherNULL hotels without inventing photo hash or replacing canonical receipts with old originIDs.",
+  "hotel_ids": [
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "role": "current_confirmed_own_legacy_price_manifest_and_receipt",
+  "expected_counts": {
+    "linked": 149,
+    "priced": 85,
+    "published": 161
+  },
+  "original_projection": {
+    "run": 42096493873,
+    "artifact": 13446163928,
+    "source": "ed5fd8ee6705daca94424c260da17711fbe5ec21"
+  },
+  "bounds": {
+    "hotels": 6,
+    "owned_max_gets": 6,
+    "rights_checks": 2,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "quotes": 0,
+    "source_searches": 0,
+    "edits": 0
+  },
+  "criteria": [
+    "Native legacy role must bind exact nativeidentity+explicit publisherNULL/nonNULL+origin frameSHA/captureoperation-run-source/photo signatures from immutable preprovider projected input and declared rolemap. Missing NULL is rejected, no blanketallowlist bypass.",
+    "Canonical CURRENT own price journal/manifesthash/confirmedonce/receipt/currentversion/text/nativeentities/photo/button/source/token/EXACTpriceSHA-checkepoch remains mandatory; originwitness nevercanonical IDs.",
+    "81NEW native assertions from six actual inputs and9NEW Python scope cases before inputretention/SSH. No oldfixture/case/providerread replay.",
+    "Fullremote21/accepted25host BYTEIDENTICAL, fresh healthy currentmain/DeployTLSdiag/installedclean/runtime/native/schema-rights. Private exact input BEFOREanyserver-provider, oneMAXGET perNEWfinitecontext.",
+    "Conflicts/unsupported role proof defer; supportedready notheld for hardcases. Later inline update needs separately frozen newlegacytemplate/rolecases + once/privateintent/readbacks."
+  ],
+  "risks": [
+    "A stale original role proof can match identity but fail current journal/version or formatting; defer without recapture/retry.",
+    "CopyNULL must remain explicitly NULL; typedAnyTour228/877 never substituted for native498/1981."
+  ],
+  "scope_filename": "commercial-hotel-search-links-20261105-context28-legacy6-scope.json",
+  "scope_sha256": "eb577d3917c19fb228c3f3b7a6b1ef2cec1d32f4fc967f3b8bbb6bb94c60f2a9",
+  "expected_source": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+  "preactivation_source_change_stop": {
+    "state": "V8_CURRENT_MAIN_CHANGED_STOP_BEFORE_CONTEXT_WORKFLOW_ACTIVATION",
+    "old_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+    "new_source": "a0b3ae4ac9d035b554c25fe87e333d1846f26b5b",
+    "workflow_activated": false,
+    "new_context_native_cases_run": 0,
+    "private_input_created": 0,
+    "ssh_db_provider_calls": 0,
+    "old_projection_not_replayed": true
+  },
+  "reviewed_source_delta_paths": [
+    "docs/ARCHIVE_RESEARCH_READ.md",
+    "services/ArchiveResearchReadService.php",
+    "tests/run_archive_research_read_regression.php"
+  ],
+  "publishing21_unchanged_in_delta": true
+}
