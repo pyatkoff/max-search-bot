@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-price-source-refresh-20261105-pass1-helper-drift-diagnostic1",
+  "state": "PREPARED_NEW_HELPER_MISMATCH_COUNTS_AND_HASHES_ONLY",
+  "reason": "Actualoriginalapprovedexecution41974771766stoppedinstalled_existing_source_helper_changedBEFOREsourceimports/DB/provider/searches;oldpresenceisnotcurrentproof.",
+  "goal": "IdentifyONLYwhichoftheeightalreadyapprovedpublichelperfileschanged;no privatecaptureandno sourceAPIretry.",
+  "boundaries": {
+    "server_connections": 1,
+    "exact_helper_filenames": [
+      "db-v1.php",
+      "price-observer-v1.php",
+      "top500-daily-plan-v1.php",
+      "tourvisor-client-v1.php",
+      "top500-monthly-plan-v1.php",
+      "local-tv-catalog-v1.php",
+      "seasonal-page-gap-plan-v1.php",
+      "hotel-details-v1.php"
+    ],
+    "existing_normal_helper_root_only": true,
+    "read_private_config": false,
+    "return_public_helper_filenames_sha256_match_booleans_only": true,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "new_searches": 0,
+    "writes": 0,
+    "message_sends": 0,
+    "installed_runtime_changes": 0,
+    "old_fixtures": 0
+  },
+  "criteria": [
+    "Freshsameversionmain/deploy/TLS/diagnostics/fullremote21/accepted25hostpin/installedcleanbeforehashread.",
+    "No requires/import ofhelperorconfig;no fullcontents/secrets/privatecapture;onlyexact8filemetadata.",
+    "Do NOTupdatehelperfiles/copy/repin/bypass/retrythemanualoperationfromthisdiagnostic. Compareactualhashesonpubliccodeonlywhereknownexactprovenance."
+  ],
+  "risks": [
+    "Rootmayhaveunexpectedfile/symlink;reportfalse/nullwithoutfollowinglinks.",
+    "Publicrepositorycurrentfilehashcomparisondoesnotproveactualserverhash;thisdiagnosticwillprovideactualhashes."
+  ]
+}

@@ -1,4 +1,4 @@
-name: Execute only the explicitly approved seven-search unpriced hotel source refresh
+name: Identify exact public helper drift before any approved source search
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -55,21 +55,11 @@ jobs:
           assert d['status']=='completed' and d['conclusion']=='success'
           print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
           PY
-      - name: Require recorded explicit user approval and prepare the exact frozen scope
+      - name: Check the new readonly helper drift input syntax
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 tools/direct_demand/operations/prepare-published-price-refresh-execution-20261105.py
-          php -l "$RUNNER_TEMP/manual-refresh.php"
-      - name: Retain the explicit private intent before any provider search
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-price-source-refresh-20261105-pass1-intent
-          path: ${{ runner.temp }}/manual-refresh-intent.json
-          retention-days: 14
-          if-no-files-found: error
+          php -l tools/direct_demand/operations/read-published-price-helper-drift-20261105.php
       - name: Prepare existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -108,7 +98,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Execute the one finite approved source refresh without post writes or automatic retries
+      - name: Read only exact eight public helper hashes after full accepted source checks
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -116,17 +106,13 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-published-price-refresh-execution-20261105.py
-      - name: Retain private original outcomes including partial or unknown searches
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o "UserKnownHostsFile=$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" 'set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < tools/direct_demand/operations/read-published-price-helper-drift-20261105.php | tee "$RUNNER_TEMP/helper-drift-safe.json"
+      - name: Retain public filenames and hash comparison only
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-source-refresh-20261105-pass1
-          path: |
-            ${{ runner.temp }}/manual-refresh-result.private.json
-            ${{ runner.temp }}/manual-refresh-summary.json
-            ${{ runner.temp }}/manual-refresh-attempt-started.json
-            ${{ runner.temp }}/manual-refresh-intent.json
+          name: commercial-price-source-refresh-20261105-helper-drift-diagnostic1
+          path: ${{ runner.temp }}/helper-drift-safe.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and read scripts
