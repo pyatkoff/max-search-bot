@@ -870,6 +870,22 @@ async function verifyReleaseRecovery() {
   }),'original_wave_executed','executed notification or gate cannot replay');
   const unknown=copy(snapshot);unknown.workflow_runs[2].display_title='unknown';
   await rejects(()=>M.selectRecoveryRuns(unknown,{...f.c,recovery:{}},skipped),'untrusted_gate_origin','timing is not provenance');
+
+  await rejects(()=>M.admitVerification({env:{...env,GITHUB_RUN_ID:'1e2'},api}),'untrusted_verification_context','malformed run identifier');
+  await rejects(()=>M.stageStatus({...env,SMOKE_ATTEMPT:'unknown',DIAGNOSTICS_ATTEMPT:'1'}),'invalid_status_attempt','unconfirmed receipt attempt');
+  const firstEnv={...env,GITHUB_RUN_ATTEMPT:'1'};
+  const originalRunning={...copy(f.first),status:'in_progress',conclusion:null};
+  const firstApi=async(method,path)=>{
+    if(path.endsWith('/actions/runs/100'))return originalRunning;
+    if(path.includes('/attempts/1/jobs?'))return {total_count:f.originals.length,jobs:copy(f.originals)};
+    return api(method,path);
+  };
+  check((await M.admitVerification({env:firstEnv,api:firstApi})).run_check,true,'verification recovery: initial installed checks admitted');
+  await rejects(()=>M.admitVerification({env:firstEnv,api:async(m,p)=>{
+    if(p.includes('/attempts/1/jobs?')){const x=await firstApi(m,p);x.jobs.at(-1).conclusion='failure';return x;}
+    return firstApi(m,p);
+  }}),'installation_unconfirmed','failed provenance or installer cannot publish accepted telemetry');
+
   // Exercise the real terminal closer with a recovered deployment, both
   // provenance waves, original successful parents, and exactly one publisher.
   const gateRuns=M.REQUIRED.map(([file,event,name],i)=>({id:100+i,path:'.github/workflows/'+file,name,event,

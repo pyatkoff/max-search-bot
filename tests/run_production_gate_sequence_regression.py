@@ -539,13 +539,19 @@ def pipeline_activation_cases(root):
     valid = {'action': 'completed', 'repository': {'full_name': CANONICAL_REPOSITORY},
              'workflow_run': {'id': 12345678901, 'run_attempt': 1,
                               'name': 'Monitor modeled conversion delivery', 'workflow_id': 406167317,
+                              'path': '.github/workflows/modeled-conversion-monitor.yml',
                               'status': 'completed', 'conclusion': 'success', 'event': 'workflow_run',
                               'head_repository': {'full_name': CANONICAL_REPOSITORY},
                               'head_branch': 'main', 'head_sha': DEPLOY_SHA,
                               'head_commit': {'message': 'Install reviewed monitor [modeled-pipeline-monitor-activation-v1]'}}}
     execute(resolver, filename, 'valid launch uses exact monitor head', valid, expected_sha=DEPLOY_SHA,
             upstream_id='12345678901', upstream_attempt='1')
+    titled = copy.deepcopy(valid)
+    titled['workflow_run'].update(name='deploy-proof:v1:98765:2', display_title='deploy-proof:v1:98765:2')
+    execute(resolver, filename, 'GitHub completed event may expose run title as name', titled,
+            expected_sha=DEPLOY_SHA, upstream_id='12345678901', upstream_attempt='1')
     bad_fields = {
+        'path': (None, '.github/workflows/foreign.yml'),
         'workflow_id': (None, 0, 406167318, '406167317'),
         'name': ('Deploy production', None),
         'head_repository': ({'full_name': 'foreign/max-search-bot'}, None),

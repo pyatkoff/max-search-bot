@@ -357,6 +357,7 @@ jobs:
           cd /var/www/anytoour/data/www/app.anytoour.ru
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           MAX_SEARCH_APPLY_AI_PROFILE=1 php tools/ai_profile_rollout.php --apply; php tools/ai_profile_rollout.php --verify;
+          php tools/virtual_reply_learning.php control-status
           rm -f ai_debug.log handlers/ai_debug.log handlers/ai_errors.log tmp_in.txt tmp_out.txt
           php tools/ai_runtime_log_smoke.php
           php tools/webhook_runtime_log_smoke.php
@@ -451,7 +452,6 @@ jobs:
           php tools/search_destination_smoke.php --http
           bash tools/manager_http_smoke.sh
           php tools/manager_preparation_smoke.php
-          php tools/virtual_reply_learning.php control-status
           php tools/ai_runtime_log_smoke.php --check-only
           php tools/webhook_runtime_log_smoke.php --check-only
           php tools/structured_runtime_log_smoke.php --check-only

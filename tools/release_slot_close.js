@@ -286,7 +286,7 @@ async function readRecovery(get,c,admitting=false) {
 async function admitVerification({env,api}) {
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&(['push','workflow_dispatch'].includes(env.GITHUB_EVENT_NAME))&&
     (env.GITHUB_EVENT_NAME==='push'||env.GITHUB_RUN_ATTEMPT==='1')&&
-    env.GITHUB_REF==='refs/heads/main'&&env.GITHUB_JOB==='verify'&&
+    env.GITHUB_REF==='refs/heads/main'&&env.GITHUB_JOB==='verify'&&/^[1-9][0-9]*$/.test(env.GITHUB_RUN_ID||'')&&
     ['1','2'].includes(env.GITHUB_RUN_ATTEMPT)&&sha(env.GITHUB_SHA)&&id(Number(env.GITHUB_RUN_ID)),'untrusted_verification_context');
   const c={sha:env.GITHUB_SHA,deploy:Number(env.GITHUB_RUN_ID)};
   const get=path=>api('GET','/repos/'+REPOSITORY+path);
@@ -350,6 +350,7 @@ async function selectRecoveryRuns(snapshot,c,get) {
   return {...snapshot,total_count:selected.length,workflow_runs:selected};
 }
 function stageStatus(env) {
+  requireValue(['1','2'].includes(env.SMOKE_ATTEMPT)&&['1','2'].includes(env.DIAGNOSTICS_ATTEMPT),'invalid_status_attempt');
   requireValue(sha(env.GITHUB_SHA)&&id(Number(env.GITHUB_RUN_ID))&&['1','2'].includes(env.GITHUB_RUN_ATTEMPT),'invalid_status_context');
   const outcome=(key)=>env[key+'_OUTCOME']==='success'||env[key+'_ACCEPTED']==='success'?'success':'failure';
   return {schema:2,sha:env.GITHUB_SHA,run_id:env.GITHUB_RUN_ID,install_attempt:1,
