@@ -29,12 +29,17 @@ if(!symlink($repo.'/services',$dir.'/services')||!symlink($repo.'/manager/lib',$
     ||!copy($repo.'/manager/assigned-value.php',$dir.'/manager/assigned-value.php'))exit(2);
 $pdo=new ModeledDeliveryRouteFixturePDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 deliveryRegistrySchema($pdo);
+if($view==='forecast-payments')forecastPaymentFixtureSchema($pdo);
 $now=time();
 $zone=new DateTimeZone('Europe/Kaliningrad');
 $eventAt=$case==='admin_previous_day'
     ?(new DateTimeImmutable('@'.$now))->setTimezone($zone)->setTime(0,0)->getTimestamp()-60
     :$now-60;
 deliveryRegistryFixtureEvent($pdo,101,1,$eventAt,['name'=>'Синтетический турист: проверка доступа']);
+if($view==='forecast-payments'){
+    $subject=['project_key'=>'anytour','platform'=>'telegram','customer_key'=>'101','conversation_id'=>'101'];
+    forecastPaymentFixtureSave($pdo,forecastPaymentFixtureWrapper($subject,$eventAt,$eventAt-100));
+}
 foreach(['manager_projects','projects','managers']as$table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
 $pdo->exec('CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,display_name TEXT,is_active INTEGER)');
 $pdo->exec("INSERT INTO projects VALUES(1,'anytour','AnyTour',1),(2,'other','Other',1)");

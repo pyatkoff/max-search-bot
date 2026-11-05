@@ -133,9 +133,12 @@ foreach(['reconciliation','forecast-payments']as$analyticsView){
         $result=$matched?json_decode($match[1],true):null;
         $check($exit===0&&$matched&&($result['status']??null)===$expected
             &&($result['unchanged']??false)===true&&$errors==='','new private GET route: '.$analyticsView.' / '.$case);
-        if(in_array($case,['admin','admin_previous_day'],true))
+        if(in_array($case,['admin','admin_previous_day'],true)){
             $check(str_contains($body,'Закрытый просмотр')&&str_contains($body,'method="get"'),'new owner view is composed by its real read-only endpoint: '.$analyticsView.' / '.$case);
-        else $check(!str_contains($body,'1 250 ₽')&&!str_contains($body,'Синтетический турист: проверка доступа'),'new denied owner view releases no fixture records: '.$analyticsView.' / '.$case);
+            if($analyticsView==='forecast-payments')
+                $check(str_contains($body,'Синтетический турист: проверка доступа')&&str_contains($body,'оценка v1')
+                    &&!str_contains($body,'Сопоставление сейчас недоступно'),'real owner route renders an admitted saved early forecast: '.$case);
+        }else $check(!str_contains($body,'1 250 ₽')&&!str_contains($body,'Синтетический турист: проверка доступа'),'new denied owner view releases no fixture records: '.$analyticsView.' / '.$case);
     }
 }
 
