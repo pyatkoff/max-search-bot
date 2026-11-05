@@ -1,0 +1,59 @@
+{
+  "operation": "commercial-batch-20261105-54-primary-preparation1",
+  "state": "CLOSED_ONE_GENUINELY_NEW_OFFICIAL_GALLERY_403_NO_MEDIA_OR_DELIVERY",
+  "run_id": 42104501073,
+  "job_id": 127515638021,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42104501073",
+  "source_sha": "6e650b856393fe1291cd9a9071c59e75626ced73",
+  "authenticated_artifact_id": 13451750597,
+  "native_ids": [
+    74258
+  ],
+  "metadata_files_compared_before_http": 58,
+  "new_owner_http_gets": 1,
+  "old_source_repeats": 0,
+  "readable_identity_bound_pages": 0,
+  "declared_photo_references": 0,
+  "new_input_cases": 11,
+  "old_parser_fixtures_rerun": 0,
+  "photo_gets": 0,
+  "server_calls": 0,
+  "provider_calls": 0,
+  "canva_transactions": 0,
+  "new_posts": 0,
+  "new_material_pairs": 0,
+  "ready_for_send": 0,
+  "source_results": [
+    {
+      "native_hotel_id": 74258,
+      "source_url": "https://casacook.com/our-hotels/casa-cook-el-gouna/gallery/",
+      "http_status": 403,
+      "state": "DEFERRED_NO_RETRY_OR_ALTERNATE_PATH_HOST_QUERY_BYPASS"
+    }
+  ],
+  "original_log_closed": true,
+  "original_result_consumed": true,
+  "retained_metadata_review": {
+    "native_ids": [
+      1260,
+      27349,
+      108942
+    ],
+    "scope": "ONLY_UNCONSUMED_IMAGE_MEMBERSHIP_METADATA_FROM50_51_NO_RAWPHOTOS_OR_OLD_PIXEL_REVIEW",
+    "outcome": "UNCONSUMED_REFS_ARE_ROOM_VILLA_POOL_CHILDREN_INDOOR_SPA_OR_BRAND_DETAILS_NO_NEW_WHOLE_COMPLEX_HERO_PROOF",
+    "raw_photo_exclusions_unchanged": {
+      "urls": 289,
+      "decoded_basenames": 288
+    }
+  },
+  "publication_status": {
+    "native_hotel_id": 74258,
+    "original_registry_counts": "NOT_PRESENT_PRESERVED_AS_NULL",
+    "publication_eligibility": "UNVERIFIED_NO_SEND"
+  },
+  "counts_unchanged": {
+    "materials": 161,
+    "prices": 85,
+    "links": 155
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "operation": "commercial-batch-20261105-55-primary-preparation1",
+  "state": "RETAINED_NATIVE_SCOPE_PUBLIC_OWNER_READ_ONLY_NOT_CURRENT_PUBLICATION_AUTHORIZATION",
+  "native_identities": [
+    {
+      "hotel_id": 102031,
+      "name": "STEIGENBERGER NILE PALACE LUXOR",
+      "country_id": 1,
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "publication_eligibility": "CURRENT_PUBLICATION_PROOF_REQUIRED_BEFORE_SEND",
+      "provenance": {
+        "inventory": "commercial-stock-20261105-51-inventory.json",
+        "inventory_ref": "ed3b9ce311ce77b229e0a0b85cb1c138049530d1",
+        "exact_candidate_sha256": "37731c617fe6e9cea7d16ca991215d090c648bcf86f5ef98929e331d2e9c5bf5"
+      }
+    }
+  ]
+}

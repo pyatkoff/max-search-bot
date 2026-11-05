@@ -1,0 +1,66 @@
+{
+  "operation": "commercial-batch-20261105-55-primary-preparation1",
+  "sources": [
+    {
+      "hotel_id": 102031,
+      "url": "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+      "declared_url": "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+      "owner_host": "hrewards.com",
+      "identity_tokens": [
+        "steigenberger",
+        "nile",
+        "palace",
+        "luxor"
+      ],
+      "native_country_id": 1,
+      "group": 0,
+      "discovery_query": "\"Steigenberger Nile Palace Luxor\" official gallery",
+      "discovery_title": "Steigenberger Nile Palace - Luxor | H Rewards",
+      "discovery_proof": "public_primary_official_property_search_result"
+    }
+  ],
+  "native_scope_file": "commercial-batch-20261105-55-native-scope.json",
+  "native_ids": [
+    102031
+  ],
+  "closed_source_exclusions": [
+    "https://papillon.com.tr/en/papillon-belvil/",
+    "https://papillon.com.tr/en/papillon-zeugma/",
+    "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+    "https://papillon.com.tr/en/papillon-ayscha/",
+    "https://www.papillon.com.tr/en/papillon-belvil/",
+    "https://www.papillon.com.tr/EN/papillon-zeugma-relaxury",
+    "https://kayahotels.com/en/oteller/kaya-belek",
+    "https://www.kayapalazzohotels.com/en/",
+    "https://www.titanic.com.tr/titanic-deluxe-golf-belek",
+    "https://www.cullinanhotels.com/",
+    "https://www.maxxroyal.com/Maxx-Royal-Kemer",
+    "https://www.maxxroyal.com/maxx-royal-bodrum",
+    "https://www.ichotels.com.tr/tr/iletisim",
+    "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/plaj-havuzlar/",
+    "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/mini-club/",
+    "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/futbol/",
+    "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/spa-wellness/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+    "https://www.adalyahotels.com/en/our-hotels/",
+    "https://www.melashotels.com/en/melas-lara-hotel",
+    "https://www.melashotels.com/en/melas-resort-hotel",
+    "https://www.melashotels.com/en",
+    "https://www.elitabeachresort.com/",
+    "https://www.kumkoybeachresort.com/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+    "https://www.melashotels.com/en/club-melas-prive",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/beaches-pools/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+    "https://www.melashotels.com/en/melas-lara-hotel/gallery",
+    "https://threecorners.com/red-sea/sea-beach-resort/",
+    "https://braykaresorts.com/royal-brayka-resort/overview",
+    "https://www.tropitelhotels.com/tropitel-dahab-oasis",
+    "https://www.hilton.com/en/hotels/luxhitw-hilton-luxor-resort-and-spa/",
+    "https://casacook.com/our-hotels/casa-cook-el-gouna/gallery/"
+  ],
+  "publication_eligible": false
+}

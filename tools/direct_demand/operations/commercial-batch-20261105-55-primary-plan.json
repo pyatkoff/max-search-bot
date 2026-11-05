@@ -1,0 +1,52 @@
+{
+  "operation": "commercial-batch-20261105-55-primary-preparation1",
+  "state": "ONE_OFFICIAL_NILE_PALACE_POINTER_AFTER_CASA403_CLOSED_NO_ALTERNATE_CASA_ACCESS",
+  "goal": "Inspect the exact official NilePalace property pointer only if it is genuinely new after all canonical closed-metadata checks; obtain declared property photo references.",
+  "source": {
+    "hotel_id": 102031,
+    "url": "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+    "declared_url": "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+    "owner_host": "hrewards.com",
+    "identity_tokens": [
+      "steigenberger",
+      "nile",
+      "palace",
+      "luxor"
+    ],
+    "native_country_id": 1,
+    "group": 0,
+    "discovery_query": "\"Steigenberger Nile Palace Luxor\" official gallery",
+    "discovery_title": "Steigenberger Nile Palace - Luxor | H Rewards",
+    "discovery_proof": "public_primary_official_property_search_result"
+  },
+  "native_scope_file": "commercial-batch-20261105-55-native-scope.json",
+  "source_index_file": "commercial-batch-20261105-55-source-index.json",
+  "bounds": {
+    "new_owner_groups": 1,
+    "max_owner_gets": 1,
+    "max_parallel": 1,
+    "new_input_cases": 11,
+    "old_fixtures": 0,
+    "server_calls": 0,
+    "provider_calls": 0,
+    "photo_gets": 0,
+    "canva_transactions": 0,
+    "new_posts": 0
+  },
+  "criteria": [
+    "Native102031 exact name/country1/active1 and originalTG/MAXregistry0 are retained observations, not freshregistryquery or permissiontosend. Current publication proof mandatory beforefuturematerial.",
+    "Dedup all addressed canonical source-index andprimary-plan metadata BEFOREoneHTTP; oldexactURL/www/trailingslashvariantsget0.",
+    "Only exact search-returned officialhrewardsURL. No fakeeg-luxorOTAwebsite; no redirects/retry/alternatehost-query-path/cookieheaderbypass.",
+    "Casa74258newgallery403 isclosed; this differentpropertyisnotretryoralternateCasaaccess. Hilton102774403remainsclosed.",
+    "Raw source text/refs onlyauthartifact, safeconsoleSHA/count/status; no oldacceptedphoto/log/fixture reinspection. Wholecomplexhero+2propertyphotos+rights stillrequired beforeCanva."
+  ],
+  "risks": [
+    "Officialrootmayalreadybeclosed or403; thendeferwithoutrepeat.",
+    "Pageassetsmaybegeneric/shared/onlypooldetail, no implicitrights orheroproof."
+  ],
+  "counts_unchanged": {
+    "materials": 161,
+    "prices": 85,
+    "links": 155
+  }
+}

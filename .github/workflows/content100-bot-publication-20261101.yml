@@ -1,4 +1,4 @@
-name: Inspect one newly declared Casa Cook gallery without provider or post access
+name: Inspect one official Nile Palace pointer after closed metadata dedup
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -9,9 +9,9 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  PRIMARY_SOURCE_INDEX_FILENAME: commercial-batch-20261105-54-source-index.json
-  EXPECTED_PRIMARY_SOURCE_INDEX_SHA256: 21f045b224b72745fd1d753e5d5749ce5e73a9241e23be4677fc22795653572e
-  EXPECTED_PRIMARY_NATIVE_SCOPE_SHA256: aaec42cca5a24be13995f589596074389d587603afda7100a9c771e742128241
+  PRIMARY_SOURCE_INDEX_FILENAME: commercial-batch-20261105-55-source-index.json
+  EXPECTED_PRIMARY_SOURCE_INDEX_SHA256: f1e7c534a0e5f6d11285270d061a7e32310a895e6cadf2cdd3391fdcce25f289
+  EXPECTED_PRIMARY_NATIVE_SCOPE_SHA256: cf5e651bf143fc8e0adf32f457f6fc257717608038bfceb57ac95281fdd411d4
 jobs:
   inspect:
     runs-on: ubuntu-latest
@@ -29,14 +29,14 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Check new scope and dedup metadata before one exact official gallery GET
+      - name: Check exact new Nile scope and dedup metadata before at most one GET
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-batch54.py
+        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-batch55.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: commercial-batch54-primary-${{ matrix.media_group }}
+          name: commercial-batch55-primary-${{ matrix.media_group }}
           path: |
             public-media-sources.json
             public-media-sources-summary.json
