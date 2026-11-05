@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-manual1-pass2-two-copy",
+  "state": "FROZEN_TWO_PRICE_AND_SEARCH_LINK_OFFERS_PREPARED_NOT_YET_SENT",
+  "run": 41991006115,
+  "job": 127122975378,
+  "source": "eaf9ff3dada95f546c18896205d2546f9722d01d",
+  "artifact": 13398575919,
+  "template_sha256": "c73d0ac77d7c23409c2c01532c070fbc415ad25ba06085b170fa2ffbdd789ba6",
+  "expected_source": "95dcf9893fb161b1e4fb52c02ad2d982604e7518",
+  "prepared_hotels": 2,
+  "price_hotel_ids": [
+    67910,
+    68323
+  ],
+  "search_link_hotel_ids": [
+    67910,
+    68323
+  ],
+  "whole_original_captions_preserved": true,
+  "utf16_units": [
+    664,
+    651
+  ],
+  "new_python_cases_per_hotel": 9,
+  "new_php_cases_per_hotel": 5,
+  "old_fixtures_rerun": 0,
+  "max_existing_content_edits": 4,
+  "new_posts": 0,
+  "new_gateway_calls": 0
+}

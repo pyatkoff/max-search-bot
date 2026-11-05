@@ -1,0 +1,37 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-manual1-pass2-two-copy",
+  "state": "FROZEN_TWO_READY_APPROVED_FOR_EXACT_FOUR_EXISTING_CONTENT_EDITS",
+  "goal": "Apply whole verified basket prices if accepted and hotel search links for67910/68323 using the two first quotes and actual current copy-only contexts.",
+  "context15_run": 41990234208,
+  "quote2_run": 41990592178,
+  "quote2_artifact": 13397523246,
+  "native_ids": [
+    67910,
+    68323
+  ],
+  "new_template_sha256": "c73d0ac77d7c23409c2c01532c070fbc415ad25ba06085b170fa2ffbdd789ba6",
+  "boundaries": {
+    "whole_old_caption_and_closing_preserved": true,
+    "photo_canonical_button_source_token_preserved": true,
+    "max_existing_content_edits": 4,
+    "new_posts": 0,
+    "new_gateway_calls": 0,
+    "new_source_searches": 0,
+    "old54_posts_touched": 0,
+    "old54_cases_rerun": 0
+  },
+  "criteria": [
+    "Strict fullbasket whole as received, real dated roundtrip/2A0/RUB/future/flags false/surcharges absent/fuel not added.",
+    "Native null-publisher/capture15/current photo-signature proof and actual search URL filters bind exactly.",
+    "Five NEW native PHP frame/null-publisher/native/link/caption cases plus current2 Python binding/closing cases; PHP lint.",
+    "Whole original caption fits1024; do not truncate.",
+    "Exact5key manifest approval and private intents before any actual edits. UNKNOWN original outcome first; no automatic retry.",
+    "Freeze exact approved manifests/scripts from the original pure preparation; no re-running unchanged9/5 cases. PHP-l still required.",
+    "All four actual existing post content edits and provider body-photo-button/source-token/version readbacks must be accepted before increasing price/link totals."
+  ],
+  "prepared_run": 41991006115,
+  "prepared_artifact": 13398575919,
+  "prepared_price_hotels": 2,
+  "prepared_link_hotels": 2,
+  "current_expected_source": "95dcf9893fb161b1e4fb52c02ad2d982604e7518"
+}
