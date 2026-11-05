@@ -1,0 +1,43 @@
+{
+  "operation": "commercial-price-monitor-20261105-normal674-quote-pass1",
+  "state": "PREPARED_SEVEN_GENUINELY_NEW_NORMAL_FINGERPRINT_QUOTES_NOT_ATTEMPTED",
+  "goal": "Obtain one existing flights/RUB response for each genuinely new normal674 retained hotel candidate after exact current canonical post proof.",
+  "source_run": 41982177052,
+  "read14_run": 41993389158,
+  "read14_artifact": 13398688427,
+  "current_context16_run": 41996008763,
+  "current_context16_artifact": 13400660789,
+  "exact_max_native_ids": [
+    157359,
+    1291,
+    1582,
+    27316,
+    3405,
+    1422,
+    78251
+  ],
+  "max_justified_gateway_calls": 7,
+  "source_window": {
+    "start": 1793861003,
+    "end_exclusive": 1793861528
+  },
+  "old_unique_consumed_fingerprints_excluded": 185,
+  "bounds": {
+    "source_searches": 0,
+    "old56_requotes": 0,
+    "old_read14_db_scope_repeats": 0,
+    "owned_post_GETs": 0,
+    "db_writes": 0,
+    "post_edits": 0,
+    "new_posts": 0,
+    "automatic_paid_retries": false
+  },
+  "criteria": [
+    "Current source main/healthy exact deployTLSdiagnostics/full21/host/clean/current registry version photo caption source token matches capture16.",
+    "Actual normal source persisted observation/search ID/window/native country/active/name/room/meal/2A0/RUB/future<=02Feb2027/72h and genuine fingerprint not in185.",
+    "Four NEW native/window/consumed-FP/caption cases for these7 inputs, PHP lint, old fixtures0.",
+    "Private individual intents before ANY gateway; one exact observation revalidation then one existing action=flights/RUB per admitted hotel, serial.",
+    "UNKNOWN original outcome stops; no alternate retained tuple or new-operation replay.",
+    "Wholebasket final price requires later independent real dated roundtrip/flags/surcharge/fuel gates; raw source/quote presence alone not availability."
+  ]
+}

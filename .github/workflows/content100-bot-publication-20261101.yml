@@ -1,4 +1,4 @@
-name: Bind seven genuinely new normal price candidates to exact current canonical post contexts
+name: Quote only seven genuinely new normal source candidates once with current canonical caption proof
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -64,26 +64,28 @@ jobs:
           path: ${{ runner.temp }}/read14
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-hotel-offer-update-20261105-manual1-prepared1
+          name: commercial-price-monitor-20261105-context16-new674-seven
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 41982673887
-          path: ${{ runner.temp }}/prior-offers
-      - name: Bind only seven new normal contexts including three current owned link blocks
+          run-id: 41996008763
+          path: ${{ runner.temp }}/context16
+      - name: Prepare only genuinely new normal quotes and validate four new input cases
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/prepare-new-normal674-current-contexts-20261105.py tools/direct_demand/operations/run-new-normal674-current-contexts-20261105.py
-          python3 tools/direct_demand/operations/prepare-new-normal674-current-contexts-20261105.py
-          php -l "$RUNNER_TEMP/context16.php"
-          ANYTOUR_CONTEXT16_NEW_BOUND_CASES=1 php "$RUNNER_TEMP/context16.php"
-      - name: Retain exact private canonical input before owned provider reads
+          python3 -m py_compile tools/direct_demand/operations/prepare-new-normal674-current-price-20261105-pass1.py tools/direct_demand/operations/run-new-normal674-current-price-20261105-pass1.py
+          python3 tools/direct_demand/operations/prepare-new-normal674-current-price-20261105-pass1.py
+          for script in "$RUNNER_TEMP"/price-normal674-pass1/*/quote.php; do
+            php -l "$script"
+            ANYTOUR_NORMAL674_QUOTE_NEW_INPUT_CASES=1 php "$script"
+          done
+      - name: Retain all individual private first quote intents before any gateway
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-context16-new674-seven-input
-          path: ${{ runner.temp }}/context16-input.private.json
+          name: commercial-price-monitor-20261105-normal674-quote-pass1-intents
+          path: ${{ runner.temp }}/price-normal674-pass1/all-quote-intents.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -124,7 +126,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Bind exact current canonical captions photos buttons and source for only seven new normal candidates
+      - name: Execute one existing flights RUB quote per genuinely new normal candidate serially
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -132,16 +134,19 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-new-normal674-current-contexts-20261105.py
-      - name: Retain only original private canonical contexts and safe bounded summary
+          python3 tools/direct_demand/operations/run-new-normal674-current-price-20261105-pass1.py
+      - name: Retain original private normal quote outcomes including partial or unknown results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-context16-new674-seven
+          name: commercial-price-monitor-20261105-normal674-quote-pass1
           path: |
-            ${{ runner.temp }}/context16-input.private.json
-            ${{ runner.temp }}/context16-readback.private.json
-            ${{ runner.temp }}/context16-summary.json
+            ${{ runner.temp }}/price-normal674-pass1/index.json
+            ${{ runner.temp }}/price-normal674-pass1/summary.json
+            ${{ runner.temp }}/price-normal674-pass1/*/quote-result.json
+            ${{ runner.temp }}/price-normal674-pass1/*/candidate.json
+            ${{ runner.temp }}/price-normal674-pass1/*/quote-intent.json
+            ${{ runner.temp }}/price-normal674-pass1/*/quote-attempt-started.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and read scripts
