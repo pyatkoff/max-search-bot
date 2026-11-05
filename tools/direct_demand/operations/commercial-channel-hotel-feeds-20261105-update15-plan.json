@@ -1,6 +1,6 @@
 {
   "operation": "commercial-channel-hotel-feeds-20261105-update15",
-  "state": "FROZEN_FOR_EXACT_THREE_STATIC_FILE_REPLACEMENT",
+  "state": "EXACT_FROZEN_THREE_FILE_WRITER_SUBMITTED_AFTER_NATIVE_MAX160",
   "goal": "Append only actually published PapillonZeugma1422 to allthreeexisting publicfeeds after realMAX160native installation.",
   "boundaries": [
     "Only three existing publicXML exports, previous159offerblocks/MAX159URLs byteidentical",
@@ -89,5 +89,6 @@
     }
   ],
   "native_new_append_cases": 3,
-  "unchanged_old_fixtures_rerun": 0
+  "unchanged_old_fixtures_rerun": 0,
+  "source_xml_commit": "e718c94b86452433adf6acc4ec8bc0adbcd13af0"
 }
