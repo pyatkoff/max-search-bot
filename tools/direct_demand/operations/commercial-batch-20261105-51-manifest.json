@@ -1,0 +1,68 @@
+{
+  "operation": "commercial-hotel-batch-20261105-51-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publishtheentireactualready1subset fromtenprovenunpublishedhotels inboth existingchannels withnativeacceptedCullinancover/unchangedwholecaption/canonicalbuttons.",
+  "boundaries": [
+    "OneexistingSERIALpublisher/registry/once/flock/fsync;onenativehotel/twoactualposts",
+    "Freshcurrent627/sameversionverify+deploy/TLS/currentdiagnostics/fullremote21/hostaccepted25/installedclean/schema/rights/live-dedup/UNKNOWNbeforeprovider",
+    "No pricecalls/manualcollector/ads/customerdata/Mac/newworker/controller or foreignreleasechanges",
+    "No holdready78251forothernineunreadyhotels"
+  ],
+  "criteria": [
+    "Exactnative78251country4/active/currentname/initialTG0MAX0 proof;newimmutable600x600734595PNG/wholemainroofline/grounds/logo/banner/title/nativebytesSHAaccepted/frozen/exactTXcancelled",
+    "Actualtwoexistingchannelbody-photo-button-sourceverifiedpostsorSTOP;UNKNOWNoriginalresolvefirst/nooperationbypass",
+    "WholecaptionBYTEIDENTICALretained49/50;noinferredgolf/free/privatevilla-price-availabilityclaims",
+    "OnlyACTUALnewpairthennewcanonicalread/MAX161alias/threefeedappend/monitor674;preparationnotdelivery"
+  ],
+  "risks": [
+    "Currentrelease/UNKNOWN/provideroutcomemismatchSTOPbeforefurtherwrites,noforeignfix/retry/newID",
+    "Livefeedsstill160/160/320untilactualnewcanonicalbinding/MAX161/install/feed16accepted",
+    "Prices32/manual121permissionpendingunchanged;publicationapprovalNOTmanualsourceapproval"
+  ],
+  "baseline_logical_materials": 160,
+  "button_text": "✈️ Узнать стоимость тура",
+  "rows": [
+    {
+      "hotel_id": 78251,
+      "hotel": "Cullinan Belek",
+      "key": "cullinan-belek",
+      "aliases": [
+        "CULLINAN BELEK (EX. CULLINAN GOLF RESORT BELEK)",
+        "Cullinan Belek"
+      ],
+      "sources": [
+        "https://www.cullinanhotels.com/",
+        "https://www.cullinanhotels.com/gallery"
+      ],
+      "text": "🏨 Cullinan Belek\n✈️ Тур с перелётом в Белек\n\n🌊 Собственный пляж с белым песком.\n🧒 Клуб Upupa для детей от 2 до 16 лет.\n♨️ Зимой часть бассейнов подогревают. Работа зависит от погоды.\n🧖 C'espace Spa и фитнес.\n\nНапишите город вылета, даты поездки и сколько вас человек.\n\n✈️ Узнать стоимость тура",
+      "logical_id": "commercial-cullinan-belek-78251-v1",
+      "text_sha256": "7c7dfbdd4e384ce34de1465f7ed57bf46570b216228d4c7b84c8f412ff4ff829",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/ef8fccca42e608229175e3fd928889e91f179482/.github/traffic-publish/commercial-batch-20261105-51/78251.png",
+      "photo_sha256": "d05d7ffb3c6f5f225027337f840f53a49cd91020363c5014af9bb17e55b18a27",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED"
+    }
+  ],
+  "ready_for_send_count": 1,
+  "new_posts": 0,
+  "provider_send_attempts": 0,
+  "content_and_cover_prepared_count": 1,
+  "approved_live_send_count": 0,
+  "public_png_frozen_count": 1,
+  "native_inspection_state": "ONE_NATIVE_600_PNG_VISUALLY_ACCEPTED_EXACT_TX_CANCELLED",
+  "native_inspection_run_urls": [
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41968724003",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41969036682",
+    "https://github.com/pyatkoff/max-search-bot/actions/runs/41969448408"
+  ],
+  "deferred": [
+    1420,
+    1421,
+    1253,
+    15904,
+    15913,
+    27349,
+    108942,
+    1260,
+    1217
+  ]
+}

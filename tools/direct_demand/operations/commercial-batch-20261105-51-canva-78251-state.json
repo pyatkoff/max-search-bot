@@ -1,0 +1,45 @@
+{
+  "operation": "commercial-batch-20261105-51-canva-78251",
+  "state": "CLOSED_NATIVE_COVER_ACCEPTED_FROZEN_EXACT_TRANSACTION_CANCELLED",
+  "transaction_id": "902367014632901527",
+  "design_id": "DAHZx_JlJEM",
+  "open_transactions": 0,
+  "source_roles": [
+    {
+      "cover_role": "whole_main_complex_hero",
+      "role": "h78251_new51_1",
+      "asset_id": "MAHaBP_AgJ4"
+    },
+    {
+      "cover_role": "lower_beach_pier",
+      "role": "h78251_new51_4",
+      "asset_id": "MAHaBLMCjRs"
+    },
+    {
+      "cover_role": "lower_pool_facade",
+      "role": "h78251_new51_3",
+      "asset_id": "MAHaBBdYfZU"
+    }
+  ],
+  "png": {
+    "kind": "cover",
+    "hotel_id": 78251,
+    "mime": "image/png",
+    "width": 600,
+    "height": 600,
+    "bytes": 734595,
+    "sha256": "d05d7ffb3c6f5f225027337f840f53a49cd91020363c5014af9bb17e55b18a27",
+    "file": "78251.png",
+    "chunks": 21
+  },
+  "freeze_commit": "ef8fccca42e608229175e3fd928889e91f179482",
+  "thumbnail_shown_in_chat": true,
+  "complete_main_roofline_and_grounds_visible": true,
+  "locked_original_logo_unchanged": true,
+  "fresh_logo_overlay_same_known_asset": true,
+  "permanent_save": false,
+  "reexport_or_reupload_after_close": false,
+  "provider_calls": 0,
+  "db_calls": 0,
+  "new_posts": 0
+}
