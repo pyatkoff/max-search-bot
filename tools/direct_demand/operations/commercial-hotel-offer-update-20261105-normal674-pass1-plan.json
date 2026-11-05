@@ -1,0 +1,49 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-normal674-pass1",
+  "state": "PURE_PREPARATION_NO_POST_EDITS_YET",
+  "goal": "Admit strict whole basket prices for7 new normal candidates and prepare finite serial existing post updates, replacing only exact previously owned link blocks for3 already linked hotels.",
+  "normal_source_run": 41982177052,
+  "read14_run": 41993389158,
+  "context16_run": 41996008763,
+  "quote_run": 41998126412,
+  "quote_artifact": 13401097973,
+  "exact_native_ids": [
+    157359,
+    1291,
+    1582,
+    27316,
+    3405,
+    1422,
+    78251
+  ],
+  "current_existing_link_owned_ids": [
+    1582,
+    27316,
+    3405
+  ],
+  "previously_unlinked_ids": [
+    157359,
+    1291,
+    1422,
+    78251
+  ],
+  "template_sha256": "1a5c2c00a82ab59833d74bc8d2cd86ba01eab5dcf31c5f9bda0b87ca668806a8",
+  "boundaries": {
+    "max_current_existing_content_edits": 14,
+    "new_posts": 0,
+    "new_gateway_calls": 0,
+    "new_source_searches": 0,
+    "unrelated_accepted56_posts_read_or_written": 0,
+    "provider_calls_in_preparation": 0,
+    "old54_2_native_fixtures_rerun": 0
+  },
+  "criteria": [
+    "Whole final basket as received/fuel not added/2A0RUB/real dated roundtrip/noSU000/noPlacesfalse/onDemandfalse/all inclusion flags false/surcharges absent.",
+    "For3 current link-only blocks bind prior own operation/manifest/current whole caption hash/exact base hotel text/exact added block and canonical once confirmed current receipt. Recompose from original base and new owned block; never generic replace or duplicate old links.",
+    "Preserve full hotel description/closing/photo/canonical button/source/token/logical publication. Existing linked hotels cannot lose their link for a price-only fallback.",
+    "Skip identical current link-only content without an edit; no manufactured update count.",
+    "Eight NEW Python binding/base/owned-block/link cases plus six NEW native role/frame/native/base/block/link cases per ready hotel and PHP lint. Old fixtures0.",
+    "Freeze exact5key approvals/manifests/scripts; actual writes only after independently fresh current healthy deployTLSdiagnostics/full21/host/clean/schema/rights, private intents before provider, once ledger/UNKNOWN-original-outcome-first.",
+    "All original7 quoted contexts and all14 retained rows are now conservatively consumed, including78251 declared error. No repeat/alternate tuple."
+  ]
+}
