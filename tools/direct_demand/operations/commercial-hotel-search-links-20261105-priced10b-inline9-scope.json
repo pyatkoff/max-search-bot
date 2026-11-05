@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "operation": "commercial-hotel-search-links-20261105-context26-priced-inline9",
+  "update_operation": "commercial-hotel-search-links-20261105-priced10b-inline9-pass1",
+  "native_hotel_ids": [
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264
+  ],
+  "projection_native_ids": [
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264
+  ],
+  "projection_operation": "commercial-hotel-search-links-20261105-priced10b-original-projection1",
+  "role": "current_confirmed_own_price_manifest_and_receipt",
+  "expected_linked_count": 134,
+  "expected_priced_count": 85,
+  "expected_published_pairs": 161,
+  "max_hotels": 9,
+  "max_owned_max_reads": 9,
+  "prior_price_operations": {
+    "163": "commercial-price-update-20261104-72h-pass1-h163-v1",
+    "245": "commercial-price-update-20261104-72h-pass1-h245-v1",
+    "260": "commercial-price-update-20261104-72h-pass1-h260-v1",
+    "264": "commercial-price-update-20261104-72h-pass1-h264-v1",
+    "278": "commercial-price-update-20261104-72h-pass1-h278-v1",
+    "281": "commercial-price-update-20261104-72h-pass1-h281-v1",
+    "293": "commercial-price-update-20261104-72h-pass1-h293-v1",
+    "393": "commercial-price-update-20261104-72h-pass1-h393-v1",
+    "465": "commercial-price-update-20261104-72h-pass1-h465-v1"
+  },
+  "presets": {
+    "departure_id": 1,
+    "adults": 2,
+    "children": 0,
+    "currency": "RUB",
+    "departure_date_from": "2026-11-06",
+    "departure_date_to": "2026-11-12",
+    "nights_from": 5,
+    "nights_to": 14
+  },
+  "capture_native_entities_before_first_owned_get": true,
+  "new_native_cases": 14,
+  "new_python_actual_scope_cases": 7,
+  "noquote": true,
+  "bounds": {
+    "gateway": 0,
+    "db_writes": 0,
+    "provider_post_reads": 9,
+    "edits": 0
+  },
+  "context_reader_filename": "read-priced-hotel-inline-contexts-20261105-small1.php",
+  "context_reader_sha256": "af212d45249a916c72e19d0857ae4e0df48c4cd9bbdfe82bfdbaad93c567dde9",
+  "scope_filename": "commercial-hotel-search-links-20261105-priced10b-inline9-scope.json",
+  "update_hotel_operation_prefix": "commercial-hotel-search-links-20261105-priced10b-h",
+  "update_hotel_operation_suffix": "-v1"
+}

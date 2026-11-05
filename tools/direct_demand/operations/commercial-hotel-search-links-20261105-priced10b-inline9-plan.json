@@ -1,0 +1,43 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced10b-inline9-pass1",
+  "state": "PREPARE_NINE_FROZEN_NATIVE_INLINE_PRICE_LINKS_NO_PROVIDER_ACCESS",
+  "goal": "Add native inline search hyperlink to original existing amount without changing text, price/check metadata, entities/photo/button/source/token.",
+  "scope_filename": "commercial-hotel-search-links-20261105-priced10b-inline9-scope.json",
+  "scope_sha256": "c145da757b5c2138d92d96299ef8a4bb67b0a5541c2cf8b9e174643875b32acc",
+  "hotel_ids": [
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264
+  ],
+  "context_run": 42090970270,
+  "context_artifact": 13445176734,
+  "context_source_sha": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "expected_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "template": "update-priced-hotel-inline-price-search-link-20261105.php",
+  "template_sha256": "aaf6cbe778fc4ba1fdeaedb7cfa0c1d6b25fb89aaf0e4f2e130fbff9103d55b0",
+  "bounds": {
+    "max_prepared_hotels": 9,
+    "max_future_existing_content_edits": 18,
+    "provider_calls": 0,
+    "db_calls": 0,
+    "quote_calls": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "price_edits": 0
+  },
+  "criteria": [
+    "Only NEW nine original current-context rows; preserve current text byte-identically and all native entities; unsupported MAX format or conflicting/ambiguous price anchor closes no-edit.",
+    "4NEW Python +9NEW native PHP cases for EACH NEW prepared hotel; old fixtures0/contextcasesnotrerun.",
+    "Freeze manifest/frame/script/exact5keyapproval/intent, all references declared; NOQUOTE never invents quoteSHA/epoch/index/amount.",
+    "Do not hold ready supported hotels for deferred hard cases; actual updater execution separately requires fresh same-source healthy full21/accepted25 host/clean/native/schema/once."
+  ],
+  "risks": [
+    "Some current owner formatting may require deferral; no text simplification or flattening is authorized."
+  ]
+}
