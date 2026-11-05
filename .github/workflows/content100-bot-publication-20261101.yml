@@ -1,22 +1,18 @@
-name: Inspect11 different owner declared photographs for three proven stock41 hotels
+name: View only two original photo49 hero candidates at native resolution without requests
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    strategy:
-      fail-fast: false
-      max-parallel: 2
-      matrix:
-        media_group: [0,1,2]
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,21 +21,19 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Inspect only fixed public owner material without server calls
-        env:
-          MEDIA_GROUP: ${{ matrix.media_group }}
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq python3-pil
-          python3 -m py_compile tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
-          python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261103-20.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          name: commercial-batch49-contact-${{ matrix.media_group }}
-          path: |
-            primary-image-inspection.json
-            contact.png
-            accepted-primary-raw
-          retention-days: 14
-          if-no-files-found: error
+          name: commercial-batch49-contact-0
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41959091900
+          path: ${{ runner.temp }}/photo49-belvil
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-batch49-contact-1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41959091900
+          path: ${{ runner.temp }}/photo49-zeugma
+      - name: Read only exact two original role files and emit original native bytes
+        run: python3 tools/direct_demand/operations/view-native-photo49-hero-candidates-20261105.py
