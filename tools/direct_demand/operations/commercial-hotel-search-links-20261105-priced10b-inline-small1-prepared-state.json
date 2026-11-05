@@ -1,0 +1,25 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced10b-inline-small1-pass1",
+  "state": "CLOSED_ONE_FROZEN_NATIVE_INLINE_LINK_READY_AND_ACTUALLY_CONSUMED",
+  "native_hotel_ids": [
+    57028
+  ],
+  "run": 42086454851,
+  "job": 127452752530,
+  "source": "6f85077f0265e9693df8a3663420c325b8d5e0bd",
+  "installed_frame_source": "446531f0ae40e14a7cf8b08fb7ae3beba770630d",
+  "artifact": 13443196663,
+  "artifact_name": "commercial-hotel-search-links-20261105-priced10b-inline-small1-prepared1",
+  "ready": 1,
+  "deferred": 0,
+  "new_python_cases": 4,
+  "new_native_cases": 9,
+  "php_l": 1,
+  "old_fixtures": 0,
+  "caption_utf16": 652,
+  "caption_text_byte_identical": true,
+  "template_sha256": "aaf6cbe778fc4ba1fdeaedb7cfa0c1d6b25fb89aaf0e4f2e130fbff9103d55b0",
+  "server_db_provider_calls": 0,
+  "consumed_by_actual_run": 42087863889,
+  "all_original_cases_logs_results_closed": true
+}

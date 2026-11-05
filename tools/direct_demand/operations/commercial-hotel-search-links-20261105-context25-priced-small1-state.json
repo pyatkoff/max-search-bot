@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context25-priced-small1",
+  "state": "CLOSED_ONE_CURRENT_PRIOR_PRICE_NATIVE_ENTITY_CONTEXT_NO_WRITES",
+  "native_hotel_ids": [
+    57028
+  ],
+  "run": 42084757556,
+  "job": 127446763755,
+  "source": "f62c031a8a2a5b34b7bf6c465fc9cb8294a385be",
+  "installed_sha": "446531f0ae40e14a7cf8b08fb7ae3beba770630d",
+  "capture_source_sha": "446531f0ae40e14a7cf8b08fb7ae3beba770630d",
+  "input_artifact": 13441759924,
+  "input_created_at": "2026-11-05T18:29:55Z",
+  "result_artifact": 13441148750,
+  "result_created_at": "2026-11-05T18:30:00Z",
+  "private_input_before_server": true,
+  "accepted": 1,
+  "deferred": 0,
+  "canonical_price_journals": 1,
+  "owned_max_gets": 1,
+  "channel_rights": 2,
+  "native_entities_retained": true,
+  "full_remote21_accepted25_clean_native_schema": true,
+  "new_native_cases": 14,
+  "new_python_cases": 3,
+  "old_fixtures": 0,
+  "db_writes": 0,
+  "provider_writes": 0,
+  "gateway": 0,
+  "edits": 0,
+  "all_original_reads_logs_results_closed_no_reinspection": true,
+  "consumed_by_actual_run": 42087863889
+}

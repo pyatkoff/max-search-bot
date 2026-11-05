@@ -1,0 +1,26 @@
+{
+  "operation": "commercial-current-source-20261105-43564-for-inline1",
+  "state": "CLOSED_ACCEPTED_CURRENT_SOURCE_FOR_ACTUAL_INLINE_PAIR",
+  "sha": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "deploy": 42086175128,
+  "tls": 42087050345,
+  "diag": 42087050374,
+  "source_tree_recorded_in_original_verified_source": true,
+  "accepted_execution_run": 42087863889,
+  "full_remote21": true,
+  "accepted_host25_byte_identical": true,
+  "installed_clean": true,
+  "runtime_native_schema_rights": true,
+  "frozen_source": "446531f0ae40e14a7cf8b08fb7ae3beba770630d",
+  "reviewed_independent_delta_paths": [
+    "docs/ARCHIVE_RESEARCH_LABELS_V1.md",
+    "services/ArchiveResearchReadService.php",
+    "services/ArchiveResearchSemanticExtractor.php",
+    "tests/run_archive_research_read_regression.php",
+    "tests/run_archive_research_semantic_regression.php",
+    "tests/run_modeled_conversion_early_forecast_regression.php"
+  ],
+  "publishing21_unchanged": true,
+  "no_foreign_release_mutation": true,
+  "future_always_fresh_current_main_same_healthy_gates": true
+}
