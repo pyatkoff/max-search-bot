@@ -61,7 +61,7 @@ check(not aggregate.get('continue-on-error', False), 'aggregate cannot hide admi
 check(aggregate.get('permissions') == {'contents': 'read', 'pull-requests': 'read'}, 'release admission cannot mutate GitHub state')
 check(admission.get('env', {}).get('GITHUB_TOKEN') == '${{ secrets.GITHUB_TOKEN }}', 'admission uses only the built-in read capability')
 checkout = next(s for s in aggregate['steps'] if s.get('uses') == 'actions/checkout@v4')
-check(aggregate['steps'].index(checkout) < aggregate['steps'].index(admission) and checkout.get('with', {}).get('persist-credentials') is False, 'admission reads checked source without persisted credentials')
+check(aggregate['steps'].index(checkout) < aggregate['steps'].index(admission) and checkout.get('with', {}).get('persist-credentials') is False, 'admission reads checked source without persisted token')
 check(set(visual['screenshots']['needs']) == {'change-scope','full-screenshots','oauth-browser','tour-browser'}, 'visual aggregate must await all profile branches')
 for name in ['regression-tests.yml','workspace-v2-visual-qa.yml','workspace-sound.yml','channel-post-context.yml']:
     check(load(name)['jobs']['change-scope']['uses'] == './.github/workflows/ci-change-scope.yml', name + ' must use canonical selector')
@@ -70,8 +70,20 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
         check(load(name)['jobs'][job]['if'] == "needs.change-scope.outputs.mode == 'full'", name + '/' + job + ' must require full mode')
         check('change-scope' in load(name)['jobs'][job]['needs'], name + '/' + job + ' must await selector')
 for job in ['required','prepared-mysql']:
-    check(regression[job]['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'selection retains full backend and MySQL: '+job)
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
+check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
+check(regression['prepared-mysql']['if'] == "needs.change-scope.outputs.mode == 'full' || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
+expected_exclude = "${{ fromJSON(needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style' && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || '[]') }}"
+check(regression['required']['strategy']['matrix'] == {
+    'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
+    'styling excludes exactly four unchanged server groups; other profiles keep all five')
+check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
+scope_document = load('ci-change-scope.yml')
+scope_events = scope_document.get('on',scope_document.get(True))
+check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.scope.outputs.backend }}'
+      and scope_document['jobs']['scope']['outputs']['backend'] == '${{ steps.scope.outputs.backend }}',
+      'backend profile is bound through the canonical scope job')
+check('node tests/check_ci_selection_style_scope.js' in policy['run'], 'style selector selftests are mandatory')
 check("needs.change-scope.outputs.mode == 'full'" in visual['browser-tests']['if'], 'full browser assembler must not run after OAuth-only skips')
 check(set(visual['full-screenshots']['needs']) == {'browser-tests','firefox-history','firefox-notifications'}, 'full screenshot proof preserves all engines and Firefox')
 check(visual['oauth-browser']['strategy']['matrix']['browser'] == ['chromium','webkit'], 'OAuth requires both browser engines')
@@ -179,7 +191,7 @@ for value in ['123','', '0','01','1,2','foreign','-1']:
     check((result==0)==(value=='123'),'plan artifact ID guard rejected wrong value: '+value)
 for mode in ['oauth','full','tour-selection','', 'invalid']:
     full_backend=mode in ['full','tour-selection']
-    valid = dict(CI_MODE=mode,SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',REQUIRED_RESULT='success' if full_backend else 'skipped',PREPARED_MYSQL_RESULT='success' if full_backend else 'skipped',OAUTH_RESULT='success' if mode=='oauth' else 'skipped')
+    valid = dict(CI_MODE=mode,BACKEND_PROFILE='full',SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',REQUIRED_RESULT='success' if full_backend else 'skipped',PREPARED_MYSQL_RESULT='success' if full_backend else 'skipped',OAUTH_RESULT='success' if mode=='oauth' else 'skipped')
     cases=[valid]
     for key in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
         for value in ['success','failure','skipped','cancelled']:
@@ -187,6 +199,27 @@ for mode in ['oauth','full','tour-selection','', 'invalid']:
     for env in cases:
         expected = env['SCOPE_RESULT'] == env['INVENTORY_RESULT'] == env['SYNTAX_RESULT'] == 'success' and ((mode == 'oauth' and env['OAUTH_RESULT'] == 'success' and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == 'skipped') or (full_backend and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == 'success' and env['OAUTH_RESULT'] == 'skipped'))
         check(gate_passes(regression['regression'],env,'Require every gate') == expected, 'regression gate accepted wrong results: ' + str(env))
+# Exercise the actual aggregate, including absent/foreign profile results.
+style_valid = dict(CI_MODE='tour-selection',BACKEND_PROFILE='selection-style',
+    SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',
+    REQUIRED_RESULT='success',PREPARED_MYSQL_RESULT='skipped',OAUTH_RESULT='skipped')
+check(gate_passes(aggregate,style_valid,'Require every gate'),'audited styling baseline passes')
+for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
+    for value in ['success','failure','skipped','cancelled','timed_out','']:
+        check(gate_passes(aggregate,{**style_valid,field:value},'Require every gate') == (value == style_valid[field]),
+              'styling gate cannot hide a missing or incorrect result: '+field+'='+value)
+for mode,profile in itertools.product(['oauth','full','tour-selection','','unknown'],['selection-style','full','','unknown']):
+    check(gate_passes(aggregate,{**style_valid,'CI_MODE':mode,'BACKEND_PROFILE':profile},'Require every gate')
+          == (mode == 'tour-selection' and profile == 'selection-style'),
+          'a styling result cannot certify another or missing profile')
+for mode in ['full','tour-selection','oauth']:
+    backend = mode != 'oauth'
+    full_valid = dict(CI_MODE=mode,SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',
+        REQUIRED_RESULT='success' if backend else 'skipped',PREPARED_MYSQL_RESULT='success' if backend else 'skipped',
+        OAUTH_RESULT='skipped' if backend else 'success')
+    for profile in ['', 'unknown', 'selection-style']:
+        check(not gate_passes(aggregate,{**full_valid,'BACKEND_PROFILE':profile},'Require every gate'),
+              'full/OAuth results need their exact declared profile')
 for mode,scope,full,oauth in itertools.product(['oauth','full','','invalid'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled']):
     env=dict(CI_MODE=mode,SCOPE_RESULT=scope,FULL_RESULT=full,OAUTH_RESULT=oauth,TOUR_RESULT='skipped',TOUR_PROOF='false')
     expected=scope=='success' and ((mode=='oauth' and oauth=='success' and full=='skipped') or (mode=='full' and full=='success' and oauth=='skipped'))

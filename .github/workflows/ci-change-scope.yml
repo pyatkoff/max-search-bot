@@ -9,6 +9,9 @@ on:
       tour-proof:
         description: Also commission the scoped tour runner when its CI rules change
         value: ${{ jobs.scope.outputs.tour-proof }}
+      backend:
+        description: Full server coverage or audited selection styling only
+        value: ${{ jobs.scope.outputs.backend }}
 
 permissions:
   contents: read
@@ -20,6 +23,7 @@ jobs:
     outputs:
       mode: ${{ steps.scope.outputs.mode }}
       tour-proof: ${{ steps.scope.outputs.tour-proof }}
+      backend: ${{ steps.scope.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,9 +36,17 @@ jobs:
         run: |
           node tests/run_ci_change_scope_regression.js
           node tests/check_ci_public_manifest_scope.js
+          node tests/check_ci_selection_style_scope.js
           node tests/run_oauth_browser_report_regression.js
           python3 -m pip install --disable-pip-version-check PyYAML==6.0.2
           python3 tests/check_ci_workflow_scopes.py
       - name: Select from the complete base and head diff
         id: scope
-        run: node tools/ci_change_scope.js
+        run: |
+          result="$(node tools/ci_change_scope.js)"
+          printf '%s\n' "$result"
+          CI_SCOPE_RESULT="$result" node -e '
+            const result = JSON.parse(process.env.CI_SCOPE_RESULT);
+            const backend = result.mode === "tour-selection" && result.backend === "selection-style" ? "selection-style" : "full";
+            require("node:fs").appendFileSync(process.env.GITHUB_OUTPUT, `backend=${backend}\n`);
+          '
