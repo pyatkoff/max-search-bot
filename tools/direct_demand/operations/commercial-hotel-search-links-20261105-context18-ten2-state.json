@@ -26,7 +26,7 @@
   "bound_hotels": 10,
   "deferred": [],
   "deferred_before_server": [],
-  "state": "ORIGINAL10_CANONICAL_BINDINGS_COMPLETED_FINAL_METADATA_FAILED_PENDING_PURE_ORIGINAL_ARTIFACT_VALIDATION",
+  "state": "CLOSED_ORIGINAL10_CANONICAL_BINDINGS_ADMITTED_BY_EXACT_OFFLINE_FINAL_METADATA_PROOF_NO_READ_REPLAY",
   "run": 42012518360,
   "job": 127194829064,
   "source": "182d52db6fd9538221440506380f7ea3ce1cb564",
@@ -40,5 +40,16 @@
   "all_original_reads_closed_do_not_repeat": true,
   "provider_writes": 0,
   "new_native_scope_cases_passed": 3,
-  "old_fixtures": 0
+  "old_fixtures": 0,
+  "offline_validation_run": 42013766459,
+  "offline_validation_job": 127199021910,
+  "offline_validation_artifact": 13407943212,
+  "offline_validation_source": "3dc9959d1d67d472e016cb1a813e4b1ebb7991c0",
+  "all10_original_input_frame_and_ownedproof_consistency_verified_offline": true,
+  "original_result_not_relabelled_success": true,
+  "original_metadata_failure_pending": false,
+  "new_server_or_provider_capture_calls": 0,
+  "future_metadata_constant_fixed": true,
+  "new_native_metadata_cases": 2,
+  "actual_ten2_update_run": 42014172884
 }

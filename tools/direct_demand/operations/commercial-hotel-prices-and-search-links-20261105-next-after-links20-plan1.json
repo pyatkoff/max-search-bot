@@ -1,0 +1,118 @@
+{
+  "operation": "commercial-hotel-prices-and-search-links-20261105-next-after-links20-plan1",
+  "state": "NO_ACTIVE_PROVIDER_OPERATION_NO_READY_PRICE_EDITS_OR_NEW_MATERIALS",
+  "goal": "Prices first from genuinely NEW normal persisted inputs; otherwise continue finite current-proof search links for remaining81hotel pairs.",
+  "published_pairs": 161,
+  "priced_pairs": 85,
+  "linked_pairs": 80,
+  "unpriced_pairs": 76,
+  "unpriced_admitted_excluding_review6": 70,
+  "unlinked_pairs": 81,
+  "next_metadata_window_exclusive_lower": "2026-11-05T10:34:14Z",
+  "last_metadata_window_returned": 0,
+  "no_replay": [
+    "No oldmetadata14 window/logs/READ14 price interval/old185plus14retainedFP quotes.",
+    "No originalcontext18 server/native/DB/ownedMAX capture rerun; tenoriginalbindingsreusedonlyoffline exactproof afterfinalmetadatafault.",
+    "No oldTEN1/TEN2/normal7 acceptedproviderreadbacks/edits reinspection absent genuinelynewrelatedcontext.",
+    "Originalone7manualsourcepass/bothpermissionsconsumed;no newsourceAPI/linktestsearch."
+  ],
+  "next_finite_unlinked_unpriced_native_ids": [
+    383,
+    384,
+    441,
+    454,
+    456,
+    464,
+    488,
+    1963,
+    1983,
+    12111
+  ],
+  "next_finite_native_bindings": [
+    {
+      "anytour_id": 383,
+      "local_tv_id": 383,
+      "expected_name": "JAZ GRAND MARSA (EX. JAZ GRAND RESTA)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 384,
+      "expected_name": "JAZ NEO REEF MARSA (EX. SOLYMAR REEF MARSA)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 441,
+      "expected_name": "SIVA GRAND BEACH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 454,
+      "local_tv_id": 454,
+      "expected_name": "JAZ SOLAYA (EX. SOL Y MAR SOLAYA)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 456,
+      "local_tv_id": 456,
+      "expected_name": "JAZ NEO DAR EL MADINA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 464,
+      "expected_name": "STEIGENBERGER GOLF RESORT EL GOUNA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 488,
+      "expected_name": "THE THREE CORNERS FAYROUZ PLAZA BEACH RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 1963,
+      "local_tv_id": 1963,
+      "expected_name": "BARON RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 1983,
+      "local_tv_id": 1983,
+      "expected_name": "JAZ NEO SHARKS BAY (EX. JAZ SHARKS BAY)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 1654,
+      "local_tv_id": 12111,
+      "expected_name": "MOVENPICK RESORT SHARM EL SHEIKH NAAMA BAY",
+      "identity_provenance": "accepted_typed_bridge",
+      "expected_country_id": 1
+    }
+  ],
+  "next_finite_scope_is_proposal_not_executed": true,
+  "links_criteria": [
+    "Exactcurrentoriginal/copy/priorprice/ownedlinkcanonicalreceipt/version/photo/button/source/token;finiteonly/noallhistory.",
+    "TEN1currentownops commercial-hotel-search-links-20261105-ten1-h<ID>-v1;TEN2currentownops commercial-hotel-search-links-20261105-ten2-h<ID>-v1. Futurepriceupdatesusecurrentownedlinkmanifests+once/receipts,notstaleoriginalpublisherframes.",
+    "Preserve85priceblocks/originalchecktimes. NOQUOTEmeansnofakequoteSHA/epoch/index/amount;filterNOTavailability.",
+    "Wholecaption/closing/photo/button/source/tokenpreserved/≤1024UTF16/serialexistingupdater/privateintent/once/UNKNOWNoriginalfirst/currenthealthyproduction/full21/hostclean/schema-rights.",
+    "Use data-bound scope/identity/capture fields, wholefilenames/fieldcounts; no generalnumericworkflowreplace.",
+    "Before any future SSH, compare all operation-owned APPROVED constant references in generated reader template against exact declarations in generated header; do not leave old-context constant labels. Original2metadatarecoverycasesclosed,doNOTrerun;newscope/inputcasesonly."
+  ],
+  "pricing_criteria": [
+    "Only genuinelyNEWactualnormal/source input permits NEWboundedreadonlypricewindow/72h/Moscow2A0RUB/future<=02Feb2027/max2/currentnative/knownroommeal.",
+    "Excludeold185FPsplusALL14READ14rowsconservatively;exactuniquecountfromoriginalprivateartifacts/notassume199.",
+    "No requote7normal/56manual/old51contexts/alternate2ndtuple. Native1582/27316/3405CURRENTnormal674-v1proof;TEN1/TEN2CURRENTnoquotelinkproof."
+  ],
+  "new_materials_ready": 0,
+  "ready_price_edits": 0,
+  "ready_link_edits": 0,
+  "open_canva_transactions": 0,
+  "goal500_complete": false
+}
