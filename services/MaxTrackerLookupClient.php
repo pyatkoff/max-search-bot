@@ -21,6 +21,63 @@ final class MaxTrackerLookupClient
         return $this->request($counterId,[],null,$after);
     }
 
+    /** History-only owner viewing; never the legacy member-valuation contract. */
+    public function historyMemberPage(string $counterId,string $after):array
+    {
+        return $this->request($counterId,[],null,null,$after);
+    }
+
+    public static function validateHistoryMemberPage($data,string $counter,string $after,?int $now=null):array
+    {
+        $now=$now??time();$request=MaxTrackerLookupProtocol::historyCursor($after,$now,$counter);
+        $keys=static function($value,array $expected):bool{
+            if(!is_array($value))return false;$actual=array_keys($value);sort($actual);sort($expected);return$actual===$expected;
+        };
+        $less=static fn(string $a,string $b):bool=>strlen($a)!==strlen($b)?strlen($a)<strlen($b):strcmp($a,$b)<0;
+        $p=$data['history_member_page']??null;
+        if(!$keys($data,['ok','version','counter_id','tracker_timezone','history_member_page'])
+            ||$data['ok']!==true||$data['version']!==1||$data['counter_id']!==$counter||$data['tracker_timezone']!=='Europe/London'
+            ||!$keys($p,['basis','rows','cutoff_unix','history_fence_id','next_cursor','has_more','scanned_event_count','omitted_unknown_count','coverage'])
+            ||$p['basis']!=='retained_membership_history_v1'||$p['coverage']!=='bounded_retained_history_not_live_platform_verification'
+            ||!is_int($p['cutoff_unix'])||$p['cutoff_unix']<946684800||$p['cutoff_unix']>$now||$now-$p['cutoff_unix']>900
+            ||!is_string($p['history_fence_id'])||($p['history_fence_id']!=='0'&&!MaxTrackerLookupProtocol::id($p['history_fence_id']))
+            ||!is_array($p['rows'])||!array_is_list($p['rows'])||count($p['rows'])>5||!is_bool($p['has_more'])
+            ||!is_int($p['scanned_event_count'])||$p['scanned_event_count']<0||$p['scanned_event_count']>64
+            ||!is_int($p['omitted_unknown_count'])||$p['omitted_unknown_count']<0||$p['omitted_unknown_count']>$p['scanned_event_count']
+            ||$p['scanned_event_count']<count($p['rows'])
+            ||($p['next_cursor']!==null&&!is_string($p['next_cursor'])))throw new RuntimeException('tracker_history_page_invalid');
+        if($request!==null&&($p['cutoff_unix']!==$request['cutoff_unix']||$p['history_fence_id']!==$request['history_fence_id']))
+            throw new RuntimeException('tracker_history_page_invalid');
+        $last=null;$seen=[];
+        foreach($p['rows']as$r){
+            if(!$keys($r,['external_user_id','source_id','state','last_event_record_id','last_event_recorded_at_unix',
+                'episode_join_record_id','episode_join_recorded_at_unix','entry_basis']))throw new RuntimeException('tracker_history_page_invalid');
+            foreach(['external_user_id','source_id','last_event_record_id','episode_join_record_id']as$k)
+                if(!MaxTrackerLookupProtocol::id($r[$k]))throw new RuntimeException('tracker_history_page_invalid');
+            $identity=$r['external_user_id'].':'.$r['source_id'];
+            if(isset($seen[$identity])||$r['state']!=='observed_subscribed'
+                ||!in_array($r['entry_basis'],['after_observed_leave','first_retained_join'],true)
+                ||!is_int($r['last_event_recorded_at_unix'])||!is_int($r['episode_join_recorded_at_unix'])
+                ||$r['episode_join_recorded_at_unix']<946684800||$r['episode_join_recorded_at_unix']>$r['last_event_recorded_at_unix']
+                ||$r['last_event_recorded_at_unix']>$p['cutoff_unix']
+                ||$less($p['history_fence_id'],$r['last_event_record_id'])||$less($p['history_fence_id'],$r['episode_join_record_id'])
+                ||($last!==null&&!$less($r['last_event_record_id'],$last))
+                ||($request!==null&&!$less($r['last_event_record_id'],$request['before_id'])))
+                throw new RuntimeException('tracker_history_page_invalid');
+            $seen[$identity]=true;$last=$r['last_event_record_id'];
+        }
+        if($p['history_fence_id']==='0'&&($p['rows']!==[]||$p['scanned_event_count']!==0||$p['has_more']||$p['next_cursor']!==null))
+            throw new RuntimeException('tracker_history_page_invalid');
+        if($p['has_more']){
+            if($p['next_cursor']===null||$p['scanned_event_count']===0)throw new RuntimeException('tracker_history_page_invalid');
+            $next=MaxTrackerLookupProtocol::historyCursor($p['next_cursor'],$now,$counter);
+            if($next===null||$next['cutoff_unix']!==$p['cutoff_unix']||$next['history_fence_id']!==$p['history_fence_id']
+                ||($request!==null&&($next['source_sha256']!==$request['source_sha256']||!$less($next['before_id'],$request['before_id'])))
+                ||($last!==null&&$less($last,$next['before_id'])))throw new RuntimeException('tracker_history_page_invalid');
+        }elseif($p['next_cursor']!==null)throw new RuntimeException('tracker_history_page_invalid');
+        return$p;
+    }
+
     private static function validateMemberPage($d,string $counter,string $after):array
     {
         $p=$d['member_page']??null;
@@ -50,9 +107,9 @@ final class MaxTrackerLookupClient
         return $p;
     }
 
-    private function request(string $counterId,array $users,?array $membership,?string $memberAfter=null): array
+    private function request(string $counterId,array $users,?array $membership,?string $memberAfter=null,?string $historyAfter=null): array
     {
-        $body=MaxTrackerLookupProtocol::body($counterId,$users,time(),null,$membership,$memberAfter);
+        $body=MaxTrackerLookupProtocol::body($counterId,$users,time(),null,$membership,$memberAfter,$historyAfter);
         $signature=MaxTrackerLookupProtocol::signature($body,MaxTrackerLookupConfig::privateKey());
         $response=''; $tooLarge=false;
         $ch=curl_init(MaxTrackerLookupConfig::endpoint());
@@ -68,6 +125,7 @@ final class MaxTrackerLookupClient
         $ok=curl_exec($ch);$errno=curl_errno($ch);$status=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);
         if($ok===false||$errno!==0||$status!==200||$tooLarge)throw new RuntimeException('tracker_transport_failed');
         $d=json_decode($response,true,16,JSON_THROW_ON_ERROR|JSON_BIGINT_AS_STRING);
+        if($historyAfter!==null)return self::validateHistoryMemberPage($d,$counterId,$historyAfter);
         if($memberAfter!==null)return self::validateMemberPage($d,$counterId,$memberAfter);
         return ['identities'=>self::validateResponse($d,$counterId,$users),
             'membership'=>self::validateMembership($d,$users,$membership!==null)];

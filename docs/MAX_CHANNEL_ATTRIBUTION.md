@@ -323,3 +323,27 @@ that the lookup is installed, the mode is enabled, a production conversion has
 been accepted, or a natural event has been attributed. Those require explicit
 release/activation evidence recorded in #55.
 
+
+### Owner-only retained membership view
+
+The administrator's `manager/assigned-value.php?view=members` page uses the
+separate signed `history_member_page_after` selector. It derives observed
+subscription state from retained HL10 join (3) and leave (4) events for the
+counter's exact saved source IDs. A repeated join preserves the open period's
+first retained join; a join after a recorded leave opens a new period. An
+unresolvable event clock is omitted as unknown.
+
+The display-only DTO contains history references and recording times, never an
+HL9 processing marker, ClientID or assigned monetary value. The legacy
+`member_page_after` selector remains unavailable; no financial caller is
+silently switched to the new view. Viewing it creates no ledger row, conversion,
+customer message or read marker. A matching application dialogue is optional;
+test and internal-owner bindings are omitted.
+
+Pages scan at most 64 join candidates and return at most five observed
+subscriptions. Empty intermediate pages may still continue. A 15-minute cursor
+fixes the cutoff, upper history ID and source-map fingerprint, then advances
+backwards by history ID. The private page binds that cursor to the current
+administrator session; access is checked again after the read. Later inserts
+belong to a new snapshot. This is retained-history evidence, not live MAX API
+verification or a complete subscriber count.

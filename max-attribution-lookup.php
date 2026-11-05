@@ -20,6 +20,10 @@ try{
     require_once __DIR__.'/services/MaxTrackerLookupRepository.php';
     // Authentication and request bounds precede every database connection/query.
     $repository=MaxTrackerLookupRepository::fromSettings(dirname(__DIR__,2).'/bitrix/.settings.php');
+    if(isset($data['history_member_page_after'])){
+        $page=$repository->historyMemberPage($counter,$data['history_member_page_after'],time());
+        max_attribution_reply(['ok'=>true,'version'=>1,'counter_id'=>$counter,'tracker_timezone'=>'Europe/London','history_member_page'=>$page],200);
+    }
     if(isset($data['member_page_after'])){
         $page=$repository->currentMemberPage($counter,$data['member_page_after'],time());
         max_attribution_reply(['ok'=>true,'version'=>1,'counter_id'=>$counter,'tracker_timezone'=>'Europe/London','member_page'=>$page],200);

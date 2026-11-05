@@ -95,7 +95,7 @@ $check(str_contains(ModeledConversionValueRegistryView::render('members',$badCur
 $route=(string)file_get_contents(dirname(__DIR__).'/manager/assigned-value.php');
 $position=static fn(string $needle):int=>($p=strpos($route,$needle))===false?PHP_INT_MAX:$p;
 $check($position('ProjectAccessService::initializeReadOnly()')<$position('$manager=ManagerHttp::requireManager()'),'read-only project initialization precedes auth lookup');
-$firstRead=$position("currentMemberPage('98615635',".'$after)');
+$firstRead=$position("historyMemberPage('98615635',".'$sourceAfter)');
 $check($position('ManagerHttp::requireAdmin($manager)')<$firstRead
     &&$position("ProjectAccessService::canAccess(".'$actor'.",'anytour')")<$firstRead
     &&$position("ProjectConfig::projectId()!=='anytour'")<$firstRead,'admin and AnyTour project admission precedes source call');
@@ -263,6 +263,170 @@ foreach(['reason','clock','reference','probability','edited_anchor']as$invalid){
         &&str_contains(ModeledConversionValueRegistryView::render('profiles',$badPage),'Сравнение недоступно'),
         'malformed followup explicitly unavailable: '.$invalid);
 }
+
+
+// Retained membership history has a separate evidence DTO, session-bound cursor,
+// and pure renderer. No native tracker, network, transcript or monetary writes.
+require_once dirname(__DIR__).'/services/MaxTrackerLookupClient.php';
+require_once dirname(__DIR__).'/services/MaxMemberHistoryViewCursor.php';
+require_once dirname(__DIR__).'/services/MaxMemberHistoryView.php';
+$historyNow=strtotime('2026-11-05T12:00:00Z');
+$historyHash=str_repeat('a',64);$historyKey=str_repeat('b',64);
+$historyRow=static fn(string $user,string $record,string $source='10'):array=>[
+    'external_user_id'=>$user,'source_id'=>$source,'state'=>'observed_subscribed',
+    'last_event_record_id'=>$record,'last_event_recorded_at_unix'=>$historyNow-1800,
+    'episode_join_record_id'=>'10','episode_join_recorded_at_unix'=>$historyNow-3600,
+    'entry_basis'=>'first_retained_join'];
+$historySourceCursor=MaxTrackerLookupProtocol::encodeHistoryCursor('98615635',$historyNow,'900','700',$historyHash);
+$historySourcePage=['basis'=>'retained_membership_history_v1','rows'=>[$historyRow('501','900')],
+    'cutoff_unix'=>$historyNow,'history_fence_id'=>'900','next_cursor'=>$historySourceCursor,'has_more'=>true,
+    'scanned_event_count'=>64,'omitted_unknown_count'=>1,'coverage'=>'bounded_retained_history_not_live_platform_verification'];
+$historyEnvelope=static fn(array $p):array=>['ok'=>true,'version'=>1,'counter_id'=>'98615635',
+    'tracker_timezone'=>'Europe/London','history_member_page'=>$p];
+$historyRejects=static function(callable $f):bool{
+    try{$f();}catch(RuntimeException|InvalidArgumentException $ignored){return true;}return false;
+};
+$check(MaxTrackerLookupClient::validateHistoryMemberPage($historyEnvelope($historySourcePage),'98615635','0',$historyNow)===$historySourcePage,
+    'history client accepts the exact observed, nonfinancial page contract');
+$historyEmpty=$historySourcePage;$historyEmpty['rows']=[];
+$check(MaxTrackerLookupClient::validateHistoryMemberPage($historyEnvelope($historyEmpty),'98615635','0',$historyNow)===$historyEmpty,
+    'history client permits an empty intermediate scan that advances to older history');
+$historyTerminal=$historySourcePage;$historyTerminal['rows']=[$historyRow('504','650')];
+$historyTerminal['next_cursor']=null;$historyTerminal['has_more']=false;$historyTerminal['scanned_event_count']=4;$historyTerminal['omitted_unknown_count']=0;
+$check(MaxTrackerLookupClient::validateHistoryMemberPage($historyEnvelope($historyTerminal),'98615635',$historySourceCursor,$historyNow)===$historyTerminal,
+    'history client accepts an older final page in the same fixed snapshot');
+foreach(['legacy_state','money_field','cid_field','duplicate_pair','ascending_ids','future_clock','reversed_clocks','past_fence','six_rows','bad_coverage','extra_envelope']as$historyInvalid){
+    $bad=$historySourcePage;
+    if($historyInvalid==='legacy_state')$bad['rows'][0]['state']='subscribed';
+    if($historyInvalid==='money_field')$bad['rows'][0]['known_subtotal_rub']=50;
+    if($historyInvalid==='cid_field')$bad['rows'][0]['client_id']='123456789';
+    if($historyInvalid==='duplicate_pair'){$bad['rows'][]=$historyRow('501','850');}
+    if($historyInvalid==='ascending_ids')$bad['rows']=[$historyRow('501','850'),$historyRow('502','900')];
+    if($historyInvalid==='future_clock')$bad['rows'][0]['last_event_recorded_at_unix']=$historyNow+1;
+    if($historyInvalid==='reversed_clocks')$bad['rows'][0]['episode_join_recorded_at_unix']=$historyNow;
+    if($historyInvalid==='past_fence')$bad['rows'][0]['episode_join_record_id']='901';
+    if($historyInvalid==='six_rows')$bad['rows']=array_fill(0,6,$historyRow('501','900'));
+    if($historyInvalid==='bad_coverage')$bad['coverage']='live_platform_membership';
+    $wire=$historyEnvelope($bad);if($historyInvalid==='extra_envelope')$wire['users']=[];
+    $check($historyRejects(static fn()=>MaxTrackerLookupClient::validateHistoryMemberPage($wire,'98615635','0',$historyNow)),
+        'history client rejects mismatched evidence shape: '.$historyInvalid);
+}
+foreach(['changed_cutoff','changed_fence','same_cursor','changed_source_map']as$historyInvalid){
+    $bad=$historyEmpty;
+    if($historyInvalid==='changed_cutoff')$bad['cutoff_unix']=$historyNow-1;
+    if($historyInvalid==='changed_fence')$bad['history_fence_id']='901';
+    if($historyInvalid==='same_cursor')$bad['next_cursor']=$historySourceCursor;
+    if($historyInvalid==='changed_source_map')$bad['next_cursor']=MaxTrackerLookupProtocol::encodeHistoryCursor('98615635',$historyNow,'900','600',str_repeat('c',64));
+    $check($historyRejects(static fn()=>MaxTrackerLookupClient::validateHistoryMemberPage($historyEnvelope($bad),'98615635',$historySourceCursor,$historyNow)),
+        'history continuation rejects snapshot or cursor drift: '.$historyInvalid);
+}
+$historyWrapped=MaxMemberHistoryViewCursor::wrap($historySourceCursor,$historyKey,$historyNow);
+$check(MaxMemberHistoryViewCursor::shape($historyWrapped)&&!MaxMemberHistoryViewCursor::shape($historySourceCursor)
+    &&MaxMemberHistoryViewCursor::unwrap($historyWrapped,$historyKey,$historyNow)===$historySourceCursor,
+    'owner URL receives a session MAC wrapper and never accepts the raw database cursor');
+$check(MaxMemberHistoryViewCursor::unwrap('0',$historyKey,$historyNow)==='0',
+    'the owner cursor explicitly starts a fresh snapshot');
+$historyTampered=$historyWrapped;$historyTampered[strlen($historyTampered)-1]=$historyTampered[strlen($historyTampered)-1]==='0'?'1':'0';
+foreach([
+    [$historyTampered,$historyKey,$historyNow],
+    [$historyWrapped,str_repeat('c',64),$historyNow],
+    [$historySourceCursor,$historyKey,$historyNow],
+    [$historyWrapped,$historyKey,$historyNow+901],
+]as[$value,$key,$at])
+    $check($historyRejects(static fn()=>MaxMemberHistoryViewCursor::unwrap($value,$key,$at)),
+        'tampered, cross-session, raw and expired history cursors cannot be opened');
+$check($historyRejects(static fn()=>MaxMemberHistoryViewCursor::wrap('0',$historyKey,$historyNow)),
+    'fresh-start marker cannot be disguised as a continuation');
+
+$historyDb=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+$historyDb->exec('CREATE TABLE customers(id INTEGER PRIMARY KEY,display_name TEXT)');
+$historyDb->exec('CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT)');
+$historyDb->exec('CREATE TABLE conversations(id INTEGER PRIMARY KEY,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,channel TEXT,external_chat_id TEXT,is_test INTEGER)');
+$historyDb->exec('CREATE TABLE max_channel_conversion_outbox(id INTEGER PRIMARY KEY,status TEXT,value_rub INTEGER)');
+$historyDb->exec("INSERT INTO max_channel_conversion_outbox VALUES(1,'synthetic_unmodified',1250)");
+$historyName='<script>history_name_attack()</script> & "name"';
+$historyCustomer=$historyDb->prepare('INSERT INTO customers VALUES(?,?)');
+foreach([[1,$historyName],[2,'OWNER_MUST_NOT_RENDER'],[3,'TEST_MUST_NOT_RENDER'],[5,'AMBIGUOUS_NAME_MUST_NOT_RENDER']]as$row)$historyCustomer->execute($row);
+$historyChannel=$historyDb->prepare('INSERT INTO customer_channels VALUES(?,?,?,?,?,?)');
+foreach([[1,1,'anytour','max','501','-501'],[2,2,'anytour','max','502','-502'],[3,3,'anytour','max','503','-503'],
+    [5,5,'anytour','max','505','-505'],[6,1,'anytour','telegram','501','-501']]as$row)$historyChannel->execute($row);
+$historyConversation=$historyDb->prepare('INSERT INTO conversations VALUES(?,?,?,?,?,?,?)');
+foreach([[10,1,1,'anytour','max','-501',0],[2,2,2,'anytour','max','-502',0],[3,3,3,'anytour','max','-503',1],
+    [30,3,3,'anytour','max','-503',0],[31,3,3,'anytour','max','-503',0],[32,3,3,'anytour','max','-503',0],
+    [20,5,5,'anytour','max','-505',0],[21,5,5,'anytour','max','-505',0],[1,1,6,'anytour','telegram','-501',0]]as$row)$historyConversation->execute($row);
+$historyDigest=static function(PDO $p):string{
+    $data=[];foreach(['customers','customer_channels','conversations','max_channel_conversion_outbox']as$table)
+        $data[$table]=$p->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    return hash('sha256',json_encode($data,JSON_THROW_ON_ERROR));
+};
+$historyBefore=$historyDigest($historyDb);
+$historyProjectionInput=$historySourcePage;
+$historyProjectionInput['rows']=[$historyRow('501','900'),$historyRow('502','890'),$historyRow('503','880'),
+    $historyRow('504','870'),$historyRow('505','860')];
+$historyProjectionInput['omitted_unknown_count']=0;
+$historyRegistry=new ModeledConversionValueRegistry($historyDb);
+$historyProjected=$historyRegistry->historyMembers($historyProjectionInput,'0',$historyKey,$historyNow);
+$check(array_column(array_column($historyProjected['rows'],'member'),'external_user_id')===['501','504','505']
+    &&$historyProjected['omitted_owner_or_test']===2,
+    'history registry excludes fixed owner and any matching test conversation, even behind newer ordinary bindings');
+$check($historyProjected['rows'][0]['display_name']===$historyName
+    &&$historyProjected['rows'][1]['display_name']==='Пользователь MAX 504'
+    &&$historyProjected['rows'][2]['display_name']==='Пользователь MAX 505',
+    'history needs no HL9 or conversation and uses names only for one exact native binding');
+$check(MaxMemberHistoryViewCursor::unwrap($historyProjected['next_after'],$historyKey,$historyNow)===$historySourceCursor
+    &&$historyProjected['scanned_event_count']===64,
+    'filtering private rows preserves the source scan cursor instead of paging from visible rows');
+$historyProjectedKeys=array_keys($historyProjected);sort($historyProjectedKeys);
+$historyExpectedKeys=['basis','rows','cutoff_unix','history_fence_id','next_after','has_more','scanned_event_count','omitted_unknown_count','omitted_owner_or_test','coverage'];sort($historyExpectedKeys);
+$check($historyProjectedKeys===$historyExpectedKeys
+    &&array_keys($historyProjected['rows'][0])===['member','display_name']
+    &&!str_contains(json_encode($historyProjected,JSON_THROW_ON_ERROR),'known_subtotal_rub')
+    &&!str_contains(json_encode($historyProjected,JSON_THROW_ON_ERROR),'client_id'),
+    'history projection contains membership evidence and labels without values or advertising identities');
+$check($historyDigest($historyDb)===$historyBefore&&!$historyDb->inTransaction(),
+    'history registry closes its read transaction and preserves conversations, identities and conversion outbox');
+$historyDb->beginTransaction();
+$check($historyRejects(static fn()=>$historyRegistry->historyMembers($historyProjectionInput,'0',$historyKey,$historyNow))
+    &&$historyDb->inTransaction(),'history registry refuses and preserves a caller-owned transaction');
+$historyDb->rollBack();
+$historyProjectedHtml=MaxMemberHistoryView::render($historyProjected);
+$check(str_contains($historyProjectedHtml,'Подписчики MAX по сохранённой истории')
+    &&str_contains($historyProjectedHtml,'Общее число подписчиков MAX и полнота истории неизвестны')
+    &&str_contains($historyProjectedHtml,'Проверка текущего состава через MAX API здесь не выполняется'),
+    'history renderer explains retained-state meaning and unknown denominator');
+$check(str_contains($historyProjectedHtml,'&lt;script&gt;history_name_attack()&lt;/script&gt;')
+    &&!str_contains($historyProjectedHtml,'<script>')&&!str_contains($historyProjectedHtml,'OWNER_MUST_NOT_RENDER')
+    &&!str_contains($historyProjectedHtml,'TEST_MUST_NOT_RENDER')&&!str_contains($historyProjectedHtml,'AMBIGUOUS_NAME_MUST_NOT_RENDER'),
+    'history names are escaped and excluded or ambiguous labels never reach HTML');
+$check(!str_contains($historyProjectedHtml,' ₽')&&!str_contains($historyProjectedHtml,'Экспериментальная сумма')
+    &&!str_contains($historyProjectedHtml,'ClientID')&&!str_contains($historyProjectedHtml,'membership:'),
+    'restoring the subscriber view does not revive old HL9 credits, weights or CIDs');
+$check(str_contains($historyProjectedHtml,'rel="next"')&&str_contains($historyProjectedHtml,'after=hmv1.')
+    &&!str_contains($historyProjectedHtml,$historySourceCursor),
+    'history links carry only the owner wrapper, not a bare tracker cursor');
+$historyEmptyProjection=$historyRegistry->historyMembers($historyEmpty,'0',$historyKey,$historyNow);
+$historyEmptyHtml=MaxMemberHistoryView::render($historyEmptyProjection);
+$check(str_contains($historyEmptyHtml,'Продолжите просмотр следующего блока')
+    &&str_contains($historyEmptyHtml,'rel="next"')&&!str_contains($historyEmptyHtml,'История сейчас недоступна'),
+    'empty intermediate history is a successful bounded scan with an actionable continuation');
+foreach(['explicit_failure','bad_state','bad_link']as$historyInvalid){
+    $bad=$historyProjected;
+    if($historyInvalid==='bad_state')$bad['rows'][0]['member']['state']='subscribed';
+    if($historyInvalid==='bad_link')$bad['next_after']='<script>';
+    $closed=MaxMemberHistoryView::render($bad,$historyInvalid==='explicit_failure');
+    $check(str_contains($closed,'История сейчас недоступна')&&!str_contains($closed,'<article')
+        &&!str_contains($closed,'history_name_attack'),'failed or malformed history hides every private row: '.$historyInvalid);
+}
+$check($position("historyMemberPage('98615635',".'$sourceAfter)')<PHP_INT_MAX
+    &&str_contains($route,'MaxMemberHistoryViewCursor::unwrap($after,$memberCursorKey,time())')
+    &&str_contains($route,'MaxMemberHistoryView::render($page,$unavailable)')
+    &&str_contains($route,'->historyMembers(')&&!str_contains($route,'->currentMemberPage('),
+    'actual owner route composes the history client, evidence registry and separate renderer');
+$check(str_contains($route,"\$memberCursorBinding=session_id().'|max-history-owner-view-v1|'.\$actor;")
+    &&str_contains($route,"\$memberCursorKey=hash_hmac('sha256',\$memberCursorBinding,MaxTrackerLookupConfig::privateKey());")
+    &&$position("ManagerHttp::requireAdmin(\$manager)")<$position('MaxTrackerLookupConfig::privateKey()')
+    &&$position('MaxTrackerLookupConfig::privateKey()')<$position('MaxMemberHistoryViewCursor::unwrap'),
+    'route binds cursor MAC to both the owner session and an existing server-only signing secret after authorization');
 
 if($failures){fwrite(STDERR,implode(PHP_EOL,$failures).PHP_EOL);exit(1);}
 echo 'modeled conversion value view: '.$checks.' checks passed'.PHP_EOL;
