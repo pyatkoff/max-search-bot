@@ -102,5 +102,26 @@
     },
     "existing_blue_banner_top": 983,
     "reason": "Removeonlyemptysky/rightgolfwhileleavingentiremainbuildinginsidevisiblepage; nativeCanvapreviewdecidesfinalacceptance."
-  }
+  },
+  "transaction_id": "902367014632901527",
+  "fresh_page_id": "PBLTXr2l141RGFDL",
+  "imported_assets": [
+    {
+      "cover_role": "whole_main_complex_hero",
+      "role": "h78251_new51_1",
+      "asset_id": "MAHaBP_AgJ4"
+    },
+    {
+      "cover_role": "lower_beach_pier",
+      "role": "h78251_new51_4",
+      "asset_id": "MAHaBLMCjRs"
+    },
+    {
+      "cover_role": "lower_pool_facade",
+      "role": "h78251_new51_3",
+      "asset_id": "MAHaBBdYfZU"
+    }
+  ],
+  "locked_original_logo_delete_not_permitted_left_unchanged": true,
+  "native_preview1_pending": true
 }

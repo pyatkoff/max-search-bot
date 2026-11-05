@@ -1,18 +1,22 @@
-name: View one new original Cullinan hero candidate at native resolution without HTTP
+name: Inspect one exact Cullinan native preview with complete main-complex crop
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        media_group: [0]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,12 +25,15 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - uses: actions/download-artifact@v4
+      - name: Read fixed official public sources without server or provider calls
+        env:
+          COVER_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-canva-covers-20261105-51.py
+      - uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch51-contact-0
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41968724003
-          path: ${{ runner.temp }}/photo51-cullinan
-      - name: Read only exact original new role file and emit original native bytes
-        run: python3 tools/direct_demand/operations/view-native-photo51-hero-candidate-20261105.py
+          name: commercial-batch51-native-cover-${{ matrix.media_group }}
+          path: |
+            covers
+            native-cover-receipt.json
+          retention-days: 14
+          if-no-files-found: error
