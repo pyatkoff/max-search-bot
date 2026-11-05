@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261105-41-read1",
-  "state": "NEW_TEN_INPUTS_PURE_VALIDATED_APPROVED_TARGETED_READONLY_NATIVE_LOOKUP",
+  "state": "ACTUAL_READ_CLOSED_ORIGINAL_ARTIFACT_PUBLIC_IDENTITY_PROJECTION",
   "goal": "Broaden the authorized500 hotel material stock with different catalogue lookup inputs while the separately requested price-source manual collection awaits explicit human permission.",
   "boundaries": {
     "country_id": 4,
@@ -77,5 +77,15 @@
   "pure_preparation_job": 127010628163,
   "new_pure_cases_passed": 3,
   "actual_fixture_rerun": 0,
-  "host_step_byteidentical_accepted25": true
+  "host_step_byteidentical_accepted25": true,
+  "original_artifact_projection": {
+    "goal": "Recover exact current catalogue names and identity roles for only ten actual new unique native IDs",
+    "source_run": 41956089070,
+    "source_artifact": 13383226155,
+    "criteria": "Exact original operation/source/ordered groups/IDs/country-active/zero registry proof; only public catalogue fields exported",
+    "risks": "Identity projection does not grant source photo rights, price verification or readiness",
+    "db_rereads": 0,
+    "provider_calls": 0,
+    "old_fixture_reruns": 0
+  }
 }
