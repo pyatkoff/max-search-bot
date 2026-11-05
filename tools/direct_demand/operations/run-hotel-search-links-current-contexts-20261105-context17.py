@@ -1,0 +1,8 @@
+import json,os,pathlib,subprocess
+t=pathlib.Path(os.environ['RUNNER_TEMP']);assert os.environ['GITHUB_RUN_ATTEMPT']=='1';out=t/'context17-readback.private.json';assert not out.exists(),'ORIGINAL_CONTEXT17_OUTCOME_FIRST_NO_REPEAT'
+sha=os.environ['EXPECTED_PRODUCTION_SHA'];ssh=['ssh','-i',str(t/'channel_key'),'-o','BatchMode=yes','-o','ConnectTimeout=10','-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o','GlobalKnownHostsFile=/dev/null','-o','UserKnownHostsFile='+str(t/'channel_known_hosts'),os.environ['DEPLOY_USER']+'@'+os.environ['DEPLOY_HOST']]
+remote="set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"$(git rev-parse HEAD)\" = '"+sha+"'; test -z \"$(git status --porcelain --untracked-files=no)\"; php"
+with (t/'context17.php').open('rb') as src,out.open('wb') as dst:r=subprocess.run(ssh+[remote],stdin=src,stdout=dst,stderr=subprocess.PIPE,timeout=300)
+d=json.loads(out.read_text().splitlines()[-1]);s={k:d.get(k) for k in ['operation','ok','error','installed_sha','quote_state','db_writes','gateway_calls','provider_post_reads','provider_channel_rights_checks','message_sends','price_edits','canonical_source_receipts_read']}
+s.update(bound_native_ids=[int(x['hotel']['local_tv_id']) for x in d.get('bindings',[])],bound_hotels=len(d.get('bindings',[])),deferred=d.get('deferred',[]),deferred_before_server=d.get('deferred_before_server',[]))
+(t/'context17-summary.json').write_text(json.dumps(s)+'\n');print(json.dumps(s));assert r.returncode==0 and d['ok'] and d['quote_state']=='NOQUOTE' and d['db_writes']==d['gateway_calls']==d['message_sends']==d['price_edits']==0 and d['provider_post_reads']<=10

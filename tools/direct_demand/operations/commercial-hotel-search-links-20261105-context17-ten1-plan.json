@@ -1,0 +1,51 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context17-ten1",
+  "state": "PREPARED_FOR_NEW_NATIVE_CONTEXT_CASES_AND_ONE_FINITE_READONLY_CONTEXT_PASS",
+  "goal": "Add exact hotel search links for ten still-unlinked unpriced published hotel pairs, without source searches or quotes.",
+  "native_hotel_ids": [
+    129,
+    139,
+    150,
+    172,
+    173,
+    232,
+    241,
+    249,
+    250,
+    263
+  ],
+  "bounds": {
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "db_writes_in_context_phase": 0,
+    "max_owned_max_reads": 10,
+    "max_channel_rights_checks": 2,
+    "old60_linked_posts_read": 0,
+    "old_price_blocks_touched": 0
+  },
+  "criteria": [
+    "Exact current native country-active-name and original typed publisher role from retained121 admission proof.",
+    "Exact publisher and latest confirmed copy receipts from the accepted45 explicit manifest allowlist, current registry sent version/caption/photo/source/token/canonical button; original historical public privateIDs never canonical.",
+    "Explicit NOQUOTE input and binding; do not invent quote SHA or checked time. Search preset is Moscow2adults, future06..12Nov,5..14n; no availability claim.",
+    "Already linked60 and priced85 excluded both before server and with current caption route guard; defer changed or ambiguous proof rather than use stale text.",
+    "New native scope/already-linked/country/publisher/NOQUOTE cases before server; fresh current a95 deploy/TLS/diag/fullremote21/acceptedhost25/clean/read-only/schema/rights.",
+    "Actual ready context subset may proceed to separately prepared serial link-only updater; preserve complete hotel body/closing/photo/button/source/token and1024UTF16. No source/quote for link testing."
+  ],
+  "risks": [
+    "Catalog proof is not current post truth; current canonical receipt/version is required.",
+    "A hotel already changed by another approved operation must defer, not overwrite it.",
+    "Noquote link preparation must not alter any prior price-check metadata."
+  ],
+  "expected_production_sha": "a95f6e3514eb48f2b7dcda36ac1f40ab31d0ff99",
+  "prior_da54_diff": {
+    "commits": 2,
+    "files": [
+      "services/ModeledConversionAcquisitionStatsReader.php",
+      "tests/run_modeled_conversion_acquisition_stats_regression.php"
+    ],
+    "publishing21_unchanged": true
+  },
+  "native_new_cases": 5,
+  "old_fixtures": 0
+}
