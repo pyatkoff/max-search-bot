@@ -1,0 +1,42 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-remaining105-plan2",
+  "state": "NOT_EXECUTED_PRICE_PRIORITY_NEW_NORMAL674_INPUT_FIRST",
+  "goal": "Complete Pavel's hotel-specific search links for remaining105 published hotel pairs while preserving all81 existing verified price blocks.",
+  "published_pairs": 161,
+  "linked_pairs_closed": 56,
+  "remaining_pairs": 105,
+  "first_finite_link_only_scope": [
+    1422,
+    78251
+  ],
+  "first_scope_original_proof": [
+    {
+      "native": 1422,
+      "actual_sender_run": 41961272340,
+      "canonical_binding_run": 41961641655,
+      "canonical_binding_artifact": 13385159205,
+      "manifest": "commercial-batch-20261105-49-manifest.json"
+    },
+    {
+      "native": 78251,
+      "actual_sender_run": 41969870445,
+      "canonical_binding_run": 41970261735,
+      "canonical_binding_artifact": 13388898038,
+      "manifest": "commercial-batch-20261105-51-manifest.json"
+    }
+  ],
+  "bounds": {
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "accepted56_posts_reread_or_rewritten": 0,
+    "max_first_scope_existing_content_edits": 4
+  },
+  "criteria": [
+    "Recover only original private canonical binding artifacts and exact current caption/photo/button/source/token/version proof for the finite next scope.",
+    "Use actual admitted nativecountry/hotel/Moscow2A and clearly stated future search presets; no availability claim.",
+    "For link-only work without a quote, use explicit no-quote metadata. Never invent quote response hashes/epochs or overwrite existing price-check metadata with link-check time.",
+    "Preserve whole current text/price/closing/photo/canonical button/source/token/logical publication. If1024doesnotfit, defer without truncation.",
+    "Existing ephemeral serial updater/registry/once/private intent/UNKNOWN-original-first/fresh production/full21/host gates; native new functionality cases required."
+  ]
+}

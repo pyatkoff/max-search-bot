@@ -1,0 +1,57 @@
+{
+  "operation": "commercial-price-monitor-20261105-read14-new674-unpriced1",
+  "state": "PREPARED_NEW_BOUNDED_READ_PLAN_NOT_EXECUTED",
+  "goal": "Read only genuinely new normal674 persisted observations from its actual06:43:23..06:52:08UTC collection interval for the74 currently unpriced admitted hotels, excluding6name-review hotels and all189-or-fewer unique old consumed fingerprints.",
+  "normal_run": 41982177052,
+  "normal_collect_job": 127094628296,
+  "window_start_epoch_inclusive": 1793861003,
+  "window_end_epoch_exclusive": 1793861528,
+  "source": "scheduled_monitor",
+  "scope_derivation": "Original121 manifest minus all currently priced nativeIDs plus actually published native1422/78251; exact74; no scope expansion to other stock.",
+  "expected_unpriced_scope": 74,
+  "price_total_at_input": 81,
+  "exclude_name_review": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "old_fingerprint_sources": [
+    {
+      "run": 41977589739,
+      "artifact": 13392496795,
+      "rows": 85
+    },
+    {
+      "run": 41978466494,
+      "artifact": 13393205782,
+      "rows": 104
+    }
+  ],
+  "max_rows_per_hotel": 2,
+  "max_age_seconds": 259200,
+  "party": {
+    "departure": 1,
+    "adults": 2,
+    "children": 0,
+    "currency": "RUB"
+  },
+  "departure_strictly_after_actual_utc_date": true,
+  "departure_upper": "2027-02-02",
+  "bounds": {
+    "db_writes": 0,
+    "provider_calls": 0,
+    "price_edits": 0,
+    "old_read13_scope_repeats": 0,
+    "manual_searches": 0
+  },
+  "criteria": [
+    "Exact new persisted UTC interval/source/native-country-active-name/party/RUB/room/knownmeal/future/max2.",
+    "All85oldREAD9/10 and ALL104manualREAD13 retained fingerprint contexts are conservatively excluded; no old quotes/bodies reinspection.",
+    "Actual source normal674 phase is proven despite later aggregate job exit255; do not fix or rerun foreign collection.",
+    "Native new scope/window/consumed-fingerprint negative cases/PHP-l/fresh current main deployment/TLS/diagnostics/full21/host/clean/schema/rights gates.",
+    "Output private original tuples and searchIDs only authenticated artifact; public safe counts/nativeIDs only."
+  ]
+}

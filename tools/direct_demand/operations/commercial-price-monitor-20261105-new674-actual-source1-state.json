@@ -1,0 +1,101 @@
+{
+  "operation": "commercial-price-monitor-20261105-new674-actual-source1",
+  "state": "NEW_NORMAL674_MONTHLY_COLLECTION_ACTUAL_SUCCESS_AGGREGATE_WORKFLOW_FAILED_AFTER_ROLLUP_NO_ROOT_CAUSE_CLAIM",
+  "run": 41982177052,
+  "source": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "validate_job": 127094561034,
+  "collect_job": 127094628296,
+  "validate_count674_native_proved": true,
+  "monthly_stage_success": true,
+  "stats": {
+    "processed": 64,
+    "page_gap_processed": 8,
+    "failed": 0,
+    "partial": 0,
+    "observations_written": 14754,
+    "fresh_targets": 235,
+    "pending_targets": 3954,
+    "complete": false,
+    "months": {
+      "2026-11": {
+        "total": 355,
+        "fresh": 57,
+        "pending": 298
+      },
+      "2026-12": {
+        "total": 355,
+        "fresh": 18,
+        "pending": 337
+      },
+      "2027-01": {
+        "total": 355,
+        "fresh": 17,
+        "pending": 338
+      },
+      "2027-02": {
+        "total": 284,
+        "fresh": 18,
+        "pending": 266
+      },
+      "2027-03": {
+        "total": 355,
+        "fresh": 17,
+        "pending": 338
+      },
+      "2027-04": {
+        "total": 355,
+        "fresh": 17,
+        "pending": 338
+      },
+      "2027-05": {
+        "total": 355,
+        "fresh": 17,
+        "pending": 338
+      },
+      "2027-06": {
+        "total": 355,
+        "fresh": 17,
+        "pending": 338
+      },
+      "2027-07": {
+        "total": 355,
+        "fresh": 17,
+        "pending": 338
+      },
+      "2027-08": {
+        "total": 355,
+        "fresh": 17,
+        "pending": 338
+      },
+      "2027-09": {
+        "total": 355,
+        "fresh": 17,
+        "pending": 338
+      },
+      "2027-10": {
+        "total": 355,
+        "fresh": 6,
+        "pending": 349
+      }
+    }
+  },
+  "times": {
+    "first_monthly_start_utc": "2026-11-05T06:43:23.2859314Z",
+    "monthly_done_utc": "2026-11-05T06:52:07.8599631Z",
+    "rollup_utc": "2026-11-05T06:53:01.2264308Z"
+  },
+  "new_observation_window": {
+    "start": 1793861003,
+    "end": 1793861528
+  },
+  "actual_source_calls_and_db_writes": true,
+  "raw_observations_not_verified_prices": true,
+  "overall_workflow_conclusion": "failure",
+  "collector_job_exit": 255,
+  "monthly_failed": 0,
+  "monthly_partial": 0,
+  "aggregate_error_root_cause": "NOT_CLAIMED",
+  "original_validate_and_collect_logs_read_once_closed": true,
+  "no_dispatch_rerun_fix_lease_transport_budget_or_schedule_change": true,
+  "our_manual_source_searches_this_read": 0
+}

@@ -1,0 +1,97 @@
+{
+  "operation": "commercial-price-monitor-20261105-rollout8-metadata12",
+  "state": "CLOSED_NEW_BOUNDED_SCHEDULED_METADATA_ONLY",
+  "created_after": "2026-11-05T05:41:05Z",
+  "exclusive_lower_query_start": "2026-11-05T05:41:06Z",
+  "upper_utc": "2026-11-05T08:07:32Z",
+  "checked_at_utc": "2026-11-05 08:07:32 UTC",
+  "total_count": 9,
+  "returned": 9,
+  "runs": [
+    {
+      "id": 41990921887,
+      "name": "Build AnyTour Yandex country feeds",
+      "path": ".github/workflows/build-yandex-country-feeds.yml",
+      "created_at": "2026-11-05T07:57:57Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 41990654494,
+      "name": "Roll up AnyTour prices",
+      "path": ".github/workflows/rollup-anytour-prices.yml",
+      "created_at": "2026-11-05T07:55:38Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 41987140281,
+      "name": "Collect SEO hotel pilot live evidence",
+      "path": ".github/workflows/collect-seo-hotel-pilot-live-evidence.yml",
+      "created_at": "2026-11-05T07:25:30Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 41986897817,
+      "name": "Collect SEO inventory opportunities",
+      "path": ".github/workflows/collect-seo-inventory-opportunities.yml",
+      "created_at": "2026-11-05T07:23:30Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 41984761724,
+      "name": "Collect SEO seasonal live evidence",
+      "path": ".github/workflows/collect-seo-seasonal-live-evidence.yml",
+      "created_at": "2026-11-05T07:05:19Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 41982607434,
+      "name": "Collect SEO production evidence",
+      "path": ".github/workflows/collect-seo-production-evidence.yml",
+      "created_at": "2026-11-05T06:45:49Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 41982177052,
+      "name": "Collect AnyTour tour observations",
+      "path": ".github/workflows/collect-anytour-tours.yml",
+      "created_at": "2026-11-05T06:42:05Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 41981994997,
+      "name": "Collect SEO DS2 render evidence",
+      "path": ".github/workflows/collect-seo-ds2-render-evidence.yml",
+      "created_at": "2026-11-05T06:40:30Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 41981298715,
+      "name": "Collect SEO Top500 hotel review dossier",
+      "path": ".github/workflows/collect-seo-core-hotel-review-dossier.yml",
+      "created_at": "2026-11-05T06:34:17Z",
+      "head_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "db_calls": 0,
+  "provider_calls": 0,
+  "old_logs_read": 0,
+  "do_not_repeat_same_window": true
+}
