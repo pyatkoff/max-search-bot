@@ -36,5 +36,6 @@
   "new_python_actual_scope_cases": 8,
   "all_declared_public_and_private_read_bounds_match_six": true,
   "full_remote21_accepted25_host_clean_native_schema": true,
-  "all_original_reads_logs_results_closed_no_reinspection": true
+  "all_original_reads_logs_results_closed_no_reinspection": true,
+  "consumed_by_actual_run": 42094303307
 }

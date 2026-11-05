@@ -1,0 +1,31 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced6c-inline6-pass1",
+  "state": "CLOSED_SIX_FROZEN_NATIVE_INLINE_READY_PAIRS_ACTUALLY_CONSUMED",
+  "native_hotel_ids": [
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "run": 42094037091,
+  "job": 127479283039,
+  "source": "a21fbf40a720cfab679e71ba287c2c244c347f1b",
+  "installed_frame_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "artifact": 13446131878,
+  "artifact_name": "commercial-hotel-search-links-20261105-priced6c-inline6-prepared1",
+  "ready": 6,
+  "deferred": 0,
+  "new_python_cases_per_hotel": 4,
+  "new_native_cases_per_hotel": 9,
+  "php_l": 6,
+  "old_fixtures": 0,
+  "caption_utf16_min": 568,
+  "caption_utf16_max": 734,
+  "caption_text_byte_identical": true,
+  "template_sha256": "aaf6cbe778fc4ba1fdeaedb7cfa0c1d6b25fb89aaf0e4f2e130fbff9103d55b0",
+  "server_db_provider_calls": 0,
+  "consumed_by_actual_run": 42094303307,
+  "all_original_cases_logs_results_closed": true
+}

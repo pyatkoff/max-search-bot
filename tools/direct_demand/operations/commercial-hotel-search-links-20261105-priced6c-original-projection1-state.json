@@ -26,7 +26,18 @@
   "job": 127475994925,
   "source": "20cd6001b8404a5da38f6398643db426c4c68b07",
   "result_artifact": 13445892691,
-  "current_contexts_not_captured": true,
+  "current_contexts_not_captured": false,
   "original_log_and_results_closed_do_not_repeat": true,
-  "ready_link_edits": 0
+  "ready_link_edits": 0,
+  "current_context_native_ids_consumed": [
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "remaining_current_context_native_ids": [],
+  "all_six_current_contexts_consumed": true,
+  "actual_run": 42094303307
 }
