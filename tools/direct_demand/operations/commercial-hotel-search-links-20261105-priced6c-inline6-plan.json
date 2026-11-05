@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced6c-inline6-pass1",
+  "state": "PREPARE_SIX_FROZEN_NATIVE_INLINE_PRICE_LINKS_WITHOUT_PROVIDER_ACCESS",
+  "goal": "Freeze six NEW current priced post pairs for native inline price hyperlink, keeping exact body/entities/priceSHA-checktime.",
+  "scope_filename": "commercial-hotel-search-links-20261105-priced6c-inline6-scope.json",
+  "scope_sha256": "d7410bce2f0dc1a5680426f45bad23f85a7190b22cc4de2d7612d09eb7a6a7af",
+  "hotel_ids": [
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "context_run": 42093416544,
+  "context_artifact": 13445524679,
+  "context_source_sha": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "expected_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "template": "update-priced-hotel-inline-price-search-link-20261105.php",
+  "template_sha256": "aaf6cbe778fc4ba1fdeaedb7cfa0c1d6b25fb89aaf0e4f2e130fbff9103d55b0",
+  "bounds": {
+    "max_prepared_hotels": 6,
+    "max_future_existing_content_edits": 12,
+    "provider_calls": 0,
+    "db_calls": 0,
+    "quote_calls": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "price_edits": 0
+  },
+  "criteria": [
+    "Unchanged canonical data-bound preparer and aaf6 template; only NEW six actual contexts/native inputs,9NEW native+4NEWPython cases perreadyhotel/old0.",
+    "Original caption text byte-identical/uniquepriceanchor/exact old entities and price metadata; unsupportedmarkup/ambiguousanchor closesnoedit.",
+    "Freeze ALLPHPbytes/frame/manifest/exact5keyapproval/intent, allreferencesdeclared; NOQUOTE no inventednewquote.",
+    "Ready supported contexts notheldforhardcases; later execution oneexistingSERIAL/privateintent/freshhealthyfull21/accepted25host/once/UNKNOWNoriginalfirst."
+  ],
+  "risks": [
+    "Owner markup conflicts may defer; never flatten or overwrite human formatting."
+  ]
+}
