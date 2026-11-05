@@ -231,6 +231,164 @@ function draftWorkingInput(array $snapshot): array
     return ManagerAiDraftService::prepareInput($snapshot['context'],$snapshot['company_knowledge'],null,$snapshot['reference_context']);
 }
 
+/** Durable native entry without assuming its optional bot preview was sent. */
+function draftSearch3Fixture(int $messages = 1): array
+{
+    $pdo=draftContextFixture($messages);
+    $snapshot=['binding'=>['record_id'=>'PRIVATE_record_99','revision'=>1],
+        'observation'=>['schema'=>1,'kind'=>'search3_browser_observation','capturedAt'=>1792238340000,'source'=>'anex',
+            'hotel'=>['uiId'=>4242,'namespace'=>'search3-ui','name'=>'Синтетический берег','resort'=>'Хургада'],
+            'trip'=>['origin'=>'Казань','countryUiId'=>'5','departure'=>'2027-06-12','nights'=>7,
+                'stayEnd'=>'2027-06-19','stayEndBasis'=>'shown-stay-end','adults'=>2,'childAges'=>[0,0,12]],
+            'stay'=>['room'=>'Family sea view','meal'=>'Всё включено','placement'=>'2+3','operator'=>'ANEX'],
+            'flights'=>['state'=>'selected','outward'=>[['label'=>'Outbound 10:00']],'inward'=>[['label'=>'Inbound 19:00']]],
+            'price'=>['amount'=>'231456.50','currency'=>'RUB','state'=>'checked','description'=>'Source observation only',
+                'expiresAt'=>time()+600,'basis'=>'selected-pair','finalPriceVerified'=>false,'authority'=>'browser-observation-only']]];
+    $payload=['schema'=>1,'entry_key'=>str_repeat('c',64),'handoff_id'=>str_repeat('d',32),
+        'snapshot'=>$snapshot,'price_at_arrival'=>'checked'];
+    $metadata=['type'=>'tour_search_inquiry','native_event_type'=>'message','handoff_id'=>$payload['handoff_id']];
+    $pdo->prepare('INSERT INTO conversation_events VALUES(?,?,?,?,?,?)')->execute([
+        999,1,'tour_search_inquiry','customer',json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'2026-10-17 12:00:00']);
+    $pdo->prepare('UPDATE messages SET text=?,metadata_json=? WHERE id=1')->execute([
+        'Обращение из поиска: Синтетический берег',json_encode($metadata,JSON_THROW_ON_ERROR)]);
+    return [$pdo,$payload,$metadata];
+}
+
+function draftSearch3Checks(): void
+{
+    [$pdo,$payload]=draftSearch3Fixture();
+    $before=$pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll();
+    $snapshot=draftContextCapture($pdo);$input=draftWorkingInput($snapshot);$source=$input['context']['search3_inquiry']??[];
+    draftContextCheck('Search3 exact durable entry reaches reply preparation even without any sent bot preview',
+        ($source['observation']??null)===$payload['snapshot']['observation']
+        && ($source['message_id']??null)===1 && ($source['event_id']??null)===999
+        && ($input['search3_inquiry_admission']['status']??null)==='available'
+        && $pdo->query('SELECT * FROM messages ORDER BY id')->fetchAll()===$before);
+    draftContextCheck('Search3 observed checks are never current price availability agreement or inferred request authority',
+        $source['observation']['price']['state']==='checked' && $source['observation']['price']['finalPriceVerified']===false
+        && $source['current_price_verified']===false && $source['availability_verified']===false
+        && $source['customer_agreement_verified']===false && $source['current_request_inferred']===false
+        && $source['observation']['trip']['childAges']===[0,0,12]);
+    draftContextCheck('Search3 record capabilities and visitor identity remain outside the provider evidence',
+        !preg_match('/PRIVATE|record_id|handoff_id|entry_key|sender_id|external_chat_id/',json_encode($source,JSON_THROW_ON_ERROR)));
+    $instructions=ManagerAiDraftService::instructions($input['context']);
+    $body=ManagerDraftClient::requestBody($instructions,$input['context']);
+    $wire=json_decode($body['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
+    $evidence=ManagerAiDraftInputEvidence::capture($input['context'],$instructions);
+    draftContextCheck('the real bounded provider envelope and archived input include the same Search3 source',
+        $wire['search3_inquiry']===$source && $evidence!==null && $evidence->context()['search3_inquiry']===$source
+        && str_contains($instructions,'search3_inquiry') && str_contains($instructions,'не подтверждают актуальную полную стоимость')
+        && !str_contains(ManagerAiDraftService::instructions(),'search3_inquiry'));
+
+    $payload['snapshot']['observation']['stay']['room']='Changed Family';
+    $pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=999')->execute([json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+    $changed=draftContextCapture($pdo);
+    draftContextCheck('an event-only change invalidates prepared context without pretending the transcript changed',
+        $changed['context']===$snapshot['context'] && $changed['revision']!==$snapshot['revision']
+        && $changed['preparation_revision']!==$snapshot['preparation_revision']
+        && draftWorkingInput($changed)['context']['search3_inquiry']['observation']['stay']['room']==='Changed Family');
+    $payload['snapshot']['binding']['revision']=2;
+    $pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=999')->execute([json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+    $rebound=draftContextCapture($pdo);
+    draftContextCheck('a private source binding change invalidates evidence even with identical public observation',
+        draftWorkingInput($rebound)['context']['search3_inquiry']['observation']===draftWorkingInput($changed)['context']['search3_inquiry']['observation']
+        && $rebound['revision']!==$changed['revision']);
+
+    [$pdo,$payload]=draftSearch3Fixture(2);
+    $pdo->exec("UPDATE messages SET text='Вылет из Самары, а не Казани' WHERE id=2");
+    $followup=draftContextCapture($pdo);$followupInput=draftWorkingInput($followup);
+    draftContextCheck('ordinary follow-up keeps source conditions separate from the newer explicit tourist correction',
+        $followupInput['context']['messages'][1]['text']==='Вылет из Самары, а не Казани'
+        && $followupInput['context']['search3_inquiry']['observation']['trip']['origin']==='Казань'
+        && $followupInput['context']['search3_inquiry']['current_request_inferred']===false);
+    foreach (['start'=>['type'=>'start'],'bot_started'=>['type'=>'bot_started'],'callback'=>['type'=>'callback'],
+        'web entry'=>['type'=>'tour_web_inquiry'],'unknown entry'=>['type'=>'unrecognized'],
+        'unbound newer Search3'=>['type'=>'tour_search_inquiry','native_event_type'=>'message','handoff_id'=>str_repeat('e',32)],
+        'broken metadata'=>'{','oversize metadata'=>str_repeat('x',16385)] as $label=>$meta) {
+        $pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=2')->execute([is_array($meta)?json_encode($meta,JSON_THROW_ON_ERROR):$meta]);
+        $fresh=draftContextCapture($pdo);
+        draftContextCheck('new '.$label.' cannot revive an older Search3 source',
+            !isset(draftWorkingInput($fresh)['context']['search3_inquiry']) && $fresh['revision']!==$followup['revision']);
+    }
+
+    foreach (['missing','wrong handoff','foreign conversation','wrong actor','future event','invalid timestamp','unverified contract','wrong native channel','duplicate'] as $case) {
+        [$pdo,$payload,$meta]=draftSearch3Fixture();
+        if($case==='missing')$pdo->exec('DELETE FROM conversation_events');
+        elseif($case==='foreign conversation')$pdo->exec('UPDATE conversation_events SET conversation_id=2');
+        elseif($case==='wrong actor')$pdo->exec("UPDATE conversation_events SET actor_type='ai'");
+        elseif($case==='future event')$pdo->exec("UPDATE conversation_events SET created_at='2026-10-17 12:00:01'");
+        elseif($case==='invalid timestamp')$pdo->exec("UPDATE messages SET created_at='2026-10-17T12:00:00' WHERE id=1");
+        elseif($case==='wrong native channel'){
+            $meta['native_event_type']='bot_started';
+            $pdo->prepare('UPDATE messages SET metadata_json=? WHERE id=1')->execute([json_encode($meta,JSON_THROW_ON_ERROR)]);
+        }elseif($case==='duplicate')$pdo->exec('INSERT INTO conversation_events SELECT 1000,conversation_id,event_type,actor_type,payload_json,created_at FROM conversation_events WHERE id=999');
+        else{
+            if($case==='wrong handoff')$payload['handoff_id']=str_repeat('f',32);
+            if($case==='unverified contract')$payload['snapshot']['observation']['price']['finalPriceVerified']=true;
+            $pdo->prepare('UPDATE conversation_events SET payload_json=?')->execute([json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+        }
+        $fresh=draftContextCapture($pdo);
+        draftContextCheck('Search3 refuses '.$case.' evidence without blocking the ordinary reply context',
+            $fresh['ok'] && !isset(draftWorkingInput($fresh)['context']['search3_inquiry']));
+    }
+
+    [$pdo,$payload]=draftSearch3Fixture();$snapshot=draftContextCapture($pdo);
+    $conversation=['id'=>1,'project_key'=>'anytour','channel'=>'telegram'];
+    draftContextCheck('foreign project and mismatched conversation cannot export Search3 evidence',
+        ManagerSearch3ReferenceContext::capture($pdo,array_replace($conversation,['project_key'=>'other']),$snapshot['context'])===null
+        && ManagerSearch3ReferenceContext::capture($pdo,array_replace($conversation,['id'=>2]),$snapshot['context'])===null);
+    $pdo->exec("UPDATE conversations SET project_key='other' WHERE id=1");
+    draftContextCheck('forged caller project cannot override the persisted conversation scope',
+        ManagerSearch3ReferenceContext::capture($pdo,$conversation,$snapshot['context'])===null);
+    $pdo->exec("UPDATE conversations SET project_key='anytour' WHERE id=1");
+    $pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?,?,?)')->execute([2,1,'inbound','customer','Новый вход','2026-10-17 12:01:00','telegram',json_encode(['type'=>'start']),null,null]);
+    draftContextCheck('a later entry is excluded at the old cutoff and fences the fresh capture',
+        ManagerSearch3ReferenceContext::capture($pdo,$conversation,$snapshot['context'])['message_id']===1
+        && !isset(draftWorkingInput(draftContextCapture($pdo))['context']['search3_inquiry']));
+    [$pdo]=draftSearch3Fixture(121);
+    $bounded=draftContextCapture($pdo);
+    draftContextCheck('a source outside the retained message window cannot become current evidence',
+        $bounded['context']['history_incomplete'] && !isset(draftWorkingInput($bounded)['context']['search3_inquiry']));
+
+    [$pdo,$payload]=draftSearch3Fixture();$snapshot=draftContextCapture($pdo);$expiry=$payload['snapshot']['observation']['price']['expiresAt'];
+    $notExpired=ManagerSearch3ReferenceContext::capture($pdo,$conversation,$snapshot['context'],$expiry-1);
+    $expired=ManagerSearch3ReferenceContext::capture($pdo,$conversation,$snapshot['context'],$expiry);
+    draftContextCheck('expiry changes only the historical price warning and never promotes checked to a verified current fare',
+        $notExpired['price_expired']===false && $expired['price_expired']===true
+        && $notExpired['observation']===$expired['observation'] && $expired['current_price_verified']===false);
+    $payload['snapshot']['observation']['price']['amount']=null;
+    $payload['snapshot']['observation']['price']['state']='unknown';$payload['price_at_arrival']='unknown';
+    $pdo->prepare('UPDATE conversation_events SET payload_json=?')->execute([json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+    $unknown=draftWorkingInput(draftContextCapture($pdo))['context']['search3_inquiry'];
+    draftContextCheck('an unknown price stays null rather than zero or an old amount',$unknown['observation']['price']['amount']===null && $unknown['current_price_verified']===false);
+    $payload['snapshot']['observation']['price']['state']='expired';$payload['price_at_arrival']='expired';
+    $pdo->prepare('UPDATE conversation_events SET payload_json=?')->execute([json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+    $alreadyExpired=draftWorkingInput(draftContextCapture($pdo))['context']['search3_inquiry'];
+    draftContextCheck('an explicitly expired source cannot revive because its timestamp is still in the future',
+        $alreadyExpired['price_expired']===true && $alreadyExpired['current_price_verified']===false);
+
+    [$pdo,$payload]=draftSearch3Fixture();
+    $pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?,?,?)')->execute([
+        2,1,'outbound','ai',str_repeat('😀',39900),'2026-10-17 12:00:01','telegram',json_encode(['type'=>'message']),null,null]);
+    $pdo->exec('DELETE FROM conversation_events');$baseline=draftWorkingInput(draftContextCapture($pdo));
+    $payload['snapshot']['observation']['flights']['outward']=$payload['snapshot']['observation']['flights']['inward']=array_fill(0,4,['label'=>str_repeat('Ж',1000)]);
+    draftContextCheck('large Search3 fixture is still an accepted bounded source snapshot',Search3TourHandoffSnapshot::normalize($payload['snapshot'])===$payload['snapshot']);
+    $pdo->prepare('INSERT INTO conversation_events VALUES(?,?,?,?,?,?)')->execute([999,1,'tour_search_inquiry','customer',json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR),'2026-10-17 12:00:00']);
+    $largeSnapshot=draftContextCapture($pdo);
+    draftContextCheck('the budget case retains the native entry and admits a source before provider-envelope limits',
+        !array_filter($largeSnapshot['context']['messages'],static fn(array $row):bool=>!empty($row['text_truncated']))
+        && ($largeSnapshot['reference_context']->forContext($largeSnapshot['context'])['search3_inquiry']['status']??null)==='available');
+    $large=draftWorkingInput($largeSnapshot);
+    draftContextCheck('optional Search3 evidence cannot evict existing transcript or references when the wire budget is full',
+        $large['context']===$baseline['context'] && ($large['search3_inquiry_admission']['reason']??null)==='request_budget');
+}
+
+if (($argv[1]??'')==='--search3-only') {
+    draftSearch3Checks();
+    echo 'Manager Search3 reply context: '.$passed." checks passed\n";
+    exit(0);
+}
+
 if (($argv[1]??'')==='--hotel-knowledge-read') {
     require_once __DIR__.'/hotel_knowledge_read_checks.php';
     hotelKnowledgeReadChecks();
@@ -939,6 +1097,7 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
         && strlen(json_encode(ManagerDraftClient::requestBody(ManagerAiDraftService::instructions($tightBase['context']),$tightBase['context']),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))<=ManagerDraftClient::MAX_REQUEST_BYTES
         && $tight['context']===$tightBase['context'] && ($tight['working_selection_admission']['reason']??'')==='request_budget');
 
+    draftSearch3Checks();
     require_once __DIR__.'/hotel_offer_reference_checks.php';
     hotelOfferReferenceChecks();
     require_once __DIR__.'/hotel_knowledge_read_checks.php';

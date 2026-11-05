@@ -135,8 +135,121 @@ function modeledServiceEventFixture(string $type='manager_message',string $actor
     }
     return $parts;
 }
+/** Exact legacy emitOnce payload; the real producer-to-journal path is covered in the stream suite. */
+function modeledObservationalEventFixture(string $target='max_bot_activity_start',
+    string $request='Подберите тур в Турцию на 7 ночей.',array $after=[],int $delay=0):array
+{
+    $parts=modeledServiceEventFixture('metrika_'.$target,'system',['target'=>$target],$after,$delay);
+    foreach($parts[0]['rows']as&$row){
+        if($row['journal_id']==='1')$row['snapshot']['payload']['text']=$request;
+        if($row['journal_id']!=='2')continue;
+        $row['snapshot']['source_clock']='database_persistence_not_provider_occurrence';
+        $row['snapshot']['source_timestamp_basis']='database_session_timezone_to_unix';
+        $row['snapshot']['payload']['payload_json']=json_encode(['target'=>$target],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+    }
+    unset($row);return $parts;
+}
+
+function modeledObservationalEventAssertions(callable $check):void
+{
+    foreach(['max_bot_activity_start','max_manager_request','max_manager_reply','max_customer_reply_after_manager']as$target){
+        $p=ModeledConversionEarlyForecast::freeze(...modeledObservationalEventFixture($target));
+        $prediction=$p['semantic_prediction'];
+        $check('exact observational receipt preserves but never upgrades customer meaning '.$target,
+            $prediction['status']==='predicted'&&$prediction['estimated_probability']===0.083333
+            &&$prediction['current_request_anchor']==='journal:1'&&$prediction['current_customer_turn_count']===1
+            &&$prediction['features']['meaningful_customer_turns']===1&&$prediction['outcome_observations']===[]
+            &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+            &&$p['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===0
+            &&$p['contextual_signals']['coverage']['prediction_source_continuity']['unavailable_event_barriers']===0);
+    }
+    foreach(['edited','scope','source_id','kind','deleted','omitted','actor','unknown_type','target_mismatch',
+        'extra_payload','malformed','duplicate_target','clock_kind','clock_basis']as$kind){
+        $parts=modeledObservationalEventFixture();
+        foreach($parts[0]['rows']as&$row)if($row['journal_id']==='2'){
+            if($kind==='edited')$row['source_version_no']=2;
+            elseif($kind==='scope')$row['snapshot']['customer_key']='99';
+            elseif($kind==='source_id')$row['snapshot']['source_id']='99';
+            elseif($kind==='kind')$row['snapshot']['source_kind']='message';
+            elseif($kind==='deleted')$row['snapshot']['source_status']='deleted';
+            elseif($kind==='omitted')$row['snapshot']['payload_status']='oversize_not_copied';
+            elseif($kind==='actor')$row['snapshot']['payload']['actor_type']='customer';
+            elseif($kind==='unknown_type')$row['snapshot']['payload']['event_type']='metrika_max_bot_activity_start_extra';
+            elseif($kind==='target_mismatch')$row['snapshot']['payload']['payload_json']='{"target":"max_manager_request"}';
+            elseif($kind==='extra_payload')$row['snapshot']['payload']['payload_json']='{"target":"max_bot_activity_start","text":"Бронируем у вас"}';
+            elseif($kind==='malformed')$row['snapshot']['payload']['payload_json']='{';
+            elseif($kind==='duplicate_target')$row['snapshot']['payload']['payload_json']='{"target":"max_sale","target":"max_bot_activity_start"}';
+            elseif($kind==='clock_kind')$row['snapshot']['source_clock']='provider_occurrence';
+            else$row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+        }
+        unset($row);$p=ModeledConversionEarlyForecast::freeze(...$parts);
+        $check('unrecognized observational envelope remains a barrier '.$kind,
+            $p['semantic_prediction']['estimated_probability']===null
+            &&$p['semantic_prediction']['current_request_anchor']===null
+            &&$p['contextual_signals']['coverage']['prediction_source_continuity']['unavailable_event_barriers']===1);
+    }
+    foreach(['max_lead_working','max_offer_sent','max_booking','max_sale']as$target){
+        $p=ModeledConversionEarlyForecast::freeze(...modeledObservationalEventFixture($target));
+        $check('no metrika prefix or sales-stage wildcard is admitted '.$target,
+            $p['semantic_prediction']['estimated_probability']===null&&$p['semantic_prediction']['outcome_observations']===[]);
+    }
+    foreach(['missing','reversed','future']as$clock){
+        $parts=modeledObservationalEventFixture(after:[['text'=>'Спасибо']]);
+        foreach($parts[0]['rows']as&$row)if($row['journal_id']==='2'){
+            if($clock==='missing')unset($row['snapshot']['source_created_at_unix']);
+            elseif($clock==='reversed')$row['observed_at_unix']=$row['snapshot']['source_created_at_unix']-1;
+            else$row['observed_at_unix']=strtotime($parts[2]['requested_at'])+1;
+        }
+        unset($row);$p=ModeledConversionEarlyForecast::freeze(...$parts);
+        $check('observational receipt cannot bypass unresolved-clock isolation '.$clock,
+            $p['contextual_signals']['coverage']['context_linking_disabled']===true
+            &&$p['contextual_signals']['coverage']['prediction_source_continuity']['unresolved_clock_barriers']===3
+            &&$p['semantic_prediction']['estimated_probability']===null);
+    }
+    $p=ModeledConversionEarlyForecast::freeze(...modeledObservationalEventFixture(request:'Здравствуйте'));
+    $check('observational receipt cannot establish customer interest',
+        $p['semantic_prediction']['current_request_anchor']===null&&$p['semantic_prediction']['estimated_probability']===null);
+    foreach([86401,2678400]as$delay){
+        $parts=modeledObservationalEventFixture(delay:$delay);
+        $p=ModeledConversionEarlyForecast::freeze(...[...$parts,null,strtotime($parts[2]['requested_at'])]);
+        $check('observational receipt cannot renew stale customer meaning '.$delay,
+            $p['semantic_prediction']['current_request_anchor']===null&&$p['semantic_prediction']['estimated_probability']===null);
+    }
+    $parts=modeledObservationalEventFixture(delay:72000);
+    $within=ModeledConversionEarlyForecast::freeze(...[...$parts,null,strtotime($parts[2]['requested_at'])]);
+    $later=$parts[0]['rows'][0];$later['journal_id']=$later['source_id']=$later['snapshot']['source_id']='3';
+    $later['snapshot']['source_created_at_unix']=1793002000+86401;$later['observed_at_unix']=1793002000+86402;
+    $later['snapshot']['payload']=['event_type'=>'metrika_max_customer_reply_after_manager','actor_type'=>'system',
+        'payload_json'=>'{"target":"max_customer_reply_after_manager"}'];
+    $parts[0]['rows'][]=$later;
+    foreach([1,2]as$i)$parts[$i]['journal_cursor']=$parts[$i]['source_fence_journal_id']='3';
+    $cutoff=gmdate('Y-m-d\TH:i:s\Z',1793002000+87400);
+    $parts[1]['profile']['prediction_at']=$parts[1]['profile']['observation_input']['prediction_at']=$parts[2]['requested_at']=$cutoff;
+    $p=ModeledConversionEarlyForecast::freeze(...[...$parts,null,strtotime($cutoff)]);
+    $check('a chain of observational receipts never refreshes the last meaningful customer time',
+        $within['semantic_prediction']['estimated_probability']===0.083333
+        &&$p['semantic_prediction']['estimated_probability']===null&&$p['semantic_prediction']['current_request_anchor']===null);
+    $p=ModeledConversionEarlyForecast::freeze(...modeledObservationalEventFixture(after:[['text'=>'Да']]));
+    $check('observational receipt preserves the human short-answer boundary',
+        $p['semantic_prediction']['estimated_probability']===0.083333
+        &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0);
+    $p=ModeledConversionEarlyForecast::freeze(...modeledObservationalEventFixture(
+        after:[['text'=>'Подберите тур в Египет на другую поездку на 10 ночей.']]));
+    $check('a later explicit trip boundary still starts a different request',
+        $p['semantic_prediction']['current_request_anchor']==='journal:3'
+        &&$p['semantic_prediction']['features']['meaningful_customer_turns']===1);
+    $p=ModeledConversionEarlyForecast::freeze(...modeledObservationalEventFixture(request:'Оплатил тур'));
+    $check('observational receipt cannot erase a real outcome',
+        $p['semantic_prediction']['status']==='known_outcome'&&$p['semantic_prediction']['estimated_probability']===null);
+    $parts=modeledObservationalEventFixture();$parts[0]['access_denied']=true;$parts[1]['access_status']='denied';
+    $p=ModeledConversionEarlyForecast::freeze(...$parts);
+    $check('observational receipt never crosses denied access',
+        $p['semantic_prediction']['status']==='access_denied'&&$p['semantic_prediction']['current_request_anchor']===null);
+}
+
 function modeledEarlyAssertions(callable $check):void
 {
+    modeledObservationalEventAssertions($check);
     $p=modeledEarlyRun([['text'=>'Подберите тур в Турцию. Бюджет до 200 тысяч.']]);
     $f=$p['early_forecast'];
     $check('early quality is a distinct non-monetary candidate with unresolved trip',
