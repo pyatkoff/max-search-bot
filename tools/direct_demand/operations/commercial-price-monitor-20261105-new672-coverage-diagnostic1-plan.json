@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261105-new672-coverage-diagnostic1",
-  "state": "CONCRETE_AGGREGATE_PLAN_ONLY_NOT_EXECUTED",
+  "state": "APPROVED_FROZEN_SINGLE_AGGREGATE_READY_FOR_CURRENT_GATED_EXECUTION",
   "goal": "Explain why the genuinely new normal672 input yielded no OTHER unquoted eligible contexts before choosing another paid price operation",
   "new_related_input": {
     "collector_run": 41935377716,
@@ -124,5 +124,28 @@
   "risks": [
     "Read11 excluded51consumedhotels, so zeroOTHERrows is not all159priceabsence",
     "New8478 may largelymatchconsumedhotelcontexts or otherdates/targets; sourcecallsite alone cannotprove"
-  ]
+  ],
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "reader_sha256": "9233205e8898814ab4b93b0f18b2566247f4b6cd297e7ae8ded7dc25f782dc3b",
+  "deployment_metadata": [
+    {
+      "id": 41937182905,
+      "status": "completed",
+      "conclusion": "success",
+      "source": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
+    },
+    {
+      "id": 41937963662,
+      "status": "completed",
+      "conclusion": "success",
+      "source": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
+    },
+    {
+      "id": 41937963780,
+      "status": "completed",
+      "conclusion": "success",
+      "source": "25a2d5e31aec7243b45c47e836a544e659e28b1d"
+    }
+  ],
+  "full21_still_required": true
 }
