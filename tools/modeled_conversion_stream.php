@@ -23,7 +23,7 @@ try {
         $result=(new ModeledConversionPurchaseStudy(ConversationDb::connection()))->status();
     }elseif(str_starts_with($op,'profiles-')){
         require_once dirname(__DIR__).'/services/ModeledConversionProfiles.php';
-        $profiles=new ModeledConversionProfiles(ConversationDb::connection());
+        $profiles=new ModeledConversionProfiles(ConversationDb::connection(),$op==='profiles-tick'?ArchivePredictiveRelativeWeights::load():null);
         $result=match($op){'profiles-start'=>$profiles->start(),'profiles-stop'=>$profiles->stop(),'profiles-tick'=>$profiles->tick(time()),default=>$profiles->status()};
     }else $result=match($op){'start'=>$stream->start(time()),'stop'=>$stream->stop(),'tick'=>$stream->tick(time()),default=>$stream->status()};
     echo json_encode(['ok'=>true]+$result,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;

@@ -4,6 +4,7 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once __DIR__.'/run_modeled_conversion_early_forecast_regression.php';
 require_once dirname(__DIR__).'/services/ModeledConversionPredictionFollowup.php';
 require_once dirname(__DIR__).'/services/ModeledConversionForecastStatusReader.php';
+require_once __DIR__.'/support/archive-predictive-model.php';
 
 final class ForecastV1ObservedStatement extends PDOStatement
 {
@@ -32,7 +33,7 @@ function forecastV1Schema(PDO $p):void
         json_encode(['status'=>'idle','observed_at_unix'=>1793004000,'profiles_written'=>0],JSON_THROW_ON_ERROR)]);
 }
 function forecastV1Packet(string $customer='7',string $conversation='9',array $messages=[['text'=>'Подберите тур в Турцию на 7 ночей.']],
-    string $platform='telegram',int $cutoffOffset=1000,int $freezeOffset=2000,array $deltas=[],int $extractionDelay=0):array
+    string $platform='telegram',int $cutoffOffset=1000,int $freezeOffset=2000,array $deltas=[],int $extractionDelay=0,?array $relativeWeights=null):array
 {
     [$case,$wrapper,$document]=modeledEarlyFixture($messages);
     $subject=['project_key'=>'anytour','platform'=>$platform,'customer_key'=>$customer,'conversation_id'=>$conversation];
@@ -53,7 +54,7 @@ function forecastV1Packet(string $customer='7',string $conversation='9',array $m
         foreach($clocks[$e['references'][0]['id']]as$k=>$v)$e[$k]=$e['references'][0][$k]=$v;
     }
     unset($e);
-    $packet=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,1793002000+$freezeOffset);
+    $packet=ModeledConversionEarlyForecast::freeze($case,$wrapper,$document,null,1793002000+$freezeOffset,$relativeWeights);
     $wrapper=array_replace($wrapper,$packet);
     $wrapper['prediction_followup']=ModeledConversionPredictionFollowup::compare($wrapper['semantic_prediction'],null);
     $wrapper['processing']=['version'=>'admitted_journal_profiles_v1_2','source_sha256'=>hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionProfiles.php'),
@@ -154,6 +155,26 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
 
 function forecastV1Assertions(PDO $p,callable $check):void
 {
+    forecastV1Schema($p);
+    $candidate=archivePredictiveSyntheticCandidate();
+    $candidate['multipliers']['continued_meaningful_engagement']=1.2;
+    $candidate['multipliers']['office_question']=1.1;
+    $capsule=ArchivePredictiveRelativeWeights::capsule($candidate,hash('sha256',json_encode($candidate,JSON_THROW_ON_ERROR)));
+    $legacy=forecastV1Packet();$legacyBytes=json_encode($legacy,JSON_THROW_ON_ERROR);
+    $weighted=forecastV1Packet('81','91',[
+        ['text'=>'Подберите тур в Турцию на 7 ночей.'],
+        ['text'=>'Где находится ваш офис?']],relativeWeights:$capsule);
+    forecastV1Append($p,$legacy);forecastV1Append($p,$weighted);$rowsBefore=forecastV1Rows($p);$weightedRead=forecastV1Read($p);
+    $check('saved weights are identified without reinterpreting legacy forecasts',
+        $weightedRead['saved']['prospective_estimates']===2
+        &&$weightedRead['saved']['weighting_version_counts']===['illustrative'=>1,'archive_relative_weights'=>1]
+        &&$weightedRead['saved']['relative_weight_package_counts']===[$capsule['package_sha256']=>1]
+        &&json_encode($legacy,JSON_THROW_ON_ERROR)===$legacyBytes&&forecastV1Rows($p)===$rowsBefore);
+    $check('new saved office signal and reviewed package remain privately attributable',
+        $weighted['semantic_prediction']['features']['office_question']===true
+        &&$weighted['semantic_prediction']['relative_weights']===$capsule
+        &&!str_contains(json_encode($weightedRead,JSON_THROW_ON_ERROR),'Где находится'));
+
     forecastV1Schema($p);$a=forecastV1Packet();forecastV1Append($p,$a);forecastV1Append($p,$a);
     forecastV1Append($p,forecastV1Packet('8','10',[['text'=>'Купим тур только у вас.']],'max'));
     $before=forecastV1Rows($p);$auth=0;$r=forecastV1Read($p,static function()use(&$auth):void{$auth++;});

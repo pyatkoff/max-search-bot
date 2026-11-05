@@ -17,7 +17,7 @@ final class ModeledConversionEarlyForecast
     public const TARGET_VERSION='purchase_readiness_30d_ordinal_v1';
     public const HORIZON_SECONDS=2592000;
 
-    public static function freeze(array $case,array $wrapper,array $document,?string $firstCursor=null,?int $frozenAt=null):array
+    public static function freeze(array $case,array $wrapper,array $document,?string $firstCursor=null,?int $frozenAt=null,?array $relativeWeights=null):array
     {
         $subject=$wrapper['subject']??null;
         if(!is_array($subject)||!self::sameSubject($case['subject']??null,$subject)||!is_array($case['rows']??null)||count($case['rows'])>50)self::fail('case');
@@ -33,7 +33,7 @@ final class ModeledConversionEarlyForecast
         $frozenAt??=time();if($frozenAt<$cutoff)self::fail('frozen_clock');
         $frozen=gmdate('Y-m-d\\TH:i:s\\Z',$frozenAt);
         $denied=($case['access_denied']??null)!==false||($wrapper['access_status']??null)!=='allowed';
-        $predictive=new ModeledConversionSemanticPrediction($subject,$at,$document['requested_at'],$frozen,$cursor,$fence);
+        $predictive=new ModeledConversionSemanticPrediction($subject,$at,$document['requested_at'],$frozen,$cursor,$fence,$relativeWeights);
         $admitted=[];$input=$profile['observation_input']??[];
         if(!$denied){
             if(!is_array($input['evidence']??null)||count($input['evidence'])>1000||!self::sameSubject($input['subject']??null,$subject)
