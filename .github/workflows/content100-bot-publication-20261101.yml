@@ -1,4 +1,4 @@
-name: Capture one current priced post pair with exact native entities
+name: Prepare one native inline price link without provider access
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -11,14 +11,14 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 446531f0ae40e14a7cf8b08fb7ae3beba770630d
-  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-context25-priced-small1-scope.json
-  EXPECTED_LINK_SCOPE_SHA256: faffa49a1406d9bd3496446da6772b9e55191b7ed85ea52ef5f80f177caf6e79
-  EXPECTED_INLINE_CONTEXT_READER_SHA256: af212d45249a916c72e19d0857ae4e0df48c4cd9bbdfe82bfdbaad93c567dde9
+  LINK_SCOPE_FILENAME: commercial-hotel-search-links-20261105-priced10b-inline-small1-scope.json
+  EXPECTED_LINK_SCOPE_SHA256: ecf66257db9d6a87c63f5913de810ff9ffb0723396e6e5c6f55b3d09642ca9c9
+  LINK_CONTEXT_RUN: '42084757556'
+  LINK_CONTEXT_SOURCE_SHA: 446531f0ae40e14a7cf8b08fb7ae3beba770630d
 jobs:
-  inspect:
-    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,122 +27,34 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Verify exact reviewed current publishing source
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42076321901 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/42076321901/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42077314162 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Require successful same-source production diagnostics
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42077314120 > "$RUNNER_TEMP/current-diagnostics-run.json"
-          python3 - <<'PY'
-          import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'current-diagnostics-run.json').read_text())
-          assert d['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['path']=='.github/workflows/publish-conversation-diagnostics.yml'
-          assert d['status']=='completed' and d['conclusion']=='success'
-          print('CURRENT_PRODUCTION_DIAGNOSTICS_HEALTH_OK server_calls=0')
-          PY
       - uses: actions/download-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-priced10b-original-projection1
+          name: commercial-hotel-search-links-20261105-context25-priced-small1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
-          run-id: 42073736305
-          path: ${{ runner.temp }}/original-priced-input
+          run-id: 42084757556
+          path: ${{ runner.temp }}/original-link-context
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring
-      - name: Validate only the new small scope and native entity capture
+      - name: Prepare frozen native link entities and exercise new actual input cases
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/prepare-priced-hotel-inline-contexts-20261105-small1.py
-          python3 tools/direct_demand/operations/prepare-priced-hotel-inline-contexts-20261105-small1.py
-          php -l "$RUNNER_TEMP/link-context.php"
-          ANYTOUR_CURRENT_LINK_CONTEXT_NEW_INPUT_CASES=1 php "$RUNNER_TEMP/link-context.php"
-      - name: Retain exact private scope before server and owned-post access
-        uses: actions/upload-artifact@v4
-        with:
-          name: commercial-hotel-search-links-20261105-context25-priced-small1-input
-          path: |
-            ${{ runner.temp }}/link-context-input.private.json
-            ${{ runner.temp }}/link-context.php
-          retention-days: 14
-          if-no-files-found: error
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Capture one owned current post and canonical counterpart without writes
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 tools/direct_demand/operations/run-hotel-search-links-current-contexts-20261105-data-bound.py
-      - name: Retain private current native contexts and safe counts
+          python3 -m py_compile tools/direct_demand/operations/prepare-priced-hotel-inline-price-link-20261105-small1.py
+          python3 tools/direct_demand/operations/prepare-priced-hotel-inline-price-link-20261105-small1.py
+          for target in "$RUNNER_TEMP"/hotel-search-links-prepared/*/update.php; do
+            php -l "$target"
+            ANYTOUR_INLINE_PRICE_LINK_NEW_CASES=1 php "$target"
+          done
+      - name: Retain frozen private manifests approval scripts and intents
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-search-links-20261105-context25-priced-small1
-          path: |
-            ${{ runner.temp }}/link-context-input.private.json
-            ${{ runner.temp }}/link-context-readback.private.json
-            ${{ runner.temp }}/link-context-summary.json
+          name: commercial-hotel-search-links-20261105-priced10b-inline-small1-prepared1
+          path: ${{ runner.temp }}/hotel-search-links-prepared
           retention-days: 14
           if-no-files-found: warn

@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced10b-inline-small1-pass1",
+  "state": "PURE_INLINE_PRICE_LINK_PREPARE_BEFORE_ANY_POST_WRITES",
+  "goal": "Add a hotel-specific search hyperlink directly to the existing price in native57028 posts in MAX and Telegram, preserving every displayed text byte, native existing formatting, price amount and original checked metadata.",
+  "native_hotel_ids": [
+    57028
+  ],
+  "context_run": 42084757556,
+  "context_artifact": 13441148750,
+  "capture_source_sha": "446531f0ae40e14a7cf8b08fb7ae3beba770630d",
+  "scope_filename": "commercial-hotel-search-links-20261105-priced10b-inline-small1-scope.json",
+  "scope_sha256": "ecf66257db9d6a87c63f5913de810ff9ffb0723396e6e5c6f55b3d09642ca9c9",
+  "template_filename": "update-priced-hotel-inline-price-search-link-20261105.php",
+  "template_sha256": "aaf6cbe778fc4ba1fdeaedb7cfa0c1d6b25fb89aaf0e4f2e130fbff9103d55b0",
+  "native_new_cases": 9,
+  "python_new_cases": 4,
+  "bounds": {
+    "new_price_checks": 0,
+    "gateway_calls": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "pure_provider_calls": 0,
+    "max_later_existing_content_edits": 2
+  },
+  "criteria": [
+    "Existing caption text must remain byte-identical: only native link entities change; no visible long URL or extra CTA.",
+    "Exactly one unique original money-line anchor; unsupported original markup defers rather than flattens.",
+    "Preserve current MAX markup and all Telegram entities; actual native readbacks must prove search URL attached to the price, unchanged photo/canonical button/source/token/publication and new content version.",
+    "EXACT two original price metadata values before and after registry receipt; NOQUOTE carries no new quote hash/epoch/index/amount.",
+    "Fresh current main+same healthy deployTLSdiag/fullremote21/accepted25host/installedclean/runtime/native/schema-rights; frozen exact5keyapproval/privateintent before any later provider write; once/UNKNOWNoriginalfirst/no retries.",
+    "This phase is PURE only. The ordinary existing serial updater may execute later only after new actual-input cases pass and all frozen bytes are revalidated."
+  ],
+  "risks": [
+    "Source or current post version may change before write; stop and reconcile original operation.",
+    "Unsupported/overlapping price entity must defer; never overwrite owner's manual links.",
+    "A readback mismatch is UNKNOWN; no automatic resend or alternate operation."
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "operation": "commercial-hotel-search-links-20261105-context25-priced-small1",
+  "update_operation": "commercial-hotel-search-links-20261105-priced10b-inline-small1-pass1",
+  "native_hotel_ids": [
+    57028
+  ],
+  "projection_native_ids": [
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264
+  ],
+  "projection_operation": "commercial-hotel-search-links-20261105-priced10b-original-projection1",
+  "role": "current_confirmed_own_price_manifest_and_receipt",
+  "expected_linked_count": 133,
+  "expected_priced_count": 85,
+  "expected_published_pairs": 161,
+  "max_hotels": 1,
+  "max_owned_max_reads": 1,
+  "prior_price_operations": {
+    "57028": "commercial-price-update-20261104-72h-pass1-h57028-v1"
+  },
+  "presets": {
+    "departure_id": 1,
+    "adults": 2,
+    "children": 0,
+    "currency": "RUB",
+    "departure_date_from": "2026-11-06",
+    "departure_date_to": "2026-11-12",
+    "nights_from": 5,
+    "nights_to": 14
+  },
+  "capture_native_entities_before_first_owned_get": true,
+  "new_native_cases": 14,
+  "new_python_actual_scope_cases": 3,
+  "noquote": true,
+  "bounds": {
+    "gateway": 0,
+    "db_writes": 0,
+    "provider_post_reads": 1,
+    "edits": 0
+  },
+  "update_hotel_operation_prefix": "commercial-hotel-search-links-20261105-priced10b-h",
+  "update_hotel_operation_suffix": "-v1",
+  "scope_filename": "commercial-hotel-search-links-20261105-priced10b-inline-small1-scope.json"
+}
