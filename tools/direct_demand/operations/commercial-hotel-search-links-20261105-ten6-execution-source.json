@@ -1,0 +1,48 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten6-pass1",
+  "state": "EXECUTE_ONLY_ORIGINAL_FROZEN10_NOQUOTE_PAIRS_AFTER_FRESH_SOURCE_GATES",
+  "goal": "Add10 nativehotel searchlinks to20 existingposts with preservedhotelcontent andpricecheckmetadata.",
+  "hotel_ids": [
+    1151,
+    1334,
+    1417,
+    1464,
+    1659,
+    1672,
+    1715,
+    9322,
+    17480,
+    21695
+  ],
+  "prepared_run": 42030966639,
+  "prepared_artifact": 13415952234,
+  "context_run": 42030425796,
+  "context_artifact": 13415153847,
+  "context_source_sha": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+  "context_workflow_source_sha": "28e3741fa40240e4287c8f3b0340891f3b57beab",
+  "frozen_prepared_source": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+  "expected_source": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+  "scope_sha256": "79649aec85cb577cfd08dafa709e4d97e76228b669bc5889ba77e489b3b3b07e",
+  "template_sha256": "c0d2e63cdb6c6ba1a89b7c69d320d29aa39b3afe285504b810b5dc7133833af3",
+  "runtime_source_header_rebind_reviewed_publishing21_unchanged": false,
+  "limits": {
+    "one_serial_run": true,
+    "max_hotels": 10,
+    "max_existing_post_content_edits": 20,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "automatic_retry": false
+  },
+  "criteria": [
+    "Exactoriginalfrozenframe-manifest-approval5keys-scriptbytes/NOQUOTE;syntaxonly no closedcasesreplay.",
+    "FreshcurrentSAMEhealthydeployverifyTLSdiag/FULLremote21/hostaccepted25/clean/runtime/native/schema-rights.",
+    "PrivateallhotelintentartifactBEFOREANYserver/provideraccess/perpostdurableonceBEFOREwrite.",
+    "Wholebodyclosingphotobuttonsourcetoken/85pricecheckmetadatapreserved;NOQUOTE/noinventedquoteSHA-epoch-index-amount.",
+    "UNKNOWN/failurestopseries/resolveoriginalFIRST/no newoperationIDorautomaticretry."
+  ],
+  "risks": [
+    "Postorproductioncouldchange;guardstopsbeforewrite.",
+    "Providereditcouldapplywithfailedfinalread;no blindseriesreplay."
+  ]
+}
