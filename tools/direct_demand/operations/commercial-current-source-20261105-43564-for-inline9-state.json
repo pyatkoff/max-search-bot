@@ -1,0 +1,20 @@
+{
+  "operation": "commercial-current-source-20261105-43564-for-inline9",
+  "state": "CLOSED_ACCEPTED_CURRENT_SOURCE_FOR_ACTUAL_INLINE_PAIR",
+  "sha": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "deploy": 42086175128,
+  "tls": 42087050345,
+  "diag": 42087050374,
+  "source_tree_recorded_in_original_verified_source": true,
+  "accepted_execution_run": 42091639745,
+  "full_remote21": true,
+  "accepted_host25_byte_identical": true,
+  "installed_clean": true,
+  "runtime_native_schema_rights": true,
+  "frozen_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "reviewed_independent_delta_paths": [],
+  "publishing21_unchanged": true,
+  "no_foreign_release_mutation": true,
+  "future_always_fresh_current_main_same_healthy_gates": true,
+  "source_header_rebind": false
+}

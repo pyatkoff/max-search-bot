@@ -35,9 +35,7 @@
   "ready_price_edits": 0,
   "ready_link_edits": 0,
   "current_context_native_ids_consumed": [
-    57028
-  ],
-  "remaining_current_context_native_ids": [
+    57028,
     278,
     260,
     163,
@@ -48,5 +46,10 @@
     465,
     264
   ],
-  "new_actual_inline_execution_run": 42087863889
+  "remaining_current_context_native_ids": [],
+  "all_ten_current_contexts_consumed": true,
+  "actual_runs": [
+    42087863889,
+    42091639745
+  ]
 }
