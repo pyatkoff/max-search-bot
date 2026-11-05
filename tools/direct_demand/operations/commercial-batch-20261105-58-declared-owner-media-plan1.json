@@ -1,0 +1,48 @@
+{
+  "operation": "commercial-batch-20261105-58-declared-owner-media-plan1",
+  "state": "NEW_FINITE_PROPERTY_GALLERY_OR_PRESS_DECLARATION_REQUIRED_NO_URL_SELECTED",
+  "goal": "Find a genuinely new exact owner gallery/press source with whole-main-complex property imagery for another retained unpublished hotel; avoid repeated closedpointerqueries.",
+  "bounds": {
+    "max_property_groups": 2,
+    "max_new_declared_urls_per_group": 2,
+    "max_parallel": 2,
+    "owner_http_before_exact_new_pointer": 0,
+    "raw_photo_http_before_exact_membership": 0,
+    "server_calls": 0,
+    "provider_calls": 0,
+    "canva_transactions_before_source_media_proof": 0,
+    "new_posts": 0
+  },
+  "finite_target_metadata": [
+    {
+      "hotel_id": 83563,
+      "name": "SERRY BEACH RESORT",
+      "retained_source_index": "commercial-stock-20261103-23-source-index.json",
+      "known_property_pointer": "https://www.theserry.com/beach-resort",
+      "property_constraint": "Familybeachresort, notseparate16+sister; noManarasuitelounge/shareddiningrights generalizedtoallrooms.",
+      "next_evidence": "OnlyNEWexactdeclaredpropertygallery/press/assetpointer. Do notrediscover/requestknownroot."
+    },
+    {
+      "hotel_id": 343,
+      "name": "OLD PALACE RESORT SAHL HASHESH",
+      "retained_source_index": "commercial-stock-20261103-23-source-index.json",
+      "known_property_pointer": null,
+      "property_constraint": "Currentexactprimaryfacts/photosrequired; no guessedownerhost/propertypath/nativecountry.",
+      "next_evidence": "Ifneeded onefiniteofficialproperty-gallery/presspointersearch; do notguessURL or useOTA/sharedbrandphotos asownerproof."
+    }
+  ],
+  "criteria": [
+    "GenuinelyNEWnormalpersistedpriceinputsfirst, thenproperNEWreview6native-product-publisherproof; nooldquotes/DBscopes/manualsourcepass.",
+    "Beforeanysearch/ownerHTTP compareknownclosedmetadata; exactreturnedprimarypropertymediaURL mustbefrozenbeforeGHA. ≤2propertygroups/≤2newdeclaredURLs each; no broadnotes/historyscan/rootrediscovery/wholebodyconsole.",
+    "Allsource≤57closed. Specific57SentidoofficialgalleryqueryandJAZowner-domainimagequeryclosed/unproductiveonlywithinboundedscope; noabsenceclaim orautomaticrepeat. 56JAZ2pooldetailsclosed/nothero; remainingOverview/Exteriornamesnotproofofdifferentwholecomplexframe.",
+    "Rawphotoexclusions291URLs/290decodedbasenames via56indexclosedarrays+bothnew_photos; futureexactURL+decodedbasename/variantguardbeforeanyGET andfinitecanonicalcontactmetadataexclusions.",
+    "Wholemaincomplexhero+2differentpropertyphotos/rights/currentexactnative-country-active-name/registry/facts/wholecaptionsmandatorybeforeCanva/publisher. MissingnativefieldsremainNULL/unverified, neverinvented0.",
+    "No403retry/alternatehost-path-query/headercookie/robotsbypass: Hilton102774root, Casa74258galleryclosed. 53knownroots254/4185/512andNile102031rootclosedGET0. No oldphoto/pixel/log/result/PNG/TX/case replay.",
+    "FreshCanvaTXonlyafteracceptedproof; originaldesignprotected/reusepool/EACHthumbnailSHOW/PNGguards/freezeTHENcancel. Ready1..10ONEexistingSERIAL/privateintent/once/UNKNOWNoriginalFIRST; do notholdreadyforhardcases.",
+    "OnlyNEWactualmaterialpair changes161 and permitsMAX162/3feed17/monitorappend. Source/search/preparationdoesnotcountasdelivery."
+  ],
+  "risks": [
+    "SearchcanreturnonlyOTA/brandaggregateorclosedroot; deferwithoutrequestingoldURL.",
+    "Photosmaystillbeonlypool/details/wrongproperty; neverlowerwholecomplexheroqualityorclaimrightsfromfilename."
+  ]
+}
