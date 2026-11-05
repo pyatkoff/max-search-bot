@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-bounded1to10-plan1",
+  "goal": "Support actual final3 unlinked/unpricedpublished hotels without paddingclosedIDs, with maximum10retained.",
+  "state": "PREPARED_PURE_NEW_FUNCTIONALITY_CONTRACTS_BEFORE_SERVER_ACCESS",
+  "native_hotel_ids": [
+    28668,
+    55205,
+    75377
+  ],
+  "scope_sha256": "fd44f7822e44d4c9941323907da8dbd88de795723a520e3ced73ca78406c7f84",
+  "changed_file_sha256": {
+    "read-hotel-search-links-current-contexts-20261105-data-bound.php": "b21ec258652f5299bc3d523b12ea9b546ebc6a932e9ce35fd19f8c6f62f1fc31",
+    "prepare-hotel-search-links-current-contexts-20261105-data-bound.py": "6975cbb7e286526d3864384dbf252dc2d5e3d6f8f2a3aea3b736de1178d268a4",
+    "update-hotel-search-links-explicit-noquote-20261105-data-bound.php": "2bbea83f52ba3f6cb517303793180a1ebeb39852cf4dd0722229927599baa6ad",
+    "prepare-hotel-search-links-explicit-noquote-20261105-data-bound.py": "b9b2c1b3adc0ef9d09aed1e0cad6cfa00fc45563b0b0892613c8b92dd0aabb1b"
+  },
+  "template_sha256": "2bbea83f52ba3f6cb517303793180a1ebeb39852cf4dd0722229927599baa6ad",
+  "bounds": {
+    "min_hotels": 1,
+    "max_hotels": 10,
+    "actual_next_scope": 3,
+    "max_actual_next_owned_MAX_reads": 3,
+    "max_next_existing_post_edits": 6,
+    "pure_ssh": 0,
+    "pure_db": 0,
+    "pure_provider": 0,
+    "old_fixtures": 0
+  },
+  "criteria": [
+    "Exact13wholelineedits+newboundedfunctions;namespaces/roles/once/sourceguardsunchanged;no generalnumericreplacement.",
+    "ActualPHPfunctions extractedviaPHPLexer/nativePHP;PythonactualfunctionsASTexecuted;1/3/10positive,0/11overflownegative,foreign/duplicate map anddeferredpartition rejected.",
+    "Synthetic900000000IDsONLYpurecountfixtures/noactive_scopepadding/noqueries/noimportedprivatecontents.",
+    "Existing45explicitmanifestallowlist/currentcanonicalframes+wholecaptions+NOQUOTE+85pricesuntouched;no broadallhistoryscan.",
+    "NewfunctionalityCIbeforecontext23;newactual3inputcaseslater/oldcases0."
+  ],
+  "risks": [
+    "Incorrectboundgeneralizationcouldadmitduplicate orforeign deferredIDs;exactpartitioncontracts required.",
+    "Productionchangedindependently;freshreviewedhealthycurrentmain/full21/hostpin/clean/runtime/schema-rightsbeforeanyservercontext orupdater."
+  ]
+}

@@ -17,9 +17,13 @@ function safeResult(array $p,array $plan):array{return ['logical_id'=>$plan['log
 
 
 
+function linkIdentityMap18Ok(array $map):bool{
+ if(!array_is_list($map)||count($map)<1||count($map)>10)return false;$seen=[];
+ foreach($map as $r){$id=$r['local_tv_id']??null;if(!is_int($id)||$id<1||isset($seen[$id]))return false;$seen[$id]=true;}return true;
+}
 function linkRole18Ok(array $b):bool{
  $id=(int)($b['native_hotel_id']??0);$map=json_decode(base64_decode(APPROVED_IDENTITY_BINDINGS_B64,true),true,256,JSON_THROW_ON_ERROR);$native=null;$seen=[];
- if(count($map)!==10)return false;foreach($map as $r){$key=(int)($r['local_tv_id']??0);if($key<1||isset($seen[$key]))return false;$seen[$key]=true;if($key===$id)$native=$r;}
+ if(!is_array($map)||!linkIdentityMap18Ok($map))return false;foreach($map as $r){$key=$r['local_tv_id'];if($key===$id)$native=$r;}
  if(!is_array($native)||($b['quote_state']??'')!=='NOQUOTE'||isset($b['prior_owned_offer'])||($b['identity_provenance']??'')!==$native['identity_provenance']||(int)($b['expected_country_id']??0)!==(int)$native['expected_country_id'])return false;
  $publisher=$native['identity_provenance']==='accepted_typed_bridge'?(int)($native['anytour_id']??0):$id;
  return $publisher>0&&($b['publisher_hotel_id']??null)===$publisher&&($b['original_role_proof_kind']??'')==='original_publisher_and_latest_confirmed_caption';

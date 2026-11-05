@@ -14,9 +14,18 @@ function contextRole18(array $x,array $scope):bool{
  $publisher=$h['identity_provenance']==='accepted_typed_bridge'?(int)($h['anytour_id']??0):$id;$r=$x['original_manifest_row']??[];
  return $publisher>0&&($x['publisher_hotel_id']??0)===$publisher&&($x['kind']??'')==='original_publisher_and_latest_confirmed_caption'&&(int)($r['hotel_id']??0)===$publisher&&is_string($r['text']??null)&&hash('sha256',$r['text'])===($r['text_sha256']??'')&&preg_match('/\\A[0-9a-f]{64}\\z/D',(string)($r['photo_sha256']??''))===1&&!empty($r['logical_id']);
 }
+function contextPartition18Ok(array $d,array $ids,int $linked):bool{
+ $n=count($ids);if(!array_is_list($ids)||$n<1||$n>10||count(array_unique($ids,SORT_REGULAR))!==$n)return false;
+ foreach($ids as $id)if(!is_int($id)||$id<1)return false;
+ $items=$d['items']??null;$deferred=$d['deferred_before_server']??null;$excluded=$d['exclude_already_linked_native_ids']??null;
+ if(($d['scope_native_ids']??null)!==$ids||!is_array($items)||!is_array($deferred)||!is_array($excluded)||count($items)<1||count($items)+count($deferred)!==$n||count($excluded)!==$linked)return false;
+ $parts=[];foreach($items as $x)$parts[]=$x['hotel']['local_tv_id']??null;foreach($deferred as $x)$parts[]=$x['native_hotel_id']??null;
+ foreach($parts as $id)if(!is_int($id)||$id<1)return false;
+ if(count(array_unique($parts,SORT_REGULAR))!==$n)return false;sort($parts,SORT_NUMERIC);$expected=$ids;sort($expected,SORT_NUMERIC);return $parts===$expected;
+}
 function contextInput18():array{
  $raw=base64_decode(APPROVED_CONTEXT18_INPUT_B64,true);need(is_string($raw)&&hash_equals(APPROVED_CONTEXT18_INPUT_SHA256,hash('sha256',$raw)),'link_context_input_bytes_changed');$d=json_decode($raw,true,256,JSON_THROW_ON_ERROR);
- need(($d['operation']??'')===APPROVED_CONTEXT18_OPERATION&&($d['quote_state']??'')==='NOQUOTE'&&($d['scope_native_ids']??[])===APPROVED_CONTEXT18_NATIVE_IDS&&count(APPROVED_CONTEXT18_NATIVE_IDS)===10&&count($d['items']??[])>0&&count($d['items'])+count($d['deferred_before_server']??[])===10&&count($d['exclude_already_linked_native_ids']??[])===APPROVED_CONTEXT18_LINKED_COUNT,'finite_link_context_scope_changed');
+ need(($d['operation']??'')===APPROVED_CONTEXT18_OPERATION&&($d['quote_state']??'')==='NOQUOTE'&&contextPartition18Ok($d,APPROVED_CONTEXT18_NATIVE_IDS,APPROVED_CONTEXT18_LINKED_COUNT),'finite_link_context_scope_changed');
  $seen=[];foreach($d['items'] as $x){need(contextRole18($x,$d['scope_native_ids']),'native_publisher_noquote_context_invalid');$id=(int)$x['hotel']['local_tv_id'];need(!isset($seen[$id])&&!in_array($id,$d['exclude_already_linked_native_ids'],true),'duplicate_or_already_linked_context');$seen[$id]=true;}return $d;
 }
 
