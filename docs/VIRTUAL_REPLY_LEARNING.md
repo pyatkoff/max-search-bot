@@ -518,3 +518,9 @@ run, provider call, customer send or measured quality gain is claimed. Existing
 shared-consumer, revision/frozen-work and maximum-wire checks remain the required
 implementation validation. Applied lesson disposition additionally requires the
 merged installation and separate-case evidence; a PR alone does not satisfy it.
+
+The shared prose is compacted without increasing its original encoded wire size.
+The full transcript limits, optional-evidence admission and transport cap stay
+unchanged; the existing maximum-message/four-byte and near-full hotel-reference
+checks must pass on the final source. No context truncation or assertion change
+is part of this repair.
