@@ -151,7 +151,7 @@
   "price_freshness_definition": "As of 2026-11-05 07:38:48 UTC historical check times remain within user72h; this is not current availability.",
   "last_price_update_run": 41991826972,
   "last_price_checked_utc": "2026-11-05T07:55:25.000Z",
-  "last_price_delivery_previously_reported": false,
+  "last_price_delivery_previously_reported": true,
   "current_stock_identities": 25,
   "additional_proven_unpublished_identities": 62,
   "current_stock_inventory": "commercial-stock-20261105-51-inventory.json",
@@ -306,7 +306,7 @@
     67910,
     68323
   ],
-  "updated_at_utc": "2026-11-05 08:13:19 UTC",
+  "updated_at_utc": "2026-11-05 08:24:25 UTC",
   "search_link_hotel_ids": [
     240,
     381,
@@ -385,5 +385,63 @@
   "normal674_monthly_stage_success": true,
   "normal674_full_workflow_success": false,
   "normal674_observations_written": 14754,
-  "normal674_source_calls_and_db_writes_actual": true
+  "normal674_source_calls_and_db_writes_actual": true,
+  "latest_new_normal_price_read": {
+    "operation": "commercial-price-monitor-20261105-read14-new674-unpriced1",
+    "ok": true,
+    "error": null,
+    "installed_sha": "5ca5abcec260c41e73884e08f0f45c0617c21785",
+    "source_run": 41982177052,
+    "max_age_seconds": 259200,
+    "readback_epoch_utc": 1793866709,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "price_edits": 0,
+    "scoped_hotels": 74,
+    "hotels_with_admitted_candidates": 7,
+    "admitted_candidate_rows": 14,
+    "candidate_native_ids": [
+      157359,
+      1291,
+      1582,
+      27316,
+      3405,
+      1422,
+      78251
+    ],
+    "state": "CLOSED_NEW_NORMAL674_WINDOW14_GENUINE_ROWS7_UNPRICED_HOTELS_UNQUOTED_CURRENT_CONTEXTS_NOT_YET_BOUND",
+    "run": 41993389158,
+    "job": 127130700580,
+    "source": "12e97f6bda4e86bcc56b0d72792f5252cf6c0a3b",
+    "intent_artifact": 13399745257,
+    "result_artifact": 13398688427,
+    "window_start_inclusive": 1793861003,
+    "window_end_exclusive": 1793861528,
+    "old85_retained_rows_and_manual104_rows_conservatively_excluded": 189,
+    "unique_blocked_fingerprints": 185,
+    "native_new_scope_cases": 4,
+    "old_fixtures_rerun": 0,
+    "normal_monthly_stage_succeeded_but_aggregate_workflow_failed": true,
+    "do_not_repeat_same_db_window_or_old_manual_scope": true,
+    "paid_quotes_from_this_input": 0,
+    "provider_post_reads_from_this_input": 0,
+    "price_edits_from_this_input": 0,
+    "canonical_contexts_still_required": 7
+  },
+  "new_unquoted_normal_candidate_native_ids": [
+    157359,
+    1291,
+    1582,
+    27316,
+    3405,
+    1422,
+    78251
+  ],
+  "new_unquoted_normal_candidate_rows": 14,
+  "latest_price_delivery_native_ids": [
+    67910,
+    68323
+  ],
+  "latest_price_delivery_pending_notification_in_this_heartbeat_final": true,
+  "current_full_remote21_readonly_run": 41993389158
 }

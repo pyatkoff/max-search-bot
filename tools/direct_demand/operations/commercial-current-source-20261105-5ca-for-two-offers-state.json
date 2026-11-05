@@ -1,6 +1,6 @@
 {
   "operation": "commercial-current-source-20261105-5ca-for-two-offers",
-  "state": "CURRENT5CA_INDEPENDENT_DEPLOY_ALL_DIAGNOSTICS_HEALTHY_REVIEWED7_NONPUBLISHING_PATHS21_UNCHANGED_NATIVE_REMOTE_GATE_REQUIRED_BEFORE_EDITS",
+  "state": "ACTUALLY_ACCEPTED5CA_INDEPENDENT_DEPLOY_HEALTHY_AND_NATIVE_REMOTE21_PASSED_PRICE_EDITS_AND_NEW_NORMAL_READ",
   "previous_source": "95dcf9893fb161b1e4fb52c02ad2d982604e7518",
   "current_source": "5ca5abcec260c41e73884e08f0f45c0617c21785",
   "current_tree": "20cc5fc2e8dc6b3ceaf6ba07a19bfa6530e53005",
@@ -25,6 +25,8 @@
   "live_run": 41991489887,
   "all_native_metadata_success": true,
   "our_deploy_dispatch_rerun_or_foreign_release_fix": false,
-  "full_remote21_current_version_still_required": true,
-  "historical_context15_quote2_prepared95_provenance_preserved": true
+  "full_remote21_current_version_still_required": false,
+  "historical_context15_quote2_prepared95_provenance_preserved": true,
+  "full_remote21_accepted_write_run": 41991826972,
+  "full_remote21_accepted_read_run": 41993389158
 }
