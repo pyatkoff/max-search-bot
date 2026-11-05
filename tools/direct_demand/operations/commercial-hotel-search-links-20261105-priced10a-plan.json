@@ -1,0 +1,47 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced10a-pass1",
+  "state": "PREPARE_NEW_PROPER_PRIOR_PRICE_NOQUOTE_LINK_ROLE_BEFORE_ANY_EDIT",
+  "goal": "Freeze ready≤10 existingpricedhotelpair searchlinks while preservingwholeCURRENTpricecaptions andexactoriginalpricequotehash/checkepoch.",
+  "native_hotel_ids": [
+    12114,
+    9432,
+    109,
+    13873,
+    13869,
+    73342,
+    233,
+    253,
+    165,
+    389
+  ],
+  "context_run": 42038473677,
+  "context_artifact": 13419427060,
+  "context_source_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "context_workflow_source_sha": "171c43a8aaedb35333c825ef48b85410a8731ce0",
+  "expected_source": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "scope_sha256": "abe807e059e7adc4cf9d8b45b5ccc9d2e503ebd3a784a21a4f9d7caa8740139a",
+  "template_sha256": "dc2a1f05ae2e24b2d599d811a8e933a02349504c0dc96658c61607f54479be6b",
+  "bounds": {
+    "max_hotels": 10,
+    "max_existing_post_content_edits": 20,
+    "new_prices": 0,
+    "source_searches": 0,
+    "gateway_quotes": 0,
+    "new_posts": 0,
+    "provider_or_db_in_pure": 0,
+    "old_fixture_reruns": 0
+  },
+  "criteria": [
+    "Newprior-price-onlyTEMPLATE role checks exactcurrentpriorpriceoperation/manifestSHA/journalhash/captionSHA/price_quote_response_sha256+price_checked_epoch_utc/currentconfirmedreceipt/version.",
+    "NativeinputCI8casesperreadyhotel includingforeignrole/foreignoperation/priceepoch orquotehashoverwrite/bodychange/fakeNEWquote;4NEWPythoncasesperhotel;oldfixtures0.",
+    "NewNOQUOTEmanifestrow expected_prior_price_metadata andwholepricecaption frozen. Syntax/headerdeclared checks+newnativecases BEFOREanyexecution.",
+    "Runtimebeforewriteandaftercurrentregistryreceipt explicitprice metadata exactcheck; originalpricevalues/checktimes untouched. Newlinktime/sourceeventonly separate.",
+    "Wholecaption≤1024UTF16/no truncate or duplicate oldprice. Deferlengthhardcases; readyothersprogress.",
+    "GHAprivateoriginalcontext24artifact ONLY/no providerreinspection/nativeAPI/basketquotes; publicGit code+counts/nativeIDs only."
+  ],
+  "risks": [
+    "Appendinglinkmayexceed1024;honestnoeditdeferral.",
+    "Currentprod/captioncouldchange; runtimefreshfull21/host/clean/schema-rights/onceSTOP.",
+    "Existingpriceageisnotnewavailability; thisnewlinkdoesnotrefreshquote/checktime."
+  ]
+}
