@@ -1,0 +1,35 @@
+{
+  "operation": "commercial-price-monitor-20261105-manual1-quote-pass2-two-copy",
+  "state": "PREPARED_TWO_GENUINELY_UNQUOTED_SOURCE_CONTEXTS_NO_GATEWAY_YET",
+  "source_run": 41976677950,
+  "read13_run": 41978466494,
+  "current_context15_run": 41990234208,
+  "current_context15_artifact": 13398150965,
+  "exact_native_ids": [
+    67910,
+    68323
+  ],
+  "max_justified_gateway_calls": 2,
+  "old85_fingerprints_excluded": true,
+  "all_other54_read13_retained_fingerprints_conservatively_excluded": true,
+  "boundaries": {
+    "source_searches": 0,
+    "old54_quotes": 0,
+    "old54_owned_post_reads": 0,
+    "new_posts": 0,
+    "price_edits": 0,
+    "automatic_paid_retry": false
+  },
+  "criteria": [
+    "Actual current null-publisher canonical copy receipts with source95/current body-photo-button-source-token proof.",
+    "Private intents for both first quotes retained before any gateway.",
+    "Fresh main/same-version healthy deploy/TLS/diagnostics/full21/host/clean/schema/rights gates.",
+    "New native/search/caption cases for these2 actual inputs and PHP lint; no old54 fixtures.",
+    "One exact observation revalidation and one existing action=flights/RUB per new fingerprint, no DB scope reread.",
+    "Any UNKNOWN stops; original outcome first, no alternate tuple or operation bypass."
+  ],
+  "risks": [
+    "Raw source price is not accepted final basket or availability.",
+    "A genuine declared error or inclusion/flight gate failure may produce link-only output; never repeat the paid quote."
+  ]
+}

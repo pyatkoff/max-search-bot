@@ -1,4 +1,4 @@
-name: Bind only two unquoted copy-only hotel contexts with exact canonical receipts
+name: Quote only Rixos Magawish and Solara new copy contexts once without repeating prior54
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -57,26 +57,42 @@ jobs:
           PY
       - uses: actions/download-artifact@v4
         with:
+          name: commercial-price-source-refresh-20261105-pass1-offline-input-and-search-links1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41977589739
+          path: ${{ runner.temp }}/source-scope
+      - uses: actions/download-artifact@v4
+        with:
           name: commercial-price-monitor-20261105-read13-approved-manual1
           github-token: ${{ github.token }}
           repository: pyatkoff/max-search-bot
           run-id: 41978466494
           path: ${{ runner.temp }}/original-read13
-      - name: Prepare exact two new copy-only native contexts and three new negative cases
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-price-monitor-20261105-context15-copy-only-two
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 41990234208
+          path: ${{ runner.temp }}/context15
+      - name: Prepare only two previously unquoted copy contexts and validate new exact inputs
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/prepare-copy-only-two-price-contexts-20261105.py tools/direct_demand/operations/run-copy-only-two-price-contexts-20261105.py
-          python3 tools/direct_demand/operations/prepare-copy-only-two-price-contexts-20261105.py
-          php -l "$RUNNER_TEMP/context15.php"
-          ANYTOUR_CONTEXT15_NEW_COPY_CASES=1 php "$RUNNER_TEMP/context15.php"
-      - name: Retain exact private two-context input before any owned provider read
+          python3 -m py_compile tools/direct_demand/operations/prepare-copy-only-two-current-price-20261105.py tools/direct_demand/operations/run-copy-only-two-current-price-20261105.py
+          python3 tools/direct_demand/operations/prepare-copy-only-two-current-price-20261105.py
+          for script in "$RUNNER_TEMP"/price-manual1-two-copy/*/quote.php; do
+            php -l "$script"
+            ANYTOUR_MANUAL1_TWO_COPY_QUOTE_NEW_CASES=1 php "$script"
+          done
+      - name: Retain both first quote private intents before any gateway access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-context15-copy-only-two-intent
-          path: ${{ runner.temp }}/context15-input.private.json
+          name: commercial-price-monitor-20261105-manual1-quote-pass2-two-copy-intents
+          path: ${{ runner.temp }}/price-manual1-two-copy/all-quote-intents.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -117,7 +133,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read only two current copy contexts and at most two owned MAX messages
+      - name: Execute one justified first flights quote for each of the two new copy-only candidates serially
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -125,16 +141,19 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-copy-only-two-price-contexts-20261105.py
-      - name: Retain original private canonical contexts and safe bounded summary
+          python3 tools/direct_demand/operations/run-copy-only-two-current-price-20261105.py
+      - name: Retain both original private quote outcomes including partial or unknown results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-monitor-20261105-context15-copy-only-two
+          name: commercial-price-monitor-20261105-manual1-quote-pass2-two-copy
           path: |
-            ${{ runner.temp }}/context15-readback.private.json
-            ${{ runner.temp }}/context15-input.private.json
-            ${{ runner.temp }}/context15-summary.json
+            ${{ runner.temp }}/price-manual1-two-copy/index.json
+            ${{ runner.temp }}/price-manual1-two-copy/summary.json
+            ${{ runner.temp }}/price-manual1-two-copy/*/quote-result.json
+            ${{ runner.temp }}/price-manual1-two-copy/*/candidate.json
+            ${{ runner.temp }}/price-manual1-two-copy/*/quote-intent.json
+            ${{ runner.temp }}/price-manual1-two-copy/*/quote-attempt-started.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and read scripts

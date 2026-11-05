@@ -1,0 +1,32 @@
+{
+  "operation": "commercial-price-monitor-20261105-context15-copy-only-two",
+  "ok": true,
+  "error": null,
+  "installed_sha": "95dcf9893fb161b1e4fb52c02ad2d982604e7518",
+  "db_writes": 0,
+  "gateway_calls": 0,
+  "provider_post_reads": 2,
+  "provider_channel_rights_checks": 2,
+  "message_sends": 0,
+  "price_edits": 0,
+  "canonical_source_receipts_read": 1,
+  "bound_native_ids": [
+    67910,
+    68323
+  ],
+  "bound_hotels": 2,
+  "deferred": [],
+  "state": "ACTUAL_TWO_NEW_COPY_ONLY_CURRENT_CONTEXTS_BOUND_CLOSED_NO_OLD54_READS",
+  "run": 41990234208,
+  "job": 127120464322,
+  "source": "9a7cb5297937ad719f888b03c3075c311d881275",
+  "result_artifact": 13398150965,
+  "intent_artifact": 13397976175,
+  "historical_public_private_ids_used_as_canonical": false,
+  "copy_only_publisher_role_null": true,
+  "original_photo_sha_null_not_invented": true,
+  "new_native_input_cases": 3,
+  "old_fixtures": 0,
+  "provider_owned_reads_consumed": true,
+  "do_not_repeat_owned_gets": true
+}
