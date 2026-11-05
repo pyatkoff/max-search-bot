@@ -1,20 +1,18 @@
-name: Project current Old Palace gallery declarations without repeating owner access
+name: Inspect two newly declared Old Palace gallery images without provider access
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  SOURCE_METADATA_PROJECTION_PLAN_FILENAME: commercial-batch-20261105-58-primary-metadata-projection1-plan.json
-  EXPECTED_SOURCE_METADATA_PROJECTION_PLAN_SHA256: 490e7dffdde1fa9a1613aa7e89b3732ae56019bbc3ef99e7f0295bb06097582a
+  CONTACT_SOURCE_INDEX_FILENAME: commercial-batch-20261105-58-contact-source-index.json
+  EXPECTED_CONTACT_SOURCE_INDEX_SHA256: 383e82a7a931f7317ef67a3e5727dd0e1322e8ce7ff4936c4307ffc4ad10efad
 jobs:
-  prepare:
-    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
+  inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -25,25 +23,22 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-batch58-primary-0
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 42110612108
-          path: ${{ runner.temp }}/source58
-      - name: Validate original current owner source and project only declaration metadata
-        shell: bash
+      - name: Validate new declared photo inputs before bounded raw GETs
+        env:
+          MEDIA_GROUP: '0'
         run: |
           set -euo pipefail
-          umask 077
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          python3 -m py_compile tools/direct_demand/operations/project-hotel-primary-metadata-20261105-batch58.py
-          python3 tools/direct_demand/operations/project-hotel-primary-metadata-20261105-batch58.py
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq python3-pil
+          python3 -m py_compile tools/direct_demand/operations/inspect-hotel-primary-images-20261105-batch58.py
+          python3 tools/direct_demand/operations/inspect-hotel-primary-images-20261105-batch58.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: commercial-batch58-current-owner-metadata1
-          path: ${{ runner.temp }}/source58-owner-metadata.json
+          name: commercial-batch58-contact-0
+          path: |
+            primary-image-inspection.json
+            contact.png
+            accepted-primary-raw
           retention-days: 14
           if-no-files-found: warn

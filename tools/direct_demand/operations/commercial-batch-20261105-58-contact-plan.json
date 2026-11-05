@@ -1,0 +1,69 @@
+{
+  "operation": "commercial-batch-20261105-58-contact1",
+  "state": "TWO_NEW_EXACT_OWNER_GALLERY_ANCHORS_FROZEN_FOR_FIRST_NATIVE_VISUAL_REVIEW",
+  "goal": "Inspect only two newly declared property-gallery images, preserving source58provenance and allclosedphotoexclusions; do notinferhero fromfilename.",
+  "selected_photos": [
+    {
+      "hotel_id": 343,
+      "url": "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+      "primary_source_url": "https://www.oldpalaceresort.com/en/gallery/",
+      "role": "h343_new58_0"
+    },
+    {
+      "hotel_id": 343,
+      "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg",
+      "primary_source_url": "https://www.oldpalaceresort.com/en/gallery/",
+      "role": "h343_new58_1"
+    }
+  ],
+  "source_proof": {
+    "operation": "commercial-batch-20261105-58-selected-owner-declarations",
+    "hotel_id": 343,
+    "catalog_name": "OLD PALACE RESORT SAHL HASHESH",
+    "source_url": "https://www.oldpalaceresort.com/en/gallery/",
+    "source_run": 42110612108,
+    "source_sha": "616f2e2f3f488f3d0858a9088d3e64b777af4e09",
+    "source_artifact_id": 13454390908,
+    "projection_run": 42111371324,
+    "projection_artifact_id": 13454761451,
+    "public_text_sha256": "70977251e24d1cb905651c4b230bbde96b4b8822a62a8d6b96d1eefabc58fa52",
+    "declared_public_image_references": [
+      "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+      "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg"
+    ],
+    "gallery_memberships": [
+      {
+        "url": "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+        "tag": "a",
+        "alt": "",
+        "categories": []
+      },
+      {
+        "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg",
+        "tag": "a",
+        "alt": "",
+        "categories": []
+      }
+    ],
+    "full_metadata_sha256": "b70b397996fd52d7ac308e8299576a60564a138d28c7ebfe3fb35f1665b06f23",
+    "publication_eligibility": "CURRENT_EXACT_NATIVE_COUNTRY_ACTIVE_REGISTRY_RIGHTS_AND_CAPTION_REQUIRED_NO_SEND"
+  },
+  "bounds": {
+    "property_groups": 1,
+    "max_raw_photo_gets": 2,
+    "max_parallel": 1,
+    "server_calls": 0,
+    "provider_calls": 0,
+    "canva_transactions": 0,
+    "new_posts": 0,
+    "new_actual_input_cases": 7,
+    "old_fixtures": 0
+  },
+  "criteria": [
+    "Bothselectedimagesareactualanchoredphotoreferences innewexactownerpropertygallery, notlogos/room-labelledmetadata orURLguesses. They areunreviewedcandidates, notacceptedwholecomplexheroes.",
+    "ExactURL/decodedbasename+finitecanonicalcontactmetadataexclusionsBEFOREGET; no old56photo/pixel/log/result/case repeat.",
+    "OnlyoneGETpereachoriginaldeclaredURL/no redirects-retry/URLrewrite; HTTP403stopsremaininggroup. MIME/bytes/type/dimensions/SHA/contactFULLchunks/nativepixelproof mandatory.",
+    "Retainednative343ID/name only; missingcountry/active/registry remainNULL/unverified. NoCanva/publisheruntilproperCURRENTnative/product/registry/rights/facts/wholecaptionproof.",
+    "Ready1..10ONEexistingSERIALonlywhenallmaterialproofsaccepted; source/photocandidatesnotnewmaterialdelivery."
+  ]
+}

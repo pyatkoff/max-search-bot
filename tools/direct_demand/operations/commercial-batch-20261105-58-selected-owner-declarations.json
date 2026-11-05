@@ -1,0 +1,32 @@
+{
+  "operation": "commercial-batch-20261105-58-selected-owner-declarations",
+  "hotel_id": 343,
+  "catalog_name": "OLD PALACE RESORT SAHL HASHESH",
+  "source_url": "https://www.oldpalaceresort.com/en/gallery/",
+  "source_run": 42110612108,
+  "source_sha": "616f2e2f3f488f3d0858a9088d3e64b777af4e09",
+  "source_artifact_id": 13454390908,
+  "projection_run": 42111371324,
+  "projection_artifact_id": 13454761451,
+  "public_text_sha256": "70977251e24d1cb905651c4b230bbde96b4b8822a62a8d6b96d1eefabc58fa52",
+  "declared_public_image_references": [
+    "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+    "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg"
+  ],
+  "gallery_memberships": [
+    {
+      "url": "https://www.oldpalaceresort.com/images/uploads/2021141692266.jpg",
+      "tag": "a",
+      "alt": "",
+      "categories": []
+    },
+    {
+      "url": "https://www.oldpalaceresort.com/images/uploads/Hurghada-Old-Palace-Resort-202123204615720.jpg",
+      "tag": "a",
+      "alt": "",
+      "categories": []
+    }
+  ],
+  "full_metadata_sha256": "b70b397996fd52d7ac308e8299576a60564a138d28c7ebfe3fb35f1665b06f23",
+  "publication_eligibility": "CURRENT_EXACT_NATIVE_COUNTRY_ACTIVE_REGISTRY_RIGHTS_AND_CAPTION_REQUIRED_NO_SEND"
+}
