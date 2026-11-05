@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-ten7-pass1",
+  "state": "PREPARE_ONLY_ORIGINAL3_NOQUOTE_CURRENT_CONTEXTS_AFTER_BOUNDED_NATIVE_CI",
+  "goal": "Freeze ONLY3 exactexistinghotelpair searchlinks from originalcontext23;85pricesuntouched.",
+  "hotel_ids": [
+    28668,
+    55205,
+    75377
+  ],
+  "context_run": 42033586245,
+  "context_workflow_source_sha": "bd89267c30b622ee83772f89ae9853461955e0a2",
+  "context_source_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "context_artifact": 13418010219,
+  "scope_sha256": "fd44f7822e44d4c9941323907da8dbd88de795723a520e3ced73ca78406c7f84",
+  "expected_source": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "template_sha256": "2bbea83f52ba3f6cb517303793180a1ebeb39852cf4dd0722229927599baa6ad",
+  "bounds": {
+    "min_hotels": 1,
+    "max_hotels": 10,
+    "actual_scope": 3,
+    "max_existing_content_edits": 6,
+    "gateway_quotes": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "provider_or_db_in_pure": 0,
+    "old_fixtures_rerun": 0,
+    "bounded_closed_cases_rerun": 0
+  },
+  "criteria": [
+    "Originalcontext23artifact/frame-native-role-binding+exactscopeSHA;no old120providerreads.",
+    "Wholecurrentcaptionclosingphotobuttonsourcetoken/UTF16max1024/85pricechecksuntouched.",
+    "ExplicitNOQUOTE/noquoteSHA-epoch-index-amountinvented/searchfilterNOTavailability.",
+    "3NEWPython+3NEWnativeinputcasesperreadyhotel/PHP-l;closedboundedfunctionalcontractsnotrerun.",
+    "Frozenexact5keyapprovals/manifests/frame/scriptSHA/oneexistingserialupdateronlyafterfreshsourcegates/privateintents."
+  ],
+  "risks": [
+    "Binding/captionlengthcouldconflict;deferhonestly/notforcehardcases.",
+    "Futureprod/captioncouldchange;executionmustbindexactfrozenbytesandfreshguards."
+  ]
+}

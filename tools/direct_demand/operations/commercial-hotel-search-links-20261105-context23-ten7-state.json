@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context23-ten7",
+  "ok": true,
+  "error": null,
+  "installed_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "quote_state": "NOQUOTE",
+  "db_writes": 0,
+  "gateway_calls": 0,
+  "provider_post_reads": 3,
+  "provider_channel_rights_checks": 2,
+  "message_sends": 0,
+  "price_edits": 0,
+  "canonical_source_receipts_read": 6,
+  "bound_native_ids": [
+    28668,
+    55205,
+    75377
+  ],
+  "bound_hotels": 3,
+  "deferred": [],
+  "deferred_before_server": [],
+  "state": "CLOSED3_NEW_CURRENT_CONTEXTS3_OWNED_MAX_GET6_CANONICAL_RECEIPTS_EXPLICIT_NOQUOTE",
+  "run": 42033586245,
+  "job": 127265880881,
+  "source": "bd89267c30b622ee83772f89ae9853461955e0a2",
+  "intent_artifact": 13418320729,
+  "result_artifact": 13418010219,
+  "native_new_input_cases": 3,
+  "new_generated_header_cases": 2,
+  "old_fixtures_rerun": 0,
+  "bounded_contract_cases_rerun": 0,
+  "all_provider_reads_and_logs_closed_do_not_replay": true
+}

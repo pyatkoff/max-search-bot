@@ -1,6 +1,6 @@
 {
   "operation": "commercial-current-source-20261105-5f350-for-noquote-links3",
-  "state": "REVIEWED_HEALTHY_CURRENT_MAIN_RUNTIME_FULL21_PENDING_CONTEXT23",
+  "state": "ACTUALLY_ACCEPTED_5F350_INSTALLED_CLEAN_FULL_REMOTE21_BY_CONTEXT23",
   "expected_installed_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
   "tree": "4b32db95fd1087c07efc186e8988480c9e0a2085",
   "previous_accepted_source": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
@@ -20,5 +20,7 @@
   "live_run": 42032030675,
   "foreign_release_fixed_or_rerun": false,
   "foreign_lease_or_slot_mutations": false,
-  "no_separate_source_only_probe": true
+  "no_separate_source_only_probe": true,
+  "actual_context23_run": 42033586245,
+  "full_remote21_hostpin_clean_runtime_schema_rights_passed": true
 }
