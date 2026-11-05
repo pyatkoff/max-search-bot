@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-batch-20261105-55-primary-preparation1",
+  "state": "CLOSED_ALREADY_KNOWN_OFFICIAL_NILE_POINTER_DEDUP_NO_OWNER_GET",
+  "run_id": 42105015751,
+  "job_id": 127517401484,
+  "run_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42105015751",
+  "source_sha": "a0898ca56ad3c7b816b004af0e00572048356264",
+  "authenticated_artifact_id": 13450314956,
+  "native_ids": [
+    102031
+  ],
+  "metadata_files_compared_before_http": 60,
+  "new_owner_http_gets": 0,
+  "old_source_repeats": 0,
+  "deferred_before_http": [
+    {
+      "hotel_id": 102031,
+      "source_url": "https://hrewards.com/en/steigenberger-nile-palace-luxor",
+      "reason": "ALREADY_CLOSED_SOURCE_OR_URL_VARIANT_NO_GET"
+    }
+  ],
+  "new_input_cases": 11,
+  "old_parser_fixtures_rerun": 0,
+  "photo_gets": 0,
+  "server_calls": 0,
+  "provider_calls": 0,
+  "canva_transactions": 0,
+  "new_posts": 0,
+  "new_material_pairs": 0,
+  "ready_for_send": 0,
+  "original_log_closed": true,
+  "original_result_consumed": true,
+  "counts_unchanged": {
+    "materials": 161,
+    "prices": 85,
+    "links": 155
+  }
+}
