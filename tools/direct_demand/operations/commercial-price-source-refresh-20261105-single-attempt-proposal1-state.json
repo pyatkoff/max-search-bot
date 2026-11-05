@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-source-refresh-20261105-single-attempt-proposal1",
-  "state": "NATIVE_NEW_FIVE_CASES_AND_PHP_L_PASSED_SPECIFIC_EXCEPTION_AWAITING_USER",
+  "state": "EXPLICIT_SPECIFIC_EXCEPTION_APPROVED_EXECUTION_ACTIVATED_PENDING_ORIGINAL_OUTCOME",
   "goal": "Completealreadyapprovedoriginal121hotel/sevensearchpassafteroriginalzeroAPIstop,withoutinstallingorrestoringanyserverfile.",
   "original_manual_approval_still_valid": true,
   "original_operation": "commercial-price-source-refresh-20261105-pass1",
@@ -28,7 +28,7 @@
   "candidate_template_sha256": "007830e74bfb63fb0333e7ef5809c2d138ff177e4feaa450ea309a5ce3240ec7",
   "candidate_php": "execute-published-price-source-refresh-20261105-single-attempt-candidate.php",
   "candidate_preparer": "prepare-published-price-single-attempt-candidate-20261105.py",
-  "specific_exception_approved": false,
+  "specific_exception_approved": true,
   "exception_file_must_not_exist_until_actual_reply": "commercial-price-source-refresh-20261105-single-attempt-user-approval.json",
   "changes": [
     "Acceptonlytheeightfreshlyverifiedexistingpublichelperbytes;install/copy/restoreNOserverfiles.",
@@ -55,7 +55,8 @@
   "server_connections": 0,
   "provider_calls": 0,
   "db_calls": 0,
-  "source_execution_active": false,
+  "source_execution_active": true,
   "prepared_inactive_execution_workflow": "commercial-price-source-refresh-20261105-single-attempt-workflow.yml.txt",
-  "next_step": "RequestspecificpermissionforonlyreviewedcurrenthelperpinsandephemeraloneattemptHTTPfunction;originalmanual121/7approvalalreadyreceivedandmustnotbeaskedagain. No exceptionmetadata/activationuntilactualspecificreply."
+  "next_step": "FollowONLYoriginalactivationrunforthisstage;sameoriginaloperation/manifest/targetkeys;ledgerguardbeforeAPI;afteractualapprovedinputgenuinenewfingerprints/fullbasket/currentcaptionproofbeforepriceEDITS.",
+  "exception_approval_file": "commercial-price-source-refresh-20261105-single-attempt-user-approval.json"
 }

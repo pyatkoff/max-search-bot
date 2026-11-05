@@ -115,7 +115,7 @@
   "prepared_manual_source_hotels": 121,
   "prepared_manual_source_scope_remains_original159_not_expanded_to1422_or78251": true,
   "prepared_manual_new_search_limit": 7,
-  "manual_source_workflow_active": false,
+  "manual_source_workflow_active": true,
   "manual_source_searches": 0,
   "xml_price_unit_question_pending": true,
   "latest_scheduled_metadata": {
@@ -154,10 +154,10 @@
   "latest_raw_photo_gets_closed": 12,
   "closed_photo_url_count": 289,
   "closed_photo_decoded_basename_count": 288,
-  "manual_source_status": "ORIGINAL_ACTUAL_ZERO_API_STOP_HELPER_DRIFT",
+  "manual_source_status": "SPECIFIC_EXCEPTION_APPROVED_CURRENT_HELPER_SINGLE_ATTEMPT_EXECUTION_PENDING_ORIGINAL_RESULT",
   "manual_source_approval_time_utc": "2026-11-05T05:31:15Z",
   "manual_source_original_run": 41974771766,
   "manual_source_helper_diagnostic_run": 41975111324,
-  "manual_single_attempt_additional_exception_approved": false,
+  "manual_single_attempt_additional_exception_approved": true,
   "manual_single_attempt_proposal_pure_run": 41975513624
 }

@@ -1,0 +1,13 @@
+{
+  "state": "EXPLICIT_CURRENT_HELPER_SINGLE_ATTEMPT_EXCEPTION_APPROVED",
+  "operation": "commercial-price-source-refresh-20261105-pass1",
+  "manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
+  "template_sha256": "007830e74bfb63fb0333e7ef5809c2d138ff177e4feaa450ea309a5ce3240ec7",
+  "permission_text_sha256": "05494755f282ef3659221910fc9bac2974e7e0efe965bc338df87ac0d3b6f2a7",
+  "granted_at_utc": "2026-11-05T05:50:03Z",
+  "granted_at_time_basis": "first_UTC_clock_read_after_actual_specific_question_reply",
+  "max_new_searches": 7,
+  "original_native_scope_count": 121,
+  "original_manual_approval_remains_valid": true,
+  "server_files_and_normal_schedule_preserved": true
+}
