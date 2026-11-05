@@ -1,4 +1,4 @@
-name: Diagnose only the three remaining canonical URL or button mismatches
+name: Verify three legacy keyboard gaps with exact owned live and canonical transport evidence
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -74,17 +74,18 @@ jobs:
           original=p[0].read_bytes();assert hashlib.sha256(original).hexdigest()=='9bc8d10e1326522fb11fba91c79cd313ff61562b49bb6e8a6b67e995764c0bb4'
           ids={46672,498,9373};bindings=[r for r in json.loads(original) if r['native_hotel_id'] in ids];assert len(bindings)==3 and {r['native_hotel_id'] for r in bindings}==ids
           raw=(json.dumps(bindings,ensure_ascii=False,separators=(',',':'))+'\n').encode();(temp/'legacy5-approved-bindings.private.json').write_bytes(raw)
-          source=pathlib.Path('tools/direct_demand/operations/read-commercial-legacy3-price-contexts-20261105.php').read_text();assert hashlib.sha256(source.encode()).hexdigest()=='9c0854969e8f0233f49db536a93188c4d67fb2064a14cfe699bc792da00b4edb'
+          source=pathlib.Path('tools/direct_demand/operations/read-commercial-legacy3-live-button-contexts-20261105.php').read_text();assert hashlib.sha256(source.encode()).hexdigest()=='e611aab4a73d1e0441730a259d1a7e9c141c7ca8fd8340a18e0d612ac1e97595'
           prefix="<?php\ndeclare(strict_types=1);\n";assert source.startswith(prefix)
           header=prefix+"const EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"+"const APPROVED_REQUEST_IDS=[46672,498,9373];\n"+"const APPROVED_BINDINGS_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\n"+"const APPROVED_BINDINGS_B64='"+base64.b64encode(raw).decode()+"';\n"
           (temp/'legacy9-read.php').write_text(header+source[len(prefix):])
-          print(json.dumps({'operation':'commercial-price-legacy9-contexts-20261105-read3-prepare','subset_native_ids':sorted(ids),'source_input_sha256':hashlib.sha256(original).hexdigest(),'derived_input_sha256':hashlib.sha256(raw).hexdigest(),'captured_six_repeated':False,'old_role_cases_rerun':0,'provider_calls':0,'server_calls':0}))
+          print(json.dumps({'operation':'commercial-price-legacy9-contexts-20261105-read4-prepare','subset_native_ids':sorted(ids),'source_input_sha256':hashlib.sha256(original).hexdigest(),'derived_input_sha256':hashlib.sha256(raw).hexdigest(),'captured_six_repeated':False,'old_role_cases_rerun':0,'provider_calls':0,'server_calls':0}))
           PY
           php -l "$RUNNER_TEMP/legacy9-read.php"
+          ANYTOUR_LEGACY_BUTTON_PROOF_FIXTURE=1 php "$RUNNER_TEMP/legacy9-read.php"
       - name: Retain the exact private subset input before read-only server execution
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-legacy9-contexts-20261105-read3-inputs
+          name: commercial-price-legacy9-contexts-20261105-read4-inputs
           path: ${{ runner.temp }}/legacy5-approved-bindings.private.json
           retention-days: 14
           if-no-files-found: error
@@ -139,10 +140,10 @@ jobs:
           python3 - <<'PY'
           import json,os,pathlib
           temp=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((temp/'legacy9-readback.json').read_text().splitlines()[-1])
-          assert d['operation']=='commercial-price-legacy9-contexts-20261105-read3' and d['ok'] and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert d['db_writes']==d['provider_calls']==d['gateway_calls']==d['message_sends']==d['price_edits']==0
+          assert d['operation']=='commercial-price-legacy9-contexts-20261105-read4' and d['ok'] and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert d['db_writes']==d['gateway_calls']==d['message_sends']==d['price_edits']==0 and 0<=d['provider_calls']<=3
           assert len(d['bindings'])+len(d['deferred'])==3 and all(set(r['contexts'])=={'telegram','max'} for r in d['bindings'])
-          summary={'operation':d['operation'],'ok':True,'requested_hotels':3,'canonical_context_hotels':len(d['bindings']),'canonical_platform_contexts':sum(len(r['contexts']) for r in d['bindings']),'accepted_native_ids':[r['native_hotel_id'] for r in d['bindings']],'deferred':d['deferred'],'readback_epoch_utc':d['captured_epoch_utc'],'canonical_source_receipts_read':d['canonical_source_receipts_read'],'readonly_connection_mode':d['readonly_connection_mode'],'context_diagnostics':d.get('context_diagnostics',[]),'provider_calls':0,'gateway_calls':0,'db_writes':0,'price_edits':0}
+          summary={'operation':d['operation'],'ok':True,'requested_hotels':3,'canonical_context_hotels':len(d['bindings']),'canonical_platform_contexts':sum(len(r['contexts']) for r in d['bindings']),'accepted_native_ids':[r['native_hotel_id'] for r in d['bindings']],'deferred':d['deferred'],'readback_epoch_utc':d['captured_epoch_utc'],'canonical_source_receipts_read':d['canonical_source_receipts_read'],'readonly_connection_mode':d['readonly_connection_mode'],'context_diagnostics':d.get('context_diagnostics',[]),'provider_message_reads':d['provider_calls'],'gateway_calls':0,'db_writes':0,'price_edits':0}
           (temp/'legacy9-read-summary.json').write_text(json.dumps(summary)+'\n');print(json.dumps(summary))
           PY
           test "$read_status" = 0
@@ -150,7 +151,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-price-legacy9-contexts-20261105-read3
+          name: commercial-price-legacy9-contexts-20261105-read4
           path: |
             ${{ runner.temp }}/legacy9-readback.json
             ${{ runner.temp }}/legacy9-read-summary.json

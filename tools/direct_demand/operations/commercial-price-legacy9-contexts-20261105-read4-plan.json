@@ -1,0 +1,38 @@
+{
+  "operation": "commercial-price-legacy9-contexts-20261105-read4",
+  "state": "PLAN_ONLY_THREE_NEW_KEYBOARD_METADATA_PROOF_CASES",
+  "goal": "Distinguish a missing legacy canonical keyboard snapshot from an actual changed button without repairing or editing anything",
+  "native_hotel_ids": [
+    46672,
+    498,
+    9373
+  ],
+  "context_reuse_artifacts": [
+    13375024853,
+    13377185803
+  ],
+  "boundaries": [
+    "No accepted6canonical contexts repeated",
+    "Exactoriginalapprovedreceipt/currentversion/currentcaption/photo/source/token/channel/nativecountry/name remain mandatory",
+    "Conflicting nonemptycanonicalkeyboard NEVERaccepted",
+    "MAX:oneownedprivate-messageGETperhotel, exactlivecaption/photo/url andonlyexpectedbutton required",
+    "Telegram:no inventedgetMessage/no writes; onlymissingcanonicalkeyboard canrelyoncurrentversionconfirmedbuttontransportreceipt plusoriginalconfirmedreceipt",
+    "No paidflights/sourcecollector/priceedits/keyboardrepair/registrymetadatawrite"
+  ],
+  "criteria": [
+    "ThreeNEWbutton-evidencemodecases/PHP-l, nooldrole/receiptformat/native/agefixturesrerun",
+    "ReadonlySQLtransactions and fullfreshsource25/21/TLS/diagnostics/host/schema beforeSSH",
+    "ConsoleonlyIDs/counts/booleanchecks; fullprivatecontextauthartifactonly"
+  ],
+  "risks": [
+    "IfactualownedMAXkeyboardwrongorTelegramtransportreceiptunverified,deferwithoutpricecall",
+    "LiveGETs newnecessaryproof onlyfor these3unquotedcontexts, not repeatclosed26pricepostreadbacks"
+  ],
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "frozen_reader_sha256": "e611aab4a73d1e0441730a259d1a7e9c141c7ca8fd8340a18e0d612ac1e97595",
+  "max_native_identity_queries": 3,
+  "max_owned_max_message_gets": 3,
+  "max_paid_gateway_calls": 0,
+  "max_db_writes": 0,
+  "max_edits": 0
+}

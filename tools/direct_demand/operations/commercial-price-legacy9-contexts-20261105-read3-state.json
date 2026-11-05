@@ -1,0 +1,119 @@
+{
+  "operation": "commercial-price-legacy9-contexts-20261105-read3",
+  "state": "CLOSED_ONLY_CANONICAL_SNAPSHOT_KEYBOARD_PREDICATE_FALSE_ALL_OTHER_PROOF_PREDICATES_TRUE",
+  "goal": "Identify precisely which original canonical URL/button/source predicate fails for the three still-unbound legacy posts, without repeating capturedsix",
+  "native_hotel_ids": [
+    46672,
+    498,
+    9373
+  ],
+  "reuse_closed_artifacts": {
+    "four": 13375024853,
+    "two": 13377185803
+  },
+  "boundaries": [
+    "Scopeonly3newdeferredcontexts; no capturedsix/providerreadback",
+    "Allconfirmedoriginalreceipt/native/country/name/caption/photo/version/channel/source/button guards remain unchanged",
+    "Only add booleandiagnostics; no newURLguess/normalization/weakening/metadatawrite",
+    "No provider/paidquote/edits; READONLYtransactions; fullfreshsource21/currentrelease/TLS/diagnostics/hostgates"
+  ],
+  "criteria": [
+    "Exact3subsetfrozeninput fromsame9bc-source andPHP-l",
+    "Do not rerun closed3role or3receiptformatcases; no oldfixtures",
+    "If any mismatchpersists keepdeferred; originalreceiptformatcompleteJSON contract preserved"
+  ],
+  "risks": [
+    "A missing URLfield and a genuinely differentURL require different treatments; do not infer which without actualbooleans",
+    "Currentbutton differences must not be silentlyaccepted for a priceedit"
+  ],
+  "expected_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "frozen_reader_sha256": "9c0854969e8f0233f49db536a93188c4d67fb2064a14cfe699bc792da00b4edb",
+  "max_native_identity_queries": 3,
+  "max_publication_contexts": 6,
+  "max_provider_calls": 0,
+  "max_db_writes": 0,
+  "max_edits": 0,
+  "run": 41942376550,
+  "job": 126966116715,
+  "source_commit": "66435ac132949d02f14f9cbdf04b57891bb980bc",
+  "installed_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "requested_hotels": 3,
+  "accepted_hotels": 0,
+  "results": {
+    "operation": "commercial-price-legacy9-contexts-20261105-read3",
+    "ok": true,
+    "requested_hotels": 3,
+    "canonical_context_hotels": 0,
+    "canonical_platform_contexts": 0,
+    "accepted_native_ids": [],
+    "deferred": [
+      {
+        "native_hotel_id": 46672,
+        "reason": "canonical_source_url_or_button_context_changed"
+      },
+      {
+        "native_hotel_id": 498,
+        "reason": "canonical_source_url_or_button_context_changed"
+      },
+      {
+        "native_hotel_id": 9373,
+        "reason": "canonical_source_url_or_button_context_changed"
+      }
+    ],
+    "readback_epoch_utc": 1793838906,
+    "canonical_source_receipts_read": 3,
+    "readonly_connection_mode": "separate",
+    "context_diagnostics": [
+      {
+        "native_hotel_id": 46672,
+        "platform": "max",
+        "checks": {
+          "proof_platform_matches": true,
+          "proof_source_matches": true,
+          "snapshot_post_url_matches_original_receipt": true,
+          "snapshot_post_url_empty": false,
+          "original_receipt_post_url_empty": false,
+          "configured_button_url_matches_original_receipt": true,
+          "snapshot_contains_only_current_expected_button": false,
+          "current_canonical_version_equals_original_receipt": true
+        }
+      },
+      {
+        "native_hotel_id": 498,
+        "platform": "max",
+        "checks": {
+          "proof_platform_matches": true,
+          "proof_source_matches": true,
+          "snapshot_post_url_matches_original_receipt": true,
+          "snapshot_post_url_empty": false,
+          "original_receipt_post_url_empty": false,
+          "configured_button_url_matches_original_receipt": true,
+          "snapshot_contains_only_current_expected_button": false,
+          "current_canonical_version_equals_original_receipt": true
+        }
+      },
+      {
+        "native_hotel_id": 9373,
+        "platform": "max",
+        "checks": {
+          "proof_platform_matches": true,
+          "proof_source_matches": true,
+          "snapshot_post_url_matches_original_receipt": true,
+          "snapshot_post_url_empty": false,
+          "original_receipt_post_url_empty": false,
+          "configured_button_url_matches_original_receipt": true,
+          "snapshot_contains_only_current_expected_button": false,
+          "current_canonical_version_equals_original_receipt": true
+        }
+      }
+    ],
+    "provider_calls": 0,
+    "gateway_calls": 0,
+    "db_writes": 0,
+    "price_edits": 0
+  },
+  "provider_calls": 0,
+  "db_writes": 0,
+  "edits": 0,
+  "do_not_repeat_this_diagnostic": true
+}
