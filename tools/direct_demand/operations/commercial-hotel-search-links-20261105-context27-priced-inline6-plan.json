@@ -1,0 +1,40 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context27-priced-inline6",
+  "state": "NEW_FINITE_SIX_CURRENT_NATIVE_ENTITY_PRICE_RECEIPT_CONTEXT_PLAN",
+  "goal": "Capture only six NEW currently priced and unlinked pairs after original projection; preserve owner text/nativeentities/exact price metadata.",
+  "hotel_ids": [
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "scope_filename": "commercial-hotel-search-links-20261105-context27-priced-inline6-scope.json",
+  "scope_sha256": "4181c396b7c69266e6911ae6aa754d2aa6a62e5567be8c5fabe3ebb31010ff8c",
+  "expected_source": "43564b38db46a02a102ddcab9e8f9bbf34ad2a1d",
+  "expected_counts": {
+    "published": 161,
+    "priced": 85,
+    "linked": 143
+  },
+  "bounds": {
+    "hotels": 6,
+    "owned_max_gets": 6,
+    "rights_checks": 2,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "quotes": 0,
+    "source_searches": 0,
+    "edits": 0
+  },
+  "criteria": [
+    "Scope prior-map/count/read-limit/ALLredundant bounds must agree; eight NEW actual-input Python cases and fourteen NEW native cases before privateinput/SSH; closedfixtures0.",
+    "Use only NEW six originalprojected rows; nativecurrent-country-active-name + owncanonicalpricejournal/confirmedreceipt/currentversion/text/entities/photo/button/source/token/exact oldpriceSHA-checkepoch.",
+    "Unchanged af212 native reader/fullremote21; fresh currentmain/samehealthyDeployTLSdiag/accepted25host BYTEIDENTICAL/installedclean/runtime/native/schema-rights.",
+    "Private exactinput beforeANYserver/provider, oneownedMAXGET perNEW relatedcontext; conflicts defer; no unrelatedoldreads."
+  ],
+  "risks": [
+    "Unsupported MAX formatting/ambiguouspriceanchor will defer later; neverflattenhumanformatting or retrycontext to change result."
+  ]
+}

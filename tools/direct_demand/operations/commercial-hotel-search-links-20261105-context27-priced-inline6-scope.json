@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "operation": "commercial-hotel-search-links-20261105-context27-priced-inline6",
+  "update_operation": "commercial-hotel-search-links-20261105-priced6c-inline6-pass1",
+  "native_hotel_ids": [
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "projection_native_ids": [
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "projection_operation": "commercial-hotel-search-links-20261105-priced6c-original-projection1",
+  "role": "current_confirmed_own_price_manifest_and_receipt",
+  "expected_linked_count": 143,
+  "expected_priced_count": 85,
+  "expected_published_pairs": 161,
+  "max_hotels": 6,
+  "max_owned_max_reads": 6,
+  "prior_price_operations": {
+    "125": "commercial-price-update-20261104-72h-pass1-h125-v1",
+    "246": "commercial-price-update-20261104-72h-pass1-h246-v1",
+    "1100": "commercial-price-update-20261104-72h-pass1-h1100-v1",
+    "1451": "commercial-price-update-20261104-72h-pass1-h1451-v1",
+    "21477": "commercial-price-update-20261104-72h-pass1-h21477-v1",
+    "107965": "commercial-price-update-20261104-72h-pass1-h107965-v1"
+  },
+  "presets": {
+    "departure_id": 1,
+    "adults": 2,
+    "children": 0,
+    "currency": "RUB",
+    "departure_date_from": "2026-11-06",
+    "departure_date_to": "2026-11-12",
+    "nights_from": 5,
+    "nights_to": 14
+  },
+  "capture_native_entities_before_first_owned_get": true,
+  "new_native_cases": 14,
+  "new_python_actual_scope_cases": 8,
+  "noquote": true,
+  "bounds": {
+    "gateway": 0,
+    "db_writes": 0,
+    "provider_post_reads": 6,
+    "edits": 0
+  },
+  "context_reader_filename": "read-priced-hotel-inline-contexts-20261105-small1.php",
+  "context_reader_sha256": "af212d45249a916c72e19d0857ae4e0df48c4cd9bbdfe82bfdbaad93c567dde9",
+  "scope_filename": "commercial-hotel-search-links-20261105-context27-priced-inline6-scope.json"
+}

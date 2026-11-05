@@ -1,0 +1,32 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-priced6c-original-projection1",
+  "state": "CLOSED_NEW_SIX_PRIOR_PRICE_MANIFESTS_IDENTITY_ONLY_PROJECTED18_NEW_CASES_NO_SERVER_OR_PROVIDER",
+  "native_hotel_ids": [
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246
+  ],
+  "prepared_hotels": 6,
+  "new_projection_cases": 18,
+  "old_fixtures": 0,
+  "ssh_calls": 0,
+  "db_calls": 0,
+  "provider_calls": 0,
+  "source_searches": 0,
+  "quotes": 0,
+  "edits": 0,
+  "old_quote_bodies_read": 0,
+  "old_provider_results_read": 0,
+  "observation_rows_projected": 0,
+  "historical_public_private_IDs_used_as_canonical": false,
+  "run": 42093097708,
+  "job": 127475994925,
+  "source": "20cd6001b8404a5da38f6398643db426c4c68b07",
+  "result_artifact": 13445892691,
+  "current_contexts_not_captured": true,
+  "original_log_and_results_closed_do_not_repeat": true,
+  "ready_link_edits": 0
+}
