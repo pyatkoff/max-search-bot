@@ -433,7 +433,6 @@ jobs:
       - name: Verify installed production checks
         id: check
         if: steps.admission.outputs.run_check == 'true'
-        continue-on-error: true
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -464,7 +463,6 @@ jobs:
       - name: Download exact installed diagnostic snapshot
         id: download
         if: steps.admission.outputs.run_download == 'true' && (steps.check.outcome == 'success' || steps.admission.outputs.check_result == 'success')
-        continue-on-error: true
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -484,7 +482,6 @@ jobs:
       - name: Publish verification stage status
         id: status
         if: always() && steps.admission.outputs.run_status == 'true' && steps.ssh_key.outcome == 'success'
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SMOKE_ATTEMPT: ${{ steps.admission.outputs.smoke_attempt }}
@@ -520,7 +517,6 @@ jobs:
       - name: Remove acknowledged diagnostic snapshot
         id: cleanup
         if: steps.admission.outputs.run_cleanup == 'true' && (steps.download.outcome == 'success' || steps.admission.outputs.download_result == 'success') && (steps.status.outcome == 'success' || steps.admission.outputs.status_result == 'success')
-        continue-on-error: true
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}

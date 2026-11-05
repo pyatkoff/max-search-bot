@@ -283,6 +283,7 @@ check(admit < key and not vs[admit].get('continue-on-error')
       and '--admit-verification' in vs[admit]['run'], 'read-only admission before verification credential')
 for phase in ['check','download','status','cleanup']:
     s = next(s for s in vs if s.get('id') == phase)
+    check(not s.get('continue-on-error', False), 'API step conclusion must preserve real failure: '+phase)
     check("steps.admission.outputs.run_"+phase+" == 'true'" in s['if'],
           'accepted phase cannot repeat: '+phase)
 check('MAX_SEARCH_APPLY_AI_PROFILE' not in json.dumps(dj['verify'])

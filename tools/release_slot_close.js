@@ -265,6 +265,7 @@ function deploymentHistory(history,first,current,c,admitting=false) {
   requireValue(admitting?latest.status==='in_progress'&&latest.conclusion===null:
     latest.status==='completed'&&latest.conclusion==='success','recovery_not_confirmed');
   const results=Object.fromEntries(Object.entries(VERIFY_STEPS).map(([key,name])=>[key,stepResult(old,name)]));
+  requireValue(results.check!=='success'||results.download!=='skipped','unclassified_original_verification');
   requireValue(results.cleanup!=='success'||(results.download==='success'&&results.status==='success'),'invalid_original_verification');
   const plan={};
   for(const key of Object.keys(VERIFY_STEPS)) {

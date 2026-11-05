@@ -805,6 +805,7 @@ async function verifyReleaseRecovery() {
     ['foreign job',f=>{f.latest.head_sha='c'.repeat(40);},'untrusted_deployment_job'],
     ['missing install job',f=>{f.history.jobs.splice(0,1);f.history.total_count--;},'ambiguous_deployment_job'],
     ['accepted check replay',f=>{f.latest.steps[0].conclusion='success';},'accepted_step_replayed_or_unconfirmed'],
+    ['masked failure or unclassified skipped copy',f=>{f.old.steps[1].conclusion='skipped';f.old.steps[3].conclusion='skipped';},'unclassified_original_verification'],
     ['lost step metadata',f=>{f.old.steps.pop();},'incomplete_job_steps'],
     ['recovery still failed',f=>{f.latest.conclusion='failure';},'recovery_not_confirmed'],
   ];
