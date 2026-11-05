@@ -829,7 +829,7 @@ raise SystemExit(0)
 
 
 def monitor_retained_read_cases(source):
-    """Exercise the actual retained-state lookup offline; never contact GitHub."""
+    """Execute the real filtered discovery offline; no GitHub or notification IO."""
     steps = [step for step in step_blocks(source) if field(step, 'id') == 'retained']
     check(len(steps) == 1, 'monitor: one retained encrypted-state lookup')
     step = steps[0]
@@ -841,11 +841,10 @@ def monitor_retained_read_cases(source):
     if not node:
         raise RuntimeError('Existing runner Node is required; no installation is attempted')
     script = script_block(step)
-    check('${{' not in script, 'monitor: artifact lookup uses trusted context only')
+    check(('$' + '{{') not in script, 'monitor: artifact lookup uses trusted context only')
     harness = r"""const fs = require('fs');
 const source = JSON.parse(fs.readFileSync(0, 'utf8')).script;
 (async () => {
-
 let assertions = 0;
 function equal(actual, expected, message) {
   assertions++;
@@ -856,79 +855,136 @@ function truth(value, message) {
   if (!value) throw new Error(message);
 }
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-const execute = new AsyncFunction('github', 'context', 'core', 'setTimeout', source);
+const execute = new AsyncFunction('github','context','core','setTimeout','performance',source);
 const context = {repo:{owner:'synthetic-owner',repo:'synthetic-repository'}};
-const artifact = (id, name='modeled-monitor-private-final', extra={}) => ({
-  id,name,expired:false,created_at:'2026-01-01T00:00:00Z',
-  workflow_run:{id:id+9000,head_branch:'main'},...extra
-});
-const kept = artifact(10);
-const found = {data:{artifacts:[kept]}};
-const empty = {data:{artifacts:[]}};
-const full = {data:{artifacts:Array.from({length:100},(_,i)=>artifact(i+20,'unrelated-artifact'))}};
-const failure = status => ({failure:true,status});
-const selected = {present:'true',run_id:'9010',name:'modeled-monitor-private-final'};
-const cases = [
-  ['successful retained state', [found], true, [1], 0, selected],
-  ['explicit successful empty response', [empty], true, [1], 0, {present:'false'}],
-  ['one HTTP500 then retained state', [failure(500),found], true, [1,1], 1, selected],
-  ['second HTTP500 remains failure', [failure(500),failure(500)], false, [1,1], 1, {}],
-  ['HTTP500 on later page', [full,failure(500),found], true, [1,2,2], 1, selected],
-  ['one retry budget for all pages', [failure(500),full,failure(500)], false, [1,1,2], 1, {}],
-  ['malformed response is not empty state', [{data:{}}], false, [1], 0, {}],
-  ['null list is not empty state', [{data:{artifacts:null}}], false, [1], 0, {}],
-  ['no unbounded pagination', [full,full,full,full,full], true, [1,2,3,4,5], 0, {present:'false'}],
-  ['latest matching state retained', [{data:{artifacts:[
-    artifact(10),artifact(11,'modeled-monitor-private-intent'),
-    artifact(99,'modeled-monitor-private-final',{expired:true}),
-    artifact(100,'modeled-monitor-private-final',{workflow_run:{id:9100,head_branch:'foreign'}})
-  ]}}], true, [1], 0, {present:'true',run_id:'9011',name:'modeled-monitor-private-intent'}],
-  ['recovery must still reject malformed metadata', [failure(500),{data:{}}], false, [1,1], 1, {}]
+const I='modeled-monitor-private-intent', F='modeled-monitor-private-final';
+const artifact=(id,name=F,extra={})=>({id,name,expired:false,created_at:'2026-01-01T00:00:00Z',
+  workflow_run:{id:id+9000,head_branch:'main'},...extra});
+const result=(items,total=items.length)=>({data:{total_count:total,artifacts:items}});
+const failure=status=>({failure:true,status});
+const read=(name,page,reply,advance=0)=>({name,page,reply,advance});
+const empty=()=>result([]);
+const block=(name,start)=>Array.from({length:25},(_,i)=>artifact(start+i,name));
+const output=a=>({present:'true',run_id:String(a.workflow_run.id),name:a.name});
+const none={present:'false'}, kept=artifact(10);
+const firstBlock=block(I,1);
+const cases=[];
+const add=(name,replies,valid,retries,outputs,extra={})=>cases.push({name,replies,valid,retries,outputs,...extra});
+add('filtered final retained state',[read(I,1,empty()),read(F,1,result([kept]))],true,0,output(kept));
+add('filtered intent retained state',[read(I,1,result([artifact(11,I)])),read(F,1,empty())],true,0,output(artifact(11,I)));
+add('successful empty response for both exact names',[read(I,1,empty()),read(F,1,empty())],true,0,none);
+add('one HTTP500 then complete state',[read(I,1,failure(500)),read(I,1,empty()),read(F,1,result([kept]))],true,1,output(kept));
+add('second HTTP500 remains failure',[read(I,1,failure(500)),read(I,1,failure(500))],false,1,{});
+add('HTTP500 on second exact name',[read(I,1,empty()),read(F,1,failure(500)),read(F,1,result([kept]))],true,1,output(kept));
+add('HTTP500 on later filtered page',[read(I,1,result(firstBlock,26)),read(I,2,failure(500)),
+  read(I,2,result([artifact(26,I)],26)),read(F,1,empty())],true,1,output(artifact(26,I)));
+add('one retry shared by both exact names',[read(I,1,failure(500)),read(I,1,empty()),read(F,1,failure(500))],false,1,{});
+add('one retry shared by all pages',[read(I,1,failure(500)),read(I,1,result(firstBlock,26)),read(I,2,failure(500))],false,1,{});
+const newerIntent=artifact(20,I,{created_at:'2026-01-03T00:00:00Z'});
+add('newest creation across names wins over largest old ID',[read(I,1,result([newerIntent])),
+  read(F,1,result([artifact(999,F)]))],true,0,output(newerIntent));
+add('numeric artifact ID breaks same-time tie',[read(I,1,result([artifact(10,I)])),
+  read(F,1,result([artifact(11,F)]))],true,0,output(artifact(11,F)));
+const pageTwo=artifact(26,I,{created_at:'2026-01-03T00:00:00Z'});
+add('all pages and names precede latest selection',[read(I,1,result(firstBlock,26)),
+  read(I,2,result([pageTwo],26)),read(F,1,result([artifact(999,F,{created_at:'2026-01-02T00:00:00Z'})]))],true,0,output(pageTwo));
+const expired=artifact(500,I,{expired:true});
+const foreign=artifact(501,F,{workflow_run:{id:9501,head_branch:'foreign'}});
+add('expired and foreign state do not replace main ciphertext',[read(I,1,result([expired])),
+  read(F,1,result([foreign,kept]))],true,0,output(kept));
+add('only ineligible state is an explicit complete empty result',[read(I,1,result([expired])),
+  read(F,1,result([foreign]))],true,0,none);
+add('malformed response is not empty state',[read(I,1,{data:{}})],false,0,{});
+add('null list is not empty state',[read(I,1,{data:{total_count:0,artifacts:null}})],false,0,{});
+add('missing total is not complete state',[read(I,1,{data:{artifacts:[]}})],false,0,{});
+add('empty page before its declared total is incomplete',[read(I,1,result([],1))],false,0,{});
+add('response cannot exceed requested page bound',[read(I,1,result([...firstBlock,artifact(26,I)]))],false,0,{});
+add('rows cannot exceed declared total',[read(I,1,result([artifact(1,I)],0))],false,0,{});
+add('short page cannot silently truncate a known total',[read(I,1,result(firstBlock.slice(0,24),26))],false,0,{});
+add('changed filtered total invalidates discovery',[read(I,1,result(firstBlock,26)),
+  read(I,2,result([artifact(26,I)],27))],false,0,{});
+add('duplicate IDs within a page are not completeness',[read(I,1,result([artifact(1,I),artifact(1,I)]))],false,0,{});
+add('duplicate IDs across pages are not completeness',[read(I,1,result(firstBlock,26)),
+  read(I,2,result([artifact(1,I)],26))],false,0,{});
+add('one artifact cannot occupy both exact names',[read(I,1,result([artifact(10,I)])),
+  read(F,1,result([artifact(10,F)]))],false,0,{});
+add('unfiltered unrelated rows are rejected',[read(I,1,result([artifact(10,F)]))],false,0,{});
+add('over-cap total is unavailable even if a candidate is visible',[read(I,1,result(firstBlock,501))],false,0,{});
+const exactCap=[];
+for(let page=1;page<=20;page++)exactCap.push(read(I,page,result(block(I,1+(page-1)*25),500)));
+exactCap.push(read(F,1,empty()));
+add('complete five-hundred-row name remains usable',exactCap,true,0,output(artifact(500,I)));
+add('HTTP500 recovery must still validate metadata',[read(I,1,failure(500)),read(I,1,{data:{}})],false,1,{});
+for(const total of [-1,0.5,'0',null,NaN,Number.MAX_SAFE_INTEGER+1])
+  add('invalid total '+String(total),[read(I,1,result([],total))],false,0,{});
+const malformed=[
+  null,artifact(0,I),artifact('10',I),artifact(Number.MAX_SAFE_INTEGER+1,I),
+  artifact(10,I,{expired:'false'}),artifact(10,I,{created_at:null}),
+  artifact(10,I,{created_at:'not-a-date'}),artifact(10,I,{created_at:'2026-02-30T00:00:00Z'}),
+  artifact(10,I,{workflow_run:null}),artifact(10,I,{workflow_run:{id:0,head_branch:'main'}}),
+  artifact(10,I,{workflow_run:{id:'9010',head_branch:'main'}}),artifact(10,I,{workflow_run:{id:9010}})
 ];
-for (const status of [undefined,0,'500',400,401,403,404,408,409,422,429,501,502,503,504]) {
-  cases.push(['nonretryable status '+String(status),[failure(status)],false,[1],0,{}]);
-}
-for (const status of [401,403,429,500,503]) {
-  cases.push(['failed recovery status '+status,[failure(500),failure(status)],false,[1,1],1,{}]);
-}
-for (const [name, replies, valid, pages, retries, expectedOutputs] of cases) {
-  const requests=[], delays=[], warnings=[],outputs={};
+malformed.forEach((value,index)=>add('invalid artifact metadata '+index,[read(I,1,result([value]))],false,0,{}));
+for(const status of [undefined,0,'500',400,401,403,404,408,409,422,429,501,502,503,504])
+  add('nonretryable status '+String(status),[read(I,1,failure(status))],false,0,{});
+for(const status of [401,403,429,500,503])
+  add('failed recovery status '+status,[read(I,1,failure(500)),read(I,1,failure(status))],false,1,{});
+add('late API result cannot pass the global deadline',[read(I,1,empty(),60000)],false,0,{});
+const shrinking=[];
+for(let page=1;page<=6;page++)shrinking.push(read(I,page,result(block(I,1+(page-1)*25),151),9000));
+shrinking.push(read(I,7,result([artifact(151,I)],151),5000),read(F,1,empty()));
+add('request timeout shrinks within one global deadline',shrinking,true,0,output(artifact(151,I)),
+  {timeouts:[10000,10000,10000,10000,10000,10000,6000,1000]});
+const noRetryTime=shrinking.slice(0,6);
+noRetryTime.push(read(I,7,failure(500),5500));
+add('retry delay may not exceed the remaining global budget',noRetryTime,false,0,{});
+for(const test of cases){
+  const {name,replies,valid,retries,outputs:expectedOutputs}=test;
+  const requests=[],atRequests=[],delays=[],warnings=[],outputs={},outputAt=[];
+  let clock=0;
   const github={rest:{actions:{listArtifactsForRepo:async request=>{
+    truth(requests.length<replies.length,name+': unexpected extra API call');
+    const expected=replies[requests.length];atRequests.push(clock);
     requests.push(JSON.parse(JSON.stringify(request)));
-    truth(requests.length <= replies.length,name+': unexpected extra API call');
-    const reply=replies[requests.length-1];
-    if (reply.failure) {
+    equal([request.name,request.page],[expected.name,expected.page],name+': exact filtered pagination sequence');
+    clock+=expected.advance;
+    if(expected.reply.failure){
       const error=new Error('synthetic_request_error');
-      if (reply.status !== undefined) error.status=reply.status;
+      if(expected.reply.status!==undefined)error.status=expected.reply.status;
       throw error;
     }
-    return reply;
+    return expected.reply;
   }}}};
-  const core={setOutput:(key,value)=>{outputs[key]=value;},warning:message=>warnings.push(message)};
+  const core={setOutput:(key,value)=>{outputAt.push(requests.length);outputs[key]=value;},warning:message=>warnings.push(message)};
   let error;
-  try { await execute(github,context,core,(callback,delay)=>{delays.push(delay);callback();}); }
-  catch (caught) { error=caught; }
+  try{await execute(github,context,core,(callback,delay)=>{delays.push(delay);clock+=delay;callback();},{now:()=>clock});}
+  catch(caught){error=caught;}
   equal(!error,valid,name+': terminal result');
-  equal(requests.map(request=>request.page),pages,name+': requested pages');
-  equal(delays,Array(retries).fill(1000),name+': bounded retry delay');
-  equal(warnings,Array(retries).fill('GitHub artifact-list HTTP 500: retrying this read once.'),name+': sanitized warning');
-  equal(outputs,expectedOutputs,name+': no false empty or partial state on failure');
-  for (const request of requests) {
-    equal(request,{...context.repo,per_page:100,page:request.page,request:{timeout:10000}},name+': exact bounded read');
-  }
+  equal(requests.length,replies.length,name+': no missing or unbounded reads');
+  equal(delays,Array(retries).fill(1000),name+': one bounded retry delay');
+  equal(warnings,Array(retries).fill('GitHub artifact-list HTTP 500: retrying this read once.'),name+': sanitized retry warning');
+  equal(outputs,expectedOutputs,name+': incomplete or failed discovery exposes no partial state');
+  truth(outputAt.every(count=>count===replies.length),name+': outputs follow complete discovery');
+  requests.forEach((request,index)=>{
+    equal(request,{...context.repo,name:replies[index].name,per_page:25,page:replies[index].page,
+      request:{timeout:request.request.timeout}},name+': exact bounded read shape');
+    truth(Number.isInteger(request.request.timeout)&&request.request.timeout>0&&request.request.timeout<=10000
+      &&request.request.timeout<=60000-atRequests[index],name+': request cannot outlive remaining budget');
+  });
+  if(test.timeouts)equal(requests.map(request=>request.request.timeout),test.timeouts,name+': finite timeout headroom');
 }
 return {cases:cases.length,assertions};
-
-})().then(result => process.stdout.write(JSON.stringify(result))).catch(error => { process.stderr.write(error.message + '\n'); process.exitCode = 1; });
+})().then(result=>process.stdout.write(JSON.stringify(result))).catch(error=>{process.stderr.write(error.message+'\n');process.exitCode=1;});
 """
     completed = subprocess.run([node, '--eval', harness], input=json.dumps({'script': script}),
                                text=True, capture_output=True, timeout=10)
     check(completed.returncode == 0, 'monitor: bounded artifact lookup behavior: ' + completed.stderr[:500])
     report = json.loads(completed.stdout)
-    check(report.get('cases') == 31 and report.get('assertions', 0) >= 200,
-          'monitor: recovery, denied statuses, pagination and retained-state cases executed')
+    check(report.get('cases', 0) >= 60 and report.get('assertions', 0) >= 500,
+          'monitor: filtered latest-state pagination, one retry and fail-closed deadline cases executed')
     print('MONITOR ARTIFACT READ: ' + str(report['cases']) + ' cases, '
           + str(report['assertions']) + ' assertions PASS (offline)')
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
