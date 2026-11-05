@@ -1,0 +1,21 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-manual1-h273-v1-reconcile1",
+  "state": "CLOSED_ORIGINAL_MAX_WRITE_CONFIRMED_NO_PROVIDER_REWRITE_TG_UNATTEMPTED_AT_RECONCILIATION",
+  "run": 41986606018,
+  "job": 127108699560,
+  "source": "9649eaedfceefe88e6d99d9b83f9583fd8a913b7",
+  "installed": "95dcf9893fb161b1e4fb52c02ad2d982604e7518",
+  "intent_artifact": 13395379412,
+  "intent_created_at": "2026-11-05T07:21:16Z",
+  "result_artifact": 13395324709,
+  "result_created_at": "2026-11-05T07:21:21Z",
+  "original_manifest_sha256": "eae2a94e3be2f2bbdd465a59b3f9a0a1ffd780f7e612997787c9db08d3cbd1b6",
+  "provider_reads": 1,
+  "provider_writes": 0,
+  "gateway_calls": 0,
+  "registry_before": "own_original_new_version",
+  "max_original_write_confirmed": true,
+  "telegram_unattempted": true,
+  "original_max_must_never_repeat": true,
+  "manual_capture": false
+}

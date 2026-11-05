@@ -1,0 +1,18 @@
+{
+  "operation": "commercial-price-monitor-20261105-read13-approved-manual1",
+  "state": "CLOSED_ORIGINAL_APPROVED_SOURCE_ONLY_READ104_ROWS56_HOTELS_NO_SCOPE_REPLAY",
+  "run": 41978466494,
+  "job": 127082765618,
+  "artifact": 13393205782,
+  "source": "a923fe66041802c22d94a105a3c0ce61340c97c8",
+  "installed": "627a9c6284624e63b24287bea61277ef6c8f5364",
+  "source_run": 41976677950,
+  "rows": 104,
+  "hotels": 56,
+  "readback_epoch": 1793858947,
+  "old_retained_fingerprints_excluded": 85,
+  "max_age_seconds": 259200,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "do_not_repeat": true
+}

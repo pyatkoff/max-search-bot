@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-price-monitor-20261105-approved-manual1-canonical-contexts",
+  "state": "CLOSED54_CURRENT_CANONICAL_FRAMES_TWO_COPY_ONLY_CONTEXTS_DEFERRED",
+  "context13": {
+    "run": 41979357309,
+    "job": 127085613712,
+    "artifact": 13392838131,
+    "source": "c75a769393283ce71001d3d26f1450a78c485d8f",
+    "installed": "627a9c6284624e63b24287bea61277ef6c8f5364",
+    "accepted": 5,
+    "canonical_receipts": 55,
+    "provider_post_reads": 0
+  },
+  "context14": {
+    "run": 41980439161,
+    "job": 127089051845,
+    "artifact": 13393547382,
+    "source": "6fe95a4d26a98cc44e7fe62cedf224fa5dd3d2f7",
+    "installed": "8f209b1ac93090ab399c1b8225151849fceb4fd0",
+    "accepted": 49,
+    "owned_MAX_reads": 49,
+    "deferred": 0,
+    "db_writes": 0,
+    "gateway_calls": 0
+  },
+  "source_stop_before_access": 41979954323,
+  "closed_owned_reads_must_not_repeat": true,
+  "unquoted_missing_original_publisher_manifest_native_ids": [
+    68323,
+    67910
+  ],
+  "copy_only_recovery_next": "Use addressed early-nine copy operation canonical receipt, never historical public publication/version IDs. Native/country/name/current stable photo signature and current caption proof required. One exact owned MAX read only for each NEW related tuple if empty stored keyboard; nonempty conflict stops."
+}

@@ -1,0 +1,37 @@
+{
+  "operation": "commercial-price-monitor-20261105-manual1-quote-pass1",
+  "state": "ALL54_ORIGINAL_NEW_TUPLE_QUOTES_CONSUMED_NO_ALTERNATE_TUPLE_RETRY",
+  "run": 41980943154,
+  "job": 127090642879,
+  "source": "f11787d646df7e1a58522b7f7e3a3eb43fd297d1",
+  "installed": "8f209b1ac93090ab399c1b8225151849fceb4fd0",
+  "intent_artifact": 13394116031,
+  "intent_created_at": "2026-11-05T06:31:27Z",
+  "result_artifact": 13394256581,
+  "result_created_at": "2026-11-05T06:36:30Z",
+  "intent_before_any_gateway": true,
+  "one_gateway_per_hotel": 54,
+  "http200": 54,
+  "declared_gateway_errors": [
+    108090,
+    1453,
+    3405
+  ],
+  "with_options": 51,
+  "unknown": 0,
+  "prices_admitted": 47,
+  "link_only": [
+    108090,
+    1583,
+    1453,
+    1582,
+    15869,
+    27316,
+    3405
+  ],
+  "remaining_unquoted_native_ids": [
+    68323,
+    67910
+  ],
+  "full_tuples_quotes_fingerprints_private_only": true
+}
