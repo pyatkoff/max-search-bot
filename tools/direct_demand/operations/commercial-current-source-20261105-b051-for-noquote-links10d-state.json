@@ -1,0 +1,28 @@
+{
+  "operation": "commercial-current-source-20261105-b051-for-noquote-links10d",
+  "state": "ACTUALLY_ACCEPTED_B051_CLEAN_FULL_REMOTE21_BY_CONTEXT20_AND_ACTUAL_TEN4_EDITS",
+  "expected_installed_sha": "b051ce3969f23fe0e0358091684dac74fa511a32",
+  "tree": "3f7af311d331852edb277527158e85fa9983e63f",
+  "previous_accepted_source": "b4a266482184b6c9edff7f0b4c005eddbde0c342",
+  "diff_commits": 2,
+  "diff_paths": [
+    "tests/run_ci_change_scope_regression.js",
+    "tools/release_slot_close.js"
+  ],
+  "publishing21_unchanged": true,
+  "deploy_run": 42021860052,
+  "verify_job": 127228670418,
+  "deploy_job": 127227696546,
+  "tls_run": 42022673994,
+  "diagnostics_run": 42022674067,
+  "tg_run": 42022674085,
+  "max_run": 42022674018,
+  "live_run": 42022673892,
+  "actual_context20_run": 42023628524,
+  "actual_update_run": 42024615253,
+  "full_remote21_hostpin_clean_runtime_schema_rights_passed": true,
+  "foreign_release_fixed_or_rerun": false,
+  "foreign_lease_or_slot_mutations": false,
+  "no_separate_source_only_probe_needed": true,
+  "future_fresh_current_source_gates_always_required": true
+}
