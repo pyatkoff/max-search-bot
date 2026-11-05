@@ -1,0 +1,62 @@
+{
+  "operation": "commercial-hotel-search-links-20261105-context23-ten7",
+  "state": "ONE_NEW_FINITE3_CURRENT_CONTEXT_PASS_AFTER_BOUNDED_NATIVE_CI",
+  "goal": "Bind ONLY final3 still-unlinked unpriced originalpublishedhotel contexts before NOQUOTEsearchlinks.",
+  "native_hotel_ids": [
+    28668,
+    55205,
+    75377
+  ],
+  "native_bindings": [
+    {
+      "local_tv_id": 28668,
+      "expected_name": "RIXOS PREMIUM GOCEK ADULTS ONLY 13+",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 55205,
+      "expected_name": "EFTALIA OCEAN",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    },
+    {
+      "local_tv_id": 75377,
+      "expected_name": "LIBERTY FABAY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 4
+    }
+  ],
+  "expected_base": {
+    "published": 161,
+    "priced": 85,
+    "linked": 120
+  },
+  "expected_installed_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "scope_sha256": "fd44f7822e44d4c9941323907da8dbd88de795723a520e3ced73ca78406c7f84",
+  "reader_sha256": "b21ec258652f5299bc3d523b12ea9b546ebc6a932e9ce35fd19f8c6f62f1fc31",
+  "bounded_contract_run": 42033271803,
+  "bounds": {
+    "min_hotels": 1,
+    "max_hotels": 10,
+    "actual_scope": 3,
+    "max_owned_MAX_reads": 3,
+    "max_channel_rights_checks": 2,
+    "db_writes": 0,
+    "provider_writes": 0,
+    "gateway_quotes": 0,
+    "source_searches": 0,
+    "new_posts": 0,
+    "old120_linked_posts_read": 0
+  },
+  "criteria": [
+    "Retainednative-country-active-name/currentcanonicalpublisher orconfirmedcopyreceipt/version/photo/button/source/token;no oldcataloguegroupquery.",
+    "OnlyNEWactual3native/name/NOQUOTEcases+2generatedheadercases beforeSSH/oldfixtures0;closedboundedcountcases0.",
+    "FreshSAMEcurrenthealthydeployverifyTLSdiag/FULLremote21/hostaccepted25/clean/runtime/read-only/schema-rights.",
+    "NOQUOTE/noavailability/noinventedquoteSHA-epoch-index-amount;wholebodyclosingphotobuttonsourcetoken/85pricespreserved;readyothersnotheldforhardcases."
+  ],
+  "risks": [
+    "Caption/identitycouldchange;deferambiguity/notforcenullpublisher orwronghotelURL.",
+    "Currentprodcanchange;freshgatesstopbeforeaccess."
+  ]
+}

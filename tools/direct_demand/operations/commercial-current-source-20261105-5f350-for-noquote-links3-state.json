@@ -1,0 +1,24 @@
+{
+  "operation": "commercial-current-source-20261105-5f350-for-noquote-links3",
+  "state": "REVIEWED_HEALTHY_CURRENT_MAIN_RUNTIME_FULL21_PENDING_CONTEXT23",
+  "expected_installed_sha": "5f350e8c3ff238f2fd3794d9d179c93394c416a7",
+  "tree": "4b32db95fd1087c07efc186e8988480c9e0a2085",
+  "previous_accepted_source": "f486099f3aaaa79b4eccad148eb2d4a80981688a",
+  "diff_commits": 3,
+  "diff_paths": [
+    ".github/workflows/regression-tests.yml",
+    "tests/check_ci_mysql_groups.py"
+  ],
+  "publishing21_unchanged": true,
+  "deploy_run": 42031354809,
+  "verify_job": 127260155053,
+  "deploy_job": 127259342277,
+  "tls_run": 42032030995,
+  "diagnostics_run": 42032030674,
+  "tg_run": 42032031077,
+  "max_run": 42032030926,
+  "live_run": 42032030675,
+  "foreign_release_fixed_or_rerun": false,
+  "foreign_lease_or_slot_mutations": false,
+  "no_separate_source_only_probe": true
+}
