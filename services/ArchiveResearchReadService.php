@@ -301,7 +301,8 @@ final class ArchiveResearchReadService
     private function semanticDescriptor(string$fence,string$key,int$admin,string$connection):array
     {
         return['operation'=>'contextual_semantic_inventory','invoked'=>false,'explicit_stored_text_read'=>true,
-            'label_set_version'=>ArchiveResearchSemanticExtractor::VERSION,'semantics'=>'contextual_rule_candidates_not_verified_outcomes',
+            'label_set_version'=>ArchiveResearchSemanticExtractor::VERSION,'rule_revision'=>ArchiveResearchSemanticExtractor::RULE_REVISION,
+            'semantics'=>'contextual_rule_candidates_not_verified_outcomes',
             'model_calls'=>0,'database_writes'=>0,'media_contents_read'=>false,
             'budgets'=>['max_chat_windows'=>50,'max_metadata_rows'=>self::FEATURE_METADATA_ROWS,'max_window_records'=>100,
                 'max_source_json_bytes'=>self::FEATURE_SOURCE_BYTES,'max_output_bytes'=>self::MAX_RESPONSE_BYTES,
@@ -374,6 +375,7 @@ final class ArchiveResearchReadService
             $returned=array_sum(array_map(static fn($w)=>$w['result']['source_records'],$items));
             return$this->base($state['f'])+['operation'=>$semantic?'contextual_semantic_inventory':'lexical_feature_inventory',
                 'label_set_version'=>$semantic?ArchiveResearchSemanticExtractor::VERSION:null,
+                'rule_revision'=>$semantic?ArchiveResearchSemanticExtractor::RULE_REVISION:null,
                 'pattern_set_version'=>ArchiveResearchFeatureExtractor::PATTERN_SET_VERSION,'timing_set_version'=>self::TIMING_SET_VERSION,
                 'semantics'=>$semantic?'contextual_rule_candidates_not_verified_outcomes':'lexical_candidates_not_events_or_probabilities','stored_text_read'=>true,'model_calls'=>0,
                 'media_contents_read'=>false,'media_observation'=>'stored_references_only; omitted_record_media_unknown',
@@ -435,7 +437,7 @@ final class ArchiveResearchReadService
         }
         $chat=hash_hmac('sha256',"archive-semantic-chat-v1\0".$run."\0".$position['a']."\0".$position['c'],$key);
         return['chat_key'=>$chat,'account_alias'=>$this->accountAliases[$position['a']],
-            'source_window_id'=>hash_hmac('sha256',"archive-semantic-window-v1\0".ArchiveResearchSemanticExtractor::VERSION."\0".$run."\0".$chat."\0".self::json([$versions,$inputState,$state]),$key),
+            'source_window_id'=>hash_hmac('sha256',"archive-semantic-window-v1\0".ArchiveResearchSemanticExtractor::VERSION."\0".ArchiveResearchSemanticExtractor::RULE_REVISION."\0".$run."\0".$chat."\0".self::json([$versions,$inputState,$state]),$key),
             'source_records'=>count($selected),'source_kind_counts'=>$sourceKinds,
             'read_status_counts'=>$statuses,'label_status_counts'=>$labels,'flag_counts'=>$flags,
             'goal_event_counts'=>$counts,'episode_boundary_counts'=>$boundaries,'episode_candidates_started'=>array_sum($boundaries),

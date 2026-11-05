@@ -502,7 +502,9 @@ function archiveResearchReadRegression(PDO $pdo): int
         $semStart=$semMeta['semantic_scan']['start_cursor'];$semToken=$decodeToken($semStart);
         $check($semToken['k']==='semantic_inventory'&&ArchiveResearchSemanticExtractor::validState($semToken['s'])
             &&strlen($semStart)<=2048,'semantic_start_has_valid_bounded_initial_state');
-        foreach([['unexpected'=>1],['e'=>-1],['money'=>'foreign:path'],['q'=>'unrecognized']]as$alter){
+        $check($semMeta['semantic_scan']['rule_revision']===ArchiveResearchSemanticExtractor::RULE_REVISION,
+            'semantic_descriptor_identifies_rule_revision');
+        foreach([['unexpected'=>1],['v'=>2],['e'=>-1],['money'=>'foreign:path'],['q'=>'unrecognized']]as$alter){
             $bad=$semToken;$bad['s']=array_replace($bad['s'],$alter);
             $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($bad)]),'stale_cursor');
         }
@@ -523,6 +525,8 @@ function archiveResearchReadRegression(PDO $pdo): int
         $semFirst=$service->inventory(1,$connection,['cursor'=>$sign($semState),'limit'=>1]);
         $check($semFirst['operation']==='contextual_semantic_inventory'&&$semFirst['model_calls']===0
             &&$semFirst['database_writes']===0&&!$semFirst['persistent_annotations_written'],'semantic_pass_is_read_only_and_explicit');
+        $check($semFirst['rule_revision']===ArchiveResearchSemanticExtractor::RULE_REVISION,
+            'semantic_page_identifies_rule_revision');
         $w=$semFirst['windows'][0];
         $check($w['source_records']===100&&($w['goal_event_counts']['manager_payment_ack']??0)===1
             &&!isset($w['goal_event_counts']['purchase_supported_candidate']),'semantic_first_window_stops_before_later_booking');
