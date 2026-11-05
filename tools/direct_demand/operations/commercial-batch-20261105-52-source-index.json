@@ -1,0 +1,58 @@
+{
+  "operation": "commercial-batch-20261105-52-primary-preparation1-source-index",
+  "sources": [
+    {
+      "hotel_id": 47025,
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/",
+      "declared_by": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+      "native_country_id": 4,
+      "group": 0
+    },
+    {
+      "hotel_id": 21642,
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/beaches-pools/",
+      "declared_by": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+      "native_country_id": 4,
+      "group": 0
+    },
+    {
+      "hotel_id": 1217,
+      "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+      "declared_by": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+      "native_country_id": 4,
+      "group": 1
+    },
+    {
+      "hotel_id": 1369,
+      "url": "https://www.melashotels.com/en/melas-lara-hotel/gallery",
+      "declared_by": "https://www.melashotels.com/en/melas-lara-hotel",
+      "native_country_id": 4,
+      "group": 1
+    }
+  ],
+  "closed_source_exclusions": [
+    "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+    "https://www.adalyahotels.com/en/our-hotels/",
+    "https://www.melashotels.com/en/melas-lara-hotel",
+    "https://www.melashotels.com/en/melas-resort-hotel",
+    "https://www.melashotels.com/en",
+    "https://www.elitabeachresort.com/",
+    "https://www.kumkoybeachresort.com/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+    "https://www.adalyahotels.com/en/our-hotels/adalya-bliss/",
+    "https://www.melashotels.com/en/club-melas-prive"
+  ],
+  "native_scope": [
+    47025,
+    21642,
+    948,
+    1217,
+    1369,
+    1370,
+    1420,
+    1421,
+    27349,
+    108942
+  ]
+}

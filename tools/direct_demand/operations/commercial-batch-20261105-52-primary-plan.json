@@ -1,0 +1,80 @@
+{
+  "operation": "commercial-batch-20261105-52-primary-preparation1",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Continue500withtenretainedPROVENunpublishedhotels usingfour genuinelyNEWowner-declaredpropertypages whilemanualpricepermission remainsunanswered.",
+  "boundaries": {
+    "proven_native_ids": [
+      47025,
+      21642,
+      948,
+      1217,
+      1369,
+      1370,
+      1420,
+      1421,
+      27349,
+      108942
+    ],
+    "new_primary_native_ids": [
+      47025,
+      21642,
+      1217,
+      1369
+    ],
+    "new_exact_owner_pages": [
+      {
+        "hotel_id": 47025,
+        "url": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/beaches-pools/",
+        "declared_by": "https://www.adalyahotels.com/en/our-hotels/adalya-elite-lara/",
+        "native_country_id": 4,
+        "group": 0
+      },
+      {
+        "hotel_id": 21642,
+        "url": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/beaches-pools/",
+        "declared_by": "https://www.adalyahotels.com/en/our-hotels/adalya-ocean-deluxe/",
+        "native_country_id": 4,
+        "group": 0
+      },
+      {
+        "hotel_id": 1217,
+        "url": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/beach-pools/",
+        "declared_by": "https://www.adalyahotels.com/en/our-hotels/adalya-art-side/",
+        "native_country_id": 4,
+        "group": 1
+      },
+      {
+        "hotel_id": 1369,
+        "url": "https://www.melashotels.com/en/melas-lara-hotel/gallery",
+        "declared_by": "https://www.melashotels.com/en/melas-lara-hotel",
+        "native_country_id": 4,
+        "group": 1
+      }
+    ],
+    "max_gets": 4,
+    "readonly_groups": 2,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "photo_gets": 0,
+    "message_sends": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "FourexactURIs must beactuallydeclaredinaddressedretained40parentwebsite_links; oldroots/GETs/variantsclosed,nosynthesizedgallerypaths",
+    "Native10country4/active/unique/currentname/unpublishedproofretained;161publishedalreadyexcluded. Fourexistingwholecaptions1420/1421/27349/108942BYTEUNCHANGED; othersnotinvented",
+    "BeforeHTTPdedup addressedsource-index/primaryplans;parserfunctionalityBYTEIDENTICAL51 withonlytwoexactownerhosts input",
+    "ThreeNEWnegativebindings(published78251,countrymismatch,undeclaredhref)oncegroup0/oldparserfixtures0",
+    "Any403/redirect/challenge/unknownstopforsource;nobypass. Sourcefacts/metadataNOTphotospermission/readiness/delivery"
+  ],
+  "risks": [
+    "Melasroot/gallerymayhaveonlyclientmetadata;property3namespacemustremainexact,notarbitraryCDNallowlist",
+    "Adalyapoolbeachpagescanexposeonlydetails,notwholecomplexhero;roomcategory/privatepavilion/free/season2027rightsnotuniversal",
+    "No suppliersearch/DB/server/pricecollectionwhilemanualapprovalabsent"
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}

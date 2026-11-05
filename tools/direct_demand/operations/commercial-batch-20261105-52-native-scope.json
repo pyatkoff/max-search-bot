@@ -1,0 +1,187 @@
+{
+  "operation": "commercial-batch-20261105-52-primary-preparation1-native-scope",
+  "new_native_identities": [
+    {
+      "key": "adalya-elite-lara",
+      "hotel_id": 47025,
+      "hotel": "ADALYA ELITE LARA",
+      "country_id": 4,
+      "region_id": 20,
+      "region": "Анталья",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "adalya-ocean-deluxe",
+      "hotel_id": 21642,
+      "hotel": "ADALYA OCEAN DELUXE",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "adalya-resort",
+      "hotel_id": 948,
+      "hotel": "ADALYA BLISS (EX. ADALYA RESORT & SPA) ADULTS ONLY",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "adalya-artside",
+      "hotel_id": 1217,
+      "hotel": "ADALYA ART SIDE (EX. GRAND HOTEL ARTSIDE)",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "melas-lara",
+      "hotel_id": 1369,
+      "hotel": "MELAS LARA HOTEL",
+      "country_id": 4,
+      "region_id": 20,
+      "region": "Анталья",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "melas-resort",
+      "hotel_id": 1370,
+      "hotel": "MELAS RESORT HOTEL",
+      "country_id": 4,
+      "region_id": 23,
+      "region": "Сиде",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41924993837,
+      "source_artifact": 13369371370,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "papillon-ayscha",
+      "hotel_id": 1420,
+      "hotel": "PAPILLON AYSCHA",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "papillon-belvil",
+      "hotel_id": 1421,
+      "hotel": "PAPILLON BELVIL",
+      "country_id": 4,
+      "region_id": 21,
+      "region": "Белек",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "maxx-royal-kemer",
+      "hotel_id": 27349,
+      "hotel": "MAXX ROYAL KEMER RESORT",
+      "country_id": 4,
+      "region_id": 22,
+      "region": "Кемер",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0
+    },
+    {
+      "key": "maxx-royal-bodrum",
+      "hotel_id": 108942,
+      "hotel": "MAXX ROYAL BODRUM RESORT",
+      "country_id": 4,
+      "region_id": 24,
+      "region": "Бодрум",
+      "is_active": 1,
+      "registry_matches": {
+        "telegram": 0,
+        "max": 0
+      },
+      "identity_provenance": "accepted_native_catalog_read",
+      "source_run": 41956089070,
+      "source_artifact": 13383226155,
+      "ready_for_send": false,
+      "new_posts": 0
+    }
+  ],
+  "scope_db_rereads": 0,
+  "ready_for_send": 0
+}
