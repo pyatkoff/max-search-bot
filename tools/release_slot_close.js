@@ -65,9 +65,11 @@ function binding(pr, source) {
     active: 'PR' + pr.number + ': выпуск занят',
     released: 'PR' + pr.number + ': установлено, выпуск свободен' };
 }
-function validRun(run, c, path, event, name) {
+function validRun(run, c, path, event, name, origin = null) {
   requireValue(id(run?.id) && run.path === path && run.event === event
-    && run.name === name && run.head_sha === c.sha && run.head_branch === 'main'
+    && (run.name === name || (origin !== null && run.name === origin))
+    && (origin === null || (run.display_title === undefined && run.name === name) || run.display_title === origin)
+    && run.head_sha === c.sha && run.head_branch === 'main'
     && run.head_repository?.full_name === REPOSITORY
     && run.run_attempt === (path===PREFIX+'deploy.yml'&&c.recovery?2:1) && stamp(run.created_at), 'untrusted_run');
 }
@@ -81,6 +83,10 @@ function gateState(snapshot, c) {
   requireValue(runs.every(r => r.event !== 'workflow_run' || known.has(r.path)), 'unclassified_gate');
   let waiting = false;
   let deployment;
+  const monitor = runs.find(r => r.path === PREFIX + 'modeled-conversion-monitor.yml' && r.event === 'workflow_run');
+  const origin = file => file === ACTIVATION.file
+    ? (id(monitor?.id) ? 'monitor-proof:v1:' + monitor.id + ':1' : null)
+    : 'deploy-proof:v1:' + c.deploy + ':' + (c.deployAttempt || 1);
   for (const [file, event, name] of REQUIRED) {
     const path = PREFIX + file;
     // A rerun/manual deployment of this source makes provenance ambiguous.
@@ -89,7 +95,7 @@ function gateState(snapshot, c) {
     requireValue(candidates.length <= 1, 'ambiguous_run');
     if (!candidates.length) { waiting = true; continue; }
     const run = candidates[0];
-    validRun(run, c, path, event, name);
+    validRun(run, c, path, event, name, event === 'workflow_run' ? origin(file) : null);
     if (file === 'deploy.yml') {
       requireValue(run.id === c.deploy, 'deployment_changed');
       deployment = run;
@@ -111,7 +117,7 @@ function gateState(snapshot, c) {
   }
   const own = runs.filter(r => r.path === CLOSER && r.event === 'workflow_run');
   requireValue(own.length === 1 && own[0].id === c.run, 'ambiguous_closer');
-  validRun(own[0], c, CLOSER, 'workflow_run', 'Configure AnyTour modeled value goal');
+  validRun(own[0], c, CLOSER, 'workflow_run', 'Configure AnyTour modeled value goal', origin('modeled-conversion-value-export.yml'));
   requireValue(own[0].status === 'in_progress' && own[0].conclusion === null, 'closer_not_active');
   return waiting ? 'waiting' : 'ready';
 }
@@ -143,8 +149,9 @@ function verifyConfigure(jobs, c) {
     && matches[0].head_sha === c.sha && matches[0].status === 'completed'
     && matches[0].conclusion === c.configure, 'configuration_unconfirmed');
 }
-function verifyActivation(jobs, run, c) {
-  validRun(run, c, PREFIX + ACTIVATION.file, 'workflow_run', ACTIVATION.name);
+function verifyActivation(jobs, run, c, monitorId = null) {
+  validRun(run, c, PREFIX + ACTIVATION.file, 'workflow_run', ACTIVATION.name,
+    id(monitorId) ? 'monitor-proof:v1:' + monitorId + ':1' : null);
   requireValue(typeof c.activation === 'boolean' && run.status === 'completed'
     && (c.activation ? run.conclusion === 'success' : ['success', 'skipped'].includes(run.conclusion)),
     'activation_unconfirmed');
@@ -196,7 +203,8 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
   requireValue(gateState(finalRuns, c) === 'ready', 'gates_changed');
   const activation = finalRuns.workflow_runs.find(r => r.path === PREFIX + ACTIVATION.file
     && r.event === 'workflow_run');
-  verifyActivation(await get('/actions/runs/' + activation.id + '/attempts/1/jobs?per_page=100'), activation, c);
+  verifyActivation(await get('/actions/runs/' + activation.id + '/attempts/1/jobs?per_page=100'), activation, c,
+    finalRuns.workflow_runs.find(r => r.path === PREFIX + 'modeled-conversion-monitor.yml' && r.event === 'workflow_run')?.id);
   if (recordState(await get(recordPath), b) === 'released') return 'already_released';
   // GitHub comments have no atomic compare-and-swap. This relies on the existing
   // single-publisher contract and this workflow's existing serialized execution.
