@@ -641,6 +641,19 @@ $tests['retained contrary observations cannot produce a block rejected by its ow
     }
 };
 
+require_once __DIR__.'/support/archive-predictive-model.php';
+$tests['archive-derived atoms private files and frozen relative weights']=static function():void{
+    $n=archivePredictiveModelRegression();
+    semanticPredictionAssert($n>=30,'archive model support checks omitted');
+};
+$tests['historical prefix study leakage and model comparison']=static function():void{
+    $command=['python3',__DIR__.'/run_archive_predictive_study_regression.py'];
+    $pipes=[];$process=proc_open($command,[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,dirname(__DIR__));
+    semanticPredictionAssert(is_resource($process),'study regression process unavailable');
+    fclose($pipes[0]);$out=stream_get_contents($pipes[1]);$err=stream_get_contents($pipes[2]);
+    fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($process);
+    semanticPredictionAssert($exit===0,'archive study regression failed '.substr($out.$err,-4000));
+};
 $failures=0;
 set_error_handler(static function(int $severity,string $message,string $file,int $line):never{
     throw new ErrorException($message,0,$severity,$file,$line);

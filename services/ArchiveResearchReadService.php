@@ -5,12 +5,14 @@ require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/ArchiveResearchFeatureExtractor.php';
 require_once __DIR__.'/ArchiveResearchSemanticExtractor.php';
+require_once __DIR__.'/ArchivePredictiveStudyStore.php';
 
 /** Private historical research reader. No intake, model, send or read-marker owner. */
 final class ArchiveResearchReadService
 {
     public const MAX_OUTPUT_BYTES=65536;
     public const MAX_RESPONSE_BYTES=self::MAX_OUTPUT_BYTES;
+    private const OPERATOR_OUTPUT_BYTES=2097152;
     public const MAX_PAGE_SOURCE_BYTES=32768;
     public const MAX_RECORD_BYTES=1048576;
     public const CURSOR_TTL=1200;
@@ -58,6 +60,7 @@ final class ArchiveResearchReadService
             if($more&&$rows){$last=$rows[count($rows)-1];$next=$this->encode(['v'=>1,'k'=>'inventory','a'=>(string)$last['account_id'],
                 'c'=>(string)$last['chat_id'],'f'=>$fence,'e'=>$expiry],$key,$admin,$connection);}
             return $this->base($fence)+['totals'=>$summary['totals']??null,'accounts'=>$summary['accounts']??null,
+                'historical_prefix_study'=>ArchivePredictiveStudyStore::summaryForScope(hash('sha256',self::json($this->permissionRows))),
                 'summary_not_recomputed'=>$state!==null,'feature_scan'=>$this->featureDescriptor($fence,$key,$admin,$connection),
                 'semantic_scan'=>$this->semanticDescriptor($fence,$key,$admin,$connection,$state),
                 'chats'=>$chats,'has_more'=>$more,'next_cursor'=>$next];
@@ -154,13 +157,135 @@ final class ArchiveResearchReadService
         });
     }
 
+    /**
+     * Internal finite-study source page. The CLI supplies its real authority guard;
+     * no OAuth identity, bearer, token or connection is manufactured here.
+     * Native positions and projected text are private process data, never MCP output.
+     */
+    public function operatorStudyPage(callable$authorize,array$position=[],int$limit=25):array
+    {
+        if($this->pdo->inTransaction())self::fail('transaction_active');
+        if(PHP_SAPI!=='cli')self::fail('forbidden');
+        if($limit<1||$limit>50)self::fail('invalid_arguments');
+        $initial=$position===[];
+        if(!$initial){
+            $keys=['f','a','c','n','scope_digest'];
+            if(count($position)!==5||array_diff(array_keys($position),$keys))self::fail('invalid_arguments');
+            foreach(['f','a','c','n']as$field)if(!is_string($position[$field])||!self::decimal($position[$field],true))self::fail('invalid_arguments');
+            if(!is_string($position['scope_digest'])||preg_match('/\A[a-f0-9]{64}\z/D',$position['scope_digest'])!==1
+                ||(($position['a']==='0'||$position['c']==='0')&&($position['a']!=='0'||$position['c']!=='0'||$position['n']!=='0')))
+                self::fail('invalid_arguments');
+        }
+        $authority=static function()use($authorize):void{
+            try{$authorize();}catch(Throwable$ignored){self::fail('forbidden');}
+        };
+        return$this->readSnapshot($authority,function()use($position,$limit,$initial):array{
+            $scopeDigest=hash('sha256',self::json($this->permissionRows));
+            if(!$initial){
+                if($position['a']!=='0'&&!isset($this->accountAliases[$position['a']]))self::fail('forbidden');
+                if(!hash_equals($scopeDigest,$position['scope_digest']))self::fail('permission_changed');
+            }
+            $currentFence=$this->fence();$fence=$initial?$currentFence:$position['f'];
+            if(self::decimalGreater($fence,$currentFence))self::fail('source_changed');
+            $expected=null;
+            if($initial){$summary=$this->summary($fence);$expected=['desktop_records'=>$summary['totals']['message_records'],
+                'account_chat_pairs'=>$summary['totals']['account_chat_pairs']];}
+            $cursor=$initial?['a'=>'0','c'=>'0','n'=>'0']:array_intersect_key($position,array_fill_keys(['a','c','n'],true));
+            $current=$cursor['a']!=='0';$anchor=$current;$windows=[];$metadataRows=0;$sourceBytes=0;$exhausted=false;
+            while(count($windows)<$limit&&$metadataRows<self::FEATURE_METADATA_ROWS){
+                $this->budget();
+                if(!$current){
+                    $chat=$this->featureNextChat($fence,$cursor['a'],$cursor['c']);
+                    if($chat===null){$exhausted=true;break;}
+                    $metadataRows++;$cursor=['a'=>$chat['a'],'c'=>$chat['c'],'n'=>'0'];$current=true;$anchor=false;
+                }
+                if($anchor){
+                    $this->stage='history_anchor';[$where,$values]=$this->scope($fence,true);
+                    $found=$this->q('SELECT 1 FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '
+                        .$where.' AND m.account_id=? AND m.chat_id=? LIMIT 1',[...$values,$cursor['a'],$cursor['c']])->fetchColumn();
+                    if($found===false){$current=false;$anchor=false;continue;}
+                    $metadataRows++;$anchor=false;
+                }
+                $remaining=self::FEATURE_METADATA_ROWS-$metadataRows;if($remaining<1)break;
+                $windowLimit=min(100,$remaining);$metadata=$this->featureMetadata($fence,$cursor,$windowLimit);$metadataRows+=count($metadata);
+                if(!$metadata){$current=false;continue;}
+                $selected=[];$fetch=[];$pageBytes=0;
+                foreach($metadata as$row){
+                    $status=$this->metadataStatus($row);$size=(int)$row['bytes'];
+                    if($status==='available'&&$sourceBytes+$pageBytes+$size>self::FEATURE_SOURCE_BYTES)break;
+                    $row['read_status']=$status;$selected[]=$row;
+                    if($status==='available'){$fetch[]=(string)$row['id'];$pageBytes+=$size;}
+                }
+                if(!$selected)break;
+                $raw=[];
+                if($fetch){
+                    $this->stage='history_payload';[$where,$values]=$this->scope($fence,false);
+                    $rows=$this->q('SELECT m.id,m.record_json FROM telegram_dialogue_messages m JOIN projects p ON p.project_key=m.project_key WHERE '
+                        .$where.' AND m.account_id=? AND m.chat_id=? AND m.id IN ('.implode(',',array_fill(0,count($fetch),'?')).')',
+                        [...$values,$cursor['a'],$cursor['c'],...$fetch])->fetchAll(PDO::FETCH_ASSOC);
+                    foreach($rows as$row)$raw[(string)$row['id']]=$row['record_json'];
+                    if(count($raw)!==count($fetch))self::fail('source_changed');
+                    foreach($selected as$row)if($row['read_status']==='available'
+                        &&(!isset($raw[(string)$row['id']])||strlen($raw[(string)$row['id']])!==(int)$row['bytes']))self::fail('source_changed');
+                }
+                $messages=[];
+                foreach($selected as$row){$this->budget();$messages[]=$this->project($row,$raw[(string)$row['id']]??null);}
+                $complete=count($selected)===count($metadata)&&count($metadata)<$windowLimit;
+                $last=$selected[count($selected)-1];$cursor=['a'=>(string)$last['account_id'],'c'=>(string)$last['chat_id'],'n'=>(string)$last['message_id']];
+                $windows[]=['position'=>$cursor,'selected'=>$selected,'result'=>['account_id'=>$cursor['a'],'chat_id'=>$cursor['c'],
+                    'account_alias'=>$this->accountAliases[$cursor['a']],'chat_window_complete'=>$complete,'messages'=>$messages]];
+                $sourceBytes+=$pageBytes;$current=!$complete;
+                if(count($selected)<count($metadata)||$sourceBytes>=self::FEATURE_SOURCE_BYTES)break;
+            }
+            $make=function(array$items,bool$more)use($fence,$scopeDigest,$expected,$metadataRows,$sourceBytes,$position,$initial):array{
+                $last=$items?$items[count($items)-1]['position']:($initial?['a'=>'0','c'=>'0','n'=>'0']:$position);
+                return['project_key'=>'anytour','source_fence'=>$fence,'scope_digest'=>$scopeDigest,'expected'=>$expected,
+                    'windows'=>array_column($items,'result'),'next_position'=>$more?['f'=>$fence,'a'=>$last['a'],'c'=>$last['c'],'n'=>$last['n'],'scope_digest'=>$scopeDigest]:null,
+                    'has_more'=>$more,'metadata_rows'=>$metadataRows,'source_json_bytes'=>$sourceBytes,
+                    'returned_records'=>array_sum(array_map(static fn(array$w):int=>count($w['result']['messages']),$items))];
+            };
+            if(!$windows&&!$exhausted)self::fail('source_limit');
+            $result=$make($windows,!$exhausted);
+            // Only the returned prefix advances; reread trimmed suffixes on the next page.
+            while(strlen(self::json($result))>self::OPERATOR_OUTPUT_BYTES){
+                $this->budget();
+                if(count($windows)>1){array_pop($windows);$result=$make($windows,true);continue;}
+                $messages=&$windows[0]['result']['messages'];
+                if(count($messages)>1){
+                    array_pop($messages);array_pop($windows[0]['selected']);$last=$messages[count($messages)-1];
+                    $windows[0]['position']['n']=$last['native_message_id'];$windows[0]['result']['chat_window_complete']=false;
+                }else{
+                    // Same explicit unknown-record fallback used by bounded public history reads.
+                    $row=$windows[0]['selected'][0];$row['read_status']='response_record_limit';
+                    $messages=[$this->project($row,null)];$windows[0]['result']['chat_window_complete']=false;
+                }
+                unset($messages);$result=$make($windows,true);
+                if(count($windows)===1&&count($windows[0]['result']['messages'])===1
+                    &&strlen(self::json($result))>self::OPERATOR_OUTPUT_BYTES)self::fail('response_limit');
+            }
+            return$result;
+        },$authority,self::OPERATOR_OUTPUT_BYTES);
+    }
+
     private function read(int$admin,string$connection,callable$operation):array
     {
         if($this->pdo->inTransaction())self::fail('transaction_active');
         if($admin<1||$connection===''||strlen($connection)>128||!is_callable($this->keyProvider))self::fail('forbidden');
+        $key=null;
+        return$this->readSnapshot(
+            function()use($admin,$connection,&$key):void{$key=$this->key($admin,$connection);},
+            function()use($operation,&$key):array{return$operation($key);},
+            function()use($admin,$connection,&$key):void{
+                $freshKey=$this->key($admin,$connection);if(!hash_equals($key,$freshKey))self::fail('stale_cursor');
+            },self::MAX_RESPONSE_BYTES);
+    }
+
+    private function readSnapshot(callable$before,callable$operation,callable$after,int$outputCap):array
+    {
+        if($this->pdo->inTransaction())self::fail('transaction_active');
         $this->deadline=microtime(true)+self::MAX_SECONDS;$owned=false;$queryOnly=null;
         try{
-            $this->stage='key_before';$key=$this->key($admin,$connection);
+            $this->stage='key_before';$before();
             $this->stage='transaction_begin';
             if($this->mysql){
                 $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
@@ -172,15 +297,14 @@ final class ArchiveResearchReadService
             $owned=true;$this->stage='permissions_before';$this->permissionRows=$this->permissions();$original=$this->permissionRows;
             if(!$original)self::fail('forbidden');
             $this->accountAliases=[];foreach($original as$row){$id=(string)$row['account_id'];if(!isset($this->accountAliases[$id]))$this->accountAliases[$id]='A'.(count($this->accountAliases)+1);}
-            $result=$operation($key);
+            $result=$operation();
             $this->stage='rollback';$this->pdo->rollBack();$owned=false;
             if($queryOnly!==null){$this->pdo->exec('PRAGMA query_only='.($queryOnly?'ON':'OFF'));$queryOnly=null;}
             // Outside the old consistent snapshot: revocations cannot use its old permission rows.
-            $this->stage='key_after';$freshKey=$this->key($admin,$connection);
-            if(!hash_equals($key,$freshKey))self::fail('stale_cursor');
+            $this->stage='key_after';$after();
             $this->stage='permissions_after';if($original!==$this->permissions())self::fail('permission_changed');
             $this->stage='response';$this->budget();
-            if(strlen(self::json($result))>self::MAX_RESPONSE_BYTES)self::fail('response_limit');
+            if(strlen(self::json($result))>$outputCap)self::fail('response_limit');
             return$result;
         }catch(ArchiveResearchReadException$e){
             throw $e->stage==='unknown'?new ArchiveResearchReadException($e->reason,$this->stage,$e->sqlstateClass,$e->driverCode):$e;

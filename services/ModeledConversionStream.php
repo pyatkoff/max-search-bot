@@ -152,7 +152,7 @@ final class ModeledConversionStream
         ProjectAccessService::initializeReadOnly();
                 $pdo=ConversationDb::connection();$result=(new self($pdo))->tick(time());
         if(($result['status']??'off')!=='off'){
-            try {require_once __DIR__.'/ModeledConversionProfiles.php';$result['profiles']=(new ModeledConversionProfiles($pdo))->tick(time());}
+            try {require_once __DIR__.'/ModeledConversionProfiles.php';$result['profiles']=(new ModeledConversionProfiles($pdo,ArchivePredictiveRelativeWeights::load()))->tick(time());}
             catch(Throwable $ignored){$result['profiles']=['status'=>'failed','model_calls'=>0,'conversion_uploads'=>0];}
             if(in_array($result['profiles']['status']??'off',['profiled','idle'],true)){
                 try {require_once __DIR__.'/ModeledConversionPurchaseStudy.php';$studyResult=(new ModeledConversionPurchaseStudy($pdo))->tick(time());$result['purchase_study_runtime']=($studyResult['status']??'failed')==='failed'?'failed':'checked';unset($studyResult);}

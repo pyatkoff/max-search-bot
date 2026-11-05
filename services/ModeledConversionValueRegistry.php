@@ -156,11 +156,20 @@ final class ModeledConversionValueRegistry
                 'source_history_complete'=>false,'known_operational_outcome_meaning'=>'crm_state_not_verified_payment',
                 'evaluation_eligible'=>false,'export_allowed'=>false,'expected_value_rub'=>null,
                 'provider_calls'=>0,'model_calls'=>0,'conversion_uploads'=>0];
+            $relative=($p['training_status']??null)==='archive_relative_weights';
+            if($relative){
+                if(!ArchivePredictiveRelativeWeights::validCapsule($p['relative_weights']??null))return null;
+                $fixed['mode']='contextual_rules_with_archive_relative_weights';
+                $fixed['assumptions_version']=ArchivePredictiveRelativeWeights::VERSION;
+                $fixed['training_status']='archive_relative_weights';
+                $fixed['probability_meaning']='illustrative_purchase_prior_with_retrospective_evidence_weights';
+            }
             foreach($fixed as$key=>$value)if(!array_key_exists($key,$p)||$p[$key]!==$value)return null;
             $fields=[...array_keys($fixed),'model_sha256','subject','current_request_anchor','anchor_source_version_no',
                 'current_customer_turn_count','journal_cursor','source_fence_journal_id','profile_prediction_at',
                 'prediction_at','input_cutoff_at','frozen_at','horizon_end_at','status','stage','base_probability',
                 'estimated_probability','hypothesis_odds_multiplier','reasons','evidence','outcome_observations','features','prediction_digest'];
+            if($relative)$fields[]='relative_weights';
             if(count($p)!==count($fields)||array_diff(array_keys($p),$fields))return null;
             $cutoff=self::predictionMoment($p['input_cutoff_at']);$profile=self::predictionMoment($p['profile_prediction_at']);
             $freeze=self::predictionMoment($p['frozen_at']);$end=self::predictionMoment($p['horizon_end_at']);
@@ -168,6 +177,7 @@ final class ModeledConversionValueRegistry
                 ||$p['profile_prediction_at']!==$profileAt||$p['prediction_at']!==$p['frozen_at']||$end-$freeze!==2592000
                 ||!self::predictionDecimal($p['journal_cursor'])||!self::predictionDecimal($p['source_fence_journal_id'])
                 ||self::predictionGreater($p['journal_cursor'],$p['source_fence_journal_id']))return null;
+            if($relative&&$p['relative_weights']['issued_at_unix']>$freeze)return null;
             $fence=$p['source_fence_journal_id'];$anchor=$p['current_request_anchor'];
             if(!is_int($p['current_customer_turn_count'])||$p['current_customer_turn_count']<0||$p['current_customer_turn_count']>50
                 ||($anchor===null&&$p['anchor_source_version_no']!==null)
@@ -186,10 +196,12 @@ final class ModeledConversionValueRegistry
                 'hypothesis_near_term_urgency','hypothesis_continued_meaningful_engagement','hypothesis_long_range_planning',
                 'hypothesis_deferral','hypothesis_explicit_decline','predicted','insufficient_context','known_outcome','access_denied'];
             foreach(array_keys($priors)as$stage)$allowedReasons[]='illustrative_prior_'.$stage;
+            if($relative)foreach(ArchivePredictiveRelativeWeights::FEATURES as$feature)$allowedReasons[]='archive_weight_'.$feature;
             if(!self::codes($p['reasons'],$allowedReasons,16))return null;
             $features=$p['features'];$criteria=['destination','dates','party','budget','requirements'];
             $boolFeatures=['explicit_comparison','explicit_modification','price_alternative_continued_search',
                 'near_term_urgency','long_range_planning','deferral','explicit_decline'];
+            if($relative)$boolFeatures=[...$boolFeatures,'office_question','payment_terms_question'];
             if(!is_array($features)||!self::codes($features['criteria_families']??null,$criteria,5)
                 ||!is_int($features['meaningful_customer_turns']??null)||$features['meaningful_customer_turns']<0
                 ||$features['meaningful_customer_turns']>$p['current_customer_turn_count'])return null;
@@ -200,10 +212,23 @@ final class ModeledConversionValueRegistry
                 $featureKeys=[...$featureKeys,...$boolFeatures,'context_barriers'];
             }
             if(count($features)!==count($featureKeys)||array_diff(array_keys($features),$featureKeys))return null;
+            if($relative&&$p['status']==='predicted'){
+                $flags=['continued_meaningful_engagement'=>$features['meaningful_customer_turns']>=2,
+                    'near_term_urgency'=>$features['near_term_urgency'],'long_range_planning'=>$features['long_range_planning'],
+                    'deferral'=>$features['deferral'],'continued_offer_search'=>$features['explicit_comparison']
+                        ||$features['explicit_modification']||$features['price_alternative_continued_search'],
+                    'office_question'=>$features['office_question'],'payment_terms_question'=>$features['payment_terms_question']];
+                $odds=1.0;foreach($flags as$key=>$present)if($present)$odds*=$p['relative_weights']['multipliers'][$key];
+                if($features['explicit_decline'])$odds*=0.25;
+                $odds=max(0.25,min(1.3,$odds));$base=$priors[$p['stage']];
+                if(abs((float)$p['hypothesis_odds_multiplier']-round($odds,6))>0.000000001
+                    ||abs((float)$p['estimated_probability']-round(($base*$odds)/(1-$base+$base*$odds),6))>0.000000001)return null;
+            }
             $evidenceKinds=['current_request_anchor','substantive_interest','general_purchase_intent','agency_purchase_intent',
                 'explicit_comparison','explicit_modification','price_alternative_continued_search','near_term_urgency',
                 'long_range_planning','deferral','explicit_decline','exact_current_offer_discussion'];
             foreach($criteria as$family)$evidenceKinds[]='criteria_'.$family;
+            if($relative)$evidenceKinds=[...$evidenceKinds,'office_question','payment_terms_question'];
             if(!self::evidenceList($p['evidence'],'feature',$evidenceKinds,16,$fence,$cutoff)
                 ||!self::evidenceList($p['outcome_observations'],'kind',['payment_self_report','manager_payment_ack',
                     'booking_confirmation','purchase_supported_candidate','payment_cancellation','booking_cancellation',
