@@ -510,7 +510,7 @@ Development calibration for source review only:
 | A new child or unclear age reference appears | Clarify the ambiguity; do not inherit another child's age. |
 | A useful independent question can be answered while age remains uncertain | Answer it and retain the dependent calculation in manager checks. |
 
-This refinement follows a bounded read of eight saved real source prefixes and
+This refinement follows a bounded read of seven saved real source prefixes and
 their exact archived virtual answers. They are historical development evidence,
 not fresh November conversations or a new holdout. Saved answers/reviews remain
 unchanged. The ordinary queue was empty at the read. No new author/reviewer model
