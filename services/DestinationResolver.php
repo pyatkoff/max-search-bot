@@ -74,6 +74,9 @@ class DestinationResolver
 
         $countryChanged = !empty($data['country_id']) && !empty($old['country_id'])
             && (int)$data['country_id'] !== (int)$old['country_id'];
+        if (!$countryChanged && !empty($data['country']) && !empty($current['country'])) {
+            $countryChanged = self::norm($data['country']) !== self::norm($current['country']);
+        }
         $regionChanged = !empty($data['region_id']) && !empty($old['region_id'])
             && (int)$data['region_id'] !== (int)$old['region_id'];
 
@@ -94,6 +97,15 @@ class DestinationResolver
             $data['hotel'] = (string)($old['hotel'] ?? '');
         }
 
+        self::applyCanonicalDestinationPreferences(
+            $chatId,
+            $data,
+            $text,
+            is_array($current) ? $current : [],
+            $countryChanged,
+            $regionChanged
+        );
+
         if ($data['country_id'] || $data['region_id'] || $data['hotel_id'] || $data['hotel_ambiguous']) {
             self::store($chatId,$data);
             MaxSearchApi::funnelLog($chatId,'destination_resolved',$data);
@@ -105,6 +117,167 @@ class DestinationResolver
     public static function clear($chatId) { $f=self::storeFile($chatId); if(is_file($f)) @unlink($f); }
     private static function store($chatId,array $data) { @file_put_contents(self::storeFile($chatId),json_encode($data,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),LOCK_EX); }
     private static function storeFile($chatId) { $d=dirname(__DIR__).'/ai_destination'; if(!is_dir($d)) @mkdir($d,0755,true); return $d.'/'.preg_replace('/[^0-9\-]/','',(string)$chatId).'.json'; }
+
+    private static function applyCanonicalDestinationPreferences($chatId, array $data, string $text, array $current, bool $countryChanged, bool $regionChanged): void
+    {
+        $changes = self::destinationPreferenceChanges($data, $text, $current, $countryChanged, $regionChanged);
+        if ($changes === []) return;
+        $confidence = [];
+        foreach (array_keys($changes) as $key) $confidence[$key] = 1.0;
+        NeedApplicationService::applyExtractedPreferences($chatId, $changes, $confidence);
+    }
+
+    /**
+     * Translate only explicit destination constraints into the existing canonical
+     * preference metadata. The resolver-owned labels are deliberately narrow:
+     * corrections can replace them without touching free-form tourist wishes.
+     */
+    private static function destinationPreferenceChanges(array $data, string $text, array $current, bool $countryChanged, bool $regionChanged): array
+    {
+        $preferences = array_values((array)($current['preferences'] ?? []));
+        $negative = array_values((array)($current['negative_preferences'] ?? []));
+        $addPositive = [];
+        $addNegative = [];
+        $removePositive = [];
+        $removeNegative = [];
+
+        $removeFamily = static function (string $family) use ($preferences, $negative, &$removePositive, &$removeNegative): void {
+            foreach ($preferences as $item) {
+                if (DestinationResolver::destinationPreferenceFamily((string)$item) === $family) $removePositive[] = (string)$item;
+            }
+            foreach ($negative as $item) {
+                if (DestinationResolver::destinationPreferenceFamily((string)$item) === $family) $removeNegative[] = (string)$item;
+            }
+        };
+
+        if ($countryChanged) {
+            $removeFamily('region');
+            $removeFamily('hotel');
+        } elseif ($regionChanged) {
+            $removeFamily('region');
+            $removeFamily('hotel');
+        }
+
+        if (self::isHotelPreferenceReset($text)) $removeFamily('hotel');
+        if (self::isRegionPreferenceReset($text)) {
+            $removeFamily('region');
+            $removeFamily('hotel');
+        }
+
+        $hotel = trim((string)($data['hotel'] ?? ''));
+        if ($hotel !== '' && empty($data['hotel_ambiguous'])) {
+            $kind = self::hotelConditionKind($text, $hotel);
+            if ($kind !== null) {
+                $removeFamily('hotel');
+                $label = self::hotelPreferenceLabel($hotel, $kind);
+                if ($kind === 'negative') $addNegative[] = $label;
+                else $addPositive[] = $label;
+            }
+        }
+
+        $region = trim((string)($data['region'] ?? ''));
+        if ($region !== '') {
+            $kind = self::regionConditionKind($text, $region);
+            if ($kind !== null) {
+                $removeFamily('region');
+                $label = self::regionPreferenceLabel($region, $kind);
+                if ($kind === 'negative') $addNegative[] = $label;
+                else $addPositive[] = $label;
+            }
+        }
+
+        $out = [];
+        $addPositive = array_values(array_unique($addPositive));
+        $addNegative = array_values(array_unique($addNegative));
+        $removePositive = array_values(array_unique($removePositive));
+        $removeNegative = array_values(array_unique($removeNegative));
+        if ($addPositive !== []) $out['preferences'] = $addPositive;
+        if ($addNegative !== []) $out['negative_preferences'] = $addNegative;
+        if ($removePositive !== []) $out['preferences_remove'] = $removePositive;
+        if ($removeNegative !== []) $out['negative_preferences_remove'] = $removeNegative;
+        return $out;
+    }
+
+    private static function destinationPreferenceFamily(string $item): ?string
+    {
+        foreach (['Отель: ', 'Обязательно — отель: ', 'Исключить отель: '] as $prefix) {
+            if (strncmp($item, $prefix, strlen($prefix)) === 0) return 'hotel';
+        }
+        foreach (['Курорт/район: ', 'Обязательно — курорт/район: ', 'Исключить курорт/район: '] as $prefix) {
+            if (strncmp($item, $prefix, strlen($prefix)) === 0) return 'region';
+        }
+        return null;
+    }
+
+    private static function hotelPreferenceLabel(string $hotel, string $kind): string
+    {
+        if ($kind === 'hard') return 'Обязательно — отель: ' . $hotel;
+        if ($kind === 'negative') return 'Исключить отель: ' . $hotel;
+        return 'Отель: ' . $hotel;
+    }
+
+    private static function regionPreferenceLabel(string $region, string $kind): string
+    {
+        if ($kind === 'hard') return 'Обязательно — курорт/район: ' . $region;
+        if ($kind === 'negative') return 'Исключить курорт/район: ' . $region;
+        return 'Курорт/район: ' . $region;
+    }
+
+    private static function hotelConditionKind(string $text, string $hotel): ?string
+    {
+        if (self::isHotelPreferenceReset($text)) return null;
+        $norm = self::norm($text);
+        if (!self::containsName($norm, self::norm($hotel))) return null;
+        if (self::hasNegativeConditionIntent($norm)) return 'negative';
+
+        $exact = $norm === self::norm($hotel);
+        $positive = self::hasPositiveConditionIntent($norm);
+        $hotelNoun = (bool)preg_match('/(?:^|\s)(?:отел[ьяеемю]*|гостиниц[а-я]*|hotel|resort)(?:\s|$)/ui', $norm);
+        if (!$exact && !$positive && !($hotelNoun && strpos($text, '?') === false)) return null;
+        return self::hasHardConditionIntent($norm) ? 'hard' : 'positive';
+    }
+
+    private static function regionConditionKind(string $text, string $region): ?string
+    {
+        if (self::isRegionPreferenceReset($text)) return null;
+        $norm = self::norm($text);
+        if (!self::containsName($norm, self::norm($region))) return null;
+        if (self::hasNegativeConditionIntent($norm)) return 'negative';
+
+        $exact = $norm === self::norm($region);
+        $positive = self::hasPositiveConditionIntent($norm);
+        $regionNoun = (bool)preg_match('/(?:^|\s)(?:курорт[а-я]*|район[а-я]*|регион[а-я]*)(?:\s|$)/ui', $norm);
+        $hard = self::hasHardConditionIntent($norm);
+        if (!$exact && !$positive && !$hard && !($regionNoun && strpos($text, '?') === false)) return null;
+        return $hard ? 'hard' : 'positive';
+    }
+
+    private static function hasPositiveConditionIntent(string $norm): bool
+    {
+        return (bool)preg_match('/(?:^|\s)(?:хочу|хотим|нужен|нужна|нужно|давайте|выбираю|выбираем|предпочитаю|предпочитаем|интересует|рассматриваю|рассматриваем|ищу|ищем)(?:\s|$)/u', $norm);
+    }
+
+    private static function hasNegativeConditionIntent(string $norm): bool
+    {
+        return (bool)preg_match('/(?:^|\s)(?:не\s+хочу|не\s+хотим|не\s+нужен|не\s+нужна|не\s+нужно|не\s+подходит|исключить|исключаем|исключите|только\s+не)(?:\s|$)/u', $norm);
+    }
+
+    private static function hasHardConditionIntent(string $norm): bool
+    {
+        return (bool)preg_match('/(?:^|\s)(?:только|обязательно|именно)(?:\s|$)/u', $norm);
+    }
+
+    private static function isHotelPreferenceReset(string $text): bool
+    {
+        $norm = self::norm($text);
+        return (bool)preg_match('/(?:(?:отел[ьяеемю]*|гостиниц[а-я]*|hotel)\s+(?:уже\s+)?(?:не\s*важ[а-я]*|неваж[а-я]*|любой[а-я]*|без\s+разниц[а-я]*)|(?:любой[а-я]*|без\s+разниц[а-я]*)\s+(?:отел[ьяеемю]*|гостиниц[а-я]*|hotel))/u', $norm);
+    }
+
+    private static function isRegionPreferenceReset(string $text): bool
+    {
+        $norm = self::norm($text);
+        return (bool)preg_match('/(?:(?:курорт[а-я]*|район[а-я]*|регион[а-я]*)\s+(?:уже\s+)?(?:не\s*важ[а-я]*|неваж[а-я]*|любой[а-я]*|без\s+разниц[а-я]*)|(?:любой[а-я]*|без\s+разниц[а-я]*)\s+(?:курорт[а-я]*|район[а-я]*|регион[а-я]*))/u', $norm);
+    }
 
     private static function isHotelResolutionDisabledCountry($country)
     {
