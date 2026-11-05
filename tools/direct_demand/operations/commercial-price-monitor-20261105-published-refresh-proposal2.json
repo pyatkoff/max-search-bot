@@ -1,0 +1,950 @@
+{
+  "operation": "commercial-price-monitor-20261105-published-refresh-proposal2",
+  "state": "PURE_EXACT_GROUPS_PREPARED_NO_MANUAL_APPROVAL_NO_EXECUTION",
+  "published_scope_count": 159,
+  "priced_count_excluded": 32,
+  "name_review_count_excluded": 6,
+  "eligible_hotels": [
+    {
+      "hotel_id": 241,
+      "country_id": 1,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 240,
+      "country_id": 1,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 268,
+      "country_id": 1,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 12111,
+      "country_id": 1,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 28666,
+      "country_id": 4,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 46672,
+      "country_id": 4,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 109900,
+      "country_id": 4,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 111129,
+      "country_id": 4,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 111045,
+      "country_id": 4,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 1077,
+      "country_id": 4,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 1146,
+      "country_id": 4,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 9374,
+      "country_id": 1,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 157359,
+      "country_id": 4,
+      "identity_provenance": "accepted_typed_bridge"
+    },
+    {
+      "hotel_id": 4191,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 416,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 12112,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 77914,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 237,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 32575,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 112914,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 64895,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 262,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 12117,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 12119,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 26044,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 66150,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 232,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 13872,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 280,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 456,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 265,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 454,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 21475,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1963,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 358,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 37668,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 174,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 55574,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 383,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 108090,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 150,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 172,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 275,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 173,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 110,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 132,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 178,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 371,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 78898,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 83105,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 69155,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 69409,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 263,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 43204,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 13870,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1983,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 111801,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 287,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 435,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 109149,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 79059,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 56092,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 115918,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 269,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 267,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 384,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 75725,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 249,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 315,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 272,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 273,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 381,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 408,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 441,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 60589,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 328,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 282,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 235,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 382,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 250,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 464,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 103021,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 129,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 12116,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 111,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 67910,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 68323,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 56091,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 103124,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 488,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 98723,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 139,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 342,
+      "country_id": 1,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1291,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 15869,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 75377,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 74503,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1582,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1449,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1453,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1151,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1583,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1379,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1133,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 27316,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1559,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 3405,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1417,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1348,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1199,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1464,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 9322,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1672,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1659,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 21695,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 28668,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 55205,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1334,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1715,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 1543,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    },
+    {
+      "hotel_id": 17480,
+      "country_id": 4,
+      "identity_provenance": "accepted_native_catalog_read"
+    }
+  ],
+  "deferred": [
+    {
+      "hotel_id": 1981,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 498,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 482,
+      "reason": "NAME_REVIEW_NO_FORCE"
+    },
+    {
+      "hotel_id": 476,
+      "reason": "NAME_REVIEW_NO_FORCE"
+    },
+    {
+      "hotel_id": 81173,
+      "reason": "NAME_REVIEW_NO_FORCE"
+    },
+    {
+      "hotel_id": 9373,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 32577,
+      "reason": "NAME_REVIEW_NO_FORCE"
+    },
+    {
+      "hotel_id": 478,
+      "reason": "NAME_REVIEW_NO_FORCE"
+    },
+    {
+      "hotel_id": 233,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 13873,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 57028,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 125,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 389,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 109,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 293,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 107965,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 393,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 80964,
+      "reason": "NAME_REVIEW_NO_FORCE"
+    },
+    {
+      "hotel_id": 264,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 73342,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 278,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 246,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 245,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 13869,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 12114,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 281,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 465,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 260,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 469,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 21477,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 165,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 163,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 310,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 1971,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 253,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 9432,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 1451,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    },
+    {
+      "hotel_id": 1100,
+      "reason": "ALREADY_PRICED_72H_NO_MANUAL_REFRESH_NEEDED"
+    }
+  ],
+  "groups": [
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        110,
+        111,
+        129,
+        132,
+        139,
+        150,
+        172,
+        173,
+        174,
+        178,
+        232,
+        235,
+        237,
+        240,
+        241,
+        249,
+        250,
+        262,
+        263,
+        265
+      ]
+    },
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        267,
+        268,
+        269,
+        272,
+        273,
+        275,
+        280,
+        282,
+        287,
+        315,
+        328,
+        342,
+        358,
+        371,
+        381,
+        382,
+        383,
+        384,
+        408,
+        416
+      ]
+    },
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        435,
+        441,
+        454,
+        456,
+        464,
+        488,
+        1963,
+        1983,
+        4191,
+        9374,
+        12111,
+        12112,
+        12116,
+        12117,
+        12119,
+        13870,
+        13872,
+        21475,
+        26044,
+        32575
+      ]
+    },
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        37668,
+        43204,
+        55574,
+        56091,
+        56092,
+        60589,
+        64895,
+        66150,
+        67910,
+        68323,
+        69155,
+        69409,
+        75725,
+        77914,
+        78898,
+        79059,
+        83105,
+        98723,
+        103021,
+        103124
+      ]
+    },
+    {
+      "country_id": 1,
+      "hotel_ids": [
+        108090,
+        109149,
+        111801,
+        112914,
+        115918
+      ]
+    },
+    {
+      "country_id": 4,
+      "hotel_ids": [
+        1077,
+        1133,
+        1146,
+        1151,
+        1199,
+        1291,
+        1334,
+        1348,
+        1379,
+        1417,
+        1449,
+        1453,
+        1464,
+        1543,
+        1559,
+        1582,
+        1583,
+        1659,
+        1672,
+        1715
+      ]
+    },
+    {
+      "country_id": 4,
+      "hotel_ids": [
+        3405,
+        9322,
+        15869,
+        17480,
+        21695,
+        27316,
+        28666,
+        28668,
+        46672,
+        55205,
+        74503,
+        75377,
+        109900,
+        111045,
+        111129,
+        157359
+      ]
+    }
+  ],
+  "maximum_new_searches": 7,
+  "hard_search_ceiling": 12,
+  "departure_id": 1,
+  "departure": "Moscow",
+  "adults": 2,
+  "children": 0,
+  "currency": "RUB",
+  "departure_date_from": "2026-11-06",
+  "departure_date_to": "2026-11-12",
+  "nights_from": 5,
+  "nights_to": 14,
+  "max_age_seconds": 259200,
+  "original_proof_run": 41945775526,
+  "original_proof_artifact": 13377689882,
+  "original_proof_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
+  "manual_collection_approved": false,
+  "execution_route_ready": false,
+  "collector_dispatches": 0,
+  "source_calls": 0,
+  "db_calls": 0,
+  "post_edits": 0,
+  "new_posts": 0,
+  "new_input_cases": 3,
+  "old_fixture_reruns": 0
+}

@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-source-refresh-20261105-pass1",
-  "state": "INACTIVE_EXECUTION_PREPARATION_NO_USER_APPROVAL_NO_SUPPLIER_RUN",
+  "state": "FULLY_PREPARED_INACTIVE_NATIVE_GUARDS_AND_SOURCE_PRESENCE_VERIFIED_AWAITING_EXPLICIT_MANUAL_PERMISSION",
   "goal": "Make one finite currently prohibited manual source refresh concrete and natively reviewable before requesting an exception",
   "manifest_sha256": "2035f0382b815f721a42dfe4a0045f75b0e1db9f0d16891ed0db8ac1081b0361",
   "template_sha256": "1dd5f40e632acbc07ac98f8d65cab279796a1bbfbf9c088cd1ccb77bbb2c5a4a",
@@ -32,7 +32,7 @@
     "hotel-details-v1.php": "137bbf53ef87fab50505ecd41a075cb5f571193480da7f0e3face51190c0f77f"
   },
   "manual_collection_approved": false,
-  "execution_route_ready": false,
+  "execution_route_ready": true,
   "preflight_expected_current_source": "25a2d5e31aec7243b45c47e836a544e659e28b1d",
   "boundaries": [
     "Actual manual template requires separately recorded explicit user approval; no manufactured permission file",
@@ -57,5 +57,21 @@
     "Source directory/helper availability andcredentialconfigurationmaystopbeforeprovider; neverguessalternatepaths/hosts orcopysecrets",
     "One API failure/searchstartUNKNOWN holdsoriginaloperation andremainingsearches; resolve original first",
     "Even7successful searches mayyieldnofinalbasket ornotall121hotels; no fabricatedprices"
-  ]
+  ],
+  "execution_activated": false,
+  "actual_source_presence_run": 41949629294,
+  "actual_source_presence_job": 126990218556,
+  "source_presence_artifact": 13380043228,
+  "source_presence_commit": "9005c2d57fd808f18679ed2776ebda619fdcc31b",
+  "native_execution_guard_cases": 5,
+  "old_fixtures_rerun": 0,
+  "existing_source_helper_hashes_matched": 8,
+  "private_source_config_read": false,
+  "provider_calls": 0,
+  "db_calls": 0,
+  "source_writes": 0,
+  "post_edits": 0,
+  "request_policy": "One finite pass, atmost7ADDITIONALhotel-batchsearches/121unpricedhotels/Moscow2A0RUB/5..14nights/next7futureUTCdeparture days atlaunch. Originaldefaultbudgets/order/schedulesunchanged. Approvalnotreceived; do notactivateorcreateapprovalrecord.",
+  "approval_usage": "Permissionneededbecausecurrenttaskboundaryprohibitsmanualcollector. MeaningfulexplicitreplytoNEWmanualcollectionquestiononly; pendingXMLpriceunitreplydoesnotauthorizecollection. No elapsedtime/selectiondefaultcountsasapproval.",
+  "next_step": "Ask exact one-time manual-collection permission after this preparedcode/manifest/nativeevidence checkpoint; before liveactivation freshcurrent source/full21/host/runtime/approval/date checks. Ifdatechanges whilewaiting recomputeonlyfuturedateinputunderstatednext7dayspolicy, no silentparty/scope/quotaexpansion."
 }
