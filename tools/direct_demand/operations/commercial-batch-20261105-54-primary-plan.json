@@ -1,0 +1,53 @@
+{
+  "operation": "commercial-batch-20261105-54-primary-preparation1",
+  "state": "ONE_NEW_OFFICIAL_GALLERY_POINTER_FROZEN_BEFORE_OWNER_HTTP",
+  "goal": "Inspect one exact official CasaCookElGouna gallery after canonical metadata dedup; obtain authentic property references without treating unknown publication status aszero.",
+  "source": {
+    "hotel_id": 74258,
+    "url": "https://casacook.com/our-hotels/casa-cook-el-gouna/gallery/",
+    "declared_url": "https://casacook.com/our-hotels/casa-cook-el-gouna/gallery/",
+    "owner_host": "casacook.com",
+    "identity_tokens": [
+      "casa",
+      "cook",
+      "el",
+      "gouna"
+    ],
+    "native_country_id": 1,
+    "group": 0,
+    "discovery_query": "\"Casa Cook El Gouna\" official gallery",
+    "discovery_title": "Photo Gallery Of Casa Cook El Gouna",
+    "discovery_proof": "public_primary_official_property_search_result"
+  },
+  "native_scope_file": "commercial-batch-20261105-54-native-scope.json",
+  "source_index_file": "commercial-batch-20261105-54-source-index.json",
+  "bounds": {
+    "new_owner_groups": 1,
+    "max_declared_owner_gets": 1,
+    "max_parallel": 1,
+    "new_input_cases": 11,
+    "old_parser_fixtures": 0,
+    "photo_gets": 0,
+    "source_api_calls": 0,
+    "server_db_calls": 0,
+    "provider_calls": 0,
+    "canva_transactions": 0,
+    "new_posts": 0
+  },
+  "criteria": [
+    "Before oneGET scan exact addressed publicsource-index andprimary-plan metadata to exclude closedURL/path/www/trailingslashvariants. No oldsourceGET/retry/redirect/alternatepath-host-query/headercookie bypass.",
+    "Native74258 name/country1/active1 retainedexactly. Missing originalregistrycounts preservedasNULL+UNVERIFIED_NO_SEND, notforged0; no publication untilgenuinecurrentproof.",
+    "Same accepted parser functions untouched. Eleven NEW actual scope negativecases beforeHTTP, no oldfixtures.",
+    "Search shows a generic Samos-image description onElGounapage. Propertyownership/membershipmust beestablishedperactualdeclaredimage; neveruseSamos/brandnavassets orinferwholehero fromfilename.",
+    "Rawwholetext/declaredrefs onlyauthenticatedartifact; console safeSHA/count/statussummaryonly. No rawphotoGET/Canva/publisher inthisworkflow."
+  ],
+  "risks": [
+    "URLmayalreadybeclosed; dedupmustskip beforeHTTP.",
+    "Pagecanredirect/403 orhavesharedSamosimagery/detail-onlyphotos. Resultisnotpropertyrights/heroacceptance ornewmaterial."
+  ],
+  "unchanged_counts": {
+    "materials": 161,
+    "prices": 85,
+    "links": 155
+  }
+}

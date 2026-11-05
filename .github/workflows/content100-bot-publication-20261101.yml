@@ -1,4 +1,4 @@
-name: Read at most four new exact official property pages without source API or post access
+name: Inspect one newly declared Casa Cook gallery without provider or post access
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -9,18 +9,18 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  PRIMARY_SOURCE_INDEX_FILENAME: commercial-batch-20261105-53-source-index.json
-  EXPECTED_PRIMARY_SOURCE_INDEX_SHA256: 55d9a7f3572e92f2d598626d842b9df57d787f406cf41967b8cd12675de08ed7
-  EXPECTED_PRIMARY_NATIVE_SCOPE_SHA256: 898562efe16518fa3a6480d625d1bd2738ea623fe7dfff65647cbb7a91c6553e
+  PRIMARY_SOURCE_INDEX_FILENAME: commercial-batch-20261105-54-source-index.json
+  EXPECTED_PRIMARY_SOURCE_INDEX_SHA256: 21f045b224b72745fd1d753e5d5749ce5e73a9241e23be4677fc22795653572e
+  EXPECTED_PRIMARY_NATIVE_SCOPE_SHA256: aaec42cca5a24be13995f589596074389d587603afda7100a9c771e742128241
 jobs:
   inspect:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix:
-        media_group: [0, 1]
+        media_group: [0]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,14 +29,14 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - name: Dedup closed metadata and inspect only new declared owner property pages
+      - name: Check new scope and dedup metadata before one exact official gallery GET
         env:
           MEDIA_GROUP: ${{ matrix.media_group }}
-        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-batch53.py
+        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-batch54.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: commercial-batch53-primary-${{ matrix.media_group }}
+          name: commercial-batch54-primary-${{ matrix.media_group }}
           path: |
             public-media-sources.json
             public-media-sources-summary.json
