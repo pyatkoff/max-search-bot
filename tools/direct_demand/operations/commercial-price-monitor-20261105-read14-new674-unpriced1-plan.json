@@ -1,6 +1,6 @@
 {
   "operation": "commercial-price-monitor-20261105-read14-new674-unpriced1",
-  "state": "PREPARED_NEW_BOUNDED_READ_PLAN_NOT_EXECUTED",
+  "state": "EXACT_NEW_NORMAL_WINDOW_READER_PREPARED_FOR_NATIVE_FOUR_NEW_CASES_AND_READONLY_SINGLE_PASS",
   "goal": "Read only genuinely new normal674 persisted observations from its actual06:43:23..06:52:08UTC collection interval for the74 currently unpriced admitted hotels, excluding6name-review hotels and all189-or-fewer unique old consumed fingerprints.",
   "normal_run": 41982177052,
   "normal_collect_job": 127094628296,
@@ -53,5 +53,11 @@
     "Actual source normal674 phase is proven despite later aggregate job exit255; do not fix or rerun foreign collection.",
     "Native new scope/window/consumed-fingerprint negative cases/PHP-l/fresh current main deployment/TLS/diagnostics/full21/host/clean/schema/rights gates.",
     "Output private original tuples and searchIDs only authenticated artifact; public safe counts/nativeIDs only."
+  ],
+  "new_native_cases": 4,
+  "source_old_manual_fingerprints_rows": 104,
+  "new_admissions_only_actual_published": [
+    1422,
+    78251
   ]
 }

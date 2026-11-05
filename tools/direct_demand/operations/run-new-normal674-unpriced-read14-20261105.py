@@ -1,0 +1,7 @@
+import json,os,pathlib,subprocess
+temp=pathlib.Path(os.environ['RUNNER_TEMP']);assert os.environ['GITHUB_RUN_ATTEMPT']=='1';out=temp/'price14-readback.private.json';assert not out.exists(),'READ14_ORIGINAL_NEW_NORMAL_OUTCOME_FIRST_NO_REPEAT'
+ssh=['ssh','-i',str(temp/'channel_key'),'-o','BatchMode=yes','-o','ConnectTimeout=10','-o','IdentitiesOnly=yes','-o','StrictHostKeyChecking=yes','-o','GlobalKnownHostsFile=/dev/null','-o','UserKnownHostsFile='+str(temp/'channel_known_hosts'),os.environ['DEPLOY_USER']+'@'+os.environ['DEPLOY_HOST']]
+with (temp/'price14.php').open('rb') as src,out.open('wb') as dst:r=subprocess.run(ssh+['set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; php'],stdin=src,stdout=dst,stderr=subprocess.PIPE,timeout=300)
+d=json.loads(out.read_text().splitlines()[-1]);summary={k:d.get(k) for k in ['operation','ok','error','installed_sha','source_run','max_age_seconds','readback_epoch_utc','db_writes','provider_calls','price_edits']}
+summary.update(scoped_hotels=len(d.get('hotels',[])),hotels_with_admitted_candidates=sum(bool(h['observations']) for h in d.get('hotels',[])),admitted_candidate_rows=sum(len(h['observations']) for h in d.get('hotels',[])),candidate_native_ids=[int(h['local_tv_id']) for h in d.get('hotels',[]) if h['observations']])
+(temp/'price14-summary.json').write_text(json.dumps(summary)+'\n');print(json.dumps(summary));assert r.returncode==0 and d['ok'] and d['db_writes']==d['provider_calls']==d['price_edits']==0
