@@ -1,0 +1,115 @@
+{
+  "operation": "commercial-hotel-prices-and-search-links-20261105-next-after-links10-plan1",
+  "state": "NO_ACTIVE_PROVIDER_OPERATION_NO_READY_PRICE_EDITS_OR_NEW_MATERIALS",
+  "goal": "Prices first from genuinely NEW normal persisted inputs; otherwise continue finite current-proof search links for remaining91 hotel pairs.",
+  "published_pairs": 161,
+  "priced_pairs": 85,
+  "linked_pairs": 70,
+  "unpriced_pairs": 76,
+  "unpriced_admitted_excluding_review6": 70,
+  "unlinked_pairs": 91,
+  "next_metadata_window_exclusive_lower": "2026-11-05T10:12:04Z",
+  "last_new_metadata_run": 42003711354,
+  "last_new_metadata_run_kind": "catalog_sync_not_proof_of_new_tour_prices",
+  "no_replay": [
+    "No oldmetadata13 window/logs/READ14 price interval/old185plus14retainedFPcontext quotes.",
+    "No context17 owned MAXreads10 or accepted20postreadbacks/edits again absent genuinelynewrelatedcontext.",
+    "Original one7manualsourcepass and both permissions consumed; no newsourceAPI or linktesting searches."
+  ],
+  "next_finite_unlinked_unpriced_native_ids": [
+    265,
+    269,
+    272,
+    275,
+    282,
+    287,
+    315,
+    328,
+    358,
+    382
+  ],
+  "next_finite_native_bindings": [
+    {
+      "anytour_id": 265,
+      "local_tv_id": 265,
+      "expected_name": "JAZ LAMAYA RESORT (EX. IBEROTEL LAMAYA RESORT)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 269,
+      "local_tv_id": 269,
+      "expected_name": "JAZ SAMAYA RESORT (EX. IBEROTEL SAMAYA)",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 272,
+      "expected_name": "CONTINENTAL HOTEL HURGHADA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 275,
+      "local_tv_id": 275,
+      "expected_name": "PICKALBATROS THE PALACE PORT GHALIB",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 282,
+      "expected_name": "JAZ MIRABEL CLUB",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 287,
+      "local_tv_id": 287,
+      "expected_name": "KEMPINSKI HOTEL SOMA BAY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 315,
+      "expected_name": "HURGADA MARRIOTT BEACH RESORT",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 328,
+      "expected_name": "MOVENPICK RESORT & SPA EL GOUNA",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "anytour_id": 358,
+      "local_tv_id": 358,
+      "expected_name": "RIXOS SHARM EL SHEIKH ADULTS ONLY",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    },
+    {
+      "local_tv_id": 382,
+      "expected_name": "RENAISSANCE GOLDEN VIEW BEACH",
+      "identity_provenance": "accepted_native_catalog_read",
+      "expected_country_id": 1
+    }
+  ],
+  "next_finite_scope_is_proposal_not_executed": true,
+  "links_criteria": [
+    "Use exact current original/copy/priorprice/ownedlink canonical receipt and version proof; finite subset only, no broad allhistory scan.",
+    "Ten1 now have CURRENT own confirmed noquote link manifests/receipts under commercial-hotel-search-links-20261105-ten1-h<ID>-v1. Future price work for these nativeIDs must capture these CURRENTownedlinkblocks, not stale originalpublishercaptions.",
+    "Preserveall85priceblocks and their original checktime. NOQUOTE means no invented quoteSHA/epoch/amount; searchfilternotavailability.",
+    "Wholecaption/closing/photo/button/source/token unchanged;≤1024UTF16 else defer; serialexistingupdater/privateintent/once/UNKNOWNoriginalfirst/currenthealthyproduction/full21/hostclean/schema-rights.",
+    "Newexactscope/inputcases and wholefilenames/field assertions. Do not generalnumericreplace workflows or rerun closed old5/6cases."
+  ],
+  "pricing_criteria": [
+    "Only genuinelyNEWactualnormal/source input permitsNEWboundedreadonlypricewindow/72h/Moscow2A0RUB/future<=02Feb2027/max2/currentnative/knownroommeal.",
+    "Excludeold185FPs plusall14READ14rows conservatively; exactuniquecountcomputedfromoriginalprivateartifacts,neverassume199.",
+    "Do not requote7normal/56manual/old51contexts or their alternate retainedtuple. Native1582/27316/3405CURRENTnormal674-v1proof; ten1CURRENTnoquotelinkproof."
+  ],
+  "new_materials_ready": 0,
+  "ready_price_edits": 0,
+  "open_canva_transactions": 0,
+  "goal500_complete": false
+}
