@@ -1,0 +1,143 @@
+{
+  "operation": "commercial-stock-20261105-41-primary-preparation1",
+  "state": "TEN_PROVEN_NATIVE_IDENTITIES_EXACT_NEW_OWNER_PAGE_SCOPE_BEFORE_GET",
+  "proven_scope": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "sources": [
+    {
+      "hotel_id": 1420,
+      "hotel": "PAPILLON AYSCHA",
+      "native_country_id": 4,
+      "url": "https://papillon.com.tr/en/papillon-ayscha/",
+      "pointer_kind": "PROPERTY_POINTER",
+      "group": 0,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 1421,
+      "hotel": "PAPILLON BELVIL",
+      "native_country_id": 4,
+      "url": "https://www.papillon.com.tr/en/papillon-belvil/",
+      "pointer_kind": "PROPERTY_POINTER",
+      "group": 0,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 1422,
+      "hotel": "PAPILLON ZEUGMA RELAXURY",
+      "native_country_id": 4,
+      "url": "https://www.papillon.com.tr/EN/papillon-zeugma-relaxury",
+      "pointer_kind": "PROPERTY_POINTER",
+      "group": 0,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 1253,
+      "hotel": "KAYA BELEK (EX. RIU KAYA BELEK)",
+      "native_country_id": 4,
+      "url": "https://kayahotels.com/en/oteller/kaya-belek",
+      "pointer_kind": "PROPERTY_POINTER",
+      "group": 1,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 15904,
+      "hotel": "KAYA PALAZZO GOLF RESORT (EX. RIU)",
+      "native_country_id": 4,
+      "url": "https://www.kayapalazzohotels.com/en/",
+      "pointer_kind": "OWNER_DIRECTORY_POINTER_PROPERTY_HREF_PENDING",
+      "group": 1,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 15913,
+      "hotel": "TITANIC DELUXE GOLF BELEK",
+      "native_country_id": 4,
+      "url": "https://www.titanic.com.tr/titanic-deluxe-golf-belek",
+      "pointer_kind": "PROPERTY_POINTER_CURRENT_OWNER_PRODUCT_NAME_REQUIRES_BINDING",
+      "group": 1,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 78251,
+      "hotel": "CULLINAN BELEK (EX. CULLINAN GOLF RESORT BELEK)",
+      "native_country_id": 4,
+      "url": "https://www.cullinanhotels.com/",
+      "pointer_kind": "PROPERTY_POINTER",
+      "group": 2,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 27349,
+      "hotel": "MAXX ROYAL KEMER RESORT",
+      "native_country_id": 4,
+      "url": "https://www.maxxroyal.com/Maxx-Royal-Kemer",
+      "pointer_kind": "PROPERTY_POINTER",
+      "group": 2,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 108942,
+      "hotel": "MAXX ROYAL BODRUM RESORT",
+      "native_country_id": 4,
+      "url": "https://www.maxxroyal.com/maxx-royal-bodrum",
+      "pointer_kind": "PROPERTY_POINTER",
+      "group": 2,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    },
+    {
+      "hotel_id": 1260,
+      "hotel": "IC HOTELS SANTAI FAMILY RESORT",
+      "native_country_id": 4,
+      "url": "https://www.ichotels.com.tr/tr/iletisim",
+      "pointer_kind": "OWNER_DIRECTORY_POINTER_PROPERTY_HREF_PENDING",
+      "group": 3,
+      "scope_proof_run": 41956089070,
+      "scope_proof_artifact": 13383226155,
+      "href_proof": "Exact returned owner search metadata retained in stock41-owner-source-index; no guessed or stripped URL"
+    }
+  ],
+  "closed_source_exclusions": [
+    "https://www.nirvanahotels.com.tr/oteller/nirvana-cosmopolitan",
+    "https://www.libertyhotels.com/en/hotels/liberty-lykia/",
+    "https://www.tui-blue.com/en/en/hotels/tui-blue-palm-garden/",
+    "https://clubhotelsera.com.tr/en/",
+    "https://www.orangecounty.com.tr/kemer/en",
+    "https://granada.com.tr/en/our-hotels/granada-luxury-okurcalar/",
+    "https://www.guralpremier.com/en/belek",
+    "https://www.guralpremier.com/en/tekirova",
+    "https://www.nirvanahotels.com.tr/oteller/nirvana-dolce-vita",
+    "https://mice.robinson.com/en/clubs/soma-bay/",
+    "https://www.alibey.com/en/park/beach-waterpark",
+    "https://www.palomahotels.com/en/finesse-side/mice"
+  ],
+  "photo_get_permission_granted_by_metadata": false
+}

@@ -1,0 +1,60 @@
+{
+  "operation": "commercial-stock-20261105-41-primary-preparation1",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Read one finite pass of exact owner property/directory pages for ten newly proven unpublished native stock41 identities while manual price collection remains unapproved.",
+  "boundaries": {
+    "native_ids": [
+      1420,
+      1421,
+      1422,
+      1253,
+      15904,
+      15913,
+      78251,
+      27349,
+      108942,
+      1260
+    ],
+    "exact_owner_pages": [
+      "https://papillon.com.tr/en/papillon-ayscha/",
+      "https://www.papillon.com.tr/en/papillon-belvil/",
+      "https://www.papillon.com.tr/EN/papillon-zeugma-relaxury",
+      "https://kayahotels.com/en/oteller/kaya-belek",
+      "https://www.kayapalazzohotels.com/en/",
+      "https://www.titanic.com.tr/titanic-deluxe-golf-belek",
+      "https://www.cullinanhotels.com/",
+      "https://www.maxxroyal.com/Maxx-Royal-Kemer",
+      "https://www.maxxroyal.com/maxx-royal-bodrum",
+      "https://www.ichotels.com.tr/tr/iletisim"
+    ],
+    "max_owner_http_gets": 10,
+    "readonly_groups": 4,
+    "max_parallel": 2,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "photo_gets": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "Before any page GET compare exact ten URLs against only older primary-plan/source-index metadata and explicit retained exclusions; do not read retained fulltexts/history/receipts or repeat old page GETs",
+    "Use exact HTTPS queryless owner pointers already returned in owner-discovery1, reject redirects/errors without variant/header/query/host bypass",
+    "Only three NEW actual input scope binding checks, old parser fixtures0; parser implementation/redirect/query/token guards byte-identical accepted43, owner allowlist input extension only",
+    "Keep property pages and owner directories separate; directory navigation/shared assets are not target property photo membership",
+    "No factual post or cover until actual primary facts and real exact owner photo scope/bytes/visualproof. Exact source strings retained only for internal primary review, paraphrase facts for eventual captions",
+    "Check explicit reuse restrictions; no universal free/inclusions/room or villa benefits; no season/renovation extrapolation",
+    "No supplier call/manualcollect/schema/controller/production/ad changes. Native catalogue proof is not publication or price"
+  ],
+  "risks": [
+    "Older metadata hit means defer/recover addressed source instead of GET again; no absence claim from missing fulltexts",
+    "Owner redirects/403/challenges/size limit or catalogue-to-owner current product mismatch can yield fewer usable pages",
+    "1253renovation2027 scope unresolved;15913rebrandproduct proof required;15904/1260 directory need actual declared target hrefs; historicalPDF/season not currentrights"
+  ],
+  "native_input_source_run": 41956089070,
+  "native_input_projection_run": 41956293584,
+  "manual_source_approval_recorded": false,
+  "new_post_credit": 0
+}

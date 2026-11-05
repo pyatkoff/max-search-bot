@@ -1,18 +1,22 @@
-name: Project only the original successful stock41 catalogue artifact
+name: Read ten exact owner pages for new proven stock41 hotels without price collection
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
     paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
-  actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        media_group: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,18 +25,13 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-stock-20261105-41-read1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 41956089070
-          path: ${{ runner.temp }}/stock41-original
-      - name: Extract only new public native identity proof without DB or source calls
-        run: python3 tools/direct_demand/operations/project-commercial-stock-20261105-41-original.py
+      - name: Read fixed official public sources without server or provider calls
+        env:
+          MEDIA_GROUP: ${{ matrix.media_group }}
+        run: python3 tools/direct_demand/operations/inspect-hotel-primary-sources-20261105-stock41.py
       - uses: actions/upload-artifact@v4
         with:
-          name: commercial-stock-20261105-41-native-projection
-          path: ${{ runner.temp }}/stock41-native-projection.json
+          name: commercial-stock41-primary1-${{ matrix.media_group }}
+          path: public-media-sources.json
           retention-days: 14
           if-no-files-found: error
