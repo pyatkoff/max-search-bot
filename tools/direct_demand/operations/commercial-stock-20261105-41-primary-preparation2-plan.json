@@ -1,0 +1,55 @@
+{
+  "operation": "commercial-stock-20261105-41-primary-preparation2",
+  "state": "PREPARED_NOT_EXECUTED",
+  "goal": "Resolve three property pages from exact new hrefs actually declared by the successful owner pages, while ready other stock41 properties proceed independently.",
+  "boundaries": {
+    "new_exact_owner_pages": [
+      {
+        "hotel_id": 1421,
+        "url": "https://papillon.com.tr/en/papillon-belvil/",
+        "declared_by": "https://papillon.com.tr/en/papillon-ayscha/",
+        "native_country_id": 4,
+        "group": 0
+      },
+      {
+        "hotel_id": 1422,
+        "url": "https://papillon.com.tr/en/papillon-zeugma/",
+        "declared_by": "https://papillon.com.tr/en/papillon-ayscha/",
+        "native_country_id": 4,
+        "group": 0
+      },
+      {
+        "hotel_id": 1260,
+        "url": "https://www.ichotels.com.tr/tr/oteller/santai-family-resort/",
+        "declared_by": "https://www.ichotels.com.tr/tr/iletisim",
+        "native_country_id": 4,
+        "group": 1
+      }
+    ],
+    "max_gets": 3,
+    "readonly_groups": 2,
+    "max_parallel": 2,
+    "provider_calls": 0,
+    "server_connections": 0,
+    "db_reads": 0,
+    "db_writes": 0,
+    "message_sends": 0,
+    "photo_gets": 0,
+    "canva_transactions": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "Exact new URIs must exist in original primary1 parent website_links; no inferred host/path/query variants or redirect locations",
+    "Native1421/1422/1260 country4/active/currentname/TG0MAX0 retained; exact owner sibling declaration does not share room/dining/photo rights",
+    "All ten first-pass URLs remain closed; these three actual owner-declared property hrefs differ from first-pass search metadata pointers",
+    "Before GET compare older source-index/primary-plan metadata and first-pass exact request list; preserve redirect/query/token guards and parser implementation byte-identical accepted43",
+    "Only three new actual scope/native/declared-href cases; no old parser fixture reruns",
+    "Any redirect/403/404/challenge stops that source without retry/header/query/host bypass. No already ready subset held for unresolved hotels"
+  ],
+  "risks": [
+    "Primary1 ValueError reason was not exported; do not label a specific root cause. New hrefs are owner declarations, not retry targets inferred from errors",
+    "Directory and property photos remain separate; no source/photo acceptance or inclusion/season rights solely from href metadata"
+  ],
+  "ready_for_send": 0,
+  "new_posts": 0
+}

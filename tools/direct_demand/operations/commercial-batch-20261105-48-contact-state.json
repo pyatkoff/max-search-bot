@@ -1,0 +1,163 @@
+{
+  "operation": "commercial-batch-20261105-48-contact",
+  "state": "CLOSED_EIGHTEEN_NEW_OWNER_PHOTOS_READY_ZERO",
+  "source_run": 41958021490,
+  "source_commit": "74032056ce3ef7cf6222b4eebc6b0fee3b3a35ff",
+  "jobs": [
+    {
+      "id": 127017477507,
+      "name": "inspect (3)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127017477716,
+      "name": "inspect (2)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127017477898,
+      "name": "inspect (1)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127017477977,
+      "name": "inspect (0)",
+      "conclusion": "success"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13384386050,
+      "name": "commercial-batch48-contact-3"
+    },
+    {
+      "id": 13383413277,
+      "name": "commercial-batch48-contact-1"
+    },
+    {
+      "id": 13383234767,
+      "name": "commercial-batch48-contact-0"
+    },
+    {
+      "id": 13382979697,
+      "name": "commercial-batch48-contact-2"
+    }
+  ],
+  "native_scope": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "photo_native_subset": [
+    1420,
+    78251,
+    27349,
+    108942
+  ],
+  "new_exact_photo_gets": 18,
+  "http200": 18,
+  "guard_passes": 16,
+  "rejections": 2,
+  "rejection_kind": "Two MaxxKemer HTTP200JPEG prefixes5000001bytes exceed5MB; no decode/format/dimension or403 claim",
+  "http403": 0,
+  "old_source_get_repeats": 0,
+  "owner_page_gets": 0,
+  "new_input_cases_passed": 3,
+  "old_guard_fixtures_rerun": 0,
+  "guards_byteidentical_46": true,
+  "all_native_contact_chunks_bytes_sha_dimensions_and_pixels_verified": true,
+  "native_contacts": [
+    {
+      "group": 0,
+      "width": 960,
+      "height": 540,
+      "bytes": 500451,
+      "sha256": "d21d3b725e6791ce8f24e30b738143a47fc6f7363e4bf797d9c90167612afeff"
+    },
+    {
+      "group": 1,
+      "width": 960,
+      "height": 540,
+      "bytes": 468939,
+      "sha256": "e297658fe3cd234080f2ef0245cac71d2ad224d1787db29601d3f4a75d5ffca5"
+    },
+    {
+      "group": 2,
+      "width": 960,
+      "height": 540,
+      "bytes": 277786,
+      "sha256": "0eb77388df8dd98b53612e7dfcd615720abaf82e99842305e9d2716ddd5d59ba"
+    },
+    {
+      "group": 3,
+      "width": 960,
+      "height": 540,
+      "bytes": 443485,
+      "sha256": "c4d603c6aba669a1028f371b73f335053c391e1e37b80c0c8e0164779868168e"
+    }
+  ],
+  "visual_verdicts": [
+    {
+      "hotel_id": 1420,
+      "state": "NO_WHOLE_COMPLEX_HERO",
+      "roles": {
+        "h1420_new48_0": "Onepool/limited main-building view with left edge clipped",
+        "h1420_new48_1": "Pool and shoreline view without whole hotel buildings",
+        "h1420_new48_2": "Coastal overview but hotel left wing clipped in source",
+        "h1420_new48_3": "Near main-building/onepool view, not whole grounds"
+      }
+    },
+    {
+      "hotel_id": 78251,
+      "state": "NO_WHOLE_COMPLEX_HERO",
+      "roles": {
+        "h78251_new48_0": "Pool/shore grounds without whole main hotel",
+        "h78251_new48_1": "Cropped onepool detail",
+        "h78251_new48_2": "Long front facade and golf foreground, not whole complex/grounds overview",
+        "h78251_new48_3": "Pool/stage detail"
+      }
+    },
+    {
+      "hotel_id": 27349,
+      "state": "NO_WHOLE_COMPLEX_HERO",
+      "roles": {
+        "h27349_new48_0": "Clifftop/beach zone without whole hotel buildings",
+        "h27349_new48_1": "Single villa",
+        "h27349_new48_2": "Villa/shore subset, not whole complex",
+        "h27349_new48_3": "HTTP200JPEG5000001byte oversized guard stop before decode",
+        "h27349_new48_4": "HTTP200JPEG5000001byte oversized guard stop before decode"
+      }
+    },
+    {
+      "hotel_id": 108942,
+      "state": "NO_WHOLE_COMPLEX_HERO",
+      "roles": {
+        "h108942_new48_0": "Close hillside/waterside buildings clipped at source edge",
+        "h108942_new48_1": "Bay view but hillside buildings clipped on right",
+        "h108942_new48_2": "Housing/category cluster rather than whole property",
+        "h108942_new48_3": "Pool closeup",
+        "h108942_new48_4": "Spa interior"
+      }
+    }
+  ],
+  "closed_photo_url_count": 247,
+  "closed_photo_decoded_basename_count": 246,
+  "server_calls": 0,
+  "provider_calls": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "accepted_hero_count": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "manual_price_collection": false,
+  "repeat_policy": "All18 exact URLs/raw bytes/contacts/logs closed; no sameGET/variants/query strip/import enlargement or weakened hero criterion. Sixteen valid raw photos retained only original authartifacts accepted-primary-raw/role.ext. Reuse accepted lower-photo evidence only with a genuinely new valid whole-complex hero and composition; no permanent Canva/save/export/send performed."
+}

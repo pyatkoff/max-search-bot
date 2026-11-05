@@ -1,6 +1,6 @@
 {
   "operation": "commercial-stock-20261105-48-source-notes",
-  "state": "TEN_PROVEN_SCOPE_FOUR_WHOLE_CAPTIONS_NEW_SOURCE_VERIFIED_COVERS_PENDING",
+  "state": "FOUR_WHOLE_CAPTIONS_VERIFIED_NO_WHOLE_COMPLEX_HERO_READY_ZERO",
   "proven_scope": [
     1420,
     1421,
@@ -77,5 +77,8 @@
   ],
   "whole_caption_count": 4,
   "ready_for_send": 0,
-  "new_posts": 0
+  "new_posts": 0,
+  "contact_run": 41958021490,
+  "cover_ready_count": 0,
+  "canva_transactions": 0
 }
