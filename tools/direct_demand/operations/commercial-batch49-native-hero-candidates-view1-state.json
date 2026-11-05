@@ -1,0 +1,51 @@
+{
+  "operation": "commercial-batch49-native-hero-candidates-view1",
+  "state": "CLOSED_TWO_ORIGINAL_NATIVE_PHOTOS_VISUALLY_RESOLVED_NO_SOURCE_GET",
+  "run": 41959463139,
+  "job": 127022092417,
+  "source": "bd88c429c9bfe4c73496270c8335d8251f8baaee",
+  "source_run": 41959091900,
+  "native_photos": [
+    {
+      "hotel_id": 1421,
+      "role": "h1421_new49_2",
+      "format": "JPEG",
+      "width": 1536,
+      "height": 1023,
+      "bytes": 476305,
+      "sha256": "07bcfbb32a8a2194e3508089316cc6b51566e014ff2cc29b1d0e227035c5d613",
+      "bytes_verified": true
+    },
+    {
+      "hotel_id": 1422,
+      "role": "h1422_new49_2",
+      "format": "WEBP",
+      "width": 1536,
+      "height": 1536,
+      "bytes": 370956,
+      "sha256": "16ce60533316c5e59be3f2e3525d0fd0f4838e075a2eaa8a6980a6d6a3e6abd1",
+      "bytes_verified": true
+    }
+  ],
+  "http_gets": 0,
+  "photo_gets": 0,
+  "provider_calls": 0,
+  "server_calls": 0,
+  "db_calls": 0,
+  "old_fixtures_rerun": 0,
+  "verdicts": [
+    {
+      "hotel_id": 1421,
+      "role": "h1421_new49_2",
+      "accepted_hero": false,
+      "reason": "Native resolution confirms mainblock plus partial bungalow grounds; bungalow buildings cut at left/bottom, not a whole property overview."
+    },
+    {
+      "hotel_id": 1422,
+      "role": "h1422_new49_2",
+      "accepted_hero": true,
+      "reason": "Native resolution shows the identified twin main hotel blocks complete, with front gardens, pool areas, shore and beach; no main wing clipped. Preserve both rooflines and grounds in final Canva crop."
+    }
+  ],
+  "repeat_policy": "Native first visual admission closed; do not reread logs/bytes or fetch either source again.1422hero only as the exact verified original role; newcover must retain whole central buildings and grounds."
+}

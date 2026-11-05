@@ -1,0 +1,119 @@
+{
+  "operation": "commercial-batch-20261105-49-contact",
+  "state": "CLOSED_ELEVEN_NEW_PHOTOS_ONE_NATIVE_WHOLE_COMPLEX_HERO_COVER_PENDING",
+  "source_run": 41959091900,
+  "source_commit": "c616d08d3fb262e5e322b0676a324b78c171a508",
+  "jobs": [
+    {
+      "id": 127020903927,
+      "name": "inspect (2)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127020904149,
+      "name": "inspect (1)",
+      "conclusion": "success"
+    },
+    {
+      "id": 127020904214,
+      "name": "inspect (0)",
+      "conclusion": "success"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 13385115239,
+      "name": "commercial-batch49-contact-2"
+    },
+    {
+      "id": 13384492182,
+      "name": "commercial-batch49-contact-0"
+    },
+    {
+      "id": 13384308081,
+      "name": "commercial-batch49-contact-1"
+    }
+  ],
+  "native_scope": [
+    1420,
+    1421,
+    1422,
+    1253,
+    15904,
+    15913,
+    78251,
+    27349,
+    108942,
+    1260
+  ],
+  "photo_subset": [
+    1421,
+    1422,
+    78251
+  ],
+  "new_photo_gets": 11,
+  "http200": 11,
+  "guard_passes": 11,
+  "rejections": 0,
+  "http403": 0,
+  "old_source_get_repeats": 0,
+  "new_input_cases": 3,
+  "old_guard_fixtures_rerun": 0,
+  "guards_byteidentical_48": true,
+  "native_contacts": [
+    {
+      "group": 0,
+      "width": 960,
+      "height": 540,
+      "bytes": 553734,
+      "sha256": "6d583146badfe95bdc5a39ad4cdd26291372578d4b7a8aecbdfb7673acb4bdfc",
+      "chunks": 16,
+      "verified": true
+    },
+    {
+      "group": 1,
+      "width": 960,
+      "height": 540,
+      "bytes": 427058,
+      "sha256": "a2d3062e1658a42e5566875bc9ed5f6612f6ed4145927aa7f19958320aac076b",
+      "chunks": 12,
+      "verified": true
+    },
+    {
+      "group": 2,
+      "width": 960,
+      "height": 270,
+      "bytes": 396713,
+      "sha256": "7b52983198d3962319dd91e3a85b4058f32493999ac86b2869de31055267b089",
+      "chunks": 12,
+      "verified": true
+    }
+  ],
+  "full_native_chunks_bytes_sha_dimensions_and_pixels_verified": true,
+  "hero_native_view_run": 41959463139,
+  "whole_hero_native_ids": [
+    1422
+  ],
+  "whole_hero_count": 1,
+  "rejected_hero_native_ids": [
+    1421,
+    78251
+  ],
+  "rejection_notes": {
+    "1421": "Aquapark/onepool details or partial bungalow grounds; native candidate2edge clipping confirmed.",
+    "78251": "Walkway/facade, onepool, front aerial facade cropped rather than whole grounds; no accepted hero."
+  },
+  "closed_photo_url_count": 258,
+  "closed_decoded_basename_count": 257,
+  "source_gets": 0,
+  "server_calls": 0,
+  "db_reads": 0,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "canva_transactions": 0,
+  "ready_for_send": 0,
+  "new_posts": 0,
+  "manual_price_collection": false,
+  "repeat_policy": "All11photoGETs/contacts/nativechecks/logs closed. No sourceGET/variant/querystrip/bypass. Eleven valid rawphotos remain originalauthartifacts; exact1422hero with49lower0/1 may proceed to a new temporary Canva composition, not a publication until nativecoververified."
+}

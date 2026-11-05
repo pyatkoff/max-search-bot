@@ -1,0 +1,74 @@
+{
+  "operation": "commercial-batch-20261105-49-canva-1422",
+  "state": "PREPARED_TEMPORARY_COVER_NO_PERMANENT_SAVE",
+  "goal": "Create a single genuine PapillonZeugma cover from the newly verified whole-complex native photograph and two distinct verified owner lower photographs.",
+  "hotel_id": 1422,
+  "title": "Papillon Zeugma Relaxury",
+  "design_id": "DAHZx_JlJEM",
+  "protected_original": "DAHZIISS2iY",
+  "sources": [
+    {
+      "hotel_id": 1422,
+      "role": "h1422_new49_2",
+      "index": 2,
+      "source_url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-01-min-scaled-1536x1536.webp",
+      "format": "WEBP",
+      "width": 1536,
+      "height": 1536,
+      "bytes": 370956,
+      "sha256": "16ce60533316c5e59be3f2e3525d0fd0f4838e075a2eaa8a6980a6d6a3e6abd1",
+      "retained_raw_file": "accepted-primary-raw/h1422_new49_2.webp",
+      "cover_role": "whole_complex_hero"
+    },
+    {
+      "hotel_id": 1422,
+      "role": "h1422_new49_0",
+      "index": 0,
+      "source_url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-03-min-scaled-1536x1536.webp",
+      "format": "WEBP",
+      "width": 1536,
+      "height": 1536,
+      "bytes": 430262,
+      "sha256": "2882906cc2f2712f80a1a179a400065c7385bf4aafb183ba8a580d8546dd23c9",
+      "retained_raw_file": "accepted-primary-raw/h1422_new49_0.webp",
+      "cover_role": "lower_pool_and_beach"
+    },
+    {
+      "hotel_id": 1422,
+      "role": "h1422_new49_1",
+      "index": 1,
+      "source_url": "https://papillon.com.tr/wp-content/uploads/2025/12/Papillon-Zeugma-Drone-02-min-scaled-1536x1536.webp",
+      "format": "WEBP",
+      "width": 1536,
+      "height": 1536,
+      "bytes": 446930,
+      "sha256": "82a2b1ae9dd424a84c71b6540c31f89bb47902663366ae90647cd2bc83282bff",
+      "retained_raw_file": "accepted-primary-raw/h1422_new49_1.webp",
+      "cover_role": "lower_hotel_and_pool"
+    }
+  ],
+  "boundaries": {
+    "fresh_transaction_required": true,
+    "max_active_transactions": 2,
+    "imports_in_same_object_sequential": true,
+    "original_design_modified": false,
+    "autofill": false,
+    "permanent_save": false,
+    "source_http_gets": 0,
+    "provider_calls": 0,
+    "db_calls": 0,
+    "publication_writes": 0,
+    "manual_price_collection": false
+  },
+  "criteria": [
+    "Fresh actual page/elementIDs only; replace background+wholecomplexhero+two lowers/title/alt, preserve readableAnyTourlogo/bluebanner/singlelinetitle",
+    "Native1422sourcehero is square; actual cover crop must retain both complete main rooflines and grounds. If crop clips mainwing reject/correct via supported Canva layout only, never invent image pixels",
+    "Show EACH requested design thumbnail in chat, inspect actual cover; nativePNG10000..1600000bytes/actualdims/chunks/SHA/view before publicGitfreeze",
+    "After accepted nativePNG frozen cancel EXACT transaction; noPermanentSave/reexport/reupload/closedTXreuse",
+    "One provisional hero is not actualready until cover accepted; allotherreadywork independent. Pricefocus/manualpending policy preserved"
+  ],
+  "risks": [
+    "Template crop may cut buildings; nativefinalview can reject cover",
+    "Only this one verified hotel currently has a whole-complex hero; do not create covers for otherbadframes or weaken criterion"
+  ]
+}
