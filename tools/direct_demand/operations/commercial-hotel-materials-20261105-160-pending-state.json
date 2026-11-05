@@ -181,7 +181,7 @@
   "latest_media_pass46_state": "CLOSED_TWELVE_NEW_OWNER_PHOTOS_NO_WHOLE_HOTEL_HERO_NO_READY_NO_DELIVERY",
   "latest_media_pass46_run": 41953255994,
   "latest_media_pass46_ready": 0,
-  "latest_scheduled_metadata_window_checked_at": "2026-11-05 02:36:56 UTC",
+  "latest_scheduled_metadata_window_checked_at": "2026-11-05 03:24:01 UTC",
   "stock41_native_identities_proven": 10,
   "stock41_read_run": 41956089070,
   "stock41_projection_run": 41956293584,
@@ -199,7 +199,7 @@
   ],
   "stock41_ready": 0,
   "stock41_published_credit": 0,
-  "latest_scheduled_metadata_window_run_count": 1,
+  "latest_scheduled_metadata_window_run_count": 0,
   "latest_scheduled_metadata_window_new_normal_count": 0,
   "latest_addressed_recovery47_state": "CLOSED_BOUNDED_METADATA_RECOVERY_NO_COMPLETE_62505_PHOTO_PROOF",
   "stock41_owner_discovery_state": "SEARCH_METADATA_ONLY_PRIMARY_PHOTO_GET_ZERO",
@@ -212,5 +212,8 @@
   ],
   "new_feed_append_pending": [
     1422
-  ]
+  ],
+  "canonical_read16_pending": false,
+  "canonical_read16_run": 41961641655,
+  "new_private_max_binding_count": 1
 }
