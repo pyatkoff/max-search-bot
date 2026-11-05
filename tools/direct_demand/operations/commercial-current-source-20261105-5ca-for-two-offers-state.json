@@ -1,0 +1,30 @@
+{
+  "operation": "commercial-current-source-20261105-5ca-for-two-offers",
+  "state": "CURRENT5CA_INDEPENDENT_DEPLOY_ALL_DIAGNOSTICS_HEALTHY_REVIEWED7_NONPUBLISHING_PATHS21_UNCHANGED_NATIVE_REMOTE_GATE_REQUIRED_BEFORE_EDITS",
+  "previous_source": "95dcf9893fb161b1e4fb52c02ad2d982604e7518",
+  "current_source": "5ca5abcec260c41e73884e08f0f45c0617c21785",
+  "current_tree": "20cc5fc2e8dc6b3ceaf6ba07a19bfa6530e53005",
+  "changed_commits": 3,
+  "changed_paths": [
+    ".github/workflows/ci-change-scope.yml",
+    ".github/workflows/regression-tests.yml",
+    "AGENTS.md",
+    "docs/CI_SCOPES.md",
+    "tests/check_ci_selection_style_scope.js",
+    "tests/check_ci_workflow_scopes.py",
+    "tools/ci_change_scope.js"
+  ],
+  "publishing21_changed": 0,
+  "deploy_run": 41990818645,
+  "verify_job": 127123495514,
+  "deploy_job": 127123545993,
+  "tls_run": 41991489627,
+  "diagnostics_run": 41991489855,
+  "tg_run": 41991489797,
+  "max_run": 41991489880,
+  "live_run": 41991489887,
+  "all_native_metadata_success": true,
+  "our_deploy_dispatch_rerun_or_foreign_release_fix": false,
+  "full_remote21_current_version_still_required": true,
+  "historical_context15_quote2_prepared95_provenance_preserved": true
+}

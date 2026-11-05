@@ -1,0 +1,17 @@
+{
+  "operation": "commercial-hotel-offer-update-20261105-manual1-pass2-two-copy",
+  "state": "CLOSED_PRE_ACCESS_SOURCE_STOP95_TO5CA_NO_PROVIDER_OUTCOME_TO_RETRY",
+  "run": 41991289033,
+  "job": 127123876823,
+  "source": "62ea186c4cc3d536ed97ecc86fa14a3e665b04fe",
+  "reason": "approved_source_not_current",
+  "prepared_data_access": 0,
+  "new_cases_rerun": 0,
+  "private_intent_artifact": 0,
+  "ssh": 0,
+  "provider_access": 0,
+  "db_access": 0,
+  "content_writes": 0,
+  "new_posts": 0,
+  "same_operation_and_frozen_prepared_artifact_retained": true
+}
