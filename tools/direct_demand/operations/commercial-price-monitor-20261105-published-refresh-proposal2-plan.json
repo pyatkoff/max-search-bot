@@ -1,0 +1,88 @@
+{
+  "operation": "commercial-price-monitor-20261105-published-refresh-proposal2",
+  "state": "PURE_PREPARATION_ONLY_MANUAL_COLLECTION_NOT_APPROVED",
+  "goal": "Prepare a finite exact proposal for new price contexts for currently unpriced published hotels after normal672 coverage was proven to concern only alreadypricedhotels",
+  "evidence": {
+    "coverage_run": 41946730487,
+    "other_unquoted_candidate_rows": 0,
+    "read11_run": 41945775526,
+    "read11_artifact": 13377689882
+  },
+  "source_scope": 159,
+  "priced_ids_excluded": [
+    12114,
+    9432,
+    109,
+    13873,
+    13869,
+    73342,
+    233,
+    253,
+    165,
+    389,
+    57028,
+    278,
+    260,
+    163,
+    281,
+    293,
+    245,
+    393,
+    465,
+    264,
+    107965,
+    125,
+    1451,
+    1100,
+    21477,
+    246,
+    310,
+    469,
+    498,
+    1971,
+    1981,
+    9373
+  ],
+  "name_review_ids_excluded": [
+    482,
+    476,
+    81173,
+    32577,
+    478,
+    80964
+  ],
+  "max_proposed_hotels": 121,
+  "departure_id": 1,
+  "adults": 2,
+  "children": 0,
+  "currency": "RUB",
+  "proposed_nights": [
+    5,
+    14
+  ],
+  "proposed_departure_window": "Next7futureUTCdays; recomputeonactualapprovedexecution",
+  "max_hotels_per_search": 20,
+  "hard_search_ceiling": 12,
+  "max_age_seconds": 259200,
+  "manual_collection_approved": false,
+  "boundaries": [
+    "PUREreuseoriginalREAD11private159scope/catalogproof ONLY, no DB/provider/source/postcalls",
+    "Explicitacceptedtyped15nativebridge allowed when currentnative/country/active/name exact; do not treat originalAnyTourIDasTVhotelID",
+    "Excludealreadypriced32 andname-review6, preserve159scope; no fuzzyforce",
+    "Newproposal replaces old138native-only/8group proposal; do NOT rerun oldproposal fixtures",
+    "Do not dispatch/manualcollect until Pavel separately allows the currentlyprohibitedoneoffmanualpass",
+    "This step does NOT ask permission yet: prepare exact executionroute/quota/lock/resume/noUnknown/noRetry safeguards so review is concrete first",
+    "Existingnormalcollector budgets64/hourly12/schedule/order/transport/observer untouched; no extra broadscheduled/matrixbranches",
+    "SourceSearch3reader metadata was inspected only; no cache/sourcecalls, no customer/conversationreads. Its public projection uses AnyTourhotelID+offerDigest, not a directlyjustified nativeTVflights tuple."
+  ],
+  "criteria": [
+    "Outputfiniteexactnative/countrygroups/retainedprovenance andcurrentUTCdate, no privatepubIDs/buttons/quotes/customerdata",
+    "Newscope/country/typedpublisher-role negativecases on actualnewinput; oldfixtures0",
+    "No newpaidsearches or flights; later explicitmanualpermission required before an execution that changes currentnoManualCollect boundary"
+  ],
+  "risks": [
+    "Proposal does not prove availability or finalprice",
+    "Runtime/UTCdate may change before any explicitapproval; source/full21/currentnativeconditions mustbe independentlygated",
+    "Do not ask user to approve an unprepared live route"
+  ]
+}
