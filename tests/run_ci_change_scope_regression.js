@@ -500,7 +500,7 @@ async function verifyReleaseSlot() {
     ['GITHUB_REF','refs/heads/foreign'], ['GITHUB_SHA','c'.repeat(40)], ['CONFIGURE_RESULT','failure']]) {
     await rejects(() => context({ ...env, [field]: value }, event), 'untrusted_context', 'reject ' + field);
   }
-  for (const [field, value] of [['event','workflow_dispatch'], ['run_attempt',2], ['conclusion','failure'],
+  for (const [field, value] of [['event','workflow_dispatch'], ['run_attempt',3], ['conclusion','failure'],
     ['head_repository',{ full_name:'foreign/repo' }], ['path','.github/workflows/other.yml']]) {
     const e = copy(event); e.workflow_run[field] = value;
     await rejects(() => context(env, e), 'untrusted_context', 'upstream ' + field);
@@ -741,7 +741,191 @@ async function verifyReleaseSlotActivation() {
   check(f.writes(),0,'release activation: late failure cannot release');
 }
 
-verifyReleasePriority().then(verifyReleaseSlot).then(verifyReleaseSlotActivation).then(() => {
+
+async function verifyReleaseRecovery() {
+  const M=require('../tools/release_slot_close');
+  const copy=v=>JSON.parse(JSON.stringify(v));
+  const repository='pyatkoff/max-search-bot',source='a'.repeat(40);
+  const prefix='/repos/'+repository;
+  const rejects=async(fn,code,label)=>{
+    let actual='no_refusal';try{await fn();}catch(e){actual=e.code;}
+    check(actual,code,'verification recovery: '+label);
+  };
+  function fixture(kind='download') {
+    let serial=1000;
+    const c={sha:source,deploy:100};
+    const first={id:100,path:'.github/workflows/deploy.yml',name:'Deploy production',event:'push',
+      head_branch:'main',head_repository:{full_name:repository},head_sha:source,head_commit:{id:source},
+      run_attempt:1,created_at:'2026-11-01T01:00:00Z',run_started_at:'2026-11-01T01:00:00Z',
+      updated_at:'2026-11-01T01:09:00Z',status:'completed',conclusion:'failure'};
+    const current={...copy(first),run_attempt:2,run_started_at:'2026-11-01T01:10:00Z',
+      updated_at:'2026-11-01T01:19:00Z',conclusion:'success'};
+    const step=(name,conclusion,attempt)=>({number:++serial,name,status:'completed',conclusion,
+      started_at:attempt===1?'2026-11-01T01:03:00Z':'2026-11-01T01:13:00Z',
+      completed_at:attempt===1?'2026-11-01T01:04:00Z':'2026-11-01T01:14:00Z'});
+    const job=(name,attempt,conclusion,steps)=>({id:++serial,name,run_id:100,run_attempt:attempt,
+      head_sha:source,status:'completed',conclusion,runner_id:1234,runner_name:'Hosted Agent',labels:['ubuntu-latest'],
+      started_at:attempt===1?'2026-11-01T01:02:00Z':'2026-11-01T01:12:00Z',
+      completed_at:attempt===1?'2026-11-01T01:08:00Z':'2026-11-01T01:18:00Z',steps});
+    const originals=M.INSTALL_JOBS.map(name=>job(name,1,'success',[step('Original required install gate','success',1)]));
+    const copied=originals.map(j=>({...copy(j),id:++serial,run_attempt:2}));
+    const states={check:'success',download:'success',status:'success',cleanup:'success'};
+    if(kind==='check'){states.check='failure';states.download='skipped';states.cleanup='skipped';}
+    if(kind==='download'){states.download='failure';states.cleanup='skipped';}
+    if(kind==='status'){states.status='failure';states.cleanup='skipped';}
+    if(kind==='cleanup')states.cleanup='failure';
+    const old=job('verify',1,'failure',Object.entries(M.VERIFY_STEPS).map(([k,n])=>step(n,states[k],1)));
+    const needed=k=>states[k]!=='success'||(k==='status'&&(states.check!=='success'||states.download!=='success'));
+    const latest=job('verify',2,'success',Object.entries(M.VERIFY_STEPS).map(([k,n])=>step(n,needed(k)?'success':'skipped',2)));
+    const jobs=[...originals,old,...copied,latest];
+    return {c,first,current,old,latest,originals,copied,history:{total_count:jobs.length,jobs}};
+  }
+  for(const kind of ['check','download','status','cleanup']) {
+    const f=fixture(kind),r=M.deploymentHistory(f.history,f.first,f.current,f.c);
+    check(r.smokeAttempt,kind==='check'?2:1,'verification recovery: original smoke reused '+kind);
+    check(r.diagnosticsAttempt,['check','download'].includes(kind)?2:1,'verification recovery: original copy reused '+kind);
+    check(r.plan.run_check,kind==='check','verification recovery: only failed check reexecutes '+kind);
+    check(r.plan.run_download,['check','download'].includes(kind),'verification recovery: only unfinished copy '+kind);
+    check(r.plan.run_status,kind!=='cleanup','verification recovery: negative result must be republished '+kind);
+  }
+  const invalid=[
+    ['new installer execution',f=>{f.copied.at(-1).started_at='2026-11-01T01:11:00Z';},'installation_or_source_replayed'],
+    ['new source runner',f=>{f.copied[0].runner_id++;},'installation_or_source_replayed'],
+    ['changed original install result',f=>{f.originals.at(-1).conclusion='failure';},'installation_unconfirmed'],
+    ['failed original install step',f=>{f.originals.at(-1).steps[0].conclusion='failure';},'installation_unconfirmed'],
+    ['third attempt',f=>{f.current.run_attempt=3;},'untrusted_deployment_attempt'],
+    ['manual run',f=>{f.current.event='workflow_dispatch';},'untrusted_deployment_attempt'],
+    ['foreign source',f=>{f.current.head_sha='c'.repeat(40);},'untrusted_deployment_attempt'],
+    ['foreign repository',f=>{f.current.head_repository.full_name='other/repo';},'untrusted_deployment_attempt'],
+    ['unfinished original',f=>{f.first.status='in_progress';},'original_attempt_not_failed'],
+    ['successful original',f=>{f.first.conclusion='success';},'original_attempt_not_failed'],
+    ['unfinished recovery',f=>{f.current.status='in_progress';f.current.conclusion=null;},'invalid_recovery_attempt'],
+    ['truncated jobs',f=>{f.history.total_count++;},'incomplete_deployment_jobs'],
+    ['duplicate ids',f=>{f.copied[0].id=f.originals[0].id;},'incomplete_deployment_jobs'],
+    ['foreign job',f=>{f.latest.head_sha='c'.repeat(40);},'untrusted_deployment_job'],
+    ['missing install job',f=>{f.history.jobs.splice(0,1);f.history.total_count--;},'ambiguous_deployment_job'],
+    ['accepted check replay',f=>{f.latest.steps[0].conclusion='success';},'accepted_step_replayed_or_unconfirmed'],
+    ['masked failure or unclassified skipped copy',f=>{f.old.steps[1].conclusion='skipped';f.old.steps[3].conclusion='skipped';},'unclassified_original_verification'],
+    ['lost step metadata',f=>{f.old.steps.pop();},'incomplete_job_steps'],
+    ['recovery still failed',f=>{f.latest.conclusion='failure';},'recovery_not_confirmed'],
+  ];
+  for(const [label,mutate,code] of invalid) {
+    const f=fixture();mutate(f);
+    await rejects(()=>M.deploymentHistory(f.history,f.first,f.current,f.c),code,label);
+  }
+  const f=fixture();
+  const marker={comment_id:900,head_sha:'b'.repeat(40),owner_id:800,updated_at:'2026-11-01T01:00:00Z'};
+  const pr={number:55,state:'closed',merged:true,merge_commit_sha:source,
+    head:{sha:marker.head_sha,repo:{full_name:repository}},base:{ref:'main',repo:{full_name:repository}},
+    body:'<!-- release-slot-close:v1 '+JSON.stringify(marker)+' -->'};
+  const record={id:900,user:{id:800},author_association:'OWNER',updated_at:marker.updated_at,
+    issue_url:'https://api.github.com'+prefix+'/issues/1122',body:'PR55: выпуск занят'};
+  const env={GITHUB_REPOSITORY:repository,GITHUB_EVENT_NAME:'push',GITHUB_REF:'refs/heads/main',
+    GITHUB_JOB:'verify',GITHUB_SHA:source,GITHUB_RUN_ID:'100',GITHUB_RUN_ATTEMPT:'2'};
+  const current=copy(f.current);current.status='in_progress';current.conclusion=null;
+  const history=copy(f.history);history.jobs.at(-1).status='in_progress';history.jobs.at(-1).conclusion=null;
+  const calls=[];
+  const api=async(method,path)=>{
+    calls.push({method,path});
+    if(method!=='GET')throw Error('recovery attempted a write');
+    if(path.endsWith('/git/ref/heads/main'))return{object:{sha:source}};
+    if(path.includes('/commits/'))return[{number:55,state:'closed',merge_commit_sha:source}];
+    if(path.endsWith('/pulls/55'))return copy(pr);
+    if(path.includes('/issues/comments/'))return copy(record);
+    if(path.endsWith('/attempts/1'))return copy(f.first);
+    if(path.endsWith('/attempts/2'))return copy(current);
+    if(path.includes('/jobs?filter=all'))return copy(history);
+    throw Error('unexpected recovery API request '+path);
+  };
+  const plan=await M.admitVerification({env,api});
+  check(plan.run_check,false,'verification recovery: API admission preserves successful check');
+  check(plan.run_download,true,'verification recovery: API admission resumes failed copy');
+  check(calls.every(x=>x.method==='GET'),true,'verification recovery: admission cannot mutate');
+  check(calls.filter(x=>x.path.includes('/issues/comments/')).length,2,'verification recovery: fresh publisher version');
+  await rejects(()=>M.admitVerification({env:{...env,GITHUB_RUN_ATTEMPT:'3'},api}),'untrusted_verification_context','third attempt before credentials');
+  await rejects(()=>M.admitVerification({env,api:async()=>{throw Object.assign(Error('private'),{code:'api_http_429'});}}),'api_http_429','rate limit is not retried');
+  await rejects(()=>M.admitVerification({env,api:async(m,p)=>p.endsWith('/git/ref/heads/main')?{object:{sha:'c'.repeat(40)}}:api(m,p)}),'main_changed','changed source before credentials');
+  await rejects(()=>M.admitVerification({env,api:async(m,p)=>p.includes('/issues/comments/')?{...record,updated_at:'2026-11-01T01:00:01Z'}:api(m,p)}),'record_changed','publisher changed');
+  const deploy={...M.stageStatus({...env,SMOKE_ATTEMPT:'1',DIAGNOSTICS_ATTEMPT:'2',CHECK_ACCEPTED:'success',DOWNLOAD_OUTCOME:'success'})};
+  check(deploy.smoke,'success','verification recovery: stage status reuses accepted check');
+  check(deploy.diagnostics_attempt,2,'verification recovery: receipt binds actual transfer attempt');
+  const makeRun=(id,path,title)=>({id,path:'.github/workflows/'+path,event:'workflow_run',display_title:title,
+    head_sha:source,head_branch:'main',head_repository:{full_name:repository},run_attempt:1,status:'completed',conclusion:'success'});
+  const oldMonitor=makeRun(301,'modeled-conversion-monitor.yml','deploy-proof:v1:100:1');
+  const newMonitor=makeRun(401,'modeled-conversion-monitor.yml','deploy-proof:v1:100:2');
+  const oldGate=makeRun(302,'max-tls-preflight.yml','deploy-proof:v1:100:1');
+  const newGate=makeRun(402,'max-tls-preflight.yml','deploy-proof:v1:100:2');
+  const oldActivation=makeRun(303,M.ACTIVATION.file,'monitor-proof:v1:301:1');
+  const newActivation=makeRun(403,M.ACTIVATION.file,'monitor-proof:v1:401:1');
+  const snapshot={total_count:6,workflow_runs:[oldMonitor,newMonitor,oldGate,newGate,oldActivation,newActivation]};
+  const skipped=async path=>{
+    const runId=Number(path.match(/runs\/([0-9]+)/)[1]);
+    return{total_count:1,jobs:[{run_id:runId,head_sha:source,status:'completed',conclusion:'skipped',steps:[]}]};
+  };
+  const selected=await M.selectRecoveryRuns(snapshot,{...f.c,recovery:{}},skipped);
+  check(selected.total_count,3,'verification recovery: only exact all-skipped first wave ignored');
+  const duplicate=copy(snapshot);duplicate.workflow_runs.push({...oldGate,id:304});duplicate.total_count++;
+  await rejects(()=>M.selectRecoveryRuns(duplicate,{...f.c,recovery:{}},skipped),'ambiguous_run','duplicate failed-wave origin');
+  await rejects(()=>M.selectRecoveryRuns(snapshot,{...f.c,recovery:{}},async p=>{
+    const x=await skipped(p);x.jobs[0].conclusion='success';return x;
+  }),'original_wave_executed','executed notification or gate cannot replay');
+  const unknown=copy(snapshot);unknown.workflow_runs[2].display_title='unknown';
+  await rejects(()=>M.selectRecoveryRuns(unknown,{...f.c,recovery:{}},skipped),'untrusted_gate_origin','timing is not provenance');
+
+  await rejects(()=>M.admitVerification({env:{...env,GITHUB_RUN_ID:'1e2'},api}),'untrusted_verification_context','malformed run identifier');
+  await rejects(()=>M.stageStatus({...env,SMOKE_ATTEMPT:'unknown',DIAGNOSTICS_ATTEMPT:'1'}),'invalid_status_attempt','unconfirmed receipt attempt');
+  const firstEnv={...env,GITHUB_RUN_ATTEMPT:'1'};
+  const originalRunning={...copy(f.first),status:'in_progress',conclusion:null};
+  const firstApi=async(method,path)=>{
+    if(path.endsWith('/actions/runs/100'))return originalRunning;
+    if(path.includes('/attempts/1/jobs?'))return {total_count:f.originals.length,jobs:copy(f.originals)};
+    return api(method,path);
+  };
+  check((await M.admitVerification({env:firstEnv,api:firstApi})).run_check,true,'verification recovery: initial installed checks admitted');
+  await rejects(()=>M.admitVerification({env:firstEnv,api:async(m,p)=>{
+    if(p.includes('/attempts/1/jobs?')){const x=await firstApi(m,p);x.jobs.at(-1).conclusion='failure';return x;}
+    return firstApi(m,p);
+  }}),'installation_unconfirmed','failed provenance or installer cannot publish accepted telemetry');
+
+  // Exercise the real terminal closer with a recovered deployment, both
+  // provenance waves, original successful parents, and exactly one publisher.
+  const gateRuns=M.REQUIRED.map(([file,event,name],i)=>({id:100+i,path:'.github/workflows/'+file,name,event,
+    head_sha:source,head_branch:'main',head_repository:{full_name:repository},run_attempt:i===0?2:1,
+    created_at:'2026-11-01T01:20:00Z',status:'completed',conclusion:'success'}));
+  const monitor=gateRuns.find(r=>r.path.endsWith('/modeled-conversion-monitor.yml'));
+  for(const r of gateRuns.filter(r=>r.event==='workflow_run'))r.display_title=r.path.endsWith('/'+M.ACTIVATION.file)?
+    'monitor-proof:v1:'+monitor.id+':1':'deploy-proof:v1:100:2';
+  const own={id:200,path:M.CLOSER,name:'Configure AnyTour modeled value goal',event:'workflow_run',
+    display_title:'deploy-proof:v1:100:2',head_sha:source,head_branch:'main',head_repository:{full_name:repository},
+    run_attempt:1,created_at:'2026-11-01T01:20:00Z',status:'in_progress',conclusion:null};
+  const originals=gateRuns.filter(r=>r.event==='workflow_run').map(r=>({...copy(r),id:r.id+500,display_title:'deploy-proof:v1:100:1'}));
+  originals.find(r=>r.path.endsWith('/'+M.ACTIVATION.file)).display_title='monitor-proof:v1:'+(monitor.id+500)+':1';
+  const allRuns={workflow_runs:[...gateRuns,own,...originals],total_count:gateRuns.length+1+originals.length};
+  let saved=copy(record),writes=0;
+  const closerApi=async(method,path,body)=>{
+    if(method==='PATCH'){writes++;saved={...saved,body:body.body};return copy(saved);}
+    if(path.includes('/actions/runs?'))return copy(allRuns);
+    if(path.includes('/issues/comments/'))return copy(saved);
+    if(path.endsWith('/attempts/2'))return copy(f.current);
+    if(path.includes('/jobs?filter=all'))return copy(f.history);
+    if(path.includes('/actions/runs/200/attempts/1/jobs?'))return {total_count:1,jobs:[{name:'configure',run_id:200,head_sha:source,status:'completed',conclusion:'skipped'}]};
+    const activation=gateRuns.find(r=>r.path.endsWith('/'+M.ACTIVATION.file));
+    if(path.includes('/actions/runs/'+activation.id+'/attempts/1/jobs?'))return{total_count:1,jobs:[{name:'activate',run_id:activation.id,head_sha:source,status:'completed',conclusion:'skipped'}]};
+    if(path.includes('/attempts/1/jobs?'))return skipped(path.replace(prefix,''));
+    if(path.includes('/contents/deploy_status'))return deploy;
+    if(path.includes('/contents/ops_status'))return Object.fromEntries(['migration','snapshot','live_sessions','daily_sessions','yesterday_sessions','architecture_inventory','website_smoke','health'].map(k=>[k,'success']).concat([['sha',source]]));
+    return api(method,path);
+  };
+  const closeEnv={...env,GITHUB_EVENT_NAME:'workflow_run',GITHUB_RUN_ID:'200',GITHUB_RUN_ATTEMPT:'1',CONFIGURE_RESULT:'skipped'};
+  const closeEvent={action:'completed',repository:{full_name:repository},
+    workflow_run:{...copy(gateRuns[0]),head_commit:{id:source,message:'Product release'}}};
+  check(await M.closeRelease({env:closeEnv,event:closeEvent,api:closerApi,sleep:async()=>{throw Error('unexpected wait');}}),
+    'released','verification recovery: recovered run closes through real final guard');
+  check(writes,1,'verification recovery: same publisher updated exactly once');
+
+}
+
+verifyReleasePriority().then(verifyReleaseRecovery).then(verifyReleaseSlot).then(verifyReleaseSlotActivation).then(() => {
   const admission = spawnSync(process.execPath, [path.resolve(__dirname, '../tools/release_priority.js'),
     '--admit', '1306', 'a'.repeat(40), 'b'.repeat(40)], {
     encoding: 'utf8', env: { GITHUB_REPOSITORY: 'pyatkoff/max-search-bot' }

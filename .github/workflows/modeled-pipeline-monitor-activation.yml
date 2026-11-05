@@ -1,4 +1,5 @@
 name: Activate the AnyTour pipeline monitor once
+run-name: "${{ github.event_name == 'workflow_run' && format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Activate the AnyTour pipeline monitor once' }}"
 
 on:
   workflow_run:
@@ -31,7 +32,10 @@ jobs:
           test "$GITHUB_RUN_ATTEMPT" = '1'
           metadata="$(jq -er '
             if .action == "completed"
-              and .workflow_run.name == "Monitor modeled conversion delivery"
+              and .workflow_run.path == ".github/workflows/modeled-conversion-monitor.yml"
+              and (.workflow_run.name == "Monitor modeled conversion delivery"
+                or (.workflow_run.name == .workflow_run.display_title
+                  and (.workflow_run.name | type == "string" and test("^deploy-proof:v1:[1-9][0-9]*:[12]$"))))
               and .workflow_run.workflow_id == 406167317
               and .workflow_run.status == "completed"
               and .workflow_run.conclusion == "success"

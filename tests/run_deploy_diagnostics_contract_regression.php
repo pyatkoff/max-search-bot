@@ -3,8 +3,8 @@ $workflow = (string)file_get_contents(__DIR__ . '/../.github/workflows/deploy.ym
 $exporter = (string)file_get_contents(__DIR__ . '/../export_debug_logs.php');
 $syncStart=strpos($workflow,'      - name: Sync canonical production checkout');
 $migrationStart=strpos($workflow,'      - name: Apply database migrations');
-$smokeStart=strpos($workflow,'      - name: Production smoke checks');
-$downloadStart=strpos($workflow,'      - name: Download production diagnostics');
+$smokeStart=strpos($workflow,'      - name: Verify installed production checks');
+$downloadStart=strpos($workflow,'      - name: Download exact installed diagnostic snapshot');
 $sync=$syncStart!==false&&$migrationStart!==false?substr($workflow,$syncStart,$migrationStart-$syncStart):'';
 $smoke=$smokeStart!==false&&$downloadStart!==false?substr($workflow,$smokeStart,$downloadStart-$smokeStart):'';
 $reset=strpos($sync,'git reset --hard');$contain=strpos($sync,'php tools/structured_runtime_log_smoke.php;');
@@ -16,32 +16,40 @@ foreach (['export_debug_logs.php'=>2,'tools/production_snapshot.php'=>3,'tools/e
 }
 
 $checks = [
-    'diagnostics download uses canonical remote scp' =>
-        strpos($workflow, 'appleboy/scp-action@') === false
-        && strpos($workflow, 'scp -o BatchMode=yes') !== false
-        && strpos($workflow, '$remote_diag_dir/*.json') !== false,
-    'diagnostics are generated outside document root' =>
-        strpos($workflow, 'MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR=\'/tmp/max-search-diagnostics-$EXPECTED_SHA\'') !== false
-        && strpos($workflow, 'cp diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json diagnostics/') === false
-        && strpos($exporter, 'MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR') !== false
-        && strpos($exporter, 'Diagnostics output directory must stay outside the document root') !== false,
+    'diagnostics download uses the canonical channel and exact retained archive' =>
+        !str_contains($workflow, 'appleboy/scp-action@')
+        && str_contains($workflow, 'scp -i "$RUNNER_TEMP/deploy_key"')
+        && str_contains($workflow, '$DEPLOY_USER@$DEPLOY_HOST:$snapshot/snapshot.tar')
+        && str_contains($workflow, 'sha256sum -c snapshot.sha256'),
+    'diagnostics are generated outside document root once per install' =>
+        str_contains($workflow, 'snapshot="/tmp/max-search-diagnostics-$EXPECTED_SHA-$run_id"')
+        && str_contains($workflow, 'MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR="$snapshot"')
+        && str_contains($workflow, 'test ! -e "$snapshot"')
+        && str_contains($exporter, 'Diagnostics output directory must stay outside the document root'),
     'raw diagnostics use private filesystem permissions' =>
-        strpos($exporter, 'mkdir($outputDir, 0700, true)') !== false
-        && strpos($exporter, '@chmod($tmp,0600)') !== false,
+        str_contains($exporter, 'mkdir($outputDir, 0700, true)')
+        && str_contains($exporter, '@chmod($tmp,0600)')
+        && str_contains($workflow, 'install -d -m 700 "$snapshot"')
+        && str_contains($workflow, 'chmod 400 "$snapshot/snapshot.tar" "$snapshot/snapshot.sha256"'),
     'legacy webroot diagnostics are removed' =>
-        strpos($workflow, 'rm -f diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json') !== false
-        && strpos($workflow, 'rm -rf diagnostics') !== false,
-    'temporary remote diagnostics are always cleaned' =>
-        strpos($workflow, 'trap cleanup_remote_diagnostics EXIT') !== false
-        && strpos($workflow, 'rm -rf \'$remote_diag_dir\'') !== false,
-    'download requires at least one json file' =>
-        strpos($workflow, "find production-diagnostics -maxdepth 1 -type f -name '*.json' -print -quit") !== false,
-    'diagnostics download outcome is captured' =>
-        strpos($workflow, 'DOWNLOAD_OUTCOME: ${{ steps.download_diagnostics.outcome }}') !== false,
-    'deploy telemetry exposes diagnostics outcome' =>
-        strpos($workflow, '"diagnostics":"%s"') !== false,
-    'failed diagnostics transfer fails deployment health' =>
-        strpos($workflow, 'test "$DOWNLOAD_OUTCOME" = "success"') !== false,
+        str_contains($workflow, 'rm -f diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json')
+        && str_contains($workflow, 'rm -rf diagnostics'),
+    'failed copy retains original snapshot and cleanup reconciles absence' =>
+        !str_contains($workflow, 'trap cleanup_remote_diagnostics EXIT')
+        && str_contains($workflow, 'if test ! -e "$snapshot"; then exit 0; fi')
+        && str_contains($workflow, 'rm -rf -- "$snapshot"')
+        && str_contains($workflow, "steps.download.outcome == 'success' || steps.admission.outputs.download_result == 'success'"),
+    'export requires a JSON input before sealing the archive' =>
+        str_contains($workflow, 'find "$snapshot" -maxdepth 1 -type f -name')
+        && str_contains($workflow, 'tar -cf snapshot.tar -- *.json'),
+    'diagnostics outcome and accepted original are captured' =>
+        str_contains($workflow, 'DOWNLOAD_OUTCOME: ${{ steps.download.outcome }}')
+        && str_contains($workflow, 'DOWNLOAD_ACCEPTED: ${{ steps.admission.outputs.download_result }}'),
+    'deploy telemetry uses the finite canonical renderer before branch checkout' =>
+        str_contains($workflow, 'node tools/release_slot_close.js --stage-status')
+        && strpos($workflow, '--stage-status') < strpos($workflow, 'git checkout -B diagnostics'),
+    'failed transfer cannot pass the final verification aggregate' =>
+        str_contains($workflow, 'test "$DOWNLOAD" = success || test "$DOWNLOAD_ACCEPTED" = success'),
     'all structured log consumers use the same explicit private logger owner' => $privateReaders,
     'structured history containment runs in exact checkout sync before migrations' =>
         $reset!==false&&$contain!==false&&$reset<$contain
@@ -54,7 +62,7 @@ $checks = [
         && str_contains($sync,'Public structured log containment failed: HTTP $status')
         && str_contains($sync,'exit 1;; esac'),
     'later smoke verifies the existing private boundary and rechecks its public fence' =>
-        str_contains($smoke,'php tools/structured_runtime_log_smoke.php --check-only;')
+        str_contains($smoke,'php tools/structured_runtime_log_smoke.php --check-only')
         && str_contains($smoke,'tmp_out.txt structured_events.log; do')
         && str_contains($smoke,"-o /dev/null -I -w '%{http_code}'")
         && str_contains($smoke,'case "$status" in 403|404)')

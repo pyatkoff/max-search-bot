@@ -22,9 +22,9 @@ class AiRuntimeLogger
         return self::append('ai_errors.log', $message);
     }
 
-    public static function debugFile(): string
+    public static function debugFile(bool $prepare = true): string
     {
-        return self::file('ai_debug.log');
+        return self::file('ai_debug.log', $prepare);
     }
 
     public static function errorFile(): string
@@ -64,13 +64,13 @@ class AiRuntimeLogger
         return $ok;
     }
 
-    private static function file(string $name): string
+    private static function file(string $name, bool $prepare = true): string
     {
-        $dir = self::directory();
+        $dir = self::directory($prepare);
         return $dir === '' ? '' : $dir . DIRECTORY_SEPARATOR . $name;
     }
 
-    private static function directory(): string
+    private static function directory(bool $prepare = true): string
     {
         $configured = trim((string)(getenv('MAX_SEARCH_AI_LOG_DIR') ?: ''));
         $dir = $configured !== ''
@@ -87,8 +87,9 @@ class AiRuntimeLogger
             return '';
         }
 
-        if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) return '';
-        @chmod($dir, 0700);
+        if (!$prepare && !is_dir($dir)) return '';
+        if ($prepare && !is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) return '';
+        if ($prepare) @chmod($dir, 0700);
 
         $resolved = realpath($dir);
         if ($resolved === false

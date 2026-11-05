@@ -31,6 +31,35 @@ try {
     clearstatcache(true, $input);
     webhookLogCheck('input retention is bounded by size', filesize($input) <= 1048576);
 
+
+    // Execute the real read-only CLI: content, permissions and absent paths
+    // must remain unchanged. A bad mode is reported, never repaired.
+    $beforeContents = file_get_contents($input);
+    $smokeCommand = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($root . '/tools/webhook_runtime_log_smoke.php') . ' --check-only';
+    exec($smokeCommand, $readOnlyOutput, $readOnlyCode);
+    clearstatcache();
+    webhookLogCheck('check-only CLI succeeds without appending a probe', $readOnlyCode === 0 && file_get_contents($input) === $beforeContents);
+
+    $original = file_get_contents($input);
+    unlink($input);
+    file_put_contents($tmp . '/canary', 'private synthetic canary');
+    chmod($tmp . '/canary', 0600);
+    symlink($tmp . '/canary', $input);
+    exec($smokeCommand, $symlinkOutput, $symlinkCode);
+    webhookLogCheck('check-only refuses a linked log without touching its target', $symlinkCode !== 0 && file_get_contents($tmp . '/canary') === 'private synthetic canary');
+    unlink($input); unlink($tmp . '/canary');
+    file_put_contents($input, $original); chmod($input, 0600);
+
+    chmod($tmp, 0750);
+    exec($smokeCommand, $badModeOutput, $badModeCode);
+    clearstatcache();
+    webhookLogCheck('check-only reports unsafe mode without repairing it', $badModeCode !== 0 && (fileperms($tmp) & 0777) === 0750);
+    chmod($tmp, 0700);
+    putenv('MAX_SEARCH_WEBHOOK_LOG_DIR=' . $tmp . '-absent');
+    exec($smokeCommand, $absentOutput, $absentCode);
+    webhookLogCheck('check-only never creates missing directory', $absentCode !== 0 && !file_exists($tmp . '-absent'));
+    putenv('MAX_SEARCH_WEBHOOK_LOG_DIR=' . $tmp);
+
     putenv('MAX_SEARCH_WEBHOOK_LOG_DIR=' . $root . '/.runtime/forbidden-webhook-log-test');
     webhookLogCheck('logger rejects a directory inside document root', WebhookRuntimeLogger::input('must not be written') === false);
     webhookLogCheck('rejected document-root log was not created', !is_file($root . '/.runtime/forbidden-webhook-log-test/webhook_input.log'));
