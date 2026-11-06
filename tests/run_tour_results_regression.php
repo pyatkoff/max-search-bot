@@ -150,9 +150,10 @@ $methods = trMethods($apiSource, 'private static function statusMap()', 'public 
 eval('class CurrentSearchApiProbe extends MaxSearchApi { public static array $saved=[]; public static function getSavedData($chatId): array { return self::$saved; } ' . $methods . '}');
 $ready = [65=>1,66=>4,67=>2,68=>0,72=>'7',73=>date('d.m.Y', strtotime('+1 day'))];
 $messages = [];
-$readinessMessenger = new MaxMessengerAdapter(null, static function ($chatId, $text, $buttons) use (&$messages): bool {
+$captureReadiness = static function ($chatId, $text, array $buttons = []) use (&$messages): bool {
     $messages[] = ['text'=>$text,'buttons'=>$buttons]; return true;
-}, 'ai', null, false);
+};
+$readinessMessenger = new MaxMessengerAdapter($captureReadiness, $captureReadiness, 'ai', null, false);
 IntegrationRegistry::useMessenger($readinessMessenger);
 foreach ([
     'empty'=>[],

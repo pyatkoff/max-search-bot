@@ -396,6 +396,13 @@ if (($argv[1]??'')==='--hotel-rubi-knowledge') {
     exit(0);
 }
 
+if (($argv[1]??'')==='--hotel-top500-accepted-pair') {
+    require_once __DIR__.'/hotel_top500_accepted_pair_checks.php';
+    hotelTop500AcceptedPairChecks();
+    echo 'Hotel TOP500 accepted pair: '.$passed." checks passed\n";
+    exit(0);
+}
+
 if (($argv[1]??'')==='--hotel-knowledge-read') {
     require_once __DIR__.'/hotel_knowledge_read_checks.php';
     hotelKnowledgeReadChecks();
@@ -1109,6 +1116,8 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
     hotelOfferReferenceChecks();
     require_once __DIR__.'/hotel_rubi_knowledge_checks.php';
     hotelRubiKnowledgeChecks();
+    require_once __DIR__.'/hotel_top500_accepted_pair_checks.php';
+    hotelTop500AcceptedPairChecks();
     require_once __DIR__.'/hotel_knowledge_read_checks.php';
     hotelKnowledgeReadChecks();
     require_once __DIR__.'/support/hotel-knowledge-http.php';

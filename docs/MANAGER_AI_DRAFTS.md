@@ -207,6 +207,49 @@ untyped 100m beach statement, selected-drink scope of Platinum AI24h and paid-se
 caveats remain explicit. This is conditional published information, with no
 verified selected-room/tariff equivalence or actual model-use claim.
 
+**Rox Resort and Side Star Resort — accepted TOP500 pair.**
+
+The added entries keep owner ANEX IDs separate from the trusted
+`tourvisor-snapshot-v1` selectors; both selectors require country `4`.
+
+| Property | Owner ANEX ID / TOP500 position | Explicit catalogue chain |
+| --- | --- | --- |
+| Rox Resort | 8595 / 108 | Tourvisor1216 → AnyTour548/rev1 → local-tv1216/rev3 |
+| Side Star Resort | 8476 / 150 | Tourvisor1095 → AnyTour7434/rev1 → local-tv1095/rev3 |
+
+The pair projects 13 declarations (five Rox and eight Side Star Resort) and four
+source records. The full original Rox c41 comparison of the conflicting 52m and
+168m coastline statements remains in `material_limits`, outside the declarations.
+The raw evidence retains all 14 original accepted records. New research and
+continuous-collection acceptance credit remain zero.
+
+Consumer schema projection maps declared official `source_declared` records to
+`official_declared` and the Side Star factsheet's `official_document` kind to
+`official`. Original kinds and independent original-record hashes remain pinned
+in provenance. To fit the existing 16KiB wire budget, the only permitted record
+field omissions are `run_id`, `question_id` and `criterion_id` from claims, and
+`run_id` and `question_id` from sources. Original values remain preserved; validation
+restores them and the original kinds before comparing independent hash pins.
+Raw evidence, pending flags, dates, scopes and qualifications are unchanged. The
+separate original acceptance states remain `CANONICAL_ALL_THREE_SUCCEEDED` for
+Rox and `WORKING_ACCEPTED_EXPORT_PENDING` for Side Star Resort; projection does
+not rewrite either state or the original `pending_not_canonical` flags.
+
+Side Star source S03 remains navigation/identity context; S04 supplies the
+substantive PDF text. No visual table verification is asserted. Its dated official
+à la carte quota remains separate from the older cached catalogue's different
+quota; neither is an unconditional current entitlement. Retrieval on 25 October
+does not establish a fresh trip's tariff, availability or service operation. All
+room-category, season, accessibility and paid-service limits remain source-scoped.
+
+The pair extends the seventeen-group baseline above to 19 manifest groups,
+80 declarations and 52 source records. These are repository data counts, not a
+runtime delivery or model-use result. The focused verification command is:
+
+```bash
+php tests/run_manager_ai_draft_context_regression.php --hotel-top500-accepted-pair
+```
+
 The Pickalbatros Blu Spa group preserves four accepted B04 declarations: the hotel's
 minimum age and couples-only policy, beach length, winter heating of the named
 indoor pool, and the official Deluxe category's area and capacity. Each original
