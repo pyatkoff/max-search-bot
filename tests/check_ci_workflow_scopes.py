@@ -72,8 +72,8 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
 for job in ['required','prepared-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
-check(regression['prepared-mysql']['if'] == "needs.change-scope.outputs.mode == 'full' || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
-expected_exclude = "${{ fromJSON(needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style' && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || '[]') }}"
+check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
+expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || '[]') }}"
 check(regression['required']['strategy']['matrix'] == {
     'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
     'styling excludes exactly four unchanged server groups; other profiles keep all five')
@@ -208,16 +208,27 @@ for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT
     for value in ['success','failure','skipped','cancelled','timed_out','']:
         check(gate_passes(aggregate,{**style_valid,field:value},'Require every gate') == (value == style_valid[field]),
               'styling gate cannot hide a missing or incorrect result: '+field+'='+value)
-for mode,profile in itertools.product(['oauth','full','tour-selection','','unknown'],['selection-style','full','','unknown']):
+for mode,profile in itertools.product(['oauth','full','tour-selection','','unknown'],['selection-style','workspace-style','full','','unknown']):
     check(gate_passes(aggregate,{**style_valid,'CI_MODE':mode,'BACKEND_PROFILE':profile},'Require every gate')
-          == (mode == 'tour-selection' and profile == 'selection-style'),
+          == ((mode == 'tour-selection' and profile == 'selection-style') or (mode == 'full' and profile == 'workspace-style')),
           'a styling result cannot certify another or missing profile')
+
+# Independently exercise the source-result gate for the new backend profile.
+# Its browser mode remains full; existing full visual truth tables still apply.
+workspace_valid = {**style_valid,'CI_MODE':'full','BACKEND_PROFILE':'workspace-style'}
+check(gate_passes(aggregate,workspace_valid,'Require every gate'),'workspace styling baseline passes')
+for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
+    for value in ['success','failure','skipped','cancelled','timed_out','']:
+        check(gate_passes(aggregate,{**workspace_valid,field:value},'Require every gate') == (value == workspace_valid[field]),
+              'workspace styling cannot hide a missing or incorrect result: '+field+'='+value)
+check(visual_triggered('manager/assets/workspace-v2-tour-choices.css'),'booking stylesheet must launch full browser proof')
+
 for mode in ['full','tour-selection','oauth']:
     backend = mode != 'oauth'
     full_valid = dict(CI_MODE=mode,SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',
         REQUIRED_RESULT='success' if backend else 'skipped',PREPARED_MYSQL_RESULT='success' if backend else 'skipped',
         OAUTH_RESULT='skipped' if backend else 'success')
-    for profile in ['', 'unknown', 'selection-style']:
+    for profile in ['', 'unknown', 'selection-style', 'workspace-style']:
         check(not gate_passes(aggregate,{**full_valid,'BACKEND_PROFILE':profile},'Require every gate'),
               'full/OAuth results need their exact declared profile')
 for mode,scope,full,oauth in itertools.product(['oauth','full','','invalid'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled']):

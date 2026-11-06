@@ -52,8 +52,8 @@ jobs:
       fail-fast: false
       matrix:
         group: [architecture, dialogue, website, manager, diagnostics]
-        # Only an exact styling-only PR may omit unchanged server owners.
-        exclude: ${{ fromJSON(needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style' && '[{"group":"dialogue"},{"group":"website"},{"group":"manager"},{"group":"diagnostics"}]' || '[]') }}
+        # Only an exact audited styling profile may omit unchanged server owners.
+        exclude: ${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{"group":"dialogue"},{"group":"website"},{"group":"manager"},{"group":"diagnostics"}]' || '[]') }}
     runs-on: ubuntu-latest
     name: required / ${{ matrix.group }}
     steps:
@@ -80,7 +80,7 @@ jobs:
 
   prepared-mysql:
     needs: change-scope
-    if: needs.change-scope.outputs.mode == 'full' || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
+    if: (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
     # Each matrix job owns a fresh MySQL service and runner. Never run these
     # destructive fixtures concurrently against one shared database.
     strategy:
@@ -194,7 +194,7 @@ jobs:
               test "$PREPARED_MYSQL_RESULT" = success
               test "$OAUTH_RESULT" = skipped
               ;;
-            tour-selection:selection-style)
+            tour-selection:selection-style|full:workspace-style)
               test "$REQUIRED_RESULT" = success
               test "$PREPARED_MYSQL_RESULT" = skipped
               test "$OAUTH_RESULT" = skipped
