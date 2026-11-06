@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ConversationRecordClock.php';
+require_once __DIR__.'/ModeledConversionPriceContext.php';
 
 /** Prospective source journal only. No trip inference, model, provider or goal caller. */
 final class ModeledConversionStream
@@ -174,6 +175,7 @@ final class ModeledConversionStream
             'source_created_at_unix'=>isset($meta['created_at_unix'])?(int)$meta['created_at_unix']:null,
             'source_timestamp_basis'=>isset($meta['recording_clock_unix'])?'canonical_recording_unix_v1':'database_session_timezone_to_unix','payload_sha256'=>$sourceHash,
             'trip_status'=>'unknown','history_complete'=>false];
+        if($kind==='event'&&($meta['event_type']??null)==='channel_post_entry')$base['derived_price_context_version']=ModeledConversionPriceContext::VERSION;
         $estimate=(int)$meta['payload_bytes']*6+4096;
         if ($estimate>65536) $snapshot=$base+['payload_status'=>'oversize_not_copied','payload'=>null];
         else {
@@ -186,6 +188,12 @@ final class ModeledConversionStream
             $payload=$this->payload($kind,$id);
             $receipt['native_rows_read']++;
             if($payload===null)self::fail('source_changed_inside_snapshot');
+            if($kind==='event'&&($payload['event_type']??null)==='channel_post_entry'
+                &&$receipt['native_rows_read']<self::ROW_LIMIT-2&&$receipt['payload_bytes']+10000+$estimate<=self::BYTE_LIMIT){
+                $price=ModeledConversionPriceContext::capture($this->pdo,$meta,$payload,$now);
+                $receipt['native_rows_read']+=$price['rows'];$receipt['payload_bytes']+=$price['bytes'];
+                if($price['context']!==null)$payload['_modeled_price_context']=$price['context'];
+            }
             $snapshot['payload']=$payload;
             $bytes=strlen(self::json($snapshot));
             if($bytes>$estimate||$receipt['payload_bytes']+$bytes>self::BYTE_LIMIT)self::fail('payload_budget');
@@ -230,7 +238,7 @@ final class ModeledConversionStream
             $legacyClock=$this->mysql?'UNIX_TIMESTAMP(s.created_at)':"CAST(strftime('%s',s.created_at) AS INTEGER)";
             $recorded=ConversationRecordClock::sql($kind==='message'?'s.metadata_json':'s.payload_json',$this->mysql);
             $clock="COALESCE(($recorded),$legacyClock)";
-            $select="s.id,c.channel AS platform,c.id AS conversation_id,c.customer_id AS customer_key,s.created_at,$clock AS created_at_unix,$recorded AS recording_clock_unix,($bytes) AS payload_bytes,$hash AS payload_hash";
+            $select=($kind==='event'?'s.event_type,':'')."s.id,c.channel AS platform,c.id AS conversation_id,c.customer_id AS customer_key,s.created_at,$clock AS created_at_unix,$recorded AS recording_clock_unix,($bytes) AS payload_bytes,$hash AS payload_hash";
         }
         return $this->query('SELECT '.$select.' FROM '.$from.' WHERE '.$where.' AND '.$clauses.' ORDER BY s.id LIMIT '.$limit,$bind)->fetchAll(PDO::FETCH_ASSOC);
     }

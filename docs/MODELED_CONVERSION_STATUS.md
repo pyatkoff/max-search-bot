@@ -613,3 +613,44 @@ result that exceeds its slice is still charged; absolute global exhaustion and
 the deadline still fail closed. Revocation and unrelated errors propagate.
 The same registered SQLite/native-MySQL regressions exercise optional pressure,
 unchanged saved rows, mandatory final authorization and absolute exhaustion.
+
+
+### Owner-authorized early advertising V1 — 2026-11-06
+
+New live profiles opt into contextual_advertising_v1. Stage priors remain the
+starting point. Expert odds modifiers are bounded: continued meaningful dialogue
+1.10, continued offer search1.10, office question1.10, payment-terms question1.15;
+combined odds are capped at1.30. Deferral, trip horizon and urgency are neutral.
+Direct refusal retains its conservative guard. These are explicit advertising
+hypotheses, not fitted or calibrated purchase probabilities. Isolated historical
+and explicit research-weight calls keep their original contracts.
+
+The same immutable profile stores deal_value_prediction, bound to the semantic
+digest, cutoff, subject and current request. It records first-hour, first-three-
+hours, first-day or later age from the observed request anchor, not a claimed
+channel-join time. Each natural admitted update appends a forecast; an idle tick
+does not fabricate a new customer observation.
+
+The commission rate is the owner's7%. Advertising value is estimated probability
+times min(25000, estimated tour amount times0.07). Customer budget, native selected
+hotel inquiry, delivered party-price offers and a pinned channel publication
+range are distinct observational sources. Unknown/foreign/nightly/per-person
+prices do not become a verified party quote. With no usable deal price, the
+existing25000 advertising base remains explicitly marked as a fallback.
+A fresh price observation is frozen at its admission time; source text, routing,
+messages and native publication records are never modified.
+
+The existing scoped outbox/goal/counter/transport contract remains the delivery
+owner. Live prediction rows have an immutable profile-ID key, allowing a positive
+increment within the same stage. The collector holds its existing settings lock
+and subtracts every previously reserved value for that conversation. Repeated,
+lower or identical estimates create no event. Commission base and total cumulative
+value remain capped at25000. Historical rows, activation/cursors, existing claims
+and receipts are retained; they are not repriced or replayed. Explicit frozen-funds
+context suppresses a new payment-stage award. No new scheduler or sender exists.
+
+The private bounded forecast reader validates the new probability contract and
+reports monetary coverage/source/window/ranges without customer text or IDs.
+Registered semantic, real-interpreter, SQLite and native-MySQL exporter checks
+cover same-stage upgrades, amount revisions, duplicates, decrease, cap, unknown
+price, currency/unit guards, immutable readback and frozen funds.
