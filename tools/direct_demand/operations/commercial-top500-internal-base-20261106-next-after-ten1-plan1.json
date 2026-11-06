@@ -12,12 +12,12 @@
     "file": "top500-readback.private.json"
   },
   "steps": [
-    "Do not repeat the consumed ten-ID metadata or Tourvisor8208 profile scope.",
-    "Locate original retained ANEX names/countries or the existing accepted typed ANEX-to-Tourvisor mapping; use saved records first.",
-    "Verify mapping provenance and acceptance; retain unmapped/conflicting/ambiguous rows as explicit gaps.",
-    "Recompute TOP500 membership and candidate order only after verified mapping. Withdraw4/157/488 as identity counts.",
-    "Resume original publication operations only on mapped identities with all existing media/price/native/dedup/private-intent/once/UNKNOWN requirements.",
-    "Review producer collection/popularity namespace use with its existing owner before any related production change; do not patch IDs by numeric equality."
+    "Keep the consumed ten-ID metadata and Tourvisor8208 projection/profile scopes closed; do not replay their operations or treat their numbers as ANEX membership.",
+    "Producer namespace correction is merged in poisk-turov-test PR4998 and PR4999. Obtain current or retained accepted mapping evidence through the existing authorized route, with provenance and manual-decision/exclusion state; source tests are not live mapping coverage.",
+    "Keep every unmapped, conflicting or ambiguous ANEX identity explicit. Do not use numeric equality, a name-only match, or historical XML candidates as acceptance.",
+    "Recompute TOP500 membership and candidate order only after verified mapping and the publication canonical/native binding. Keep the previous numeric 4/157/488 claims withdrawn until real identity-based results exist.",
+    "Resume the original serial publication operations only on mapped identities with all existing media, price, native, dedup, private-intent, once and UNKNOWN requirements; no new workflow or replay.",
+    "Source merge and a built Search3 artifact are not runtime installation. The automatic main site deployment stopped at SSH authentication before release copy; exact runtime mapping/readback remains outstanding through the existing authorized executor."
   ],
   "bounds": {
     "property_groups": 1,
@@ -42,5 +42,22 @@
   "top500_membership": null,
   "previous_unverified_priority_native_ids": [
     8208
-  ]
+  ],
+  "source_implementation": {
+    "record": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
+    "status": "producer_source_correction_merged_runtime_identity_evidence_outstanding",
+    "collector_pr": 4998,
+    "collector_merge_sha": "d245a6c8d9ff34c7ba517212ba704b290451ff8e",
+    "search3_pr": 4999,
+    "search3_merge_sha": "ec6799c7074331b2545562a83812123ab4e15e83",
+    "current_real_mapping_coverage": null,
+    "search3_installed": false,
+    "publication_admission": "HOLD_UNTIL_VERIFIED_MAPPING_AND_EXISTING_RUNTIME_GUARDS",
+    "automatic_site_deploy": {
+      "run": 42174647704,
+      "result": "failure_before_release_copy",
+      "reason": "SSH permission denied while preparing legacy lead receiver",
+      "manual_retry": false
+    }
+  }
 }

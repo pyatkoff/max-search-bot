@@ -69,15 +69,88 @@
     "linked": 155
   },
   "next": [
-    "Locate original retained ANEX names/countries or the existing accepted typed ANEX-to-Tourvisor mapping; use saved records first.",
-    "Verify mapping provenance and acceptance; retain unmapped/conflicting/ambiguous rows as explicit gaps.",
-    "Recompute TOP500 membership and candidate order only after verified mapping. Withdraw4/157/488 as identity counts.",
-    "Resume original publication operations only on mapped identities with all existing media/price/native/dedup/private-intent/once/UNKNOWN requirements.",
-    "Review producer collection/popularity namespace use with its existing owner before any related production change; do not patch IDs by numeric equality."
+    "Keep the consumed ten-ID metadata and Tourvisor8208 projection/profile scopes closed; do not replay their operations or treat their numbers as ANEX membership.",
+    "Producer namespace correction is merged in poisk-turov-test PR4998 and PR4999. Obtain current or retained accepted mapping evidence through the existing authorized route, with provenance and manual-decision/exclusion state; source tests are not live mapping coverage.",
+    "Keep every unmapped, conflicting or ambiguous ANEX identity explicit. Do not use numeric equality, a name-only match, or historical XML candidates as acceptance.",
+    "Recompute TOP500 membership and candidate order only after verified mapping and the publication canonical/native binding. Keep the previous numeric 4/157/488 claims withdrawn until real identity-based results exist.",
+    "Resume the original serial publication operations only on mapped identities with all existing media, price, native, dedup, private-intent, once and UNKNOWN requirements; no new workflow or replay.",
+    "Source merge and a built Search3 artifact are not runtime installation. The automatic main site deployment stopped at SSH authentication before release copy; exact runtime mapping/readback remains outstanding through the existing authorized executor."
   ],
   "source_link_question": "Already asked once; do not repeat or invent a URL.",
   "superseded_head": "a177c1d98cd08c5670435fda5fcad86799243369",
   "source_review6897_validity": "Generic publisher versus legacy-price code findings remain true for the Tourvisor context. They are not proof of owner ANEX8208 membership.",
   "ready_for_publication": false,
-  "goal500_complete": false
+  "goal500_complete": false,
+  "source_implementation": {
+    "owner_namespace": "anex",
+    "source_roster_unique_ids": 492,
+    "current_real_mapping_coverage": null,
+    "registry": {
+      "source_sha": "6dcfb5053793caba4f353facfa7a899a30df2d17",
+      "path": "app/integrations/anex-search-mapping-registry.php",
+      "blob_sha": "cc135a95d2a6e0f73ce50be2141c9b8a26fddc58",
+      "policy": "Reused unchanged; manual decisions and exclusions preserved; priority projection only"
+    },
+    "collector": {
+      "pr": 4998,
+      "source_sha": "241662a62c21ccb6021c0f6a9bbd901c24a8e110",
+      "merged_sha": "d245a6c8d9ff34c7ba517212ba704b290451ff8e",
+      "ci_success_runs": [
+        42174398968,
+        42174399025,
+        42174399151
+      ],
+      "automatic_data_bootstrap": {
+        "run": 42174647755,
+        "result": "success",
+        "exact_runtime_mapping_readback": false
+      },
+      "automatic_site_deploy": {
+        "run": 42174647704,
+        "result": "failure",
+        "reason": "SSH permission denied while preparing legacy lead receiver",
+        "release_copy": "skipped",
+        "retry": false
+      },
+      "source_tree": "80331610e7f3e6e97a971bd5f7255f88e2765892",
+      "merge_tree_verified_equal_to_tested_source": true
+    },
+    "search3": {
+      "pr": 4999,
+      "base_branch": "release/search3-production-ready-v1",
+      "source_sha": "c902ebc2766a696c6fd7c312a3ac4167c0239019",
+      "source_tree": "090ba09974d5a4029c8f90fb3f217276ffc55e12",
+      "merged_sha": "ec6799c7074331b2545562a83812123ab4e15e83",
+      "merge_tree_verified_equal_to_tested_source": true,
+      "status": "merged_all_final_source_checks_success",
+      "ci_success_runs": [
+        42175076448,
+        42175076533,
+        42175076489,
+        42175076439,
+        42175076470,
+        42175076429
+      ],
+      "ci_success_checks": 9,
+      "artifact": {
+        "run": 42175076470,
+        "id": 13482413400,
+        "name": "search3-site-preview-c902ebc2766a696c6fd7c312a3ac4167c0239019-42175076470-1",
+        "digest": "sha256:f07741ad0dd6e731357ec5a9a5aefc42e557d088f5340566c0193cc49c7d71bd"
+      },
+      "installed": false
+    },
+    "behavior": {
+      "numeric_fallback": false,
+      "unmapped_rows": "explicit gaps",
+      "typed_published_stock_monitor": "preserved independently",
+      "new_mapping_acceptances": 0,
+      "supplier_manual_refresh": 0,
+      "manual_publications": 0,
+      "live_top500_membership_recount": false
+    },
+    "source_implementation_date": "2026-11-06",
+    "publication_identity_note": "Source priorities use the existing accepted ANEX-to-Tourvisor catalog resolver. This is not a new mapping acceptance and does not itself prove the separate canonical/native binding required for publication.",
+    "phase_boundary": "The original audit-only plan and zero-change bounds remain historical evidence of that phase. This separate owner-authorized phase changed producer source and existing validation/dependency packaging; it did not dispatch a new runtime operation. Existing automatic merge workflows ran as recorded."
+  }
 }
