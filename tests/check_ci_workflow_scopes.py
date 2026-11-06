@@ -72,8 +72,8 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
 for job in ['required','prepared-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
-check(regression['prepared-mysql']['if'] == "needs.change-scope.outputs.mode == 'full' || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
-expected_exclude = "${{ fromJSON(needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style' && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || '[]') }}"
+check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
+expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || '[]') }}"
 check(regression['required']['strategy']['matrix'] == {
     'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
     'styling excludes exactly four unchanged server groups; other profiles keep all five')
@@ -208,16 +208,27 @@ for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT
     for value in ['success','failure','skipped','cancelled','timed_out','']:
         check(gate_passes(aggregate,{**style_valid,field:value},'Require every gate') == (value == style_valid[field]),
               'styling gate cannot hide a missing or incorrect result: '+field+'='+value)
-for mode,profile in itertools.product(['oauth','full','tour-selection','','unknown'],['selection-style','full','','unknown']):
+for mode,profile in itertools.product(['oauth','full','tour-selection','','unknown'],['selection-style','workspace-style','full','','unknown']):
     check(gate_passes(aggregate,{**style_valid,'CI_MODE':mode,'BACKEND_PROFILE':profile},'Require every gate')
-          == (mode == 'tour-selection' and profile == 'selection-style'),
+          == ((mode == 'tour-selection' and profile == 'selection-style') or (mode == 'full' and profile == 'workspace-style')),
           'a styling result cannot certify another or missing profile')
+
+# Independently exercise the source-result gate for the new backend profile.
+# Its browser mode remains full; existing full visual truth tables still apply.
+workspace_valid = {**style_valid,'CI_MODE':'full','BACKEND_PROFILE':'workspace-style'}
+check(gate_passes(aggregate,workspace_valid,'Require every gate'),'workspace styling baseline passes')
+for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
+    for value in ['success','failure','skipped','cancelled','timed_out','']:
+        check(gate_passes(aggregate,{**workspace_valid,field:value},'Require every gate') == (value == workspace_valid[field]),
+              'workspace styling cannot hide a missing or incorrect result: '+field+'='+value)
+check(visual_triggered('manager/assets/workspace-v2-tour-choices.css'),'booking stylesheet must launch full browser proof')
+
 for mode in ['full','tour-selection','oauth']:
     backend = mode != 'oauth'
     full_valid = dict(CI_MODE=mode,SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',
         REQUIRED_RESULT='success' if backend else 'skipped',PREPARED_MYSQL_RESULT='success' if backend else 'skipped',
         OAUTH_RESULT='skipped' if backend else 'success')
-    for profile in ['', 'unknown', 'selection-style']:
+    for profile in ['', 'unknown', 'selection-style', 'workspace-style']:
         check(not gate_passes(aggregate,{**full_valid,'BACKEND_PROFILE':profile},'Require every gate'),
               'full/OAuth results need their exact declared profile')
 for mode,scope,full,oauth in itertools.product(['oauth','full','','invalid'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled']):
@@ -249,17 +260,35 @@ close = tail_workflow['jobs']['release-slot']
 check(close['needs'] == 'configure', 'value operation must finish or be declared skipped before closing')
 expected_close_if = "always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.run_attempt == 1 || github.event.workflow_run.run_attempt == 2) && (needs.configure.result == 'success' || needs.configure.result == 'skipped')"
 check(close['if'] == expected_close_if, 'only original or proven verification recovery may enter the fail-closed closer')
-check(close['permissions'] == {'contents':'read', 'actions':'read', 'pull-requests':'read', 'issues':'write'},
-      'comment capability belongs only to metadata closer')
+check(close['permissions'] == {'contents':'write', 'actions':'read', 'pull-requests':'read', 'issues':'write'},
+      'only the metadata closer may publish the finite diagnostics record and terminal comment')
 check(close['runs-on'] == 'ubuntu-latest' and close['timeout-minutes'] == 20, 'bounded existing server runner')
-check(len(close['steps']) == 2, 'no dispatch, deployment or extra acceptance in closing job')
-checkout, closing = close['steps']
+check(len(close['steps']) == 4, 'proof preparation and upload precede the only terminal mutation in the same job')
+checkout, prepared, publication, closing = close['steps']
 check(checkout['uses'] == 'actions/checkout@v4' and checkout['with'] == {
     'ref':'${{ github.event.workflow_run.head_sha }}', 'persist-credentials':False},
-    'closer runs exact installed source without persisted token')
-check(closing['run'] == 'node tools/release_slot_close.js'
-      and closing['env'] == {'GITHUB_TOKEN':'${{ github.token }}','CONFIGURE_RESULT':'${{ needs.configure.result }}'}
-      and not closing.get('if') and not closing.get('continue-on-error'), 'one fail-closed canonical closure')
+    'closer runs exact repository source without persisted token')
+check(prepared['id'] == 'prepared'
+      and prepared['run'] == 'node tools/release_slot_close.js --prepare-closure --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"'
+      and prepared['env'] == {'GITHUB_TOKEN':'${{ github.token }}','CONFIGURE_RESULT':'${{ needs.configure.result }}'}
+      and not prepared.get('continue-on-error') and not prepared.get('if'),
+      'prepare waits for the original gates and saves the exact terminal candidate before closure')
+check(publication['name'] == 'Bind the terminal candidate to the original closer run — ${{ steps.prepared.outputs.record_digest }}'
+      and publication['uses'] == 'actions/upload-artifact@v4'
+      and publication['if'] == "steps.prepared.outputs.publication_artifact != ''"
+      and publication['with'] == {
+          'name':'${{ steps.prepared.outputs.publication_artifact }}',
+          'path':'${{ runner.temp }}/deployment-release-publication.json',
+          'if-no-files-found':'error','retention-days':90}
+      and not publication.get('continue-on-error'),
+      'original successful publication binds its exact digest and contains only the finite metadata proof')
+check(closing['name'] == 'Release only the admitted publisher after all original mandatory gates'
+      and closing['run'] == 'node tools/release_slot_close.js'
+      and closing['env'] == {'GITHUB_TOKEN':'${{ github.token }}','CONFIGURE_RESULT':'${{ needs.configure.result }}',
+                            'PREPARED_RECORD_DIGEST':'${{ steps.prepared.outputs.record_digest }}'}
+      and closing['if'] == "steps.prepared.outputs.record_digest != ''"
+      and not closing.get('continue-on-error'),
+      'only the exact prepared result may reach the final single terminal mutation')
 check('${{ secrets.' not in json.dumps(close), 'closer never receives production credentials')
 check('release-slot-close:v1' in (root/'docs/RELEASE_PRIORITY.md').read_text(),
       'single existing publisher opt-in is documented')

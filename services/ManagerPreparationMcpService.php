@@ -247,7 +247,15 @@ final class ManagerPreparationMcpService
             };
             return (new ManagerTourSelectionMcpAdapter($authorize))->call($name,$args,$admin,$connection);
         } elseif($dialogue){
-            $data=(new DialogueReviewMcpAdapter($this->pdo,$this->dialogueStore,$this->clock))->call($name,$args,$admin,$connection);
+            $selectionSourceAuthorize=null;
+            $sourceScopes=[ManagerPreparationOAuth::DIALOGUE_SCOPE,ManagerPreparationOAuth::SELECTION_SCOPE];
+            if($name==='get_dialogue_review_context'&&ManagerPreparationOAuth::hasScopes($scopes,$sourceScopes)){
+                $selectionSourceAuthorize=function(int $actor,string $family)use($admin,$connection,$sourceScopes):void{
+                    if($actor!==$admin||$family!==$connection)throw new DomainException();
+                    $this->requireCurrentContext($admin,$connection,$sourceScopes);
+                };
+            }
+            $data=(new DialogueReviewMcpAdapter($this->pdo,$this->dialogueStore,$this->clock,$selectionSourceAuthorize))->call($name,$args,$admin,$connection);
         } elseif($forecast){
             if($this->forecastBudget===null)throw new RuntimeException();
             $authorize=function()use($admin,$connection,$required):void{$this->requireCurrentContext($admin,$connection,$required);};

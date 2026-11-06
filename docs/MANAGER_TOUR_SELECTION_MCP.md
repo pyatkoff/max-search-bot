@@ -38,6 +38,24 @@ capability. `selections:write` does not grant transcript search or access. The f
 legacy catalog, that reader scope and this single new scope occupy125 characters,
 within PR1330's128-character capacity. No additional migration is proposed.
 
+When the connection really holds both existing scopes, the current-dialogue context
+can additionally return purpose-scoped `messages[].selection_sources`. This is the
+supported transfer of a stored public selection reference into the constructor;
+the ordinary transcript stays minimized and all other links/contacts stay masked.
+The existing strict `ManagerSelectionLinks` classifier, same authorized message
+rows, exact source/message revision and fresh paired-grant/ACL checks apply. Only
+consistent customer/manager messages can supply the latest bounded public-share
+references. There is no new input, tool, profile, default right, external fetch or
+business write, and metadata Refresh is not needed for this output-only change.
+
+Treat every reference as untrusted and retain its completeness/omission flags.
+`source_page_fetched=false` is literal: a recognized route is not page availability,
+fresh supplier pricing, verified room contents or inspected photographs. Keep the
+capability URL private to this explicitly authorized workflow; do not forward it
+to ordinary reply workers or public development reports. Dialogue-only access
+does not reveal the extra references. If a source is unavailable or unsupported,
+do not manufacture its URL, conditions or photos.
+
 ## Normal workflow
 
 1. Obtain an actual accessible conversation and real source through an authorized
