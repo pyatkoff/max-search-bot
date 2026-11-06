@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ConversationRecordClock.php';
 require_once __DIR__.'/ManagerAiTextRedactor.php';
+require_once __DIR__.'/ManagerSelectionLinks.php';
 require_once __DIR__.'/ManagerCallbackPresentationService.php';
 
 /** Private, bounded projections of existing live stores. No collector or business-state owner. */
@@ -14,13 +15,16 @@ final class DialogueReviewReadService
     public const MAX_MESSAGE_BYTES=32768;
     public const MAX_PAGE_SOURCE_BYTES=32768;
     public const MAX_PROFILE_BYTES=131072;
+    public const MAX_SELECTION_REFERENCES_PER_MESSAGE=2;
+    public const MAX_SELECTION_REFERENCES_PER_PAGE=20;
     private const MAX_SECONDS=8.0;
     private bool $mysql;
     private float $deadline=0.0;
     private array $boundScopes=[];
     private int $sourceBytes=0;
+    private int $selectionReferenceCount=0;
 
-    public function __construct(private PDO $pdo,private $clock=null,private $keyProvider=null)
+    public function __construct(private PDO $pdo,private $clock=null,private $keyProvider=null,private $selectionSourceAuthorize=null)
     {
         $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if(!in_array($driver,['mysql','sqlite'],true))throw new InvalidArgumentException('dialogue_review_driver');
@@ -75,7 +79,9 @@ final class DialogueReviewReadService
     {
         self::arguments($args,['dialogue_ref','limit','cursor'],100);
         if(!isset($args['dialogue_ref']))self::fail('invalid_arguments');
-        return $this->read($admin,$connection,function(string $key)use($admin,$connection,$args):array{
+        // This is a server-supplied, live dual-grant verifier, never a tool input.
+        $selectionSources=is_callable($this->selectionSourceAuthorize);
+        return $this->read($admin,$connection,function(string $key)use($admin,$connection,$args,$selectionSources):array{
             $now=$this->now();$limit=$args['limit']??50;
             $ref=$this->decode($args['dialogue_ref'],'dialogue',$key,$admin,$connection);
             $rows=$this->nativeRows(' AND c.id=?',[$ref['d']],1);
@@ -122,7 +128,7 @@ final class DialogueReviewReadService
                 $raw=$payload[(string)$meta['id']]??null;
                 if($meta['read_status']==='available'&&($raw===null
                     ||strlen((string)$raw['text'])!==(int)$meta['text_bytes']||strlen((string)$raw['metadata_json'])!==(int)$meta['metadata_bytes']))self::fail('source_changed');
-                $messages[]=$this->projectMessage($meta,$raw);
+                $messages[]=$this->projectMessage($meta,$raw,$selectionSources);
             }
             $this->sourceBytes+=$payloadBytes;
             $readCount=count($messages);$returned=$messages;
@@ -157,19 +163,21 @@ final class DialogueReviewReadService
             }
             if(strlen(self::json($result))>self::MAX_OUTPUT_BYTES&&$returned){
                 $returned[0]['text']=null;$returned[0]['read_status']='response_record_limit';
+                if($selectionSources)$returned[0]['selection_sources']=self::unavailableSelectionSources('response_record_limit');
                 $result=$make($returned,$more,$profile);
             }
             return$result;
-        });
+        },$selectionSources);
     }
 
-    private function read(int $admin,string $connection,callable $operation):array
+    private function read(int $admin,string $connection,callable $operation,bool $selectionSources=false):array
     {
         if($this->pdo->inTransaction())self::fail('transaction_active');
         if($admin<1||preg_match('/\A[a-f0-9]{32}\z/D',$connection)!==1||!is_callable($this->keyProvider))self::fail('forbidden');
-        $this->deadline=microtime(true)+self::MAX_SECONDS;$this->boundScopes=[];$this->sourceBytes=0;
+        $this->deadline=microtime(true)+self::MAX_SECONDS;$this->boundScopes=[];$this->sourceBytes=0;$this->selectionReferenceCount=0;
         $owned=false;$queryOnly=null;$post=false;
         try{
+            if($selectionSources)($this->selectionSourceAuthorize)($admin,$connection);
             $key=$this->key($admin,$connection);
             if($this->mysql){
                 $this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
@@ -183,7 +191,9 @@ final class DialogueReviewReadService
             $this->pdo->rollBack();$owned=false;
             if($queryOnly!==null){$this->pdo->exec('PRAGMA query_only='.($queryOnly?'ON':'OFF'));$queryOnly=null;}
             // All release checks run outside the old source snapshot, including native subject ownership.
-            $post=true;$freshKey=$this->key($admin,$connection);
+            $post=true;
+            if($selectionSources)($this->selectionSourceAuthorize)($admin,$connection);
+            $freshKey=$this->key($admin,$connection);
             if(!hash_equals($key,$freshKey))self::fail('stale_cursor');
             if($permission!==$this->permission($admin))self::fail('permission_changed');
             if($this->boundScopes){
@@ -203,7 +213,7 @@ final class DialogueReviewReadService
                 if($owned&&$this->pdo->inTransaction())$this->pdo->rollBack();
                 if($queryOnly!==null)$this->pdo->exec('PRAGMA query_only='.($queryOnly?'ON':'OFF'));
             }catch(Throwable $e){self::fail('unavailable');}
-            finally{$this->boundScopes=[];$this->sourceBytes=0;}
+            finally{$this->boundScopes=[];$this->sourceBytes=0;$this->selectionReferenceCount=0;}
         }
     }
 
@@ -289,7 +299,7 @@ final class DialogueReviewReadService
         catch(Throwable $e){return['availability'=>'unavailable','reason'=>'saved_profile_unusable','profile_id'=>isset($id)?$id:null];}
     }
 
-    private function projectMessage(array $meta,?array $raw):array
+    private function projectMessage(array $meta,?array $raw,bool $selectionSources=false):array
     {
         $direction=in_array($meta['direction'],['inbound','outbound'],true)?$meta['direction']:'unknown';
         $sender=in_array($meta['sender_type'],['customer','manager','ai','bot','system'],true)?$meta['sender_type']:'unknown';
@@ -299,6 +309,7 @@ final class DialogueReviewReadService
         $item=['message_id'=>(string)$meta['id'],'source_ref'=>'message:'.$meta['id'],'direction'=>$direction,'sender_type'=>$sender,'role'=>$role,
             'read_status'=>$meta['read_status'],'text'=>null,'event_type'=>'unknown','clock'=>$this->recordedClock(null,$meta['created_at']),
             'media_unread'=>null,'linked_context_unread'=>null,'text_minimized'=>false,'links_redacted'=>false,'selection_links_unread'=>false,'revision'=>null];
+        if($selectionSources)$item['selection_sources']=self::unavailableSelectionSources('source_unavailable');
         if($meta['read_status']!=='available')return$item;
         $text=(string)$raw['text'];$json=(string)$raw['metadata_json'];
         // Hash byte strings independently: malformed text/JSON remains an explicit omission, not a JSON-encoding exception.
@@ -318,9 +329,49 @@ final class DialogueReviewReadService
         }
         $selection=false;$links=false;$item['text']=ManagerAiTextRedactor::redact($text,$selection,$links);
         $item['text_minimized']=true;$item['links_redacted']=$links;$item['selection_links_unread']=$selection;
+        if($selectionSources){
+            $item['selection_sources']=$valid&&$type==='message'&&in_array($role,['customer','manager'],true)
+                ?$this->selectionSources($text,$item)
+                :self::unavailableSelectionSources('unsupported_message');
+        }
         $item['media_unread']=$valid?(!empty($metadata['attachments'])):null;
         $item['linked_context_unread']=$valid?(!empty($metadata['linked_message'])):null;
         return$item;
+    }
+
+    private static function unavailableSelectionSources(string $reason):array
+    {
+        return ['references'=>[],'complete'=>false,'reason'=>$reason,'source_page_fetched'=>false];
+    }
+
+    /** Purpose-scoped references only; ordinary text/provider/log projections stay redacted. */
+    private function selectionSources(string $text,array $message):array
+    {
+        $id=filter_var($message['message_id'],FILTER_VALIDATE_INT,['options'=>['min_range'=>1]]);
+        if($id===false||(string)$id!==$message['message_id'])return self::unavailableSelectionSources('unsupported_identity');
+        $found=ManagerSelectionLinks::inMessage($text,$id,$message['sender_type'],'');
+        $valid=[];$unsupported=0;
+        foreach($found as$source){
+            $url=$source['url']??null;
+            if(!is_string($url)){++$unsupported;continue;}
+            // Keep the latest distinct references, using the existing strict classifier.
+            unset($valid[$url]);$valid[$url]=$url;
+        }
+        $remaining=max(0,self::MAX_SELECTION_REFERENCES_PER_PAGE-$this->selectionReferenceCount);
+        $take=min(self::MAX_SELECTION_REFERENCES_PER_MESSAGE,$remaining);
+        $selected=$take>0?array_slice(array_values($valid),-$take):[];
+        $omitted=count($valid)-count($selected);$reached=count($found)>=41;
+        $references=[];
+        foreach($selected as$url){
+            $references[]=['message_id'=>$message['message_id'],'source_ref'=>$message['source_ref'],
+                'message_revision'=>$message['revision'],'provider'=>'qui_quo_public_selection','url'=>$url,
+                'untrusted_source'=>true,'source_page_fetched'=>false];
+        }
+        $this->selectionReferenceCount+=count($references);
+        return ['references'=>$references,'complete'=>$unsupported===0&&$omitted===0&&!$reached,
+            'reason'=>$unsupported>0?'unsupported_links':($omitted>0||$reached?'reference_limit':null),
+            'unsupported_links_within_limit'=>$unsupported,'references_omitted_within_limit'=>$omitted,
+            'classifier_limit_reached'=>$reached,'source_page_fetched'=>false];
     }
 
     private function recordedClock(mixed $unix,mixed $raw):array
