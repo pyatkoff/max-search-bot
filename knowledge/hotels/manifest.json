@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-11-06.1",
+  "version": "2026-11-06.2",
   "project_key": "anytour",
   "bindings": [
     {
@@ -985,6 +985,122 @@
         "common_version": 1,
         "member": "hotel-rubi-20261106/rubi-platinum/accepted-binding.json",
         "scope": "Five unchanged inherited-baseline ANEX declarations and their original source are admitted as conditional published information for Tourvisor 27426/country 4 -> AnyTour 5537 only, after independent scoped identity/content review. Original research status, dates, records and zero new collector credit remain unchanged; no current native ANEX, room/tariff, future-operation or runtime/model-use proof."
+      }
+    },
+    {
+      "status": "accepted",
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "country": "4",
+        "hotel": "1216"
+      },
+      "accepted_source_names": [
+        "ROX RESORT (EX. ROX ROYAL)"
+      ],
+      "accepted_binding": {
+        "accepted_chain": [
+          {
+            "id": 1216,
+            "namespace": "legacy_catalog/catalog_hotels.id"
+          },
+          {
+            "catalog_revision": 1,
+            "id": 548,
+            "namespace": "anytour"
+          },
+          {
+            "catalog_revision": 3,
+            "id": 1216,
+            "namespace": "local-tv"
+          }
+        ],
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 548
+        },
+        "identity_anchor": {
+          "address": "Yeni Mah. Sehit Polis Cemal ilgaz Cad. No:8, 07980 Кемер, Турция",
+          "city": "Kemer",
+          "country": "Turkey",
+          "official_url": "https://roxresorthotel.com/en/en-general-information/",
+          "research_source_id": "HOTEL-TR-MANUAL-20261025T191157Z-BASE08_s11",
+          "research_source_record_sha256": "f2dc6e7f0feca99f2b4c7e95b0ec07bf66f8667746f748113a1f65b34aff3c80"
+        },
+        "project_key": "anytour",
+        "proofs": {
+          "anex-effective-pair.json": "c78cba4e413275156a4219f6b832bbb13553c66dc5be1df3e88937d90e2de4ed",
+          "canonical-five.raw": "c17eb7a692f290653c89a8a1bc3ada6a6747dd19442139596292ce0b9eca3af7",
+          "identity-anchor.json": "5d7d25811ca1e522ec36f5f31e413d9ba71f5594dfdae93fd88b2f79d52053f5",
+          "local-tv-five.raw": "e003130ce5a79e2e13db6fe98011ed86ca2b4be0d187888420ecf3121da26024"
+        },
+        "research_hotel_key": "top500_f1261c425e8ee6c5"
+      },
+      "binding_revision": "2e22d5c49e5ddad8a9a178bfead672a1686628913d8dc9ec75b73b973be13442",
+      "bundle_file": "anytour-548-rox-resort.json",
+      "bundle_sha256": "dff355ddbc5831b07185665e7854267ef6feaafb5be16a635f3588e668e51d8f",
+      "approval": {
+        "library_file_id": "libfile_5f87d9ae4bc08191a8c51e20ab6b20e1",
+        "common_version": 63,
+        "member": "hotel-anex-pair-20261106/rox-resort/accepted-binding.json",
+        "scope": "5 prior explicit-accepted official declarations and 2 sources, projected only by reviewed kind labels and omitted repetitive research fields. Original records/scopes/dates/pending flags and hashes preserved; Rox comparison remains a non-declaration limit. Conditional published information for the exact typed source/AnyTour chain; no new research credit, current trip/tariff, future operation, source CI, installation or natural model-use proof."
+      }
+    },
+    {
+      "status": "accepted",
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "country": "4",
+        "hotel": "1095"
+      },
+      "accepted_source_names": [
+        "SIDE STAR RESORT (EX. VERA CLUB LINDITA)"
+      ],
+      "accepted_binding": {
+        "accepted_chain": [
+          {
+            "id": 1095,
+            "namespace": "legacy_catalog/catalog_hotels.id"
+          },
+          {
+            "catalog_revision": 1,
+            "id": 7434,
+            "namespace": "anytour"
+          },
+          {
+            "catalog_revision": 3,
+            "id": 1095,
+            "namespace": "local-tv"
+          }
+        ],
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 7434
+        },
+        "identity_anchor": {
+          "address": "Feslegenli Caddesi Gundogdu Beldesi Colaklı-Manavgat / Antalya / TURKIYE, 07600 Сиде, Турция",
+          "city": "Side / Gündoğdu",
+          "country": "Turkey",
+          "official_url": "https://www.sidestarhotels.com/resort/tr",
+          "research_source_id": "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_s03",
+          "research_source_record_sha256": "7dc6f7378dcaa489250c97f00141b6ab740489c2a41d0931cbd1b0bf9dfa4daa"
+        },
+        "project_key": "anytour",
+        "proofs": {
+          "anex-effective-pair.json": "11556c78cb40ac4566bfa9793f58e17a3a179426ebf9eb991fea7752b6bd38d0",
+          "canonical-five.raw": "c17eb7a692f290653c89a8a1bc3ada6a6747dd19442139596292ce0b9eca3af7",
+          "identity-anchor.json": "f32a38236081c5d9d048602b88e617363c952734a6eb725ca27a24ab57f1d740",
+          "local-tv-five.raw": "e003130ce5a79e2e13db6fe98011ed86ca2b4be0d187888420ecf3121da26024"
+        },
+        "research_hotel_key": "top500_fdca49b82e8446ad"
+      },
+      "binding_revision": "64dc68e8c54be50d404eb9f501bafa41b23ef46bf6abae5a13300afd2a5ffd3e",
+      "bundle_file": "anytour-7434-side-star-resort.json",
+      "bundle_sha256": "9ac513fe02d35e0de88f5fe0b43b8f7e85ccbac891601cf88a90ce17fb2980b3",
+      "approval": {
+        "library_file_id": "libfile_5f87d9ae4bc08191a8c51e20ab6b20e1",
+        "common_version": 63,
+        "member": "hotel-anex-pair-20261106/side-star-resort/accepted-binding.json",
+        "scope": "8 prior explicit-accepted official declarations and 2 sources, projected only by reviewed kind labels and omitted repetitive research fields. Original records/scopes/dates/pending flags and hashes preserved; Rox comparison remains a non-declaration limit. Conditional published information for the exact typed source/AnyTour chain; no new research credit, current trip/tariff, future operation, source CI, installation or natural model-use proof."
       }
     }
   ]

@@ -98,7 +98,7 @@ const $=id=>document.getElementById(id),esc=value=>{const node=document.createEl
 const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,printProposal=null,imageExport=null,imageDownload=null;
+let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,bulkTerms=null,printProposal=null,imageExport=null,imageDownload=null;
 let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null,biblioPanel=null,oneTouchPanel=null,appearancePanel=false;
 let offerComparison=null;
 // View reads are cancellable independently of the durable send/save context.
@@ -176,7 +176,7 @@ function renderAppearance(){
   for(const key of ['Name','Note','Phone','Email'])$('tsManager'+key).oninput=update;
   $('tsAppearanceBack').onclick=()=>{if(busy)return;appearancePanel=false;render();$('tsAppearance')?.focus()};
 }
-function canCompareOffers(){return current()&&dialog?.open&&draft?.offers.length>=2&&!loading&&!busy&&!pending&&!conflict&&!preview&&!sending&&!sharing&&!photoUpload&&!bulkPrice&&!tripPanel&&!biblioPanel&&!oneTouchPanel&&!appearancePanel}
+function canCompareOffers(){return current()&&dialog?.open&&draft?.offers.length>=2&&!loading&&!busy&&!pending&&!conflict&&!preview&&!sending&&!sharing&&!photoUpload&&!bulkPrice&&!bulkTerms&&!tripPanel&&!biblioPanel&&!oneTouchPanel&&!appearancePanel}
 function comparisonCurrent(job=offerComparison){return !!job&&job===offerComparison&&job.epoch===epoch&&current(job.context)&&dialog?.open}
 function showOfferComparison(){
   if(!canCompareOffers()||offerComparison)return;
@@ -264,13 +264,13 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){closeOfferComparison(false);appearancePanel=false;cancelImageExport();clearPrint();closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function close(){closeOfferComparison(false);appearancePanel=false;cancelImageExport();clearPrint();closeBulkPrices(false);closeBulkTerms(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function editCurrent(){
   appearancePanel=false;
   cancelImageExport();historyView++;preview=false;render();recovery(conflict?'conflict':pending?'pending':'');
   status(conflict?'Есть конфликт правок. Сравните версии перед сохранением.':pending?'Результат сохранения уточняется. Сначала проверьте его.':!canEdit?'Просмотр текущего черновика. Править может ответственный менеджер или администратор.':dirty?'Текущий черновик. Есть несохранённые изменения.':'Текущий черновик. Изменения не отправляют сообщения.',!!conflict||!!pending);
 }
-function suspend(){closeOfferComparison(false);cancelImageExport();clearPrint();closeBulkPrices(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){closeOfferComparison(false);cancelImageExport();clearPrint();closeBulkPrices(false);closeBulkTerms(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend();host.activate()}
 function sync(c){
   if(context&&!current())suspend();
@@ -298,6 +298,8 @@ function ensure(){
   const comparisonPanel=document.createElement('section');comparisonPanel.id='tsOfferCompare';comparisonPanel.className='tsOfferCompare';comparisonPanel.hidden=true;comparisonPanel.setAttribute('aria-labelledby','tsOfferCompareTitle');dialog.querySelector('.tsLayout').before(comparisonPanel);
   const prices=document.createElement('button');prices.id='tsBulkPrices';prices.type='button';prices.className='tsBulkButton';prices.textContent='Цены';prices.title='Изменить несколько цен';prices.setAttribute('aria-label','Изменить несколько цен');prices.onclick=showBulkPrices;actions.append(prices);
   const bulk=document.createElement('section');bulk.id='tsBulkPrice';bulk.className='tsBulkPrice';bulk.hidden=true;bulk.setAttribute('aria-labelledby','tsBulkTitle');dialog.querySelector('.tsLayout').before(bulk);
+  const terms=document.createElement('button');terms.id='tsBulkTermsOpen';terms.type='button';terms.className='tsBulkButton';terms.textContent='Условия';terms.setAttribute('aria-label','Изменить несколько условий');terms.setAttribute('aria-controls','tsBulkTerms');terms.onclick=showBulkTerms;actions.append(terms);
+  const termsPanel=document.createElement('section');termsPanel.id='tsBulkTerms';termsPanel.className='tsBulkPrice tsBulkTerms';termsPanel.hidden=true;termsPanel.setAttribute('aria-labelledby','tsTermsTitle');dialog.querySelector('.tsLayout').before(termsPanel);
   if(typeof host.openStandalone==='function'){const standalone=document.createElement('button');standalone.id='tsStandalone';standalone.type='button';standalone.textContent='Открыть отдельно';standalone.onclick=()=>{if(current())host.openStandalone(context.conversation)};actions.append(standalone)}
   for(const [name,label,handler] of [['tsHistory','История отправки',showHistory],['tsPreview','Предпросмотр',showPreview],['tsEdit','К редактированию',editCurrent],['tsPrint','Печать / PDF',printPreview],['tsShare','Общая ссылка',showShare],['tsSend','Отправить подборку',sendAll]]){const button=document.createElement('button');button.id=name;button.type='button';button.textContent=label;button.onclick=handler;footer.insertBefore(button,$('tsDone'))}
   window.addEventListener('afterprint',()=>{clearPrint();controls()});
@@ -491,7 +493,7 @@ async function reconcileOneTouch(){
 
 function newOffer(){return {id:id(),selected:true,hotel:'',destination:'',departure:'',room:'',meal:'',source_label:'',rationale:'',compromise:'',flights:'',inclusions:'',constraints:'',stars:null,nights:null,adults:null,date_from:'',child_ages:[],amount:'',currency:'RUB',source_url:'',observed_at:'',photos:[]}}
 function add(){if(!editable()||draft.offers.length>=20)return;const item=newOffer();draft.offers.push(item);selected=item.id;offerDetailsOpen=true;changed();render();$('ts-hotel')?.focus()}
-function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload&&!bulkPrice&&!biblioPanel&&!oneTouchPanel&&!offerComparison}
+function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload&&!bulkPrice&&!bulkTerms&&!biblioPanel&&!oneTouchPanel&&!offerComparison}
 
 function biblioError(result){return {biblio_invalid_url:'Вставьте полную ссылку на результаты поиска Библио-Глобуса с городом вылета, датами и составом.',biblio_source_unavailable:'Сайт Библио-Глобуса не ответил. Варианты в подборке сохранены.',biblio_source_changed:'Не удалось однозначно прочитать условия на странице оператора.',biblio_no_quotes:'На этой странице не найдено предложений с однозначной ценой, составом и условиями.',biblio_photos_unavailable:'Фотографии именно этого отеля не подтверждены. Вариант не добавлен.',biblio_expired:'Цена прочитана более десяти минут назад. Прочитайте предложения заново.',biblio_price_confirmation:'Подтвердите цену за весь указанный состав.',source_price_changed:'У такого варианта изменилась исходная цена. Проверьте уже сохранённый вариант.',manual_price_conflict:'У этого варианта уже есть другая ручная цена. Проверьте сохранённый вариант.',ambiguous_offer:'Похожий вариант уже есть с другими условиями. Проверьте его перед добавлением.',selection_full:'В подборке уже 20 вариантов.',connection_changed:'Клиент или запрос изменился. Откройте подборку заново.'}[result?.error]||error(result)}
 function biblioCurrent(panel){return biblioPanel===panel&&current(panel.target)&&epoch===panel.epoch&&version===panel.version&&canEdit&&!dirty&&!pending&&!conflict&&!preview&&dialog?.open}
@@ -557,6 +559,99 @@ async function submitBiblio(command){
   if(result?.ok){await reconcile();return}
   if(result?.http_status&&result.http_status<500&&!['operation_mismatch','invalid_response'].includes(result.error)){pending=null;if([403,404].includes(result.http_status))canEdit=false;stash();render();status(biblioError(result),true);return}
   stash();controls();recovery('pending');status('Результат добавления не подтверждён. Сначала проверьте сохранение; повторное добавление не запускается.',true);
+}
+const bulkTermFields=[
+  {key:'departure',label:'Город вылета',type:'text',max:160},
+  {key:'date_from',label:'Дата вылета',type:'date'},
+  {key:'nights',label:'Ночей',type:'number',max:60},
+  {key:'adults',label:'Взрослых',type:'number',max:20},
+  {key:'child_ages',label:'Возраст детей',type:'ages'},
+  {key:'room',label:'Номер',type:'text',max:300},
+  {key:'meal',label:'Питание',type:'text',max:160},
+  {key:'flights',label:'Перелёт',type:'multiline',max:1200},
+  {key:'inclusions',label:'Включено',type:'multiline',max:600},
+  {key:'constraints',label:'Условия и доплаты',type:'multiline',max:1200},
+];
+function canOpenBulkTerms(){return !!draft?.offers.length&&dialog?.open&&editable()&&!busy&&!sharing&&!tripPanel&&!appearancePanel&&!invalidAges()}
+function bulkTermsCurrent(){return !!bulkTerms&&dialog?.open&&current(bulkTerms.context)&&epoch===bulkTerms.epoch&&version===bulkTerms.version&&canEdit&&!busy&&!loading&&!pending&&!conflict&&!preview&&!sending&&!sharing&&!photoUpload&&bulkTerms.signature===JSON.stringify(draft)}
+function showBulkTerms(){
+  if(!canOpenBulkTerms())return;
+  clearTimeout(timer);timer=0;clearHotelKnowledge();historyView++;recovery('');
+  const batch={context:capture(),epoch,version,signature:JSON.stringify(draft),offers:clone(draft.offers)};bulkTerms=batch;
+  const root=$('tsBulkTerms');root.hidden=false;dialog.classList.add('tsBulkMode');
+  root.innerHTML='<div class="tsBulkBody"><h3 id="tsTermsTitle">Изменить несколько условий</h3><p>Отметьте варианты и поля. До применения черновик не меняется. Цены не пересчитываются: после изменения дат или состава проверьте цену за весь состав.</p><fieldset id="tsTermsOffers"><legend>Какие варианты изменить</legend>'+batch.offers.map((offer,index)=>'<label><input type="checkbox" data-ts-terms-offer="'+esc(offer.id)+'" '+(offer.selected?'checked':'')+'><span>'+esc((index+1)+'. '+(offer.hotel||'Без названия'))+'<small>'+esc(overviewAmount(offer.amount,offer.currency,offer.price_qualifier))+(offer.selected?'':' · не включён в подборку')+'</small></span></label>').join('')+'</fieldset><fieldset id="tsTermsFields"><legend>Какие поля изменить</legend>'+bulkTermFields.map(field=>{
+    const key=field.key,valueId='tsTermsValue-'+key;
+    return '<div class="tsTermsField"><label for="tsTermsUse-'+key+'"><input id="tsTermsUse-'+key+'" type="checkbox" data-ts-terms-field="'+key+'" aria-controls="'+valueId+'">'+esc(field.label)+'</label>'+(field.type==='multiline'?'<select id="tsTermsMode-'+key+'" aria-label="Способ изменения: '+esc(field.label)+'" disabled><option value="append">Добавить к тексту</option><option value="replace">Заменить текст</option><option value="clear">Очистить поле</option></select><textarea id="'+valueId+'" rows="3" maxlength="'+field.max+'" aria-label="Новое значение: '+esc(field.label)+'" disabled></textarea>':'<input id="'+valueId+'" type="'+(field.type==='date'?'date':'text')+'" '+(field.type==='date'?'':field.type==='number'?'inputmode="numeric" maxlength="2"':field.type==='ages'?'inputmode="text" maxlength="47"':'maxlength="'+field.max+'"')+' aria-label="Новое значение: '+esc(field.label)+'" disabled>')+(field.type==='ages'?'<small>Возраст каждого ребёнка от 0 до 17 через запятую. Пустое поле — без детей.</small>':'')+'</div>';
+  }).join('')+'</fieldset><h4>Проверьте изменения</h4><div id="tsTermsError" class="tsError" role="status" aria-live="polite"></div><div id="tsTermsPreview" class="tsTermsPreview" aria-label="Предпросмотр изменения условий"></div><label class="tsTermsConfirm"><input id="tsTermsConfirm" type="checkbox" disabled>Проверил изменения. Цену и наличие проверю перед отправкой.</label><p>Изменяются только выбранные поля. Фотографии, исходные условия поставщика и уже опубликованные версии сохраняются. Новые условия — ваши правки, а не обновление предложения оператора.</p></div><div class="tsBulkFooter"><button id="tsTermsCancel" type="button">Отмена</button><button id="tsTermsApply" type="button" class="tsPrimary" disabled>Применить</button></div>';
+  root.oninput=root.onchange=event=>{if(bulkTerms===batch)previewBulkTerms(event)};
+  root.onkeydown=event=>{if(event.key==='Escape'&&bulkTerms===batch){event.preventDefault();event.stopPropagation();closeBulkTerms()}};
+  $('tsTermsCancel').onclick=()=>{if(bulkTerms===batch)closeBulkTerms()};$('tsTermsApply').onclick=()=>{if(bulkTerms===batch)applyBulkTerms()};
+  controls();root.querySelector('[data-ts-terms-offer]')?.focus();
+}
+function termText(value,field){
+  const text=String(value).replace(/\r\n?/g,'\n').trim(),multiline=field.type==='multiline';
+  if((multiline?/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/:/[\x00-\x1f\x7f]/).test(text)||Array.from(text).length>field.max)throw Error(field.label+': превышен размер или есть недопустимые символы.');
+  return text;
+}
+function bulkTermValue(field){
+  const raw=$('tsTermsValue-'+field.key).value;
+  if(field.type==='ages'){if(!validAges(raw))throw Error('Возраст детей: укажите до 12 возрастов от 0 до 17 через запятую.');return raw.trim()===''?[]:raw.split(',').map(x=>Number(x.trim()))}
+  if(field.type==='number'){if(!/^[0-9]{1,2}$/.test(raw.trim())||Number(raw)<1||Number(raw)>field.max)throw Error(field.label+': укажите целое число от 1 до '+field.max+'.');return Number(raw)}
+  if(field.type==='date'){
+    const match=/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(raw),date=new Date(0);
+    if(match)date.setUTCFullYear(Number(match[1]),Number(match[2])-1,Number(match[3]));
+    if(!match||Number(match[1])<1||date.getUTCFullYear()!==Number(match[1])||date.getUTCMonth()!==Number(match[2])-1||date.getUTCDate()!==Number(match[3]))throw Error('Дата вылета: выберите существующую календарную дату.');
+    return raw;
+  }
+  const value=termText(raw,field);if(!value)throw Error(field.label+': заполните новое значение.');return value;
+}
+function termDisplay(value,field){if(field.type==='ages')return value?.length?value.join(', '):'Без детей';return value===null||value===undefined||value===''?'Не указано':String(value)}
+function bulkTermsPlan(){
+  if(!bulkTermsCurrent())throw Error('Подборка или доступ изменились. Откройте массовую правку заново.');
+  const ids=new Set([...$('tsTermsOffers').querySelectorAll('input:checked')].map(x=>x.dataset.tsTermsOffer)),offers=bulkTerms.offers.filter(x=>ids.has(x.id));
+  if(!offers.length)throw Error('Отметьте хотя бы один вариант.');
+  const fields=bulkTermFields.filter(field=>$('tsTermsUse-'+field.key).checked);if(!fields.length)throw Error('Отметьте поля, которые нужно изменить.');
+  const values=new Map();for(const field of fields){
+    const mode=field.type==='multiline'?$('tsTermsMode-'+field.key).value:'replace';if(!['append','replace','clear'].includes(mode))throw Error('Выберите способ изменения поля.');
+    values.set(field.key,{mode,value:mode==='clear'?'':bulkTermValue(field)});
+  }
+  return offers.map(offer=>{
+    const changes=[];for(const field of fields){
+      const input=values.get(field.key),before=offer[field.key]??(field.type==='ages'?[]:''),after=input.mode==='append'?termText([before,input.value].filter(Boolean).join('\n'),field):input.value;
+      if(JSON.stringify(before)!==JSON.stringify(after))changes.push({field:field.key,label:field.label,before:termDisplay(before,field),after:termDisplay(after,field),value:after});
+    }
+    return {id:offer.id,hotel:offer.hotel,changes};
+  });
+}
+function previewBulkTerms(event){
+  if(!bulkTerms)return;const allowed=bulkTermsCurrent(),root=$('tsBulkTerms'),confirm=$('tsTermsConfirm');
+  if(event&&event.target!==confirm)confirm.checked=false;
+  root.querySelectorAll('[data-ts-terms-offer],[data-ts-terms-field]').forEach(input=>{input.disabled=!allowed});
+  for(const field of bulkTermFields){const chosen=allowed&&$('tsTermsUse-'+field.key).checked,mode=$('tsTermsMode-'+field.key);if(mode)mode.disabled=!chosen;const input=$('tsTermsValue-'+field.key);input.disabled=!chosen||mode?.value==='clear';input.closest('.tsTermsField').classList.toggle('isChosen',chosen)}
+  try{
+    const rows=bulkTermsPlan(),changed=rows.filter(x=>x.changes.length),signature=JSON.stringify(rows);
+    if(bulkTerms.previewSignature!==signature){
+      confirm.checked=false;bulkTerms.previewSignature=signature;const preview=$('tsTermsPreview');preview.replaceChildren();
+      for(const row of rows){const article=document.createElement('article'),title=document.createElement('h5');article.className='tsTermsRow';title.textContent=row.hotel||'Без названия';article.append(title);
+        if(!row.changes.length){const p=document.createElement('p');p.textContent='Нет изменений';article.append(p)}
+        for(const change of row.changes){const block=document.createElement('div'),label=document.createElement('strong'),before=document.createElement('p'),after=document.createElement('p');label.textContent=change.label;before.textContent='Было: '+change.before;after.textContent='Станет: '+change.after;block.append(label,before,after);article.append(block)}preview.append(article);
+      }
+    }
+    $('tsTermsError').textContent=changed.length?'':'Выбранные значения уже сохранены. Нет изменений.';confirm.disabled=!changed.length;$('tsTermsApply').disabled=!changed.length||!confirm.checked;$('tsTermsApply').textContent='Применить к вариантам: '+changed.length;
+  }catch(error){confirm.checked=false;confirm.disabled=true;$('tsTermsApply').disabled=true;$('tsTermsError').textContent=error.message;$('tsTermsPreview').replaceChildren();delete bulkTerms.previewSignature;}
+}
+function closeBulkTerms(resume=true){
+  if(!bulkTerms)return;bulkTerms=null;const root=$('tsBulkTerms');if(root){root.oninput=root.onchange=root.onkeydown=null;root.replaceChildren();root.hidden=true}dialog?.classList.remove('tsBulkMode');
+  if(resume&&current()&&dialog?.open){render();$('tsBulkTermsOpen')?.focus();resumeComparisonAutosave()}
+}
+function applyBulkTerms(){
+  if(!bulkTerms)return;
+  try{
+    const rows=bulkTermsPlan();if(!$('tsTermsConfirm').checked||JSON.stringify(rows)!==bulkTerms.previewSignature){previewBulkTerms();$('tsTermsError').textContent='Проверьте текущий предпросмотр и подтвердите изменения.';return}
+    const changedRows=rows.filter(row=>row.changes.length);if(!changedRows.length)return;
+    const next=clone(draft);for(const row of changedRows){const offer=next.offers.find(x=>x.id===row.id);for(const change of row.changes){offer[change.field]=clone(change.value);if(change.field==='child_ages')delete rawAges[row.id]}}
+    closeBulkTerms(false);draft=next;changed();render();status('Изменены условия вариантов: '+changedRows.length+'. Черновик сохраняется. Проверьте цену за весь новый состав перед отправкой.');
+  }catch(error){$('tsTermsError').textContent=error.message;$('tsTermsConfirm').checked=false;$('tsTermsApply').disabled=true;}
 }
 function priceUnits(value){
   const text=String(value??'').trim().replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
@@ -790,7 +885,7 @@ function render(){
   dialog.classList.toggle('tsAppearanceMode',appearancePanel&&!preview);
   dialog.classList.toggle('tsOfferCompareMode',!!offerComparison);
   applyAppearance($('tsEditor'),preview?publication?.appearance:null);
-  if(bulkPrice){controls();return}
+  if(bulkPrice||bulkTerms){controls();return}
   if(offerComparison){renderOfferComparison();controls();return}
   if(oneTouchPanel){renderList();renderOneTouch();controls();return}
   if(biblioPanel){renderList();renderBiblio();controls();return}
@@ -847,6 +942,8 @@ function controls(){
   $('tsCompareOffers').hidden=preview;$('tsCompareOffers').disabled=!canCompareOffers()||!!offerComparison;$('tsCompareOffers').setAttribute('aria-expanded',String(!!offerComparison));
   $('tsAppearance').hidden=preview;$('tsAppearance').disabled=disabled||busy||!!tripPanel;
   $('tsBulkPrices').disabled=disabled||busy||!!tripPanel||!(draft?.offers.length)||invalidAges();$('tsBulkPrices').hidden=preview;
+  $('tsBulkTermsOpen').disabled=!canOpenBulkTerms();$('tsBulkTermsOpen').hidden=preview;
+  if(bulkTerms)previewBulkTerms();
   if(bulkPrice){$('tsHistory').disabled=true;previewBulkPrices();}
   const factsButton=$('tsHotelKnowledgeRead');if(factsButton){factsButton.disabled=!canReadHotelKnowledge();factsButton.title=dirty?'Сначала сохраните изменения':'';}
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
@@ -854,10 +951,12 @@ function controls(){
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],[data-ts-remove-photo],[data-ts-photo-mode],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;$('tsDone').hidden=!preview;
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!!photoUpload||!canEdit||busy||loading||sending||sharing;
+  if(bulkTerms)$('tsCollector').disabled=true;
+  if($('tsStandalone'))$('tsStandalone').disabled=!!bulkTerms;
   $('tsOneTouch').hidden=preview;$('tsOneTouch').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
   $('tsBiblio').hidden=preview;$('tsBiblio').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
   $('tsPreview').disabled=!!photoUpload||busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=!!photoUpload||busy||loading||sending;$('tsEdit').disabled=sending;
-  if(bulkPrice){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
+  if(bulkPrice||bulkTerms){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
   if(offerComparison){for(const id of ['tsHistory','tsPreview','tsCollector','tsAppearance','tsOneTouch','tsBiblio','tsTripAdd','tsBulkPrices','tsAdd','tsSave'])$(id).disabled=true;}
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
   const printLabel=printProposal?'Вернуть предпросмотр':'Печать / PDF';$('tsPrint').hidden=!preview;if($('tsPrint').textContent!==printLabel)$('tsPrint').textContent=printLabel;$('tsPrint').disabled=printProposal?!current():!canPrint();
@@ -867,7 +966,7 @@ function controls(){
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
   $('tsTripAdd').hidden=preview;$('tsTripAdd').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
-  $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=!!photoUpload||busy});
+  $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=!!photoUpload||busy||!!bulkTerms});
   if(tripPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector'])$(id).disabled=true;}
   if(oneTouchPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector','tsBulkPrices','tsTripAdd','tsBiblio'])$(id).disabled=true;$('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=true});oneTouchControls();}
   if(appearancePanel&&!preview){
@@ -1106,7 +1205,7 @@ function updateDelivery(){
   controls();
 }
 async function showPreview(){
-  if(!current()||busy||sending||pending||conflict||biblioPanel||oneTouchPanel||offerComparison||invalidAges())return;
+  if(!current()||busy||sending||pending||conflict||bulkTerms||biblioPanel||oneTouchPanel||offerComparison||invalidAges())return;
   historyView++;
   clearTimeout(timer);if(dirty)await save();if(dirty||busy||pending||conflict||!current())return;
   const token=epoch;busy=true;controls();status('Готовим предпросмотр…');const result=await request('prepare',{version});if(token!==epoch)return;busy=false;
@@ -1118,12 +1217,12 @@ async function showPreview(){
   status(result?.error==='incomplete_offers'?'Заполните '+(result.fields||[]).map(x=>'в варианте '+x.position+': '+x.fields.map(f=>f==='photos'&&!draft.offers.find(o=>o.id===x.offer_id)?.import_source?'три фото':names[f]||f).join(', ')).join('; ')+'.':error(result),true);controls();
 }
 async function showHistory(){
-  if(!current()||busy||sending||bulkPrice||biblioPanel||oneTouchPanel||appearancePanel||offerComparison)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open||appearancePanel||offerComparison)return;busy=false;controls();
+  if(!current()||busy||sending||bulkPrice||bulkTerms||biblioPanel||oneTouchPanel||appearancePanel||offerComparison||bulkTerms)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open||appearancePanel||offerComparison||bulkTerms)return;busy=false;controls();
   if(!result?.ok){status(error(result),true);return}
   const root=$('tsRecovery');root.replaceChildren();root.hidden=false;
   if(!result.publications.length){root.textContent='Пока нет подготовленных к отправке подборок.';return}
   const heading=document.createElement('p');heading.textContent='Подготовленные подборки и результаты отправки:';root.appendChild(heading);
-  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice||biblioPanel||oneTouchPanel||appearancePanel||offerComparison)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open||biblioPanel||oneTouchPanel||appearancePanel||offerComparison)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
+  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice||bulkTerms||biblioPanel||oneTouchPanel||appearancePanel||offerComparison||bulkTerms)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open||biblioPanel||oneTouchPanel||appearancePanel||offerComparison||bulkTerms)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
 }
 async function showInterest(){
   if(!current()||busy||sending||sharing||interestLoading||!publication)return;

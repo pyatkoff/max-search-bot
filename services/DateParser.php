@@ -102,6 +102,16 @@ class DateParser
             }
         }
 
+        // A two-month phrase is a window/alternative, not a single departure.
+        // Never combine one month's name with another month's phase.
+        $months = [];
+        foreach (self::MONTHS as $stem => $number) {
+            if (preg_match('/(?<![а-яё])' . preg_quote($stem, '/') . '[а-яё]*/ui', $text)) {
+                $months[$number] = true;
+            }
+        }
+        if (count($months) > 1) return ['ambiguous_months'=>true];
+
         $monthInfo = self::detectMonth($text);
         if (empty($monthInfo)) return [];
 

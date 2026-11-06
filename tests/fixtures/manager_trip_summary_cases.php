@@ -83,6 +83,9 @@ class MaxSearchApi
 {
  public static $statusDate='date',$statusCheck='check';
  public static array $saved=['date'=>'20.10.2030','adults'=>'2'],$statuses=[],$generations=[],$events=[];
+ // This fixture isolates historical summary metadata; current readiness is
+ // explicitly complete. Admission failures are exercised by dialogue/result tests.
+ public static function getAiMissingFields($chat): array{return [];}
  public static function getSavedData($chat): array{return self::$saved;}
  public static function formatSavedData(array $saved): array{return ['✈️ <b>Москва</b> → Турция','👥 '.($saved['adults']??'').' взрослых'];}
  public static function funnelLog($chat,$event,array $data=[]): void{self::$events[]=$event;}

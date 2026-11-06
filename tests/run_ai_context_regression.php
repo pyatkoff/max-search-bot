@@ -143,6 +143,37 @@ $invalid = AiSearchContextService::normalizeParameters(
 );
 aiCheck('invalid AI values are rejected', $invalid, []);
 
+// Search-time freshness must not rewrite or reinterpret historical context.
+$today = new DateTimeImmutable('2030-07-12');
+$currentSaved = $withoutHotelRefinements;
+foreach ([
+    ['11.07.2030', ['date']], ['12.07.2030', []], ['13.07.2030', []],
+    ['31.02.2030', ['date']], ['', ['date']], ['2030-07-13', ['date']],
+] as [$date, $expectedMissing]) {
+    $currentSaved[73] = $date;
+    aiCheck('current search admission for ' . $date,
+        AiSearchContextService::missingForCurrentSearch($currentSaved, $status, $today), $expectedMissing);
+}
+$currentSaved[73] = '13.07.2030';
+$currentSaved[68] = 1;
+$currentSaved[69] = '0';
+aiCheck('current readiness retains canonical infant age without optional hotel filters',
+    AiSearchContextService::missingForCurrentSearch($currentSaved, $status, $today), []);
+foreach ([null, ''] as $unansweredChildren) {
+    $incompleteParty = array_replace($currentSaved, [68=>$unansweredChildren]);
+    aiCheck('unanswered child-count row is not zero children',
+        AiSearchContextService::missingForCurrentSearch($incompleteParty, $status, $today), ['children']);
+}
+$currentSaved[73] = '11.07.2030';
+$historical = $currentSaved;
+aiCheck('historical structural context is not a current search decision',
+    AiSearchContextService::missingFromSaved($currentSaved, $status), []);
+AiSearchContextService::missingForCurrentSearch($currentSaved, $status, $today);
+aiCheck('current admission never mutates saved needs', $currentSaved, $historical);
+aiCheck('empty search asks each required field once',
+    AiSearchContextService::missingForCurrentSearch([], $status, $today),
+    ['city','country','adults','children','nights','date']);
+
 $storage = AiSearchContextService::storageMap($status);
 aiCheck('storage map country', $storage['country'] ?? null, 66);
 aiCheck('storage map date', $storage['date'] ?? null, 73);
