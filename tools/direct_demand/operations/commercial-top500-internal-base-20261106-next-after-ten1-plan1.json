@@ -15,7 +15,7 @@
     "Reuse the complete retained ANEX-ID lookup: 444 exact ANEX-to-Tourvisor pairs and 48 source IDs not found in the retained rows. Keep per-pair evidence dates (7 Nov6, 423 Oct20, 14 Sep12). Today's existing collector aggregate independently reports444/492, but is not a fresh444-row per-ID acceptance. No new MATCH census or name/numeric-equality join.",
     "Use retained444_publication_preparation to exclude the45 exact native IDs present in the saved161 publication snapshot from5Nov19:59:37UTC. The other399 are candidate selectors only: absence in that snapshot is not complete historical or current duplicate clearance. Retain aliases, deleted/UNKNOWN operation restrictions and original current publisher gates.",
     "Reuse the33 exact TOP500 links already present in existing stock51 (25+62 native candidates). Maxx Royal Kemer ANEX8277->TV27349 (rank45) and Maxx Royal Bodrum ANEX37198->TV108942 (rank234) already have verified complete captions. Preserve those texts unchanged; do not repeat their facts, MATCH or source50/51 metadata review closed by batch54.",
-    "Complete one property at a time through the original owner and existing Canva template. For Maxx Royal Kemer27349 the concrete missing material is an accepted whole-main-complex photo and final cover; no approved hero exists in the reviewed retained packages. The new2023PDF pointer was not visually admitted: web size limit, unavailable screenshot and directHTTP403. Do not retry or use alternate paths to bypass that403. A ready one-hotel material need not wait for the rest.",
+    "Complete one property at a time through the original owner and existing Canva template. Maxx Royal Kemer27349 still needs an accepted whole-main-complex photo and final cover. A new official Kemer photobank was located through the official property gallery. Four new frames were reviewed: one beach-only and three with main buildings clipped at the left edge; accepted heroes0. Their closed verdicts, three original JPEGs, one source-review PNG and retained Canva asset are recorded in new_kemer_photobank_review. No repeat download or standalone review of these four, no reopening the cancelled transaction. The blocked2023PDF remains closed. A ready one-hotel material need not wait for the rest.",
     "The accepted seven canonical/local-TV chains remain closed and reusable. Senza Garden27611->1228->AnyTour555 and Inn8554->16794->AnyTour1773 remain known candidates; Garden dedup includes Larissa Hill Beach. Rox1216/AnyTour548 and Side Star Resort1095/AnyTour7434 already have accepted conditional HOTEL bundles in main. The HOTEL owner retains Elegance/Saturn/Arcanus work. No repeat identity/research admission.",
     "Prepare only genuinely ready cards using existing prepare-commercial-batch.py and commercial-batch-template-20261102.php, then the same serial publisher's exact native/source/production/host/rights/private-intent/once/UNKNOWN gates and required prior-publication dedup. Do not dispatch the unchanged content100 workflow armed for closed8208 reads. No new queue, worker, controller or scheduler.",
     "Preserve all consumed ten-ID/TV8208/supplier/quote/publication scopes and closed media decisions. Current price/availability, full current publication history,500 distinct hotels and publication readiness are not inferred from this projection. Withdrawn4/157/488 remain withdrawn. priority_native_ids stays empty until genuine current admission."
@@ -41,8 +41,8 @@
   "metadata_next_window_after": "2026-11-06T05:02:42Z",
   "current_durable_before_save": "8fc086d82e30a93ce280bfed989a219fbd7a4341",
   "goal500_complete": false,
-  "previous_record_revision": "3c900c0083d1ff9111d4d4e229830bc648ddc7ce",
-  "previous_record_state": "HOLD_CURRENT_PUBLICATION_DEDUP_AFTER_SEVEN_CATALOGUE_CHAINS_VERIFIED",
+  "previous_record_revision": "2725156f887056b93261f082220db29f59f4359a",
+  "previous_record_state": "RETAINED444_JOINED_TO_SAVED161_AND_STOCK87_MEDIA_REQUIRED",
   "owner_namespace_correction": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
   "owner_top500_namespace": "anex_hotel_id",
   "top500_membership": {
@@ -1807,7 +1807,10 @@
       "protected_original": "DAHZIISS2iY",
       "closed_cullinan_transaction_must_not_be_reused": "902367014632901527",
       "publisher_owner": "anytour-max",
-      "new_native_admission": false
+      "new_native_admission": false,
+      "current_media_record": "new_kemer_photobank_review",
+      "retained_new_photo_asset_id": "MAHaJ93oVcI",
+      "retained_asset_is_not_accepted_hero": true
     },
     "counters": {
       "new_match_reads": 0,
@@ -1875,5 +1878,153 @@
     "canva_transactions": 0,
     "no_unchanged_retry_or_alternate_path_bypass": true,
     "closed_old_general_frame": "mrk_general_view23_63.jpeg remains excluded; a new document URL does not establish a new embedded frame."
+  },
+  "new_kemer_photobank_review": {
+    "operation": "commercial-kemer27349-new-photobank-review-20261106",
+    "state": "CLOSED_FOUR_NEW_FRAMES_NO_WHOLE_COMPLEX_HERO_READY_ZERO",
+    "source_identity": {
+      "owner_rank": 45,
+      "anex_hotel_id": 8277,
+      "tourvisor_native_id": 27349,
+      "accepted_pair_evidence_at_utc": "2026-10-20T01:28:35+00:00",
+      "current_publisher_admission": false
+    },
+    "sources": {
+      "official_property_gallery": "https://www.maxxroyal.com/maxx-royal-kemer/gallery",
+      "official_photobank_link_declared_by_property_gallery": "https://www.maxxroyalstock.com/",
+      "exact_property_category": "https://www.maxxroyalstock.com/Hotel/Maxx-Royal-Kemer-Resort/Kemer-General-View",
+      "category_caption": "MAXX ROYAL KEMER / GENERAL VIEW",
+      "declared_category_photos": 104,
+      "download_all_used": false,
+      "prior_photo_exclusion_source": {
+        "file": "commercial-batch-20261105-52-contact-source-index.json",
+        "blob": "db456cf3ea6baf66ce70f1a8bacde107c401c1bd",
+        "urls": 289,
+        "decoded_basenames": 288
+      },
+      "old_general23_63_not_read": true
+    },
+    "frames": [
+      {
+        "filename": "MRK_General_View25_1.jpg",
+        "source_url": "https://www.maxxroyalstock.com/Download/43868/Low",
+        "canva_asset_id": "MAHaJ93oVcI",
+        "canva_reported_dimensions": [
+          1612,
+          1209
+        ],
+        "original_jpeg_sha256": null,
+        "original_jpeg_local_cache": false,
+        "review_png": "new25-1-source-preview.png",
+        "review_png_dimensions": [
+          600,
+          600
+        ],
+        "review_png_bytes": 797054,
+        "review_png_sha256": "da182bea52d2899e3d35abbd1e21a5644cd8c27df47d561d47ec0b800323716b",
+        "verdict": "REJECTED_HERO_BEACH_ONLY_POSSIBLE_LOWER_DETAIL",
+        "visual_observation": "The entire source frame shown in the temporary layout depicts beach, loungers/cabanas, beach facilities, shore and sea; no main hotel buildings are visible.",
+        "lower_photo_accepted_for_publication": false
+      },
+      {
+        "filename": "MRK_General_View_1.jpg",
+        "source_url": "https://www.maxxroyalstock.com/Download/43784/Low",
+        "bytes": 213231,
+        "dimensions": [
+          1092,
+          728
+        ],
+        "sha256": "5961051730b19160126ab65178e34963caf3ecd1e58a02012a9d4bb591d07e4d",
+        "actual_format": "JPEG",
+        "http_content_type": "application/octet-stream",
+        "content_disposition": "Attachment;filename=MRK_General_View_1.jpg",
+        "verdict": "REJECTED_HERO_LEFT_MAIN_BUILDING_CLIPPED",
+        "visual_observation": "Bay, pool and main buildings are visible, but the left main building extends beyond the image's left edge. Cropping cannot restore the missing part."
+      },
+      {
+        "filename": "MRK_General_View_2.jpg",
+        "source_url": "https://www.maxxroyalstock.com/Download/43785/Low",
+        "bytes": 206309,
+        "dimensions": [
+          1092,
+          728
+        ],
+        "sha256": "e8a405e639f34a09ff7e6bba46b1a5aec2032de58be2dae812dd5bbc04780d93",
+        "actual_format": "JPEG",
+        "http_content_type": "application/octet-stream",
+        "content_disposition": "Attachment;filename=MRK_General_View_2.jpg",
+        "verdict": "REJECTED_HERO_LEFT_MAIN_BUILDING_CLIPPED",
+        "visual_observation": "Bay/pool and one main block are visible, but a second main block is visibly cut at the upper-left edge."
+      },
+      {
+        "filename": "MRK_General_View_3.jpg",
+        "source_url": "https://www.maxxroyalstock.com/Download/43786/Low",
+        "bytes": 191980,
+        "dimensions": [
+          1092,
+          728
+        ],
+        "sha256": "6762cb2e12b74bd230cccc9fc2400918c7fc65e18acf7e9b777d2e902602f819",
+        "actual_format": "JPEG",
+        "http_content_type": "application/octet-stream",
+        "content_disposition": "Attachment;filename=MRK_General_View_3.jpg",
+        "verdict": "REJECTED_HERO_MAIN_BUILDING_CLIPPED",
+        "visual_observation": "Main building is cropped by the left image edge; the rest is pool, beach and sea. This is not a whole-main-complex frame."
+      }
+    ],
+    "canva": {
+      "working_design_id": "DAHZx_JlJEM",
+      "protected_original_id": "DAHZIISS2iY",
+      "transaction_id": "3954681817036484441",
+      "final_transaction_state": "cancelled",
+      "permanent_design_commit": false,
+      "final_cover_frozen": false,
+      "source_preview_only": true,
+      "imported_asset_reuse_without_reimport": "MAHaJ93oVcI"
+    },
+    "closed_pdf": {
+      "url": "https://www.maxxroyal.com/media/hltphkry/2023-sustainability-report-en-nov-2.pdf",
+      "web_content_length_limit": 39504548,
+      "direct_read_status": 403,
+      "visual_review": false,
+      "retry": false
+    },
+    "counters": {
+      "new_photograph_frames_reviewed": 4,
+      "original_jpegs_cached": 3,
+      "source_review_pngs_cached": 1,
+      "canva_imports": 1,
+      "canva_transactions_started": 1,
+      "canva_transactions_cancelled": 1,
+      "open_canva_transactions": 0,
+      "accepted_whole_complex_heroes": 0,
+      "accepted_final_covers": 0,
+      "ready_materials": 0,
+      "new_posts": 0,
+      "new_pairs": 0,
+      "publication_database_reads": 0,
+      "supplier_requests": 0,
+      "workflow_dispatches": 0,
+      "new_permanent_workers": 0,
+      "new_accepted_media_credit": 0
+    },
+    "boundaries": {
+      "whole_gallery_not_downloaded": true,
+      "old_closed_photos_not_refetched": true,
+      "these_four_frames_closed_for_repeat_download_and_standalone_review": true,
+      "official_source_does_not_itself_assert_license_or_final_media_acceptance": true,
+      "current_publication_identity_and_dedup_not_checked": true,
+      "private_retained_cache_not_public_git": true
+    },
+    "next_missing": "A different whole-main-complex frame whose full main wings are inside the image, followed by the existing final cover and current publisher admission. Do not repeat these four frames or reopen the cancelled transaction.",
+    "recorded_at_utc": "2026-11-06T16:12:17Z",
+    "private_evidence_archive": {
+      "library_file_id": "libfile_8f426d38d7bc8191934b688721bcf0e5",
+      "file_id": "file_000000009018820ab1c4f719386e6481",
+      "file_name": "kemer-27349-photo-review-2026-11-06.zip",
+      "bytes": 1407807,
+      "sha256": "6f2ade2664dd3e410971913b0f3248301d2b76e10c048794e55871f5351a6227"
+    },
+    "novelty_scope": "New exact source pointers and filenames relative to the checked exclusion indexes. Pixel-level distinction from every historical frame is not asserted. No new accepted media or collector credit."
   }
 }
