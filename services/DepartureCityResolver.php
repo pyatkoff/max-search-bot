@@ -47,8 +47,10 @@ class DepartureCityResolver
 
     public static function bestMatch(string $lowerText, array $rows)
     {
-        $best = null;
-        $bestLen = 0;
+        // Availability questions and alternatives do not choose a departure.
+        if (preg_match('/[?？]|(?:^|[^\p{L}])(?:если|или|ли|например)(?!\p{L})/ui', $lowerText)) return false;
+
+        $matches = [];
         foreach ($rows as $row) {
             $canonical = trim((string)($row['name'] ?? ''));
             $fromName = trim((string)($row['name_genitive'] ?? ''));
@@ -59,15 +61,17 @@ class DepartureCityResolver
                 $formLower = function_exists('mb_strtolower') ? mb_strtolower($form, 'UTF-8') : strtolower($form);
                 if ($formLower === '') continue;
                 $quoted = preg_quote($formLower, '/');
-                if (!preg_match('/(?:^|\s)(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+'.$quoted.'(?=$|[\s,.;!?])/ui', $lowerText)) continue;
-                $len = function_exists('mb_strlen') ? mb_strlen($formLower, 'UTF-8') : strlen($formLower);
-                if ($len > $bestLen) {
-                    $bestLen = $len;
-                    $best = ['city' => $canonical, 'city_id' => $depId, 'matched' => $form];
+                if (!preg_match_all('/(?:^|\s)(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+'.$quoted.'(?=$|[\s,.;!?])/ui', $lowerText, $occurrences, PREG_OFFSET_CAPTURE)) continue;
+                foreach ($occurrences[0] as [$match, $offset]) {
+                    // Bind negation to this exact departure occurrence, rather
+                    // than rejecting the positive half of "не из X, а из Y".
+                    $prefix = substr($lowerText, 0, $offset);
+                    if (preg_match('/(?:^|[^\p{L}])не\s*$/ui', $prefix)) continue;
+                    $matches[$depId] = ['city' => $canonical, 'city_id' => $depId, 'matched' => $form];
                 }
             }
         }
-        return $best ?: false;
+        return count($matches) === 1 ? reset($matches) : false;
     }
 
     /**

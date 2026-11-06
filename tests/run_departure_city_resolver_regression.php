@@ -32,6 +32,24 @@ rcheck('field match rejects ambiguous abbreviation', DepartureCityResolver::best
     ['id'=>11,'name'=>'Санаторный Город','name_genitive'=>'Санаторного Города'],
 ]), false);
 
+
+rcheck('rejected longer departure cannot beat the explicit replacement',
+    DepartureCityResolver::bestMatch('не из санкт-петербурга, а из москвы', $rows),
+    ['city'=>'Москва','city_id'=>1,'matched'=>'Москвы']);
+rcheck('repeated positive occurrence of the same city remains valid',
+    DepartureCityResolver::bestMatch('не из москвы, а из москвы', $rows),
+    ['city'=>'Москва','city_id'=>1,'matched'=>'Москвы']);
+rcheck('negated departure alone is not a selection',
+    DepartureCityResolver::bestMatch('не из санкт-петербурга', $rows), false);
+rcheck('availability question does not replace departure',
+    DepartureCityResolver::bestMatch('а из москвы есть вылет?', $rows), false);
+rcheck('two positive departure choices are not resolved by name length',
+    DepartureCityResolver::bestMatch('из москвы или из санкт-петербурга', $rows), false);
+rcheck('two positive cities without an alternative marker still need clarification',
+    DepartureCityResolver::bestMatch('из москвы, из санкт-петербурга', $rows), false);
+rcheck('hypothetical departure is not applied',
+    DepartureCityResolver::bestMatch('если из москвы', $rows), false);
+
 $source = (string) file_get_contents(__DIR__ . '/../services/DepartureCityResolver.php');
 rcheck('resolver has no Bitrix dependency', strpos($source, 'Bitrix') === false, true);
 rcheck('resolver owns no HL block lookup', strpos($source, 'HighloadBlock') === false, true);

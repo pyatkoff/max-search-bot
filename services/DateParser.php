@@ -57,6 +57,19 @@ class DateParser
 
     public static function resolveDate(string $text): array
     {
+        // A whole-message correction names the replacement after "а". Never
+        // let the rejected first date win, including when the new date is invalid.
+        if (preg_match('/^\s*не\s+.+?\s*,?\s+а\s+(.+?)\s*$/ui', $text, $correction)) {
+            return self::resolveDate($correction[1]);
+        }
+
+        // Remove only ordinal endings attached to a day immediately before a
+        // named month. Ages, nights, years and unrelated numbers stay untouched.
+        $monthStems = implode('|', array_map(static function($stem) {
+            return preg_quote($stem, '/');
+        }, array_keys(self::MONTHS)));
+        $text = preg_replace('/(?<![\p{L}\d])(\d{1,2})-?(?:ого|ое|го|е|й)(?=\s+(?:'.$monthStems.')[а-яё]*(?![а-яё]))/ui', '$1', $text);
+
         // A standalone explicit date may contain spaces around its separators.
         // Normalize only that spelling; retain the existing calendar/year policy
         // and leave prose, ranges and incomplete dates to their current parsers.
