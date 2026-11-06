@@ -232,6 +232,7 @@ function forecastNativeAuthRegression():void
         for($i=0;$i<100;$i++){
             $person=(string)(9000+$i%32);$conversation=(string)(10000+$i%32);
             $packet=forecastV1Packet($person,$conversation);
+            $packet['deal_value_prediction']=ModeledConversionDealValue::freeze($packet,[]);
             $insert->execute([30000+$i,$person,$conversation,$packet['journal_cursor'],strtotime($packet['profile']['prediction_at']),json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
         }
         // The component above keeps its fixed Nov 3 clock and exact delay assertions.
@@ -285,6 +286,12 @@ function forecastNativeAuthRegression():void
                 &&$afterRead>0&&$afterRead<$afterBearer
                 &&strlen(json_encode($data,JSON_THROW_ON_ERROR))<=30000
                 &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
+            $money=$data['saved']['deal_value']['by_monetary_policy'][ModeledConversionDealValue::VERSION]??[];
+            $check('composed real OAuth read retains validated monetary policy inside unchanged response limits',
+                ($money['versions']??0)>0&&($money['value_cap_rub']??null)===100000
+                &&($money['unknown_price_base_rub']??null)===10000
+                &&($money['unknown_price_versions']??null)===$money['versions']
+                &&($money['full_value_base_range_rub']??null)===['minimum'=>10000,'maximum'=>10000]);
         });
         $check('combined private status preserves every OAuth and saved profile row',forecastNativeAuthSnapshot($pdo)===$before);
         echo 'NATIVE FORECAST AUTH PASSED '.$passed.PHP_EOL;

@@ -745,3 +745,46 @@ values, IDs, attribution, upload receipts and advertising conversions are not
 rewritten or replayed. The already completed historical-review windows and their
 original timezone metadata remain unchanged. Old calendar-bound pagination tokens
 are rejected; refresh the selected report to start a new consistent snapshot.
+
+## Saved monetary-policy visibility and calculation availability
+
+Reader `saved_semantic_prediction_status_v1_16` exposes
+`saved.deal_value.by_monetary_policy` from the monetary capsules already validated
+in the ordinary core-packet read. Each supported saved version reports its count,
+policy cap and unknown-price base, unknown-price and numeric-value counts, and the
+range of actual saved commission bases. V1 retains its25000/25000 policy; V2 uses
+100000/10000. A valid V2 packet without a purchase probability can therefore show
+its10000 base and100000 cap while its probability/value remain null and it adds no
+prospective estimate. Known-price bases can be below10000. Invalid monetary
+capsules do not enter this aggregate; the semantic-profile count remains separate.
+
+The predictive delivery view keeps its existing scalar-calculation admission and
+adds `calculation_unavailable_reason` to each example (null when available) and
+`calculation_unavailable_reason_counts` over the inspected eligible rows. These
+fixed categories identify the first blocking check, not the validity of all later
+checks or an error in the stored award:
+
+| Reason | Existing check that prevents a scalar explanation |
+| --- | --- |
+| `profile_binding_unverified` | Saved access or profile/subject binding |
+| `probability_prediction_unavailable` | Expected prediction mode/status absent |
+| `monetary_policy_unavailable` | Missing or unsupported monetary version |
+| `scalar_contract_unverified` | Scalar bounds, types or source/basis allowlist |
+| `price_base_unverified` | Price, commission and base do not explain one another |
+| `frozen_value_unverified` | Frozen value differs from probability times base |
+| `increment_not_explained` | Frozen value minus earlier reservations differs from the stored increment |
+
+The existing producer may use a stage fraction when no numeric prediction exists;
+its predictive key does not prove a probability was estimated. For example, V2
+unknown-price interest uses1250/25000 of the10000 base, or500 RUB before earlier
+reservations. The fraction is not relabeled as a saved5% purchase probability.
+The existing price-continuity adjustment can also make the applied increment
+differ from the current frozen value; `increment_not_explained` does not declare
+that adjustment wrong. This read neither loads a new audit nor recomputes it.
+
+No query, selected column, row limit, read order, authorization rule or monetary
+decision changes. The one-core-packet priority and explicit omissions remain;
+20 metadata/four packets/48KiB packet-copy,64KiB shared,30,000-byte result and
+five-second limits are unchanged. Additional fields are fixed aggregates and
+whitelisted reasons; optional examples may still be omitted by the existing
+response bound. Nothing is captured, recalculated, reserved, uploaded or replayed.
