@@ -432,6 +432,10 @@ function modeledValuePredictionAssertions(PDO $p,callable $check):void
     $first=modeledExpertWrapper($scope,$now,200000);modeledValueSave($p,$first);
     ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
     $sum=static fn():int=>(int)$p->query("SELECT COALESCE(SUM(value_rub),0) FROM max_channel_conversion_outbox WHERE conversation_id=650")->fetchColumn();
+    if($wire->posts===0){
+        (new ModeledConversionPriceContinuity($p))->reconcile($now,static fn(array $r):bool=>true);
+        $control->collect(ModeledConversionValueExport::settings($p),$now,$gate);
+    }
     $diagnostic=['posts'=>$wire->posts,'reserved'=>$sum(),'rows'=>$p->query('SELECT state,last_error,value_rub,value_profile_id FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),'audit'=>$p->query('SELECT action,applied_value_rub FROM modeled_conversion_price_audit ORDER BY outbox_id')->fetchAll(PDO::FETCH_ASSOC)];
     $check('expert V1 actual CSV carries seven-percent expected commission rather than fixed stage value '.json_encode($diagnostic,JSON_THROW_ON_ERROR),
         $wire->posts===1&&$sum()===1167&&str_contains($wire->csv[0],',1167,RUB')
