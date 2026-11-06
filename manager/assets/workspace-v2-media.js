@@ -56,6 +56,7 @@ function init(){
 }
 function configure(csrf,conversationId){state.csrf=csrf||'';state.conversationId=Number(conversationId||0)}
 function hasFile(){return files().length>0}
+function notDispatched(response,j){return response.status===409&&j.error==='delivery_failed'&&j.failure?.category==='not_dispatched'&&j.failure?.http_code===0&&['file_unavailable','context_changed'].includes(j.failure?.reason)}
 async function send(caption=''){
  if(state.busy||!hasFile()||!state.conversationId)return{ok:false,error:'media_not_ready'};
  const generation=window.WorkspaceV2?.S?.authGeneration,manager=account(),target=state.conversationId,sourceKey=draftKey(target),rows=files(),csrf=state.csrf;
@@ -72,19 +73,19 @@ async function send(caption=''){
    state.progress=`${sent+1}/${rows.length+sent}`;state.sendingRow=row;state.notice=`Отправляем файл ${sent+1} из ${rows.length+sent}…`;render();
    const data=new FormData();data.append('csrf',csrf);data.append('conversation_id',String(target));data.append('file',row.file);data.append('caption',captionConfirmed?'':caption||'');
    let response,j;
-   try{response=await fetch('media-upload.php',{method:'POST',body:data,credentials:'same-origin'});j=await response.json()}
+   try{response=await fetch('media-upload.php',{method:'POST',body:data,credentials:'same-origin'});j=await response.json();if(!j||typeof j!=='object'||Array.isArray(j))throw new Error('invalid_media_response')}
    catch(e){row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey));return result({ok:false,error:'media_unknown',error_message:`Отправлено файлов: ${sent}. Исход следующего неизвестен — проверьте переписку. Повтор заблокирован.`})}
    if(!sameSession()){
     // Retain the outcome in the captured source queue without touching the new account UI.
     if(j.ok===true){sent++;captionConfirmed=true;if(attachmentDrafts.get(sourceKey)===rows)captionSent.set(sourceKey,caption||'');const index=rows.indexOf(row);if(index>=0)rows.splice(index,1);revoke([row]);if(attachmentDrafts.get(sourceKey)===rows&&!rows.length){attachmentDrafts.delete(sourceKey);captionSent.delete(sourceKey)}}
-    else if(response.status!==401){row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey))}
+    else if(response.status!==401&&!notDispatched(response,j)){row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey))}
     return result({ok:false,error:'stale_session'});
    }
    if(response.status===401){window.WorkspaceV2?.showAuthRecovery?.();return result({...j,ok:false,error:'unauthorized',http_status:401})}
    if(j.ok===true){sent++;captionConfirmed=true;if(attachmentDrafts.get(sourceKey)===rows)captionSent.set(sourceKey,caption||'');const index=rows.indexOf(row);if(index>=0)rows.splice(index,1);revoke([row]);if(attachmentDrafts.get(sourceKey)===rows&&!rows.length){attachmentDrafts.delete(sourceKey);captionSent.delete(sourceKey)}
     if(state.conversationId===target&&state.restored===rows){if(input())input().value='';render()}continue;}
    // Validation/auth and explicit provider rejection are safe failures. A transport/5xx response is not a receipt.
-   const known=['file_required','file_too_large','upload_failed','invalid_upload','invalid_conversation','csrf_invalid','unsupported'].includes(j.error)||j.failure?.category==='unsupported'||response.status===403||Number(j.failure?.http_code)>=400&&Number(j.failure?.http_code)<500;
+   const known=notDispatched(response,j)||['file_required','file_too_large','upload_failed','invalid_upload','invalid_conversation','csrf_invalid','unsupported'].includes(j.error)||j.failure?.category==='unsupported'||response.status===403||Number(j.failure?.http_code)>=400&&Number(j.failure?.http_code)<500;
    if(!known){row.status='unknown';uncertainFiles.add(fileKey(row.file,sourceKey))}
    return result({...j,ok:false,error:known?j.error:'media_unknown',error_message:(sent?`Отправлено файлов: ${sent}. `:'')+(known?(j.error_message||'Файл не отправлен. Исправьте причину и повторите.'):'Исход следующего файла неизвестен. Проверьте переписку; повтор заблокирован.')});
   }
