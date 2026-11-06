@@ -12,7 +12,7 @@ require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_11';
+    public const VERSION='saved_semantic_prediction_status_v1_12';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -110,7 +110,8 @@ final class ModeledConversionForecastStatusReader
 
                 $out['saved']['valid_v1_versions']++;$out['saved']['channel_counts'][$row['platform']]++;
                 $out['saved']['status_counts'][$s['status']]++;
-                $weighting=($s['training_status']??null)==='archive_relative_weights'?'archive_relative_weights':'illustrative';
+                $weighting=($s['mode']??null)==='contextual_stage_baseline'?'stage_baseline':
+                    (($s['training_status']??null)==='archive_relative_weights'?'archive_relative_weights':'illustrative');
                 $out['saved']['weighting_version_counts'][$weighting]++;
                 if($weighting==='archive_relative_weights'){
                     $weightSha=$s['relative_weights']['package_sha256'];
@@ -269,7 +270,7 @@ final class ModeledConversionForecastStatusReader
                 'invalid_block_reason_counts'=>array_fill_keys(['invalid_json','parent_binding','prediction_contract','input_summary'],0),
                 'prediction_contract_reason_counts'=>['digest'=>0,'fields'=>0]],
             'saved'=>['valid_v1_versions'=>0,'prospective_estimates'=>0,'distinct_inspected_scopes'=>0,
-                'weighting_version_counts'=>['illustrative'=>0,'archive_relative_weights'=>0],'relative_weight_package_counts'=>[],
+                'weighting_version_counts'=>['illustrative'=>0,'stage_baseline'=>0,'archive_relative_weights'=>0],'relative_weight_package_counts'=>[],
                 'channel_counts'=>['max'=>0,'telegram'=>0],
                 'status_counts'=>array_fill_keys(['predicted','insufficient_context','known_outcome','access_denied'],0),
                 'stage_counts'=>array_fill_keys(['substantive_dialogue','concrete_request','exact_offer_discussion','general_purchase_intent','agency_purchase_intent'],0),

@@ -7,12 +7,13 @@ require_once __DIR__.'/ArchivePredictiveRelativeWeights.php';
 /**
  * Pure, bounded first useful prediction over already admitted and redacted messages.
  * The caller owns authorization, chronological ordering and the canonical extractor.
- * These illustrative rules are neither trained nor calibrated; no text is retained.
+ * Stage priors are neither trained nor calibrated. Extra signals are recorded for research; no text is retained.
  */
 final class ModeledConversionSemanticPrediction
 {
     public const VERSION='semantic_purchase_heuristic_v1';
     public const ASSUMPTIONS_VERSION='illustrative_funnel_2026_11_02_v1';
+    public const STAGE_BASELINE_ASSUMPTIONS='stage_baseline_2026_11_06_v1';
     public const HORIZON_SECONDS=2592000;
     public const MAX_BYTES=16384;
     /** Continuity policy is part of this model's source digest, never customer evidence. */
@@ -156,7 +157,7 @@ final class ModeledConversionSemanticPrediction
             foreach(['office_question'=>'officeQuestion','payment_terms_question'=>'paymentTermsQuestion']as$goal=>$property){
                 foreach($r['events']as$event)if(($event['source_ref']??null)===$ref&&($event['goal']??null)===$goal){
                     $this->$property=true;
-                    if($this->relativeWeights!==null)$this->evidence($goal,$meta);
+                    $this->evidence($goal,$meta);
                     break;
                 }
             }
@@ -226,13 +227,10 @@ final class ModeledConversionSemanticPrediction
             foreach($active as$feature=>$present)if($present){
                 $odds*=$weights['multipliers'][$feature];$reasons[]='archive_weight_'.$feature;
             }
-        }else{
-            if($this->urgency){$odds*=1.2;$reasons[]='hypothesis_near_term_urgency';}
-            if($this->meaningfulTurns>=2){$odds*=1.1;$reasons[]='hypothesis_continued_meaningful_engagement';}
-            if($this->longRange){$odds*=0.65;$reasons[]='hypothesis_long_range_planning';}
-            if($this->deferred){$odds*=0.5;$reasons[]='hypothesis_deferral';}
         }
-        if($this->declined){$odds*=0.25;$reasons[]='hypothesis_explicit_decline';}
+        // Owner policy: only the semantic stage and the existing direct-refusal guard affect new live estimates.
+        // Deferral, planning horizon, urgency and engagement remain frozen observations for later validation.
+        if($this->declined){$odds*=0.25;$reasons[]=$weights!==null?'hypothesis_explicit_decline':'explicit_decline_guard';}
         $odds=max(0.25,min(1.3,$odds));
         $probability=$status==='predicted'?round(($base*$odds)/(1-$base+$base*$odds),6):null;
         if($status!=='predicted')$reasons[]=$status;
@@ -241,7 +239,7 @@ final class ModeledConversionSemanticPrediction
         if($discussion!==null)$evidence[]=$discussion;
         foreach($this->evidence as$item){if(count($evidence)>=16)break;$evidence[]=$item;}
         $p=[
-            'version'=>self::VERSION,'model_sha256'=>hash_file('sha256',__FILE__),'mode'=>'contextual_rules_untrained','target'=>'payment_with_current_agency_30d',
+            'version'=>self::VERSION,'model_sha256'=>hash_file('sha256',__FILE__),'mode'=>'contextual_stage_baseline','target'=>'payment_with_current_agency_30d',
             'subject'=>$this->subject,'current_request_anchor'=>$this->anchor,
             'anchor_source_version_no'=>$this->anchorVersion,'current_customer_turn_count'=>$this->customerTurns,
             'journal_cursor'=>$this->cursor,'source_fence_journal_id'=>$this->fence,
@@ -257,9 +255,9 @@ final class ModeledConversionSemanticPrediction
                 'explicit_comparison'=>$this->comparison,'explicit_modification'=>$this->modification,
                 'price_alternative_continued_search'=>$this->priceAlternative,'near_term_urgency'=>$this->urgency,
                 'long_range_planning'=>$this->longRange,'deferral'=>$this->deferred,'explicit_decline'=>$this->declined,
-                'context_barriers'=>$this->barriers],
-            'assumptions_version'=>self::ASSUMPTIONS_VERSION,'training_status'=>'not_trained',
-            'calibration_status'=>'not_calibrated','probability_meaning'=>'illustrative_semantic_hypothesis_not_observed_payment',
+                'context_barriers'=>$this->barriers,'office_question'=>$this->officeQuestion,'payment_terms_question'=>$this->paymentTermsQuestion],
+            'assumptions_version'=>self::STAGE_BASELINE_ASSUMPTIONS,'training_status'=>'not_trained',
+            'calibration_status'=>'not_calibrated','probability_meaning'=>'illustrative_stage_prior_with_explicit_decline_guard',
             'newness_status'=>'first_v1_observation_not_new_person_or_trip',
             'trip_identity'=>'unverified','source_history_complete'=>false,
             'known_operational_outcome_meaning'=>'crm_state_not_verified_payment',
