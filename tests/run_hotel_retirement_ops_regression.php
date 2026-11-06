@@ -122,3 +122,5 @@ hrsAssert(str_contains($workflow,'sudo -n -- /usr/bin/php tools/hotel_retirement
 hrtCleanup($p);$p=null;$queue=null;if($file!==null)unlink($file);
 foreach(glob($dir.'/*')?:[]as$path)unlink($path);rmdir($dir);
 echo 'HOTEL RETIREMENT SERVER OPS: '.$hrsChecks.' PASS (isolated fixtures; no production execution)'.PHP_EOL;
+
+require __DIR__.'/hotel_privilege_inventory_checks.php';
