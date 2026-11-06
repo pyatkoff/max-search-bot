@@ -1,6 +1,6 @@
 {
   "operation": "commercial-top500-internal-base-20261106-next-after-ten1-plan1",
-  "state": "HOLD_PUBLICATION_IDENTITY_AFTER_SEVEN_CURRENT_MATCHES_VERIFIED",
+  "state": "HOLD_CURRENT_PUBLICATION_DEDUP_AFTER_SEVEN_CATALOGUE_CHAINS_VERIFIED",
   "goal": "Restore the ANEX namespace and verified cross-provider identity before any further TOP500-derived candidate action.",
   "priority_native_ids": [],
   "original_auth_artifact": {
@@ -12,13 +12,13 @@
     "file": "top500-readback.private.json"
   },
   "steps": [
-    "Keep the completed seven-pair CURRENT operation int-andromeda-match-retained-current-20261106-v1 closed/no-replay. Reuse its verified receipt: all seven expected ANEX-to-Tourvisor pairs currently resolve and all seven targets are active/eligible. This proves only the bounded accepted preview identity subset.",
-    "Keep all consumed ten-ID metadata and Tourvisor8208 projection/profile operations closed. Their original Tourvisor scope, receipts and UNKNOWN restrictions remain unchanged; do not infer ANEX membership from numerical equality.",
-    "For the seven current verified pairs, establish the remaining owner-source provenance and separate canonical/native publication binding, starting with owner ranks8/9 (ANEX27611→TV1228 and ANEX8554→TV16794), using existing retained evidence and the authorized route. Do not repeat the completed current database read or create a new whole-TOP500 census.",
-    "Check existing publication dedup for the admitted canonical identities. Absence from the saved182-ID monitoring cohort is not proof of no previous publication.",
-    "Reuse retained research facts after identity admission. Do not recollect completed dossiers or substitute same-name/same-number or other-operator evidence for the accepted identity chain.",
-    "Update publication membership and eligible priority order only after the separate publication binding and existing gates pass. Full492 TOP500 coverage/publication totals remain unknown; withdrawn4/157/488 stay withdrawn and priority_native_ids remains empty.",
-    "Continue only the original serial publisher with existing media, price, native, dedup, private-intent, once and UNKNOWN checks. Current MATCH success is independent of Search3 installation and the unresolved legacy receiver SSH deployment failure."
+    "Keep the completed seven-pair current MATCH read and the seven explicit canonical/local-TV catalogue chains recorded here closed/no-replay. Reuse the exact observed links and revisions; no repeated MATCH, catalogue scan or whole-TOP500 census.",
+    "Next property is owner rank8, ANEX27611 -> Tourvisor1228 -> AnyTour555 -> local-TV1228. Perform current native/publisher admission and full prior-publication dedup only through the existing original serial publisher and unchanged guards. Its publication namespace candidate is catalog_hotels.id1228, never ANEX27611 or AnyTour555. Saved161 absence alone is insufficient.",
+    "Reuse the existing Senza retained dossiers and saved photo metadata. Complete the separate content admission, reuse-rights and whole-hotel hero plus two distinct property-photo checks before treating any material as ready. Original evidence dates, limitations and zero new collector credit remain.",
+    "After the bounded Garden property step, use the already-verified owner rank9 chain ANEX8554 -> Tourvisor16794 -> AnyTour1773 -> local-TV16794. Preserve one property/max one related native ID per publication step.",
+    "The other five catalogue chains are already verified in canonical_catalogue_read. Reuse their current MATCH receipt and catalogue links; they have no current publisher/dedup or media admission yet.",
+    "All consumed ten-ID metadata, Tourvisor8208 projection/profile, supplier searches, old quotes and publication operations stay closed with their original namespaces and UNKNOWN restrictions. Do not retry the unchanged HTTP403 requests or create another reader/controller/worker.",
+    "Full492 mapping coverage and TOP500 publication totals remain unknown. Withdrawn4/157/488 stay withdrawn, priority_native_ids remains empty, no current price/availability or completed500 claim follows from saved content. Existing source/production/host/private-intent/once/UNKNOWN gates remain required."
   ],
   "bounds": {
     "property_groups": 1,
@@ -29,12 +29,15 @@
     "new_agents_queues_controllers": 0
   },
   "risks": [
-    "Country/active/name/photo URLs exist only in original private result, not projected into current model yet; do not invent them.",
-    "Provider/catalog photos and stored search-price rows do not independently establish reuse rights, hero quality, final basket or availability.",
-    "492unique source IDs cannot itself satisfy500distinctTOP500 hotels; no invented8 IDs."
+    "Seven exact catalogue chains and saved local content are proven for this subset; current publisher native binding and complete prior-publication dedup remain unverified.",
+    "The saved161-ID publication snapshot excludes all seven targets, but it is historical and does not prove no earlier or current duplicate.",
+    "558 saved image URL entries and their metadata do not establish source rights, current private byte-cache presence, hero quality or distinct media acceptance.",
+    "Retained dossier locations are available for Senza; facts are not newly consumer-admitted and their original dates and conditions remain unchanged.",
+    "The native-catalog autocomplete request returned HTTP403; no current publisher/legacy-active-row proof was inferred and no retry is planned.",
+    "Full492 owner-roster coverage and publication totals remain unknown; a 492-ID source cannot itself satisfy500distincthotels."
   ],
   "metadata_next_window_after": "2026-11-06T05:02:42Z",
-  "current_durable_before_save": "3b6bd27ff9f433aff38f7e21913979ef7451e17a",
+  "current_durable_before_save": "8fc086d82e30a93ce280bfed989a219fbd7a4341",
   "goal500_complete": false,
   "previous_record_revision": "a177c1d98cd08c5670435fda5fcad86799243369",
   "previous_record_state": "PREPARED_ONE_PROPERTY_RETAINED_DATA_FIRST_NO_GALLERY_OR_PRICE_DELIVERY_YET",
@@ -63,7 +66,7 @@
   },
   "retained_identity_recovery": {
     "record": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
-    "state": "RETAINED_HISTORY_AND_SEVEN_CURRENT_ACCEPTED_PAIRS_VERIFIED_PUBLICATION_IDENTITY_UNVERIFIED",
+    "state": "SEVEN_CURRENT_MATCHES_AND_EXPLICIT_CATALOGUE_CHAINS_VERIFIED_CURRENT_PUBLICATION_ADMISSION_UNVERIFIED",
     "candidate_anex_ids": [
       27611,
       8554,
@@ -94,7 +97,24 @@
       "pairs": 7,
       "matched": 7,
       "operation": "int-andromeda-match-retained-current-20261106-v1"
-    }
+    },
+    "state_before_canonical_catalogue_read": "RETAINED_HISTORY_AND_SEVEN_CURRENT_ACCEPTED_PAIRS_VERIFIED_PUBLICATION_IDENTITY_UNVERIFIED",
+    "current_catalogue_subset": {
+      "checked": 7,
+      "canonical_linked": 7,
+      "local_tv_linked": 7,
+      "read_record": "canonical_catalogue_read",
+      "publication_admission": false
+    },
+    "candidate_anytour_ids": [
+      555,
+      1773,
+      548,
+      7434,
+      7425,
+      7463,
+      444
+    ]
   },
   "state_before_current_registry_read": "HOLD_OWNER_ANEX_TO_TOURVISOR_MAPPING_REQUIRED",
   "current_registry_read": {
@@ -112,5 +132,609 @@
     "full_owner_roster_coverage": null,
     "publication_admission": false,
     "phase_boundary": "Separate owner-authorized current identity verification. Original per-property publication/metadata bounds and earlier zero-call recovery counters remain unchanged. This completed seven-pair MATCH snapshot did not enter a publisher stage or grant publication readiness."
-  }
+  },
+  "state_before_canonical_catalogue_read": "HOLD_PUBLICATION_IDENTITY_AFTER_SEVEN_CURRENT_MATCHES_VERIFIED",
+  "canonical_catalogue_read": {
+    "operation": "owner-top500-seven-canonical-catalogue-links-20261106",
+    "state": "CLOSED_SEVEN_EXPLICIT_CATALOGUE_CHAINS_VERIFIED_PUBLICATION_REGISTRY_AND_MEDIA_HELD",
+    "observed_on": "2026-11-06",
+    "completed_by_utc": "2026-11-06T13:07:18Z",
+    "parent_audit_revision": "8fc086d82e30a93ce280bfed989a219fbd7a4341",
+    "prior_current_match": {
+      "operation": "int-andromeda-match-retained-current-20261106-v1",
+      "run": 42182420198,
+      "job": 127774866798,
+      "captured_at_utc": "2026-11-06T07:42:51+00:00",
+      "evidence_sha256": "569049a92875394f983cb58ac48f387876d1e128f1ad0cd152bdeb591b081082",
+      "reused": true,
+      "repeated": false
+    },
+    "projection": {
+      "schema_version": 1,
+      "observed_on": "2026-11-06",
+      "completed_by_utc": "2026-11-06T13:07:18Z",
+      "scope": "The seven already-current-verified retained ANEX/Tourvisor pairs only",
+      "rows": [
+        {
+          "owner_rank": 8,
+          "anex_id": 27611,
+          "tourvisor_id": 1228,
+          "anytour_hotel_id": 555,
+          "anytour_revision": 1,
+          "local_tv_id": 1228,
+          "local_tv_revision": 3,
+          "name": "Senza Garden Holiday Club",
+          "country_id": 4,
+          "current_match_operation": "int-andromeda-match-retained-current-20261106-v1",
+          "current_match_state": "matched_current",
+          "canonical_catalogue_link_verified": true,
+          "local_tv_roundtrip_verified": true,
+          "local_content_state": "ready",
+          "details_available": true,
+          "details_fetched_at_as_returned": "2026-09-17 22:23:08",
+          "details_fetched_at_timezone": "not declared by public reader; stored string preserved",
+          "saved_image_url_count": 55,
+          "saved_photo_metadata_count": 55,
+          "photo_bytes_fetched_this_phase": 0,
+          "publication_native_current_registry_verified": false,
+          "publication_dedup_admitted": false,
+          "publication_ready": false
+        },
+        {
+          "owner_rank": 9,
+          "anex_id": 8554,
+          "tourvisor_id": 16794,
+          "anytour_hotel_id": 1773,
+          "anytour_revision": 2,
+          "local_tv_id": 16794,
+          "local_tv_revision": 3,
+          "name": "Senza The Inn Resort & Spa",
+          "country_id": 4,
+          "current_match_operation": "int-andromeda-match-retained-current-20261106-v1",
+          "current_match_state": "matched_current",
+          "canonical_catalogue_link_verified": true,
+          "local_tv_roundtrip_verified": true,
+          "local_content_state": "ready",
+          "details_available": true,
+          "details_fetched_at_as_returned": "2026-10-04 10:10:48",
+          "details_fetched_at_timezone": "not declared by public reader; stored string preserved",
+          "saved_image_url_count": 178,
+          "saved_photo_metadata_count": 178,
+          "photo_bytes_fetched_this_phase": 0,
+          "publication_native_current_registry_verified": false,
+          "publication_dedup_admitted": false,
+          "publication_ready": false
+        },
+        {
+          "owner_rank": 108,
+          "anex_id": 8595,
+          "tourvisor_id": 1216,
+          "anytour_hotel_id": 548,
+          "anytour_revision": 1,
+          "local_tv_id": 1216,
+          "local_tv_revision": 3,
+          "name": "Rox Resort Hotel",
+          "country_id": 4,
+          "current_match_operation": "int-andromeda-match-retained-current-20261106-v1",
+          "current_match_state": "matched_current",
+          "canonical_catalogue_link_verified": true,
+          "local_tv_roundtrip_verified": true,
+          "local_content_state": "ready",
+          "details_available": true,
+          "details_fetched_at_as_returned": "2026-10-04 10:07:13",
+          "details_fetched_at_timezone": "not declared by public reader; stored string preserved",
+          "saved_image_url_count": 58,
+          "saved_photo_metadata_count": 58,
+          "photo_bytes_fetched_this_phase": 0,
+          "publication_native_current_registry_verified": false,
+          "publication_dedup_admitted": false,
+          "publication_ready": false
+        },
+        {
+          "owner_rank": 150,
+          "anex_id": 8476,
+          "tourvisor_id": 1095,
+          "anytour_hotel_id": 7434,
+          "anytour_revision": 1,
+          "local_tv_id": 1095,
+          "local_tv_revision": 3,
+          "name": "SIDE STAR RESORT (EX. VERA CLUB LINDITA)",
+          "country_id": 4,
+          "current_match_operation": "int-andromeda-match-retained-current-20261106-v1",
+          "current_match_state": "matched_current",
+          "canonical_catalogue_link_verified": true,
+          "local_tv_roundtrip_verified": true,
+          "local_content_state": "ready",
+          "details_available": true,
+          "details_fetched_at_as_returned": "2026-09-28 22:42:35",
+          "details_fetched_at_timezone": "not declared by public reader; stored string preserved",
+          "saved_image_url_count": 45,
+          "saved_photo_metadata_count": 45,
+          "photo_bytes_fetched_this_phase": 0,
+          "publication_native_current_registry_verified": false,
+          "publication_dedup_admitted": false,
+          "publication_ready": false
+        },
+        {
+          "owner_rank": 159,
+          "anex_id": 8475,
+          "tourvisor_id": 1014,
+          "anytour_hotel_id": 7425,
+          "anytour_revision": 1,
+          "local_tv_id": 1014,
+          "local_tv_revision": 3,
+          "name": "SIDE STAR ELEGANCE (EX. ASTERIA SIDE)",
+          "country_id": 4,
+          "current_match_operation": "int-andromeda-match-retained-current-20261106-v1",
+          "current_match_state": "matched_current",
+          "canonical_catalogue_link_verified": true,
+          "local_tv_roundtrip_verified": true,
+          "local_content_state": "ready",
+          "details_available": true,
+          "details_fetched_at_as_returned": "2026-09-28 22:42:36",
+          "details_fetched_at_timezone": "not declared by public reader; stored string preserved",
+          "saved_image_url_count": 79,
+          "saved_photo_metadata_count": 79,
+          "photo_bytes_fetched_this_phase": 0,
+          "publication_native_current_registry_verified": false,
+          "publication_dedup_admitted": false,
+          "publication_ready": false
+        },
+        {
+          "owner_rank": 190,
+          "anex_id": 12901,
+          "tourvisor_id": 1474,
+          "anytour_hotel_id": 7463,
+          "anytour_revision": 1,
+          "local_tv_id": 1474,
+          "local_tv_revision": 3,
+          "name": "SATURN PALACE RESORT",
+          "country_id": 4,
+          "current_match_operation": "int-andromeda-match-retained-current-20261106-v1",
+          "current_match_state": "matched_current",
+          "canonical_catalogue_link_verified": true,
+          "local_tv_roundtrip_verified": true,
+          "local_content_state": "ready",
+          "details_available": true,
+          "details_fetched_at_as_returned": "2026-10-10 10:06:50",
+          "details_fetched_at_timezone": "not declared by public reader; stored string preserved",
+          "saved_image_url_count": 59,
+          "saved_photo_metadata_count": 59,
+          "photo_bytes_fetched_this_phase": 0,
+          "publication_native_current_registry_verified": false,
+          "publication_dedup_admitted": false,
+          "publication_ready": false
+        },
+        {
+          "owner_rank": 209,
+          "anex_id": 14818,
+          "tourvisor_id": 1015,
+          "anytour_hotel_id": 444,
+          "anytour_revision": 1,
+          "local_tv_id": 1015,
+          "local_tv_revision": 3,
+          "name": "ARCANUS HOTELS SORGUN (EX. ARCANUS SIDE RESORT)",
+          "country_id": 4,
+          "current_match_operation": "int-andromeda-match-retained-current-20261106-v1",
+          "current_match_state": "matched_current",
+          "canonical_catalogue_link_verified": true,
+          "local_tv_roundtrip_verified": true,
+          "local_content_state": "ready",
+          "details_available": true,
+          "details_fetched_at_as_returned": "2026-10-10 10:08:12",
+          "details_fetched_at_timezone": "not declared by public reader; stored string preserved",
+          "saved_image_url_count": 84,
+          "saved_photo_metadata_count": 84,
+          "photo_bytes_fetched_this_phase": 0,
+          "publication_native_current_registry_verified": false,
+          "publication_dedup_admitted": false,
+          "publication_ready": false
+        }
+      ],
+      "requests": [
+        {
+          "kind": "canonical",
+          "batch": 1,
+          "url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=16794",
+          "source": "anytour-canonical-catalog",
+          "catalog": "anytour",
+          "requested_ids": [
+            1228,
+            16794
+          ],
+          "links": [
+            {
+              "legacyHotelId": 1228,
+              "anytourHotelId": 555
+            },
+            {
+              "legacyHotelId": 16794,
+              "anytourHotelId": 1773
+            }
+          ],
+          "missing_ids": [],
+          "items": [
+            {
+              "id": 555,
+              "catalog": "anytour",
+              "revision": 1
+            },
+            {
+              "id": 1773,
+              "catalog": "anytour",
+              "revision": 2
+            }
+          ]
+        },
+        {
+          "kind": "canonical",
+          "batch": 2,
+          "url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1216&legacyHotelIds%5B%5D=1095&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1015",
+          "source": "anytour-canonical-catalog",
+          "catalog": "anytour",
+          "requested_ids": [
+            1216,
+            1095,
+            1014,
+            1474,
+            1015
+          ],
+          "links": [
+            {
+              "legacyHotelId": 1216,
+              "anytourHotelId": 548
+            },
+            {
+              "legacyHotelId": 1095,
+              "anytourHotelId": 7434
+            },
+            {
+              "legacyHotelId": 1014,
+              "anytourHotelId": 7425
+            },
+            {
+              "legacyHotelId": 1474,
+              "anytourHotelId": 7463
+            },
+            {
+              "legacyHotelId": 1015,
+              "anytourHotelId": 444
+            }
+          ],
+          "missing_ids": [],
+          "items": [
+            {
+              "id": 548,
+              "catalog": "anytour",
+              "revision": 1
+            },
+            {
+              "id": 7434,
+              "catalog": "anytour",
+              "revision": 1
+            },
+            {
+              "id": 7425,
+              "catalog": "anytour",
+              "revision": 1
+            },
+            {
+              "id": 7463,
+              "catalog": "anytour",
+              "revision": 1
+            },
+            {
+              "id": 444,
+              "catalog": "anytour",
+              "revision": 1
+            }
+          ]
+        },
+        {
+          "kind": "local-tv",
+          "batch": 1,
+          "url": "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?oldLocalHotelIds%5B%5D=555&oldLocalHotelIds%5B%5D=1773",
+          "source": "anytour-local-tv-catalog-v1",
+          "catalog": "local-tv",
+          "requested_ids": [
+            555,
+            1773
+          ],
+          "links": [
+            {
+              "oldLocalId": 555,
+              "tourvisorHotelId": 1228
+            },
+            {
+              "oldLocalId": 1773,
+              "tourvisorHotelId": 16794
+            }
+          ],
+          "missing_ids": [],
+          "items": [
+            {
+              "id": 1228,
+              "catalog": "local-tv",
+              "revision": 3,
+              "content_state": "ready",
+              "details_available": true,
+              "country_id": 4
+            },
+            {
+              "id": 16794,
+              "catalog": "local-tv",
+              "revision": 3,
+              "content_state": "ready",
+              "details_available": true,
+              "country_id": 4
+            }
+          ]
+        },
+        {
+          "kind": "local-tv",
+          "batch": 2,
+          "url": "https://anytoour.ru/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php?oldLocalHotelIds%5B%5D=548&oldLocalHotelIds%5B%5D=7434&oldLocalHotelIds%5B%5D=7425&oldLocalHotelIds%5B%5D=7463&oldLocalHotelIds%5B%5D=444",
+          "source": "anytour-local-tv-catalog-v1",
+          "catalog": "local-tv",
+          "requested_ids": [
+            548,
+            7434,
+            7425,
+            7463,
+            444
+          ],
+          "links": [
+            {
+              "oldLocalId": 548,
+              "tourvisorHotelId": 1216
+            },
+            {
+              "oldLocalId": 7434,
+              "tourvisorHotelId": 1095
+            },
+            {
+              "oldLocalId": 7425,
+              "tourvisorHotelId": 1014
+            },
+            {
+              "oldLocalId": 7463,
+              "tourvisorHotelId": 1474
+            },
+            {
+              "oldLocalId": 444,
+              "tourvisorHotelId": 1015
+            }
+          ],
+          "missing_ids": [],
+          "items": [
+            {
+              "id": 1216,
+              "catalog": "local-tv",
+              "revision": 3,
+              "content_state": "ready",
+              "details_available": true,
+              "country_id": 4
+            },
+            {
+              "id": 1095,
+              "catalog": "local-tv",
+              "revision": 3,
+              "content_state": "ready",
+              "details_available": true,
+              "country_id": 4
+            },
+            {
+              "id": 1014,
+              "catalog": "local-tv",
+              "revision": 3,
+              "content_state": "ready",
+              "details_available": true,
+              "country_id": 4
+            },
+            {
+              "id": 1474,
+              "catalog": "local-tv",
+              "revision": 3,
+              "content_state": "ready",
+              "details_available": true,
+              "country_id": 4
+            },
+            {
+              "id": 1015,
+              "catalog": "local-tv",
+              "revision": 3,
+              "content_state": "ready",
+              "details_available": true,
+              "country_id": 4
+            }
+          ]
+        }
+      ]
+    },
+    "projection_sha256": "48a946d47571aa6334cc9560d52b63616a8bd2f2974d3e0f3fa7b0f4b1772d31",
+    "projection_hash_contract": "SHA256 over UTF-8 JSON with recursively sorted object keys and preserved array order; this is the sanitized selected-field projection hash, not a raw HTTP-response or database-profile hash.",
+    "retrieval_representation": "Public JSON envelopes parsed from retrieval HTML body. HTML entity transformation is possible. Raw HTTP bytes, server snapshot timestamps and runtime source fingerprint were not available; none is claimed.",
+    "source_contract": {
+      "repository": "pyatkoff/poisk-turov-test",
+      "revision": "f63148d7e171fdae938b870af3c6c9d68b97312d",
+      "paths": [
+        "v2/data/hotel-details-read-v1.php",
+        "v2/data/anytour-canonical-catalog-v1.php",
+        "v2/data/local-tv-catalog-read-v1.php",
+        "v2/data/local-tv-catalog-v1.php"
+      ],
+      "legacy_namespace": "legacy_catalog/catalog_hotels.id",
+      "join_basis": "Explicit canonical links plus explicit local_tv_legacy_links roundtrip; no name or numeric-equality fallback.",
+      "runtime_exact_source_verified": false
+    },
+    "counters": {
+      "owner_rows": 7,
+      "canonical_links_verified": 7,
+      "local_tv_links_verified": 7,
+      "distinct_anytour_ids": 7,
+      "local_ready_profiles": 7,
+      "successful_identity_envelopes": 4,
+      "saved_image_url_entries": 558,
+      "public_retrieval_tool_calls": 7,
+      "public_retrieval_successes_including_initial_extraction": 5,
+      "public_http403_results": 2,
+      "web_tool_layer_unavailable_attempts": 1,
+      "actual_http_request_count": null,
+      "actual_database_read_count": null,
+      "supplier_requests": 0,
+      "price_queries": 0,
+      "quote_requests": 0,
+      "media_byte_requests": 0,
+      "mapping_writes": 0,
+      "database_writes": 0,
+      "new_mapping_acceptances": 0,
+      "new_consumer_fact_acceptances": 0,
+      "post_writes": 0,
+      "new_posts": 0,
+      "manual_deploys": 0,
+      "new_agents_workers_queues": 0,
+      "new_repository_tests": 0
+    },
+    "retrieval_notes": [
+      "The first Senza canonical request used document JSON extraction and omitted the identity envelope; the same URL was then extracted as HTML with ttl3600. Cache reuse and exact HTTP/DB call counts are not asserted.",
+      "The source-defined local-candidate LOCAL-TV route returned HTTP403; it was not retried. The source-defined next-candidate LOCAL-TV route returned both explicit Senza links.",
+      "The existing next-candidate native-catalog autocomplete request returned HTTP403. No current native catalog_hotels active-row or publisher-binding acceptance is derived from it."
+    ],
+    "failed_requests": [
+      {
+        "url": "https://anytoour.ru/_preview/search3-local-candidate/data/local-tv-catalog-read-v1.php?oldLocalHotelIds%5B%5D=555&oldLocalHotelIds%5B%5D=1773",
+        "outcome": "target_http_error",
+        "http_status": 403,
+        "no_unchanged_retry": true
+      },
+      {
+        "url": "https://anytoour.ru/_preview/search3-next-candidate/data/hotel-search-v1.php?q=senza&countryId=4&limit=10",
+        "outcome": "target_http_error",
+        "http_status": 403,
+        "no_unchanged_retry": true
+      }
+    ],
+    "saved_publication_crosscheck": {
+      "sourceCommit": "8fc086d82e30a93ce280bfed989a219fbd7a4341",
+      "sourceFile": "tools/direct_demand/operations/commercial-hotel-materials-20261105-161-acceptance-state.json",
+      "snapshotUpdatedAt": "2026-11-05 19:59:37 UTC",
+      "expectedPublishedCount": 161,
+      "uniqueSavedPublishedIds": 161,
+      "assembledFrom": [
+        "search_link_hotel_ids",
+        "remaining_unlinked_review_hotel_ids"
+      ],
+      "checkedTourvisorIds": [
+        1228,
+        16794,
+        1216,
+        1095,
+        1014,
+        1474,
+        1015
+      ],
+      "matchingPublishedIds": [],
+      "currentRegistryChecked": false,
+      "fullHistoryDedupComplete": false,
+      "absenceClaim": "Absent only from saved 161 published native IDs; not proof of never-published or current registry absence",
+      "savedStockCount": 87,
+      "savedStockMatchingIds": []
+    },
+    "retained_senza_research": {
+      "library_file_id": "libfile_2a15848a1b9c819198d4c2a5238ccaed",
+      "file_id": "file_00000000f85481fd9daf51de03bb614e",
+      "name": "anytour-common-fit-20261019.json",
+      "version": "74",
+      "located_records": [
+        {
+          "owner_rank": 8,
+          "anex_id": 27611,
+          "tourvisor_id": 1228,
+          "anytour_hotel_id": 555,
+          "research_hotel_key": "top500_aad21a0fa927ab5a",
+          "observed_source_record_ids": [
+            "top500_aad21a0fa927ab5a_enrich20261020_s01",
+            "top500_aad21a0fa927ab5a_demand30_s01",
+            "top500_aad21a0fa927ab5a_demand30_s02"
+          ]
+        },
+        {
+          "owner_rank": 9,
+          "anex_id": 8554,
+          "tourvisor_id": 16794,
+          "anytour_hotel_id": 1773,
+          "research_hotel_key": "top500_d0989e2db02b5dc4",
+          "observed_source_record_ids": [
+            "top500_d0989e2db02b5dc4_enrich04_20261019_s01",
+            "top500_d0989e2db02b5dc4_enrich04_20261019_s02",
+            "top500_d0989e2db02b5dc4_mass39_s01",
+            "top500_d0989e2db02b5dc4_s01"
+          ]
+        }
+      ],
+      "scope": "Existing scoped official/operator sources and claims located for reuse review. Original dates, limitations and research status preserved; this record does not admit a consumer binding or new facts by hotel name.",
+      "consumer_manifest_checked_revision": "5535f839acbb12ef4f09890e2bd7d6cad56a6520",
+      "consumer_manifest_bindings_observed": 17,
+      "senza_typed_bindings_observed": 0,
+      "new_collector_credit": 0,
+      "source_files_modified": false,
+      "consumer_binding_verified": false
+    },
+    "historical_senza_review": {
+      "library_file_id": "libfile_8893b5549828819181dbc4388ce96aba",
+      "name": "review.html",
+      "snapshot_date": "2026-09-21",
+      "tourvisor_id": 1228,
+      "anex_native_ids": [
+        19941,
+        27611
+      ],
+      "canonical_samo_ids": [
+        2000041058,
+        2000061377
+      ],
+      "interpretation": "Historical SAMO IDs are not AnyTour IDs. Preserve the accepted ANEX27611 scope; do not widen to ANEX19941 or merge property/product aliases automatically.",
+      "new_mapping_acceptance": false
+    },
+    "admission": {
+      "catalogue_identity_subset_verified": true,
+      "full_owner_roster_mapping_coverage": null,
+      "website_online_namespace_bridge_verified": false,
+      "canonical_publication_binding_verified": false,
+      "current_publication_registry_dedup_verified": false,
+      "research_consumer_admission_verified": false,
+      "media_reuse_rights_verified": false,
+      "hero_and_two_distinct_photo_quality_verified": false,
+      "current_offer_or_price_verified": false,
+      "publication_ready": false,
+      "goal500_complete": false
+    },
+    "next_property_scope": {
+      "owner_rank": 8,
+      "anex_id": 27611,
+      "accepted_tourvisor_id": 1228,
+      "canonical_anytour_id": 555,
+      "local_tv_id": 1228,
+      "property_groups": 1,
+      "max_related_native_ids": 1,
+      "publisher_namespace_target": "catalog_hotels.id=1228 only after current native/publisher admission; never substitute AnyTour555 or ANEX27611",
+      "checks_remaining": [
+        "Existing publisher current native identity and full prior-publication dedup, including legacy title/alias handling.",
+        "Existing retained media rights, canonical private cache and required whole-hotel hero plus two distinct property photos.",
+        "Scoped reuse admission of original retained facts without changing their source dates or granting current tariff/availability.",
+        "Only genuinely new permitted saved price inputs if required; no old quote, supplier refresh or completed-operation replay."
+      ],
+      "carrier": "Only the existing original serial publisher and its unchanged production/source/host/private-intent/once/UNKNOWN guards; no new reader, controller, worker or timer."
+    },
+    "no_replay": true,
+    "closed_original_operations_preserved": true,
+    "phase_boundary": "This is the separately authorized content-only identity continuation for the seven current-verified pairs. Original per-property publication bounds stay at one property/max one native ID. No publication operation or frozen ten-ID/8208 reader was retargeted."
+  },
+  "risks_before_canonical_catalogue_read": [
+    "Country/active/name/photo URLs exist only in original private result, not projected into current model yet; do not invent them.",
+    "Provider/catalog photos and stored search-price rows do not independently establish reuse rights, hero quality, final basket or availability.",
+    "492unique source IDs cannot itself satisfy500distinctTOP500 hotels; no invented8 IDs."
+  ],
+  "previous_durable_before_canonical_catalogue_read": "3b6bd27ff9f433aff38f7e21913979ef7451e17a",
+  "ready_for_publication": false
 }
