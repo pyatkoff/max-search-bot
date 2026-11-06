@@ -2058,3 +2058,81 @@ for(const width of [390,1440])test('AnyTour official brand manager choice freeze
  await f.locator('#tsEdit').click();await f.locator('#tsAppearance').click();await f.locator('#tsAppearancePalette').selectOption('sunset');await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');await f.locator('#tsAppearanceBack').click();await f.locator('#tsHistory').click();await f.getByRole('button',{name:new RegExp('Версия '+publication.draft_version+' ·')}).click();await expect(f.locator('.tsSelectionBrand .tsAnyTourLogo')).toBeVisible();expect(frozen()).toEqual(publication);expect(s.snapshot().draft.offers).toEqual(original.offers);
  expect(s.calls.some(c=>['send','publish','biblio_add','onetouch_add','collector_import'].includes(c.action))).toBe(false);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
 });
+
+// Bulk terms: only new cases; the entire preceding canonical spec is retained.
+async function setBulkTerm(scope,key,value,mode){
+ await scope.locator('#tsTermsUse-'+key).check();
+ if(mode)await scope.locator('#tsTermsMode-'+key).selectOption(mode);
+ if(mode!=='clear')await scope.locator('#tsTermsValue-'+key).fill(value);
+}
+async function confirmBulkTerms(scope){await scope.locator('#tsTermsConfirm').check();await scope.locator('#tsTermsApply').click();}
+for(const width of [390,430,768,1440])test('bulk terms preview applies only selected fields and preserves imported evidence '+width,async({page,browserName})=>{
+ await page.setViewportSize({width,height:900});const original=mixedPhotoDraft();original.offers[2].selected=false;
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsBulkTermsOpen').click();
+ await expect(f.locator('#tsTermsOffers input:checked')).toHaveCount(2);await expect(f.locator('#tsTermsApply')).toBeDisabled();
+ const inputs={date_from:'2077-02-28',adults:'3',child_ages:'0, 6, 6',room:'Family <img src=x>',meal:'AI',constraints:'Проверить багаж и обязательные доплаты.'};
+ for(const [key,value]of Object.entries(inputs))await setBulkTerm(f,key,value);
+ await expect(f.locator('.tsTermsRow')).toHaveCount(2);await expect(f.locator('.tsTermsRow').first()).toContainText('Станет: 0, 6, 6');await expect(f.locator('.tsTermsRow').first()).toContainText('Family <img src=x>');await expect(f.locator('#tsTermsPreview img,#tsTermsPreview svg,#tsTermsPreview script')).toHaveCount(0);
+ expect(s.snapshot().draft).toEqual(original);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);await expect(f.locator('#tsTermsApply')).toBeDisabled();
+ for(const id of ['tsTermsCancel','tsTermsApply','tsTermsValue-date_from','tsTermsValue-adults'])expect(await f.locator('#'+id).evaluate(el=>el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
+ expect(await f.locator('#tourSelectionDialog').evaluate(el=>el.scrollWidth-el.clientWidth)).toBeLessThanOrEqual(1);fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});
+ await f.locator('#tsTermsFields').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-bulk-terms-fields-${browserName}-${width}.png`),animations:'disabled'});
+ await f.locator('#tsTermsPreview').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-bulk-terms-preview-${browserName}-${width}.png`),animations:'disabled'});
+ await confirmBulkTerms(f);await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);
+ const result=s.snapshot().draft,keys=Object.keys(inputs),unchanged=offer=>Object.fromEntries(Object.entries(offer).filter(([key])=>!keys.includes(key)));
+ for(const index of [0,1]){expect(unchanged(result.offers[index])).toEqual(unchanged(original.offers[index]));expect(result.offers[index]).toMatchObject({date_from:'2077-02-28',adults:3,child_ages:[0,6,6],room:inputs.room,meal:'AI'});expect(result.offers[index].constraints).toBe([original.offers[index].constraints,inputs.constraints].filter(Boolean).join('\n'));}
+ expect(result.offers[2]).toEqual(original.offers[2]);const normalized=JSON.parse(execFileSync('php',['-r',`require 'services/ManagerTourSelectionDraft.php';echo json_encode(ManagerTourSelectionDraft::normalize(json_decode(stream_get_contents(STDIN),true)),JSON_THROW_ON_ERROR);`],{cwd:root,input:JSON.stringify(result),encoding:'utf8'}));expect(normalized).not.toBeNull();expect(normalized.offers[0].child_ages).toEqual([0,6,6]);
+ expect(s.calls.some(x=>['send','publish','biblio_add','onetouch_add','collector_import'].includes(x.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('bulk terms validation prevents a late invalid offer from partly changing the batch',async({page})=>{
+ const original=completeDraft();original.offers.push({...copy(original.offers[0]),id:'b'.repeat(32),constraints:'x'.repeat(1199)});
+ const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsBulkTermsOpen').click();await setBulkTerm(f,'constraints','Append');
+ await expect(f.locator('#tsTermsError')).toContainText('превышен размер');await expect(f.locator('#tsTermsApply')).toBeDisabled();expect(s.snapshot().draft).toEqual(original);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);
+ await f.locator('#tsTermsUse-constraints').uncheck();await setBulkTerm(f,'adults','21');await expect(f.locator('#tsTermsError')).toContainText('от 1 до 20');await f.locator('#tsTermsUse-adults').uncheck();await setBulkTerm(f,'child_ages','0, 18');await expect(f.locator('#tsTermsError')).toContainText('до 17');
+ await f.locator('#tsTermsCancel').click();expect(s.snapshot().draft).toEqual(original);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('bulk terms clear and replace are explicit and preserve unselected fields with explicitly no children',async({page})=>{
+ const original=completeDraft(),s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsBulkTermsOpen').click();
+ for(const [key,value]of Object.entries({departure:'Санкт-Петербург',nights:'09',child_ages:''}))await setBulkTerm(f,key,value);
+ await setBulkTerm(f,'flights','Рейсы уточняются отдельно.','replace');await setBulkTerm(f,'inclusions','','clear');await expect(f.locator('#tsTermsPreview')).toContainText('Станет: Без детей');await expect(f.locator('#tsTermsPreview')).toContainText('Станет: Не указано');
+ await confirmBulkTerms(f);await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');expect(s.snapshot().draft.offers[0]).toEqual({...original.offers[0],departure:'Санкт-Петербург',nights:9,child_ages:[],flights:'Рейсы уточняются отдельно.',inclusions:''});expect(s.receipts.size).toBe(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('bulk terms changing or silently tampering with preview invalidates explicit confirmation',async({page})=>{
+ const original=completeDraft(),s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsBulkTermsOpen').click();await setBulkTerm(f,'room','New room');await f.locator('#tsTermsConfirm').check();
+ await f.locator('#tsTermsValue-room').fill('Changed room');await expect(f.locator('#tsTermsConfirm')).not.toBeChecked();await expect(f.locator('#tsTermsApply')).toBeDisabled();await f.locator('#tsTermsConfirm').check();
+ await f.locator('#tsTermsValue-room').evaluate(el=>{el.value='Silent unreviewed room'});await f.locator('#tsTermsApply').click();await expect(f.locator('#tsTermsConfirm')).not.toBeChecked();await expect(f.locator('#tsTermsError')).toContainText('текущий предпросмотр');expect(s.snapshot().draft).toEqual(original);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('bulk terms cancel and Escape retain focus without saving at a short mobile height',async({page,browserName})=>{
+ await page.setViewportSize({width:390,height:420});const original=completeDraft(),s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsBulkTermsOpen').click();await setBulkTerm(f,'meal','BB');
+ await expect(f.locator('#tsTermsCancel')).toBeInViewport();await expect(f.locator('#tsTermsApply')).toBeInViewport();await f.locator('#tsTermsPreview').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(root,'manager2-artifacts',`tour-selection-bulk-terms-short-${browserName}.png`),animations:'disabled'});
+ await f.locator('#tsTermsValue-meal').press('Escape');await expect(f.locator('#tsBulkTerms')).toBeHidden();await expect(f.locator('#tsBulkTermsOpen')).toBeFocused();await expect(f.locator('#tourSelectionDialog')).toBeVisible();expect(s.snapshot().draft).toEqual(original);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('bulk terms lost save outcome reconciles one canonical operation before any retry',async({page})=>{
+ const s=await privateEditor(page,{draft:completeDraft(),fail:'after'}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsBulkTermsOpen').click();await setBulkTerm(f,'meal','BB');await confirmBulkTerms(f);
+ await expect(f.getByRole('button',{name:'Проверить сохранение',exact:true})).toBeVisible();expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);await f.getByRole('button',{name:'Проверить сохранение',exact:true}).click();await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');expect(s.snapshot().draft.offers[0].meal).toBe('BB');expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);expect(s.receipts.size).toBe(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+test('bulk terms canonical conflict preserves the other manager draft and the local intended changes',async({page})=>{
+ const original=completeDraft(),s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsBulkTermsOpen').click();await setBulkTerm(page,'room','Local batch room');const colleague=copy(original);colleague.offers[0].amount='260000';s.drafts.set(11,{version:2,draft:colleague});
+ await confirmBulkTerms(page);await expect(page.locator('#tsRecovery')).toContainText('другая версия');expect(s.drafts.get(11)).toEqual({version:2,draft:colleague});await expect(page.locator('#ts-room')).toHaveValue('Local batch room');await expect(page.locator('#tsBulkTermsOpen')).toBeDisabled();expect(s.calls.filter(x=>x.action==='save')).toHaveLength(1);clean(s);
+});
+
+test('bulk terms detached apply cannot modify another client or a later batch',async({page})=>{
+ const original=completeDraft(),s=await fixture(page,{draft:original});await open(page,{edit:false});await page.locator('#tsBulkTermsOpen').click();await setBulkTerm(page,'room','Stale batch');await page.locator('#tsTermsConfirm').check();await page.evaluate(()=>{window.detachedTermsApply=document.getElementById('tsTermsApply').onclick});
+ await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="12"]').click();await open(page);await page.evaluate(()=>detachedTermsApply());expect(s.drafts.has(12)).toBe(false);await page.locator('#tsClose').click();await page.locator('#inboxList [data-conversation-id="11"]').click();await open(page,{edit:false});await page.locator('#tsBulkTermsOpen').click();await page.evaluate(()=>detachedTermsApply());await expect(page.locator('#tsTermsUse-room')).not.toBeChecked();expect(s.drafts.get(11).draft).toEqual(original);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);clean(s);
+});
+
+test('bulk terms remain unavailable to a read-only viewer',async({page})=>{
+ const original=completeDraft(),s=await fixture(page,{draft:original,readOnly:true});await open(page,{edit:false});await expect(page.locator('#tsBulkTermsOpen')).toBeDisabled();await page.evaluate(()=>document.getElementById('tsBulkTermsOpen').onclick());await expect(page.locator('#tsBulkTerms')).toBeHidden();expect(s.drafts.get(11).draft).toEqual(original);expect(s.calls.filter(x=>x.action==='save')).toHaveLength(0);clean(s);
+});
+
+test('bulk terms preserve a previous frozen publication after new conditions are saved',async({page})=>{
+ const original=completeDraft(),s=await privateEditor(page,{draft:original}),f=s.editor,frozen=await appearancePrivatePreview(page,s);await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsPreview').click();await expect(f.locator('#tsPrint')).toBeEnabled();const publication=frozen();
+ await f.locator('#tsEdit').click();await f.locator('#tsBulkTermsOpen').click();await setBulkTerm(f,'room','New draft room');await setBulkTerm(f,'flights','New draft flight','replace');await confirmBulkTerms(f);await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');
+ await f.locator('#tsHistory').click();await f.getByRole('button',{name:new RegExp('Версия '+publication.draft_version+' ·')}).click();expect(frozen()).toEqual(publication);await expect(f.locator('.tsCardText')).toContainText(original.offers[0].room);await expect(f.locator('.tsCardText')).not.toContainText('New draft room');expect(s.snapshot().draft.offers[0].room).toBe('New draft room');expect(s.calls.some(x=>['send','publish','biblio_add','onetouch_add','collector_import'].includes(x.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
