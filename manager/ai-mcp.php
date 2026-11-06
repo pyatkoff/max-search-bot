@@ -4,7 +4,6 @@ $preparationMcpStartedAt=microtime(true);
 
 require_once dirname(__DIR__).'/config.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationOAuth.php';
-require_once dirname(__DIR__).'/services/DialogueReviewMcpAdapter.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php';
 
@@ -80,7 +79,10 @@ try {
             if(is_array($probe)&&($probe['method']??null)==='tools/call'&&is_array($probe['params']??null)
                 &&in_array($probe['params']['name']??null,['list_current_dialogues','get_dialogue_review_context'],true)){
                 $preparationMcpDialogueRead=true;
-                $preparationMcpQualityRead=is_array($probe['params']['arguments']??null)&&DialogueReviewMcpAdapter::isHistory($probe['params']['arguments']);
+                // Fixed wire classification only; the authenticated service enforces the actual grant.
+                $historyArgs=$probe['params']['arguments']??null;
+                if(is_array($historyArgs))foreach(['cursor','dialogue_ref']as$field)
+                    if(is_string($historyArgs[$field]??null)&&str_starts_with($historyArgs[$field],'qh.'))$preparationMcpQualityRead=true;
             }
             if(is_array($probe)&&($probe['method']??null)==='tools/call'&&is_array($probe['params']??null)
                 &&in_array($probe['params']['name']??null,['read_tour_selection','save_tour_selection','prepare_tour_selection','review_tour_selection_photo','publish_tour_selection'],true))

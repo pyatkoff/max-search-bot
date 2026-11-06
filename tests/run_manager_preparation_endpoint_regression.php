@@ -54,7 +54,7 @@ return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>['development_authenticated'
 }}
 PHP);
     foreach(['ManagerPreparationOAuth','ManagerPreparationMcpService','DevelopmentWorkMcpService']as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/config.php';");
-    foreach(['ManagerPreparationMcpDiagnostics','DiagnosticLogger','DialogueReviewMcpAdapter']as $name)copy(dirname(__DIR__).'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
+    foreach(['ManagerPreparationMcpDiagnostics','DiagnosticLogger']as $name)copy(dirname(__DIR__).'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
     copy(dirname(__DIR__).'/manager/ai-mcp.php',$tmp.'/manager/ai-mcp.php');
     copy(dirname(__DIR__).'/manager/development-mcp.php',$tmp.'/manager/development-mcp.php');
     // Simulate CGI representations while keeping the actual incoming header
