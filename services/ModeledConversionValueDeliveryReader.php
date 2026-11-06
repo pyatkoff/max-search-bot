@@ -109,11 +109,38 @@ final class ModeledConversionValueDeliveryReader
                 'goal_report_is_by_session_dates_including_pre_activation_attribution_window'=>true,
                 'identity_counts_are_stored_resolution_not_a_new_scope_check'=>true,
                 'conversations_are_not_verified_people_or_trips'=>true,'per_upload_visit_match_verified'=>false,'reporting_can_lag'=>true,'no_ids_or_text_returned'=>true];
+            $out['price_continuity_audit']=$this->priceAudit($receipt['price_continuity_audit']??null,$now);
             $out['predictive_v1']=$this->predictiveV1($now);
             return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
         catch(UnexpectedValueException $ignored){return $this->unavailable('invalid_ledger');}
+    }
+
+
+    private function priceAudit(mixed $a,int $now):array
+    {
+        if(!is_array($a)||($a['version']??null)!=='retained_priced_base_v1')return ['available'=>false,'reason'=>'not_recorded'];
+        $at=ModeledConversionValueContract::moment($a['checked_at']??null);
+        if($at===null||$at>$now||!is_int($a['goal_rows_scanned']??null)||$a['goal_rows_scanned']<0||$a['goal_rows_scanned']>1001
+            ||!is_bool($a['complete']??null)||!is_int($a['unprocessed_candidates']??null)||$a['unprocessed_candidates']<0||$a['unprocessed_candidates']>1001
+            ||!is_array($a['actions']??null)||!is_array($a['corrections']??null)||count($a['corrections'])>16)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
+        $out=['available'=>true,'version'=>$a['version'],'checked_at'=>$a['checked_at'],'goal_rows_scanned'=>$a['goal_rows_scanned'],
+            'complete'=>$a['complete'],'unprocessed_candidates'=>$a['unprocessed_candidates'],'actions'=>[],'corrections'=>[]];
+        $actions=['unchanged','rebased','voided','reduced','review_required','unverified'];
+        foreach($a['actions']as$key=>$v){
+            if(!in_array($key,$actions,true)||!is_array($v)||!is_int($v['events']??null)||$v['events']<0||$v['events']>1001
+                ||!is_int($v['removed_rub']??null)||$v['removed_rub']<0||$v['removed_rub']>25025000)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
+            $out['actions'][$key]=['events'=>$v['events'],'removed_rub'=>$v['removed_rub']];
+        }
+        foreach($a['corrections']as$v){
+            if(!is_array($v)||!in_array($v['action']??null,['voided','reduced','review_required'],true))return ['available'=>false,'reason'=>'invalid_recorded_audit'];
+            foreach(['original_rub','applied_rub','prior_reserved_rub']as$key)if(!is_int($v[$key]??null)||$v[$key]<0||$v[$key]>25000)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
+            $t=ModeledConversionValueContract::moment($v['assessed_at']??null);if($t===null||$t>$now)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
+            $out['corrections'][]=['action'=>$v['action'],'original_rub'=>$v['original_rub'],'applied_rub'=>$v['applied_rub'],
+                'prior_reserved_rub'=>$v['prior_reserved_rub'],'assessed_at'=>$v['assessed_at']];
+        }
+        return $out;
     }
 
     /** Frozen scalar arithmetic and saved receipts for predictive keys only; no source text or provider request. */
@@ -157,7 +184,7 @@ final class ModeledConversionValueDeliveryReader
                     'complete_within_goal_suffix'=>count($rows)<17,'global_coverage_known'=>false],
                 'events'=>0,'conversations'=>0,'value_rub'=>0,'api_accepted_events'=>0,'api_accepted_value_rub'=>0,
                 'processed_events'=>0,'processed_value_rub'=>0,'by_state'=>[],'by_platform'=>[],
-                'invalid_binding_rows'=>0,'calculation_unavailable_rows'=>0,'examples'=>[],
+                'invalid_binding_rows'=>0,'voided_zero_value_rows'=>0,'calculation_unavailable_rows'=>0,'examples'=>[],
                 'per_event_visit_linkage'=>'not_observed_by_this_cached_upload_reader','provider_requests'=>0];
             $cases=[];
             foreach($rows as$row){
@@ -167,6 +194,7 @@ final class ModeledConversionValueDeliveryReader
                     ||!in_array($v[4],['max','telegram'],true)||!in_array($v[7],self::STATES,true)
                     ||!in_array($v[5],ModeledConversionValueContract::STAGES,true)){$out['invalid_binding_rows']++;continue;}
                 $delta=(int)$this->number($v[6],true);
+                if($delta===0&&$v[7]==='failed'){$out['voided_zero_value_rows']++;continue;}
                 if($delta<=0||$delta>25000){$out['invalid_binding_rows']++;continue;}
                 $scope=$v[4].'|'.$v[1];
                 if(!isset($cases[$scope]))$cases[$scope]='dialogue_'.(count($cases)+1);
