@@ -8,7 +8,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { execFileSync, spawnSync } = require('node:child_process');
-const { selectionStyleOnlyChanges } = require('../tools/ci_change_scope');
+const { selectionStyleOnlyChanges, workspaceStyleOnlyChanges } = require('../tools/ci_change_scope');
 const root = path.resolve(__dirname, '..');
 const selector = path.join(root, 'tools/ci_change_scope.js');
 const scope = fs.readFileSync(path.join(root, '.github/workflows/ci-change-scope.yml'), 'utf8');
@@ -18,6 +18,7 @@ const script = body[1].replace(/^ {10}/gm, '')
   .replace('node tools/ci_change_scope.js', 'node ' + JSON.stringify(selector));
 const css = 'manager/assets/workspace-v2-tour-selection.css';
 const publicCss = 'selection/selection.css';
+const workspaceCss = 'manager/assets/workspace-v2-tour-choices.css';
 const spec = 'tests/visual/manager-tour-selection.spec.js';
 const editor = 'modules/tour-selections/editor.json';
 const publicManifest = 'modules/tour-selections/module.json';
@@ -46,6 +47,24 @@ for (const file of [css, publicCss, spec, editor, publicManifest]) {
   check(selectionStyleOnlyChanges([changed(css), {...changed(file), previousPath:'old'}]), false, 'copy/rename '+file);
 }
 
+check(workspaceStyleOnlyChanges([changed(workspaceCss)]), true, 'booking style keeps full browsers and narrows only server owners');
+for (const value of [null, [], [{}], [changed(css)], [changed(workspaceCss), changed(workspaceCss)]]) {
+  check(workspaceStyleOnlyChanges(value), false, 'workspace profile requires exactly one canonical stylesheet modification');
+}
+for (const file of [css, publicCss, spec, editor, publicManifest, 'manager/assets/workspace-v2-tour-choices.js',
+  'manager/pipeline-api.php', 'services/TourBookingService.php', 'manager/lib/ManagerHttp.php',
+  'migrations/999_example.sql', 'tests/visual/manager-ai-draft.spec.js', 'docs/TOUR_BOOKING.md',
+  'tools/ci_change_scope.js', '.github/workflows/regression-tests.yml', './'+workspaceCss, workspaceCss+'.bak']) {
+  check(workspaceStyleOnlyChanges([changed(workspaceCss), changed(file)]), false, 'mixed workspace owner '+file);
+}
+for (const status of ['A','D','T','R100','C100','U','',undefined]) {
+  check(workspaceStyleOnlyChanges([{...changed(workspaceCss),status}]), false, 'workspace status '+status);
+}
+for (const [oldMode,newMode] of [['100644','100755'],['100755','100755'],['120000','120000'],['160000','160000'],[undefined,undefined]]) {
+  check(workspaceStyleOnlyChanges([{...changed(workspaceCss),oldMode,newMode}]), false, 'workspace file modes');
+}
+check(workspaceStyleOnlyChanges([{...changed(workspaceCss),previousPath:'old.css'}]), false, 'workspace copy/rename');
+
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'selection-style-scope-'));
 const repo = path.join(temp, 'repo');
 fs.mkdirSync(repo);
@@ -57,7 +76,7 @@ const editorBase=manifest('anytour-selection-editor','tour-selection-editor-host
 const publicBase=manifest('anytour-selection-public','selection-php-view-v1');
 try {
   git(['init','-q']);git(['config','user.name','CI fixture']);git(['config','user.email','ci@example.invalid']);git(['config','core.filemode','true']);
-  for (const file of [css, publicCss, spec, 'manager/assets/workspace-v2-tour-selection.js', 'manager/lib/ManagerHttp.php',
+  for (const file of [css, publicCss, workspaceCss, spec, 'manager/assets/workspace-v2-tour-selection.js', 'manager/lib/ManagerHttp.php',
     'manager/tour-selections-api.php','docs/MANAGER_TOUR_SELECTIONS.md','migrations/999_example.sql']) put(file,'base\n');
   put(editor,JSON.stringify(editorBase));put(publicManifest,JSON.stringify(publicBase));
   git(['add','.']);git(['commit','-qm','base']);const base=git(['rev-parse','HEAD']);
@@ -106,6 +125,22 @@ try {
   scenario('CSS rename',()=>fs.renameSync(path.join(repo,css),path.join(repo,css+'.old')),'full');
   scenario('CSS executable',()=>fs.chmodSync(path.join(repo,css),0o755),'full');
   scenario('CSS symlink',()=>{fs.unlinkSync(path.join(repo,css));fs.symlinkSync('other.css',path.join(repo,css));},'full');
+
+  scenario('workspace booking style only',()=>put(workspaceCss,'.tourBooking{gap:12px}\n'),'full','workspace-style');
+  const workspaceHead=git(['rev-parse','HEAD']);
+  for (const eventName of ['push','workflow_dispatch','']) run(workspaceHead,'full','full','workspace non-PR '+eventName,{GITHUB_EVENT_NAME:eventName});
+  for (const file of [css, publicCss, spec, editor, publicManifest,
+    'manager/assets/workspace-v2-tour-choices.js','manager/pipeline-api.php',
+    'services/TourBookingService.php','manager/lib/ManagerHttp.php',
+    'tests/visual/manager-ai-draft.spec.js','docs/TOUR_BOOKING.md',
+    'tools/ci_change_scope.js','.github/workflows/regression-tests.yml','migrations/999_example.sql']) {
+    scenario('workspace style mixed with '+file,()=>{put(workspaceCss,'changed\n');put(file,'changed\n');},'full','full');
+  }
+  scenario('workspace CSS deletion',()=>fs.unlinkSync(path.join(repo,workspaceCss)),'full','full');
+  scenario('workspace CSS rename',()=>fs.renameSync(path.join(repo,workspaceCss),path.join(repo,workspaceCss+'.old')),'full','full');
+  scenario('workspace CSS executable',()=>fs.chmodSync(path.join(repo,workspaceCss),0o755),'full','full');
+  scenario('workspace CSS symlink',()=>{fs.unlinkSync(path.join(repo,workspaceCss));fs.symlinkSync('other.css',path.join(repo,workspaceCss));},'full','full');
+  scenario('workspace CSS adjacent addition',()=>put(workspaceCss+'.new','new\n'),'full','full');
   run(base,'full','full','empty diff');run('f'.repeat(40),'full','full','missing commit');
   git(['reset','--hard','-q',base]);git(['clean','-fdq']);put('docs/base-change.md','new main\n');git(['add','.']);git(['commit','-qm','new base']);
   const nextBase=git(['rev-parse','HEAD']);
@@ -114,4 +149,4 @@ try {
     GITHUB_EVENT_NAME:'pull_request',GITHUB_EVENT_PATH:eventPath,GITHUB_OUTPUT:output}});
   check(blocked.status,1,'stale event base fails');check(fs.readFileSync(output,'utf8'),'','blocked scope emits no partial outputs');
 } finally {fs.rmSync(temp,{recursive:true,force:true});}
-console.log(`PASS ${assertions} selection-style scope and output assertions`);
+console.log(`PASS ${assertions} styling scope and output assertions`);

@@ -197,6 +197,38 @@ still receive full regression plus the existing component commissioning. Actual
 runner savings and duration must come from a subsequent ordinary styling PR,
 not an artificial release or a claimed percentage from these local fixtures.
 
+
+## Booking stylesheet backend subprofile
+
+A modification of exactly `manager/assets/workspace-v2-tour-choices.css` may
+select `mode=full, backend=workspace-style`. This stylesheet contains the
+selected-tour and booking form layout. It does not change PHP, SQL, request
+payloads, authorization or module manifests. Only an existing regular 100644
+file modification qualifies; additions, deletion, rename/copy, mode changes
+and **any companion path** keep ordinary full server coverage.
+
+This independently selects server work without changing browser coverage.
+The existing required matrix keeps architecture, inventory and PHP syntax;
+the four other server groups and the prepared MySQL matrix are declared skips.
+The source aggregate requires those exact current-run results. A missing,
+failed or foreign profile never passes, and the existing release admission
+remains mandatory.
+
+All full native Chromium/WebKit parts, Firefox checks, screenshots, sound,
+post-context and their existing MySQL checks keep their current mode/full
+conditions. This profile cannot substitute component screenshots for full
+panel evidence. No browser case, invocation, assertion, timeout or screenshot
+is removed. Mixed CSS/JS, PHP, API, fixture, test, documentation, migration,
+manifest or CI changes run full server coverage. The existing selection-style
+profile is unchanged.
+
+The canonical selector/output Git-history tests and workflow aggregate truth
+tables exercise the positive scope and conservative fallbacks. The CI-rule
+package itself receives full regression and existing browser commissioning;
+it cannot self-select its new shortcut. Manual and production PHP8.3
+verification remain full. Any duration or runner savings require a subsequent
+ordinary qualifying stylesheet change; no benchmark-only PR is needed.
+
 ## Prepared native browser environment
 
 The eight browser workflows run their native jobs in the immutable GHCR image
