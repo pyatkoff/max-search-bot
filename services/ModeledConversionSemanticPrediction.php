@@ -14,6 +14,8 @@ final class ModeledConversionSemanticPrediction
     public const VERSION='semantic_purchase_heuristic_v1';
     public const ASSUMPTIONS_VERSION='illustrative_funnel_2026_11_02_v1';
     public const STAGE_BASELINE_ASSUMPTIONS='stage_baseline_2026_11_06_v1';
+    public const ADVERTISING_ASSUMPTIONS='early_dialogue_ads_2026_11_06_v1';
+    public const ADVERTISING_WEIGHTS=['continued_meaningful_engagement'=>1.10,'continued_offer_search'=>1.10,'office_question'=>1.10,'payment_terms_question'=>1.15];
     public const HORIZON_SECONDS=2592000;
     public const MAX_BYTES=16384;
     /** Continuity policy is part of this model's source digest, never customer evidence. */
@@ -59,9 +61,10 @@ final class ModeledConversionSemanticPrediction
     private ?array $relativeWeights;
 
     public function __construct(array $subject,private string $profilePredictionAt,
-        private string $inputCutoffAt,private string $frozenAt,private string $cursor,private string $fence,?array $relativeWeights=null)
+        private string $inputCutoffAt,private string $frozenAt,private string $cursor,private string $fence,?array $relativeWeights=null,private bool $advertisingV1=false)
     {
         if($relativeWeights!==null&&!ArchivePredictiveRelativeWeights::validCapsule($relativeWeights))self::fail('relative_weights');
+        if($advertisingV1&&$relativeWeights!==null)self::fail('conflicting_policy');
         $this->relativeWeights=$relativeWeights;
         if(($subject['project_key']??null)!=='anytour'||!in_array($subject['platform']??null,['max','telegram'],true)
             ||!self::decimal($subject['customer_key']??null,false)||!self::decimal($subject['conversation_id']??null,false))
@@ -228,8 +231,15 @@ final class ModeledConversionSemanticPrediction
                 $odds*=$weights['multipliers'][$feature];$reasons[]='archive_weight_'.$feature;
             }
         }
-        // Owner policy: only the semantic stage and the existing direct-refusal guard affect new live estimates.
-        // Deferral, planning horizon, urgency and engagement remain frozen observations for later validation.
+        // Owner-authorized early advertising hypotheses; timing and deferral have no penalty.
+        if($this->advertisingV1&&$weights===null&&!$this->declined){
+            $active=['continued_meaningful_engagement'=>$this->meaningfulTurns>=2,
+                'continued_offer_search'=>$this->comparison||$this->modification||$this->priceAlternative,
+                'office_question'=>$this->officeQuestion,'payment_terms_question'=>$this->paymentTermsQuestion];
+            foreach(self::ADVERTISING_WEIGHTS as$feature=>$multiplier)if($active[$feature]){
+                $odds*=$multiplier;$reasons[]='expert_dialogue_'.$feature;
+            }
+        }
         if($this->declined){$odds*=0.25;$reasons[]=$weights!==null?'hypothesis_explicit_decline':'explicit_decline_guard';}
         $odds=max(0.25,min(1.3,$odds));
         $probability=$status==='predicted'?round(($base*$odds)/(1-$base+$base*$odds),6):null;
@@ -264,6 +274,11 @@ final class ModeledConversionSemanticPrediction
             'evaluation_eligible'=>false,'export_allowed'=>false,'expected_value_rub'=>null,
             'provider_calls'=>0,'model_calls'=>0,'conversion_uploads'=>0,
         ];
+        if($this->advertisingV1){
+            $p['mode']='contextual_advertising_v1';
+            $p['assumptions_version']=self::ADVERTISING_ASSUMPTIONS;
+            $p['probability_meaning']='expert_stage_and_dialogue_estimate_for_advertising';
+        }
         // Denied callers receive no private message provenance or contextual features.
         if($weights!==null){
             $p['mode']='contextual_rules_with_archive_relative_weights';

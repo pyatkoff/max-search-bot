@@ -21,9 +21,16 @@ class DestinationResolver
         $current = MaxSearchApi::getAiSearchContext($chatId);
         $old = self::getStored($chatId);
 
-        $country = null;
-        if (!empty($current['country'])) $country = self::findCountryByName($current['country']);
-        if (!$country && $destinationText !== '') $country = self::findCountryInText($destinationText);
+        $country = !empty($current['country']) ? self::findCountryByName($current['country']) : null;
+        $explicitReplacement = (bool)preg_match('/^\s*не\s+.+?\s*,?\s+а\s+(.+?)\s*$/ui', $destinationText);
+        $choiceText = self::countryChoiceText($destinationText);
+        if ($choiceText === null) return []; // question/exclusion/alternative: no state mutation
+        $mentioned = $choiceText !== '' ? self::findCountryInText($choiceText) : null;
+        if ($mentioned && $country && !$explicitReplacement && !self::isExplicitCountryChoice($choiceText, $mentioned)) return [];
+        if ($mentioned) {
+            $country = $mentioned;
+            $destinationText = $choiceText;
+        }
 
         $countryId = $country ? (int)$country['UF_CID'] : 0;
         $region = $destinationText !== '' ? self::findRegionInText($destinationText, $countryId) : null;
@@ -54,7 +61,12 @@ class DestinationResolver
         if ($country) {
             $resolvedCountry = (string)$country['UF_NAME'];
             if (empty($current['country']) || self::norm($current['country']) !== self::norm($resolvedCountry)) {
-                NeedApplicationService::applyParameters($chatId, ['country' => $resolvedCountry]);
+                $applied = NeedApplicationService::applyParameters($chatId, ['country' => $resolvedCountry]);
+                $readback = MaxSearchApi::getAiSearchContext($chatId);
+                if (empty($applied['country'])
+                    || self::norm($readback['country'] ?? '') !== self::norm($resolvedCountry)) {
+                    return []; // do not publish destination metadata for an unconfirmed write
+                }
             }
         }
 
@@ -144,7 +156,34 @@ class DestinationResolver
         return $text;
     }
 
-    private static function findCountryInText($text) { $rows=self::allRows(self::$countryHL,['UF_CID','UF_NAME']); $norm=self::norm($text); $best=null;$bestLen=0; foreach($rows as $row){$name=self::norm($row['UF_NAME']??'');if($name!==''&&self::containsName($norm,$name)&&mb_strlen($name,'UTF-8')>$bestLen){$best=$row;$bestLen=mb_strlen($name,'UTF-8');}} return $best; }
+    /** null means no selection intent; an ordinary unrelated statement is empty. */
+    private static function countryChoiceText(string $text): ?string
+    {
+        if (preg_match('/^\s*не\s+.+?\s*,?\s+а\s+(.+?)\s*$/ui', $text, $correction)) {
+            $text = trim($correction[1]);
+        }
+        if (preg_match('/[?？]|(?:^|[^\p{L}])(?:не|нет|или|ли|если|например|возможно|сравни[а-яё]*|почему|узнать|расскажите|были|раньше)(?!\p{L})/ui', $text)) return null;
+        return $text;
+    }
+
+    private static function isExplicitCountryChoice(string $text, array $country): bool
+    {
+        $bare = preg_replace('/^(?:в|во|на)\s+/ui', '', trim($text));
+        if (count(self::tokens($bare)) === count(self::tokens((string)$country['UF_NAME']))
+            && self::containsName(self::norm($bare), self::norm($country['UF_NAME']))) return true;
+        return (bool)preg_match('/(?:^|\s)(?:хочу|хотим|нужен|нужна|нужно|едем|летим|поедем|полетим|давайте|меняем|замените|выбираем|направление|страна)(?=\s|:|,)/ui', $text);
+    }
+
+    private static function findCountryInText($text)
+    {
+        $matches = [];
+        $norm = self::norm($text);
+        foreach (self::allRows(self::$countryHL, ['UF_CID','UF_NAME']) as $row) {
+            $name = self::norm($row['UF_NAME'] ?? '');
+            if ($name !== '' && self::containsName($norm, $name)) $matches[(int)$row['UF_CID']] = $row;
+        }
+        return count($matches) === 1 ? reset($matches) : null;
+    }
     private static function findCountryByName($name) { $r=self::query(self::$countryHL,['=UF_NAME'=>trim((string)$name)],['UF_CID','UF_NAME'],1); return $r[0]??null; }
     private static function findCountryById($cid) { if((int)$cid<=0)return null;$r=self::query(self::$countryHL,['=UF_CID'=>(int)$cid],['UF_CID','UF_NAME'],1);return $r[0]??null; }
     private static function findRegionByTid($tid) { if((int)$tid<=0)return null;$r=self::query(self::$regionHL,['=UF_TID'=>(int)$tid],['UF_TID','UF_CID','UF_NAME','UF_PARENT_TID'],1);return $r[0]??null; }

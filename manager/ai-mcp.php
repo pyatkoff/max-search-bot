@@ -15,6 +15,7 @@ $preparationMcpRpc=null;
 $preparationMcpStage='origin';
 $preparationMcpForecastBudget=null;
 $preparationMcpDialogueRead=false;
+$preparationMcpQualityRead=false;
 $preparationMcpRaw=null;
 $preparationMcpSelection=false;
 
@@ -78,6 +79,10 @@ try {
             if(is_array($probe)&&($probe['method']??null)==='tools/call'&&is_array($probe['params']??null)
                 &&in_array($probe['params']['name']??null,['list_current_dialogues','get_dialogue_review_context'],true)){
                 $preparationMcpDialogueRead=true;
+                // Fixed wire classification only; the authenticated service enforces the actual grant.
+                $historyArgs=$probe['params']['arguments']??null;
+                if(is_array($historyArgs))foreach(['cursor','dialogue_ref']as$field)
+                    if(is_string($historyArgs[$field]??null)&&str_starts_with($historyArgs[$field],'qh.'))$preparationMcpQualityRead=true;
             }
             if(is_array($probe)&&($probe['method']??null)==='tools/call'&&is_array($probe['params']??null)
                 &&in_array($probe['params']['name']??null,['read_tour_selection','save_tour_selection','prepare_tour_selection','review_tour_selection_photo','publish_tour_selection'],true))
@@ -89,8 +94,8 @@ try {
     $actor=$authorization['admin_id']??null;
     $connection=$authorization['connection_id']??null;
     if ($actor===null||$connection===null) {
-        $requestedScope=$preparationMcpDialogueRead?ManagerPreparationOAuth::DIALOGUE_SCOPE
-            :($preparationMcpForecastBudget!==null?'forecasts:read':'queue:read prepared:write');
+        $requestedScope=$preparationMcpQualityRead?ManagerPreparationOAuth::QUALITY_SCOPE:($preparationMcpDialogueRead?ManagerPreparationOAuth::DIALOGUE_SCOPE
+            :($preparationMcpForecastBudget!==null?'forecasts:read':'queue:read prepared:write'));
         if($preparationMcpSelection)$requestedScope=ManagerPreparationOAuth::SELECTION_SCOPE;
         header('WWW-Authenticate: Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="'.$requestedScope.'"');
         preparationMcpResponse(['jsonrpc'=>'2.0','id'=>null,'error'=>['code'=>-32001,'message'=>'OAuth connection required']],401);

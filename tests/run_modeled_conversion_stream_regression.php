@@ -35,8 +35,39 @@ function modeledStreamMessage(PDO $p,int $id,int $conversation=10,string $text='
     $p->prepare('INSERT INTO messages VALUES (?,?,?,?,?,?,?,?)')->execute([$id,$conversation,$channel,$role==='customer'?'inbound':'outbound',$role,$text,'{"type":"message"}','2026-10-26 08:00:00']);
 }
 
+
+function modeledPriceContextAssertions(PDO $p,callable $check):void
+{
+    $p->exec('CREATE TABLE projects(id BIGINT PRIMARY KEY,project_key VARCHAR(40))');
+    $p->exec('CREATE TABLE post_channels(id BIGINT PRIMARY KEY,project_id BIGINT,platform VARCHAR(16))');
+    $p->exec('CREATE TABLE post_publications(id BIGINT PRIMARY KEY,post_channel_id BIGINT)');
+    $p->exec('CREATE TABLE post_versions(id BIGINT PRIMARY KEY,publication_id BIGINT,content_hash VARCHAR(64),snapshot_json TEXT)');
+    $p->exec('CREATE TABLE post_entries(id BIGINT PRIMARY KEY,conversation_id BIGINT,publication_id BIGINT,version_id BIGINT)');
+    try{
+        $p->exec("INSERT INTO projects VALUES(1,'anytour');");$p->exec("INSERT INTO post_channels VALUES(1,1,'max')");
+        $p->exec('INSERT INTO post_publications VALUES(1,1)');$p->exec('INSERT INTO post_entries VALUES(1,11,1,1)');
+        $now=1793002500;$snapshot=json_encode(['text'=>'Тур от 150–200 тыс руб за 2 взрослых','published_at'=>gmdate('c',$now-60)],JSON_THROW_ON_ERROR);
+        $p->prepare('INSERT INTO post_versions VALUES(1,1,?,?)')->execute([str_repeat('a',64),$snapshot]);
+        $meta=['conversation_id'=>'11','platform'=>'max'];$payload=['event_type'=>'channel_post_entry','actor_type'=>'customer',
+            'payload_json'=>json_encode(['entry_id'=>1,'publication_id'=>1,'version_id'=>1],JSON_THROW_ON_ERROR)];
+        $r=ModeledConversionPriceContext::capture($p,$meta,$payload,$now);
+        $check('pinned native publication price is read without changing the original snapshot',
+            ($r['context']['range']['point']??null)===175000&&$r['rows']===1&&$r['bytes']>0
+            &&$p->query('SELECT snapshot_json FROM post_versions WHERE id=1')->fetchColumn()===$snapshot);
+        $bad=$meta;$bad['platform']='telegram';
+        $check('a foreign platform cannot borrow a publication price',ModeledConversionPriceContext::capture($p,$bad,$payload,$now)['context']===null);
+        $bad=$payload;$bad['payload_json']=json_encode(['entry_id'=>1,'publication_id'=>1,'version_id'=>2]);
+        $check('a changed version pointer cannot select another publication price',ModeledConversionPriceContext::capture($p,$meta,$bad,$now)['context']===null);
+        $p->exec("UPDATE projects SET project_key='anex'");
+        $check('another project never supplies an AnyTour price',ModeledConversionPriceContext::capture($p,$meta,$payload,$now)['context']===null);
+    }finally{
+        foreach(['post_entries','post_versions','post_publications','post_channels','projects']as$table)$p->exec('DROP TABLE '.$table);
+    }
+}
+
 function modeledStreamAssertions(PDO $p,callable $check): void
 {
+    modeledPriceContextAssertions($p,$check);
     $now=1793002000;$s=new ModeledConversionStream($p);
     $check('uninitialized tick is off and does not create state',$s->tick($now)['status']==='off'&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_state')->fetchColumn()===0);
     modeledStreamMessage($p,10);
@@ -185,6 +216,11 @@ function modeledProfileAssertions(PDO $p,callable $check): void
         &&!isset($r['early_forecast'])&&($r['early_forecast_version']??null)===ModeledConversionEarlyForecast::VERSION);
     $firstForecastCursor=$v['early_forecast']['first_snapshot_journal_cursor'];
     $initialPrediction=$v['semantic_prediction']??[];
+    $check('actual live interpreter stores expert dialogue policy and seven percent monetary forecast together',
+        ($initialPrediction['mode']??null)==='contextual_advertising_v1'
+        &&($v['deal_value_prediction']['commission_rate']??null)===0.07
+        &&ModeledConversionDealValue::saved($v)!==null
+        &&($v['deal_value_prediction']['deal_amount_rub']['point']??null)===200000);
     $initialFollowup=$v['prediction_followup']??[];
     $initialProfileId=(int)$p->query('SELECT id FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
     $initialProfileSql='SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$initialProfileId;

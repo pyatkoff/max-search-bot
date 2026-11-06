@@ -24,7 +24,7 @@ final class DialogueReviewReadService
     private int $sourceBytes=0;
     private int $selectionReferenceCount=0;
 
-    public function __construct(private PDO $pdo,private $clock=null,private $keyProvider=null,private $selectionSourceAuthorize=null)
+    public function __construct(private PDO $pdo,private $clock=null,private $keyProvider=null,private $selectionSourceAuthorize=null,private bool $historyAudit=false)
     {
         $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if(!in_array($driver,['mysql','sqlite'],true))throw new InvalidArgumentException('dialogue_review_driver');
@@ -67,7 +67,7 @@ final class DialogueReviewReadService
                     'consistency'=>'per_request_current_state_not_frozen_cohort'],
                 'dialogues'=>$dialogues,'returned'=>count($dialogues),'total_open_at_this_read'=>(int)$summary['total'],
                 'has_more'=>$more,'next_cursor'=>$more?$this->encode(['v'=>1,'k'=>'inventory','f'=>$fence,'a'=>$after,'t'=>$started,'e'=>$now+self::CURSOR_TTL],$key,$admin,$connection):null,
-                'coverage'=>['population'=>'current_open_authorized_anytour_max_telegram_including_ai',
+                'coverage'=>['population'=>$this->historyAudit?'retained_authorized_anytour_max_telegram_including_closed':'current_open_authorized_anytour_max_telegram_including_ai',
                     'inventory_traversal_exhausted_within_id_fence'=>!$more,'new_or_reopened_rows_may_change_between_pages'=>true,
                     'change_hint_is_complete_edit_revision'=>false,'deduplicate_using_returned_message_revisions'=>true,
                     'transcripts_read'=>false,'semantic_review_complete'=>false],
@@ -228,7 +228,7 @@ final class DialogueReviewReadService
     {
         return['conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id'
             .' AND cc.project_key=c.project_key AND cc.channel=c.channel',
-            "c.project_key=? AND c.channel IN ('max','telegram') AND c.status<>'closed' AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')];
+            "c.project_key=? AND c.channel IN ('max','telegram')".($this->historyAudit?'':" AND c.status<>'closed'")." AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')];
     }
 
     private function nativeRows(string $extra,array $bindings,int $limit):array
@@ -269,6 +269,7 @@ final class DialogueReviewReadService
     /** Read the latest exact scope only. An unusable latest record never falls back to an older positive. */
     private function profile(array $row,mixed $selected,int $cutoff):array
     {
+        if($this->historyAudit)return['availability'=>'not_requested','reason'=>'quality_history_not_a_forecast_review'];
         if($selected===null)return['availability'=>'unavailable','reason'=>'previous_profile_unavailable','profile_id'=>null];
         if($selected==='0')return['availability'=>'not_saved','profile_id'=>null];
         try{

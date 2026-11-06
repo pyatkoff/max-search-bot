@@ -150,5 +150,49 @@ mediaCheck('MAX video token resolver is provider-owned',strpos($maxDownloadAdapt
 mediaCheck('MAX inbound media archive runs after response flush when FPM supports it',strpos($maxHandlerSource,'fastcgi_finish_request')!==false&&strpos($maxHandlerSource,'archiveRecordedMessage')!==false,true);
 mediaCheck('synthetic manager media label is removed during hydration', strpos($mediaHydratorSource, 'isSyntheticAttachmentPreview') !== false, true);
 
+// Exercise the actual pre-dispatch guards against an in-memory store, without credentials.
+require_once __DIR__.'/fixtures/manager_send_attempt_fixture.php';
+$mediaDbProperty=new ReflectionProperty(ConversationDb::class,'pdo');
+$previousMediaDb=$mediaDbProperty->getValue();$mediaSchemaState=[];$mediaGuardFile=null;
+foreach([ProjectAccessService::class,ManagerAuthService::class,RoutingAccessService::class] as $class){$property=new ReflectionProperty($class,'schemaReady');$mediaSchemaState[]=[$property,$property->getValue()];}
+try{
+    // Even a broken guard must not reach a real provider in this test process.
+    if(class_exists('MaxSearchApi',false))throw new RuntimeException('Media guard fixture requires an isolated process without provider API bootstrap');
+    $mediaGuardDb=new PDO('sqlite::memory:');$mediaGuardDb->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);$mediaGuardDb->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
+    sendAttemptSchema($mediaGuardDb);sendAttemptBind($mediaGuardDb);
+    $mediaGuardFile=tmpfile();if($mediaGuardFile===false)throw new RuntimeException('Cannot create synthetic media fixture');
+    fwrite($mediaGuardFile,'Synthetic media guard fixture');$mediaGuardPath=stream_get_meta_data($mediaGuardFile)['uri'];
+    $mediaGuardCases=[
+        ['missing file',101,7,$mediaGuardPath.'.absent','manager','file_unavailable'],
+        ['missing conversation',999,7,$mediaGuardPath,'manager','context_changed'],
+        ['foreign project',104,7,$mediaGuardPath,'manager','context_changed'],
+        ['restricted source',105,7,$mediaGuardPath,'manager','context_changed'],
+        ['inactive manager',101,10,$mediaGuardPath,'manager','context_changed'],
+        ['other owner',103,7,$mediaGuardPath,'manager','context_changed'],
+        ['waiting dialogue',101,7,$mediaGuardPath,'waiting_manager','context_changed'],
+        ['AI dialogue',101,7,$mediaGuardPath,'ai','context_changed'],
+        ['closed dialogue',101,7,$mediaGuardPath,'closed','context_changed'],
+    ];
+    foreach($mediaGuardCases as [$label,$conversationId,$managerId,$path,$status,$reason]){
+        $mediaGuardDb->prepare('UPDATE conversations SET status=? WHERE id=101')->execute([$status]);$beforeMediaGuard=sendAttemptProtected($mediaGuardDb);
+        mediaCheck('media guard rejects '.$label,ManagerOutboundService::sendMedia($conversationId,$managerId,$path,'private-fixture.png','image/png','Private caption','/private-fixture'),false);
+        $failure=ManagerOutboundService::lastFailure();
+        mediaCheck('media guard sanitizes '.$label,$failure,['category'=>'not_dispatched','reason'=>$reason,'http_code'=>0]);
+        mediaCheck('media guard preserves store for '.$label,sendAttemptProtected($mediaGuardDb),$beforeMediaGuard);
+        mediaCheck('media guard notice for '.$label,strpos(ManagerOutboundService::failureNotice($failure),'Отправка файла не началась:')===0,true);
+    }
+    // A later, different failure must replace the earlier classification.
+    $mediaGuardDb->exec("UPDATE conversations SET status='manager',channel='website' WHERE id=101");$beforeMediaGuard=sendAttemptProtected($mediaGuardDb);
+    mediaCheck('later unsupported media rejects independently',ManagerOutboundService::sendMedia(101,7,$mediaGuardPath,'private-fixture.png','image/png'),false);
+    mediaCheck('not-dispatched failure is not reused on a later branch',ManagerOutboundService::lastFailure()['category'],'unsupported');
+    mediaCheck('unsupported media preserves store',sendAttemptProtected($mediaGuardDb),$beforeMediaGuard);
+    mediaCheck('media guards create no provider calls',(int)$mediaGuardDb->query('SELECT COUNT(*) FROM provider_calls')->fetchColumn(),0);
+    mediaCheck('media guards create no send attempts',(int)$mediaGuardDb->query('SELECT COUNT(*) FROM manager_send_attempts')->fetchColumn(),0);
+}catch(Throwable $e){mediaCheck('media pre-dispatch behavior fixture',get_class($e).': '.$e->getMessage(),'completed without exception');}
+finally{
+    if(is_resource($mediaGuardFile))fclose($mediaGuardFile);
+    $mediaDbProperty->setValue(null,$previousMediaDb);foreach($mediaSchemaState as [$property,$value])$property->setValue(null,$value);
+}
+
 echo $failed === 0 ? "MANAGER MEDIA: OK\n" : "MANAGER MEDIA: FAIL ({$failed})\n";
 exit($failed > 0 ? 1 : 0);

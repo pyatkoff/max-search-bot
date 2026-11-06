@@ -25,7 +25,12 @@ $check(!str_contains($tg,'Медиана')&&!str_contains($tg,'90-й проце�
     &&!str_contains($tg,'0 из 9'),'missing Telegram dates are not zero latency or coverage');
 $check(str_contains($html,'не полный архив и не все подписчики')&&str_contains($html,'Доля всех подписчиков, которые обратились, пока не рассчитана'),'incomplete source does not claim subscriber conversion');
 $check(str_contains($html,'Отсутствие выхода не доказывает непрерывную подписку'),'unknown leave is not continuous membership');
-$check(str_contains($html,'04.11.2026 12:20:30'),'as-of clock shown in Kaliningrad');
+$check(str_contains($html,'04.11.2026 13:20:30')&&str_contains($html,'Все даты и время — Москва (МСК).'),'as-of clock shown in Moscow');
+$rollover=$page;$rollover['as_of']='2026-12-31T21:00:00Z';
+$rollover['sources']['first_profile_at']='2026-12-31T20:59:59Z';$rollover['sources']['last_profile_at']='2026-12-31T21:00:01Z';
+$savedRollover=$rollover;$rolloverHtml=ModeledConversionAcquisitionStatsView::render($rollover,$input);
+$check(str_contains($rolloverHtml,'31.12.2026 23:59:59')&&str_contains($rolloverHtml,'01.01.2027 00:00:00')
+    &&str_contains($rolloverHtml,'01.01.2027 00:00:01')&&$rollover===$savedRollover,'Moscow New Year presentation preserves UTC source instants');
 $check(str_contains($html,'method="get"')&&str_contains($html,'name="period"')&&str_contains($html,'value="30" selected')
     &&str_contains($html,'name="date"')&&str_contains($html,'name="platform"'),'bounded read-only filters');
 $check(!str_contains($html,'<script')&&!str_contains($html,'<img')&&!str_contains($html,'ClientID')
@@ -50,6 +55,8 @@ $bad=$page;$bad['platforms']['telegram']=$page['platforms']['max'];$bad['platfor
 $check(str_contains(ModeledConversionAcquisitionStatsView::render($bad,$input),'Статистика сейчас недоступна'),'Telegram cannot invent membership timings');
 $bad=$page;$bad['meaning']='first_ever';
 $check(str_contains(ModeledConversionAcquisitionStatsView::render($bad,$input),'Статистика сейчас недоступна'),'unsupported first-ever claim rejected');
+$bad=$page;$bad['window']['timezone']='Europe/Kaliningrad';
+$check(str_contains(ModeledConversionAcquisitionStatsView::render($bad,$input),'Статистика сейчас недоступна'),'old calendar cohort cannot be presented as Moscow');
 $bad=$page;$bad['filters']['date']='<img src=x onerror=alert(1)>';$bad['as_of']='<svg onload=alert(1)>';
 $bad['sources']['profiles_examined']='<script>secret</script>';$bad['customer_name']='private customer';
 $safe=ModeledConversionAcquisitionStatsView::render($bad,$input);

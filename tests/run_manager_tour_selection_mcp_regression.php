@@ -212,7 +212,7 @@ function selectionRealRpc(string $name,array $args): array
 [$selectionTokens,$selectionContext]=selectionRealGrant($oauth,$client,ManagerPreparationOAuth::SELECTION_SCOPE);
 $all=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
 [$allTokens,$allContext]=selectionRealGrant($oauth,$client,$all);
-deliveryCheck('complete explicitly consented selection and dialogue catalog fits actual forward capacity',strlen($all)===125&&strlen($all)<=128&&$allTokens['scope']===$all&&$allContext['scopes']===ManagerPreparationOAuth::SUPPORTED_SCOPES);
+deliveryCheck('complete explicitly consented selection, dialogue and optional history catalog fits actual forward capacity',strlen($all)===138&&strlen($all)<=160&&$allTokens['scope']===$all&&$allContext['scopes']===ManagerPreparationOAuth::SUPPORTED_SCOPES);
 deliveryCheck('old grants and reply defaults do not acquire selection access',$legacyTokens['scope']==='queue:read prepared:write'&&!$oauth->connectionAuthorized($legacyContext['connection_id'],90,[ManagerPreparationOAuth::SELECTION_SCOPE])&&ManagerPreparationOAuth::SCOPES===['queue:read','prepared:write']);
 try {
     $oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,

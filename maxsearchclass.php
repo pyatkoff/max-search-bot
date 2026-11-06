@@ -69,6 +69,11 @@ class MaxSearchApi extends MaxSearchBase
     public static function showAgeButtons($chatID,$child=1){ return DialogueView::childAges($chatID,(int)$child); }
     public static function showStarsButtons($chatID){ return DialogueView::stars($chatID); }
     public static function showToursChoice($chatID,$name=''){
+        $missing = static::getAiMissingFields($chatID);
+        if ($missing !== []) {
+            MissingFieldQuestionService::sendForMissing($chatID, $missing);
+            return '';
+        }
         static::funnelLog($chatID,'show_tours');
         $model = TourResultsService::build($chatID,(string)$name);
         $sent = DialogueView::tourResults($chatID,$model);
@@ -104,7 +109,7 @@ class MaxSearchApi extends MaxSearchBase
     public static function getAiSearchContext($chatID){
         return AiSearchContextService::contextFromSaved((array)static::getSavedData($chatID),static::statusMap(),function($id){return static::getCityByID($id);},function($id){return static::getCountryByID($id);});
     }
-    public static function getAiMissingFields($chatID){ return AiSearchContextService::missingFromSaved((array)static::getSavedData($chatID),static::statusMap()); }
+    public static function getAiMissingFields($chatID){ return AiSearchContextService::missingForCurrentSearch((array)static::getSavedData($chatID),static::statusMap()); }
     public static function applyAiParameters($chatID,array $params){
         $normalized=AiSearchContextService::normalizeParameters($params,function($name){$r=static::getCityByName($name);return $r?($r['ID']??null):null;},function($name){$r=static::getCountryByName($name);return $r?($r['ID']??null):null;},function($date){return NativeDateService::isTodayOrFuture((string)$date);});
         $storageMap=AiSearchContextService::storageMap(static::statusMap()); $applied=[];
