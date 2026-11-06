@@ -1,0 +1,62 @@
+{
+  "operation": "commercial-top500-internal-base-20261105-ten1-read1",
+  "state": "FROZEN_EXECUTION_PLAN_BEFORE_ONE_EXISTING_GHA_ACTIVATION",
+  "parent_plan": "commercial-top500-internal-base-read-20261105-ten1-plan1.json",
+  "goal": "Measure stored internal photo and price metadata for ten explicit unpublished canonical owner TOP500 native IDs, with no supplier search or publication.",
+  "hotel_ids": [
+    22879,
+    8520,
+    8208,
+    12575,
+    8188,
+    39872,
+    35319,
+    27611,
+    8554,
+    8602
+  ],
+  "expected_current_bot_main": "5a18f64f790fdc3ace989d99e8efc84046159795",
+  "canonical_roster_revision": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "fresh_main_checked": "2026-11-06T04:50:00Z",
+  "same_source_deploy": 42127877517,
+  "same_source_verify_job": 127599057072,
+  "same_source_tls": 42128706655,
+  "same_source_diagnostics": 42128706454,
+  "full_remote21_original_reader_sha256": "899126768bf42f9e1489be79e2c1996d0e67a99adf54ee9099aaa00061103ab5",
+  "full_remote21_guard_sha256": "76e0accdae6dc9b2d0196a156a1ba1ffc2ddb2d615ff20d8a039579dc8751941",
+  "host_step_source": "c5905c966e6a12b336b580a9093160ac501a5df7",
+  "host_step_lines": 25,
+  "host_step_sha256": "f6789fcc210b03bc6fb7ee110e76b5c59ce5b5664acbc907f784f22de26d2d78",
+  "scope_sha256": "65101acdccb501864e99a289038b41574e7a401af681358da898b648ebb0162b",
+  "reader_sha256": "758f2e68575d57cebbe7d0f5dc43bf5312adfd5815f4f70aed1949c9f78c925e",
+  "catalog_connector_sha256": "8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5",
+  "producer_connection_proof": "Producer db-v1.php and bot HotelDatabase.php explicitly use existing ANYTOUR_DATA_DB_* connection role. Bot connector code is SHA256-pinned before PDO use; no alternative DSN, guessed host or secret/config value exports. Current dataset findings remain bounded records, not whole-catalog completeness.",
+  "activation": "Existing single content100 workflow, same serial concurrency/cancel=false; native PHP-l +24 new scoped cases before intent/SSH, no old fixture runs. Upload frozen private intent first; require fresh main and same successful Deploy verify/TLS/diag and frozen 492 source revision; full21 on live server +clean +schema+2existing channel rights reads.",
+  "bounds": {
+    "native_hotels": 10,
+    "read_passes": 1,
+    "provider_channel_rights_reads": 2,
+    "provider_post_reads": 0,
+    "supplier_search_calls": 0,
+    "gateway_quotes": 0,
+    "photo_http": 0,
+    "canva": 0,
+    "post_writes": 0,
+    "collector_or_migration_execution": 0,
+    "old_provider_log_result_case_pixel_replays": 0
+  },
+  "criteria": [
+    "Account for all10 exact native IDs with explicit NULL/unverified missing records.",
+    "Retain photo URLs/revision/timestamps as private metadata only, no raw descriptions/source_json/photo bytes.",
+    "Stored price coverage uses last72h UNIX_TIMESTAMP(created_at) only if actual column type is TIMESTAMP; no naive producer-time substitution.",
+    "No full tuples/fingerprints/quotes/publicationIDs are selected or printed.",
+    "Native-only registry aggregate is finite10; absence of matching metadata is not complete dedup acceptance.",
+    "Return summary counts/IDs only in log, complete related metadata only in authenticated artifact; no ready credit."
+  ],
+  "risks": [
+    "Missing or incomplete local_tv schema leaves gallery coverage unverified; no inference all internal photos absent.",
+    "A stored search price is not a final basket/current availability; no old quote reuse or supplier refresh.",
+    "Catalog primary URLs may lack rights/hero proof and must not be fetched blindly or repeat exclusions.",
+    "Any currentmain/source/pin/schema/right drift stops before native data use; no foreign fix or bypass."
+  ]
+}
