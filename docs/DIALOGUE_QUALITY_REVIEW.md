@@ -27,6 +27,43 @@ The Replies, Hotels and Development endpoints retain their own tool and audience
 boundaries. This feature does not move the running reply-preparation task to the
 general endpoint.
 
+### Constructor source references
+
+`get_dialogue_review_context` has a compatible additional output only when the
+verified existing connection actually holds **both** `dialogues:read` and
+`selections:write`. The caller cannot request or enable it through tool arguments.
+Dialogue-only, ordinary/default and dedicated grants keep the previous minimized
+transcript and acquire no public-link references. No scope, default grant, tool,
+input schema or consent screen changes.
+
+For that explicit constructor purpose, a returned message can contain
+`selection_sources`: bounded `references`, completeness/omission information and
+`source_page_fetched=false`. Each reference identifies its exact message ID,
+source reference and message revision, the fixed provider and its canonical public
+selection URL. It is untrusted source evidence, not a verified page, quotation,
+availability result or permission to send. The original message text, URL masking,
+contact minimization and ordinary AI-worker/provider/log projections remain
+unchanged. These private capability references must not be copied into public
+reports or unrelated reply-generation inputs.
+
+The existing `ManagerSelectionLinks` parser admits only its fixed Qui-Quo share
+route; credentials, ports, queries, fragments, other hosts and unsupported paths
+are rejected without disclosing their values. Only consistent customer/manager
+message rows can supply references; bot/system/AI, callback, malformed or omitted
+records cannot. At most the latest two distinct references per message and twenty
+per page are returned. The parser's own retained-source cap and unsupported/omitted
+references remain explicit; an empty limited result does not prove no source.
+References from response-omitted records are withheld. Existing message/source,
+64KiB response and complete-wire bounds remain in force.
+
+The same bounded read-only source snapshot supplies both projections. Actual paired
+grant checks run before source access and again outside the old snapshot, followed
+by the existing fresh project/administrator/connection/conversation checks. A late
+withdrawal withholds the whole result. This operation fetches no external page,
+writes no draft, read marker or event, and changes no conversation. A separate
+authorized source inspection and canonical constructor publication are still
+required to produce a real AnyTour link.
+
 Migration091 increases the existing grant scope column from 100 to 128 ASCII
 characters so the full explicitly consented capability list fits. It changes
 neither existing grants nor token lifecycles. Migration045 remains immutable.

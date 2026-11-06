@@ -5,6 +5,27 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
 require_once dirname(__DIR__).'/services/SeparatedMcpService.php';
 
+/** Synthetic race signal: marks an actual canonical message payload read. */
+final class DialogueSelectionGrantStatement extends PDOStatement
+{
+    public static bool $payloadRead=false;
+    public static $withdrawAfterSnapshot=null;
+    protected function __construct(private PDO $fixturePdo){}
+    public function execute(?array $params=null):bool
+    {
+        if(self::$payloadRead&&!$this->fixturePdo->inTransaction()&&is_callable(self::$withdrawAfterSnapshot)){
+            $withdraw=self::$withdrawAfterSnapshot;self::$withdrawAfterSnapshot=null;$withdraw();
+        }
+        return parent::execute($params);
+    }
+    public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
+    {
+        $rows=parent::fetchAll($mode,...$args);
+        if(str_contains($this->queryString,'AS metadata_json FROM messages m '))self::$payloadRead=true;
+        return$rows;
+    }
+}
+
 $passed=0;
 function dialogueMcpCheck(string $name,bool $ok): void
 {
@@ -308,5 +329,104 @@ try{
     dialogueMcpCheck('ordinary token refresh retains exact rights and stales previous cursor key',
         $rotated['scope']===$dialogueScope&&$oauth->contextForBearer('Bearer '.$rotated['access_token'])['connection_id']===$connection
         &&!hash_equals($beforeRefreshKey,$oauth->dialogueCursorKey($connection,1)));
+
+    // Exercise the production adapter/store factory with actual grants and native
+    // source rows, rather than supplying a caller-controlled projection flag.
+    $pdo->exec("DROP TABLE messages;
+        CREATE TABLE customer_channels(id INTEGER PRIMARY KEY,customer_id INTEGER,project_key TEXT,channel TEXT,external_user_id TEXT,external_chat_id TEXT);
+        CREATE TABLE conversations(id INTEGER PRIMARY KEY,customer_id INTEGER,customer_channel_id INTEGER,project_key TEXT,channel TEXT,external_chat_id TEXT,status TEXT,manager_id INTEGER,source_id INTEGER,is_test INTEGER,started_at TEXT,last_message_at TEXT,updated_at TEXT);
+        CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,channel TEXT,text TEXT,metadata_json TEXT,created_at TEXT);
+        CREATE TABLE conversation_events(id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT);
+        INSERT INTO customer_channels VALUES(10,1010,'anytour','max','synthetic-source-user','synthetic-source-chat');
+        INSERT INTO conversations VALUES(10,1010,10,'anytour','max','synthetic-source-chat','manager',1,1,0,'2026-11-04 09:00:00','2026-11-04 09:00:00','2026-11-04 09:00:00');");
+    $sourceText='Варианты https://qui-quo.ru/AB12-CD34 и https://example.test/PRIVATE_SOURCE';
+    $pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?)')
+        ->execute([501,10,'outbound','manager','max',$sourceText,'{"type":"message"}','2026-11-04 09:00:00']);
+    $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[DialogueSelectionGrantStatement::class,[$pdo]]);
+    $pairScope=$dialogueScope.' '.ManagerPreparationOAuth::SELECTION_SCOPE;
+    [, $pairContext]=dialogueMcpGrant($oauth,$client,$pairScope);
+    [, $selectionContext]=dialogueMcpGrant($oauth,$client,ManagerPreparationOAuth::SELECTION_SCOPE);
+    $native=new ManagerPreparationMcpService($pdo,clock:$clock);
+    $nativeCall=static fn(ManagerPreparationMcpService $target,array $context,string $name,array $arguments=[]):array=>
+        $target->handle(dialogueMcpRpc($name,$arguments),1,$context['connection_id'],$context['scopes']);
+    $nativeInventory=$nativeCall($native,$pairContext,'list_current_dialogues');
+    $sourceRef=$nativeInventory['result']['structuredContent']['dialogues'][0]['dialogue_ref']??null;
+    dialogueMcpCheck('actual dual grant reaches a canonical current source reference',is_string($sourceRef));
+    DialogueSelectionGrantStatement::$payloadRead=false;
+    $nativePacket=$nativeCall($native,$pairContext,'get_dialogue_review_context',['dialogue_ref'=>$sourceRef]);
+    $nativeRow=$nativePacket['result']['structuredContent']['messages'][0]??[];
+    $nativeSources=$nativeRow['selection_sources']['references']??[];
+    dialogueMcpCheck('actual dual OAuth grant and production factory expose only the canonical public source',
+        DialogueSelectionGrantStatement::$payloadRead&&count($nativeSources)===1
+        &&$nativeSources[0]['url']==='https://qui-quo.ru/AB12-CD34'
+        &&$nativeSources[0]['message_id']==='501'&&$nativeSources[0]['source_ref']==='message:501'
+        &&$nativeSources[0]['message_revision']===$nativeRow['revision']
+        &&!str_contains($nativeRow['text'],'https://')&&!str_contains(json_encode($nativePacket),'PRIVATE_SOURCE'));
+    $dialogueContext=$oauth->contextForBearer('Bearer '.$rotated['access_token']);
+    $ordinaryInventory=$nativeCall($native,$dialogueContext,'list_current_dialogues');
+    $ordinaryRef=$ordinaryInventory['result']['structuredContent']['dialogues'][0]['dialogue_ref'];
+    $ordinaryPacket=$nativeCall($native,$dialogueContext,'get_dialogue_review_context',['dialogue_ref'=>$ordinaryRef]);
+    dialogueMcpCheck('real dialogue-only grant keeps the previous fully redacted transcript',
+        ($ordinaryPacket['result']['structuredContent']['ok']??false)===true
+        &&!isset($ordinaryPacket['result']['structuredContent']['messages'][0]['selection_sources'])
+        &&!str_contains(json_encode($ordinaryPacket),'qui-quo.ru'));
+    $forgedContext=$dialogueContext;$forgedContext['scopes']=[$dialogueScope,ManagerPreparationOAuth::SELECTION_SCOPE];
+    DialogueSelectionGrantStatement::$payloadRead=false;
+    $forgedGrant=$nativeCall($native,$forgedContext,'get_dialogue_review_context',['dialogue_ref'=>$ordinaryRef]);
+    dialogueMcpCheck('claimed paired flags without an actual stored grant cannot read a source row',
+        ($forgedGrant['error']['code']??null)===-32001&&!DialogueSelectionGrantStatement::$payloadRead
+        &&!str_contains(json_encode($forgedGrant),'qui-quo.ru'));
+    foreach([$contexts[$legacyScope],$selectionContext]as$withoutDialogue){
+        $denied=$nativeCall($native,$withoutDialogue,'get_dialogue_review_context',['dialogue_ref'=>$sourceRef]);
+        dialogueMcpCheck('real grant without dialogue read cannot reveal a selection reference',
+            (($denied['error']['code']??null)===-32001||($denied['result']['isError']??false)===true)
+            &&!str_contains(json_encode($denied),'qui-quo.ru'));
+    }
+    $foreignReference=$nativeCall($native,$dialogueContext,'get_dialogue_review_context',['dialogue_ref'=>$sourceRef]);
+    dialogueMcpCheck('public source reference cannot cross the consented connection cursor family',
+        ($foreignReference['result']['isError']??false)===true&&!str_contains(json_encode($foreignReference),'qui-quo.ru'));
+    DialogueSelectionGrantStatement::$payloadRead=false;
+    $forgedOption=$nativeCall($native,$pairContext,'get_dialogue_review_context',
+        ['dialogue_ref'=>$sourceRef,'include_selection_sources'=>true]);
+    dialogueMcpCheck('model cannot select the extra capability or alter the unchanged tool input',
+        ($forgedOption['error']['code']??null)===-32602&&!DialogueSelectionGrantStatement::$payloadRead);
+    $pairFamily=$pairContext['connection_id'];
+    $sourceWithdrawals=[
+        ['selection_scope',static function()use($pdo,$pairFamily,$dialogueScope):void{
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')->execute([$dialogueScope,$pairFamily]);
+        },static function()use($pdo,$pairFamily,$pairScope):void{
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')->execute([$pairScope,$pairFamily]);
+        }],
+        ['connection',static function()use($pdo,$pairFamily,$now):void{
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$pairFamily]);
+        },static function()use($pdo,$pairFamily):void{
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$pairFamily]);
+        }],
+        ['administrator',static function()use($pdo):void{$pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');},
+            static function()use($pdo):void{$pdo->exec('UPDATE managers SET is_active=1 WHERE id=1');}],
+        ['project',static function()use($pdo):void{$pdo->exec('UPDATE projects SET is_active=0 WHERE id=1');},
+            static function()use($pdo):void{$pdo->exec('UPDATE projects SET is_active=1 WHERE id=1');}],
+        ['membership',static function()use($pdo):void{$pdo->exec('DELETE FROM manager_projects WHERE manager_id=1 AND project_id=1');},
+            static function()use($pdo):void{$pdo->exec('INSERT INTO manager_projects VALUES(1,1)');}],
+        ['conversation',static function()use($pdo):void{$pdo->exec('UPDATE customer_channels SET customer_id=9999 WHERE id=10');},
+            static function()use($pdo):void{$pdo->exec('UPDATE customer_channels SET customer_id=1010 WHERE id=10');}],
+    ];
+    foreach($sourceWithdrawals as[$label,$withdraw,$restore]){
+        DialogueSelectionGrantStatement::$payloadRead=false;$withdrawn=false;
+        DialogueSelectionGrantStatement::$withdrawAfterSnapshot=static function()use($withdraw,&$withdrawn):void{
+            $withdraw();$withdrawn=true;
+        };
+        $denied=$nativeCall($native,$pairContext,'get_dialogue_review_context',['dialogue_ref'=>$sourceRef]);
+        dialogueMcpCheck('late real authorization loss suppresses the entire source projection '.$label,
+            $withdrawn&&DialogueSelectionGrantStatement::$payloadRead
+            &&(($denied['error']['code']??null)===-32001||($denied['result']['isError']??false)===true)
+            &&!str_contains(json_encode($denied),'qui-quo.ru')&&!$pdo->inTransaction());
+        DialogueSelectionGrantStatement::$withdrawAfterSnapshot=null;
+        $restore();
+    }
+    $nativeChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $nativeCall($native,$pairContext,'get_dialogue_review_context',['dialogue_ref'=>$sourceRef]);
+    dialogueMcpCheck('canonical paired-scope source read changes no source draft event or read marker rows',
+        (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$nativeChanges);
     echo 'Dialogue review MCP regression: '.$passed." checks passed\n";
 }catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}
