@@ -104,3 +104,16 @@
 @media(max-height:500px){.tsDialog.tsOfferCompareMode{height:100dvh;width:min(1100px,100vw);margin:0 auto;border-radius:0}.tsOfferCompareMode .tsHead{padding:8px 16px}.tsOfferCompareMode .tsKicker{display:none}.tsOfferCompareMode .tsHead h2{font-size:17px;margin:0}.tsOfferCompareMode .tsHead p{font-size:11px}.tsOfferCompareMode .tsStatus{padding:4px 16px;min-height:24px;font-size:11px}.tsCompareTools{max-height:72px}.tsCompareTools p{display:none}.tsOfferCompare{padding:8px 16px;gap:4px}.tsCompareTools h3{font-size:14px}.tsCompareTable thead th{position:static}}
 
 .tsAppearance fieldset{grid-column:1/-1;border:1px solid #d9e3df;border-radius:14px;padding:18px;margin:10px 0;min-width:0}.tsAppearance fieldset[hidden]{display:none}.tsAppearance legend{font-weight:700;padding:0 6px}.tsManagerPresentation{padding:20px;border:1px solid #dce4ef;border-radius:16px;background:#f3f6fb;margin:0 0 20px;overflow-wrap:anywhere;white-space:pre-line}.tsManagerPresentation h4{font-size:22px;margin:8px 0}.tsManagerPresentation p{line-height:1.5}.tsManagerPresentation small{color:var(--ts-appearance-accent,#1766a1);font-weight:700}.tsTemplate-personal .tsPreviewCards{grid-template-columns:minmax(0,1fr)}
+
+/* Official preset is opt-in; saved ocean/forest/sunset remain unchanged. */
+.tsPalette-anytour{--ts-appearance-accent:#2743CB;--ts-brand-light:#6F99FF;--ts-brand-orange:#FF510C}
+.tsPalette-anytour .tsSelectionHeading{padding:20px;border:1px solid #d9e2ff;border-top:4px solid var(--ts-brand-orange);border-radius:16px;background:linear-gradient(135deg,#fff 58%,#e9efff);margin-bottom:20px}
+.tsPalette-anytour .tsSelectionBrand,.tsPalette-anytour .tsPrintBrand{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.tsAnyTourLogo{display:block;width:174px;max-width:100%;height:auto;flex:none}
+.tsPalette-anytour .tsBrandAgency{font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.tsPalette-anytour .tsSelectionHeading h4{color:var(--ts-appearance-accent);font-size:27px;line-height:1.2}
+.tsPalette-anytour .tsSelectionIntro{color:#334362;line-height:1.6}
+.tsPalette-anytour .tsManagerPresentation{border-color:#d9e2ff;background:#f3f6ff}
+.tsPalette-anytour .tsPreviewCard{border-color:#d9e2ff}
+@media(max-width:600px){.tsPalette-anytour .tsSelectionHeading{padding:16px}.tsPalette-anytour .tsSelectionHeading h4{font-size:24px}.tsAnyTourLogo{width:156px}}
+@media print{.tsPalette-anytour .tsPrintBrand{color:#2743CB}.tsPalette-anytour .tsAnyTourLogo{width:45mm}.tsPalette-anytour .tsSelectionHeading{box-shadow:none;background:white}}
