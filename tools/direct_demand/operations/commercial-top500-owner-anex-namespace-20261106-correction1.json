@@ -69,12 +69,12 @@
     "linked": 155
   },
   "next": [
-    "Keep the consumed ten-ID metadata and Tourvisor8208 projection/profile scopes closed; do not replay their operations or treat their numbers as ANEX membership.",
-    "Producer namespace correction is merged in poisk-turov-test PR4998 and PR4999. Obtain current or retained accepted mapping evidence through the existing authorized route, with provenance and manual-decision/exclusion state; source tests are not live mapping coverage.",
-    "Keep every unmapped, conflicting or ambiguous ANEX identity explicit. Do not use numeric equality, a name-only match, or historical XML candidates as acceptance.",
-    "Recompute TOP500 membership and candidate order only after verified mapping and the publication canonical/native binding. Keep the previous numeric 4/157/488 claims withdrawn until real identity-based results exist.",
-    "Resume the original serial publication operations only on mapped identities with all existing media, price, native, dedup, private-intent, once and UNKNOWN requirements; no new workflow or replay.",
-    "Source merge and a built Search3 artifact are not runtime installation. The automatic main site deployment stopped at SSH authentication before release copy; exact runtime mapping/readback remains outstanding through the existing authorized executor."
+    "Keep all consumed ten-ID metadata and Tourvisor8208 projection/profile operations closed. Their results retain their original Tourvisor scope; do not replay or infer ANEX membership.",
+    "Use retained_identity_recovery.candidates: seven typed historical MATCH pairs in owner order are now located and original acceptance evidence checked. Start with ranks8/9 (ANEX27611→TV1228 and ANEX8554→TV16794) through the existing authorized route; establish owner website-card/Online provenance and current accepted/manual/exclusion/target state before admission.",
+    "Verify the separate canonical/native publication binding and existing publication dedup for admitted identities. Absence from the saved182-ID monitoring cohort is not proof of no prior publication.",
+    "Reuse retained research facts for the admitted hotel; do not recollect completed dossiers or substitute same-name, same-number, old XML or other-operator candidates for accepted identity.",
+    "Recompute publication membership and eligible candidate order only from these verified bindings. Current full TOP500 coverage and publication totals remain unknown; the withdrawn4/157/488 figures stay withdrawn.",
+    "Continue the original serial publisher only with the existing media, price, native, dedup, private-intent, once and UNKNOWN requirements. Source merges and the built Search3 artifact do not prove installation; the known legacy receiver SSH blocker remains unresolved."
   ],
   "source_link_question": "Already asked once; do not repeat or invent a URL.",
   "superseded_head": "a177c1d98cd08c5670435fda5fcad86799243369",
@@ -152,5 +152,235 @@
     "source_implementation_date": "2026-11-06",
     "publication_identity_note": "Source priorities use the existing accepted ANEX-to-Tourvisor catalog resolver. This is not a new mapping acceptance and does not itself prove the separate canonical/native binding required for publication.",
     "phase_boundary": "The original audit-only plan and zero-change bounds remain historical evidence of that phase. This separate owner-authorized phase changed producer source and existing validation/dependency packaging; it did not dispatch a new runtime operation. Existing automatic merge workflows ran as recorded."
+  },
+  "retained_identity_recovery": {
+    "date": "2026-11-06",
+    "state": "RETAINED_ACCEPTED_MATCH_HISTORY_RECOVERED_CURRENT_TOP500_ADMISSION_UNVERIFIED",
+    "source_roster": {
+      "repository": "pyatkoff/poisk-turov-test",
+      "revision": "d245a6c8d9ff34c7ba517212ba704b290451ff8e",
+      "path": "v2/data/top500-anex-priority-v1.php",
+      "unique_anex_values": 492,
+      "order_preserved": true
+    },
+    "evidence_scope": {
+      "historical_accepted_rows_examined": 32,
+      "source_values_with_historical_target_candidates": 7,
+      "current_mapping_coverage": null,
+      "website_card_to_online_namespace_bridge": "not established by this projection",
+      "publication_membership": null,
+      "publication_readiness": false,
+      "no_new_mapping_acceptance": true
+    },
+    "retained_sources": [
+      {
+        "date": "2026-09-10",
+        "operation": "anex-1759-saved-strong25-20260910-v1",
+        "run": 34518683774,
+        "scope": "preview",
+        "rows": 25,
+        "receipt_state": "finalized",
+        "per_pair_readback_verified": true,
+        "source_files": [
+          "anex_saved_strong25_2026-09-10.md",
+          "anex_saved_strong25_live_receipt_2026-09-10.json"
+        ],
+        "private_receipt_bytes_copied": false,
+        "replay": false
+      },
+      {
+        "date": "2026-10-20",
+        "operation": "int-andromeda-match-retained-anex-write-20261020-v2",
+        "run": 39353313622,
+        "post_current_run": 39353523840,
+        "scope": "preview",
+        "rows": 7,
+        "state": "committed_verified",
+        "resolver_readback_verified": true,
+        "source_revision": "f63148d7e171fdae938b870af3c6c9d68b97312d",
+        "source_path": "reports/hotel-match-retained-intake-execution-20261020.json",
+        "replay": false
+      }
+    ],
+    "candidates": [
+      {
+        "anex_id": 27611,
+        "tourvisor_id": 1228,
+        "name": "Senza Garden Holiday Club",
+        "country": "Турция",
+        "accepted_on": "2026-09-10",
+        "source": "anex_saved_strong25_2026-09-10.md",
+        "acceptance_run": 34518683774,
+        "owner_rank": 8,
+        "current_registry_rechecked": false,
+        "website_online_bridge": "not established by this projection",
+        "publication_ready": false,
+        "in_saved_native_monitor": false,
+        "original_acceptance_receipt_verified": true,
+        "original_acceptance_policy": "owner_exact_and_strong_20260908",
+        "original_scope": "preview"
+      },
+      {
+        "anex_id": 8554,
+        "tourvisor_id": 16794,
+        "name": "Senza The Inn Resort & Spa",
+        "country": "Турция",
+        "accepted_on": "2026-09-10",
+        "source": "anex_saved_strong25_2026-09-10.md",
+        "acceptance_run": 34518683774,
+        "owner_rank": 9,
+        "current_registry_rechecked": false,
+        "website_online_bridge": "not established by this projection",
+        "publication_ready": false,
+        "in_saved_native_monitor": false,
+        "original_acceptance_receipt_verified": true,
+        "original_acceptance_policy": "owner_exact_and_strong_20260908",
+        "original_scope": "preview"
+      },
+      {
+        "anex_id": 8595,
+        "tourvisor_id": 1216,
+        "name": "Rox Resort Hotel",
+        "country": "Турция",
+        "accepted_on": "2026-09-10",
+        "source": "anex_saved_strong25_2026-09-10.md",
+        "acceptance_run": 34518683774,
+        "owner_rank": 108,
+        "current_registry_rechecked": false,
+        "website_online_bridge": "not established by this projection",
+        "publication_ready": false,
+        "in_saved_native_monitor": false,
+        "original_acceptance_receipt_verified": true,
+        "original_acceptance_policy": "owner_exact_and_strong_20260908",
+        "original_scope": "preview"
+      },
+      {
+        "anex_id": 8476,
+        "tourvisor_id": 1095,
+        "name": "SIDE STAR RESORT (EX. VERA CLUB LINDITA)",
+        "country": "Турция",
+        "accepted_on": "2026-10-20",
+        "source": "reports/hotel-match-retained-intake-execution-20261020.json",
+        "acceptance_run": 39353313622,
+        "post_current_run": 39353523840,
+        "source_row_digest": "f51c745d2ccb24f5713adf4cd5de2b6380602def44368de94c22948a85d372c7",
+        "owner_rank": 150,
+        "current_registry_rechecked": false,
+        "website_online_bridge": "not established by this projection",
+        "publication_ready": false,
+        "in_saved_native_monitor": false,
+        "original_acceptance_receipt_verified": true,
+        "original_scope": "preview"
+      },
+      {
+        "anex_id": 8475,
+        "tourvisor_id": 1014,
+        "name": "SIDE STAR ELEGANCE (EX. ASTERIA SIDE)",
+        "country": "Турция",
+        "accepted_on": "2026-10-20",
+        "source": "reports/hotel-match-retained-intake-execution-20261020.json",
+        "acceptance_run": 39353313622,
+        "post_current_run": 39353523840,
+        "source_row_digest": "2a879d13c0a3bc4a9dea5988546f429c214dc00bbe6d9e2ee24f29a594e60ce5",
+        "owner_rank": 159,
+        "current_registry_rechecked": false,
+        "website_online_bridge": "not established by this projection",
+        "publication_ready": false,
+        "in_saved_native_monitor": false,
+        "original_acceptance_receipt_verified": true,
+        "original_scope": "preview"
+      },
+      {
+        "anex_id": 12901,
+        "tourvisor_id": 1474,
+        "name": "SATURN PALACE RESORT",
+        "country": "Турция",
+        "accepted_on": "2026-10-20",
+        "source": "reports/hotel-match-retained-intake-execution-20261020.json",
+        "acceptance_run": 39353313622,
+        "post_current_run": 39353523840,
+        "source_row_digest": "c8392e4596f5623fe42e92f770af13061d148c8ce38440a42398788c4616b095",
+        "owner_rank": 190,
+        "current_registry_rechecked": false,
+        "website_online_bridge": "not established by this projection",
+        "publication_ready": false,
+        "in_saved_native_monitor": false,
+        "original_acceptance_receipt_verified": true,
+        "original_scope": "preview"
+      },
+      {
+        "anex_id": 14818,
+        "tourvisor_id": 1015,
+        "name": "ARCANUS HOTELS SORGUN (EX. ARCANUS SIDE RESORT)",
+        "country": "Турция",
+        "accepted_on": "2026-10-20",
+        "source": "reports/hotel-match-retained-intake-execution-20261020.json",
+        "acceptance_run": 39353313622,
+        "post_current_run": 39353523840,
+        "source_row_digest": "ab4b9b3136d037fa3d99cf399028747911895d0370e4720b83dcfb85526d2c28",
+        "owner_rank": 209,
+        "current_registry_rechecked": false,
+        "website_online_bridge": "not established by this projection",
+        "publication_ready": false,
+        "in_saved_native_monitor": false,
+        "original_acceptance_receipt_verified": true,
+        "original_scope": "preview"
+      }
+    ],
+    "native_monitor_crosscheck": {
+      "revision": "d245a6c8d9ff34c7ba517212ba704b290451ff8e",
+      "path": "v2/data/published-hotels-monitor-v1.php",
+      "typed_unique_targets": 182,
+      "candidate_targets_in_this_saved_monitor": 0,
+      "not_evidence_of_no_prior_publication": true
+    },
+    "rejected_evidence_sources": [
+      {
+        "files": [
+          "AnyTour_MATCH_after_accept178_2026-09-21.xlsx",
+          "AnyTour_MATCH_manual_review_updated_2026-09-21.xlsx"
+        ],
+        "reason": "The retained v9 source explicitly says it contains no ANEX links. Other operator/SAMO accepted pairs cannot substitute for ANEX identity."
+      },
+      {
+        "run": 42174814059,
+        "artifact": 13482342968,
+        "reason": "SEO review dossier selects 500 records by fresh first-party inventory observations in countries1/4/8; it is not the owner's 492-ID ANEX roster or TOP500 identity coverage."
+      }
+    ],
+    "code_and_runtime_delta": {
+      "sibling_regression": {
+        "pr": 5000,
+        "merged_sha": "f63148d7e171fdae938b870af3c6c9d68b97312d",
+        "source_only": true,
+        "existing_checks_reused": true
+      },
+      "collector_push": {
+        "run": 42174647715,
+        "validation": "success",
+        "production_collection": "skipped",
+        "runtime_mapping_count_proven": false
+      },
+      "deployment": {
+        "run": 42174647704,
+        "state": "failure_before_site_copy",
+        "failed_step": "Prepare authenticated legacy lead receiver",
+        "reason": "SSH authentication rejected",
+        "manual_retry": false,
+        "protected_lead_transport_changed": false
+      }
+    },
+    "bounded_next_result": "Using the existing authorized MATCH route, resolve owner website-card/Online provenance and current accepted/manual/excluded/target state for these seven existing typed candidates, starting with owner ranks8/9; then verify canonical/native binding and existing publication dedup. Use retained hotel facts after identity admission. Do not perform a new whole-TOP500 census, supplier search, duplicate collection or a replacement controller.",
+    "counters_this_pass": {
+      "supplier_calls": 0,
+      "new_database_reads": 0,
+      "mapping_writes": 0,
+      "manual_runtime_dispatches": 0,
+      "new_tests": 0,
+      "manual_deploys": 0,
+      "publications": 0,
+      "people_messages": 0
+    },
+    "old_closed_operations_and_withdrawals_preserved": true
   }
 }

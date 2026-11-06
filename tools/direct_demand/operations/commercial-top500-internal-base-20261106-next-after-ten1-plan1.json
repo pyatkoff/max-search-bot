@@ -12,12 +12,12 @@
     "file": "top500-readback.private.json"
   },
   "steps": [
-    "Keep the consumed ten-ID metadata and Tourvisor8208 projection/profile scopes closed; do not replay their operations or treat their numbers as ANEX membership.",
-    "Producer namespace correction is merged in poisk-turov-test PR4998 and PR4999. Obtain current or retained accepted mapping evidence through the existing authorized route, with provenance and manual-decision/exclusion state; source tests are not live mapping coverage.",
-    "Keep every unmapped, conflicting or ambiguous ANEX identity explicit. Do not use numeric equality, a name-only match, or historical XML candidates as acceptance.",
-    "Recompute TOP500 membership and candidate order only after verified mapping and the publication canonical/native binding. Keep the previous numeric 4/157/488 claims withdrawn until real identity-based results exist.",
-    "Resume the original serial publication operations only on mapped identities with all existing media, price, native, dedup, private-intent, once and UNKNOWN requirements; no new workflow or replay.",
-    "Source merge and a built Search3 artifact are not runtime installation. The automatic main site deployment stopped at SSH authentication before release copy; exact runtime mapping/readback remains outstanding through the existing authorized executor."
+    "Keep all consumed ten-ID metadata and Tourvisor8208 projection/profile operations closed. Their results retain their original Tourvisor scope; do not replay or infer ANEX membership.",
+    "Use retained_identity_recovery.candidates: seven typed historical MATCH pairs in owner order are now located and original acceptance evidence checked. Start with ranks8/9 (ANEX27611→TV1228 and ANEX8554→TV16794) through the existing authorized route; establish owner website-card/Online provenance and current accepted/manual/exclusion/target state before admission.",
+    "Verify the separate canonical/native publication binding and existing publication dedup for admitted identities. Absence from the saved182-ID monitoring cohort is not proof of no prior publication.",
+    "Reuse retained research facts for the admitted hotel; do not recollect completed dossiers or substitute same-name, same-number, old XML or other-operator candidates for accepted identity.",
+    "Recompute publication membership and eligible candidate order only from these verified bindings. Current full TOP500 coverage and publication totals remain unknown; the withdrawn4/157/488 figures stay withdrawn.",
+    "Continue the original serial publisher only with the existing media, price, native, dedup, private-intent, once and UNKNOWN requirements. Source merges and the built Search3 artifact do not prove installation; the known legacy receiver SSH blocker remains unresolved."
   ],
   "bounds": {
     "property_groups": 1,
@@ -59,5 +59,35 @@
       "reason": "SSH permission denied while preparing legacy lead receiver",
       "manual_retry": false
     }
+  },
+  "retained_identity_recovery": {
+    "record": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
+    "state": "RETAINED_ACCEPTED_MATCH_HISTORY_RECOVERED_CURRENT_TOP500_ADMISSION_UNVERIFIED",
+    "candidate_anex_ids": [
+      27611,
+      8554,
+      8595,
+      8476,
+      8475,
+      12901,
+      14818
+    ],
+    "candidate_tourvisor_ids": [
+      1228,
+      16794,
+      1216,
+      1095,
+      1014,
+      1474,
+      1015
+    ],
+    "candidates_are_not_admitted_priorities": true,
+    "next_owner_ranks": [
+      8,
+      9
+    ],
+    "current_mapping_coverage": null,
+    "publication_membership": null,
+    "publication_ready": false
   }
 }
