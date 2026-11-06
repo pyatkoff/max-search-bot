@@ -44,6 +44,14 @@ class MissingFieldQuestionService
         return self::send($chatId, $field, $options);
     }
 
+    /** Explain a known count without changing needs, status or manager ownership. */
+    public static function sendUnsupportedChildren($chatId, int $count): bool
+    {
+        return self::sendText($chatId,
+            "Вы указали {$count} детей. Онлайн-подбор поддерживает до 3 детей, поэтому для такого состава нужен подбор с менеджером.\n\nЧтобы подключить менеджера, напишите «Позвать менеджера»."
+        );
+    }
+
     public static function sendText($chatId, string $text): bool
     {
         return IntegrationRegistry::messenger()->send($chatId, $text);
