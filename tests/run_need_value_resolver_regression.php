@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 require_once __DIR__ . '/../services/NeedValueResolver.php';
+require_once __DIR__ . '/../services/ChildAgeValueContract.php';
 
 $passed = 0;
 $failed = 0;
@@ -75,6 +76,27 @@ $childAgesWrongCount = NeedValueResolver::resolve('child_ages', '5', ['children'
 nvrCheck('child ages wrong count stays unresolved', $childAgesWrongCount['recognized'], false);
 $childAgesOutOfRange = NeedValueResolver::resolve('child_ages', '5 и 18', ['children'=>2]);
 nvrCheck('child ages out of range stays unresolved', $childAgesOutOfRange['recognized'], false);
+
+$infantMonths = NeedValueResolver::resolve('child_ages', 'Малышу 7 месяцев', ['children'=>1]);
+nvrCheck('explicit infant months do not become years', $infantMonths['value'], [0]);
+nvrCheck('infant zero uses existing completed-year storage', ChildAgeValueContract::toStorage($infantMonths['value'], 1), '0');
+$monthsAboveYear = NeedValueResolver::resolve('child_ages', '18 месяцев', ['children'=>1]);
+nvrCheck('explicit months retain completed years', $monthsAboveYear['value'], [1]);
+$yearsAndMonths = NeedValueResolver::resolve('child_ages', '1 год 7 месяцев', ['children'=>1]);
+nvrCheck('compound age is one child, not two children', $yearsAndMonths['value'], [1]);
+$mixedUnits = NeedValueResolver::resolve('child_ages', '7 месяцев и 4 года', ['children'=>2]);
+nvrCheck('each explicit unit belongs to its child', $mixedUnits['value'], [0,4]);
+foreach (['7 месяцев и 4', 'почти 12 месяцев', 'не 7 месяцев', '1 год 12 месяцев', '7-8 месяцев', '-7 месяцев', '07.12.2027', '2 ребенка, 7 месяцев', '7 месяцев или 8 лет'] as $text) {
+    $unresolvedAge = NeedValueResolver::resolve('child_ages', $text, ['children'=>1]);
+    nvrCheck('ambiguous or contradictory unit age stays unresolved: '.$text, $unresolvedAge['recognized'], false);
+}
+$alternativeMonthAges = NeedValueResolver::resolve('child_ages', '7 месяцев или 8 лет', ['children'=>2]);
+nvrCheck('an age alternative is not two children', $alternativeMonthAges['recognized'], false);
+$upperMonthUnit = NeedValueResolver::resolve('child_ages', '7 МЕСЯЦЕВ', ['children'=>1]);
+nvrCheck('month units remain explicit regardless of letter case', $upperMonthUnit['value'], [0]);
+$wrongMonthCount = NeedValueResolver::resolve('child_ages', '7 месяцев', ['children'=>2]);
+nvrCheck('months never invent a missing second age', $wrongMonthCount['recognized'], false);
+
 $childAgesNoContext = NeedValueResolver::resolve('child_ages', '5');
 nvrCheck('child ages without child count stays unresolved', $childAgesNoContext['recognized'], false);
 
