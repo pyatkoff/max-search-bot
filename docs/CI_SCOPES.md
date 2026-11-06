@@ -44,10 +44,24 @@ no mode outputs, so the required aggregate fails and dependent expensive scopes
 do not start. This prevents a full green synthetic-merge run followed by a strict
 merge rejection. Integrate the accepted base first, then run the ordinary checks.
 
-This is an early rejection, never a passing/skipped replacement for required
-evidence. Manual runs retain full coverage; malformed/unavailable comparisons keep
-the existing conservative behavior. The check uses the event base and cannot
-predict a later main change, so the existing fresh publication check still applies.
+The existing full-history checkout also fetches `refs/remotes/origin/main`.
+For an event explicitly targeting `main`, the selector rejects
+`event_base_superseded` when that fetched commit is a different descendant of
+the saved event base. This catches an already obsolete event even when its old
+base is an ancestor of the PR head, or the head already contains the newer main.
+It uses the existing fetched snapshot, with no extra fetch, API call, permission
+or workflow. A missing/non-commit, older or divergent snapshot uses conservative
+full coverage; an explicitly unknown base branch also stays full.
+Those fallbacks preserve component commissioning for changed CI rules and do not
+apply a styling-only backend shortcut.
+
+Both rejections fail without publishing scope outputs. Dependent PHP/MySQL and
+browser groups therefore do not start; independent inventory and syntax jobs may
+still run. This is never passing/skipped evidence or merge permission. Manual
+runs retain full coverage. The snapshot cannot predict a main change after
+checkout, so the existing fresh final priority/publication check still applies.
+The existing release order remains necessary before pushing a prepared candidate
+to an open PR; this early guard does not reserve the next release window.
 
 ## Tour-selection component
 
