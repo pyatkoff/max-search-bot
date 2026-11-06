@@ -836,6 +836,38 @@ commission and frozen value), so JSON null is distinct from the string "null",
 false, zero or malformed text. A missing path remains indistinguishable from JSON
 null in this projection; full structural validity is not claimed.
 
+### Frozen contextual value compared with the stage baseline
+
+Each predictive example also reports `stage_comparison` version
+`frozen_context_vs_stage_v1`. For an already explained probability-based row,
+it compares the saved cumulative contextual value with
+`round(VALUES[stage_rank] / BASE * frozen_full_value_base_rub)`. The saved
+semantic stage must agree with the ledger stage. Both sides use the same
+validated monetary policy and frozen base, including the original V1/V2 cap or
+unknown-price base. The signed difference is contextual minus stage value.
+
+A valid fallback row has status `stage_only`: its stage baseline is available,
+but contextual value and difference stay null. Unexplained arithmetic or an
+unverified stage yields `unavailable`, a fixed reason and null comparison
+amounts. Unavailable is never interpreted as zero effect.
+
+`stage_comparison_counts` partitions all eligible events in the bounded reader
+window into `above_stage`, `equal_stage`, `below_stage`, `stage_only` and
+`unavailable`. Counts remain when optional examples are removed to fit the
+response budget. They describe saved event rows, not unique people or trips.
+The difference is between two formulas, not an isolated effect of contextual
+factors. For example, the semantic prior 0.083333 and the stage fraction
+2083/25000 produce 8333 and 8332 RUB on a 100000 RUB base even without a context
+multiplier. Inspect the existing factor and probability fields before attributing
+a difference to the conversation.
+
+This is a read-only diagnostic for the existing value policy, not a comparison
+with an independently verified PRAETOR sender. It does not reconstruct an
+alternative reservation/export history, predict additional sales or establish
+model calibration. Recorded increments, profile values, policy versions, source
+queries, authorization and delivery behavior are unchanged. No model call,
+customer message, collector, schedule or advertising event is added.
+
 Price-continuity adjustments may use another saved reference base. Their omitted
 audit evidence is not reconstructed from totals or the stage name; an unmatched
 increment remains unexplained. This does not declare the saved award erroneous.
