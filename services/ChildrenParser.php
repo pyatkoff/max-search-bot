@@ -71,8 +71,8 @@ class ChildrenParser
         $token = '\d{1,2}|'.implode('|', array_keys($words));
         $noun = 'реб[её]нок|реб[её]нка|реб[её]нков|дет(?:ей|и)';
         $count = null;
-        if (preg_match('/\A('.$token.')(?:\s+(?:'.$noun.'))?\z/ui', $lower, $m)
-            || preg_match('/\A(?:'.$noun.')\s*[,;:\-]?\s*('.$token.')(?:\s+(?:человек|человека|чел\.?))?\z/ui', $lower, $m)) {
+        if (preg_match('/\A('.$token.')(?:\s*(?:'.$noun.'))?\z/ui', $lower, $m)
+            || preg_match('/\A(?:'.$noun.')\s*[,;:\-]?\s*('.$token.')(?:\s*(?:человек|человека|чел\.?))?\z/ui', $lower, $m)) {
             $count = $words[$m[1]] ?? (int)$m[1];
         }
         return $count !== null && $count > 3 ? $count : null;
