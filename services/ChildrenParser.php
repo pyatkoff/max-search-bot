@@ -52,4 +52,29 @@ class ChildrenParser
         if (!array_key_exists($lower, $words)) return null;
         return $words[$lower];
     }
+
+    /**
+     * Diagnostic only for an answer to the child-count question. The accepted
+     * search/storage range stays unchanged; this value must never be applied.
+     * Do not infer a count from ages, dates, a mixed party or negated statements.
+     */
+    public static function unsupportedCount(string $text): ?int
+    {
+        $lower = function_exists('mb_strtolower')
+            ? mb_strtolower(trim($text), 'UTF-8')
+            : strtolower(trim($text));
+        $lower = trim(preg_replace('/[.!?]+$/u', '', $lower));
+        $lower = preg_replace('/^(?:да|конечно)(?:\s*[,;:\-]\s*|\s+)/ui', '', $lower);
+        $words = ['четыре'=>4, 'четверо'=>4, 'пять'=>5, 'пятеро'=>5,
+            'шесть'=>6, 'шестеро'=>6, 'семь'=>7, 'семеро'=>7,
+            'восемь'=>8, 'восьмеро'=>8, 'девять'=>9, 'десять'=>10];
+        $token = '\d{1,2}|'.implode('|', array_keys($words));
+        $noun = 'реб[её]нок|реб[её]нка|реб[её]нков|дет(?:ей|и)';
+        $count = null;
+        if (preg_match('/\A('.$token.')(?:\s+(?:'.$noun.'))?\z/ui', $lower, $m)
+            || preg_match('/\A(?:'.$noun.')\s*[,;:\-]?\s*('.$token.')(?:\s+(?:человек|человека|чел\.?))?\z/ui', $lower, $m)) {
+            $count = $words[$m[1]] ?? (int)$m[1];
+        }
+        return $count !== null && $count > 3 ? $count : null;
+    }
 }

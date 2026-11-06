@@ -45,6 +45,10 @@ class AiShortAnswerHandler
                 $appliedField = !empty($applied[$field]);
             } else {
                 $result = NeedApplicationService::resolveAndApply($chat_id, 'children', $lower);
+                if (isset($result['unsupported_count'])) {
+                    MissingFieldQuestionService::sendUnsupportedChildren($chat_id, (int)$result['unsupported_count']);
+                    return true;
+                }
                 if (empty($result['recognized']) || empty($result['applied'])) return false;
                 $params['children'] = $result['value'];
                 $appliedField = true;
