@@ -4,6 +4,7 @@ $preparationMcpStartedAt=microtime(true);
 
 require_once dirname(__DIR__).'/config.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationOAuth.php';
+require_once dirname(__DIR__).'/services/DialogueReviewMcpAdapter.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
 require_once dirname(__DIR__).'/services/ManagerPreparationMcpDiagnostics.php';
 
