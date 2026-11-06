@@ -679,7 +679,7 @@ Fresh predictive rows record the applied decision atomically with their reservat
 The administrator-only delivery registry accepts both exact stage keys and exact
 profile-bound predictive keys. A voided zero-value price-loss correction is not
 an active award. Conversation totals include all bound rows; each page shows at
-most 25 conversations and the latest 32 events per conversation, with an explicit
+most 10 conversations and the latest 32 events per conversation, with an explicit
 omission count. Earlier events remain in totals. No customer/native/advertising
 identity or transcript is returned by the private status projection.
 

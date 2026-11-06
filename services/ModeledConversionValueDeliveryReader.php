@@ -180,7 +180,7 @@ final class ModeledConversionValueDeliveryReader
                 ." WHERE o.target LIKE 'anytour_value_pred_%' ORDER BY o.id DESC LIMIT 17";
             $marker=' AS packet';$end=strpos($sql,$marker);if($end===false)throw new LogicException('predictive_projection');
             $expression=substr($sql,7,$end-7);
-            $packetBytes=$mysql?'OCTET_LENGTH(JSON_QUOTE('.$expression.'))':'LENGTH(CAST(JSON_QUOTE('.$expression.') AS BLOB))';
+            $packetBytes=$mysql?'OCTET_LENGTH(JSON_QUOTE(CAST('.$expression.' AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST('.$expression.' AS TEXT)) AS BLOB))';
             $sizes=$this->query('SELECT '.$packetBytes.'+24 AS packet_bytes'.substr($sql,$end+strlen($marker)),[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
             $total=2;foreach($sizes as$size)$total+=(int)($size['packet_bytes']??PHP_INT_MAX);
             if($total+8192>$this->budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];

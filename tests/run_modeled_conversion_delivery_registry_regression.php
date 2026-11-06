@@ -363,14 +363,14 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     $check('history is a direct origin subset and not a different sending day',
         $first['summary']['historical_review']===['events'=>1,'conversations'=>1,'value_rub'=>1250]
         &&$first['summary']['live']['value_rub']===72916);
-    $check('delivery cards are global summary values rather than the twenty-five shown rows',
+    $check('delivery cards are global summary values rather than the shown page rows',
         $first['summary']['delivery']['accepted_receipts']['events']===2
         &&$first['summary']['delivery']['accepted_receipts']['value_rub']===2500
         &&$first['summary']['delivery']['processed']['events']===1
         &&$first['summary']['delivery']['problem']['events']===1
         &&$first['summary']['delivery']['unresolved_identity']['events']===58);
-    $check('first page is twenty-five distinct conversations with a signed continuation',
-        count($first['rows'])===25&&$first['pagination']['has_more']&&is_string($first['pagination']['next_cursor']));
+    $check('first page is ten distinct conversations with a signed continuation',
+        count($first['rows'])===10&&$first['pagination']['has_more']&&is_string($first['pagination']['next_cursor']));
     $all=[];$sum=0;$page=$first;$pages=0;
     do{
         ++$pages;foreach($page['rows']as$row){$all[$row['conversation_id']]=$row;$sum+=$row['period_value_rub'];}
@@ -378,7 +378,7 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
         if($cursor!==null)$page=$read(['cursor'=>$cursor]);
     }while($cursor!==null&&$pages<10);
     $check('all pages reconcile exactly without duplicates or a four-dialogue ceiling',
-        $pages===3&&count($all)===59&&$sum===$first['summary']['value_rub']);
+        $pages===6&&count($all)===59&&$sum===$first['summary']['value_rub']);
     $check('period delta is separate from same-contract lifetime reserved value',
         $all['100']['period_value_rub']===833&&$all['100']['total_value_rub']===2083
         &&$all['100']['stage']==='specific_request'&&count($all['100']['events'])===2

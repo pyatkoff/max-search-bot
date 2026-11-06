@@ -53,7 +53,7 @@ final class ModeledConversionInputDiagnosisReader
             $marker=' AS diagnosis_json';$end=strpos($sql,$marker);
             if($end===false)throw new LogicException('diagnosis_projection');
             $expression=substr($sql,7,$end-7);
-            $packetBytes=$this->mysql?'OCTET_LENGTH(JSON_QUOTE('.$expression.'))':'LENGTH(CAST(JSON_QUOTE('.$expression.') AS BLOB))';
+            $packetBytes=$this->mysql?'OCTET_LENGTH(JSON_QUOTE(CAST('.$expression.' AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST('.$expression.' AS TEXT)) AS BLOB))';
             $estimate=$this->budget->prepare($this->pdo,'SELECT '.$packetBytes.'+24 AS packet_bytes'.substr($sql,$end+strlen($marker)));
             $estimate->bindValue(1,$model,PDO::PARAM_STR);$estimate->bindValue(2,$processor,PDO::PARAM_STR);$estimate->execute();
             $sizes=$estimate->fetchAll(PDO::FETCH_ASSOC);$estimate->closeCursor();$this->auth();

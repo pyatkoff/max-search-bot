@@ -9,7 +9,7 @@ final class ModeledConversionDeliveryRegistry
 {
     public const VERSION='modeled_delivery_registry_v2';
     public const EVENTS_PER_CONVERSATION=32;
-    public const PAGE_SIZE=25;
+    public const PAGE_SIZE=10;
     private const BYTES=524288;
     private const STATES=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
