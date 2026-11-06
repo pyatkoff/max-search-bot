@@ -1,0 +1,37 @@
+{
+  "operation": "commercial-top500-internal-base-20261106-8208-original-metadata1",
+  "state": "FROZEN_NEW_OFFLINE_ORIGINAL_AUTH_ARTIFACT_METADATA_PROJECTION_ONLY",
+  "goal": "Recover only needed native8208 identity/gallery-source/price-coverage metadata from the already captured authenticated original ten1 result; do not repeat DB scope or provider reads.",
+  "source_repository": "pyatkoff/max-search-bot",
+  "source_run": 42165764181,
+  "source_artifact": 13479140677,
+  "source_artifact_name": "commercial-top500-internal-base-20261105-ten1-result",
+  "source_commit": "3b6bd27ff9f433aff38f7e21913979ef7451e17a",
+  "source_file": "top500-readback.private.json",
+  "hotel_ids": [
+    8208
+  ],
+  "bounds": {
+    "hotels_projected": 1,
+    "original_artifacts": 1,
+    "server_db_calls": 0,
+    "provider_calls": 0,
+    "quote_calls": 0,
+    "owner_or_photo_http": 0,
+    "canva": 0,
+    "new_posts": 0,
+    "old_cases_replayed": 0
+  },
+  "criteria": [
+    "Exact original operation/source/scope10 validated, only8208 projected; no whole original body console.",
+    "Native scalar name/country/active and retained41gallery URL metadata/175raw70condition metadata only; no full tuples/fingerprints/quotes/photos/raw descriptions.",
+    "Gallery URLs remain in authenticated private projection; compare only metadata hashes to canonical closed293URLs292basenames. No fetching or classification by filename.",
+    "Missing fields stayNULL; no ready credit or rights/hero/final-basket inference.",
+    "Run10 genuinelynew input case groups in existing GHA, no old24/7 fixtures or runtime guards rerun because no server action."
+  ],
+  "risks": [
+    "Source capture is05:00 rather than future availability/current publisher proof.",
+    "Native exact source may identify a country not supported by existing publication code; do not force IDs/country or lower guards.",
+    "Declared URLs do not prove hero quality/rights/HTTP availability."
+  ]
+}
