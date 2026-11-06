@@ -22,7 +22,8 @@ class AiSearchContextService
             $children = (int)$saved[$status['children']];
             $out['children'] = $children;
         }
-        if (!empty($saved[$status['child_ages']])) {
+        if (array_key_exists($status['child_ages'], $saved)
+            && $saved[$status['child_ages']] !== null && $saved[$status['child_ages']] !== '') {
             if ($children === null) {
                 // Preserve legacy context when the child count itself is not yet known.
                 $out['child_ages'] = (string)$saved[$status['child_ages']];
