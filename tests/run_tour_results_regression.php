@@ -20,7 +20,14 @@ function trCheck(string $name, $actual, $expected): void {
 if (!class_exists('MaxSearchApi')) {
     class MaxSearchApi {
         public static function getSavedData($chatId): array { return ['city'=>1]; }
-        public static function saveClaim($chatId, $savedData): string { return 'https://legacy.test/search/abc/?yclid=777'; }
+        public static $statusCityChoose=65,$statusContryChoose=66,$statusAdults=67,$statusChild=68,$statusAge=69,$statusStars=70,$statusMeal=71,$statusNights=72,$statusDate=73,$statusAi=76;
+        public static int $claims=0,$deletes=0,$links=0;
+        public static array $events=[],$statuses=[];
+        public static function setStatus($chatId,$status){self::$statuses[]=$status;}
+        public static function deletePrevMessage($chatId){self::$deletes++;}
+        public static function funnelLog($chatId,$event){self::$events[]=$event;}
+        public static function linkSentYclid($chatId){self::$links++;}
+        public static function saveClaim($chatId, $savedData): string { self::$claims++; return 'https://legacy.test/search/abc/?yclid=777'; }
         public static function getLastClaimForChat($chatId): array {
             return ['UF_CITY'=>1,'UF_COUNTRY'=>4,'UF_ADULTS'=>3,'UF_CHILD'=>2,'UF_AGE'=>'5, 8','UF_STARS'=>4,'UF_MEAL'=>7,'UF_NIGHTS'=>'9-11','UF_DATE_DEPART'=>'15.09.2026','UF_CODE'=>'abc'];
         }
@@ -125,5 +132,57 @@ require_once __DIR__ . '/../services/MaxTransport.php';
 $wireButtons = MaxTransport::convertButtons($productionModel['buttons']);
 $wire = json_decode(json_encode($wireButtons,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),true);
 trCheck('MAX wire button retains website origin and all parameters',$wire[0][0]['url'],$expectedModelUrl);
+
+// Exercise the actual canonical API methods without loading production config.
+// Extract whole adjacent methods verbatim; no copy of their readiness logic.
+require_once __DIR__ . '/../services/AiSearchContextService.php';
+require_once __DIR__ . '/../services/DialogueView.php';
+$apiSource = (string)file_get_contents(__DIR__ . '/../maxsearchclass.php');
+function trMethods(string $source, string $first, string $next): string {
+    $start = strpos($source, $first);
+    $end = $start === false ? false : strpos($source, $next, $start);
+    if ($start === false || $end === false) throw new RuntimeException('Canonical API method boundary changed');
+    return substr($source, $start, $end - $start);
+}
+$methods = trMethods($apiSource, 'private static function statusMap()', 'public static function showStart(')
+    . trMethods($apiSource, 'public static function showToursChoice(', 'public static function showChannelOffer(')
+    . trMethods($apiSource, 'public static function getAiMissingFields(', 'public static function applyAiParameters(');
+eval('class CurrentSearchApiProbe extends MaxSearchApi { public static array $saved=[]; public static function getSavedData($chatId): array { return self::$saved; } ' . $methods . '}');
+$ready = [65=>1,66=>4,67=>2,68=>0,72=>'7',73=>date('d.m.Y', strtotime('+1 day'))];
+$messages = [];
+$readinessMessenger = new MaxMessengerAdapter(null, static function ($chatId, $text, $buttons) use (&$messages): bool {
+    $messages[] = ['text'=>$text,'buttons'=>$buttons]; return true;
+}, 'ai', null, false);
+IntegrationRegistry::useMessenger($readinessMessenger);
+foreach ([
+    'empty'=>[],
+    'past'=>array_replace($ready,[73=>date('d.m.Y',strtotime('-1 day'))]),
+    'invalid'=>array_replace($ready,[73=>'31.02.2030']),
+    'unanswered_children'=>array_replace($ready,[68=>null]),
+    'missing_child_age'=>array_replace($ready,[68=>1]),
+] as $label=>$needs) {
+    foreach (['showToursChoice','showFinishButtons'] as $method) {
+        CurrentSearchApiProbe::$saved=$needs;
+        $messages=[];
+        $claimsBefore=MaxSearchApi::$claims;
+        $linksBefore=MaxSearchApi::$links;
+        $deletesBefore=MaxSearchApi::$deletes;
+        $eventsBefore=MaxSearchApi::$events;
+        trCheck($label.' '.$method.' cannot open a search',CurrentSearchApiProbe::$method(-930001),'');
+        trCheck($label.' '.$method.' creates no claim',MaxSearchApi::$claims,$claimsBefore);
+        trCheck($label.' '.$method.' records no link',MaxSearchApi::$links,$linksBefore);
+        trCheck($label.' '.$method.' preserves previous message',MaxSearchApi::$deletes,$deletesBefore);
+        trCheck($label.' '.$method.' emits no search event',MaxSearchApi::$events,$eventsBefore);
+        trCheck($label.' '.$method.' asks only one missing need',count($messages),1);
+        trCheck($label.' '.$method.' emits no search buttons',$messages[0]['buttons']??[],[]);
+    }
+}
+CurrentSearchApiProbe::$saved=$ready;
+$claimsBefore=MaxSearchApi::$claims;
+$linksBefore=MaxSearchApi::$links;
+trCheck('complete current search keeps canonical target',CurrentSearchApiProbe::showToursChoice(-930001),$expectedModelUrl);
+trCheck('complete current search creates one claim',MaxSearchApi::$claims,$claimsBefore+1);
+trCheck('complete current search records delivered link once',MaxSearchApi::$links,$linksBefore+1);
+IntegrationRegistry::resetForTests();
 
 $total=$passed+$failed;echo "\n--------------------------\nTOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);

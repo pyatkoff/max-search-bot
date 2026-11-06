@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/ChildAgeValueContract.php';
+require_once __DIR__ . '/DateValueContract.php';
+require_once __DIR__ . '/NativeDateService.php';
 
 class AiSearchContextService
 {
@@ -71,6 +73,27 @@ class AiSearchContextService
         // should finish once the parameters required to open a valid search are known.
         if (empty($saved[$status['nights']])) $missing[] = 'nights';
         if (empty($saved[$status['date']])) $missing[] = 'date';
+        return $missing;
+    }
+
+    /**
+     * Current search admission is separate from historical context projection.
+     * Reuse the existing runtime future-date policy; never rewrite saved needs.
+     */
+    public static function missingForCurrentSearch(array $saved, array $status, ?DateTimeImmutable $today = null): array
+    {
+        $required = $saved;
+        // An unanswered wizard row is not an explicit "no children".
+        if (array_key_exists($status['children'], $required)
+            && ($required[$status['children']] === null || $required[$status['children']] === '')) {
+            unset($required[$status['children']]);
+        }
+        $missing = self::missingFromSaved($required, $status);
+        $date = DateValueContract::fromStorageValue($saved[$status['date']] ?? null);
+        if (!in_array('date', $missing, true)
+            && ($date === null || !NativeDateService::isTodayOrFuture($date, $today))) {
+            $missing[] = 'date';
+        }
         return $missing;
     }
 

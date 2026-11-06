@@ -28,6 +28,14 @@ class AiMessageHandler
                 $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
                 $sourceQualification=SourceHandlingService::qualifyingTurn($chat_id);
 
+                // Keep an unsupported multi-month window out of both local
+                // anchoring and remote inference. Clarification changes no needs.
+                $dateContext = AiDateContextService::resolveLocal($chat_id, $userText);
+                if (!empty($dateContext['ambiguous_months'])) {
+                    MissingFieldQuestionService::send($chat_id, 'date', ['ambiguous_months'=>true]);
+                    return;
+                }
+
                 // Короткий ответ на ранее названный месяц: "начало", "середина", "конец", "14".
                 if (in_array('date', $missingNow, true)) {
                     $shortDateValue = AiDateHandler::resolvePendingShortDate($chat_id, $userText);
@@ -80,7 +88,7 @@ class AiMessageHandler
                     if (empty($current['city']) && !$departure) {
                         unset($richLocalParams['city']);
                     }
-                    $richLocalDate = AiDateContextService::resolveLocal($chat_id, $userText);
+                    $richLocalDate = $dateContext;
                     if (!empty($richLocalDate['date'])) {
                         $richLocalParams['date'] = $richLocalDate['date'];
                     }
@@ -99,7 +107,7 @@ class AiMessageHandler
                     if($sourceQualification&&empty($current['city']))unset($localParams['city']);
 
                     // Stateful month-only/date clarification policy lives behind one boundary.
-                    $localDate = AiDateContextService::resolveLocal($chat_id, $userText);
+                    $localDate = $dateContext;
                     $localMonthOnly = !empty($localDate['month_only']);
                     if (!empty($localDate['date'])) {
                         $localParams['date'] = $localDate['date'];

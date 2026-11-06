@@ -30,7 +30,8 @@ class MaxSearchApi {
     public static bool $probeAi=false;
     public static function getCurentStatus($chatId){return self::$currentStatus;}
     public static function getAiSearchContext($chatId){return [];}
-    public static function getAiMissingFields($chatId){return ['city'];}
+    public static array $missing=[];
+    public static function getAiMissingFields($chatId){return self::$missing;}
     public static function deletePrevMessage($chatId,$full=false){self::$deletes++;}
     public static function setStatus($chatId,$status,$mess=false){self::$statuses[]=[(int)$chatId,(int)$status];self::$currentStatus=(int)$status;}
     public static function saveLastValue($chatId,$status,$value){self::$statusValues[(int)$status]=(string)$value;}
@@ -221,6 +222,28 @@ $sentBefore=count($m->sent);
 dvCheck('failed chooser can be retried immediately',(new CallbackController())->handle($failureQuery),true);
 dvCheck('successful retry delivers chooser',count($m->sent),$sentBefore+1);
 foreach ([$chat,$chat-1] as $testChat) @unlink(InteractionGuard::lockPath($testChat,'search_options'));
+
+// Real confirmation renderer: missing or expired needs must ask one useful
+// question without deleting context or emitting ready events/callbacks.
+foreach ([['city','country','adults','children','nights','date'], ['date']] as $missingNeeds) {
+    MaxSearchApi::$missing = $missingNeeds;
+    $sentBefore = count($m->sent);
+    $eventsBefore = MaxSearchApi::$events;
+    $valuesBefore = MaxSearchApi::$statusValues;
+    $deletesBefore = MaxSearchApi::$deletes;
+    dvCheck('incomplete confirmation is rejected', DialogueView::check(-910001), false);
+    dvCheck('incomplete confirmation asks exactly one question', count($m->sent), $sentBefore + 1);
+    dvCheck('incomplete confirmation asks the actual missing field', $m->sent[$sentBefore]['text'],
+        MissingFieldQuestionService::question($missingNeeds[0]));
+    dvCheck('incomplete confirmation creates no callback generation', MaxSearchApi::$statusValues, $valuesBefore);
+    dvCheck('incomplete confirmation emits no ready event', MaxSearchApi::$events, $eventsBefore);
+    dvCheck('incomplete confirmation preserves preceding messages', MaxSearchApi::$deletes, $deletesBefore);
+    dvCheck('clarification uses existing AI state', MaxSearchApi::$currentStatus, 76);
+}
+MaxSearchApi::$missing = [];
+dvCheck('multi-month clarification does not claim one known month',
+    MissingFieldQuestionService::question('date', ['ambiguous_months'=>true]),
+    'Вы указали период в разных месяцах. Какую конкретную дату вылета взять для поиска?');
 
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
