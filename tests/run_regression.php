@@ -86,6 +86,18 @@ check('generic where-can-I-go has no area tokens', privateStatic(DestinationArea
 check('date phrase has no area tokens', privateStatic(DestinationAreaResolver::class, 'tokens', ['15 апреля']), []);
 check('meal phrase must not be hotel-area evidence', privateStatic(DestinationAreaResolver::class, 'tokens', ['завтрак и ужин']), []);
 
+$areaIntentGuard = method_exists(DestinationAreaResolver::class, 'inferenceTokens');
+check('area inference has an intent-aware token gate', $areaIntentGuard, true);
+if ($areaIntentGuard) {
+    check('bare area stays eligible', privateStatic(DestinationAreaResolver::class, 'inferenceTokens', ['Кемер']), ['кемер']);
+    check('explicit positive area stays eligible', privateStatic(DestinationAreaResolver::class, 'inferenceTokens', ['Хочу в Кемер']), ['кемер']);
+    check('negative area is not positive inference evidence', privateStatic(DestinationAreaResolver::class, 'inferenceTokens', ['Не хочу Кемер']), []);
+    check('hard area exclusion is not positive inference evidence', privateStatic(DestinationAreaResolver::class, 'inferenceTokens', ['Только не Кемер']), []);
+    check('neutral area question is not pre-applied', privateStatic(DestinationAreaResolver::class, 'inferenceTokens', ['А Кемер?']), []);
+    check('neutral advice question is not pre-applied', privateStatic(DestinationAreaResolver::class, 'inferenceTokens', ['Что скажете про Кемер?']), []);
+    check('mixed exclusion keeps positive alternative', privateStatic(DestinationAreaResolver::class, 'inferenceTokens', ['Не Кемер, давайте Белек']), ['белек']);
+}
+
 $routesFile = __DIR__ . '/fixtures/tourvisor_routes.json';
 $fallbacksFile = __DIR__ . '/fixtures/departure_fallbacks.json';
 $resolver = new DepartureRouteResolver($routesFile, $fallbacksFile);
