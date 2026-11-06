@@ -28,7 +28,8 @@ function deliveryObservationInsert(PDO $p,array $v):void
 }
 function deliveryDailyAssertions(PDO $p,callable $check):void
 {
-    $now=1793700000;$from=1793656800;$until=$from+86400;deliveryObservationFixture($p,$now);
+    deliveryMoscowMidnightAssertions($p,$check);
+    $now=1793700000;$from=strtotime('2026-11-02T21:00:00Z');$until=$from+86400;deliveryObservationFixture($p,$now);
     deliveryObservationInsert($p,['id'=>1,'claimed_at_unix'=>$from,'value_api_accepted_at_unix'=>$from,'value_receipt_basis'=>'post_response']);
     deliveryObservationInsert($p,['id'=>2,'conversation_id'=>101,'value_rub'=>833,'value_stage'=>'specific_request','claimed_at_unix'=>$from+1,
         'value_api_accepted_at_unix'=>$from+2,'value_receipt_basis'=>'post_response','value_origin'=>'owner_day_review_v1']);
@@ -44,7 +45,8 @@ function deliveryDailyAssertions(PDO $p,callable $check):void
     deliveryObservationInsert($p,['id'=>9,'conversation_id'=>108,'transport_target'=>'foreign','claimed_at_unix'=>$from+1]);
     $read=static fn():array=>(new ModeledConversionDailyDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
     $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$r=$read();
-    $check('daily boundary is Kaliningrad midnight in UTC',$r['available']&&$r['date']==='2026-11-03'&&$r['window']['from']==='2026-11-02T22:00:00Z');
+    $check('daily boundary is Moscow midnight in UTC',$r['available']&&$r['date']==='2026-11-03'&&$r['timezone']==='Europe/Moscow'
+        &&$r['window']['from']==='2026-11-02T21:00:00Z'&&$r['window']['until_exclusive']==='2026-11-03T21:00:00Z');
     $check('two increments have one exact distinct dialogue',$r['upload_claims_today']['events']===3&&$r['upload_claims_today']['conversations']===2&&$r['upload_claims_today']['value_rub']===3333);
     $check('new receipt observation day differs from prior claim day',$r['api_receipts_observed_today']['events']===3&&$r['api_receipts_observed_today']['conversations']===2&&$r['api_receipts_observed_today']['value_rub']===4166);
     $check('platform distinct and sums are independently counted',$r['api_receipts_observed_today']['by_platform']['telegram']['conversations']===1&&$r['api_receipts_observed_today']['by_platform']['telegram']['value_rub']===2083);
@@ -58,6 +60,26 @@ function deliveryDailyAssertions(PDO $p,callable $check):void
     $check('revoked authorization prevents release of daily sums',$revoked);
     deliveryObservationInsert($p,['id'=>300,'conversation_id'=>1300,'platform'=>'foreign','claimed_at_unix'=>$from+1]);
     $check('invalid platform fails closed rather than vanishing from totals',($read()['reason']??null)==='invalid_aggregate');
+}
+function deliveryMoscowMidnightAssertions(PDO $p,callable $check):void
+{
+    $midnight=strtotime('2026-12-31T21:00:00Z');
+    deliveryObservationFixture($p,$midnight+1);
+    foreach([-1,0,1]as$i=>$offset)deliveryObservationInsert($p,['id'=>$i+1,'conversation_id'=>101+$i,
+        'event_unix'=>$midnight+$offset,'claimed_at_unix'=>$midnight+$offset,
+        'value_api_accepted_at_unix'=>$midnight+$offset,'value_receipt_basis'=>'post_response']);
+    $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    foreach([[-1,'2026-12-31',1,'2026-12-30T21:00:00Z','2026-12-31T21:00:00Z'],
+        [0,'2027-01-01',1,'2026-12-31T21:00:00Z','2027-01-01T21:00:00Z'],
+        [1,'2027-01-01',2,'2026-12-31T21:00:00Z','2027-01-01T21:00:00Z']]as[$offset,$date,$count,$from,$until]){
+        $r=(new ModeledConversionDailyDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($midnight+$offset);
+        $check('Moscow year boundary selects exact current-day claims and receipts at offset '.$offset,
+            ($r['available']??false)&&$r['date']===$date&&$r['timezone']==='Europe/Moscow'
+            &&$r['window']['from']===$from&&$r['window']['until_exclusive']===$until
+            &&$r['upload_claims_today']['events']===$count&&$r['api_receipts_observed_today']['events']===$count);
+    }
+    $check('calendar projection preserves original UTC clocks values receipts and identifiers',
+        $before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
 }
 function deliveryHealthAssertions(PDO $p,callable $check):void
 {

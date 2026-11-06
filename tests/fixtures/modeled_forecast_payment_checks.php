@@ -81,6 +81,38 @@ function forecastPaymentAssertions(PDO $p,callable $check):void
     $filters=['date'=>'2026-11-05','period'=>90,'platform'=>'all'];
     forecastPaymentFixtureSchema($p);
     try{
+        foreach([
+            ['2026-11-05T20:59:59Z','2026-11-05','05.11.2026 23:59:59'],
+            ['2026-11-05T21:00:00Z','2026-11-06','06.11.2026 00:00:00'],
+            ['2026-11-05T21:30:00Z','2026-11-06','06.11.2026 00:30:00'],
+            ['2026-12-31T20:59:59Z','2026-12-31','31.12.2026 23:59:59'],
+            ['2026-12-31T21:00:00Z','2027-01-01','01.01.2027 00:00:00'],
+            ['2026-12-31T21:00:01Z','2027-01-01','01.01.2027 00:00:01'],
+        ]as[$instant,$date,$display]){
+            $at=strtotime($instant);$automatic=$reader->read([],$at);$explicit=$reader->read(['date'=>$date],$at);
+            $check('forecast default and explicit Moscow day '.$instant,($automatic['available']??false)&&$automatic['filters']['date']===$date
+                &&$automatic['window']['timezone']==='Europe/Moscow'&&($explicit['available']??false)&&$automatic['window']===$explicit['window']);
+            $html=ModeledConversionForecastPaymentView::render($automatic);
+            $check('forecast Moscow midnight presentation '.$instant,str_contains($html,$display)&&str_contains($html,'время по Москве (МСК)'));
+        }
+        $future=$reader->read(['date'=>'2027-01-01'],strtotime('2026-12-31T20:59:59Z'));
+        $check('forecast next Moscow day is rejected before midnight',($future['reason']??null)==='invalid_filters');
+        foreach([7=>'2026-12-25T21:00:00Z',30=>'2026-12-02T21:00:00Z',90=>'2026-10-03T21:00:00Z']as$period=>$start){
+            forecastPaymentFixtureSchema($p);$end='2027-01-01T21:00:00Z';
+            foreach([strtotime($start)-1,strtotime($start),strtotime($end)-1,strtotime($end)]as$i=>$at){
+                $scope=forecastPaymentFixtureBinding($p,83000+$i,$i%2?'max':'telegram');
+                forecastPaymentFixtureSave($p,forecastPaymentFixtureWrapper($scope,$at,$at-100));
+            }
+            $calendarBefore=forecastPaymentFixtureDigest($p);
+            $calendar=$reader->read(['date'=>'2027-01-01','period'=>$period],strtotime('2027-01-02T12:00:00Z'));
+            $check('forecast '.$period.' day Moscow cohort has half-open boundaries',($calendar['available']??false)
+                &&$calendar['window']===['from'=>$start,'until'=>$end,'timezone'=>'Europe/Moscow']
+                &&array_column($calendar['rows'],'conversation_id')===['83001','83002']&&$calendar['has_more']===false);
+            $check('forecast '.$period.' day projection preserves saved UTC profiles and identities',forecastPaymentFixtureDigest($p)===$calendarBefore
+                &&$calendar['rows'][0]['forecast']['profile_observed_at']===$start
+                &&$calendar['rows'][1]['forecast']['profile_observed_at']==='2027-01-01T20:59:59Z'&&!$p->inTransaction());
+        }
+        forecastPaymentFixtureSchema($p);
         $s=forecastPaymentFixtureBinding($p,81001,'max','<script>alert("synthetic")</script>');
         $base=forecastPaymentFixtureWrapper($s,$now-14400,$now-14500);
         $admission=ModeledConversionValueRegistry::predictionFields($base);
@@ -168,6 +200,8 @@ function forecastPaymentAssertions(PDO $p,callable $check):void
         $check('forecast global earliest before date filter prevents cohort reentry',($short['available']??false)&&!($short['has_more']??true)&&!in_array('81012',$shortIds,true));
         $view=ModeledConversionForecastPaymentView::render($tgPage,['date'=>'2026-11-05','period'=>90,'platform'=>'telegram']);
         $check('forecast owner view renders safe useful fields',str_contains($view,'Ранний прогноз')&&str_contains($view,'/manager2/#conversation=81002'));
+        $oldCalendar=$tgPage;$oldCalendar['window']['timezone']='Europe/Kaliningrad';
+        $check('forecast old cohort cannot be labelled Moscow',str_contains(ModeledConversionForecastPaymentView::render($oldCalendar),'Сопоставление сейчас недоступно'));
         $namePage=$reader->read($filters,$now);$html=ModeledConversionForecastPaymentView::render($namePage,$filters);
         $check('forecast customer name is escaped in private view',!str_contains($html,'<script>alert(')
             &&str_contains($html,'&lt;script&gt;')&&str_contains($html,'/manager2/#conversation=81001'));
@@ -182,6 +216,10 @@ function forecastPaymentAssertions(PDO $p,callable $check):void
         $firstPage=$reader->read($filters,$now);$cursor=$firstPage['next_cursor']??null;
         $check('forecast stable paging exposes bounded continuation',($firstPage['available']??false)&&count($firstPage['rows'])===8&&is_string($cursor)&&$firstPage['has_more']===true);
         if(is_string($cursor)){
+            $parts=explode('.',$cursor);
+            $legacy='fpr1.'.$parts[1].'.'.hash_hmac('sha256',"forecast-payment-owner-v1\n".$parts[1],$key);
+            $bad=$reader->read($filters+['cursor'=>$legacy],$now);
+            $check('forecast rejects correctly signed legacy Kaliningrad pagination',($bad['available']??true)===false&&($bad['reason']??null)==='invalid_cursor');
             $late=forecastPaymentFixtureBinding($p,82011);
             forecastPaymentFixtureSave($p,forecastPaymentFixtureWrapper($late,$now-5000,$now-5100));
             $secondPage=$reader->read($filters+['cursor'=>$cursor],$now+10);

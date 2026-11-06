@@ -19,6 +19,8 @@ header('Vary: Cookie');
 header('X-Robots-Tag: noindex, nofollow, noarchive');
 header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'");
 
+// Use one instant for the default calendar date and the corresponding report snapshot.
+$reportNow=time();
 $view='delivery';$after='0';$deliveryInput=[];$acquisitionInput=[];$analyticsInput=[];$monitor=[];
 try{
     // Must precede manager lookup: auth must not invoke the legacy project UPSERT.
@@ -40,7 +42,7 @@ try{
                 ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
             $deliveryInput[$key]=$_GET[$key];
         }
-        $deliveryInput['date']=$deliveryInput['date']??(new DateTimeImmutable('now',new DateTimeZone('Europe/Kaliningrad')))->format('Y-m-d');
+        $deliveryInput['date']=$deliveryInput['date']??(new DateTimeImmutable('@'.$reportNow))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
         $deliveryInput['platform']=$deliveryInput['platform']??'all';
     }elseif(in_array($view,['reconciliation','forecast-payments'],true)){
         foreach(array_diff($allowed,['view'])as$key)if(isset($_GET[$key])){
@@ -48,7 +50,7 @@ try{
                 ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
             $analyticsInput[$key]=$_GET[$key];
         }
-        $analyticsInput['date']=$analyticsInput['date']??(new DateTimeImmutable('now',new DateTimeZone('Europe/Kaliningrad')))->format('Y-m-d');
+        $analyticsInput['date']=$analyticsInput['date']??(new DateTimeImmutable('@'.$reportNow))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
         $analyticsInput['platform']=$analyticsInput['platform']??'all';
         if($view==='forecast-payments'){
             $analyticsInput['period']=$analyticsInput['period']??'30';
@@ -62,7 +64,7 @@ try{
                 ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
             $acquisitionInput[$key]=$_GET[$key];
         }
-        $acquisitionInput['date']=$acquisitionInput['date']??(new DateTimeImmutable('now',new DateTimeZone('Europe/Kaliningrad')))->format('Y-m-d');
+        $acquisitionInput['date']=$acquisitionInput['date']??(new DateTimeImmutable('@'.$reportNow))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
         $acquisitionInput['period']=$acquisitionInput['period']??'30';
         if(!in_array($acquisitionInput['period'],['7','30','90'],true))
             ManagerHttp::respond(['ok'=>false,'error'=>'unexpected_parameters'],422);
@@ -108,7 +110,7 @@ try{
                     ||ProjectConfig::projectId()!=='anytour'||!ProjectAccessService::canAccess($actor,'anytour'))
                     throw new RuntimeException('delivery_registry_access');
             };
-            $page=(new ModeledConversionDeliveryRegistry($pdo,$authorize,$cursorKey))->read($deliveryInput,time());
+            $page=(new ModeledConversionDeliveryRegistry($pdo,$authorize,$cursorKey))->read($deliveryInput,$reportNow);
             $unavailable=($page['available']??false)!==true;
             $monitor=ModeledConversionDeliveryHealth::externalStatus(new ModeledConversionStatusBudget(),$authorize,time());
         }elseif(in_array($view,['reconciliation','forecast-payments'],true)){
@@ -120,10 +122,10 @@ try{
             };
             if($view==='reconciliation'){
                 require_once dirname(__DIR__).'/services/ModeledConversionDailyReconciliationReader.php';
-                $page=(new ModeledConversionDailyReconciliationReader($pdo,$authorize))->read($analyticsInput,time());
+                $page=(new ModeledConversionDailyReconciliationReader($pdo,$authorize))->read($analyticsInput,$reportNow);
             }else{
                 require_once dirname(__DIR__).'/services/ModeledConversionForecastPaymentReader.php';
-                $page=(new ModeledConversionForecastPaymentReader($pdo,$authorize,$forecastCursorKey))->read($analyticsInput,time());
+                $page=(new ModeledConversionForecastPaymentReader($pdo,$authorize,$forecastCursorKey))->read($analyticsInput,$reportNow);
             }
             $unavailable=($page['available']??false)!==true;
         }elseif($view==='acquisition'){
@@ -134,7 +136,7 @@ try{
                     ||ProjectConfig::projectId()!=='anytour'||!ProjectAccessService::canAccess($actor,'anytour'))
                     throw new RuntimeException('acquisition_stats_access');
             };
-            $page=(new ModeledConversionAcquisitionStatsReader($pdo,$authorize))->read($acquisitionInput,time());
+            $page=(new ModeledConversionAcquisitionStatsReader($pdo,$authorize))->read($acquisitionInput,$reportNow);
             $unavailable=($page['available']??false)!==true;
         }else{
             $registry=new ModeledConversionValueRegistry($pdo);

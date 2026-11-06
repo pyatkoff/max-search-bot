@@ -35,6 +35,26 @@ foreach(['Подписка','Наблюдаемое удержание чере�
 $check(str_contains($html,'Экспериментальная сумма')&&str_contains($html,'были примером')&&str_contains($html,'Эта шкала не утверждена.'),'experimental amounts are not presented as approved monetary value');
 $check(str_contains($html,'50 ₽ — желаемая цена привлечения подписчика')&&str_contains($html,'ДРР 10% пока кандидат'),'acquisition price and tentative DRR remain distinct');
 $check(!str_contains($html,'назначенных бизнесом')&&!str_contains($html,'Начислено:'),'observed stages do not assert approved accrual');
+$clockPage=$page;$clockPage['rows'][0]['evaluated_at']='2026-12-31T21:00:01Z';
+$clockPage['rows'][0]['stages']['subscription']['occurred_at']='2026-12-31T20:59:59Z';
+$clockPage['rows'][0]['stages']['subscription']['recorded_at']='2026-12-31T21:00:00Z';
+$clockPage['rows'][0]['stages']['subscription']['available_at']='2027-01-01T00:00:01+03:00';
+$clockBefore=$clockPage;$clockHtml=ModeledConversionValueRegistryView::render('members',$clockPage);
+$check(str_contains($clockHtml,'Время по Москве (МСК)')&&str_contains($clockHtml,'31.12.2026 23:59:59')
+    &&str_contains($clockHtml,'01.01.2027 00:00:00')&&str_contains($clockHtml,'01.01.2027 00:00:01'),
+    'value view projects explicit UTC and offset clocks across Moscow New Year without a double shift');
+$check($clockPage===$clockBefore&&str_contains($clockHtml,'membership:7')
+    &&str_contains($clockHtml,'<strong>'.$member['known_subtotal_rub'].' ₽</strong>'),
+    'human time projection preserves source values, references and experimental amounts');
+$clockPage['rows'][0]['evaluated_at']='2026-12-31 21:00:00';
+$clockPage['rows'][0]['stages']['subscription']['occurred_at']='2026-12-31';
+$clockPage['rows'][0]['stages']['subscription']['recorded_at']='2026-02-30T21:00:00Z';
+$clockPage['rows'][0]['stages']['subscription']['available_at']=null;
+$clockHtml=ModeledConversionValueRegistryView::render('members',$clockPage);
+$check(str_contains($clockHtml,'Оценка на: 2026-12-31 21:00:00')&&str_contains($clockHtml,'<dd>2026-12-31</dd>')
+    &&str_contains($clockHtml,'<dd>2026-02-30T21:00:00Z</dd>')&&str_contains($clockHtml,'<dd>неизвестно</dd>')
+    &&str_contains($clockHtml,'без известного часового пояса показаны как сохранены'),
+    'bare dates, invalid instants and unknown values never acquire an invented timezone');
 $profile=ModeledConversionAssignedValue::profile([
     'access_status'=>'allowed','subject'=>['project_key'=>'anytour','platform'=>'telegram','conversation_id'=>'42','customer_key'=>'17'],
     'profile'=>['prediction_at'=>'2026-11-02T10:00:00Z'],
@@ -133,12 +153,15 @@ $check($predictionFields['semantic_prediction']['availability']==='available'
     'private projection admits matching subject bounded digest-checked saved prediction');
 $predictionRow=array_replace($profile,$predictionFields);
 $predictionPage=$profilePage;$predictionPage['rows']=[$predictionRow];
-$predictionHtml=ModeledConversionValueRegistryView::render('profiles',$predictionPage);
+$predictionPageBefore=$predictionPage;$predictionHtml=ModeledConversionValueRegistryView::render('profiles',$predictionPage);
 $check(str_contains($predictionHtml,'8,33%')&&str_contains($predictionHtml,'Предварительный прогноз оплаты за 30 дней')
     &&str_contains($predictionHtml,'Экспериментальная сумма'),'provisional payment probability and experimental money rendered separately');
-$check(str_contains($predictionHtml,'2026-11-02T12:00:00Z')&&str_contains($predictionHtml,'2026-11-02T09:00:00Z')
+$check(str_contains($predictionHtml,'02.11.2026 15:00:00')&&str_contains($predictionHtml,'02.11.2026 12:00:00')
     &&str_contains($predictionHtml,'journal:150')&&str_contains($predictionHtml,'ревизия 2')
     &&str_contains($predictionHtml,'Конкретные условия поездки'),'forecast actual clock cutoff anchor revision and readable reasons visible');
+$check(str_contains($predictionHtml,'02.12.2026 15:00:00')&&str_contains($predictionHtml,'02.11.2026 11:00:00')
+    &&str_contains($predictionHtml,'02.11.2026 11:00:01')&&$predictionPage===$predictionPageBefore,
+    'forecast horizon and evidence show Moscow time without altering the saved capsule or digest');
 $check(str_contains($predictionHtml,'правила не обучены и не откалиброваны')
     &&str_contains($predictionHtml,'текущая поездка не подтверждены'),'training and current trip limitations explicit');
 $check(str_contains($profileHtml,'Прогноз ещё не сохранён')&&!str_contains($profileHtml,'class="predictionNumber"'),
@@ -241,6 +264,10 @@ $currentWrapper=['access_status'=>'allowed','subject'=>$predictionSubject,
 $currentFields=ModeledConversionValueRegistry::predictionFields($currentWrapper);
 $currentPage=$predictionPage;$currentPage['rows']=[array_replace($profile,$currentFields)];
 $currentHtml=ModeledConversionValueRegistryView::render('profiles',$currentPage);
+$check(str_contains($currentHtml,'<dt>Сравнение сохранено</dt><dd>03.11.2026 15:00:00</dd>')
+    &&str_contains($currentHtml,'<dt>Более ранний прогноз</dt><dd>02.11.2026 15:00:00</dd>')
+    &&str_contains($currentHtml,'03.11.2026 13:00:00')&&str_contains($currentHtml,'03.11.2026 13:00:01'),
+    'followup and outcome observations use Moscow display while keeping independent saved clocks');
 $check($currentFields['prediction_followup']['availability']==='available'
     &&str_contains($currentHtml,'Наблюдение получено')&&str_contains($currentHtml,'Сохранённая ранее вероятность')
     &&str_contains($currentHtml,'Клиент сообщил об оплате')&&str_contains($currentHtml,'journal:201'),
@@ -390,6 +417,16 @@ $check($historyRejects(static fn()=>$historyRegistry->historyMembers($historyPro
     &&$historyDb->inTransaction(),'history registry refuses and preserves a caller-owned transaction');
 $historyDb->rollBack();
 $historyProjectedHtml=MaxMemberHistoryView::render($historyProjected);
+$historyClockPage=$historyProjected;$historyClockPage['cutoff_unix']=strtotime('2026-12-31T21:00:01Z');
+$historyClockPage['rows'][0]['member']['episode_join_recorded_at_unix']=strtotime('2026-12-31T20:59:59Z');
+$historyClockPage['rows'][0]['member']['last_event_recorded_at_unix']=strtotime('2026-12-31T21:00:00Z');
+$historyClockBefore=$historyClockPage;$historyClockHtml=MaxMemberHistoryView::render($historyClockPage);
+$check(str_contains($historyClockHtml,'Время по Москве (МСК)')&&str_contains($historyClockHtml,'31.12.2026 23:59:59')
+    &&str_contains($historyClockHtml,'01.01.2027 00:00:00')&&str_contains($historyClockHtml,'01.01.2027 00:00:01'),
+    'membership cutoff and both saved event clocks cross midnight together in Moscow');
+$check($historyClockPage===$historyClockBefore&&$historyEnvelope($historySourcePage)['tracker_timezone']==='Europe/London'
+    &&str_contains($historyClockHtml,'MAX-пользователь №501')&&str_contains($historyClockHtml,'запись №900'),
+    'membership rendering preserves Unix seconds, record identities and the original tracker timezone');
 $check(str_contains($historyProjectedHtml,'Подписчики MAX по сохранённой истории')
     &&str_contains($historyProjectedHtml,'Общее число подписчиков MAX и полнота истории неизвестны')
     &&str_contains($historyProjectedHtml,'Проверка текущего состава через MAX API здесь не выполняется'),
