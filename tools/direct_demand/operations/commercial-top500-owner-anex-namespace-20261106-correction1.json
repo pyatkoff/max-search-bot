@@ -1,6 +1,6 @@
 {
   "operation": "commercial-top500-owner-anex-namespace-20261106-correction1",
-  "state": "OWNER_ANEX_NAMESPACE_ACCEPTED_TOP500_ADMISSION_HELD_UNTIL_VERIFIED_MAPPING",
+  "state": "OWNER_ANEX_NAMESPACE_ACCEPTED_SEVEN_CURRENT_MATCHES_VERIFIED_PUBLICATION_IDENTITY_HELD",
   "owner_instruction": {
     "date": "2026-11-06",
     "exact_text": "в ТОП500 айди анекса, если что",
@@ -69,12 +69,13 @@
     "linked": 155
   },
   "next": [
-    "Keep all consumed ten-ID metadata and Tourvisor8208 projection/profile operations closed. Their results retain their original Tourvisor scope; do not replay or infer ANEX membership.",
-    "Use retained_identity_recovery.candidates: seven typed historical MATCH pairs in owner order are now located and original acceptance evidence checked. Start with ranks8/9 (ANEX27611→TV1228 and ANEX8554→TV16794) through the existing authorized route; establish owner website-card/Online provenance and current accepted/manual/exclusion/target state before admission.",
-    "Verify the separate canonical/native publication binding and existing publication dedup for admitted identities. Absence from the saved182-ID monitoring cohort is not proof of no prior publication.",
-    "Reuse retained research facts for the admitted hotel; do not recollect completed dossiers or substitute same-name, same-number, old XML or other-operator candidates for accepted identity.",
-    "Recompute publication membership and eligible candidate order only from these verified bindings. Current full TOP500 coverage and publication totals remain unknown; the withdrawn4/157/488 figures stay withdrawn.",
-    "Continue the original serial publisher only with the existing media, price, native, dedup, private-intent, once and UNKNOWN requirements. Source merges and the built Search3 artifact do not prove installation; the known legacy receiver SSH blocker remains unresolved."
+    "Keep the completed seven-pair CURRENT operation int-andromeda-match-retained-current-20261106-v1 closed/no-replay. Reuse its verified receipt: all seven expected ANEX-to-Tourvisor pairs currently resolve and all seven targets are active/eligible. This proves only the bounded accepted preview identity subset.",
+    "Keep all consumed ten-ID metadata and Tourvisor8208 projection/profile operations closed. Their original Tourvisor scope, receipts and UNKNOWN restrictions remain unchanged; do not infer ANEX membership from numerical equality.",
+    "For the seven current verified pairs, establish the remaining owner-source provenance and separate canonical/native publication binding, starting with owner ranks8/9 (ANEX27611→TV1228 and ANEX8554→TV16794), using existing retained evidence and the authorized route. Do not repeat the completed current database read or create a new whole-TOP500 census.",
+    "Check existing publication dedup for the admitted canonical identities. Absence from the saved182-ID monitoring cohort is not proof of no previous publication.",
+    "Reuse retained research facts after identity admission. Do not recollect completed dossiers or substitute same-name/same-number or other-operator evidence for the accepted identity chain.",
+    "Update publication membership and eligible priority order only after the separate publication binding and existing gates pass. Full492 TOP500 coverage/publication totals remain unknown; withdrawn4/157/488 stay withdrawn and priority_native_ids remains empty.",
+    "Continue only the original serial publisher with existing media, price, native, dedup, private-intent, once and UNKNOWN checks. Current MATCH success is independent of Search3 installation and the unresolved legacy receiver SSH deployment failure."
   ],
   "source_link_question": "Already asked once; do not repeat or invent a URL.",
   "superseded_head": "a177c1d98cd08c5670435fda5fcad86799243369",
@@ -151,11 +152,18 @@
     },
     "source_implementation_date": "2026-11-06",
     "publication_identity_note": "Source priorities use the existing accepted ANEX-to-Tourvisor catalog resolver. This is not a new mapping acceptance and does not itself prove the separate canonical/native binding required for publication.",
-    "phase_boundary": "The original audit-only plan and zero-change bounds remain historical evidence of that phase. This separate owner-authorized phase changed producer source and existing validation/dependency packaging; it did not dispatch a new runtime operation. Existing automatic merge workflows ran as recorded."
+    "phase_boundary": "The original audit-only plan and zero-change bounds remain historical evidence of that phase. This separate owner-authorized phase changed producer source and existing validation/dependency packaging; it did not dispatch a new runtime operation. Existing automatic merge workflows ran as recorded.",
+    "current_bounded_read": {
+      "record": "current_registry_read",
+      "operation": "int-andromeda-match-retained-current-20261106-v1",
+      "matched_pairs": 7,
+      "full_roster_coverage": null,
+      "publication_binding_verified": false
+    }
   },
   "retained_identity_recovery": {
     "date": "2026-11-06",
-    "state": "RETAINED_ACCEPTED_MATCH_HISTORY_RECOVERED_CURRENT_TOP500_ADMISSION_UNVERIFIED",
+    "state": "RETAINED_HISTORY_AND_SEVEN_CURRENT_ACCEPTED_PAIRS_VERIFIED_PUBLICATION_IDENTITY_UNVERIFIED",
     "source_roster": {
       "repository": "pyatkoff/poisk-turov-test",
       "revision": "d245a6c8d9ff34c7ba517212ba704b290451ff8e",
@@ -170,7 +178,14 @@
       "website_card_to_online_namespace_bridge": "not established by this projection",
       "publication_membership": null,
       "publication_readiness": false,
-      "no_new_mapping_acceptance": true
+      "no_new_mapping_acceptance": true,
+      "current_checked_subset": {
+        "pairs": 7,
+        "matched": 7,
+        "captured_at_utc": "2026-11-06T07:42:51+00:00",
+        "operation": "int-andromeda-match-retained-current-20261106-v1"
+      },
+      "current_mapping_coverage_note": "Full coverage of all 492 owner ANEX IDs was not measured; the seven-pair current subset is verified separately."
     },
     "retained_sources": [
       {
@@ -212,13 +227,18 @@
         "source": "anex_saved_strong25_2026-09-10.md",
         "acceptance_run": 34518683774,
         "owner_rank": 8,
-        "current_registry_rechecked": false,
+        "current_registry_rechecked": true,
         "website_online_bridge": "not established by this projection",
         "publication_ready": false,
         "in_saved_native_monitor": false,
         "original_acceptance_receipt_verified": true,
         "original_acceptance_policy": "owner_exact_and_strong_20260908",
-        "original_scope": "preview"
+        "original_scope": "preview",
+        "current_registry_operation": "int-andromeda-match-retained-current-20261106-v1",
+        "current_registry_state": "matched_current",
+        "current_target_active": true,
+        "current_target_eligible": true,
+        "current_registry_checked_at_utc": "2026-11-06T07:42:51+00:00"
       },
       {
         "anex_id": 8554,
@@ -229,13 +249,18 @@
         "source": "anex_saved_strong25_2026-09-10.md",
         "acceptance_run": 34518683774,
         "owner_rank": 9,
-        "current_registry_rechecked": false,
+        "current_registry_rechecked": true,
         "website_online_bridge": "not established by this projection",
         "publication_ready": false,
         "in_saved_native_monitor": false,
         "original_acceptance_receipt_verified": true,
         "original_acceptance_policy": "owner_exact_and_strong_20260908",
-        "original_scope": "preview"
+        "original_scope": "preview",
+        "current_registry_operation": "int-andromeda-match-retained-current-20261106-v1",
+        "current_registry_state": "matched_current",
+        "current_target_active": true,
+        "current_target_eligible": true,
+        "current_registry_checked_at_utc": "2026-11-06T07:42:51+00:00"
       },
       {
         "anex_id": 8595,
@@ -246,13 +271,18 @@
         "source": "anex_saved_strong25_2026-09-10.md",
         "acceptance_run": 34518683774,
         "owner_rank": 108,
-        "current_registry_rechecked": false,
+        "current_registry_rechecked": true,
         "website_online_bridge": "not established by this projection",
         "publication_ready": false,
         "in_saved_native_monitor": false,
         "original_acceptance_receipt_verified": true,
         "original_acceptance_policy": "owner_exact_and_strong_20260908",
-        "original_scope": "preview"
+        "original_scope": "preview",
+        "current_registry_operation": "int-andromeda-match-retained-current-20261106-v1",
+        "current_registry_state": "matched_current",
+        "current_target_active": true,
+        "current_target_eligible": true,
+        "current_registry_checked_at_utc": "2026-11-06T07:42:51+00:00"
       },
       {
         "anex_id": 8476,
@@ -265,12 +295,17 @@
         "post_current_run": 39353523840,
         "source_row_digest": "f51c745d2ccb24f5713adf4cd5de2b6380602def44368de94c22948a85d372c7",
         "owner_rank": 150,
-        "current_registry_rechecked": false,
+        "current_registry_rechecked": true,
         "website_online_bridge": "not established by this projection",
         "publication_ready": false,
         "in_saved_native_monitor": false,
         "original_acceptance_receipt_verified": true,
-        "original_scope": "preview"
+        "original_scope": "preview",
+        "current_registry_operation": "int-andromeda-match-retained-current-20261106-v1",
+        "current_registry_state": "matched_current",
+        "current_target_active": true,
+        "current_target_eligible": true,
+        "current_registry_checked_at_utc": "2026-11-06T07:42:51+00:00"
       },
       {
         "anex_id": 8475,
@@ -283,12 +318,17 @@
         "post_current_run": 39353523840,
         "source_row_digest": "2a879d13c0a3bc4a9dea5988546f429c214dc00bbe6d9e2ee24f29a594e60ce5",
         "owner_rank": 159,
-        "current_registry_rechecked": false,
+        "current_registry_rechecked": true,
         "website_online_bridge": "not established by this projection",
         "publication_ready": false,
         "in_saved_native_monitor": false,
         "original_acceptance_receipt_verified": true,
-        "original_scope": "preview"
+        "original_scope": "preview",
+        "current_registry_operation": "int-andromeda-match-retained-current-20261106-v1",
+        "current_registry_state": "matched_current",
+        "current_target_active": true,
+        "current_target_eligible": true,
+        "current_registry_checked_at_utc": "2026-11-06T07:42:51+00:00"
       },
       {
         "anex_id": 12901,
@@ -301,12 +341,17 @@
         "post_current_run": 39353523840,
         "source_row_digest": "c8392e4596f5623fe42e92f770af13061d148c8ce38440a42398788c4616b095",
         "owner_rank": 190,
-        "current_registry_rechecked": false,
+        "current_registry_rechecked": true,
         "website_online_bridge": "not established by this projection",
         "publication_ready": false,
         "in_saved_native_monitor": false,
         "original_acceptance_receipt_verified": true,
-        "original_scope": "preview"
+        "original_scope": "preview",
+        "current_registry_operation": "int-andromeda-match-retained-current-20261106-v1",
+        "current_registry_state": "matched_current",
+        "current_target_active": true,
+        "current_target_eligible": true,
+        "current_registry_checked_at_utc": "2026-11-06T07:42:51+00:00"
       },
       {
         "anex_id": 14818,
@@ -319,12 +364,17 @@
         "post_current_run": 39353523840,
         "source_row_digest": "ab4b9b3136d037fa3d99cf399028747911895d0370e4720b83dcfb85526d2c28",
         "owner_rank": 209,
-        "current_registry_rechecked": false,
+        "current_registry_rechecked": true,
         "website_online_bridge": "not established by this projection",
         "publication_ready": false,
         "in_saved_native_monitor": false,
         "original_acceptance_receipt_verified": true,
-        "original_scope": "preview"
+        "original_scope": "preview",
+        "current_registry_operation": "int-andromeda-match-retained-current-20261106-v1",
+        "current_registry_state": "matched_current",
+        "current_target_active": true,
+        "current_target_eligible": true,
+        "current_registry_checked_at_utc": "2026-11-06T07:42:51+00:00"
       }
     ],
     "native_monitor_crosscheck": {
@@ -370,7 +420,7 @@
         "protected_lead_transport_changed": false
       }
     },
-    "bounded_next_result": "Using the existing authorized MATCH route, resolve owner website-card/Online provenance and current accepted/manual/excluded/target state for these seven existing typed candidates, starting with owner ranks8/9; then verify canonical/native binding and existing publication dedup. Use retained hotel facts after identity admission. Do not perform a new whole-TOP500 census, supplier search, duplicate collection or a replacement controller.",
+    "bounded_next_result": "For the seven current verified pairs, establish the remaining owner-source provenance and separate canonical/native publication binding, starting with owner ranks8/9 (ANEX27611→TV1228 and ANEX8554→TV16794), using existing retained evidence and the authorized route. Do not repeat the completed current database read or create a new whole-TOP500 census. Check existing publication dedup for the admitted canonical identities. Absence from the saved182-ID monitoring cohort is not proof of no previous publication.",
     "counters_this_pass": {
       "supplier_calls": 0,
       "new_database_reads": 0,
@@ -381,6 +431,147 @@
       "publications": 0,
       "people_messages": 0
     },
-    "old_closed_operations_and_withdrawals_preserved": true
+    "old_closed_operations_and_withdrawals_preserved": true,
+    "state_before_current_registry_read": "RETAINED_ACCEPTED_MATCH_HISTORY_RECOVERED_CURRENT_TOP500_ADMISSION_UNVERIFIED",
+    "counters_this_pass_phase": "Historical retained-evidence recovery, before the separate current_registry_read recorded on this document."
+  },
+  "state_before_current_registry_read": "OWNER_ANEX_NAMESPACE_ACCEPTED_TOP500_ADMISSION_HELD_UNTIL_VERIFIED_MAPPING",
+  "current_registry_read": {
+    "date": "2026-11-06",
+    "state": "COMPLETE_SEVEN_CURRENT_ACCEPTED_PREVIEW_PAIRS_VERIFIED_PUBLICATION_IDENTITY_UNVERIFIED",
+    "operation": "int-andromeda-match-retained-current-20261106-v1",
+    "mode": "match-retained-current",
+    "cohort": "owner-top500-retained7-20261106",
+    "command_comment_id": 6679839549,
+    "run": 42182420198,
+    "job": 127774866798,
+    "run_attempt": 1,
+    "result": "success",
+    "captured_at_utc": "2026-11-06T07:42:51+00:00",
+    "source_sha": "6dcfb5053793caba4f353facfa7a899a30df2d17",
+    "control_source_sha": "2ad25f80318c49fe1ef3fcb7e58dcf709c36eceb",
+    "source_pr": 5001,
+    "source_commit": "979e8d21cf6cdfa1c3aed47f95675bfbb4284394",
+    "source_tree": "fe9a502bf82641bce4222c9341fdebe918367565",
+    "merge_tree_equal_to_tested_source": true,
+    "required_ci": {
+      "native_run": 42181818755,
+      "native_job": 127772941600,
+      "match_tests": 112,
+      "new_regression_tests": 5,
+      "match_skips": 0,
+      "security_run": 42181818788,
+      "result": "success"
+    },
+    "parent_operation": "int-andromeda-match-retained-project-20261020-v2",
+    "parent_receipt_sha256": "4b7c04b3934def5554017a507310dad56d110e996043ce4a6bc03ec561c6b6b1",
+    "evidence_sha256": "569049a92875394f983cb58ac48f387876d1e128f1ad0cd152bdeb591b081082",
+    "evidence_sha256_recomputed": true,
+    "current_raw_sha256": "7733ddd8e4bfbc7439881604a3724d19a039f5eeb384df4347fad65ebdb7c718",
+    "artifact": {
+      "id": 13485379381,
+      "name": "int-server-executor-42182420198-1",
+      "digest": "sha256:8a42c8738ea36f9b9e23245a7a243672dc2fc88ef361ce2be7d0888a3c9b7064",
+      "archive_downloaded": false
+    },
+    "evidence_origin": "Original successful executor job stdout; canonical sanitized evidence hash recomputed and exact rows/counters/source/control/parent checked. Full raw rows remain in private server custody.",
+    "database_snapshot": "repeatable-read-read-only",
+    "checked_pairs": 7,
+    "matched_current_pairs": 7,
+    "rows": [
+      {
+        "anex_hotel_id": 27611,
+        "effective_pair_present": true,
+        "owner_rank": 8,
+        "state": "matched_current",
+        "target_active": true,
+        "target_eligible": true,
+        "target_present": true,
+        "tv_hotel_id": 1228
+      },
+      {
+        "anex_hotel_id": 8554,
+        "effective_pair_present": true,
+        "owner_rank": 9,
+        "state": "matched_current",
+        "target_active": true,
+        "target_eligible": true,
+        "target_present": true,
+        "tv_hotel_id": 16794
+      },
+      {
+        "anex_hotel_id": 8595,
+        "effective_pair_present": true,
+        "owner_rank": 108,
+        "state": "matched_current",
+        "target_active": true,
+        "target_eligible": true,
+        "target_present": true,
+        "tv_hotel_id": 1216
+      },
+      {
+        "anex_hotel_id": 8476,
+        "effective_pair_present": true,
+        "owner_rank": 150,
+        "state": "matched_current",
+        "target_active": true,
+        "target_eligible": true,
+        "target_present": true,
+        "tv_hotel_id": 1095
+      },
+      {
+        "anex_hotel_id": 8475,
+        "effective_pair_present": true,
+        "owner_rank": 159,
+        "state": "matched_current",
+        "target_active": true,
+        "target_eligible": true,
+        "target_present": true,
+        "tv_hotel_id": 1014
+      },
+      {
+        "anex_hotel_id": 12901,
+        "effective_pair_present": true,
+        "owner_rank": 190,
+        "state": "matched_current",
+        "target_active": true,
+        "target_eligible": true,
+        "target_present": true,
+        "tv_hotel_id": 1474
+      },
+      {
+        "anex_hotel_id": 14818,
+        "effective_pair_present": true,
+        "owner_rank": 209,
+        "state": "matched_current",
+        "target_active": true,
+        "target_eligible": true,
+        "target_present": true,
+        "tv_hotel_id": 1015
+      }
+    ],
+    "scope": "Seven historical expected ANEX native to Tourvisor catalog pairs, in owner roster order, checked through the unchanged accepted preview resolver including manual decisions, exclusions and target eligibility.",
+    "full_owner_roster_coverage": null,
+    "website_online_bridge_verified": false,
+    "canonical_publication_binding_verified": false,
+    "publication_admission": false,
+    "prices_or_offer_availability_verified": false,
+    "counters": {
+      "new_database_reads": 1,
+      "supplier_calls": 0,
+      "database_writes": 0,
+      "mapping_writes": 0,
+      "new_mapping_acceptances": 0,
+      "booking_calls": 0,
+      "lead_calls": 0,
+      "publications": 0,
+      "manual_deploys": 0
+    },
+    "production_unchanged": true,
+    "no_replay": true,
+    "operation_closed": true,
+    "historical_ten_id_and_8208_scopes_unchanged": true,
+    "legacy_receiver_ssh_failure": "Separate old deployment route remains unresolved; the existing ANYTOOUR_DEPLOY MATCH route completed successfully without credential or transport changes.",
+    "phase_boundary": "Separate owner-authorized current identity verification. Original per-property publication/metadata bounds and earlier zero-call recovery counters remain unchanged. This completed seven-pair MATCH snapshot did not enter a publisher stage or grant publication readiness."
   }
 }

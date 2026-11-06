@@ -1,6 +1,6 @@
 {
   "operation": "commercial-top500-internal-base-20261106-next-after-ten1-plan1",
-  "state": "HOLD_OWNER_ANEX_TO_TOURVISOR_MAPPING_REQUIRED",
+  "state": "HOLD_PUBLICATION_IDENTITY_AFTER_SEVEN_CURRENT_MATCHES_VERIFIED",
   "goal": "Restore the ANEX namespace and verified cross-provider identity before any further TOP500-derived candidate action.",
   "priority_native_ids": [],
   "original_auth_artifact": {
@@ -12,12 +12,13 @@
     "file": "top500-readback.private.json"
   },
   "steps": [
-    "Keep all consumed ten-ID metadata and Tourvisor8208 projection/profile operations closed. Their results retain their original Tourvisor scope; do not replay or infer ANEX membership.",
-    "Use retained_identity_recovery.candidates: seven typed historical MATCH pairs in owner order are now located and original acceptance evidence checked. Start with ranks8/9 (ANEX27611→TV1228 and ANEX8554→TV16794) through the existing authorized route; establish owner website-card/Online provenance and current accepted/manual/exclusion/target state before admission.",
-    "Verify the separate canonical/native publication binding and existing publication dedup for admitted identities. Absence from the saved182-ID monitoring cohort is not proof of no prior publication.",
-    "Reuse retained research facts for the admitted hotel; do not recollect completed dossiers or substitute same-name, same-number, old XML or other-operator candidates for accepted identity.",
-    "Recompute publication membership and eligible candidate order only from these verified bindings. Current full TOP500 coverage and publication totals remain unknown; the withdrawn4/157/488 figures stay withdrawn.",
-    "Continue the original serial publisher only with the existing media, price, native, dedup, private-intent, once and UNKNOWN requirements. Source merges and the built Search3 artifact do not prove installation; the known legacy receiver SSH blocker remains unresolved."
+    "Keep the completed seven-pair CURRENT operation int-andromeda-match-retained-current-20261106-v1 closed/no-replay. Reuse its verified receipt: all seven expected ANEX-to-Tourvisor pairs currently resolve and all seven targets are active/eligible. This proves only the bounded accepted preview identity subset.",
+    "Keep all consumed ten-ID metadata and Tourvisor8208 projection/profile operations closed. Their original Tourvisor scope, receipts and UNKNOWN restrictions remain unchanged; do not infer ANEX membership from numerical equality.",
+    "For the seven current verified pairs, establish the remaining owner-source provenance and separate canonical/native publication binding, starting with owner ranks8/9 (ANEX27611→TV1228 and ANEX8554→TV16794), using existing retained evidence and the authorized route. Do not repeat the completed current database read or create a new whole-TOP500 census.",
+    "Check existing publication dedup for the admitted canonical identities. Absence from the saved182-ID monitoring cohort is not proof of no previous publication.",
+    "Reuse retained research facts after identity admission. Do not recollect completed dossiers or substitute same-name/same-number or other-operator evidence for the accepted identity chain.",
+    "Update publication membership and eligible priority order only after the separate publication binding and existing gates pass. Full492 TOP500 coverage/publication totals remain unknown; withdrawn4/157/488 stay withdrawn and priority_native_ids remains empty.",
+    "Continue only the original serial publisher with existing media, price, native, dedup, private-intent, once and UNKNOWN checks. Current MATCH success is independent of Search3 installation and the unresolved legacy receiver SSH deployment failure."
   ],
   "bounds": {
     "property_groups": 1,
@@ -45,7 +46,7 @@
   ],
   "source_implementation": {
     "record": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
-    "status": "producer_source_correction_merged_runtime_identity_evidence_outstanding",
+    "status": "producer_source_correction_merged_seven_current_matches_verified_publication_identity_outstanding",
     "collector_pr": 4998,
     "collector_merge_sha": "d245a6c8d9ff34c7ba517212ba704b290451ff8e",
     "search3_pr": 4999,
@@ -62,7 +63,7 @@
   },
   "retained_identity_recovery": {
     "record": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
-    "state": "RETAINED_ACCEPTED_MATCH_HISTORY_RECOVERED_CURRENT_TOP500_ADMISSION_UNVERIFIED",
+    "state": "RETAINED_HISTORY_AND_SEVEN_CURRENT_ACCEPTED_PAIRS_VERIFIED_PUBLICATION_IDENTITY_UNVERIFIED",
     "candidate_anex_ids": [
       27611,
       8554,
@@ -88,6 +89,28 @@
     ],
     "current_mapping_coverage": null,
     "publication_membership": null,
-    "publication_ready": false
+    "publication_ready": false,
+    "current_checked_subset": {
+      "pairs": 7,
+      "matched": 7,
+      "operation": "int-andromeda-match-retained-current-20261106-v1"
+    }
+  },
+  "state_before_current_registry_read": "HOLD_OWNER_ANEX_TO_TOURVISOR_MAPPING_REQUIRED",
+  "current_registry_read": {
+    "record": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
+    "operation": "int-andromeda-match-retained-current-20261106-v1",
+    "run": 42182420198,
+    "job": 127774866798,
+    "state": "COMPLETE_SEVEN_CURRENT_ACCEPTED_PREVIEW_PAIRS_VERIFIED_PUBLICATION_IDENTITY_UNVERIFIED",
+    "captured_at_utc": "2026-11-06T07:42:51+00:00",
+    "checked_pairs": 7,
+    "matched_current_pairs": 7,
+    "evidence_sha256": "569049a92875394f983cb58ac48f387876d1e128f1ad0cd152bdeb591b081082",
+    "no_replay": true,
+    "operation_closed": true,
+    "full_owner_roster_coverage": null,
+    "publication_admission": false,
+    "phase_boundary": "Separate owner-authorized current identity verification. Original per-property publication/metadata bounds and earlier zero-call recovery counters remain unchanged. This completed seven-pair MATCH snapshot did not enter a publisher stage or grant publication readiness."
   }
 }
