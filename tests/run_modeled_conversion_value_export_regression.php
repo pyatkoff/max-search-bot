@@ -499,6 +499,7 @@ function modeledPriceLossAssertions(PDO $p,callable $check):void
     $stronger=$unknown(modeledExpertWrapper($scope,$now+2,200000,true));modeledValueSave($p,$stronger);
     ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
     $expected=(int)round($stronger['semantic_prediction']['estimated_probability']*14000);
+    if($sum()!==$expected)$control->collect(ModeledConversionValueExport::settings($p),$now+2,$gate);
     $detail=['posts'=>$wire->posts,'initial'=>$initial,'expected'=>$expected,'reserved'=>$sum(),'rows'=>$p->query('SELECT state,last_error,value_rub FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),'audit'=>$p->query('SELECT action,applied_value_rub FROM modeled_conversion_price_audit ORDER BY outbox_id')->fetchAll(PDO::FETCH_ASSOC)];
     $check('genuine stronger meaning still exports its delta using the retained priced base '.json_encode($detail,JSON_THROW_ON_ERROR),
         $sum()===$expected&&$expected>$initial&&$wire->posts===$posts+1&&str_contains(end($wire->csv),','.($expected-$initial).',RUB'));

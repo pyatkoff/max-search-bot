@@ -23,10 +23,10 @@ final class ModeledConversionPriceContinuity
         $sql="SELECT p.id,p.customer_key,JSON_EXTRACT(".$safe.",'$.subject') AS subject_json,".$access." AS access_value,"
             ."JSON_EXTRACT(".$safe.",'$.semantic_prediction') AS prediction_json,JSON_EXTRACT(".$safe.",'$.deal_value_prediction') AS money_json"
             ." FROM max_channel_conversion_outbox o JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id"
-            ." AND p.project_key=o.project_key AND p.platform=o.platform AND p.conversation_id=o.conversation_id"
-            ." WHERE o.project_key='anytour' AND o.counter_id='98615635' AND o.transport_target=? AND o.value_contract=?"
+            ." WHERE p.project_key='anytour' AND p.platform=? AND p.conversation_id=?"
+            ." AND o.project_key='anytour' AND o.counter_id='98615635' AND o.transport_target=? AND o.value_contract=?"
             ." AND o.conversation_id=? AND o.platform=? AND o.value_rub>0 AND ".$type."=".($mysql?"'INTEGER'":"'integer'");
-        $args=[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$scope['conversation_id'],$scope['platform']];
+        $args=[$scope['platform'],$scope['conversation_id'],ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$scope['conversation_id'],$scope['platform']];
         if($beforeOutbox!==null){$sql.=' AND o.id<?';$args[]=$beforeOutbox;}
         $q=$this->pdo->prepare($sql.' ORDER BY o.id DESC LIMIT 8');$q->execute($args);$references=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();
         $bytes=0;
