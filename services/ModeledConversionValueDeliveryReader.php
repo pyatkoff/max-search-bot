@@ -188,6 +188,9 @@ final class ModeledConversionValueDeliveryReader
                 'events'=>0,'conversations'=>0,'value_rub'=>0,'api_accepted_events'=>0,'api_accepted_value_rub'=>0,
                 'processed_events'=>0,'processed_value_rub'=>0,'by_state'=>[],'by_platform'=>[],
                 'invalid_binding_rows'=>0,'voided_zero_value_rows'=>0,'calculation_unavailable_rows'=>0,'examples'=>[],
+                'calculation_unavailable_reason_counts'=>['profile_binding_unverified'=>0,'probability_prediction_unavailable'=>0,
+                    'monetary_policy_unavailable'=>0,'scalar_contract_unverified'=>0,'price_base_unverified'=>0,
+                    'frozen_value_unverified'=>0,'increment_not_explained'=>0],
                 'per_event_visit_linkage'=>'not_observed_by_this_cached_upload_reader','provider_requests'=>0];
             $cases=[];
             foreach($rows as$row){
@@ -214,7 +217,7 @@ final class ModeledConversionValueDeliveryReader
                     'api_receipt_present'=>(string)$v[13]==='1','identity_resolved'=>(string)$v[14]==='1',
                     'signal_at'=>$at($v[9]),'profile_saved_at'=>$at($v[15]),'upload_claim_at'=>$at($v[10]),
                     'api_accepted_observed_at'=>$at($v[11]),'processed_observed_at'=>$at($v[12]),
-                    'calculation'=>null,'visit_linkage'=>'unverified'];
+                    'calculation'=>null,'calculation_unavailable_reason'=>null,'visit_linkage'=>'unverified'];
                 // These are fixed saved scalar fields, with independent arithmetic checks, not a signature attestation.
                 $n=static fn(mixed $x):?float=>is_numeric($x)&&is_finite((float)$x)?(float)$x:null;
                 $prob=$n($v[24]);$rate=$n($v[26]);$point=$n($v[27]);$base=$n($v[33]);$full=$n($v[34]);$prior=$n($v[37]);
@@ -223,14 +226,21 @@ final class ModeledConversionValueDeliveryReader
                 $sources=['unknown','customer_budget','delivered_offer','native_hotel_inquiry','channel_post_range'];
                 $bases=['unknown','customer_budget_ceiling_proxy','customer_budget_floor_proxy','customer_budget_range_proxy',
                     'delivered_offer_observation','native_hotel_inquiry_observation','advertised_floor_proxy','advertised_range_proxy'];
-                $binding=preg_match('/\A[1-9][0-9]{0,19}\z/D',(string)$v[20])===1&&$v[16]==='allowed'&&$v[17]==='anytour'&&$v[18]===$v[4]&&(string)$v[19]===(string)$v[1]
-                    &&$v[21]==='contextual_advertising_v1'&&$v[22]==='predicted'&&$policy!==null
-                    &&$rate===0.07&&$prob!==null&&$prob>0&&$prob<=1&&$base!==null&&$base>0&&$base<=$policy['cap_rub']
-                    &&$full!==null&&$full===round($prob*$base)&&$prior!==null&&$prior>=0&&$full-$prior===(float)$delta
-                    &&in_array($kind,$sources,true)&&in_array($v[30],$bases,true)
-                    &&($point===null?$commission===null&&$base===(float)$policy['unknown_base_rub']:
-                        $point>=10000&&$point<=10000000&&$commission===round($point*0.07)&&$base===min((float)$policy['cap_rub'],$commission));
-                if($binding){
+                // Explain the first failed check only; this does not validate the remaining fields or infer a fallback.
+                $calculationReason=null;
+                if(!(preg_match('/\A[1-9][0-9]{0,19}\z/D',(string)$v[20])===1&&$v[16]==='allowed'&&$v[17]==='anytour'&&$v[18]===$v[4]&&(string)$v[19]===(string)$v[1]))
+                    $calculationReason='profile_binding_unverified';
+                elseif($v[21]!=='contextual_advertising_v1'||$v[22]!=='predicted')$calculationReason='probability_prediction_unavailable';
+                elseif($policy===null)$calculationReason='monetary_policy_unavailable';
+                elseif(!($rate===0.07&&$prob!==null&&$prob>0&&$prob<=1&&$base!==null&&$base>0&&$base<=$policy['cap_rub']
+                    &&$full!==null&&$prior!==null&&$prior>=0&&in_array($kind,$sources,true)&&in_array($v[30],$bases,true)))
+                    $calculationReason='scalar_contract_unverified';
+                elseif(!($point===null?$commission===null&&$base===(float)$policy['unknown_base_rub']:
+                    $point>=10000&&$point<=10000000&&$commission===round($point*0.07)&&$base===min((float)$policy['cap_rub'],$commission)))
+                    $calculationReason='price_base_unverified';
+                elseif($full!==round($prob*$base))$calculationReason='frozen_value_unverified';
+                elseif($full-$prior!==(float)$delta)$calculationReason='increment_not_explained';
+                if($calculationReason===null){
                     $reasons=$v[36];if(is_string($reasons))$reasons=json_decode($reasons,true,8);
                     $allowed=['expert_dialogue_continued_meaningful_engagement','expert_dialogue_continued_offer_search',
                         'expert_dialogue_office_question','expert_dialogue_payment_terms_question','explicit_decline_guard'];
@@ -242,7 +252,11 @@ final class ModeledConversionValueDeliveryReader
                         'deal_source'=>$kind,'deal_basis'=>$v[30],'commission_rate'=>0.07,'estimated_commission_rub'=>$commission,
                         'full_value_base_rub'=>(int)$base,'estimated_cumulative_value_rub'=>(int)$full,
                         'prior_reserved_rub'=>(int)$prior];
-                }else $out['calculation_unavailable_rows']++;
+                }else{
+                    $out['calculation_unavailable_rows']++;
+                    $out['calculation_unavailable_reason_counts'][$calculationReason]++;
+                    $e['calculation_unavailable_reason']=$calculationReason;
+                }
                 if(count($out['examples'])<16)$out['examples'][]=$e;
             }
             $out['conversations']=count($cases);

@@ -29,4 +29,40 @@ onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse($f['response'],st
 onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse(str_replace('adult-2','adult-3',$f['response']),$f['url'],$f['form'],'2077-01-01T00:00:00Z'),'row and query party mismatch refused');
 onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::gallery(str_replace('Synthetic Fixture Hotel','Different Fixture Hotel',$f['hotel']),$q),'foreign hotel identity refused');
 onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::resultHtml('samo.jQuery(samo.controls.resultset).ehtml(alert(1));'),'executable argument refused');
+// New parametric party contract; all source material remains synthetic.
+foreach([1,3,14] as $adults){
+    $adultFixture=syntheticOneTouchSource($adults);
+    $adultQuote=ManagerTourSelectionOneTouchSource::parse($adultFixture['response'],$adultFixture['url'],$adultFixture['form'],'2077-01-01T00:00:00Z')[0];
+    onetouchCheck($adultQuote['offer']['adults']===$adults&&$adultQuote['offer']['child_ages']===[]&&$adultQuote['raw']['party']===$adults.'AD','exact query row offer raw party '.$adults);
+    onetouchCheck($adultQuote['offer']['amount']==='123456.78'&&$adultQuote['offer']['price_qualifier']==='from'&&$adultQuote['raw']['price']==='от 123456.78 RUB','whole-party minimum is never scaled '.$adults);
+    onetouchCheck($adultQuote['offer']['room']==='STANDARD / DBL','native room label remains literal rather than an inferred bed claim '.$adults);
+    $adultImport=ManagerTourSelectionImportDraft::normalize($adultQuote);
+    onetouchCheck($adultImport!==null&&ManagerTourSelectionImportDraft::source($adultImport)['fields']['adults']===$adults,'canonical source party retained '.$adults);
+}
+$urlFor=static fn(array $query):string=>'https://b2b.onetouch.travel/search_tour?'.http_build_query($query,'','&',PHP_QUERY_RFC3986);
+foreach(['0','15','16','17','18','19','20','1.5','03','','-1'] as $invalidAdult){
+    $invalidQuery=$f['query'];$invalidQuery['ADULT']=$invalidAdult;
+    onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::query($urlFor($invalidQuery)),'unsupported or noncanonical adult count '.$invalidAdult);
+}
+$missingAdult=$f['query'];unset($missingAdult['ADULT']);
+onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::query($urlFor($missingAdult)),'missing adult count cannot default to two');
+$extraAges=$f['query'];$extraAges['AGES']='7';
+onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::query($urlFor($extraAges)),'children ages are not admitted by adult range');
+$three=syntheticOneTouchSource(3);
+foreach(['adult-2 adult-3','adult-3 adult-3','adult-03','adult-0',''] as $tokens){
+    onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse(str_replace('adult-3',$tokens,$three['response']),$three['url'],$three['form'],'2077-01-01T00:00:00Z'),'native adult token must be unique and exact '.$tokens);
+}
+onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse(str_replace('child-0','child-0 child-1',$three['response']),$three['url'],$three['form'],'2077-01-01T00:00:00Z'),'native child token cannot contradict child-free query');
+$threeQuote=ManagerTourSelectionOneTouchSource::parse($three['response'],$three['url'],$three['form'],'2077-01-01T00:00:00Z')[0];
+$badParty=$threeQuote;$badParty['offer']['adults']=2;
+onetouchCheck(ManagerTourSelectionImportDraft::normalize($badParty)===null,'normalized offer cannot disagree with query party');
+$badParty=$threeQuote;$badParty['raw']['party']='2AD';
+onetouchCheck(ManagerTourSelectionImportDraft::normalize($badParty)===null,'raw party cannot disagree with canonical three adults');
+$badParty=$threeQuote;$badParty['offer']['child_ages']=[7];
+onetouchCheck(ManagerTourSelectionImportDraft::normalize($badParty)===null,'child-free capture cannot acquire a child through normalization');
+$twoSource=ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize($quotes[0]));
+$threeSource=ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize($threeQuote));
+onetouchCheck(ManagerTourSelectionImportDraft::fingerprint($twoSource,false)!==ManagerTourSelectionImportDraft::fingerprint($threeSource,false),'otherwise identical source conditions retain distinct party identity');
+
+
 echo 'OneTouch synthetic source: '.$passed." checks passed; no network or selection writes.\n";

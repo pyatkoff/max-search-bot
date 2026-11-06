@@ -14,7 +14,7 @@ require_once __DIR__.'/ModeledConversionVisitProof.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_15';
+    public const VERSION='saved_semantic_prediction_status_v1_16';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -116,13 +116,22 @@ final class ModeledConversionForecastStatusReader
                         if($money!==null){
                             if(!isset($out['saved']['deal_value']))$out['saved']['deal_value']=['versions'=>0,'estimated_deal_versions'=>0,
                                 'source_counts'=>[],'commission_rate'=>0.07,'deal_point_range_rub'=>['minimum'=>null,'maximum'=>null],
-                                'value_range_rub'=>['minimum'=>null,'maximum'=>null],'early_window_counts'=>[]];
+                                'value_range_rub'=>['minimum'=>null,'maximum'=>null],'early_window_counts'=>[],'by_monetary_policy'=>[]];
                             $mv=&$out['saved']['deal_value'];$mv['versions']++;
                             $key=$money['deal_amount_rub']['source_kind'];$mv['source_counts'][$key]=($mv['source_counts'][$key]??0)+1;
                             $key=$money['early_window'];$mv['early_window_counts'][$key]=($mv['early_window_counts'][$key]??0)+1;
                             if(is_int($money['deal_amount_rub']['point'])){$mv['estimated_deal_versions']++;$this->probabilityRange($mv['deal_point_range_rub'],$money['deal_amount_rub']['point']);}
                             if(is_int($money['value_rub']))$this->probabilityRange($mv['value_range_rub'],$money['value_rub']);
-                            unset($mv);
+                            $version=$money['version'];$policy=ModeledConversionDealValue::policy($version);
+                            if(!isset($mv['by_monetary_policy'][$version]))$mv['by_monetary_policy'][$version]=[
+                                'versions'=>0,'value_cap_rub'=>$policy['cap_rub'],'unknown_price_base_rub'=>$policy['unknown_base_rub'],
+                                'unknown_price_versions'=>0,'estimated_value_versions'=>0,
+                                'full_value_base_range_rub'=>['minimum'=>null,'maximum'=>null]];
+                            $policySummary=&$mv['by_monetary_policy'][$version];$policySummary['versions']++;
+                            if($money['deal_amount_rub']['point']===null)$policySummary['unknown_price_versions']++;
+                            if(is_int($money['value_rub']))$policySummary['estimated_value_versions']++;
+                            $this->probabilityRange($policySummary['full_value_base_range_rub'],$money['full_value_base_rub']);
+                            unset($policySummary,$mv);
                         }
                     }
                     $out['saved']['valid_v1_versions']++;$out['saved']['channel_counts'][$row['platform']]++;
