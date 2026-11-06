@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__.'/ProjectConfig.php';
 require_once __DIR__.'/DialogueReviewReadService.php';
 require_once __DIR__.'/ArchiveResearchReadService.php';
 require_once __DIR__.'/VirtualReplySourceReader.php';
