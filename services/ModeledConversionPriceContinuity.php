@@ -18,8 +18,9 @@ final class ModeledConversionPriceContinuity
         $scope=$wrapper['subject'];$mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
         $safe="CASE WHEN JSON_VALID(p.profile_json) THEN p.profile_json ELSE '{}' END";
         $point="JSON_EXTRACT(".$safe.",'$.deal_value_prediction.deal_amount_rub.point')";
+        $access="JSON_EXTRACT(".$safe.",'$.access_status')";if($mysql)$access='JSON_UNQUOTE('.$access.')';
         $type=$mysql?'JSON_TYPE('.$point.')':"json_type(".$safe.",'$.deal_value_prediction.deal_amount_rub.point')";
-        $sql="SELECT p.id,p.customer_key,JSON_EXTRACT(".$safe.",'$.subject') AS subject_json,JSON_EXTRACT(".$safe.",'$.access_status') AS access_json,"
+        $sql="SELECT p.id,p.customer_key,JSON_EXTRACT(".$safe.",'$.subject') AS subject_json,".$access." AS access_value,"
             ."JSON_EXTRACT(".$safe.",'$.semantic_prediction') AS prediction_json,JSON_EXTRACT(".$safe.",'$.deal_value_prediction') AS money_json"
             ." FROM max_channel_conversion_outbox o JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id"
             ." AND p.project_key=o.project_key AND p.platform=o.platform AND p.conversation_id=o.conversation_id"
@@ -33,7 +34,7 @@ final class ModeledConversionPriceContinuity
             foreach(['subject_json','prediction_json','money_json']as$key)$bytes+=strlen((string)($ref[$key]??''));
             if($bytes>131072)throw new RuntimeException('price_reference_budget');
             try{
-                $previous=['access_status'=>json_decode($ref['access_json']??'null',true,8,JSON_THROW_ON_ERROR),'subject'=>json_decode($ref['subject_json']??'null',true,32,JSON_THROW_ON_ERROR),
+                $previous=['access_status'=>$ref['access_value']??null,'subject'=>json_decode($ref['subject_json']??'null',true,32,JSON_THROW_ON_ERROR),
                     'semantic_prediction'=>json_decode($ref['prediction_json']??'null',true,32,JSON_THROW_ON_ERROR),
                     'deal_value_prediction'=>json_decode($ref['money_json']??'null',true,32,JSON_THROW_ON_ERROR)];
             }catch(JsonException $ignored){continue;}
