@@ -184,3 +184,59 @@ After installation, confirm the new permission through the normal OAuth flow,
 read a real permitted inventory and one real dialogue, then save and verify the
 hourly schedule. Report source implementation, deployed version, granted access,
 actual reviewed coverage and scheduler state separately.
+
+## Explicit retained monthly history audit
+
+Ordinary `dialogues:read` inventory remains open conversations only. Its
+`quality_history` descriptor advertises a separate optional `quality:read`
+capability. Old grants and defaults never acquire it; refreshing an old token
+cannot add it. Normal administrator OAuth consent must name retained open and
+closed dialogue history, saved AI proposals and available original inputs.
+Migration092 widens the existing ASCII scope field to160 without changing
+existing grants, codes, tokens or the immutable091 migration.
+
+Use only the descriptor's server-returned start cursors with the existing
+`list_current_dialogues` method. The five lanes are native transcripts,
+archive transcripts, manual proposals, prepared proposals and retained virtual
+author results. This reuses the existing two read tools; no new collector,
+worker, queue, timer, model or historical generation is added.
+The archive lane additionally requires `archive:read` and approved current
+account/bot/connection permissions; its separate history mode includes
+business-only chats without changing the normal archive study inventory.
+
+Each lane fixes its rolling month on its first request: the same day of the
+previous calendar month, clamped at month end, at00:00 Europe/Moscow, through
+that request. Preserve the explicit returned period. Native legacy DATETIME
+uncertainty is unchanged. Transcript inventories include older retained
+metadata so the reviewer can conservatively select month-active or
+unknown-clock conversations. Do not treat import/version timestamps as the
+original time a manager knew the contents.
+
+Follow every inventory continuation, even an empty accessible page, until
+`has_more=false`. Saved proposals are paged by actual save/completion time and
+stable ID. Expired or dismissed proposals may still be retained, and virtual
+author output does not require an independent review to exist. Reserved/control
+sampling remains withheld. Current role, project, source identity, account
+permission and connection revocation are checked again before disclosure.
+
+Read each returned `record_ref` with `get_dialogue_review_context`. Proposal
+answers and their separate `input_ref` can contain multiple bounded
+`json_utf8_fragment` pages. Assemble contiguous byte offsets, verify the
+projection hash and complete byte length, then parse JSON. Do not judge a
+partial fragment as a complete answer. A changed projection requires a fresh
+inventory; never join parts from different versions.
+
+Inputs are retained normalized evidence, not proof of the complete external
+model request. Manual input evidence and prepared input receipts may be absent.
+A retained virtual prefix can be replayed from an older customer question;
+author completion month does not make it a new live customer request.
+Never reconstruct missing input from later messages. Oversized, malformed,
+missing or hash-mismatched values remain explicitly unavailable.
+
+The reader cannot recover deleted rows or versions replaced before capture.
+Report transcript coverage, proposal-version coverage and semantic review
+coverage separately. Multiple stored representations may refer to one proposal;
+deduplicate only with actual binding and content evidence. Sent bot text,
+manager replies, unaccepted proposals, historical replay and manager edits are
+different evidence. Insertion intent is not proof of use or approval.
+Customer text and individual identifiers remain private and out of GitHub.

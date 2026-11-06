@@ -29,7 +29,7 @@ final class DialogueReviewTraceStatement extends PDOStatement
     private static function countPayload(mixed $row):void
     {
         if(!is_array($row))return;
-        foreach(['text','metadata_json','profile_json']as$key)if(is_string($row[$key]??null))self::$payloadBytes+=strlen($row[$key]);
+        foreach(['text','metadata_json','profile_json','json']as$key)if(is_string($row[$key]??null))self::$payloadBytes+=strlen($row[$key]);
     }
 }
 
@@ -451,6 +451,8 @@ function dialogueReviewReadRegression(PDO $pdo):int
         DialogueReviewTraceStatement::$queries=[];
         $reject(fn()=>$prePurpose->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]),'forbidden');
         $check(DialogueReviewTraceStatement::$queries===[],'missing_purpose_grant_reads_no_message_or_project_rows');
+        require_once __DIR__.'/monthly_reply_quality_history_fixture.php';
+        $checks+=monthlyReplyQualityReadRegression($pdo);
         echo 'Dialogue review read checks: '.$checks." passed.\n";return$checks;
     }finally{
         if($pdo->inTransaction())$pdo->rollBack();

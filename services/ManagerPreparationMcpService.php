@@ -204,7 +204,8 @@ final class ManagerPreparationMcpService
             $out=array_merge($out,ModeledConversionStatusMcpAdapter::tools());
         if(ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES)
             ||in_array(ManagerPreparationOAuth::FORECAST_SCOPE,$scopes,true)
-            ||in_array(ManagerPreparationOAuth::DIALOGUE_SCOPE,$scopes,true))
+            ||in_array(ManagerPreparationOAuth::DIALOGUE_SCOPE,$scopes,true)
+            ||in_array(ManagerPreparationOAuth::QUALITY_SCOPE,$scopes,true))
             $out=array_merge($out,DialogueReviewMcpAdapter::tools());
         if(array_intersect($scopes,ManagerPreparationOAuth::SUPPORTED_SCOPES)!==[])
             $out=array_merge($out,ManagerTourSelectionMcpAdapter::tools());
@@ -225,6 +226,7 @@ final class ManagerPreparationMcpService
         $legacy=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES);
         $required=$dialogue?[ManagerPreparationOAuth::DIALOGUE_SCOPE]:($forecast?[ManagerPreparationOAuth::FORECAST_SCOPE]:($development?[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]:($hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:($archive?[ManagerPreparationOAuth::ARCHIVE_SCOPE]:ManagerPreparationOAuth::SCOPES))));
         if($selection)$required=[ManagerPreparationOAuth::SELECTION_SCOPE];
+        if($dialogue&&DialogueReviewMcpAdapter::isHistory($args))$required=[ManagerPreparationOAuth::QUALITY_SCOPE];
         $stepUp=$selection||$dialogue||$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
             ||($development&&($legacy||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)||in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)));
         if ($stepUp&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
@@ -370,6 +372,7 @@ final class ManagerPreparationMcpService
             ManagerPreparationOAuth::DEVELOPMENT_SCOPE=>['Explicit development queue consent is required','Подтвердите дополнительный доступ ChatGPT к очереди плана развития AnyTour.'],
             ManagerPreparationOAuth::FORECAST_SCOPE=>['Explicit private forecast status consent is required','Подтвердите чтение закрытого агрегированного статуса сигналов и ранних оценок AnyTour. Тексты и данные отдельных клиентов не возвращаются.'],
             ManagerPreparationOAuth::DIALOGUE_SCOPE=>['Explicit current dialogue review consent is required','Подтвердите чтение текущих MAX и Telegram переписок AnyTour для разбора качества ответов. Сообщения клиентам не отправляются; переписки и прочитанность не изменяются.'],
+            ManagerPreparationOAuth::QUALITY_SCOPE=>['Explicit retained dialogue and AI proposal history consent is required','Подтвердите чтение сохранённой истории открытых и закрытых диалогов AnyTour и AI-предложений с доступным исходным контекстом. Это чтение не отправляет сообщения и не меняет переписки, черновики или прочитанность.'],
             default=>throw new InvalidArgumentException(),
         };
         $challenge='Bearer resource_metadata="'.ManagerPreparationOAuth::ENDPOINT.'?action=resource", '

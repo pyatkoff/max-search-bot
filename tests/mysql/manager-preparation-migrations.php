@@ -332,7 +332,7 @@ try{
         ||($scopeColumn['COLLATION_NAME']??null)!=='ascii_bin'||($scopeColumn['IS_NULLABLE']??null)!=='NO')throw new RuntimeException('dialogue_scope_column_contract_failed');
     echo "PASS native MySQL091 apply and retry preserve exact grants codes and tokens with ascii_bin128 scope capacity\n";
     require_once dirname(__DIR__,2).'/services/ManagerPreparationOAuth.php';
-    $allScopes=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);$allScopeFamily=str_repeat('c',32);
+    $allScopes=implode(' ',array_values(array_filter(ManagerPreparationOAuth::SUPPORTED_SCOPES,static fn(string $scope):bool=>$scope!==ManagerPreparationOAuth::QUALITY_SCOPE)));$allScopeFamily=str_repeat('c',32);
     if(strlen($allScopes)!==125)throw new RuntimeException('dialogue_scope_full_fixture_invalid');
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$allScopeFamily,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php',$allScopes,time(),time()+3600]);
     $fullScopeRead=$pdo->prepare('SELECT scopes,OCTET_LENGTH(scopes) AS bytes,HEX(scopes) AS hex_value FROM manager_preparation_oauth_grants WHERE grant_id=?');
@@ -342,6 +342,26 @@ try{
     $pdo->prepare('INSERT INTO manager_preparation_oauth_codes VALUES(?,?,?,?,?,NULL)')->execute([str_repeat('1',64),$allScopeFamily,'https://chatgpt.com/connector_platform_oauth_redirect',str_repeat('2',43),time()+300]);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_tokens VALUES(?,?,?,?,NULL)')->execute([str_repeat('3',64),$allScopeFamily,'access',time()+3600]);
     echo "PASS native MySQL complete125-byte explicit scope set round-trips without truncation\n";
+    $historyBefore=[];
+    foreach($oauthTables as $table=>$key)$historyBefore[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY '.$key)->fetchAll();
+    $historyMigration=file_get_contents(dirname(__DIR__,2).'/migrations/092_monthly_reply_quality_scope.sql');
+    foreach([1,2]as $attempt){
+        $pdo->exec($historyMigration);
+        foreach($oauthTables as $table=>$key)
+            if($pdo->query('SELECT * FROM '.$table.' ORDER BY '.$key)->fetchAll()!==$historyBefore[$table])throw new RuntimeException('history_scope_changed_existing_authority');
+    }
+    $historyColumn=$pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH,CHARACTER_SET_NAME,COLLATION_NAME,IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='manager_preparation_oauth_grants' AND COLUMN_NAME='scopes'")->fetch();
+    if((int)$historyColumn['CHARACTER_MAXIMUM_LENGTH']!==160||$historyColumn['CHARACTER_SET_NAME']!=='ascii'||$historyColumn['COLLATION_NAME']!=='ascii_bin'||$historyColumn['IS_NULLABLE']!=='NO')
+        throw new RuntimeException('history_scope_column_contract_failed');
+    $historyScopes=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
+    if(strlen($historyScopes)!==138)throw new RuntimeException('history_scope_full_fixture_invalid');
+    $historyFamily=str_repeat('4',32);
+    $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$historyFamily,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php',$historyScopes,time(),time()+3600]);
+    $fullScopeRead->execute([$historyFamily]);$historyRow=$fullScopeRead->fetch();
+    if($historyRow['scopes']!==$historyScopes||(int)$historyRow['bytes']!==138||strtolower($historyRow['hex_value'])!==bin2hex($historyScopes))
+        throw new RuntimeException('history_scope_roundtrip_failed');
+    echo "PASS native MySQL092 retry preserves old authority; explicitly consented138-byte scope round-trips exactly\n";
+
     $jobs=json_encode(array_fill(0,200,str_repeat('1',64)),JSON_THROW_ON_ERROR);
     $q=$pdo->prepare('INSERT INTO manager_preparation_events (subscription_id,admin_id,oauth_connection_id,project_key,event_name,arguments_json,callback_url,signing_secret,verified_at,expires_at,observed_jobs_json,pending_jobs_json,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     $now=gmdate('Y-m-d H:i:s');
