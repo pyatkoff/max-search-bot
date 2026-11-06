@@ -490,6 +490,38 @@ retain the exact unprocessed cursor. They do not certify complete trip history.
 A window may omit older source facts until a later profile update; it never turns
 missing information into zero or erases the underlying journal.
 
+The same five-minute runtime invocation can continue up to four of these ordinary
+atomic profile batches when the preceding batch made progress and still reports
+pending revisions. It captures native sources once and invokes the independent
+purchase study at most once after the profile phase. The writer, Python adapter,
+per-batch budgets and their source fingerprints are unchanged. A phase can
+therefore advance at most 32 profile updates and 160 journal revisions, with at
+most 2,000 journal-row reads and 4 MiB raw snapshots across its four batches; each
+profile still has its own ordinary immutable information fence and actual
+calculation time. An empty tail, disabled/busy/idle state, zero progress or an
+error stops continuation. A failed later transaction leaves earlier commits
+intact and is not retried inside that invocation.
+
+The local value collector uses the same maximum of four eight-profile pages
+before the existing delivery work. It freezes the available profile-ID ceiling
+once and advances only its saved chronological cursor. Zero new awards can still
+mean useful cursor progress. It never restarts a historical review or replays a
+saved forecast. Existing reservations, positive-delta rules and UNKNOWN handling
+remain authoritative. Lookup, history collection, upload, receipt polling and the
+provider report retain one ordinary delivery cycle; faster local preparation
+does not multiply network operations or the existing three-upload limit.
+
+Each local phase checks one monotonic five-second soft deadline before starting
+an additional batch. The first ordinary profile check is retained; an active SQL
+query, interpreter or transaction is allowed to finish. This is not a hard maximum on
+total database/runtime duration. Work left by a batch/time limit resumes from the
+saved cursor during the next scheduled invocation, without a new worker, timer,
+queue or manual catch-up run. The profile receipt remains the last individual
+batch rather than a sum of the phase, and the source/forecast counts retain their
+existing privacy boundaries. Synthetic continuation tests prove bounded progress,
+rollback, stop and retry behavior; lower real message-to-forecast latency still
+requires a natural post-installation observation.
+
 Every profile binds its separate work cursor and immutable information fence,
 immutable source revision references,
 adapter/extractor/processor source hashes and actual semantic availability.

@@ -101,7 +101,7 @@ final class ModeledConversionValueExport
             'mode'=>$s['mode'],'contract'=>ModeledConversionValueContract::VERSION,'delivery'=>$last['state']??'waiting_for_signal','upload_status'=>$last['upload_status']??null];
     }
 
-    public static function tick(?PDO $pdo=null,mixed $lookup=null,mixed $api=null,?int $now=null,?callable $gate=null,?callable $observationClock=null):array
+    public static function tick(?PDO $pdo=null,mixed $lookup=null,mixed $api=null,?int $now=null,?callable $gate=null,?callable $observationClock=null,?callable $localClock=null):array
     {
         if($pdo===null&&ProjectConfig::projectId()!=='anytour')return ['status'=>'off'];
         $s=self::settings($pdo);if(!$s||$s['mode']!=='send')return ['status'=>'off'];
@@ -116,7 +116,21 @@ final class ModeledConversionValueExport
             $repo=new MaxChannelConversionOutbox($p);$repo->recover($now);
             $priceGuard=new ModeledConversionPriceContinuity($p);
             $stats['price_continuity_audit']=$priceGuard->reconcile($now,fn(array $r):bool=>$self->eligible($r,$gate));
-            $stats['collected']=$self->collect($s,$now,$gate);
+            // Drain only local saved-profile pages. The original network phases run once below.
+            $profileFence=(string)$p->query("SELECT COALESCE(MAX(id),0) FROM modeled_conversion_profile_versions WHERE project_key='anytour'")->fetchColumn();
+            $localClock??=static fn():float=>hrtime(true)/1e9;
+            $localStarted=$localClock();
+            for($batch=0;$batch<4;$batch++){
+                // Soft admission deadline: never interrupt an in-flight transaction.
+                if($batch>0&&$localClock()-$localStarted>=5.0)break;
+                $pendingSettings=self::settings($p);
+                if(!$pendingSettings||$pendingSettings['mode']!=='send'||(string)$pendingSettings['profile_cursor']===$profileFence)break;
+                $before=(string)$pendingSettings['profile_cursor'];
+                // Preserve committed-page counts if a later page fails and the outer catch stops delivery.
+                $stats['collected']+=$self->collect($pendingSettings,$now,$gate,$profileFence);
+                $after=self::settings($p);
+                if(!$after||$after['mode']!=='send'||(string)$after['profile_cursor']===$before)break;
+            }
             $stats['historical_collected']=$self->collectHistory($now,$gate);
             $pending=$self->rows('pending',$now,5);
             $users=[];foreach($pending as$r)if($r['platform']==='max'&&$self->eligible($r,$gate))$users[]=$r['external_user_id'];
@@ -236,15 +250,16 @@ final class ModeledConversionValueExport
         }catch(Throwable $error){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $error;}
     }
 
-    public function collect(array $s,int $now,callable $gate):int
+    public function collect(array $s,int $now,callable $gate,?string $profileFence=null):int
     {
         if($this->pdo->inTransaction())throw new RuntimeException('value_outer_transaction');
+        if($profileFence!==null&&!preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$profileFence))throw new RuntimeException('value_profile_fence');
         $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$this->pdo->beginTransaction();
         try{
             $q=$this->pdo->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".($mysql?' FOR UPDATE':''));
             $s=$q->fetch(PDO::FETCH_ASSOC);if(!$s||$s['mode']!=='send'){$this->pdo->rollBack();return 0;}
-            $q=$this->pdo->prepare("SELECT id,project_key,platform,customer_key,conversation_id,CASE WHEN ".($mysql?'OCTET_LENGTH(profile_json)':'LENGTH(CAST(profile_json AS BLOB))')."<=131072 THEN profile_json ELSE NULL END AS profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id>? ORDER BY id LIMIT 8");
-            $q->execute([$s['profile_cursor']]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$after=(string)$s['profile_cursor'];$written=0;
+            $q=$this->pdo->prepare("SELECT id,project_key,platform,customer_key,conversation_id,CASE WHEN ".($mysql?'OCTET_LENGTH(profile_json)':'LENGTH(CAST(profile_json AS BLOB))')."<=131072 THEN profile_json ELSE NULL END AS profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id>?".($profileFence===null?'':' AND id<=?')." ORDER BY id LIMIT 8");
+            $q->execute($profileFence===null?[$s['profile_cursor']]:[$s['profile_cursor'],$profileFence]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$after=(string)$s['profile_cursor'];$written=0;
             foreach($rows as$r){
                 $after=(string)$r['id'];if(!is_string($r['profile_json']))continue;
                 try{$w=json_decode($r['profile_json'],true,64,JSON_THROW_ON_ERROR);}catch(Throwable $ignored){continue;}
