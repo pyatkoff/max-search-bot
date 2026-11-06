@@ -191,6 +191,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $method=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
     $large=['value_delivery'=>['predictive_v1'=>['events'=>91,'value_rub'=>1234,'calculation_unavailable_rows'=>8,
         'calculation_basis_counts'=>['probability_prediction'=>80,'stage_fraction'=>3,'unavailable'=>8],
+        'stage_comparison_counts'=>['above_stage'=>50,'equal_stage'=>20,'below_stage'=>10,'stage_only'=>3,'unavailable'=>8],
         'calculation_unavailable_reason_counts'=>['profile_binding_unverified'=>0,'probability_prediction_unavailable'=>8,
             'monetary_policy_unavailable'=>0,'scalar_contract_unverified'=>0,'price_base_unverified'=>0,'frozen_value_unverified'=>0,'increment_not_explained'=>0],
         'examples'=>array_fill(0,16,['synthetic'=>str_repeat('x',2000)])]],
@@ -204,6 +205,8 @@ function forecastV1Assertions(PDO $p,callable $check):void
         strlen(json_encode($boundedOutput,JSON_THROW_ON_ERROR))<=28000&&$boundedOutput['value_delivery']['predictive_v1']['events']===91
         &&$boundedOutput['value_delivery']['predictive_v1']['value_rub']===1234
         &&$boundedOutput['value_delivery']['predictive_v1']['calculation_basis_counts']===$large['value_delivery']['predictive_v1']['calculation_basis_counts']
+        &&$boundedOutput['value_delivery']['predictive_v1']['stage_comparison_counts']===$large['value_delivery']['predictive_v1']['stage_comparison_counts']
+        &&array_sum($boundedOutput['value_delivery']['predictive_v1']['stage_comparison_counts'])===$boundedOutput['value_delivery']['predictive_v1']['events']
         &&$boundedOutput['value_delivery']['predictive_v1']['calculation_unavailable_reason_counts']===$large['value_delivery']['predictive_v1']['calculation_unavailable_reason_counts']
         &&$boundedOutput['value_delivery']['predictive_v1']['examples_omitted_due_to_response_budget']===true
         &&$boundedOutput['visit_delivery_check']===$large['visit_delivery_check']
@@ -850,10 +853,26 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         $a['monetary_policy']==='early_deal_commission_7pct_v1'&&$a['value_cap_rub']===25000
         &&$b['monetary_policy']==='early_deal_commission_7pct_v1'&&$b['value_cap_rub']===25000
         &&$c['monetary_policy']==='early_deal_commission_7pct_v1'&&$c['value_cap_rub']===25000);
+    foreach([150=>[14000,1400,700,700],1100=>[25000,2500,1250,1250],5000=>[25000,5000,1250,3750]]as$delta=>[$base,$context,$baseline,$difference]){
+        $comparison=$byDelta[$delta]['stage_comparison']??[];
+        $check('legacy same-base comparison uses cumulative values rather than the sent increment '.$delta,
+            $comparison===['version'=>'frozen_context_vs_stage_v1','status'=>'available',
+                'basis'=>'same_frozen_base_existing_stage_fraction_not_export_history','reason'=>null,
+                'monetary_policy'=>'early_deal_commission_7pct_v1','stage_contract'=>'semantic_stage_value_25000_v1',
+                'frozen_base_rub'=>$base,'stage_fraction'=>['numerator'=>1250,'denominator'=>25000],
+                'contextual_cumulative_value_rub'=>$context,'stage_cumulative_value_rub'=>$baseline,
+                'contextual_minus_stage_rub'=>$difference]);
+    }
     $check('inconsistent saved arithmetic cannot acquire a made up calculation',
         $r['calculation_unavailable_rows']===1&&$byDelta[25000]['calculation']===null
         &&$byDelta[25000]['calculation_unavailable_reason']==='frozen_value_unverified'
         &&array_sum($r['calculation_unavailable_reason_counts'])===1&&$r['calculation_unavailable_reason_counts']['frozen_value_unverified']===1);
+    $comparison=$byDelta[25000]['stage_comparison']??[];
+    $check('inconsistent arithmetic cannot become a zero comparison',
+        ($comparison['status']??null)==='unavailable'&&($comparison['reason']??null)==='frozen_value_unverified'
+        &&array_key_exists('contextual_minus_stage_rub',$comparison)&&$comparison['contextual_minus_stage_rub']===null
+        &&$comparison['contextual_cumulative_value_rub']===null&&$comparison['stage_cumulative_value_rub']===null
+        &&$comparison['monetary_policy']===null&&$comparison['frozen_base_rub']===null);
     $check('valid frozen V1 calculations have no unavailability reason',
         $byDelta[150]['calculation_unavailable_reason']===null&&$byDelta[1100]['calculation_unavailable_reason']===null
         &&$byDelta[5000]['calculation_unavailable_reason']===null);
@@ -895,6 +914,14 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         &&$unknown['full_value_base_rub']===10000&&$unknown['estimated_cumulative_value_rub']===1000);
     foreach([$known,$capped,$unknown]as$calculation)$check('a valid V2 calculation names its frozen monetary policy and cap',
         $calculation['monetary_policy']==='early_deal_commission_7pct_v2'&&$calculation['value_cap_rub']===100000);
+    foreach([35000=>[70000,35000,3500,31500],100000=>[100000,100000,5000,95000],1000=>[10000,1000,500,500]]as$delta=>[$base,$context,$baseline,$difference]){
+        $comparison=$byDelta[$delta]['stage_comparison']??[];
+        $check('V2 comparison retains the saved known provisional or capped base '.$base,
+            ($comparison['status']??null)==='available'&&$comparison['reason']===null
+            &&$comparison['monetary_policy']==='early_deal_commission_7pct_v2'
+            &&$comparison['frozen_base_rub']===$base&&$comparison['contextual_cumulative_value_rub']===$context
+            &&$comparison['stage_cumulative_value_rub']===$baseline&&$comparison['contextual_minus_stage_rub']===$difference);
+    }
     $check('valid frozen V2 calculations have no unavailability reason',
         $byDelta[35000]['calculation_unavailable_reason']===null&&$byDelta[100000]['calculation_unavailable_reason']===null
         &&$byDelta[1000]['calculation_unavailable_reason']===null
@@ -912,7 +939,10 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         $r['events']===12&&$r['value_rub']===205850&&$r['calculation_unavailable_rows']===5);
     foreach([2000=>'price_base_unverified',3000=>'price_base_unverified',28000=>'scalar_contract_unverified',4200=>'monetary_policy_unavailable']as$delta=>$reason)
         $check('incompatible scalar monetary policy remains unexplained for '.$delta,
-            isset($byDelta[$delta])&&$byDelta[$delta]['calculation']===null&&$byDelta[$delta]['calculation_unavailable_reason']===$reason);
+            isset($byDelta[$delta])&&$byDelta[$delta]['calculation']===null&&$byDelta[$delta]['calculation_unavailable_reason']===$reason
+            &&$byDelta[$delta]['stage_comparison']['status']==='unavailable'&&$byDelta[$delta]['stage_comparison']['reason']===$reason
+            &&$byDelta[$delta]['stage_comparison']['contextual_minus_stage_rub']===null
+            &&$byDelta[$delta]['stage_comparison']['stage_cumulative_value_rub']===null);
     $put(37,'max',137,1.0,2000000,100001,100001,'pending','PREPARED',$v2+['full_value_base_rub'=>100000]);
     $r=$read();$check('a predictive increment above 100000 is rejected before it contributes to returned totals',
         $r['available']&&$r['invalid_binding_rows']===1&&$r['events']===12&&$r['value_rub']===205850);
@@ -942,17 +972,33 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $check('a mismatched saved-profile binding has a fixed reason without discarding a valid ledger row',
         count($byReason['profile_binding_unverified'])===1&&$byReason['profile_binding_unverified'][0]['calculation']===null
         &&$r['invalid_binding_rows']===0&&$r['events']===16&&$r['value_rub']===208750);
+    $bindingComparison=$byReason['profile_binding_unverified'][0]['stage_comparison']??[];
+    $check('a mismatched profile cannot provide either side of the stage comparison',
+        ($bindingComparison['status']??null)==='unavailable'&&($bindingComparison['reason']??null)==='profile_binding_unverified'
+        &&$bindingComparison['contextual_cumulative_value_rub']===null&&$bindingComparison['stage_cumulative_value_rub']===null
+        &&$bindingComparison['contextual_minus_stage_rub']===null);
+    $continuityComparison=$byReason['increment_not_explained'][0]['stage_comparison']??[];
+    $check('unexplained price continuity cannot turn into an alternate export calculation',
+        ($continuityComparison['status']??null)==='unavailable'&&($continuityComparison['reason']??null)==='increment_not_explained'
+        &&$continuityComparison['contextual_cumulative_value_rub']===null&&$continuityComparison['stage_cumulative_value_rub']===null
+        &&$continuityComparison['contextual_minus_stage_rub']===null);
     $check('fixed first-failure counts explain every unavailable calculation exactly once',
         $r['calculation_unavailable_reason_counts']===['profile_binding_unverified'=>1,'probability_prediction_unavailable'=>0,
             'monetary_policy_unavailable'=>1,'scalar_contract_unverified'=>1,'price_base_unverified'=>2,'frozen_value_unverified'=>1,'increment_not_explained'=>1]
         &&array_sum($r['calculation_unavailable_reason_counts'])===$r['calculation_unavailable_rows']&&$r['calculation_unavailable_rows']===7
         &&$r['calculation_basis_counts']===['probability_prediction'=>8,'stage_fraction'=>1,'unavailable'=>7]
         &&array_sum($r['calculation_basis_counts'])===$r['events']);
+    $check('comparison categories partition every eligible event including stage-only and unavailable rows',
+        $r['stage_comparison_counts']===['above_stage'=>8,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>1,'unavailable'=>7]
+        &&array_sum($r['stage_comparison_counts'])===$r['events']);
     $read();$check('reason inspection leaves stored profiles and reservations byte identical and omits private binding values',
         $classifiedBefore===$snapshot()&&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'770099'));
     for($i=10;$i<25;$i++)$put($i,'max',100+$i,0.1,null,2500,2500,'accepted','UPLOADED');
     $r=$read();$check('predictive examples and suffix completeness remain explicitly bounded',
         $r['window']['inspected_predictive_rows']===17&&!$r['window']['complete_within_goal_suffix']&&count($r['examples'])===16);
+    $check('comparison totals cover the inspected eligible suffix beyond the displayed examples',
+        $r['stage_comparison_counts']===['above_stage'=>10,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>1,'unavailable'=>6]
+        &&array_sum($r['stage_comparison_counts'])===$r['events']&&$r['events']>count($r['examples']));
     $p->prepare("UPDATE modeled_conversion_profile_versions SET profile_json=JSON_SET(profile_json,'$.semantic_prediction.reasons',JSON_ARRAY(?))")->execute([str_repeat('я',600)]);
     $tight=new ModeledConversionStatusBudget();$tight->consumeBytes(40000);
     $bounded=(new ModeledConversionValueDeliveryReader($p,static function():void{},$tight))->predictiveV1($now);
@@ -998,6 +1044,47 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
             &&!array_key_exists('odds_multiplier',$c)&&!array_key_exists('expert_factors',$c)
             &&$e['visit_linkage']==='unverified'&&$r['provider_requests']===0
             &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_'));
+        $comparison=$e['stage_comparison']??[];
+        $check('stage-only '.$name.' exposes its baseline without inventing a contextual estimate or zero difference',
+            ($comparison['status']??null)==='stage_only'&&($comparison['reason']??null)==='contextual_prediction_unavailable'
+            &&$comparison['version']==='frozen_context_vs_stage_v1'
+            &&$comparison['basis']==='same_frozen_base_existing_stage_fraction_not_export_history'
+            &&$comparison['monetary_policy']===$c['monetary_policy']&&$comparison['frozen_base_rub']===$base
+            &&$comparison['stage_fraction']===$c['stage_fraction']&&$comparison['stage_cumulative_value_rub']===$cumulative
+            &&$comparison['contextual_cumulative_value_rub']===null&&$comparison['contextual_minus_stage_rub']===null
+            &&$r['stage_comparison_counts']===['above_stage'=>0,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>1,'unavailable'=>0]);
+    }
+    // Equal values are a real zero difference only when both frozen sides exist.
+    // These literal cases also preserve a negative difference and the existing stage-fraction rounding.
+    foreach([
+        'interest without an uplift'=>[[],0.05,500,500,0],
+        'context below its stage fraction'=>[[],0.04,400,500,-100],
+        'specific request without an uplift'=>[['stage'=>'specific_request','semantic'=>['stage'=>'concrete_request']],0.083333,833,833,0],
+        'specific request differs only by formula precision'=>[['stage'=>'specific_request','semantic'=>['stage'=>'concrete_request'],
+            'price'=>2000000,'money'=>['full_value_base_rub'=>100000]],0.083333,8333,8332,1],
+        'known base without an uplift'=>[['price'=>222429,'money'=>['full_value_base_rub'=>15570]],0.05,779,779,0],
+    ]as$name=>[$fixture,$probability,$context,$baseline,$difference]){
+        $fixture['semantic']=array_replace(['status'=>'predicted','stage'=>'substantive_dialogue','estimated_probability'=>$probability],$fixture['semantic']??[]);
+        $fixture['money']=array_replace($fixture['money']??[],['value_rub'=>$context]);$fixture['delta']=$context;
+        $r=$stageRead($fixture);$e=$r['examples'][0]??[];$comparison=$e['stage_comparison']??[];
+        $check('same frozen base comparison preserves '.$name,
+            $r['available']&&$r['events']===1&&$r['provider_requests']===0
+            &&$e['calculation_unavailable_reason']===null&&($comparison['status']??null)==='available'
+            &&$comparison['reason']===null&&$comparison['monetary_policy']==='early_deal_commission_7pct_v2'
+            &&$comparison['contextual_cumulative_value_rub']===$context&&$comparison['stage_cumulative_value_rub']===$baseline
+            &&$comparison['contextual_minus_stage_rub']===$difference&&$e['visit_linkage']==='unverified'
+            &&$r['stage_comparison_counts']===['above_stage'=>$difference>0?1:0,'equal_stage'=>$difference===0?1:0,
+                'below_stage'=>$difference<0?1:0,'stage_only'=>0,'unavailable'=>0]);
+    }
+    foreach(['different stage'=>'concrete_request','missing stage'=>null,'unknown stage'=>'unrecognised']as$name=>$savedStage){
+        $r=$stageRead(['semantic'=>['status'=>'predicted','stage'=>$savedStage,'estimated_probability'=>0.05],
+            'money'=>['value_rub'=>500]]);$e=$r['examples'][0]??[];$comparison=$e['stage_comparison']??[];
+        $check('an unverified saved stage prevents only the new comparison '.$name,
+            $r['available']&&$r['events']===1&&$e['calculation']!==null&&$e['calculation_unavailable_reason']===null
+            &&($comparison['status']??null)==='unavailable'&&($comparison['reason']??null)==='prediction_stage_unverified'
+            &&$comparison['contextual_cumulative_value_rub']===null&&$comparison['stage_cumulative_value_rub']===null
+            &&$comparison['contextual_minus_stage_rub']===null
+            &&$r['stage_comparison_counts']===['above_stage'=>0,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>0,'unavailable'=>1]);
     }
     $invalidStages=[
         'wrong mode'=>['semantic'=>['mode'=>'another_mode']],
@@ -1033,7 +1120,10 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
             $r['available']&&$r['events']===1&&$r['calculation_basis_counts']===['probability_prediction'=>0,'stage_fraction'=>0,'unavailable'=>1]
             &&$r['calculation_unavailable_rows']===1&&array_sum($r['calculation_unavailable_reason_counts'])===1
             &&$r['calculation_unavailable_reason_counts']['probability_prediction_unavailable']===1
-            &&$e['calculation']===null&&$e['calculation_unavailable_reason']==='probability_prediction_unavailable');
+            &&$e['calculation']===null&&$e['calculation_unavailable_reason']==='probability_prediction_unavailable'
+            &&$e['stage_comparison']['status']==='unavailable'&&$e['stage_comparison']['reason']==='probability_prediction_unavailable'
+            &&$e['stage_comparison']['contextual_cumulative_value_rub']===null
+            &&$e['stage_comparison']['stage_cumulative_value_rub']===null&&$e['stage_comparison']['contextual_minus_stage_rub']===null);
     }
     $r=$stageRead(['semantic'=>['status'=>'predicted']]);
     $check('a predicted status with null probability cannot enter the stage fallback',
