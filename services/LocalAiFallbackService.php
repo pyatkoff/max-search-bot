@@ -63,15 +63,15 @@ class LocalAiFallbackService
             }
         }
         if (count($countryMatches) === 1) {
-            $candidate = reset($countryMatches);
+            $name = reset($countryMatches);
             $bareChoice = false;
-            foreach ($countries as $stem => $name) {
-                if ($name === $candidate
+            foreach ($countries as $stem => $canonicalName) {
+                if ($canonicalName === $name
                     && preg_match('/^\s*(?:(?:в|во|на)\s+)?'.preg_quote($stem, '/').'[а-яё-]*[.!]?\s*$/ui', $countryText)) $bareChoice = true;
             }
             $choiceIntent = (bool)preg_match('/(?:^|\s)(?:хочу|хотим|нужен|нужна|нужно|едем|летим|поедем|полетим|давайте|меняем|замените|выбираем|направление|страна)(?=\s|:|,)/ui', $countryText);
-            if (empty($current['country']) || $current['country'] === $candidate || $explicitReplacement || $bareChoice || $choiceIntent) {
-                $params['country'] = $candidate;
+            if (empty($current['country']) || $current['country'] === $name || $explicitReplacement || $bareChoice || $choiceIntent) {
+                $params['country'] = $name;
             }
         }
 
