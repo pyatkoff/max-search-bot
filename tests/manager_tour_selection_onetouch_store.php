@@ -92,6 +92,16 @@ $searchDirect=ManagerTourSelectionOneTouchIntake::search(8,1,$key,['url'=>$urlDi
 storeCheck($searchDirect['ok']===true,'direct source uses actual canonical context');
 $reviewDirect=ManagerTourSelectionOneTouchIntake::review(8,1,$key,['ticket'=>$searchDirect['offers'][0]['ticket']],static fn($url):string=>$fDirect['hotel']);
 storeCheck($reviewDirect['ok']===true,'direct linked gallery produces normal ready ticket');
+$collisionOperations=(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
+$collision=ManagerTourSelectionService::importOneTouch(8,1,$key,['operation_id'=>'fixture-direct-native-collision-0001','ticket'=>$reviewDirect['ticket'],'confirm_price_from'=>true,'manager_amount'=>'135000']);
+storeCheck(($collision['error']??'')==='ambiguous_offer','same native quote id with different trip is correctly refused');
+storeCheck(ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$beforeDirect&&(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$collisionOperations,'native identity collision changes neither saved offers nor receipts');
+// A distinct trip has its own native claim; do not weaken the production guard.
+$responseDirect=str_replace('0x'.hash('sha256','synthetic-adults-3'),'0x'.hash('sha256','synthetic-direct-20770108-adults-3'),$responseDirect);
+$searchDirect=ManagerTourSelectionOneTouchIntake::search(8,1,$key,['url'=>$urlDirect],static fn($url):array=>['url'=>$urlDirect,'response'=>$responseDirect,'form'=>$fDirect['form'],'observed_at'=>gmdate('Y-m-d\TH:i:s\Z')]);
+storeCheck($searchDirect['ok']===true,'distinct native direct quote admitted without overwriting old identity');
+$reviewDirect=ManagerTourSelectionOneTouchIntake::review(8,1,$key,['ticket'=>$searchDirect['offers'][0]['ticket']],static fn($url):string=>$fDirect['hotel']);
+storeCheck($reviewDirect['ok']===true,'distinct native direct ready ticket keeps linked photo provenance');
 $directCommand=['operation_id'=>'fixture-direct-lost-receipt-0001','ticket'=>$reviewDirect['ticket'],'confirm_price_from'=>true,'manager_amount'=>'135000'];
 $beforeDirectOperations=(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
 $directAdd=ManagerTourSelectionService::importOneTouch(8,1,$key,$directCommand);
