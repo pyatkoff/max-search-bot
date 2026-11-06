@@ -2137,3 +2137,73 @@ test('bulk terms preserve a previous frozen publication after new conditions are
  await f.locator('#tsEdit').click();await f.locator('#tsBulkTermsOpen').click();await setBulkTerm(f,'room','New draft room');await setBulkTerm(f,'flights','New draft flight','replace');await confirmBulkTerms(f);await expect(f.locator('#tsSaved')).toHaveText('Сохранено на сервере');
  await f.locator('#tsHistory').click();await f.getByRole('button',{name:new RegExp('Версия '+publication.draft_version+' ·')}).click();expect(frozen()).toEqual(publication);await expect(f.locator('.tsCardText')).toContainText(original.offers[0].room);await expect(f.locator('.tsCardText')).not.toContainText('New draft room');expect(s.snapshot().draft.offers[0].room).toBe('New draft room');expect(s.calls.some(x=>['send','publish','biblio_add','onetouch_add','collector_import'].includes(x.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
+
+// Parametric actual-party intake and photo identity. All HTTP data/JPEGs are synthetic.
+async function oneTouchParametricFixture(page,options={}){
+ const adults=options.adults??3,photo='https://image.onetouch.travel/synthetic/party-cover.jpg',gallery='https://onetouch.travel/hotels/synthetic-hotel-1001/',reference='SYNTHETIC_SHARED_PARTY_REFERENCE',newId='d'.repeat(32),otherId='e'.repeat(32);
+ const image=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=160;canvas.height=120;canvas.getContext('2d').fillRect(0,0,160,120);return canvas.toDataURL('image/jpeg').split(',')[1]}),bytes=Buffer.from(image,'base64');
+ const base={...oneTouchBrowserBaseOffer(),adults:options.baseAdults??2},url='https://b2b.onetouch.travel/search_tour?samo_action=PRICES&CHECKIN_BEG=20770107&NIGHTS_FROM=7&ADULT='+adults+'&CHILD=0';
+ const fields={...copy(base),hotel:'Синтетический OneTouch · состав из источника',adults,amount:'123456.78',price_qualifier:'from',source_label:'OneTouch · synthetic',source_url:url};
+ const raw={capture_mode:'manager-file-v1',capture_reference:reference,hotel_url:gallery,capture_gallery_sha256:oneTouchBrowserSha('synthetic-party-gallery'),capture_photo_sha256:JSON.stringify({[photo]:oneTouchBrowserSha(bytes)}),capture_price_declared_at:'2077-01-01T00:00:00Z',capture_gallery_observed_at:'2020-01-01T00:00:00Z',party:adults+'AD',transport:'Перелёт требует проверки',tour:'Synthetic party tour',tariff:'Synthetic party tariff',availability:'Номер по запросу',room:fields.room,meal:fields.meal};
+ const source={schema:'onetouch-manager-capture-v1',reference,captured_at:raw.capture_price_declared_at,url,public_controls:{},prices_gzip_base64:'SYNTHETIC_NO_HTTP',prices_sha256:oneTouchBrowserSha('synthetic-party-prices-'+adults)};
+ const bundle={schema:'onetouch-bundle-v1',source,gallery_cache:[{hotel:'1001',url:gallery,observed_at:raw.capture_gallery_observed_at,html_gzip_base64:'SYNTHETIC_NO_HTTP',html_sha256:raw.capture_gallery_sha256,images:[{url:photo,sha256:oneTouchBrowserSha(bytes),mime:'image/jpeg',base64:image}]}]};
+ function savedOffer(n,id,legacy=false,amount='130000'){
+  const original={...copy(fields),adults:n},sourceFields=copy(original);if(legacy){delete sourceFields.adults;delete sourceFields.child_ages}
+  return{...copy(original),id,amount,photos:[],import_source:{adapter:'onetouch-public-v1',observed_at:source.captured_at,url:source.url.replace('ADULT='+adults,'ADULT='+n),fields:sourceFields,raw:{...copy(raw),party:n+'AD'},photos:[photo]}};
+ }
+ const initialOther=options.otherAdults?savedOffer(options.otherAdults,otherId,options.otherLegacy):null,initial=[copy(base),...(initialOther?[copy(initialOther)]:[])],uploadTargets=[];
+ let imported=false,savedVersion=null;
+ const s=await privateEditor(page,{draft:{title:'Синтетическая подборка с разными составами',intro:'',offers:initial},sourceAction:async(d,store)=>{
+  if(d.action==='onetouch_search')return{ok:true,version:store.snapshot().version,offers:[{ticket:'synthetic-party-ticket',offer:copy(fields),raw:copy(raw)}]};
+  if(d.action==='onetouch_review')return{ok:true,version:store.snapshot().version,ticket:'synthetic-party-ready',offer:copy(fields),raw:copy(raw),photos:[photo]};
+  if(d.action==='onetouch_add'){
+   expect(imported).toBe(false);imported=true;const next=store.snapshot().draft;next.offers.push(savedOffer(adults,newId,options.newLegacy,d.manager_amount));store.replaceDraft(next);savedVersion=store.snapshot().version;
+   if(options.removeNewAfterAdd){const later=store.snapshot().draft;later.offers=later.offers.filter(offer=>offer.id!==newId);store.replaceDraft(later)}
+   return options.lostAdd?null:{ok:true,state:'added',saved_version:savedVersion,count:store.snapshot().draft.offers.length,offer_id:newId};
+  }
+  if(d.action==='onetouch_operation')return{ok:true,found:imported,saved_version:savedVersion};
+  if(d.editor_resource==='tour-selection-photo.php'){
+   expect(d.action).toBe('upload');expect(d.source_photo_url).toBe(photo);expect(d.image_sha256).toBe(oneTouchBrowserSha(bytes));uploadTargets.push(d.offer_id);
+   return{ok:true,operation_id:d.operation_id,photo:{kind:d.kind,url:'https://app.anytoour.ru/manager/tour-selection-photo.php?conversation_id=11&draft_photo='+'f'.repeat(32)}};
+  }
+  throw Error('Unexpected synthetic party action '+d.action);
+ }});
+ await page.route('blob:https://app.anytoour.ru/*',route=>route.continue());
+ await page.route('https://app.anytoour.ru/manager/tour-selection-photo.php?**',route=>route.fulfill({contentType:'image/jpeg',body:bytes}));
+ const f=s.editor;await expect(f.locator('#tsOneTouch')).toBeVisible();await f.locator('#tsOneTouch').click();
+ await f.locator('#tsOneTouchFile').setInputFiles({name:'synthetic-onetouch-party.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(bundle))});
+ await f.locator('#tsOneTouchRead').click();if(!options.noReview)await f.getByRole('button',{name:'Проверить фото и условия',exact:true}).click();
+ return{...s,f,fields,base,initialOther,newId,otherId,uploadTargets,photoEvents:[],safePhotoText:value=>String(value??'').replace(/blob:[^\s"'<>]+/g,'blob:[local]').slice(0,300)};
+}
+for(const adults of[1,3,14])test('OneTouch actual adult count '+adults+' preserves literal source amount and composition',async({page,browserName})=>{
+ await page.setViewportSize({width:430,height:900});const s=await oneTouchParametricFixture(page,{adults}),f=s.f;await oneTouchBrowserWaitForPhotos(s);
+ await expect(f.locator('#tsOneTouchResults')).toContainText((adults===1?'1 взрослый':adults+' взрослых')+' · без детей');
+ await expect(f.locator('#tsOneTouchResults')).toContainText('от');await expect(f.locator('#tsOneTouchAmount')).toHaveValue('123456.78');
+ if(adults===3){fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await f.locator('#tsOneTouchResults').screenshot({path:path.join(root,'manager2-artifacts',`onetouch-party-three-${browserName}-430.png`)})}
+ await f.locator('#tsOneTouchAmount').fill('130000');await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();
+ await expect.poll(()=>s.snapshot().draft.offers.find(offer=>offer.id===s.newId)?.photos.length).toBe(1);
+ expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.snapshot().draft.offers.find(offer=>offer.id===s.newId)).toMatchObject({adults,child_ages:[],amount:'130000',price_qualifier:'from',import_source:{fields:{adults,child_ages:[],amount:'123456.78',price_qualifier:'from'},raw:{party:adults+'AD'}}});
+ expect(s.uploadTargets).toEqual([s.newId]);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.some(c=>['send','publish','biblio_add','collector_import'].includes(c.action))).toBe(false);expect(s.unexpected).toEqual([]);expect(s.errors).toEqual([]);
+});
+test('OneTouch unknown receipt distinguishes equal-price two and three adult source offers',async({page})=>{
+ const s=await oneTouchParametricFixture(page,{adults:3,otherAdults:2,lostAdd:true}),f=s.f;await oneTouchBrowserWaitForPhotos(s);
+ await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();await expect(f.locator('#tsRecovery')).toContainText('Проверить');
+ await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect.poll(()=>s.snapshot().draft.offers.find(offer=>offer.id===s.newId)?.photos.length).toBe(1);
+ expect(s.snapshot().draft.offers.find(offer=>offer.id===s.otherId)).toEqual(s.initialOther);expect(s.uploadTargets).toEqual([s.newId]);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch confirmed receipt with removed target never transfers photos to another party',async({page})=>{
+ const s=await oneTouchParametricFixture(page,{adults:3,otherAdults:2,lostAdd:true,removeNewAfterAdd:true}),f=s.f;await oneTouchBrowserWaitForPhotos(s);
+ await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();await expect(f.locator('#tsRecovery')).toContainText('Проверить');
+ await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect(f.locator('#tsStatus')).toContainText('привязку фотографий нужно проверить');
+ expect(s.snapshot().draft.offers).toEqual([s.base,s.initialOther]);expect(s.uploadTargets).toEqual([]);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch legacy missing source party uses pinned saved party rather than selected offer',async({page})=>{
+ const s=await oneTouchParametricFixture(page,{adults:2,baseAdults:3,otherAdults:3,lostAdd:true,newLegacy:true}),f=s.f;await oneTouchBrowserWaitForPhotos(s);
+ await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();await expect(f.locator('#tsRecovery')).toContainText('Проверить');
+ await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect.poll(()=>s.snapshot().draft.offers.find(offer=>offer.id===s.newId)?.photos.length).toBe(1);
+ expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.snapshot().draft.offers.find(offer=>offer.id===s.otherId)).toEqual(s.initialOther);expect(s.uploadTargets).toEqual([s.newId]);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(1);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch rejects response party outside the observed enabled adult set before review',async({page})=>{
+ const s=await oneTouchParametricFixture(page,{adults:15,noReview:true});await expect(s.f.getByRole('button',{name:'Проверить фото и условия',exact:true})).toHaveCount(0);
+ expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.calls.some(c=>['onetouch_review','onetouch_add'].includes(c.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
