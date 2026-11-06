@@ -18,6 +18,8 @@ final class ModeledConversionForecastStatusReader
     public const PROFILE_BYTES=49152;
     // Keep the final reader/adapter/dispatcher OAuth checks above their 4KiB authorization floor.
     private const RELEASE_RESERVE=8192;
+    // Each optional reader retains its own unchanged 4KiB OAuth floor in addition to this reserve.
+    private const OPTIONAL_RESERVE=4096;
     private const CONTINUITY_FIELDS=['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
         'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'];
     private bool $mysql;
@@ -158,9 +160,9 @@ final class ModeledConversionForecastStatusReader
     /** Resource omission is explicit; access denial and the shared deadline still fail closed. */
     private function optionalRead(callable $read):array
     {
-        if($this->budget->remainingBytes()<self::RELEASE_RESERVE+4096)
+        if($this->budget->remainingBytes()<self::OPTIONAL_RESERVE+4096)
             return ['available'=>false,'reason'=>'budget_headroom'];
-        try{return $this->budget->withReservedBytes(self::RELEASE_RESERVE,$read);}
+        try{return $this->budget->withReservedBytes(self::OPTIONAL_RESERVE,$read);}
         catch(ModeledConversionStatusLimit $error){
             if($error->reason!=='byte_limit')throw $error;
             $this->budget->check();
