@@ -156,6 +156,23 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
 function forecastV1Assertions(PDO $p,callable $check):void
 {
     forecastV1Schema($p);
+    $descriptive=forecastV1Packet(messages:[
+        ['text'=>'Подберите тур в Турцию на 7 ночей на следующий год.'],
+        ['text'=>'Сравните другие варианты.'],['text'=>'Подумаем, обсудим позже.'],
+        ['text'=>'Где находится ваш офис?'],['text'=>'Можно оплатить картой?']]);
+    $frozenBefore=json_encode($descriptive,JSON_THROW_ON_ERROR);
+    forecastV1Append($p,$descriptive);$beforeRows=forecastV1Rows($p);$stageRead=forecastV1Read($p);
+    $check('saved stage-only estimate retains research flags without timing or deferral penalties',
+        $stageRead['saved']['prospective_estimates']===1
+        &&$stageRead['saved']['weighting_version_counts']===['illustrative'=>0,'stage_baseline'=>1,'archive_relative_weights'=>0]
+        &&$stageRead['saved']['estimated_probability_range']===['minimum'=>0.083333,'maximum'=>0.083333]
+        &&$descriptive['semantic_prediction']['features']['long_range_planning']
+        &&$descriptive['semantic_prediction']['features']['deferral']
+        &&$descriptive['semantic_prediction']['features']['office_question']
+        &&$descriptive['semantic_prediction']['features']['payment_terms_question']
+        &&forecastV1Rows($p)===$beforeRows&&json_encode($descriptive,JSON_THROW_ON_ERROR)===$frozenBefore);
+
+    forecastV1Schema($p);
     $candidate=archivePredictiveSyntheticCandidate();
     $candidate['multipliers']['continued_meaningful_engagement']=1.2;
     $candidate['multipliers']['office_question']=1.1;
@@ -167,7 +184,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
     forecastV1Append($p,$legacy);forecastV1Append($p,$weighted);$rowsBefore=forecastV1Rows($p);$weightedRead=forecastV1Read($p);
     $check('saved weights are identified without reinterpreting legacy forecasts',
         $weightedRead['saved']['prospective_estimates']===2
-        &&$weightedRead['saved']['weighting_version_counts']===['illustrative'=>1,'archive_relative_weights'=>1]
+        &&$weightedRead['saved']['weighting_version_counts']===['illustrative'=>0,'stage_baseline'=>1,'archive_relative_weights'=>1]
         &&$weightedRead['saved']['relative_weight_package_counts']===[$capsule['package_sha256']=>1]
         &&json_encode($legacy,JSON_THROW_ON_ERROR)===$legacyBytes&&forecastV1Rows($p)===$rowsBefore);
     $check('new saved office signal and reviewed package remain privately attributable',

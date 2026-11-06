@@ -273,26 +273,81 @@ $tests['exact current offer discussion promotes continued cheaper search']=stati
     semanticPredictionAssert(semanticPredictionRun($messages,semanticPredictionLegacy([semanticPredictionDiscussion()]))['stage']==='concrete_request',
         'quoted offer reaction linked');
 };
-$tests['urgency and long range adjust the same prior as bounded hypotheses']=static function():void{
+$tests['timing signals remain observations without modifying the stage prior']=static function():void{
     $neutral=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей.']]);
     $urgent=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей, срочно, вылет завтра.']]);
     $far=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей на следующий год.']]);
-    semanticPredictionAssert($neutral['base_probability']===$urgent['base_probability']
-        &&$neutral['base_probability']===$far['base_probability'],'timing changed stage prior');
-    semanticPredictionAssert($urgent['estimated_probability']>$neutral['estimated_probability']
-        &&$far['estimated_probability']<$neutral['estimated_probability'],'timing hypotheses absent');
-    semanticPredictionAssert($urgent['hypothesis_odds_multiplier']<=1.3&&$far['hypothesis_odds_multiplier']>=0.25,'odds uncapped');
+    semanticPredictionAssert($urgent['features']['near_term_urgency']&&$far['features']['long_range_planning'],
+        'timing observations were discarded');
+    foreach([$neutral,$urgent,$far]as$p)semanticPredictionAssert($p['stage']==='concrete_request'
+        &&$p['base_probability']===0.083333&&$p['estimated_probability']===0.083333
+        &&$p['hypothesis_odds_multiplier']===1.0&&$p['mode']==='contextual_stage_baseline'
+        &&$p['assumptions_version']===ModeledConversionSemanticPrediction::STAGE_BASELINE_ASSUMPTIONS,
+        'timing changed stage-only score');
 };
-$tests['deferral and direct decline reduce a current hypothesis']=static function():void{
+$tests['deferral is descriptive and direct refusal retains its explicit guard']=static function():void{
     $request=['text'=>'Подберите тур в Турцию на 7 ночей.'];
     $normal=semanticPredictionRun([$request]);
-    foreach(['Подумаем, обсудим с мужем позже.','Тур нам не нужен.']as$text){
-        $p=semanticPredictionRun([$request,['text'=>$text]]);
-        semanticPredictionAssert($p['base_probability']===$normal['base_probability']
-            &&$p['estimated_probability']<$normal['estimated_probability'],'deferral/decline not reflected');
-    }
+    $later=semanticPredictionRun([$request,['text'=>'Подумаем, обсудим с мужем позже.']]);
+    semanticPredictionAssert($later['features']['deferral']&&$later['estimated_probability']===$normal['estimated_probability']
+        &&$later['hypothesis_odds_multiplier']===1.0&&!in_array('hypothesis_deferral',$later['reasons'],true),
+        'deferral still penalized the same stage');
+    $declined=semanticPredictionRun([$request,['text'=>'Тур нам не нужен.']]);
+    semanticPredictionAssert($declined['features']['explicit_decline']
+        &&$declined['estimated_probability']<$normal['estimated_probability']&&$declined['hypothesis_odds_multiplier']===0.25
+        &&in_array('explicit_decline_guard',$declined['reasons'],true),'direct-refusal guard lost');
     $renewed=semanticPredictionRun([$request,['text'=>'Подумаем позже.'],['text'=>'Купим тур только у вас.']]);
-    semanticPredictionAssert(!$renewed['features']['deferral']&&$renewed['stage']==='agency_purchase_intent','renewed intent stayed deferred');
+    semanticPredictionAssert(!$renewed['features']['deferral']&&$renewed['stage']==='agency_purchase_intent'
+        &&$renewed['estimated_probability']===0.5,'renewed intent stayed deferred');
+};
+$tests['unweighted signals and their source evidence survive a stage-only freeze']=static function():void{
+    $p=semanticPredictionRun([
+        ['text'=>'Подберите тур в Турцию на 7 ночей на следующий год.'],
+        ['text'=>'Сравните другие варианты.'],['text'=>'Подумаем, обсудим позже.'],
+        ['text'=>'Где находится ваш офис?'],['text'=>'Можно оплатить картой?']]);
+    semanticPredictionAssert($p['stage']==='concrete_request'&&$p['base_probability']===0.083333
+        &&$p['estimated_probability']===0.083333&&$p['hypothesis_odds_multiplier']===1.0,
+        'descriptive signals changed score');
+    semanticPredictionAssert($p['features']['long_range_planning']&&$p['features']['deferral']
+        &&$p['features']['meaningful_customer_turns']>=2&&$p['features']['explicit_comparison']
+        &&$p['features']['office_question']&&$p['features']['payment_terms_question'],'research flags lost');
+    $kinds=array_column($p['evidence'],'feature');
+    foreach(['long_range_planning','deferral','explicit_comparison','office_question','payment_terms_question']as$kind)
+        semanticPredictionAssert(in_array($kind,$kinds,true),'missing descriptive evidence '.$kind);
+    $wrapper=['subject'=>$p['subject'],'access_status'=>'allowed','profile'=>['prediction_at'=>$p['profile_prediction_at']],
+        'semantic_prediction'=>$p];
+    $read=ModeledConversionValueRegistry::predictionFields($wrapper);
+    semanticPredictionAssert($read['semantic_prediction']['availability']==='available'
+        &&$read['semantic_prediction']['value']['features']===$p['features'],'stage policy did not read back');
+    foreach([['hypothesis_odds_multiplier'=>0.5],['estimated_probability'=>0.043478],['reasons'=>['hypothesis_deferral']]]as$bad){
+        $changed=$wrapper;$changed['semantic_prediction']=array_replace($p,$bad);
+        $changed['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($changed['semantic_prediction']);
+        semanticPredictionAssert(ModeledConversionValueRegistry::predictionFields($changed)['semantic_prediction']['availability']==='unavailable',
+            'resigned inconsistent stage packet accepted');
+    }
+};
+$tests['retained legacy penalties read unchanged under the new stage policy']=static function():void{
+    $current=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей на следующий год.'],
+        ['text'=>'Подумаем позже.']]);
+    $old=$current;
+    $old['mode']='contextual_rules_untrained';
+    $old['model_sha256']=str_repeat('a',64);
+    $old['assumptions_version']='illustrative_funnel_2026_11_02_v1';
+    $old['probability_meaning']='illustrative_semantic_hypothesis_not_observed_payment';
+    unset($old['features']['office_question'],$old['features']['payment_terms_question']);
+    $old['hypothesis_odds_multiplier']=0.325;
+    $old['estimated_probability']=0.028697;
+    $old['reasons']=['illustrative_prior_concrete_request','hypothesis_long_range_planning','hypothesis_deferral'];
+    $old['prediction_digest']=ModeledConversionSemanticPrediction::digest($old);
+    $before=json_encode($old,JSON_THROW_ON_ERROR);
+    $wrapper=['subject'=>$old['subject'],'access_status'=>'allowed','profile'=>['prediction_at'=>$old['profile_prediction_at']],
+        'semantic_prediction'=>$old];
+    $read=ModeledConversionValueRegistry::predictionFields($wrapper);
+    semanticPredictionAssert($read['semantic_prediction']['availability']==='available'
+        &&$read['semantic_prediction']['value']['estimated_probability']===0.028697
+        &&$before===json_encode($old,JSON_THROW_ON_ERROR),'legacy snapshot changed or became unreadable');
+    semanticPredictionAssert($current['estimated_probability']===0.083333&&$current['hypothesis_odds_multiplier']===1.0
+        &&$current['features']['deferral']&&$current['features']['long_range_planning'],'new policy not separated from retained legacy');
 };
 $tests['meaningful engagement is independent of reply speed']=static function():void{
     $messages=[['text'=>'Подберите тур в Турцию на 7 ночей.'],
@@ -300,7 +355,8 @@ $tests['meaningful engagement is independent of reply speed']=static function():
         ['text'=>'Сравните другие варианты.','seconds'=>61]];
     $fast=semanticPredictionRun($messages);$messages[2]['seconds']=3600;$slow=semanticPredictionRun($messages);
     semanticPredictionAssert($fast['estimated_probability']===$slow['estimated_probability']
-        &&$fast['features']['meaningful_customer_turns']===2,'reply speed affected probability');
+        &&$fast['features']['meaningful_customer_turns']===2&&$fast['estimated_probability']===0.083333
+        &&$fast['hypothesis_odds_multiplier']===1.0,'engagement or reply speed affected probability');
     $thanks=semanticPredictionRun([['text'=>'Подберите тур в Турцию на 7 ночей.'],['text'=>'Спасибо!']]);
     semanticPredictionAssert($thanks['features']['meaningful_customer_turns']===1,'greeting promoted engagement');
 };

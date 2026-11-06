@@ -157,6 +157,13 @@ final class ModeledConversionValueRegistry
                 'evaluation_eligible'=>false,'export_allowed'=>false,'expected_value_rub'=>null,
                 'provider_calls'=>0,'model_calls'=>0,'conversion_uploads'=>0];
             $relative=($p['training_status']??null)==='archive_relative_weights';
+            $stageOnly=($p['mode']??null)==='contextual_stage_baseline';
+            if($stageOnly){
+                if($relative)return null;
+                $fixed['mode']='contextual_stage_baseline';
+                $fixed['assumptions_version']=ModeledConversionSemanticPrediction::STAGE_BASELINE_ASSUMPTIONS;
+                $fixed['probability_meaning']='illustrative_stage_prior_with_explicit_decline_guard';
+            }
             if($relative){
                 if(!ArchivePredictiveRelativeWeights::validCapsule($p['relative_weights']??null))return null;
                 $fixed['mode']='contextual_rules_with_archive_relative_weights';
@@ -195,13 +202,17 @@ final class ModeledConversionValueRegistry
             $allowedReasons=['exact_current_offer_price_alternative','price_alternative_is_continued_search',
                 'hypothesis_near_term_urgency','hypothesis_continued_meaningful_engagement','hypothesis_long_range_planning',
                 'hypothesis_deferral','hypothesis_explicit_decline','predicted','insufficient_context','known_outcome','access_denied'];
+            if($stageOnly){
+                $allowedReasons=array_values(array_filter($allowedReasons,static fn(string $v):bool=>!str_starts_with($v,'hypothesis_')));
+                $allowedReasons[]='explicit_decline_guard';
+            }
             foreach(array_keys($priors)as$stage)$allowedReasons[]='illustrative_prior_'.$stage;
             if($relative)foreach(ArchivePredictiveRelativeWeights::FEATURES as$feature)$allowedReasons[]='archive_weight_'.$feature;
             if(!self::codes($p['reasons'],$allowedReasons,16))return null;
             $features=$p['features'];$criteria=['destination','dates','party','budget','requirements'];
             $boolFeatures=['explicit_comparison','explicit_modification','price_alternative_continued_search',
                 'near_term_urgency','long_range_planning','deferral','explicit_decline'];
-            if($relative)$boolFeatures=[...$boolFeatures,'office_question','payment_terms_question'];
+            if($relative||$stageOnly)$boolFeatures=[...$boolFeatures,'office_question','payment_terms_question'];
             if(!is_array($features)||!self::codes($features['criteria_families']??null,$criteria,5)
                 ||!is_int($features['meaningful_customer_turns']??null)||$features['meaningful_customer_turns']<0
                 ||$features['meaningful_customer_turns']>$p['current_customer_turn_count'])return null;
@@ -212,6 +223,14 @@ final class ModeledConversionValueRegistry
                 $featureKeys=[...$featureKeys,...$boolFeatures,'context_barriers'];
             }
             if(count($features)!==count($featureKeys)||array_diff(array_keys($features),$featureKeys))return null;
+            if($stageOnly&&$p['status']!=='access_denied'){
+                if(in_array('explicit_decline_guard',$p['reasons'],true)!==$features['explicit_decline'])return null;
+                if($p['status']==='predicted'){
+                    $odds=$features['explicit_decline']?0.25:1.0;$base=$priors[$p['stage']];
+                    if(abs((float)$p['hypothesis_odds_multiplier']-$odds)>0.000000001
+                        ||abs((float)$p['estimated_probability']-round(($base*$odds)/(1-$base+$base*$odds),6))>0.000000001)return null;
+                }
+            }
             if($relative&&$p['status']==='predicted'){
                 $flags=['continued_meaningful_engagement'=>$features['meaningful_customer_turns']>=2,
                     'near_term_urgency'=>$features['near_term_urgency'],'long_range_planning'=>$features['long_range_planning'],
@@ -228,7 +247,7 @@ final class ModeledConversionValueRegistry
                 'explicit_comparison','explicit_modification','price_alternative_continued_search','near_term_urgency',
                 'long_range_planning','deferral','explicit_decline','exact_current_offer_discussion'];
             foreach($criteria as$family)$evidenceKinds[]='criteria_'.$family;
-            if($relative)$evidenceKinds=[...$evidenceKinds,'office_question','payment_terms_question'];
+            if($relative||$stageOnly)$evidenceKinds=[...$evidenceKinds,'office_question','payment_terms_question'];
             if(!self::evidenceList($p['evidence'],'feature',$evidenceKinds,16,$fence,$cutoff)
                 ||!self::evidenceList($p['outcome_observations'],'kind',['payment_self_report','manager_payment_ack',
                     'booking_confirmation','purchase_supported_candidate','payment_cancellation','booking_cancellation',

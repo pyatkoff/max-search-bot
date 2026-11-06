@@ -568,3 +568,32 @@ local test database after existing native cleanup. The pure view and responsive
 fixtures use synthetic aggregates only. Live acceptance checks the installed
 read-only projection and arithmetic without publishing real business totals or
 customer identifiers in the public repository.
+
+
+## Stage-baseline policy for new live forecasts
+
+The owner's 2026-11-06 policy uses `contextual_stage_baseline` with
+`assumptions_version=stage_baseline_2026_11_06_v1`. The semantic stage still
+selects the same illustrative prior. Deferral and long-range planning no longer
+multiply odds by 0.5 or 0.65. Urgency and meaningful engagement are also descriptive
+observations, without their earlier numeric boosts. The existing direct-refusal
+guard remains separate at 0.25; observed outcomes and access/coverage exclusions
+retain their existing behavior. These are owner-selected scoring rules, not
+learned or calibrated purchase probabilities.
+
+Both production profile entry points use this stage baseline without loading
+an archive candidate package. Offline comparison and explicit isolated weighted
+prediction remain available for research; a saved candidate does not become live
+through the stream. Timing, engagement, deferral, continued offer search, office
+and payment-method evidence continue to be frozen with source references for
+later comparison against payment evidence. This release does not replay the
+archive, rewrite earlier predictions, reset evaluation cohorts or alter export
+values, delivery, goals, schedules, source messages or customer sends.
+
+The immutable registry distinguishes old heuristic, stage-baseline and explicit
+archive-weight packet contracts. It validates the new stage/guard arithmetic
+without recalculating old saved percentages. The private status reader reports
+a separate `stage_baseline` count in its bounded current-source window.
+Synthetic semantic and SQLite/native-MySQL readback cases cover neutral timing,
+deferral and engagement, preserved evidence, direct refusal, genuine stage
+changes, rejected inconsistent re-signed packets and unchanged historical scores.
