@@ -13,3 +13,30 @@
 @media(max-width:600px){.personalManager{padding:22px 20px;border-radius:18px}.managerContacts{display:grid;gap:4px}.personalNavigation{justify-content:flex-start}.selectionTemplate-personal .offer{border-radius:18px}.selectionTemplate-personal .photos{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr}.selectionTemplate-personal .photos figure:first-child{grid-column:auto;grid-row:1/3}.selectionTemplate-personal .photoCount1,.selectionTemplate-personal .photoCount2,.selectionTemplate-personal .sharedPhotos{grid-template-rows:auto;grid-template-columns:repeat(2,minmax(0,1fr))}.selectionTemplate-personal .photoCount1{grid-template-columns:minmax(0,1fr)}.selectionTemplate-personal .photoCount1 figure:first-child,.selectionTemplate-personal .photoCount2 figure:first-child,.selectionTemplate-personal .sharedPhotos figure:first-child{grid-row:auto}.personalRecommendation{padding:14px 16px}.personalClosing{padding:22px 20px}.personalComparison h2{font-size:24px}}
 @media print{.selectionTemplate-personal details.personalDetails:not([open]) .personalDetailsBody{display:block}.personalNavigation{display:none}.comparisonScroll{overflow:visible}.comparisonScroll table{min-width:0;table-layout:auto}.personalManager,.selectionTemplate-personal .offer,.personalClosing{box-shadow:none;break-inside:avoid}}
 .selectionTemplate-personal .photos:not(.photoCount1):not(.photoCount2):not(.sharedPhotos) img{height:100%;max-height:none}
+
+/* Explicit official AnyTour preset; existing palette snapshots keep their styles. */
+.selectionPalette-anytour{--selection-accent:#2743CB;--selection-brand-light:#6F99FF;--selection-brand-orange:#FF510C;color:#202d43}
+body:has(.selectionPalette-anytour){background:#f3f6ff}
+.selectionPalette-anytour .selectionHead{max-width:none;background:linear-gradient(135deg,#fff 58%,#e9efff);border:1px solid #d9e2ff;border-top:4px solid var(--selection-brand-orange);border-radius:24px;padding:30px 34px;margin:8px 0 28px;box-shadow:0 14px 42px #2743cb0a}
+.selectionPalette-anytour .brand{display:flex;align-items:center;gap:20px;width:fit-content;max-width:100%;min-height:44px;margin-bottom:32px}
+.selectionPalette-anytour .brandAgency{font-size:17px;font-weight:600;overflow-wrap:anywhere;border-left:1px solid #bdcfff;padding-left:20px}
+.anytourLogo{display:block;width:190px;max-width:100%;height:auto;flex:none}
+.selectionPalette-anytour .eyebrow{width:fit-content;max-width:100%;background:#fff0e8;border-radius:8px;padding:7px 10px;color:#203ba8;font-weight:700;letter-spacing:.02em}
+.selectionPalette-anytour h1{color:var(--selection-accent);font-size:clamp(30px,5vw,48px);letter-spacing:-.025em;margin-top:14px}
+.selectionPalette-anytour .intro{max-width:760px;color:#334362;line-height:1.65}
+.selectionPalette-anytour .updated{color:#596780;margin-bottom:0}
+.selectionPalette-anytour .offer{border-color:#d9e2ff;box-shadow:0 12px 36px #2743cb08}
+.selectionPalette-anytour .offerBody{padding:30px 34px}
+.selectionPalette-anytour .variant{color:#2743CB;font-weight:700;letter-spacing:.02em}
+.selectionPalette-anytour .price{color:var(--selection-accent)}
+.selectionPalette-anytour .personalSummary span{background:#edf2ff;border:1px solid #dde6ff;color:#283d70}
+.selectionPalette-anytour .personalRecommendation{border-left-color:var(--selection-brand-orange);background:#f3f6ff}
+.selectionPalette-anytour .personalDetails{border-color:#d9e2ff}
+.selectionPalette-anytour .fareNotice{background:#fff3eb;color:#6b3a22;border-left:3px solid var(--selection-brand-orange)}
+.selectionPalette-anytour .nextStep{color:#2743CB}
+.selectionPalette-anytour .personalClosing{background:#e9efff;border-top:3px solid var(--selection-brand-light)}
+.selectionPalette-anytour .personalClosing h2{color:var(--selection-accent)}
+.selectionPalette-anytour .comparisonScroll thead{background:#edf2ff}
+.selectionPalette-anytour a:focus-visible,.selectionPalette-anytour summary:focus-visible{outline:3px solid #2743CB;outline-offset:4px}
+@media(max-width:600px){.selectionPalette-anytour .selectionHead{padding:24px 20px;border-radius:20px;margin-top:0}.selectionPalette-anytour .brand{gap:12px;flex-wrap:wrap;margin-bottom:26px}.selectionPalette-anytour .brandAgency{font-size:15px;padding-left:12px}.selectionPalette-anytour .anytourLogo{width:166px}.selectionPalette-anytour .offerBody{padding:24px 20px}.selectionPalette-anytour h1{font-size:32px}}
+@media print{.selectionPalette-anytour .selectionHead,.selectionPalette-anytour .offer{box-shadow:none;background:white}.selectionPalette-anytour .selectionHead{break-inside:avoid}.selectionPalette-anytour .anytourLogo{width:160px}}

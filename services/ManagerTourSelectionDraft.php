@@ -48,7 +48,7 @@ final class ManagerTourSelectionDraft
     {
         if (!is_array($input) || array_diff(array_keys($input),['template','palette','agency_name','manager'])
             || !in_array($input['template']??null,['photo','compact','personal'],true)
-            || !in_array($input['palette']??null,['forest','ocean','sunset'],true)) return null;
+            || !in_array($input['palette']??null,['forest','ocean','sunset','anytour'],true)) return null;
         $agency=self::text($input['agency_name']??null,80);
         if ($agency===null || $agency==='') return null;
         $result=['template'=>$input['template'],'palette'=>$input['palette'],'agency_name'=>$agency];
