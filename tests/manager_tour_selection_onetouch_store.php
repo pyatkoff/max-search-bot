@@ -2,6 +2,7 @@
 declare(strict_types=1);
 /** Real canonical transaction/receipts, disposable SQLite memory only. No HTTP. */
 require_once __DIR__.'/../services/ManagerTourSelectionService.php';
+require_once __DIR__.'/../services/ManagerTourSelectionPublicationDraft.php';
 require_once __DIR__.'/../services/ManagerTourSelectionOneTouchIntake.php';
 require_once __DIR__.'/fixtures/onetouch-public.php';
 $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
