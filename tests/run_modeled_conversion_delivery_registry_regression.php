@@ -32,7 +32,7 @@ function deliveryRegistryFixtureEvent(PDO $p,int $conversation,int $rank,int $at
     $columns=['project_key','conversation_id','external_user_id','counter_id','target','transport_target','event_unix','platform',
         'value_rub','value_profile_id','value_stage','value_contract','value_origin','state','client_id','upload_id','upload_status',
         'last_error','value_ready_at_unix','claimed_at_unix','value_api_accepted_at_unix','value_processed_at_unix','value_receipt_basis'];
-    $values=['anytour',$conversation,(string)(70000+$conversation),'98615635',ModeledConversionValueContract::key($rank),
+    $values=['anytour',$conversation,(string)(70000+$conversation),'98615635',!empty($options['predictive'])?ModeledConversionValueContract::predictionKey($profile):ModeledConversionValueContract::key($rank),
         ModeledConversionValueContract::TARGET,$at,$platform,$options['value']??ModeledConversionValueContract::VALUES[$rank],
         $profile,ModeledConversionValueContract::STAGES[$rank],ModeledConversionValueContract::VERSION,$options['origin']??null,$state,
         $receipt?'fixturePrivateClientIdentifier':null,$receipt?'fixtureUploadId':null,$state==='processed'?'PROCESSED':($receipt?'UPLOADED':null),
@@ -230,12 +230,91 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
     }
 }
 
+function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
+{
+    $day=(new DateTimeImmutable('2026-11-02 00:00:00',new DateTimeZone('Europe/Kaliningrad')))->getTimestamp();$now=$day+8000;
+    $legacy=['id'=>'1','conversation_id'=>'600','project_key'=>'anytour','counter_id'=>'98615635','transport_target'=>ModeledConversionValueContract::TARGET,
+        'value_contract'=>ModeledConversionValueContract::VERSION,'platform'=>'max','target'=>ModeledConversionValueContract::key(1),
+        'value_profile_id'=>'1','value_stage'=>'interest','value_rub'=>100,'event_unix'=>$day+120,'client_id'=>'900000000000000001',
+        'upload_id'=>'501','external_user_id'=>'70600','state'=>'processed','upload_status'=>'PROCESSED',
+        'value_api_accepted_at_unix'=>$day+130,'value_processed_at_unix'=>$day+140];
+    $a=$legacy;$a['id']='2';$a['target']=ModeledConversionValueContract::predictionKey('2');$a['value_profile_id']='2';
+    $a['value_rub']=17;$a['event_unix']=$day+220;$a['upload_id']='502';$a['value_api_accepted_at_unix']=$day+230;$a['value_processed_at_unix']=null;
+    $b=$a;$b['id']='3';$b['target']=ModeledConversionValueContract::predictionKey('3');$b['value_profile_id']='3';
+    $b['value_rub']=89;$b['conversation_id']='601';$b['platform']='telegram';$b['client_id']='900000000000000002';$b['upload_id']='503';
+    $api=new class($day) {
+        public array $statuses=['501'=>'PROCESSED','502'=>'PROCESSED','503'=>'UPLOADED'];public bool $duplicate=false;public bool $mismatch=false;public array $calls=[];
+        public function __construct(public int $day){}
+        public function poll(string $id):array{$this->calls[]='GET receipt';return ['id'=>$id,'status'=>$this->statuses[$id],'source_quantity'=>1,'line_quantity'=>1];}
+        public function modeledValueVisits(string $cid,int $activation,int $now):array{
+            $this->calls[]='GET report';$visits=[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$this->day+60),'visits'=>1,'goal_reaches'=>$cid==='900000000000000001'?2:1,
+                'revenue_rub'=>($cid==='900000000000000001'?117:89)+($this->mismatch?1:0)]];
+            if($this->duplicate)$visits[]=$visits[0];return ['status'=>'ok','visits'=>$visits];
+        }
+    };
+    $ledger=[$legacy,$a,$b];$before=serialize($ledger);
+    $proof=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
+    $check('visit proof reconciles a predictive increment together with the legacy amount in one exact visit',
+        $proof['events'][0]['increment_rub']===17&&$proof['events'][0]['linkage']==='unique_visit_reconciled'
+        &&$proof['events'][0]['visit_goal_value_rub']===117&&$proof['events'][0]['expected_goal_reaches']===2);
+    $check('an uploaded row stays waiting rather than becoming a matched visit',
+        $proof['events'][1]['upload_status']==='UPLOADED'&&$proof['events'][1]['linkage']==='not_checked');
+    $api->statuses['503']='PROCESSED';$proof=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
+    $wrap=static fn(array $v):array=>['sha256'=>hash('sha256',json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),'receipt'=>$v];
+    $cache=ModeledConversionVisitProof::validateCache($wrap($proof),$now);
+    $check('saved proof is fingerprint-bound to the exact row amount and advertising binding',
+        ModeledConversionVisitProof::forEvent($cache,$a)['linkage']==='unique_visit_reconciled');
+    $changed=$a;$changed['value_rub']=18;
+    $check('an amended ledger row cannot inherit the old visit proof',
+        ModeledConversionVisitProof::forEvent($cache,$changed)===['available'=>false,'reason'=>'event_changed']);
+    $corrupt=$wrap($proof);$corrupt['receipt']['events'][0]['increment_rub']=18;
+    $check('corrupted private receipt is unavailable rather than trusted',!ModeledConversionVisitProof::validateCache($corrupt,$now)['available']);
+    $check('saved visit evidence becomes explicitly stale',ModeledConversionVisitProof::validateCache($wrap($proof),$now+901)['fresh']===false);
+    $api->duplicate=true;$bad=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
+    $check('multiple goal visits are unverified rather than guessed by amount',$bad['events'][0]['linkage']==='unverified'&&$bad['events'][0]['reason']==='no_unique_goal_visit');
+    $api->duplicate=false;$api->mismatch=true;$bad=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
+    $check('goal revenue mismatch prevents individual linkage confirmation',$bad['events'][0]['reason']==='goal_count_or_value_mismatch');
+    $check('verification changes no profiles ledger rows or advertising state and uses reads only',
+        serialize($ledger)===$before&&array_values(array_unique($api->calls))===['GET receipt','GET report']&&$proof['provider_write_requests']===0&&$proof['source_writes']===0);
+
+    // Exact HTTP scope and counter timezone are exercised through the real client, without network.
+    $wire=[];$transport=static function(string $method,string $url,mixed $body)use(&$wire,$day):array{
+        $wire[]=[$method,$url,$body];
+        if($url==='https://api-metrika.yandex.net/management/v1/counter/98615635')
+            return ['http'=>200,'error'=>0,'body'=>json_encode(['counter'=>['id'=>98615635,'time_zone_name'=>'Europe/Moscow']])];
+        parse_str((string)parse_url($url,PHP_URL_QUERY),$q);
+        return ['http'=>200,'error'=>0,'body'=>json_encode(['query'=>['ids'=>[98615635],'metrics'=>explode(',',$q['metrics']),
+            'dimensions'=>explode(',',$q['dimensions']),'filters'=>$q['filters']],'sampled'=>false,'total_rows'=>1,
+            'data'=>[['dimensions'=>[['name'=>'900000000000000001'],['name'=>(new DateTimeImmutable('@'.($day+60)))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d H:i:s')]],'metrics'=>[1,2,117]]]])];
+    };
+    $client=new MetrikaOfflineClient('98615635','SYNTHETIC_TOKEN',$transport);$visits=$client->modeledValueVisits('900000000000000001',$day,$now);
+    parse_str((string)parse_url($wire[1][1],PHP_URL_QUERY),$q);
+    $check('real report wire is GET-only exact goal ClientID full accuracy and counter timezone',
+        $visits['status']==='ok'&&$visits['visits'][0]['started_at']===gmdate('Y-m-d\TH:i:s\Z',$day+60)
+        &&$wire[0][0]==='GET'&&$wire[1][0]==='GET'&&$q['ids']==='98615635'&&$q['accuracy']==='full'
+        &&$q['filters']==="ym:s:clientID=='900000000000000001' AND ym:s:goal==678187097"
+        &&!str_contains(json_encode($wire,JSON_THROW_ON_ERROR),'SYNTHETIC_TOKEN'));
+
+    deliveryRegistrySchema($p);
+    for($i=0;$i<35;$i++)deliveryRegistryFixtureEvent($p,610,1,$day+100+$i,['predictive'=>true,'value'=>10]);
+    deliveryRegistryFixtureEvent($p,611,1,$day+200,['predictive'=>true,'value'=>0,'state'=>'failed','error'=>'price_loss_reconciled']);
+    $digest=deliveryRegistryDataDigest($p);
+    $page=(new ModeledConversionDeliveryRegistry($p,static function():void{},str_repeat('predictive-fixture-',3)))->read(['date'=>'2026-11-02'],$now);
+    $check('predictive registry supports more than six increments while keeping exact full totals',
+        ($page['available']??false)===true&&$page['summary']['events']===35&&$page['summary']['value_rub']===350
+        &&count($page['rows'])===1&&$page['rows'][0]['events_total']===35&&$page['rows'][0]['events_omitted']===3
+        &&count($page['rows'][0]['events'])===32&&$page['rows'][0]['total_value_rub']===350
+        &&$page['rows'][0]['events'][0]['valuation']['basis']==='predictive_v1'&&deliveryRegistryDataDigest($p)===$digest);
+    foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
+}
+
 function deliveryRegistryAssertions(PDO $p,callable $check):void
 {
     // The dedicated forecast fixture cleans its disposable schema before the ledger suite resets it.
     forecastPaymentAssertions($p,$check);
     deliveryRegistrySchema($p);
     dailyReconciliationAssertions($p,$check);
+    deliveryPredictiveAndVisitAssertions($p,$check);
     $date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Kaliningrad'));
     $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$now=$until+3600;
     $key=str_repeat('fixture-session-key-only-',3);$auth=static function():void{};
@@ -284,14 +363,14 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     $check('history is a direct origin subset and not a different sending day',
         $first['summary']['historical_review']===['events'=>1,'conversations'=>1,'value_rub'=>1250]
         &&$first['summary']['live']['value_rub']===72916);
-    $check('delivery cards are global summary values rather than the twenty-five shown rows',
+    $check('delivery cards are global summary values rather than the shown page rows',
         $first['summary']['delivery']['accepted_receipts']['events']===2
         &&$first['summary']['delivery']['accepted_receipts']['value_rub']===2500
         &&$first['summary']['delivery']['processed']['events']===1
         &&$first['summary']['delivery']['problem']['events']===1
         &&$first['summary']['delivery']['unresolved_identity']['events']===58);
-    $check('first page is twenty-five distinct conversations with a signed continuation',
-        count($first['rows'])===25&&$first['pagination']['has_more']&&is_string($first['pagination']['next_cursor']));
+    $check('first page is ten distinct conversations with a signed continuation',
+        count($first['rows'])===10&&$first['pagination']['has_more']&&is_string($first['pagination']['next_cursor']));
     $all=[];$sum=0;$page=$first;$pages=0;
     do{
         ++$pages;foreach($page['rows']as$row){$all[$row['conversation_id']]=$row;$sum+=$row['period_value_rub'];}
@@ -299,7 +378,7 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
         if($cursor!==null)$page=$read(['cursor'=>$cursor]);
     }while($cursor!==null&&$pages<10);
     $check('all pages reconcile exactly without duplicates or a four-dialogue ceiling',
-        $pages===3&&count($all)===59&&$sum===$first['summary']['value_rub']);
+        $pages===6&&count($all)===59&&$sum===$first['summary']['value_rub']);
     $check('period delta is separate from same-contract lifetime reserved value',
         $all['100']['period_value_rub']===833&&$all['100']['total_value_rub']===2083
         &&$all['100']['stage']==='specific_request'&&count($all['100']['events'])===2
