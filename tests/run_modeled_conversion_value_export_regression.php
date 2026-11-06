@@ -99,9 +99,10 @@ final class ModeledValueTestWire
 }
 final class ModeledValueTestLookup
 {
-    public bool $missing=false;
+    public bool $missing=false;public int $calls=0;
     public function lookup(string $counter,array $users):array
     {
+        $this->calls++;
         $out=[];if(!$this->missing)foreach($users as$user)$out[$user]=['external_user_id'=>$user,'client_id'=>'880000'.$user,'record_id'=>'77'];
         return $out;
     }
@@ -111,6 +112,7 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValuePredictionAssertions($p,$check);
     modeledValuePolicyTransitionAssertions($p,$check);
     modeledPriceLossAssertions($p,$check);
+    modeledValueCatchUpAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
     modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
@@ -376,6 +378,97 @@ function modeledValueFortnightAssertions(PDO $p,callable $check):void
         &&ModeledConversionValueContract::historicalCandidate($old,$a,$from,$until,$until-1)===null);
 }
 
+
+/** Real local transactions under one ordinary exporter tick; every provider is a disposable stub. */
+function modeledValueCatchUpAssertions(PDO $p,callable $check):void
+{
+    $now=1793658000;$gate=static fn(string $chat):bool=>true;$steady=static fn():float=>0.0;
+    $setup=static function(int $count,int $empty=0)use($p,$now):array{
+        modeledValueSchema($p);$wire=new ModeledValueTestWire();
+        $wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
+            'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
+        $lookup=new ModeledValueTestLookup();$lookup->missing=true;
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?")->execute([$now-10]);
+        for($i=1;$i<=$count;$i++){
+            $w=modeledValueWrapper(modeledValueBinding($p,1500+$i),$now);
+            if($i<=$empty)$w['contextual_signals']['events']=[];
+            modeledValueSave($p,$w);
+        }
+        return [$wire,$lookup];
+    };
+    $cursor=static fn():int=>(int)ModeledConversionValueExport::settings($p)['profile_cursor'];
+    $rows=static fn():int=>(int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn();
+    $receipt=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $profiles=static fn():array=>$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+
+    [$wire,$lookup]=$setup(40,8);$before=$profiles();
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,null,$steady);
+    $check('local collection advances past a zero-award page and stops at four committed pages',
+        $cursor()===32&&$rows()===24&&$receipt()['collected']===24&&$receipt()['errors']===0);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate,null,$steady);
+    $check('the next ordinary tick collects the remaining saved profiles exactly once',$cursor()===40&&$rows()===32&&$receipt()['collected']===8);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+600,$gate,null,$steady);
+    $check('empty local catch-up preserves all profile bytes and does not recreate reserved rows',
+        $cursor()===40&&$rows()===32&&$receipt()['collected']===0&&$before===$profiles()&&$wire->posts===0);
+
+    [$wire,$lookup]=$setup(9);$appended=false;
+    $append=static function(string $chat)use($p,$now,&$appended):bool{
+        if(!$appended){$appended=true;modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,1600),$now));}
+        return true;
+    };
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$append,null,$steady);
+    $check('all local pages retain one frozen profile ceiling despite an in-flight append',
+        $cursor()===9&&$rows()===9&&(int)$p->query('SELECT MAX(id) FROM modeled_conversion_profile_versions')->fetchColumn()===10);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate,null,$steady);
+    $check('a profile beyond the original ceiling waits for the next ordinary tick',$cursor()===10&&$rows()===10&&$receipt()['collected']===1);
+
+    [$wire,$lookup]=$setup(24);$attempts=0;
+    $failSecond=static function(string $chat)use(&$attempts):bool{
+        $attempts++;if($chat==='-71509')throw new RuntimeException('synthetic_second_page_failure');return true;
+    };
+    $result=ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$failSecond,null,$steady);
+    $check('a later collection failure preserves committed progress and its exact receipt without retry',
+        $result['status']==='degraded'&&$cursor()===8&&$rows()===8&&$receipt()['collected']===8
+        &&$receipt()['errors']===1&&$attempts===9&&$lookup->calls===0&&$wire->posts===0&&$wire->gets===1);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate,null,$steady);
+    $check('the next normal tick resumes a failed page without duplicating earlier reservations',
+        $cursor()===24&&$rows()===24&&$receipt()['collected']===16&&$receipt()['errors']===0);
+
+    [$wire,$lookup]=$setup(24);$clocks=0;
+    $deadline=static function()use(&$clocks):float{return $clocks++===0?0.0:5.0;};
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,null,$deadline);
+    $check('the monotonic start deadline admits no second page and does not change business time',
+        $cursor()===8&&$rows()===8&&$receipt()['collected']===8&&$receipt()['errors']===0
+        &&(int)ModeledConversionValueExport::settings($p)['last_tick_unix']===$now);
+
+    [$wire,$lookup]=$setup(16);
+    $disable=static function(string $chat)use($p):bool{
+        if($chat==='-71508')$p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off' WHERE project_key='anytour'");
+        return true;
+    };
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$disable,null,$steady);
+    $check('an operator stop between committed pages prevents further local collection',
+        $cursor()===8&&$rows()===8&&ModeledConversionValueExport::settings($p)['mode']==='off'&&$wire->posts===0);
+
+    [$wire,$lookup]=$setup(0);$scope=modeledValueBinding($p,1501);
+    for($i=0;$i<8;$i++)modeledValueSave($p,modeledValueWrapper($scope,$now));
+    for($i=0;$i<8;$i++)modeledValueSave($p,modeledValueWrapper($scope,$now+1,'concrete_request'));
+    modeledValueSave($p,modeledValueWrapper($scope,$now+2));
+    $p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,state,next_attempt_unix,value_rub,value_contract,claim_token) VALUES('anytour',1501,'71501','98615635','prior_unknown',?,?, 'max','unknown',?,1000,?,'preserved_claim')")
+        ->execute([ModeledConversionValueContract::TARGET,$now-1,$now+86400,ModeledConversionValueContract::VERSION]);
+    $unknown=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE target='prior_unknown'")->fetch(PDO::FETCH_ASSOC);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+2,$gate,null,$steady);
+    $check('cross-page growth lower estimates and repeats include an existing unknown reservation once',
+        $cursor()===17&&$rows()===3&&$receipt()['collected']===2
+        &&(int)$p->query('SELECT SUM(value_rub) FROM max_channel_conversion_outbox')->fetchColumn()===2083
+        &&$unknown===$p->query("SELECT * FROM max_channel_conversion_outbox WHERE target='prior_unknown'")->fetch(PDO::FETCH_ASSOC));
+
+    [$wire,$lookup]=$setup(40);$lookup->missing=false;
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,null,$steady);
+    $check('four local pages retain one lookup one report and the original three-upload limit',
+        $cursor()===32&&$rows()===32&&$receipt()['collected']===32&&$receipt()['resolved']===5
+        &&$lookup->calls===1&&$wire->posts===3&&$wire->gets===2&&$receipt()['accepted']===3&&$receipt()['errors']===0);
+}
 
 function modeledValueFairProgressAssertions(PDO $p,callable $check):void
 {
