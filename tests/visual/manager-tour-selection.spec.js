@@ -2207,3 +2207,90 @@ test('OneTouch rejects response party outside the observed enabled adult set bef
  const s=await oneTouchParametricFixture(page,{adults:15,noReview:true});await expect(s.f.getByRole('button',{name:'Проверить фото и условия',exact:true})).toHaveCount(0);
  expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.calls.some(c=>['onetouch_review','onetouch_add'].includes(c.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
+
+// New fileless OneTouch path only. All source prices/photos below are synthetic.
+async function oneTouchDirectFixture(page,options={}){
+ const jpeg=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=160;c.height=120;c.getContext('2d').fillRect(0,0,160,120);return c.toDataURL('image/jpeg').split(',')[1]});
+ const photo='https://image.onetouch.travel/images/hotels_hash/100/synthetic/'+'a'.repeat(32)+'.jpg',gallery='https://onetouch.travel/hotels/synthetic-hotel-1001/';
+ const base=oneTouchBrowserBaseOffer(),newId='e'.repeat(32),adults=options.adults??3;
+ const fields={...copy(base),hotel:'Синтетический OneTouch — прямой поиск',adults,amount:'123456.78',price_qualifier:'from'};
+ const raw={party:adults+'AD',hotel_url:gallery,transport:'Перелёт требует проверки',tour:'Синтетический пакет',tariff:'Синтетический тариф',availability:'Номер по запросу',room:fields.room,meal:fields.meal};
+ let imported=false,actualUrl='',operation='';
+ const s=await privateEditor(page,{draft:{title:'Синтетический прямой поиск',intro:'',offers:[base]},sourceAction:async(d,store)=>{
+  expect(d).not.toHaveProperty('photo_mode');expect(d).not.toHaveProperty('photo_expected');
+  if(d.action==='onetouch_search'){
+   expect(d).not.toHaveProperty('capture');const u=new URL(d.url);expect(u.origin).toBe('https://b2b.onetouch.travel');expect(u.pathname).toBe('/search_tour');
+   expect(u.searchParams.get('ADULT')).toBe(String(adults));expect(u.searchParams.get('CHILD')).toBe('0');expect(u.searchParams.has('AGES')).toBe(false);expect(u.searchParams.get('PRICEPAGE')).toBe('1');expect(u.searchParams.get('DYN_SEPARATE')).toBe('1');
+   expect(u.searchParams.get('CHECKIN_BEG')).toBe('20770107');expect(u.searchParams.get('NIGHTS_FROM')).toBe('7');
+   u.searchParams.set('rev','3187520523');actualUrl=u.href;
+   if(options.unavailable)return{ok:false,error:'onetouch_source_unavailable'};
+   const offer=copy(fields);if(options.wrongParty)offer.adults=2;
+   return{ok:true,version:store.snapshot().version,offers:[{ticket:'synthetic-direct-quote',offer,raw:copy(raw)}]};
+  }
+  if(d.action==='onetouch_review'){
+   expect(d.ticket).toBe('synthetic-direct-quote');expect(d).not.toHaveProperty('gallery_gzip_base64');
+   const offer=copy(fields);if(options.changedPrice)offer.amount='200000';
+   return{ok:true,version:store.snapshot().version,ticket:'synthetic-direct-ready',offer,raw:copy(raw),photos:[photo],source_reference:{quote_id:'0x'+'a'.repeat(64),url:actualUrl}};
+  }
+  if(d.action==='onetouch_add'){
+   expect(imported).toBe(false);expect(d.ticket).toBe('synthetic-direct-ready');expect(d.confirm_price_from).toBe(true);imported=true;operation=d.operation_id;
+   const savedUrl=new URL(actualUrl);if(options.oldOrigin)savedUrl.searchParams.set('rev','965964269');
+   const draft=store.snapshot().draft;draft.offers.push({...copy(fields),id:newId,amount:d.manager_amount,photos:[{url:photo,kind:'cover',illustrative:true}],import_source:{adapter:'onetouch-public-v1',quote_id:'0x'+'a'.repeat(64),url:savedUrl.href,observed_at:'2077-01-01T00:00:00Z',fields:copy(fields),raw:copy(raw),photos:[photo]}});if(options.ambiguousRecovery)draft.offers.push({...copy(draft.offers[1]),id:'f'.repeat(32)});store.replaceDraft(draft);
+   return options.lostAdd?null:{ok:true,state:options.oldOrigin?'already_added':'added',offer_id:newId,saved_version:store.snapshot().version,count:2};
+  }
+  if(d.action==='onetouch_operation'){expect(d.operation_id).toBe(operation);return{ok:true,found:imported,saved_version:store.snapshot().version};}
+  throw Error('Unexpected direct OneTouch action '+d.action);
+ }});
+ await page.route('https://image.onetouch.travel/**',route=>options.brokenPhoto?route.abort('failed'):route.fulfill({contentType:'image/jpeg',body:Buffer.from(jpeg,'base64')}));
+ const f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsOneTouch').click();
+ await expect(f.locator('#tsOneTouchDate')).toBeEnabled();await expect(f.locator('#tsOneTouchNights')).toBeEnabled();await expect(f.locator('#tsOneTouchAdults')).toBeEnabled();
+ await f.locator('#tsOneTouchDate').fill('2077-01-07');await f.locator('#tsOneTouchNights').fill('7');await f.locator('#tsOneTouchAdults').fill(String(adults));
+ return{...s,f,base,fields,raw,photo,newId,actualUrl:()=>actualUrl};
+}
+async function oneTouchDirectReadReview(s){await s.f.locator('#tsOneTouchRead').click();await s.f.getByRole('button',{name:'Проверить фото и условия',exact:true}).click();}
+test('OneTouch fileless search review and direct photo import retain old selection',async({page,browserName})=>{
+ await page.setViewportSize({width:430,height:932});const s=await oneTouchDirectFixture(page),f=s.f;await oneTouchDirectReadReview(s);
+ await expect(f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await expect(f.locator('#tsOneTouchResults')).toContainText('3 взрослых · без детей');await expect(f.locator('#tsOneTouchResults')).toContainText('от 123');
+ await f.locator('#tsOneTouchConfirm').check();await expect(f.locator('#tsOneTouchAdd')).toBeEnabled();
+ const frame=page.frames().find(frame=>frame.url().includes('/manager/tour-selection-editor.php'));expect(await frame.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ for(const id of['tsOneTouchDate','tsOneTouchNights','tsOneTouchAdults','tsOneTouchRead','tsOneTouchAdd'])expect((await f.locator('#'+id).boundingBox()).height).toBeGreaterThanOrEqual(44);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await f.locator('#tsOneTouchResults').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(root,'manager2-artifacts',`onetouch-direct-review-${browserName}-430.png`),fullPage:true,animations:'disabled'});
+ await f.locator('#tsOneTouchAmount').fill('135000');await f.locator('#tsOneTouchAdd').click();await expect.poll(()=>s.snapshot().draft.offers.length).toBe(2);
+ const saved=s.snapshot().draft.offers[1];expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(saved.photos).toEqual([{url:s.photo,kind:'cover',illustrative:true}]);expect(saved.amount).toBe('135000');expect(saved.import_source.fields.amount).toBe('123456.78');expect(saved.import_source.raw.party).toBe('3AD');expect(new URL(saved.import_source.url).searchParams.get('rev')).toBe('3187520523');
+ await expect(f.locator('#tsStatus')).not.toContainText('Завершите перенос фотографий');expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.some(c=>c.editor_resource==='tour-selection-photo.php'||['save','send','publish','collector_import'].includes(c.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+for(const adults of[1,14])test('OneTouch direct form retains enabled adult boundary '+adults,async({page})=>{
+ const s=await oneTouchDirectFixture(page,{adults});await oneTouchDirectReadReview(s);await expect(s.f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await expect(s.f.locator('#tsOneTouchResults')).toContainText(adults===1?'1 взрослый · без детей':'14 взрослых · без детей');expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.calls.some(c=>c.action==='onetouch_add')).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch direct invalid party stops before any source request',async({page})=>{
+ const s=await oneTouchDirectFixture(page);await s.f.locator('#tsOneTouchAdults').fill('15');await s.f.locator('#tsOneTouchRead').click();await expect(s.f.locator('#tsOneTouchStatus')).toContainText('Проверьте');expect(s.calls.some(c=>c.action.startsWith('onetouch_'))).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);
+});
+test('OneTouch rejected file requires explicit return to direct search and never silently falls back',async({page})=>{
+ const s=await oneTouchDirectFixture(page),f=s.f;await f.locator('#tsOneTouchFile').setInputFiles({name:'invalid-synthetic.json',mimeType:'application/json',buffer:Buffer.from('{')});await expect(f.locator('#tsOneTouchStatus')).not.toBeEmpty();await expect(f.locator('#tsOneTouchRead')).toBeDisabled();expect(s.calls.some(c=>c.action.startsWith('onetouch_'))).toBe(false);
+ await f.locator('#tsOneTouchDirect').click();await expect(f.locator('#tsOneTouchRead')).toBeEnabled();await f.locator('#tsOneTouchRead').click();await expect(f.getByRole('button',{name:'Проверить фото и условия',exact:true})).toHaveCount(1);expect(s.calls.filter(c=>c.action==='onetouch_search')).toHaveLength(1);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch direct response cannot silently change requested party',async({page})=>{
+ const s=await oneTouchDirectFixture(page,{wrongParty:true});await s.f.locator('#tsOneTouchRead').click();await expect(s.f.locator('#tsOneTouchStatus')).toContainText('изменились');await expect(s.f.getByRole('button',{name:'Проверить фото и условия',exact:true})).toHaveCount(0);expect(s.calls.filter(c=>c.action==='onetouch_search')).toHaveLength(1);expect(s.calls.some(c=>['onetouch_review','onetouch_add'].includes(c.action))).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);
+});
+test('OneTouch direct source failure leaves saved offers and makes no alternate read',async({page})=>{
+ const s=await oneTouchDirectFixture(page,{unavailable:true});await s.f.locator('#tsOneTouchRead').click();await expect(s.f.locator('#tsOneTouchStatus')).toContainText('не ответил');expect(s.calls.filter(c=>c.action==='onetouch_search')).toHaveLength(1);expect(s.calls.some(c=>['onetouch_review','onetouch_add','collector_import'].includes(c.action))).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch direct review cannot replace original minimum price',async({page})=>{
+ const s=await oneTouchDirectFixture(page,{changedPrice:true});await oneTouchDirectReadReview(s);await expect(s.f.locator('#tsOneTouchStatus')).toContainText('Не удалось подтвердить фотографии');await expect(s.f.locator('#tsOneTouchAdd')).toHaveCount(0);expect(s.calls.some(c=>c.action==='onetouch_add')).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);
+});
+test('OneTouch direct failed image blocks adding without a file upload fallback',async({page})=>{
+ const s=await oneTouchDirectFixture(page,{brokenPhoto:true});await oneTouchDirectReadReview(s);await s.f.locator('#tsOneTouchConfirm').check();await expect(s.f.locator('#tsOneTouchAdd')).toBeDisabled();expect(s.calls.some(c=>c.action==='onetouch_add'||c.editor_resource==='tour-selection-photo.php')).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch direct lost receipt survives old local cache and reconciles without add replay',async({page})=>{
+ const s=await oneTouchDirectFixture(page,{lostAdd:true}),f=s.f;await oneTouchDirectReadReview(s);await expect(f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();await expect(f.locator('#tsRecovery')).toContainText('Проверить');
+ const frame=page.frames().find(frame=>frame.url().includes('/manager/tour-selection-editor.php'));const changed=await frame.evaluate(()=>{let found=0;for(let i=0;i<sessionStorage.length;i++){const key=sessionStorage.key(i);let v;try{v=JSON.parse(sessionStorage.getItem(key))}catch{continue}if(v?.pending?.kind==='onetouch'){v.at=Date.now()-25*3600000;sessionStorage.setItem(key,JSON.stringify(v));found++}}return found});expect(changed).toBe(1);
+ await page.reload();await expect(f.locator('#tsRecovery')).toContainText('Проверить');await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect(f.locator('#tsStatus')).toContainText('Сохранённая операция OneTouch подтверждена');await expect(f.locator('#tsStatus')).not.toContainText('фотографий нужно проверить');expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.snapshot().draft.offers[1].photos).toEqual([{url:s.photo,kind:'cover',illustrative:true}]);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(1);expect(s.calls.some(c=>c.editor_resource==='tour-selection-photo.php')).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch direct idless receipt never guesses between ambiguous canonical photo offers',async({page})=>{
+ const s=await oneTouchDirectFixture(page,{lostAdd:true,ambiguousRecovery:true}),f=s.f;await oneTouchDirectReadReview(s);await expect(f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();await expect(f.locator('#tsRecovery')).toContainText('Проверить');await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect(f.locator('#tsStatus')).toContainText('привязку фотографий нужно проверить');expect(s.snapshot().draft.offers).toHaveLength(3);expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(1);expect(s.calls.some(c=>c.editor_resource==='tour-selection-photo.php')).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+for(const lostAdd of[true,false])test('OneTouch direct receipt keeps a different valid source URL unresolved '+(lostAdd?'idless':'known id'),async({page})=>{
+ const s=await oneTouchDirectFixture(page,{lostAdd,oldOrigin:true}),f=s.f;await oneTouchDirectReadReview(s);await expect(f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();
+ if(lostAdd){await expect(f.locator('#tsRecovery')).toContainText('Проверить');await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect(f.locator('#tsStatus')).toContainText('привязку фотографий нужно проверить');}else await expect(f.locator('#tsStatus')).toContainText('Привязку исходного предложения');
+ await expect(f.locator('#tsStatus')).not.toContainText('Завершите перенос');expect(new URL(s.snapshot().draft.offers[1].import_source.url).searchParams.get('rev')).toBe('965964269');expect(new URL(s.actualUrl()).searchParams.get('rev')).toBe('3187520523');expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(lostAdd?1:0);expect(s.calls.some(c=>c.editor_resource==='tour-selection-photo.php')).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
