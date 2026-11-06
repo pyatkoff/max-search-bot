@@ -267,8 +267,34 @@ function selectScope(env = process.env) {
       if (error.status === 1) return { ...full('base_not_in_head'), blocked: true };
       throw error;
     }
+    // The checkout already fetches origin/main. A saved PR event may predate
+    // that snapshot even though its old base is still an ancestor of the head.
+    // Reject only proven forward movement, not an old/divergent local ref.
+    const baseRef = event?.pull_request?.base?.ref;
+    let snapshotFallback;
+    if (baseRef !== undefined) {
+      if (baseRef !== 'main') snapshotFallback = 'unsupported_base_ref';
+      else {
+        let fetchedMain;
+        try {
+          fetchedMain = git(['rev-parse', '--verify', 'refs/remotes/origin/main']).trim().toLowerCase();
+          if (!/^[a-f0-9]{40}$/.test(fetchedMain) ||
+              git(['rev-parse', '--verify', `${fetchedMain}^{commit}`]).trim().toLowerCase() !== fetchedMain) {
+            snapshotFallback = 'base_snapshot_unavailable';
+          }
+        } catch (_) { snapshotFallback = 'base_snapshot_unavailable'; }
+        if (!snapshotFallback && fetchedMain !== base.toLowerCase()) {
+          try { git(['merge-base', '--is-ancestor', base, fetchedMain]); }
+          catch (error) {
+            snapshotFallback = error.status === 1 ? 'base_snapshot_not_ahead' : 'base_snapshot_unavailable';
+          }
+          if (!snapshotFallback) return { ...full('event_base_superseded'), blocked: true };
+        }
+      }
+    }
     const changes = parseRawDiff(git(['diff', '--raw', '-z', '--no-renames', '--no-abbrev', base, head]));
-    const result = classifySelectionCompanionChanges(changes, () => [
+    // A forced full result still commissions changed CI rules from this diff.
+    const result = snapshotFallback ? full(snapshotFallback) : classifySelectionCompanionChanges(changes, () => [
       git(['show', `${base}:${PUBLIC_MANIFEST}`]), git(['show', `${head}:${PUBLIC_MANIFEST}`])
     ]);
     const browserSpec = 'tests/visual/manager-ai-draft.spec.js';
@@ -282,7 +308,7 @@ function selectScope(env = process.env) {
     }
     // CI-rule edits retain full coverage AND exercise the new scoped runner.
     // Ordinary full changes do not pay for this additional commissioning proof.
-    const workspaceStyle = result.mode === 'full' && workspaceStyleOnlyChanges(changes);
+    const workspaceStyle = !snapshotFallback && result.mode === 'full' && workspaceStyleOnlyChanges(changes);
     return { ...result,
       reason: workspaceStyle ? 'bounded_workspace_style_only' : result.reason,
       backend: result.mode === 'tour-selection' && selectionStyleOnlyChanges(changes) ? 'selection-style' :
@@ -295,7 +321,9 @@ if (require.main === module) {
   const result = selectScope();
   if (result.blocked) {
     // No mode output: dependent jobs must not turn a blocked PR into a skip/pass.
-    process.stderr.write('PR branch is behind its event base; integrate the current main before final CI.\n');
+    process.stderr.write(result.reason === 'event_base_superseded'
+      ? 'PR event base predates the fetched main; refresh the current-base PR event before final CI.\n'
+      : 'PR branch is behind its event base; integrate the current main before final CI.\n');
     process.exitCode = 1;
   } else if (process.env.GITHUB_OUTPUT) {
     fs.appendFileSync(process.env.GITHUB_OUTPUT, `mode=${result.mode}\ntour-proof=${result.proveTourSelection === true}\n`);

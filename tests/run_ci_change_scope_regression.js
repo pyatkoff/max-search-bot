@@ -178,6 +178,7 @@ try {
   git(['init', '-q']); git(['config', 'user.name', 'CI scope regression']); git(['config', 'user.email', 'ci@example.invalid']);
   git(['config', 'core.filemode', 'true']);
   put(oauth, 'base\n'); put(doc, 'docs\n'); put('manager/_bootstrap.php', 'shared\n');
+  put('manager/assets/workspace-v2-tour-choices.css', 'base booking layout\n');
   put(tour,'base selection\n');put(tourService,'<?php // base\n');put(tourDoc,'selection docs\n');
   put(editorManifest, JSON.stringify(editorBase));
   put(editorWrapper,'<?php // standalone wrapper\n');put(editorFixture,'module.exports = {};\n');
@@ -190,13 +191,14 @@ try {
   const base = git(['rev-parse', 'HEAD']);
   const eventPath = path.join(temp, 'event.json');
   const outputPath = path.join(temp, 'output.txt');
-  let lastProof=false;
+  let lastProof=false, lastBackend;
   function run(event, overrides = {}) {
     fs.writeFileSync(eventPath, typeof event === 'string' ? event : JSON.stringify(event));
     fs.writeFileSync(outputPath, '');
     const env = { ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: eventPath, GITHUB_OUTPUT: outputPath, ...overrides };
     const result = JSON.parse(execFileSync(process.execPath, [selector], { cwd: temp, env, encoding: 'utf8' }));
     lastProof=result.proveTourSelection===true;
+    lastBackend=result.backend;
     check(fs.readFileSync(outputPath, 'utf8'), `mode=${result.mode}\ntour-proof=${lastProof}\n`, 'GitHub outputs match JSON');
     return result.mode;
   }
@@ -308,6 +310,70 @@ try {
   git(['merge', '--no-edit', advancedBase]);
   check(run({ pull_request: { base: { sha: advancedBase }, head: { sha: git(['rev-parse', 'HEAD']) } } }),
     'oauth', 'after integrating main, the unchanged candidate follows its ordinary scope');
+
+  // Checkout can fetch a newer main even when the saved PR event still names
+  // the old base. That ancestry passes, but final release admission cannot.
+  const integratedHead = git(['rev-parse', 'HEAD']);
+  const mainEvent = (eventBase, head) => ({ pull_request: { base: { ref: 'main', sha: eventBase }, head: { sha: head } } });
+  git(['update-ref', 'refs/remotes/origin/main', advancedBase]);
+  fs.writeFileSync(eventPath, JSON.stringify(mainEvent(base, staleHead)));
+  fs.writeFileSync(outputPath, '');
+  const obsoleteEvent = spawnSync(process.execPath, [selector], { cwd: temp, encoding: 'utf8',
+    env: { ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: eventPath, GITHUB_OUTPUT: outputPath } });
+  check(obsoleteEvent.status, 1, 'already superseded PR event fails before expensive scopes');
+  check(JSON.parse(obsoleteEvent.stdout).reason, 'event_base_superseded', 'fetched main identifies the obsolete event');
+  check(JSON.parse(obsoleteEvent.stdout).blocked, true, 'obsolete event is a rejection, not reduced coverage');
+  check(fs.readFileSync(outputPath, 'utf8'), '', 'obsolete event publishes no usable scope outputs');
+  check(obsoleteEvent.stderr.includes('PR event base predates'), true, 'event staleness is distinct from branch ancestry');
+  fs.writeFileSync(eventPath, JSON.stringify(mainEvent(base, integratedHead)));
+  const alreadyIntegrated = spawnSync(process.execPath, [selector], { cwd: temp, encoding: 'utf8',
+    env: { ...process.env, GITHUB_EVENT_NAME: 'pull_request', GITHUB_EVENT_PATH: eventPath, GITHUB_OUTPUT: outputPath } });
+  check(alreadyIntegrated.status, 1, 'integrated head does not make an obsolete event current');
+  check(JSON.parse(alreadyIntegrated.stdout).reason, 'event_base_superseded', 'even an integrated head needs a current event');
+  check(fs.readFileSync(outputPath, 'utf8'), '', 'integrated head with stale event still publishes no mode');
+  check(run(mainEvent(advancedBase, integratedHead)), 'oauth', 'current event and fetched main retain the audited scope');
+  check(run(mainEvent(base, staleHead), { GITHUB_EVENT_NAME: 'workflow_dispatch' }), 'full', 'manual checks do not grant early release admission');
+
+  git(['update-ref', '-d', 'refs/remotes/origin/main']);
+  check(run(mainEvent(advancedBase, integratedHead)), 'full', 'missing fetched main cannot select a reduced scope');
+  git(['update-ref', 'refs/remotes/origin/main', base]);
+  check(run(mainEvent(advancedBase, integratedHead)), 'full', 'older local remote snapshot is not a proven advance');
+  git(['reset', '--hard', '-q', base]); git(['clean', '-fdq']);
+  put('docs/divergent-ci-base.txt', 'different history, not a proven main advance\n');
+  git(['add', '-A']); git(['commit', '-qm', 'divergent remote snapshot']);
+  git(['update-ref', 'refs/remotes/origin/main', git(['rev-parse', 'HEAD'])]);
+  check(run(mainEvent(advancedBase, integratedHead)), 'full', 'divergent snapshot cannot trigger the early rejection');
+  git(['update-ref', 'refs/remotes/origin/main', git(['rev-parse', `HEAD:${oauth}`])]);
+  check(run(mainEvent(advancedBase, integratedHead)), 'full', 'non-commit remote snapshot is unavailable evidence');
+  git(['tag', '-a', 'remote-tag', advancedBase, '-m', 'not a branch commit']);
+  git(['update-ref', 'refs/remotes/origin/main', git(['rev-parse', 'refs/tags/remote-tag'])]);
+  check(run(mainEvent(advancedBase, integratedHead)), 'full', 'a tag peeled to main is not a raw remote branch commit');
+  git(['update-ref', 'refs/remotes/origin/main', advancedBase]);
+  for (const ref of ['release/main', '../main', '--help', null]) {
+    const foreignRefEvent = mainEvent(base, staleHead);
+    foreignRefEvent.pull_request.base.ref = ref;
+    check(run(foreignRefEvent), 'full', 'unknown base ref is never interpolated or mistaken for origin/main: ' + ref);
+  }
+
+  git(['reset', '--hard', '-q', advancedBase]); git(['clean', '-fdq']);
+  put(tour, 'current selection change\n');
+  git(['add', '-A']); git(['commit', '-qm', 'current component candidate']);
+  check(run(mainEvent(advancedBase, git(['rev-parse', 'HEAD']))), 'tour-selection', 'current fetched base preserves complete selection scope');
+  put('manager/_bootstrap.php', 'current shared change\n');
+  git(['add', '-A']); git(['commit', '-qm', 'current mixed candidate']);
+  check(run(mainEvent(advancedBase, git(['rev-parse', 'HEAD']))), 'full', 'current fetched base never narrows mixed coverage');
+  git(['reset', '--hard', '-q', advancedBase]); git(['clean', '-fdq']);
+  put('tools/ci_change_scope.js', '// policy change still requires component commissioning\n');
+  git(['add', '-A']); git(['commit', '-qm', 'policy change with unavailable remote snapshot']);
+  git(['update-ref', '-d', 'refs/remotes/origin/main']);
+  check(run(mainEvent(advancedBase, git(['rev-parse', 'HEAD']))), 'full', 'unavailable snapshot keeps policy changes full');
+  check(lastProof, true, 'conservative fallback preserves component commissioning for policy changes');
+  git(['reset', '--hard', '-q', advancedBase]); git(['clean', '-fdq']);
+  put('manager/assets/workspace-v2-tour-choices.css', 'changed booking layout\n');
+  git(['add', '-A']); git(['commit', '-qm', 'style change with unavailable remote snapshot']);
+  check(run(mainEvent(advancedBase, git(['rev-parse', 'HEAD']))), 'full', 'unavailable snapshot keeps styling changes full');
+  check(lastBackend, 'full', 'conservative fallback cannot apply the styling backend shortcut');
+  git(['reset', '--hard', '-q', integratedHead]);
 
   const brokenHead = git(['rev-parse', 'HEAD']);
   const brokenTree = git(['rev-parse', `${brokenHead}^{tree}`]);
