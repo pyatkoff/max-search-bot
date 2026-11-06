@@ -5,6 +5,7 @@ require_once __DIR__.'/MaxChannelConversionOutbox.php';
 require_once __DIR__.'/MaxTrackerLookupClient.php';
 require_once __DIR__.'/MetrikaOfflineClient.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/ModeledConversionPriceContinuity.php';
 
 /** One bounded addition to the existing cron process and durable conversion outbox. */
 final class ModeledConversionValueExport
@@ -113,6 +114,8 @@ final class ModeledConversionValueExport
         $stats=['collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
         try{
             $repo=new MaxChannelConversionOutbox($p);$repo->recover($now);
+            $priceGuard=new ModeledConversionPriceContinuity($p);
+            $stats['price_continuity_audit']=$priceGuard->reconcile($now,fn(array $r):bool=>$self->eligible($r,$gate));
             $stats['collected']=$self->collect($s,$now,$gate);
             $stats['historical_collected']=$self->collectHistory($now,$gate);
             $pending=$self->rows('pending',$now,5);
@@ -132,9 +135,10 @@ final class ModeledConversionValueExport
                 foreach($ready as$r){
                     if((self::settings($p)['mode']??'off')!=='send')break;
                     if(!$self->eligible($r,$gate)){self::failRow($p,$r,'scope_unavailable');continue;}
+                    if(!$priceGuard->maySend($r))continue;
                     $token=bin2hex(random_bytes(16));
-                    $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=?");
-                    $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET]);
+                    $q=$p->prepare("UPDATE max_channel_conversion_outbox SET state='uploading',claim_token=?,claimed_at_unix=?,attempts=attempts+1 WHERE id=? AND state='ready' AND target=? AND transport_target=? AND value_rub=?");
+                    $q->execute([$token,$now,$r['id'],$r['target'],ModeledConversionValueContract::TARGET,$r['value_rub']]);
                     if($q->rowCount()!==1)continue;
                     try{$response=$api->uploadModeledValue($r,$now);}catch(Throwable $ignored){$response=['outcome'=>'unknown','reason'=>'upload_outcome_unknown'];}
                     $self->finishObserved($repo,(string)$r['id'],$token,$response,$now,self::observedAt($clock,$now));
@@ -252,12 +256,15 @@ final class ModeledConversionValueExport
                 if(!$binding||(string)$binding['customer_id']!==(string)$r['customer_key']||!$gate($binding['external_chat_id']))continue;
                 $q=$this->pdo->prepare("SELECT COALESCE(SUM(value_rub),0) FROM max_channel_conversion_outbox WHERE project_key='anytour' AND conversation_id=? AND transport_target=? AND value_contract=?");
                 $q->execute([$r['conversation_id'],ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
-                $reserved=(int)$q->fetchColumn();$delta=$candidate['value']-$reserved;if($delta<=0)continue;
+                $reserved=(int)$q->fetchColumn();$originalTarget=$candidate['value'];
+                $guard=new ModeledConversionPriceContinuity($this->pdo);$decision=$guard->adjust($w,$candidate);$candidate=$decision['candidate'];
+                $delta=$candidate['value']-$reserved;if($delta<=0)continue;
                 $insert=$mysql?'INSERT IGNORE':'INSERT OR IGNORE';
                 $q=$this->pdo->prepare($insert." INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,identity_source_key,value_rub,value_profile_id,value_stage,value_contract) VALUES('anytour',?,?,'98615635',?,?,?,?,?,?,?,?,?)");
                 $q->execute([$r['conversation_id'],$binding['external_user_id'],!empty($candidate['prediction_value'])?ModeledConversionValueContract::predictionKey((string)$r['id']):ModeledConversionValueContract::key($candidate['rank']),
                     ModeledConversionValueContract::TARGET,$candidate['event_unix'],$r['platform'],$r['platform']==='telegram'?'tgmini':'max_tracker',
-                    $delta,$r['id'],$candidate['stage'],ModeledConversionValueContract::VERSION]);$written+=$q->rowCount()===1?1:0;
+                    $delta,$r['id'],$candidate['stage'],ModeledConversionValueContract::VERSION]);
+                if($q->rowCount()===1){$written++;if(!empty($candidate['prediction_value']))$guard->remember((string)$this->pdo->lastInsertId(),$decision['basis']===null?'unchanged':'rebased',max(0,$originalTarget-$reserved),$delta,$reserved,$decision['basis']??['version'=>ModeledConversionPriceContinuity::VERSION,'reason'=>'no_price_loss_increase'],$now);}
             }
             $q=$this->pdo->prepare("UPDATE modeled_conversion_value_export_settings SET profile_cursor=? WHERE project_key='anytour'");$q->execute([$after]);
             $this->pdo->commit();return $written;

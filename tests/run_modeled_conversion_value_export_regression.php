@@ -7,7 +7,7 @@ function modeledValueSchema(PDO $p):void
 {
     $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
     if($mysql&&$p->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_modeled_stream_test')throw new RuntimeException('unsafe_fixture_database');
-    foreach(['modeled_conversion_value_export_settings','max_channel_conversion_outbox','max_channel_attribution_settings','modeled_conversion_profile_versions','advertising_visit_observations','conversations','customer_channels']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
+    foreach(['modeled_conversion_price_audit','modeled_conversion_value_export_settings','max_channel_conversion_outbox','max_channel_attribution_settings','modeled_conversion_profile_versions','advertising_visit_observations','conversations','customer_channels']as$t)$p->exec('DROP TABLE IF EXISTS '.$t);
     $auto=$mysql?'BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY':'INTEGER PRIMARY KEY AUTOINCREMENT';
     if($mysql){
         $p->exec(file_get_contents(dirname(__DIR__).'/migrations/037_max_channel_conversion_outbox.sql'));
@@ -16,10 +16,12 @@ function modeledValueSchema(PDO $p):void
         $p->exec(file_get_contents(dirname(__DIR__).'/migrations/087_modeled_conversion_value_history.sql'));
         $p->exec(file_get_contents(dirname(__DIR__).'/migrations/088_modeled_conversion_value_fortnight.sql'));
         $p->exec(file_get_contents(dirname(__DIR__).'/migrations/090_modeled_conversion_delivery_observability.sql'));
+        $p->exec(file_get_contents(dirname(__DIR__).'/migrations/093_modeled_value_price_continuity.sql'));
     }else{
         $p->exec("CREATE TABLE max_channel_conversion_outbox(id $auto,project_key TEXT,conversation_id INTEGER,external_user_id TEXT,counter_id TEXT,target TEXT,transport_target TEXT,event_unix INTEGER,client_id TEXT,tracker_record_id TEXT,tracker_observed_unix INTEGER,state TEXT DEFAULT 'pending',next_attempt_unix INTEGER DEFAULT 0,claim_token TEXT,claimed_at_unix INTEGER,attempts INTEGER DEFAULT 0,upload_id TEXT,upload_status TEXT,last_error TEXT DEFAULT '',platform TEXT DEFAULT 'max',identity_source_key TEXT DEFAULT '',identity_observation_id INTEGER,value_rub NUMERIC,value_profile_id INTEGER,value_stage TEXT,value_contract TEXT,value_origin TEXT,value_reviewed_at_unix INTEGER,value_ready_at_unix INTEGER,value_api_accepted_at_unix INTEGER,value_processed_at_unix INTEGER,value_receipt_basis TEXT,UNIQUE(project_key,conversation_id,target))");
         $p->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key TEXT PRIMARY KEY,counter_id TEXT,mode TEXT DEFAULT 'off',goal_id TEXT,goal_intent TEXT DEFAULT 'none',activated_at_unix INTEGER,profile_cursor INTEGER DEFAULT 0,base_value_rub INTEGER DEFAULT 25000,contract_version TEXT DEFAULT 'semantic_stage_value_25000_v1',last_tick_unix INTEGER,last_receipt_json TEXT,history_from_unix INTEGER,history_until_unix INTEGER,history_cursor INTEGER DEFAULT 0,history_ceiling INTEGER,history_completed_at_unix INTEGER,history_scanned INTEGER DEFAULT 0,history_collected INTEGER DEFAULT 0,history_stats_json TEXT,history_fortnight_requested_at_unix INTEGER,history_day_receipt_json TEXT,last_report_success_unix INTEGER,last_report_success_json TEXT,report_failure_since_unix INTEGER)");
         $p->exec("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id) VALUES('anytour','98615635')");
+        $p->exec("CREATE TABLE modeled_conversion_price_audit(outbox_id BIGINT PRIMARY KEY,action VARCHAR(24),original_value_rub INTEGER,applied_value_rub INTEGER,prior_reserved_rub INTEGER,assessed_at_unix BIGINT,basis_json TEXT,basis_sha256 VARCHAR(64))");
     }
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id $auto,project_key VARCHAR(64),platform VARCHAR(16),customer_key VARCHAR(20),conversation_id BIGINT,observed_at_unix BIGINT,profile_json ".($mysql?'JSON':'TEXT').")");
     $p->exec("CREATE TABLE customer_channels(id BIGINT PRIMARY KEY,customer_id BIGINT,project_key VARCHAR(64),channel VARCHAR(16),external_user_id VARCHAR(20),external_chat_id VARCHAR(32))");
@@ -107,6 +109,7 @@ final class ModeledValueTestLookup
 function modeledValueAssertions(PDO $p,callable $check):void
 {
     modeledValuePredictionAssertions($p,$check);
+    modeledPriceLossAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
     modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
@@ -467,6 +470,80 @@ function modeledValuePredictionAssertions(PDO $p,callable $check):void
     $bad=$stronger;$bad['deal_value_prediction']['value_rub']=24000;
     $check('modified monetary capsule cannot fall back to a legacy positive award',
         ModeledConversionValueContract::candidate($bad,$scope,$now-500,$now+6)===null);
+}
+
+
+function modeledPriceLossAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);$now=1793675000;$scope=modeledValueBinding($p,751);
+    $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $lookup=new class{public function lookup(string $counter,array $users):array{$r=[];foreach($users as$u)$r[$u]=['external_user_id'=>$u,'client_id'=>'88000001','record_id'=>'1','observed_at_unix'=>1793675000];return$r;}};
+    $gate=static fn(string $chat):bool=>true;
+    $first=modeledExpertWrapper($scope,$now,200000);modeledValueSave($p,$first);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+    $sum=static fn():int=>(int)$p->query("SELECT COALESCE(SUM(value_rub),0) FROM max_channel_conversion_outbox WHERE conversation_id=751")->fetchColumn();
+    $initial=$sum();$posts=$wire->posts;
+    $unknown=static function(array $w,bool $fallback=false):array{
+        unset($w['profile']['fields']['budget']);
+        if($fallback){$w['semantic_prediction']['status']='insufficient_context';$w['semantic_prediction']['estimated_probability']=null;
+            $w['semantic_prediction']['base_probability']=null;$w['semantic_prediction']['hypothesis_odds_multiplier']=null;
+            $w['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($w['semantic_prediction']);}
+        $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,['rows'=>[]]);return$w;
+    };
+    $lost=$unknown(modeledExpertWrapper($scope,$now+1,200000));modeledValueSave($p,$lost);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $check('losing a known price cannot create a same probability uplift or another actual upload',
+        $initial===1167&&$sum()===$initial&&$wire->posts===$posts&&$lost['deal_value_prediction']['full_value_base_rub']===25000);
+    $stronger=$unknown(modeledExpertWrapper($scope,$now+2,200000,true));modeledValueSave($p,$stronger);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
+    $expected=(int)round($stronger['semantic_prediction']['estimated_probability']*14000);
+    $check('genuine stronger meaning still exports its delta using the retained priced base',
+        $sum()===$expected&&$expected>$initial&&$wire->posts===$posts+1&&str_contains(end($wire->csv),','.($expected-$initial).',RUB'));
+    $audit=$p->query("SELECT * FROM modeled_conversion_price_audit WHERE action='rebased'")->fetch(PDO::FETCH_ASSOC);
+    $basis=json_decode($audit['basis_json'],true,32,JSON_THROW_ON_ERROR);
+    $check('retained base is an auditable cap and never rewrites the frozen unknown tour estimate',
+        $basis['applied_base_rub']===14000&&$basis['reference_deal_rub']===200000
+        &&$basis['weight_basis']==='frozen_probability'&&$stronger['deal_value_prediction']['deal_amount_rub']['point']===null);
+    $priced=modeledExpertWrapper($scope,$now+3,300000,true);modeledValueSave($p,$priced);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+3,$gate);
+    $check('an explicitly known new price can legitimately raise the monetary base',
+        $sum()===$priced['deal_value_prediction']['value_rub']&&$wire->posts===$posts+2);
+
+    // Independent synthetic pre-fix pending row, lower-stage fallback after a known price.
+    modeledValueSchema($p);$scope=modeledValueBinding($p,752);$control=new ModeledConversionValueExport($p);$wire=new ModeledValueTestWire();$api=$wire->api();
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $first=modeledExpertWrapper($scope,$now,100000);modeledValueSave($p,$first);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+    $reserved=(int)$p->query('SELECT SUM(value_rub) FROM max_channel_conversion_outbox')->fetchColumn();
+    $fallback=$unknown(modeledExpertWrapper($scope,$now+1,100000),true);modeledValueSave($p,$fallback);$profile=(string)$p->lastInsertId();
+    $candidate=ModeledConversionValueContract::candidate($fallback,$scope,$now-500,$now+1);
+    if(!$candidate)throw new RuntimeException('fixture_fallback_missing');
+    $falseDelta=$candidate['value']-$reserved;
+    $p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,identity_source_key,value_rub,value_profile_id,value_stage,value_contract) VALUES('anytour',?,'70752','98615635',?,'anytour_modeled_value_v1',?,'max','max_tracker',?,?,?,'semantic_stage_value_25000_v1')")
+        ->execute([752,ModeledConversionValueContract::predictionKey($profile),$now+1,$falseDelta,$profile,$candidate['stage']]);
+    $bad=(string)$p->lastInsertId();$frozen=$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$beforePosts=$wire->posts;
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $row=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id='.(int)$bad)->fetch(PDO::FETCH_ASSOC);
+    $entry=$p->query('SELECT * FROM modeled_conversion_price_audit WHERE outbox_id='.(int)$bad)->fetch(PDO::FETCH_ASSOC);
+    $check('an unattempted false fallback reservation is voided before identity resolution and upload',
+        $falseDelta>0&&(int)$row['value_rub']===0&&$row['state']==='failed'&&$row['last_error']==='price_loss_reconciled'
+        &&$entry['action']==='voided'&&(int)$entry['original_value_rub']===$falseDelta
+        &&$wire->posts===$beforePosts&&(int)$p->query('SELECT SUM(value_rub) FROM max_channel_conversion_outbox')->fetchColumn()===$reserved);
+    $snapshot=json_encode($p->query('SELECT * FROM modeled_conversion_price_audit ORDER BY outbox_id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
+    $check('reconciliation is idempotent and preserves original forecasts and the immutable correction receipt',
+        $snapshot===json_encode($p->query('SELECT * FROM modeled_conversion_price_audit ORDER BY outbox_id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR)
+        &&$frozen===$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)
+        &&$wire->posts===$beforePosts);
+    $later=$unknown(modeledExpertWrapper($scope,$now+3,100000),true);modeledValueSave($p,$later);$profile=(string)$p->lastInsertId();
+    $p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,identity_source_key,value_rub,value_profile_id,value_stage,value_contract,state,claimed_at_unix,attempts,upload_id,upload_status) VALUES('anytour',?,'70752','98615635',?,'anytour_modeled_value_v1',?,'max','max_tracker',?,?,?,'semantic_stage_value_25000_v1','accepted',?,1,'901234','UPLOADED')")
+        ->execute([752,ModeledConversionValueContract::predictionKey($profile),$now+3,$falseDelta,$profile,$candidate['stage'],$now+3]);
+    $sent=(string)$p->lastInsertId();$guard=new ModeledConversionPriceContinuity($p);$report=$guard->reconcile($now+3,static fn(array $r):bool=>true);
+    $row=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id='.(int)$sent)->fetch(PDO::FETCH_ASSOC);
+    $check('a claimed or API accepted amount is flagged for review without changing or resending its provider record',
+        $row['state']==='accepted'&&(int)$row['value_rub']===$falseDelta&&$row['upload_id']==='901234'
+        &&($report['actions']['review_required']['events']??0)===1&&$report['complete']&&!$guard->maySend($row));
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){

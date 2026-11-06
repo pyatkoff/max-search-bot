@@ -89,3 +89,5 @@ This is the current incremental refactoring map. It is intentionally conservativ
 ## Audit rule
 
 Run `php tools/architecture_inventory.php` during periodic full-repository audits. Treat its output as triage evidence, not an automatic refactor order: production/lead safety and the roadmap priority order still decide what is changed next. `runtime_ddl` should be empty unless a real request/business runtime schema owner remains; `schema_infrastructure_ddl` may contain only the migration execution boundary. The next control-plane step is to publish this inventory as a stable diagnostics artifact after deploy so technical drift is visible without repeating a manual tree reread.
+
+- `services/ModeledConversionPriceContinuity.php` — conservative derived monetary caps and append-only price-loss reconciliation inside the existing modeled-value tick; no source-profile/customer mutation or provider reversal.
