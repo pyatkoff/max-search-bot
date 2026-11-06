@@ -1133,6 +1133,66 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $check('a negative ledger increment is rejected without a stage explanation',
         $r===['available'=>false,'reason'=>'invalid_saved_projection']);
     $check('all stage inspections leave the synthetic profiles and reservation rows byte identical',$stageReadOnly);
+
+    // Seventeen already-inspected events exercise selection before the existing sixteen-example cap.
+    $selectionReadOnly=true;
+    $selectionRead=static function(array $overrides=[])use($p,$put,$read,$snapshot,&$selectionReadOnly):array{
+        $p->exec('DELETE FROM max_channel_conversion_outbox');$p->exec('DELETE FROM modeled_conversion_profile_versions');
+        for($id=100;$id<=116;$id++){
+            [$probability,$full,$delta,$semantic]=$overrides[$id]??[0.05,500,500,[]];
+            $put($id,'max',1000+$id,$probability,null,$full,$delta,'accepted','UPLOADED',
+                ['version'=>'early_deal_commission_7pct_v2','full_value_base_rub'=>10000],$semantic);
+        }
+        $before=$snapshot();$result=$read();$selectionReadOnly=$selectionReadOnly&&$before===$snapshot();return $result;
+    };
+    $nonComparisons=[115=>[null,null,500,['status'=>'insufficient_context']],114=>[0.05,600,600,[]]];
+    $r=$selectionRead($nonComparisons+[100=>[0.06,600,600,[]]]);
+    $newestCases=array_map(static fn(int $n):string=>'dialogue_'.$n,range(1,16));
+    $check('a difference in the seventeenth inspected row precedes the newest ordinary examples before the sixteen-example cap',
+        $r['examples_selection']==='comparison_differences_first_then_newest'
+        &&array_column($r['examples'],'case')===array_merge(['dialogue_17'],array_slice($newestCases,0,15))
+        &&$r['examples'][0]['stage_comparison']['contextual_minus_stage_rub']===100
+        &&$r['events']===17&&$r['conversations']===17&&$r['value_rub']===8700
+        &&$r['stage_comparison_counts']===['above_stage'=>1,'equal_stage'=>14,'below_stage'=>0,'stage_only'=>1,'unavailable'=>1]
+        &&array_sum($r['stage_comparison_counts'])===$r['events']
+        &&$r['window']===['max_goal_rows'=>201,'max_predictive_rows'=>17,'inspected_predictive_rows'=>17,
+            'complete_within_goal_suffix'=>false,'global_coverage_known'=>false]);
+
+    // Exercise the real response trimmer with enough space for four actual reader examples.
+    $projection=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
+    $method=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
+    $large=['value_delivery'=>['predictive_v1'=>$r],'synthetic_padding'=>''];$four=$large;
+    $four['value_delivery']['predictive_v1']['examples']=array_slice($r['examples'],0,4);
+    $four['value_delivery']['predictive_v1']['examples_omitted_due_to_response_budget']=true;
+    $jsonFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $large['synthetic_padding']=str_repeat('x',28000-strlen(json_encode($four,$jsonFlags))-1);
+    $bounded=$method->invoke($projection,$large);$kept=$bounded['value_delivery']['predictive_v1'];
+    $summary=$r;unset($summary['examples']);$boundedSummary=$kept;
+    unset($boundedSummary['examples'],$boundedSummary['examples_omitted_due_to_response_budget']);
+    $check('the actual response budget retains the late difference and exact aggregates while trimming to four examples',
+        strlen(json_encode($bounded,$jsonFlags))<=28000&&count($kept['examples'])===4
+        &&$kept['examples']===array_slice($r['examples'],0,4)&&$kept['examples_omitted_due_to_response_budget']===true
+        &&$boundedSummary===$summary&&$kept['examples'][0]['stage_comparison']['contextual_minus_stage_rub']===100);
+
+    $mixed=$selectionRead($nonComparisons+[111=>[0.04,400,400,[]],108=>[0.09,900,900,[]],
+        103=>[0.03,300,300,[]],100=>[0.06,600,600,[]]]);
+    $check('both signs have equal priority and preserve newest order rather than sorting by sign or magnitude',
+        array_column($mixed['examples'],'case')===['dialogue_6','dialogue_9','dialogue_14','dialogue_17',
+            'dialogue_1','dialogue_2','dialogue_3','dialogue_4','dialogue_5','dialogue_7','dialogue_8','dialogue_10',
+            'dialogue_11','dialogue_12','dialogue_13','dialogue_15']
+        &&array_column(array_column(array_slice($mixed['examples'],0,4),'stage_comparison'),'contextual_minus_stage_rub')===[-100,400,-200,100]
+        &&$mixed['stage_comparison_counts']===['above_stage'=>2,'equal_stage'=>11,'below_stage'=>2,'stage_only'=>1,'unavailable'=>1]);
+    $equal=$selectionRead($nonComparisons);
+    $check('without differences the newest order is unchanged and null comparisons are not promoted as nonzero',
+        array_column($equal['examples'],'case')===$newestCases
+        &&array_column(array_column(array_slice($equal['examples'],0,3),'stage_comparison'),'status')===['available','stage_only','unavailable']
+        &&array_column(array_column(array_slice($equal['examples'],0,3),'stage_comparison'),'contextual_minus_stage_rub')===[0,null,null]
+        &&$equal['stage_comparison_counts']===['above_stage'=>0,'equal_stage'=>15,'below_stage'=>0,'stage_only'=>1,'unavailable'=>1]);
+    $json=json_encode([$r,$kept,$mixed,$equal],JSON_THROW_ON_ERROR);
+    $check('prioritized examples retain the existing privacy provider and immutable-row boundaries',
+        $selectionReadOnly&&$r['provider_requests']===0&&$mixed['provider_requests']===0&&$equal['provider_requests']===0
+        &&!str_contains($json,'PRIVATE_')&&!str_contains($json,'770001')&&!str_contains($json,'990001')
+        &&!str_contains($json,'value_profile_id')&&!str_contains($json,'conversation_id'));
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
