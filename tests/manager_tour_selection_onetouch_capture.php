@@ -36,4 +36,23 @@ $publication=ManagerTourSelectionPublicationDraft::build(['title'=>'Synthetic ti
 capCheck($publication['ok']===true,'captured offer produces private preview');
 $entry=$publication['offers'][0];$card=TourOfferCardRenderer::render($entry['snapshot'],$entry['presentation'],'tour_like_1_'.str_repeat('0',24));
 capCheck(str_contains($card['plain_text'],'Время цены в файле: '.gmdate('d.m.Y H:i:s',$now).' UTC')&&str_contains($card['plain_text'],'Время галереи в файле: 01.01.2020 00:00:00 UTC'),'frozen preview and PNG caption expose separate source times');
+// Different adult counts traverse the real file decoder and signed intake.
+foreach([1,3,14] as $adults){
+    $adultFixture=syntheticOneTouchSource($adults);$adultCapture=$capture;
+    $adultCapture['reference']='SYNTHETIC_CAPTURE_ADULT_'.$adults;$adultCapture['url']=$adultFixture['url'];
+    $adultCapture['prices_gzip_base64']=base64_encode(gzencode($adultFixture['response']));$adultCapture['prices_sha256']=hash('sha256',$adultFixture['response']);
+    $adultDecoded=ManagerTourSelectionOneTouchCapture::read($adultCapture,$now);
+    capCheck($adultDecoded['quotes'][0]['offer']['adults']===$adults&&$adultDecoded['quotes'][0]['raw']['party']===$adults.'AD','capture binds actual native party '.$adults);
+    capCheck($adultDecoded['quotes'][0]['offer']['amount']==='123456.78'&&$adultDecoded['quotes'][0]['offer']['price_qualifier']==='from','capture does not rescale party minimum '.$adults);
+    capCheck($adultDecoded['quotes'][0]['observed_at']===$capture['captured_at']&&$adultDecoded['quotes'][0]['raw']['capture_gallery_observed_at']==='2020-01-01T00:00:00Z','new party never refreshes source or gallery time '.$adults);
+    $adultSearch=ManagerTourSelectionOneTouchIntake::search(2,1,$key,['capture'=>$adultCapture]);
+    capCheck($adultSearch['ok']===true&&$adultSearch['offers'][0]['offer']['adults']===$adults,'canonical signed search retains party '.$adults);
+    $adultReady=ManagerTourSelectionOneTouchIntake::review(2,1,$key,['ticket'=>$adultSearch['offers'][0]['ticket'],'gallery_gzip_base64'=>base64_encode(gzencode($adultFixture['hotel']))]);
+    $adultOpened=ManagerTourSelectionOneTouchIntake::open($adultReady['ticket'],$key,2,1,'ready');
+    capCheck($adultReady['ok']===true&&$adultOpened['observation']['offer']['adults']===$adults&&$adultOpened['observation']['raw']['party']===$adults.'AD','ready ticket binds the same party and hotel '.$adults);
+}
+$mismatchedCapture=$adultCapture;$mismatchedCapture['url']=$f['url'];
+capReject(fn()=>ManagerTourSelectionOneTouchCapture::read($mismatchedCapture,$now),'body party cannot be substituted by another query in the file');
+
+
 echo json_encode(['checks'=>$passed,'syntheticOnly'=>true,'network'=>0,'imports'=>0,'operatorFareTTLAsserted'=>false],JSON_THROW_ON_ERROR)."\n";

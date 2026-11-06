@@ -53,4 +53,34 @@ $bad=$command;$bad['manager_amount']='140000';storeCheck((ManagerTourSelectionSe
 storeCheck((int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===2,'one old and one imported receipt only');
 storeCheck((ManagerTourSelectionService::importOneTouch(7,1,$key,$command,true)['error']??'')==='onetouch_expired','foreign actor cannot read signed intent');
 foreach($before as $table=>$rows)storeCheck($p->query('SELECT * FROM '.$table)->fetchAll()===$rows,'no collateral change '.$table);
+// Real canonical transactions distinguish otherwise identical offers by party.
+$beforePartyAdds=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];
+$partyIds=[$offer['id']];$expectedCount=count($beforePartyAdds);
+foreach([1,3,14] as $adults){
+    $adultFixture=syntheticOneTouchSource($adults);$adultBundle=$bundle;
+    $adultBundle['reference']='SYNTHETIC_STORE_ADULT_'.$adults;$adultBundle['url']=$adultFixture['url'];
+    $adultBundle['prices_gzip_base64']=base64_encode(gzencode($adultFixture['response']));$adultBundle['prices_sha256']=hash('sha256',$adultFixture['response']);
+    $adultSearch=ManagerTourSelectionOneTouchIntake::search(8,1,$key,['capture'=>$adultBundle]);
+    storeCheck($adultSearch['ok']===true,'party capture admitted in current source context '.$adults);
+    $adultReady=ManagerTourSelectionOneTouchIntake::review(8,1,$key,['ticket'=>$adultSearch['offers'][0]['ticket'],'gallery_gzip_base64'=>base64_encode(gzencode($adultFixture['hotel']))]);
+    storeCheck($adultReady['ok']===true,'party ready ticket '.$adults);
+    $adultCommand=['operation_id'=>'fixture-onetouch-party-'.$adults.'-0001','ticket'=>$adultReady['ticket'],'confirm_price_from'=>true,'manager_amount'=>'130000'];
+    $priorPartyOffers=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];
+    $adultAdded=ManagerTourSelectionService::importOneTouch(8,1,$key,$adultCommand);$expectedCount++;
+    storeCheck($adultAdded['ok']===true&&$adultAdded['state']==='added'&&$adultAdded['count']===$expectedCount,'different party appends a distinct offer '.$adults);
+    $partyView=ManagerTourSelectionService::get(8,1)['selection'];$partyOffer=$partyView['draft']['offers'][array_key_last($partyView['draft']['offers'])];$partyIds[]=$partyOffer['id'];
+    storeCheck(array_slice($partyView['draft']['offers'],0,count($priorPartyOffers))===$priorPartyOffers,'old offers including other party remain byte-identical '.$adults);
+    storeCheck($partyOffer['adults']===$adults&&$partyOffer['child_ages']===[]&&$partyOffer['import_source']['fields']['adults']===$adults&&$partyOffer['import_source']['raw']['party']===$adults.'AD','saved canonical and original party agree '.$adults);
+    storeCheck($partyOffer['amount']==='130000'&&$partyOffer['price_qualifier']==='from'&&$partyOffer['import_source']['fields']['amount']==='123456.78'&&$partyOffer['photos']===[],'manual amount from and deferred private photos preserved '.$adults);
+    $adultReceipt=ManagerTourSelectionService::importOneTouch(8,1,$key,$adultCommand,true);
+    storeCheck($adultReceipt['ok']===true&&$adultReceipt['found']===true&&$adultReceipt['saved_version']===$adultAdded['saved_version'],'exact party receipt is reconciled read-only '.$adults);
+    $adultRepeat=ManagerTourSelectionService::importOneTouch(8,1,$key,$adultCommand);
+    storeCheck($adultRepeat['ok']===true&&$adultRepeat['state']==='saved'&&$adultRepeat['count']===$expectedCount,'same confirmed party operation cannot duplicate '.$adults);
+}
+storeCheck(count(array_unique($partyIds))===4,'two one three and fourteen adult offers have distinct canonical identities');
+storeCheck(array_slice(ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'],0,count($beforePartyAdds))===$beforePartyAdds,'all pre-existing source snapshots survive the party range');
+storeCheck((int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===5,'one initial and four distinct source receipts only');
+foreach($before as $table=>$rows)storeCheck($p->query('SELECT * FROM '.$table)->fetchAll()===$rows,'new party imports cause no collateral change '.$table);
+
+
 echo json_encode(['checks'=>$count,'database'=>'sqlite::memory:','realDatabase'=>false,'network'=>0,'realImports'=>0],JSON_THROW_ON_ERROR)."\n";
