@@ -124,7 +124,7 @@ jobs:
           php tools/modeled_conversion_value_export.php "$2"
           VALUE_REMOTE
       - name: Remove ephemeral credential
-        if: always() && steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
+        if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/value_goal_key"
 

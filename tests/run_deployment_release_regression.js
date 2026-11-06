@@ -280,6 +280,26 @@ async function gitBridge(){
       'all eight installation actions remain unperformed and inherited');
     equal(next.repository_release.stages.sync,{execution:'not_performed',assurance:'inherited'},'no fictional new sync PASS');
     await consumerCases(f,a,r);
+    for(const [file,cleanupName]of [
+      ['publish-conversation-diagnostics.yml','Remove private capture files'],
+      ['modeled-conversion-monitor.yml','Remove private ephemeral monitor data'],
+    ]){
+      const run=f.wave.wave.find(x=>x.path.endsWith(file)),ownJob=f.jobs.get(run.id)[0];
+      const cleanup=ownJob.steps.find(s=>s.name===cleanupName);
+      cleanup.conclusion='failure';
+      await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'noop_resolution_unconfirmed',
+        'failed local cleanup cannot close an unchanged release');cleanup.conclusion='success';
+      ownJob.conclusion='failure';
+      await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'noop_job_unconfirmed',
+        'failed cleanup job cannot close an unchanged release');ownJob.conclusion='success';
+      const other=f.wave.wave.find(x=>x.path.endsWith('max-production-health.yml'));
+      const foreignSteps=f.jobs.get(other.id)[0].steps;foreignSteps.push(step(cleanupName));
+      await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'unchanged_operation_executed',
+        'a local cleanup name grants no operation authority in another workflow');foreignSteps.pop();
+      const ownName=ownJob.name;ownJob.name='unrecognized-cleanup-job';
+      await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'noop_job_unconfirmed',
+        'a permitted cleanup still requires the exact known job');ownJob.name=ownName;
+    }
     const monitoring=f.wave.wave.find(x=>x.path.endsWith('modeled-conversion-monitor.yml'));
     const operation=f.jobs.get(monitoring.id)[0].steps.find(s=>s.name==='A future operation');
     operation.conclusion='success';
@@ -349,7 +369,10 @@ function installNoopJobs(f){
     'tour-selection-host.yml':'host'};
   for(const [file,name]of Object.entries(names)){
     const run=f.wave.wave.find(r=>r.path===R.PREFIX+file);
-    f.jobs.set(run.id,[job(name,run,[step(R.RESOLVER_STEP),step('Prepare SSH private key','skipped'),step('A future operation','skipped')])]);
+    const steps=[step(R.RESOLVER_STEP),step('Prepare SSH private key','skipped'),step('A future operation','skipped')];
+    if(file==='publish-conversation-diagnostics.yml')steps.push(step('Remove private capture files'));
+    if(file==='modeled-conversion-monitor.yml')steps.push(step('Remove private ephemeral monitor data'));
+    f.jobs.set(run.id,[job(name,run,steps)]);
     if(file==='tour-selection-host.yml')f.jobs.get(run.id).push(job('independent-editor',run,[],'skipped'));
   }
 }

@@ -470,6 +470,12 @@ const NOOP_PREPARATION = new Set(['Resolve exact production source','Checkout ex
   'Run actions/checkout@v4','Require current authoritative main before loading deployment credentials',
   release.RESOLVER_STEP,'Set up job','Complete job','Post Checkout exact production source','Post Checkout',
   'Post Run actions/checkout@v4']);
+// These exact workflow/job pairs also remove local runner files. Cleanup is
+// unconditional, including when no production action was admitted.
+const NOOP_LOCAL_CLEANUP = new Map([
+  ['publish-conversation-diagnostics.yml','Remove private capture files'],
+  ['modeled-conversion-monitor.yml','Remove private ephemeral monitor data'],
+]);
 function onlyMetadataSteps(job,allowed,required) {
   requireValue(Array.isArray(job.steps)&&job.steps.length>0&&job.steps.length<100
     &&new Set(job.steps.map(s=>s.number)).size===job.steps.length,'incomplete_noop_steps');
@@ -489,7 +495,10 @@ async function verifyUnchangedJobs(api,snapshot,c) {
     const job=jobs.find(j=>j.name===name);
     requireValue(job&&job.run_id===run.id&&job.head_sha===c.sha&&job.status==='completed'
       &&job.conclusion==='success','noop_job_unconfirmed');
-    onlyMetadataSteps(job,NOOP_PREPARATION,[release.RESOLVER_STEP]);
+    const cleanup=NOOP_LOCAL_CLEANUP.get(file);
+    const allowed=new Set(NOOP_PREPARATION),required=[release.RESOLVER_STEP];
+    if(cleanup){allowed.add(cleanup);required.push(cleanup);}
+    onlyMetadataSteps(job,allowed,required);
     if(file==='tour-selection-host.yml'){
       const editor=jobs.find(j=>j.name==='independent-editor');
       requireValue(editor&&editor.run_id===run.id&&editor.head_sha===c.sha&&editor.status==='completed'

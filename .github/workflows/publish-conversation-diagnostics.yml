@@ -207,7 +207,7 @@ jobs:
           compression-level: 0
 
       - name: Remove private capture files
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always())
+        if: always()
         shell: bash
         run: |
           rm -f production_snapshot.json live_session_report.json daily_session_report.json yesterday_session_report.json handoff.json autopilot_snapshot.private.json

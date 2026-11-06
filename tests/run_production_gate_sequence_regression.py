@@ -192,6 +192,21 @@ def workflow_condition(expression, values):
 
 def release_wiring_cases(root, sources):
     """The existing jobs consume the typed decision before any private operation."""
+    local_cleanup = {
+        'publish-conversation-diagnostics.yml': (
+            'Remove private capture files',
+            'rm -f production_snapshot.json live_session_report.json daily_session_report.json '
+            'yesterday_session_report.json handoff.json autopilot_snapshot.private.json\n'
+            'rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/dialogue-evidence.age"\n'
+            'rm -rf "$RUNNER_TEMP/evidence-python"'),
+        'modeled-conversion-monitor.yml': (
+            'Remove private ephemeral monitor data',
+            'rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/monitor-route.json" '
+            '"$RUNNER_TEMP/monitor-health.json" "$RUNNER_TEMP/monitor-decision.json" '
+            '"$RUNNER_TEMP/monitor-result.json"\n'
+            'rm -rf "$RUNNER_TEMP/monitor-python" "$RUNNER_TEMP/monitor-cache" '
+            '"$RUNNER_TEMP/monitor-intent" "$RUNNER_TEMP/monitor-final"'),
+    }
     additional = ('publish-conversation-diagnostics.yml', 'repair-lead-receiver-config.yml',
                   'restore-live-runtime.yml', 'sync-legacy-lead-receiver.yml', 'telegram-webhook-status.yml')
     all_sources = dict(sources)
@@ -230,6 +245,11 @@ def release_wiring_cases(root, sources):
                   and '          EXPECTED_SHA: ${{ github.sha }}' in provenance[0].splitlines()
                   and 'bash tools/verify_deploy_main_provenance.sh' in run_block(provenance[0]),
                   label + 'main admission still uses R before resolving installed A')
+        cleanup = local_cleanup.get(filename)
+        if cleanup:
+            check(sum(step.startswith('      - name: ' + cleanup[0] + '\n')
+                      for step in steps[index + 1:]) == 1,
+                  label + 'the unconditional local cleanup remains present exactly once')
         actions = []
         for step in steps[index + 1:]:
             if step.startswith('      - name: Validate explicit operation and installed SHA\n'):
@@ -237,9 +257,18 @@ def release_wiring_cases(root, sources):
                       and field(step, 'if') is None, label + 'explicit manual authority remains mandatory')
                 continue
             condition = field(step, 'if')
+            if cleanup and step.startswith('      - name: ' + cleanup[0] + '\n'):
+                expected = ('      - name: ' + cleanup[0] + '\n'
+                            '        if: always()\n'
+                            '        shell: bash\n'
+                            '        run: |\n'
+                            + '\n'.join('          ' + line for line in cleanup[1].splitlines()))
+                check(step.rstrip() == expected,
+                      label + 'only exact local cleanup runs unconditionally, without credentials or remote actions')
+                continue
             check(condition is not None and (condition == RELEASE_ACTIONS
                   or condition.startswith(RELEASE_ACTIONS + ' && (') and condition.endswith(')')),
-                  label + 'every operation, receipt and cleanup requires ready/action admission: ' + step.splitlines()[0])
+                  label + 'every production operation and receipt requires ready/action admission: ' + step.splitlines()[0])
             actions.append(condition)
             for ready, perform in [('true', 'false'), ('false', 'false'), ('false', 'true')]:
                 state = dict(ordinary, **{'steps.release.outputs.ready': ready,

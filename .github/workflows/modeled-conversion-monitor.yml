@@ -372,7 +372,7 @@ jobs:
           MONITOR_RESULT
 
       - name: Remove private ephemeral monitor data
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always())
+        if: always()
         shell: bash
         run: |
           rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/monitor-route.json" "$RUNNER_TEMP/monitor-health.json" "$RUNNER_TEMP/monitor-decision.json" "$RUNNER_TEMP/monitor-result.json"

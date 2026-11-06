@@ -336,6 +336,6 @@ jobs:
           REMOTE
 
       - name: Remove ephemeral SSH key
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always())
+        if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/deploy_key"

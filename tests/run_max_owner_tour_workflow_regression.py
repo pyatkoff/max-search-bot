@@ -48,7 +48,7 @@ assert OWNER.index('actions/checkout@v4') < OWNER.index('bash tools/verify_deplo
 assert 'REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}' in OWNER
 assert 'APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}' in OWNER
 protected = OWNER[OWNER.index('      - name: Prepare existing deployment SSH key'):]
-assert re.findall(r'^        if: (.+)$', protected, re.M) == [ALLOW, ALLOW, ALLOW + ' && (always())']
+assert re.findall(r'^        if: (.+)$', protected, re.M) == [ALLOW, ALLOW, 'always()']
 assert '${{ github.event.comment.body }}' not in WORKFLOW
 assert 'issue_comment:\n    types: [created]' in WORKFLOW
 assert 'EXPECTED_SHA: ${{ steps.authorize.outputs.expected_sha }}' in OWNER
