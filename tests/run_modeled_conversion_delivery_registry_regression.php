@@ -331,7 +331,7 @@ function deliveryRegistryMoscowAssertions(PDO $p,callable $check):void
         $check('next Moscow date stays invalid before midnight',($reader->read(['date'=>'2027-01-01'],$midnight-1)['reason']??null)==='invalid_request');
     $check('Moscow calendar reads preserve every UTC record value receipt and identity',deliveryRegistryDataDigest($p)===$before);
     // An old-day assignment can receive a new-day API receipt; do not shift either stored clock.
-    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_id='calendar-fixture-receipt',upload_status='PROCESSED',claimed_at_unix=?,value_api_accepted_at_unix=?,value_processed_at_unix=?,value_receipt_basis='post_response' WHERE conversation_id=31000")
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_id='calendar-receipt',upload_status='PROCESSED',claimed_at_unix=?,value_api_accepted_at_unix=?,value_processed_at_unix=?,value_receipt_basis='post_response' WHERE conversation_id=31000")
         ->execute([$midnight-1,$midnight,$midnight+1]);
     $before=deliveryRegistryDataDigest($p);$reader=new ModeledConversionDailyReconciliationReader($p,$auth);
     $prior=$reader->read(['date'=>'2026-12-31'],$midnight+2);$next=$reader->read(['date'=>'2027-01-01'],$midnight+2);
