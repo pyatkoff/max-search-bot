@@ -748,43 +748,78 @@ are rejected; refresh the selected report to start a new consistent snapshot.
 
 ## Saved monetary-policy visibility and calculation availability
 
-Reader `saved_semantic_prediction_status_v1_16` exposes
+Reader `saved_semantic_prediction_status_v1_17` exposes
 `saved.deal_value.by_monetary_policy` from the monetary capsules already validated
 in the ordinary core-packet read. Each supported saved version reports its count,
-policy cap and unknown-price base, unknown-price and numeric-value counts, and the
-range of actual saved commission bases. V1 retains its25000/25000 policy; V2 uses
-100000/10000. A valid V2 packet without a purchase probability can therefore show
-its10000 base and100000 cap while its probability/value remain null and it adds no
-prospective estimate. Known-price bases can be below10000. Invalid monetary
-capsules do not enter this aggregate; the semantic-profile count remains separate.
+policy cap and unknown-price base, unknown-price/numeric-value counts, and the
+range of actual saved commission bases. V1 retains its 25000/25000 policy; V2 uses
+100000/10000. A valid V2 packet without a purchase probability can show its 10000
+base and 100000 cap while probability/value remain null and it adds no prospective
+estimate. Known-price bases can be below 10000. Invalid monetary capsules do not
+enter this aggregate; the semantic-profile count remains separate.
 
-The predictive delivery view keeps its existing scalar-calculation admission and
-adds `calculation_unavailable_reason` to each example (null when available) and
-`calculation_unavailable_reason_counts` over the inspected eligible rows. These
-fixed categories identify the first blocking check, not the validity of all later
-checks or an error in the stored award:
+The predictive delivery view now distinguishes two scalar arithmetic explanations.
+The existing probability-based admission and its calculation fields are unchanged.
+A separately named `stage_fraction_arithmetic_checked_not_probability_prediction`
+basis can explain an existing stage award without inventing a purchase probability.
+It requires verified profile binding, the expected contextual mode,
+`insufficient_context`, null probability and frozen monetary value, a supported
+monetary policy, checked price/commission/base arithmetic, an allowed fallback
+stage and the exact positive integer difference after prior reservations.
 
-| Reason | Existing check that prevents a scalar explanation |
+Only the producer's fallback ranks 1, 4 and 5 are admitted: `interest`,
+`purchase_intent` and `agency_choice`. The `stage_fraction` object names the
+literal numerator (1250, 8333 or 12500) and denominator (25000).
+`stage_cumulative_value_rub` is the rounded fraction times the saved base;
+`prior_reserved_rub` and the example's existing `increment_rub` explain the
+positive difference. Both `estimated_probability` and
+`estimated_cumulative_value_rub` remain null. Probability multipliers and expert
+factors are not attached to this stage calculation.
+
+For example, an unknown-price V2 interest row has a 10000 base and a stage target
+of `round(1250 / 25000 * 10000) = 500` RUB. With 200 RUB already reserved, only a
+stored 300 RUB increment matches that explanation. A known tour price of 100000
+RUB yields a 7000 commission base and a 350 RUB interest target. A high known
+commission capped at 100000 yields a 5000 RUB interest target. These fractions
+are not saved 5% purchase predictions, and no new award is produced by reading.
+
+The fixed `calculation_basis_counts` keys `probability_prediction`,
+`stage_fraction` and `unavailable` partition the inspected eligible events.
+Their sum equals `events`; the unavailable count equals
+`calculation_unavailable_rows`. Counts survive optional example compaction.
+Invalid-bound and voided zero-value rows remain separate from those events.
+
+Examples still carry `calculation_unavailable_reason` (null when either
+explanation is available), with `calculation_unavailable_reason_counts` for
+the remaining unexplained rows. The existing first-failure categories are retained:
+
+| Reason | Existing numeric check that prevents an explanation |
 | --- | --- |
 | `profile_binding_unverified` | Saved access or profile/subject binding |
-| `probability_prediction_unavailable` | Expected prediction mode/status absent |
+| `probability_prediction_unavailable` | Expected prediction mode/status absent and no admitted stage explanation |
 | `monetary_policy_unavailable` | Missing or unsupported monetary version |
 | `scalar_contract_unverified` | Scalar bounds, types or source/basis allowlist |
 | `price_base_unverified` | Price, commission and base do not explain one another |
 | `frozen_value_unverified` | Frozen value differs from probability times base |
 | `increment_not_explained` | Frozen value minus earlier reservations differs from the stored increment |
 
-The existing producer may use a stage fraction when no numeric prediction exists;
-its predictive key does not prove a probability was estimated. For example, V2
-unknown-price interest uses1250/25000 of the10000 base, or500 RUB before earlier
-reservations. The fraction is not relabeled as a saved5% purchase probability.
-The existing price-continuity adjustment can also make the applied increment
-differ from the current frozen value; `increment_not_explained` does not declare
-that adjustment wrong. This read neither loads a new audit nor recomputes it.
+These are the first blocking numeric check, not validation of all later fields.
+A failed optional stage check leaves that existing reason unchanged. In particular,
+a predictive key alone does not establish either calculation basis.
 
-No query, selected column, row limit, read order, authorization rule or monetary
-decision changes. The one-core-packet priority and explicit omissions remain;
-20 metadata/four packets/48KiB packet-copy,64KiB shared,30,000-byte result and
-five-second limits are unchanged. Additional fields are fixed aggregates and
-whitelisted reasons; optional examples may still be omitted by the existing
-response bound. Nothing is captured, recalculated, reserved, uploaded or replayed.
+The scalar readback is an arithmetic consistency check, not a new validation of
+the full capsule, digest, input evidence or producer decision. Four existing
+nullable scalar expressions preserve JSON types (probability, price point,
+commission and frozen value), so JSON null is distinct from the string "null",
+false, zero or malformed text. A missing path remains indistinguishable from JSON
+null in this projection; full structural validity is not claimed.
+
+Price-continuity adjustments may use another saved reference base. Their omitted
+audit evidence is not reconstructed from totals or the stage name; an unmatched
+increment remains unexplained. This does not declare the saved award erroneous.
+
+The same queries, 38 selected scalar positions, row selection, read order and
+authorization rules remain. The one-core-packet priority and explicit omissions,
+20 metadata/four packets/48KiB packet-copy, 64KiB shared, 30000-byte result and
+five-second limits are unchanged. There is no new query, model call, provider
+request, capture, reservation, upload, replay or mutation of saved values.
