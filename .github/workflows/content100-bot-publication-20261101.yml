@@ -1,4 +1,4 @@
-name: Project only native8208 metadata from the original authenticated TOP500 result
+name: Read genuinely unread retained facts and photoDetails for exact TOP500 native8208
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -9,11 +9,15 @@ permissions:
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 0e57de3a6a06cc46b97ff10777c9821818b03af1
+  EXPECTED_PROFILE_READER_SHA256: 922e42a82124c3793af6ab53bde034620687a41c3e526e7d4cae3478670eec0d
+  EXPECTED_CATALOG_CONNECTOR_SHA256: 8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,25 +26,123 @@ jobs:
           sparse-checkout: |
             tools/direct_demand/operations
           sparse-checkout-cone-mode: true
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-top500-internal-base-20261105-ten1-result
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 42165764181
-          path: ${{ runner.temp }}/original-ten1
-      - name: Validate new one-property projection and canonical closed-contact metadata
+      - name: Verify exact current publishing source and original TOP500 membership revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = "1"
-          python3 -m py_compile tools/direct_demand/operations/project-top500-internal-base-20261106-8208-metadata1.py
-          python3 tools/direct_demand/operations/project-top500-internal-base-20261106-8208-metadata1.py
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42168413861 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42168413861/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42168885555 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+          gh api repos/pyatkoff/poisk-turov-test/git/ref/heads/main > "$RUNNER_TEMP/profile-top500-main.json"
+          python3 - <<'PY'
+          import json,os,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'profile-top500-main.json').read_text())
+          assert d['object']['sha']=='64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d','CANONICAL_TOP500_MEMBERSHIP_SOURCE_CHANGED'
+          print('CANONICAL_TOP500_SOURCE_OK server_calls=0')
+          PY
+      - name: Require same-source successful production diagnostics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42168885444 > "$RUNNER_TEMP/profile-diagnostics-run.json"
+          python3 - <<'PY'
+          import json,os,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'profile-diagnostics-run.json').read_text())
+          assert d['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['path']=='.github/workflows/publish-conversation-diagnostics.yml'
+          assert d['status']=='completed' and d['conclusion']=='success'
+          print('SAME_SOURCE_PRODUCTION_DIAGNOSTICS_OK server_calls=0')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          name: commercial-top500-internal-base-20261106-8208-metadata1
+          github-token: ${{ github.token }}
+          repository: pyatkoff/max-search-bot
+          run-id: 42166900411
+          path: ${{ runner.temp }}/original-8208
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+      - name: Bind the new fields to the existing native gallery witness and validate only new cases
+        run: |
+          set -euo pipefail
+          python3 -m py_compile tools/direct_demand/operations/prepare-top500-internal-base-20261106-8208-profile1.py tools/direct_demand/operations/run-top500-internal-base-20261106-8208-profile1.py
+          python3 tools/direct_demand/operations/prepare-top500-internal-base-20261106-8208-profile1.py
+          php -l "$RUNNER_TEMP/top500-profile.php"
+          ANYTOUR_TOP500_PROFILE_NEW_CASES=1 php "$RUNNER_TEMP/top500-profile.php"
+      - name: Retain the exact private one-property input before server or rights access
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-top500-internal-base-20261106-8208-profile1-input
+          path: |
+            ${{ runner.temp }}/top500-profile-input.private.json
+            ${{ runner.temp }}/top500-profile.php
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Read only the new normalized fields under current native country2 proof
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 tools/direct_demand/operations/run-top500-internal-base-20261106-8208-profile1.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: commercial-top500-internal-base-20261106-8208-metadata1
+          name: commercial-top500-internal-base-20261106-8208-profile1-result
           path: |
-            ${{ runner.temp }}/top500-8208-metadata.private.json
-            ${{ runner.temp }}/top500-8208-summary.json
+            ${{ runner.temp }}/top500-profile-input.private.json
+            ${{ runner.temp }}/top500-profile-readback.private.json
+            ${{ runner.temp }}/top500-profile-summary.json
           retention-days: 14
           if-no-files-found: warn
