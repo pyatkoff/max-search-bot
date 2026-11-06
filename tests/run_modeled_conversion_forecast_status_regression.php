@@ -487,6 +487,14 @@ function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
     try{(new ModeledConversionInputDiagnosisReader($p,static function():void{},$budget))->read();}
     catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='byte_limit';}
     $check('scalar diagnosis shares the original strict byte budget',$limited);
+    // A large irrelevant field must not force repeated JSON interpretation of the whole cohort.
+    $p->prepare("UPDATE modeled_conversion_profile_versions SET profile_json=JSON_SET(profile_json,'$.unused_private_padding',?) WHERE JSON_VALID(profile_json)")->execute([str_repeat('PRIVATE_SYNTHETIC_PADDING_',1500)]);
+    $large=(new ModeledConversionInputDiagnosisReader($p,static function():void{},new ModeledConversionStatusBudget()))->read();
+    $check('large saved source detail is omitted from optional diagnosis after a metadata-only byte check',
+        ($large['available']??true)===false&&($large['reason']??null)==='source_detail_budget'
+        &&($large['metadata_versions']??null)===100&&($large['inspected_versions']??null)===0
+        &&!str_contains(json_encode($large,JSON_THROW_ON_ERROR),'PRIVATE_SYNTHETIC_PADDING'));
+
 }
 
 

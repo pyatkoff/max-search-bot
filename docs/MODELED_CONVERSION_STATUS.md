@@ -712,3 +712,12 @@ timezone converts the start to UTC; the original event must lie within 21 days
 after the visit. Multiple possible visits, missing receipts, a sampled/truncated
 report, wrong scope or unequal counts/amounts remain unverified. This is unique
 visit reconciliation, not a native VisitID or offline-event-log export.
+
+
+The optional 100-version input diagnosis first checks only source lengths. It does
+not parse the cohort when its frozen JSON exceeds 2 MiB, and it is not started
+without four seconds of the existing execution budget. Both omissions are
+explicit; they never represent zero signals. The private saved visit cohort and
+the administrator financial ledger are independent of that optional diagnosis.
+No global deadline, response ceiling, query-row limit or authorization floor is
+increased.
