@@ -738,7 +738,9 @@ $tests['deal value uses seven percent commission and immutable budget evidence']
         'value'=>['minimum'=>200000,'maximum'=>200000,'currency'=>'RUB','unit'=>'party_total'],'references'=>[$r]];
     $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,$case);
     $v=$w['deal_value_prediction'];
-    semanticPredictionAssert($v['deal_amount_rub']['point']===200000&&$v['commission_estimate_rub']===14000
+    semanticPredictionAssert($v['version']==='early_deal_commission_7pct_v2'
+        &&$v['rules_sha256']===hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionDealValue.php')
+        &&$v['deal_amount_rub']['point']===200000&&$v['commission_estimate_rub']===14000
         &&$v['full_value_base_rub']===14000&&$v['value_rub']===1167&&$v['early_window']==='first_hour'
         &&ModeledConversionDealValue::saved($w)!==null,'seven percent budget value or readback');
     $before=json_encode($w,JSON_THROW_ON_ERROR);
@@ -750,10 +752,96 @@ $tests['deal value uses seven percent commission and immutable budget evidence']
     semanticPredictionAssert(ModeledConversionDealValue::saved($bad)===null,'unapproved commission accepted');
     $unknown=$w;unset($unknown['profile']['fields']);$unknown['deal_value_prediction']=ModeledConversionDealValue::freeze($unknown,$case);
     semanticPredictionAssert($unknown['deal_value_prediction']['deal_amount_rub']['point']===null
-        &&$unknown['deal_value_prediction']['base_basis']==='existing_25000_fallback','unknown price invented');
+        &&$unknown['deal_value_prediction']['commission_estimate_rub']===null
+        &&$unknown['deal_value_prediction']['full_value_base_rub']===10000
+        &&$unknown['deal_value_prediction']['base_basis']==='provisional_commission_10000'
+        &&$unknown['deal_value_prediction']['reason']==='deal_price_unknown_provisional_base'
+        &&$unknown['deal_value_prediction']['value_rub']===833&&ModeledConversionDealValue::saved($unknown)!==null,
+        'unknown price must use probability times the provisional commission base');
     $foreign=$w;$foreign['profile']['fields']['budget']['value']['currency']='USD';
     $foreign['deal_value_prediction']=ModeledConversionDealValue::freeze($foreign,$case);
     semanticPredictionAssert($foreign['deal_value_prediction']['deal_amount_rub']['point']===null,'unverified FX conversion');
+};
+$tests['frozen monetary V1 keeps its exact rules hash and original arithmetic']=static function():void{
+    semanticPredictionAssert(ModeledConversionDealValue::policy('early_deal_commission_7pct_v1')===
+        ['cap_rub'=>25000,'unknown_base_rub'=>25000,'unknown_base_basis'=>'existing_25000_fallback']
+        &&ModeledConversionDealValue::policy('early_deal_commission_7pct_v2')===
+        ['cap_rub'=>100000,'unknown_base_rub'=>10000,'unknown_base_basis'=>'provisional_commission_10000']
+        &&ModeledConversionDealValue::policy('early_deal_commission_7pct_v3')===null,'versioned monetary policies');
+    // Synthetic frozen V1 capsules with fixed digests; never rebuild them with the V2 producer.
+    $legacy=['version'=>'early_deal_commission_7pct_v1',
+        'rules_sha256'=>'f4f205793ce51a18f7268292df3e0362b152869d60c71a5bc9c62017ca136593',
+        'subject'=>semanticPredictionSubject(),'semantic_prediction_digest'=>str_repeat('a',64),
+        'current_request_anchor'=>'journal:1','profile_prediction_at'=>'2026-11-01T00:01:00Z',
+        'input_cutoff_at'=>'2026-11-01T00:01:00Z','frozen_at'=>'2026-11-01T00:01:00Z',
+        'commission_rate'=>0.07,'currency'=>'RUB','status'=>'estimated','reason'=>'deal_price_unknown_existing_base',
+        'early_window'=>'first_hour','age_seconds'=>60,
+        'deal_amount_rub'=>['low'=>null,'high'=>null,'point'=>null,'basis'=>'unknown','source_kind'=>'unknown','source_refs'=>[]],
+        'commission_estimate_rub'=>null,'full_value_base_rub'=>25000,'base_basis'=>'existing_25000_fallback',
+        'estimated_probability'=>0.5,'value_rub'=>12500,'payment_hold_observed'=>false,
+        'calibration_status'=>'expert_estimate_not_calibrated','price_verified'=>false,'trip_identity'=>'unverified',
+        'export_allowed'=>false,'model_calls'=>0,'conversion_uploads'=>0,
+        'deal_digest'=>'673485038df1df4d46f7c644defd3151e1c2c1ef68e6537d4f6f2dd424b6ce88'];
+    $known=$legacy;$known['reason']='stage_dialogue_and_estimated_commission';
+    $known['deal_amount_rub']=['low'=>1000000,'high'=>1000000,'point'=>1000000,
+        'basis'=>'customer_budget_range_proxy','source_kind'=>'customer_budget','source_refs'=>['journal:1']];
+    $known['commission_estimate_rub']=70000;$known['base_basis']='estimated_commission_7pct_capped';
+    $known['deal_digest']='06742f2e21dc6bb5fa66f5b2e9e90689ac2aee1a7949ef6322a68483c66ca557';
+    $wrapper=['access_status'=>'allowed','subject'=>semanticPredictionSubject(),'semantic_prediction'=>[
+        'prediction_digest'=>str_repeat('a',64),'current_request_anchor'=>'journal:1',
+        'profile_prediction_at'=>'2026-11-01T00:01:00Z','input_cutoff_at'=>'2026-11-01T00:01:00Z',
+        'frozen_at'=>'2026-11-01T00:01:00Z','status'=>'predicted','estimated_probability'=>0.5]];
+    foreach([$legacy,$known]as$capsule){
+        $w=$wrapper+['deal_value_prediction'=>$capsule];$before=json_encode($w,JSON_THROW_ON_ERROR);
+        semanticPredictionAssert(ModeledConversionDealValue::saved($w)===$capsule
+            &&json_encode($w,JSON_THROW_ON_ERROR)===$before,'frozen V1 changed or became unreadable');
+    }
+    $reseal=static function(array $v):array{unset($v['deal_digest']);$v['deal_digest']=ModeledConversionSemanticPrediction::digest($v);return$v;};
+    $tampered=[];
+    foreach([
+        ['version'=>'early_deal_commission_7pct_v2'],
+        ['rules_sha256'=>hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionDealValue.php')],
+        ['rules_sha256'=>str_repeat('b',64)],
+        ['version'=>'early_deal_commission_7pct_v3'],
+        ['full_value_base_rub'=>10000,'base_basis'=>'provisional_commission_10000','value_rub'=>5000],
+    ]as$change)$tampered[]=array_replace($legacy,$change);
+    $tampered[]=array_replace($known,['full_value_base_rub'=>70000,'value_rub'=>35000]);
+    foreach($tampered as$capsule)semanticPredictionAssert(
+        ModeledConversionDealValue::saved($wrapper+['deal_value_prediction'=>$reseal($capsule)])===null,
+        'resealed V1 cannot change its version/hash pair or monetary policy');
+};
+$tests['monetary V2 refines the provisional base and caps known commission without a minimum']=static function():void{
+    $make=static function(?int $price):array{
+        $text='Подберите тур в Турцию на 7 ночей.'.($price===null?'':' Бюджет '.$price.' рублей на всех.');
+        [$case,$w,$doc]=semanticPredictionFreezeFixture([['text'=>$text]]);
+        $w=array_replace($w,ModeledConversionEarlyForecast::freeze($case,$w,$doc,null,strtotime($doc['requested_at']),null,true));
+        if($price!==null)$w['profile']['fields']['budget']=['status'=>'known','usable_at_prediction'=>true,
+            'available_at'=>$w['profile']['prediction_at'],'value'=>[
+                'minimum'=>$price,'maximum'=>$price,'currency'=>'RUB','unit'=>'party_total'],
+            'references'=>[$w['profile']['observation_input']['evidence'][0]['references'][0]]];
+        $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,$case);return$w;
+    };
+    $unknown=$make(null);$before=json_encode($unknown,JSON_THROW_ON_ERROR);
+    foreach([[100000,7000,7000,583],[200000,14000,14000,1167],
+        [1000000,70000,70000,5833],[2000000,140000,100000,8333]]as[$price,$commission,$base,$value]){
+        $w=$make($price);$v=$w['deal_value_prediction'];
+        semanticPredictionAssert($v['deal_amount_rub']['point']===$price&&$v['commission_estimate_rub']===$commission
+            &&$v['full_value_base_rub']===$base&&$v['value_rub']===$value&&ModeledConversionDealValue::saved($w)===$v,
+            'known price commission or cap '.$price);
+    }
+    $refined=$make(200000);
+    semanticPredictionAssert($unknown['deal_value_prediction']['value_rub']===833
+        &&$refined['deal_value_prediction']['value_rub']-$unknown['deal_value_prediction']['value_rub']===334
+        &&json_encode($unknown,JSON_THROW_ON_ERROR)===$before,'refining price rewrote the earlier provisional snapshot');
+    foreach([
+        ['rules_sha256'=>'f4f205793ce51a18f7268292df3e0362b152869d60c71a5bc9c62017ca136593'],
+        ['full_value_base_rub'=>25000,'base_basis'=>'existing_25000_fallback','value_rub'=>2083],
+    ]as$change){
+        $bad=$unknown;$bad['deal_value_prediction']=array_replace($bad['deal_value_prediction'],$change);
+        unset($bad['deal_value_prediction']['deal_digest']);
+        $bad['deal_value_prediction']['deal_digest']=ModeledConversionSemanticPrediction::digest($bad['deal_value_prediction']);
+        semanticPredictionAssert(ModeledConversionDealValue::saved($bad)===null,'V2 accepted a legacy hash or unknown-price policy');
+    }
 };
 $tests['publication estimate distinguishes total party nightly foreign and unknown basis']=static function():void{
     $v=ModeledConversionDealValue::publicationRange('Тур от 150–200 тыс руб за 2 взрослых');

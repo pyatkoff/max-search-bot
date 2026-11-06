@@ -130,12 +130,12 @@ final class ModeledConversionValueDeliveryReader
         $actions=['unchanged','rebased','voided','reduced','review_required','unverified'];
         foreach($a['actions']as$key=>$v){
             if(!in_array($key,$actions,true)||!is_array($v)||!is_int($v['events']??null)||$v['events']<0||$v['events']>1001
-                ||!is_int($v['removed_rub']??null)||$v['removed_rub']<0||$v['removed_rub']>25025000)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
+                ||!is_int($v['removed_rub']??null)||$v['removed_rub']<0||$v['removed_rub']>1001*ModeledConversionValueContract::MAX_VALUE_RUB)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
             $out['actions'][$key]=['events'=>$v['events'],'removed_rub'=>$v['removed_rub']];
         }
         foreach($a['corrections']as$v){
             if(!is_array($v)||!in_array($v['action']??null,['voided','reduced','review_required'],true))return ['available'=>false,'reason'=>'invalid_recorded_audit'];
-            foreach(['original_rub','applied_rub','prior_reserved_rub']as$key)if(!is_int($v[$key]??null)||$v[$key]<0||$v[$key]>25000)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
+            foreach(['original_rub','applied_rub','prior_reserved_rub']as$key)if(!is_int($v[$key]??null)||$v[$key]<0||$v[$key]>ModeledConversionValueContract::MAX_VALUE_RUB)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
             $t=ModeledConversionValueContract::moment($v['assessed_at']??null);if($t===null||$t>$now)return ['available'=>false,'reason'=>'invalid_recorded_audit'];
             $out['corrections'][]=['action'=>$v['action'],'original_rub'=>$v['original_rub'],'applied_rub'=>$v['applied_rub'],
                 'prior_reserved_rub'=>$v['prior_reserved_rub'],'assessed_at'=>$v['assessed_at']];
@@ -198,7 +198,7 @@ final class ModeledConversionValueDeliveryReader
                     ||!in_array($v[5],ModeledConversionValueContract::STAGES,true)){$out['invalid_binding_rows']++;continue;}
                 $delta=(int)$this->number($v[6],true);
                 if($delta===0&&$v[7]==='failed'){$out['voided_zero_value_rows']++;continue;}
-                if($delta<=0||$delta>25000){$out['invalid_binding_rows']++;continue;}
+                if($delta<=0||$delta>ModeledConversionValueContract::MAX_VALUE_RUB){$out['invalid_binding_rows']++;continue;}
                 $scope=$v[4].'|'.$v[1];
                 if(!isset($cases[$scope]))$cases[$scope]='dialogue_'.(count($cases)+1);
                 $out['events']++;$out['value_rub']+=$delta;
@@ -219,22 +219,24 @@ final class ModeledConversionValueDeliveryReader
                 $n=static fn(mixed $x):?float=>is_numeric($x)&&is_finite((float)$x)?(float)$x:null;
                 $prob=$n($v[24]);$rate=$n($v[26]);$point=$n($v[27]);$base=$n($v[33]);$full=$n($v[34]);$prior=$n($v[37]);
                 $commission=$n($v[32]);$kind=$v[31];
+                $policy=is_string($v[25])?ModeledConversionDealValue::policy($v[25]):null;
                 $sources=['unknown','customer_budget','delivered_offer','native_hotel_inquiry','channel_post_range'];
                 $bases=['unknown','customer_budget_ceiling_proxy','customer_budget_floor_proxy','customer_budget_range_proxy',
                     'delivered_offer_observation','native_hotel_inquiry_observation','advertised_floor_proxy','advertised_range_proxy'];
                 $binding=preg_match('/\A[1-9][0-9]{0,19}\z/D',(string)$v[20])===1&&$v[16]==='allowed'&&$v[17]==='anytour'&&$v[18]===$v[4]&&(string)$v[19]===(string)$v[1]
-                    &&$v[21]==='contextual_advertising_v1'&&$v[22]==='predicted'&&$v[25]==='early_deal_commission_7pct_v1'
-                    &&$rate===0.07&&$prob!==null&&$prob>0&&$prob<=1&&$base!==null&&$base>0&&$base<=25000
+                    &&$v[21]==='contextual_advertising_v1'&&$v[22]==='predicted'&&$policy!==null
+                    &&$rate===0.07&&$prob!==null&&$prob>0&&$prob<=1&&$base!==null&&$base>0&&$base<=$policy['cap_rub']
                     &&$full!==null&&$full===round($prob*$base)&&$prior!==null&&$prior>=0&&$full-$prior===(float)$delta
                     &&in_array($kind,$sources,true)&&in_array($v[30],$bases,true)
-                    &&($point===null?$commission===null&&$base===25000.0:
-                        $point>=10000&&$point<=10000000&&$commission===round($point*0.07)&&$base===min(25000.0,$commission));
+                    &&($point===null?$commission===null&&$base===(float)$policy['unknown_base_rub']:
+                        $point>=10000&&$point<=10000000&&$commission===round($point*0.07)&&$base===min((float)$policy['cap_rub'],$commission));
                 if($binding){
                     $reasons=$v[36];if(is_string($reasons))$reasons=json_decode($reasons,true,8);
                     $allowed=['expert_dialogue_continued_meaningful_engagement','expert_dialogue_continued_offer_search',
                         'expert_dialogue_office_question','expert_dialogue_payment_terms_question','explicit_decline_guard'];
                     $factors=[];foreach(is_array($reasons)?$reasons:[]as$reason)if(is_string($reason)&&in_array($reason,$allowed,true))$factors[]=$reason;
                     $e['calculation']=['basis'=>'frozen_scalar_arithmetic_checked_not_new_model_validation',
+                        'monetary_policy'=>$v[25],'value_cap_rub'=>$policy['cap_rub'],
                         'estimated_probability'=>$prob,'odds_multiplier'=>$n($v[35]),'expert_factors'=>$factors,
                         'estimated_deal_rub'=>$point===null?null:(int)$point,'deal_low_rub'=>$n($v[28]),'deal_high_rub'=>$n($v[29]),
                         'deal_source'=>$kind,'deal_basis'=>$v[30],'commission_rate'=>0.07,'estimated_commission_rub'=>$commission,
@@ -299,7 +301,8 @@ final class ModeledConversionValueDeliveryReader
     private function number(mixed $v,bool $money):int|float
     {
         if(!is_int($v)&&!is_float($v)&&!(is_string($v)&&preg_match('/\\A[0-9]+(?:\\.[0-9]{1,2})?\\z/D',$v)===1))throw new UnexpectedValueException('invalid_ledger');
-        $n=(float)$v;if(!is_finite($n)||$n<0||$n>self::ROW_LIMIT*25000||(!$money&&$n!==floor($n)))throw new UnexpectedValueException('invalid_ledger');
+        $limit=self::ROW_LIMIT*($money?ModeledConversionValueContract::MAX_VALUE_RUB:25000);
+        $n=(float)$v;if(!is_finite($n)||$n<0||$n>$limit||(!$money&&$n!==floor($n)))throw new UnexpectedValueException('invalid_ledger');
         return $money?round($n,2):(int)$n;
     }
     private function unavailable(string $reason):array{return ['available'=>false,'goal_id'=>self::GOAL,'reason'=>$reason];}

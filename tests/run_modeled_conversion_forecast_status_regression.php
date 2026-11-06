@@ -119,6 +119,30 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $check('value read returns no identities upload IDs arbitrary cached text or source markers',!str_contains($json,'PRIVATE_REPORT_MUST_NOT_LEAVE')&&!str_contains($json,'PRIVATE_LEDGER_CLIENT_ID')&&!str_contains($json,'"501"')&&!str_contains($json,'"502"')&&!str_contains($json,'8800000123'));
     $r=forecastV1Read($p);
     $check('repeated private read causes no queue or saved-profile mutation',$before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $audit=['version'=>'retained_priced_base_v1','checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
+        'goal_rows_scanned'=>1001,'complete'=>false,'unprocessed_candidates'=>0,
+        'actions'=>['voided'=>['events'=>1001,'removed_rub'=>100100000]],
+        'corrections'=>[['action'=>'voided','original_rub'=>100000,'applied_rub'=>0,
+            'prior_reserved_rub'=>100000,'assessed_at'=>gmdate('Y-m-d\TH:i:s\Z',$now)]]];
+    $saveReceipt=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?");
+    $withAudit=$receipt;$withAudit['price_continuity_audit']=$audit;
+    $saveReceipt->execute([json_encode($withAudit,JSON_THROW_ON_ERROR)]);$d=forecastV1Read($p)['value_delivery'];
+    $check('saved price audit accepts the new monetary bounds without expanding its recorded scan window',
+        $d['available']&&$d['price_continuity_audit']['available']
+        &&$d['price_continuity_audit']['goal_rows_scanned']===1001
+        &&$d['price_continuity_audit']['actions']['voided']['removed_rub']===100100000
+        &&$d['price_continuity_audit']['corrections'][0]===$audit['corrections'][0]);
+    foreach(['correction','aggregate']as$boundary){
+        $invalid=$audit;
+        if($boundary==='correction')$invalid['corrections'][0]['prior_reserved_rub']=100001;
+        else $invalid['actions']['voided']['removed_rub']=100100001;
+        $withAudit['price_continuity_audit']=$invalid;$saveReceipt->execute([json_encode($withAudit,JSON_THROW_ON_ERROR)]);
+        $d=forecastV1Read($p)['value_delivery'];
+        $check('an out-of-bound price audit '.$boundary.' cannot hide the independent ledger',
+            $d['available']&&$d['reserved_value_rub']===8333.0
+            &&$d['price_continuity_audit']===['available'=>false,'reason'=>'invalid_recorded_audit']);
+    }
+    $saveReceipt->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
     $receipt['metrika_report']['fetched_at']=gmdate('Y-m-d\\TH:i:s\\Z',$now-901);
     $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?")->execute([json_encode($receipt,JSON_THROW_ON_ERROR)]);
     $r=forecastV1Read($p);
@@ -138,6 +162,14 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $p->exec("UPDATE max_channel_conversion_outbox SET state='unknown_untrusted_state' WHERE id=1");$r=forecastV1Read($p);
     $check('an unclassified ledger state is unavailable not an incomplete zero',$r['value_delivery']['available']===false&&$r['value_delivery']['reason']==='invalid_ledger');
     $p->exec("UPDATE max_channel_conversion_outbox SET state='processed' WHERE id=1");
+    for($i=1000;$i<1064;$i++)$insert->execute([$i,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,
+        $now-10,'pending','interest',100000,null,null,'identity_not_found']);
+    $p->exec("UPDATE max_channel_conversion_outbox SET platform='max',conversation_id=id WHERE id>=1000 AND id<1064");
+    $d=forecastV1Read($p)['value_delivery'];
+    $check('64 authorized maximum amounts remain readable above the old aggregate money bound',
+        $d['available']&&$d['reserved_value_rub']===6408333.0
+        &&$d['by_state']['pending']['events']===65&&$d['by_state']['pending']['value_rub']===6404166.0
+        &&$d['window']['max_rows']===201&&$d['window']['inspected_rows']===68&&$d['window']['complete_within_bound']);
     for($i=100;$i<303;$i++)$insert->execute([$i,ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION,$now-10,'pending','interest',1250,null,null,'identity_not_found']);
     $r=forecastV1Read($p);$check('value history stays bounded and does not imply complete coverage',$r['value_delivery']['window']['inspected_rows']===201&&!$r['value_delivery']['window']['complete_within_bound']);
     $p->exec("UPDATE modeled_conversion_value_export_settings SET history_from_unix=1793570400,history_until_unix=1793656800,history_cursor=1,history_ceiling=3,history_scanned=1,history_collected=0");
@@ -664,7 +696,7 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $now=time();
     $profile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,'770001',?,?,?)");
     $row=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-    $put=static function(int $id,string $platform,int $scope,float $prob,?int $price,int $full,int $delta,string $state,string $status)use($profile,$row,$now):void{
+    $put=static function(int $id,string $platform,int $scope,float $prob,?int $price,int $full,int $delta,string $state,string $status,array $money=[])use($profile,$row,$now):void{
         $commission=$price===null?null:(int)round($price*0.07);$base=$price===null?25000:min(25000,$commission);
         $packet=['access_status'=>'allowed','subject'=>['project_key'=>'anytour','platform'=>$platform,'customer_key'=>'770001','conversation_id'=>(string)$scope],
             'semantic_prediction'=>['mode'=>'contextual_advertising_v1','status'=>'predicted','stage'=>'substantive_dialogue','estimated_probability'=>$prob,
@@ -674,6 +706,7 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
                     'source_kind'=>$price===null?'unknown':'customer_budget'],
                 'commission_estimate_rub'=>$commission,'full_value_base_rub'=>$base,'value_rub'=>$full],
             'private_marker'=>'PRIVATE_PROFILE_NEVER_RETURN'];
+        $packet['deal_value_prediction']=array_replace($packet['deal_value_prediction'],$money);
         $profile->execute([$id,$platform,$scope,$now-10,json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
         $upload=$state==='pending'?null:(string)(800000+$id);
         $row->execute([$id,ModeledConversionValueContract::predictionKey((string)$id),$platform,$scope,$id,'interest',$delta,$state,$status,$now-20,
@@ -702,6 +735,10 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $check('unknown price retains explicit existing base and known high price retains commission cap',
         $b!==null&&$b['estimated_deal_rub']===null&&$b['full_value_base_rub']===25000&&$b['prior_reserved_rub']===1400
         &&$c!==null&&$c['estimated_commission_rub']===70000.0&&$c['full_value_base_rub']===25000);
+    $check('legacy scalar calculations disclose their original monetary policy and cap',
+        $a['monetary_policy']==='early_deal_commission_7pct_v1'&&$a['value_cap_rub']===25000
+        &&$b['monetary_policy']==='early_deal_commission_7pct_v1'&&$b['value_cap_rub']===25000
+        &&$c['monetary_policy']==='early_deal_commission_7pct_v1'&&$c['value_cap_rub']===25000);
     $check('inconsistent saved arithmetic cannot acquire a made up calculation',
         $r['calculation_unavailable_rows']===1&&$byDelta[25000]['calculation']===null);
     $check('upload receipt processing and visitor matching never assert per event visit attribution',
@@ -719,6 +756,42 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(50000);
     $limited=(new ModeledConversionValueDeliveryReader($p,static function():void{},$budget))->predictiveV1($now);
     $check('predictive optional read preserves the existing shared authorization headroom',$limited===['available'=>false,'reason'=>'budget_headroom']);
+    // Literal V2 monetary fields keep the unchanged V1 fixture producer above independent of policy().
+    $v2=['version'=>'early_deal_commission_7pct_v2'];
+    $put(30,'max',130,0.5,1000000,35000,35000,'accepted','UPLOADED',$v2+['full_value_base_rub'=>70000]);
+    $put(31,'telegram',131,1.0,2000000,100000,100000,'processed','PROCESSED',$v2+['full_value_base_rub'=>100000]);
+    $put(32,'max',132,0.1,null,1000,1000,'pending','PREPARED',$v2+['full_value_base_rub'=>10000]);
+    $newBefore=$snapshot();$r=$read();$byDelta=[];foreach($r['examples']as$e)$byDelta[$e['increment_rub']]=$e;
+    $known=$byDelta[35000]['calculation'];$capped=$byDelta[100000]['calculation'];$unknown=$byDelta[1000]['calculation'];
+    $check('V2 known price uses seven percent commission and probability for an increment above 25000',
+        $r['available']&&$r['events']===8&&$r['value_rub']===168650
+        &&$known!==null&&$known['estimated_deal_rub']===1000000&&$known['estimated_commission_rub']===70000.0
+        &&$known['estimated_probability']===0.5&&$known['full_value_base_rub']===70000
+        &&$known['estimated_cumulative_value_rub']===35000&&$known['prior_reserved_rub']===0);
+    $check('V2 caps a known high commission at 100000 while an unknown price keeps a distinct 10000 base',
+        $capped!==null&&$capped['estimated_deal_rub']===2000000&&$capped['estimated_commission_rub']===140000.0
+        &&$capped['full_value_base_rub']===100000&&$capped['estimated_cumulative_value_rub']===100000
+        &&$unknown!==null&&$unknown['estimated_deal_rub']===null&&$unknown['estimated_commission_rub']===null
+        &&$unknown['full_value_base_rub']===10000&&$unknown['estimated_cumulative_value_rub']===1000);
+    foreach([$known,$capped,$unknown]as$calculation)$check('a valid V2 calculation names its frozen monetary policy and cap',
+        $calculation['monetary_policy']==='early_deal_commission_7pct_v2'&&$calculation['value_cap_rub']===100000);
+    $check('mixed monetary-policy inspection leaves all stored profiles and reservations unchanged',$newBefore===$snapshot());
+
+    $put(33,'max',133,0.2,null,2000,2000,'pending','PREPARED',['full_value_base_rub'=>10000]);
+    $put(34,'max',134,0.12,null,3000,3000,'pending','PREPARED',$v2);
+    $put(35,'max',135,0.4,1000000,28000,28000,'pending','PREPARED',['full_value_base_rub'=>70000]);
+    $put(36,'max',136,0.3,200000,4200,4200,'pending','PREPARED',['version'=>'early_deal_commission_7pct_v3']);
+    $r=$read();$byDelta=[];foreach($r['examples']as$e)$byDelta[$e['increment_rub']]=$e;
+    $check('wrong version-specific bases and an unknown policy retain ledger totals but no invented explanation',
+        $r['events']===12&&$r['value_rub']===205850&&$r['calculation_unavailable_rows']===5);
+    foreach([2000,3000,28000,4200]as$delta)$check('incompatible scalar monetary policy remains unexplained for '.$delta,
+        isset($byDelta[$delta])&&$byDelta[$delta]['calculation']===null);
+    $put(37,'max',137,1.0,2000000,100001,100001,'pending','PREPARED',$v2+['full_value_base_rub'=>100000]);
+    $r=$read();$check('a predictive increment above 100000 is rejected before it contributes to returned totals',
+        $r['available']&&$r['invalid_binding_rows']===1&&$r['events']===12&&$r['value_rub']===205850);
+    // Remove only this invalid fixture so the original suffix/explanation limits still count valid rows.
+    $p->exec('DELETE FROM max_channel_conversion_outbox WHERE id=37');
+    $p->exec('DELETE FROM modeled_conversion_profile_versions WHERE id=37');
     for($i=10;$i<25;$i++)$put($i,'max',100+$i,0.1,null,2500,2500,'accepted','UPLOADED');
     $r=$read();$check('predictive examples and suffix completeness remain explicitly bounded',
         $r['window']['inspected_predictive_rows']===17&&!$r['window']['complete_within_goal_suffix']&&count($r['examples'])===16);

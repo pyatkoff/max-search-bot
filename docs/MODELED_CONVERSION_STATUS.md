@@ -631,12 +631,18 @@ hours, first-day or later age from the observed request anchor, not a claimed
 channel-join time. Each natural admitted update appends a forecast; an idle tick
 does not fabricate a new customer observation.
 
-The commission rate is the owner's7%. Advertising value is estimated probability
-times min(25000, estimated tour amount times0.07). Customer budget, native selected
-hotel inquiry, delivered party-price offers and a pinned channel publication
-range are distinct observational sources. Unknown/foreign/nightly/per-person
-prices do not become a verified party quote. With no usable deal price, the
-existing25000 advertising base remains explicitly marked as a fallback.
+The commission rate is the owner's7%. From6 November2026, new monetary capsules
+use `early_deal_commission_7pct_v2`: first round the estimated tour amount times0.07,
+cap the commission base at100000 RUB, then round probability times that base.
+Without a usable tour price, the provisional commission base is10000 RUB; price
+and estimated commission remain null. This is an assumption multiplied by
+probability, not a minimum conversion award. A later known price replaces it,
+including a commission below10000 RUB. Existing V1 capsules retain their exact
+source hash,25000 RUB cap and25000 RUB fallback; validation selects their original
+policy and never reprices a saved forecast. Customer budget, native selected hotel
+inquiry, delivered party-price offers and a pinned channel publication range are
+distinct observational sources. Unknown/foreign/nightly/per-person prices do not
+become a verified party quote.
 A fresh price observation is frozen at its admission time; source text, routing,
 messages and native publication records are never modified.
 
@@ -645,7 +651,9 @@ owner. Live prediction rows have an immutable profile-ID key, allowing a positiv
 increment within the same stage. The collector holds its existing settings lock
 and subtracts every previously reserved value for that conversation. Repeated,
 lower or identical estimates create no event. Commission base and total cumulative
-value remain capped at25000. Historical rows, activation/cursors, existing claims
+value for V2 remain capped at100000, including all earlier reservations. Historical
+stage-only targets and saved V1 values retain their25000 ceiling. Historical rows,
+activation/cursors, existing claims
 and receipts are retained; they are not repriced or replayed. Explicit frozen-funds
 context suppresses a new payment-stage award. No new scheduler or sender exists.
 
@@ -660,14 +668,14 @@ price, currency/unit guards, immutable readback and frozen funds.
 
 The existing forecasts:read status now includes value_delivery.predictive_v1. It selects only exact anytour_value_pred_<profileId>_v1 keys from the newest201 fixed-goal rows, inspects at most17 predictive rows and returns at most16 anonymous scalar examples. Repeated increments retain an anonymous same-dialogue grouping; legacy rows affect only the independently summed earlier reservation. Other projects/counters and stage-only keys are excluded. Global coverage remains unknown; a full17-row slice is explicitly incomplete.
 
-The view reads frozen price basis,7% commission,25,000RUB cap, probability, prior reserved amount and actual delta without extracting transcript text or rerunning a model. It independently checks the stored arithmetic and profile/scope binding. This is a scalar readback, not a new signature attestation or permission to export. Missing/inconsistent calculations are explicit while the recorded row/status stays visible. All source kinds, stages, states, factor reasons and times are whitelisted; native/customer/provider identifiers and free text never leave the server. Existing shared64KiB/five-second limits, authorization revocation and30,000-byte result cap remain unchanged.
+The view reads frozen price basis,7% commission, monetary-policy version and its cap (V1:25,000 RUB; V2:100,000 RUB), probability, prior reserved amount and actual delta without extracting transcript text or rerunning a model. It independently checks the stored arithmetic and profile/scope binding. This is a scalar readback, not a new signature attestation or permission to export. Missing/inconsistent calculations are explicit while the recorded row/status stays visible. All source kinds, stages, states, factor reasons and times are whitelisted; native/customer/provider identifiers and free text never leave the server. Existing shared64KiB/five-second limits, authorization revocation and30,000-byte result cap remain unchanged.
 
 API receipt presence, saved upload status, processed state and visit attribution remain separate. Even MATCHED/PROCESSED is not per-event session evidence. The cached all-goal visit report cannot establish that a particular V1 increment reached a visit. This read performs SELECT-only queries, no provider request, poll, capture, upload, queue or conversation mutation.
 
 
 ### Monetary continuity when a price disappears
 
-A missing current tour price must not restore a larger advertising base over an earlier priced valuation. The existing exporter now caps that unpriced candidate by the latest valid priced commission base recorded earlier for the same bound conversation. This is a conservative monetary cap, not a claim that the old tour price is the current trip price. Frozen forecasts stay unchanged. A genuine probability increase still uses the retained cap; an explicitly known new price may change the base normally.
+A missing current tour price must not restore a larger advertising base over an earlier priced valuation. The existing exporter now caps that unpriced candidate by the latest valid priced commission base recorded earlier for the same bound conversation. This is a conservative monetary cap, not a claim that the old tour price is the current trip price. Frozen forecasts stay unchanged. A genuine probability increase still uses the retained cap; an explicitly known new price may change the base normally. V2 takes the lower of its10000 RUB provisional base and that earlier priced base; it does not turn the unknown-price assumption into a floor for known prices.
 
 The same existing tick checks at most1001 fixed-goal ledger rows and32 previously unaudited predictive rows before resolution/sending. Exact subject/binding, immutable monetary digest and the prior row order are checked. Unattempted pending/ready overstatements may be reduced; a fully false delta becomes a zero-valued failed derived row with price_loss_reconciled. The new append-only price-audit table retains the original amount, applied amount, earlier reservation, reference basis, hash and assessment time. No source profile or conversation is rewritten. Any existing claim, attempt or API receipt stays unchanged and is explicitly flagged review_required; the exporter sends no negative reversal or duplicate.
 
