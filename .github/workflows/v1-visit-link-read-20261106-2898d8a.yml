@@ -1,0 +1,202 @@
+name: Read only V1 visit reconciliation
+on:
+  push:
+    branches: [ops/v1-visit-link-read-20261106-2898d8a]
+    paths: [.github/workflows/v1-visit-link-read-20261106-2898d8a.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-private-archive-predictive-study
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/ops/v1-visit-link-read-20261106-2898d8a' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate the one purpose source envelope
+        env:
+          API_TOKEN: ${{ github.token }}
+          ACCEPTED_MAIN_SHA: 2898d8a44f8fc5bbe3d141d89ef820427bb85d62
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,stat,subprocess,urllib.request
+          def git(*args):
+              return subprocess.check_output(['git',*args],stderr=subprocess.DEVNULL)
+          try:
+              expected=os.environ['ACCEPTED_MAIN_SHA']
+              head=os.environ['GITHUB_SHA']
+              event=json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+              assert len(expected)==40 and all(c in '0123456789abcdef' for c in expected)
+              assert event['repository']['full_name']=='pyatkoff/max-search-bot'
+              assert event['ref']=='refs/heads/ops/v1-visit-link-read-20261106-2898d8a'
+              assert event['before']==expected and event['after']==head
+              assert not event.get('forced') and not event.get('deleted')
+              assert git('rev-parse','HEAD').decode().strip()==head
+              assert git('rev-list','--parents','-n','1',head).decode().split()==[head,expected]
+              changed=git('diff','--name-status',expected,head).decode()
+              assert changed=='A\t.github/workflows/v1-visit-link-read-20261106-2898d8a.yml\n'
+              request=urllib.request.Request(
+                  'https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/main',
+                  headers={'Authorization':'Bearer '+os.environ['API_TOKEN'],
+                           'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+              with urllib.request.urlopen(request,timeout=20) as response:
+                  assert json.load(response)['object']['sha']==expected
+              paths=["services/MetrikaOfflineClient.php","services/ModeledConversionValueContract.php","services/ProjectAccessService.php","services/ModeledConversionValueExport.php"]
+              hashes={}
+              for name in paths:
+                  source=git('show',expected+':'+name)
+                  path=pathlib.Path(name)
+                  assert stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert path.read_bytes()==source
+                  hashes[name]=hashlib.sha256(source).hexdigest()
+              destination=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-source.json'
+              destination.write_text(json.dumps({'source_commit':expected,'hashes':hashes},separators=(',',':')))
+              destination.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"source_envelope_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"source_envelope_verified":true}')
+          PY
+      - name: Prepare the existing identity and strict canonical host pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              key=os.environ['K']
+              raw=key.replace('\\n','\n').replace('\r','').encode() if 'PRIVATE KEY' in key else base64.b64decode(key,validate=True)
+              keypath=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-key'
+              keypath.write_bytes(raw.rstrip(b'\n')+b'\n')
+              keypath.chmod(0o600)
+              check=subprocess.run(['ssh-keygen','-y','-f',str(keypath)],capture_output=True,timeout=10)
+              assert check.returncode==0
+              approved=set()
+              for attempt in range(2):
+                  try:
+                      scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+                      lines=scan.stdout.splitlines()
+                  except subprocess.TimeoutExpired as error:
+                      output=error.stdout or b''
+                      lines=(output.decode(errors='replace') if isinstance(output,bytes) else output).splitlines()
+                  for line in lines:
+                      fields=line.split()
+                      if len(fields)!=3 or fields[1]!='ssh-ed25519':continue
+                      try:
+                          material=base64.b64decode(fields[2],validate=True)
+                      except ValueError:continue
+                      fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(material).digest()).decode().rstrip('=')
+                      if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':
+                          approved.add(host+' ssh-ed25519 '+fields[2])
+                  if approved:break
+              assert len(approved)==1
+              known=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-hosts'
+              known.write_text('\n'.join(sorted(approved))+'\n')
+              known.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"canonical_host_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"canonical_host_verified":true}')
+          PY
+      - name: Perform the finite build with a technical receipt
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_ACCOUNT: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import json,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              account=os.environ['SSH_ACCOUNT']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert re.fullmatch(r'[a-z_][a-z0-9_-]{0,31}',account)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+              contract=json.loads((temporary/'study-source.json').read_text())
+              remote_header='CONTRACT='+repr(contract)+'\nRUN_ID="readonly-budget-diagnosis"\n'
+              remote_body=r"""
+          import hashlib,json,os,pathlib,stat,subprocess,sys
+          receipt={'ok':False,'operator_verified':False,'source_verified':False,'reader_completed':False,'response_within_cap':False,'byte_limit':False,'time_limit':False,'database_read_only':False,'reason':'none','stage':'operator','error_type':'none','error_file':'none','error_line':0,'ledger_complete':False,'initial_processed_present':False,'initial_processed_still_processed':False,'counter_timezone_verified':False,'reports_read':False,'reports_scoped':False,'reports_unsampled':False,'reports_complete':False,'each_processed_has_one_goal_visit':False,'each_visit_counts_equal_ledger':False,'each_visit_revenue_equal_ledger':False,'each_processed_in_visit_window':False,'all_initial_processed_uniquely_reconciled':False,'all_fresh_processed_uniquely_reconciled':False,'source_rows_valid':False,'any_report_forbidden':False,'any_report_invalid_query':False,'any_report_transport_failure':False,'any_report_schema_failure':False,'uploads_present':False,'all_statuses_read':False,'any_processed':False,'all_processed':False,'any_matched':False,'any_linkage_failure':False,'only_waiting_statuses':False,'more_than_eight_uploads':False,'provider_write_requests':False}
+          def verify_source(root):
+              environment=dict(os.environ)
+              environment['GIT_OPTIONAL_LOCKS']='0'
+              head=subprocess.check_output(['/usr/bin/git','-C',str(root),'rev-parse','HEAD'],
+                                           stderr=subprocess.DEVNULL,timeout=10,env=environment).decode().strip()
+              assert head==CONTRACT['source_commit']
+              for arguments in (['diff','--quiet','HEAD'],['diff','--cached','--quiet']):
+                  subprocess.run(['/usr/bin/git','-C',str(root),*arguments],stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL,timeout=10,check=True,env=environment)
+              for name,digest in CONTRACT['hashes'].items():
+                  path=root/name
+                  assert path.resolve()==path and stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
+          try:
+              root=pathlib.Path('/var/www/anytoour/data/www/app.anytoour.ru')
+              assert root.resolve()==root and root.stat().st_uid==1012 and os.geteuid()==1012
+              receipt['operator_verified']=True
+              verify_source(root)
+              receipt['source_verified']=True
+              php="<?php\ndeclare(strict_types=1);\nini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$level=ob_get_level();ob_start(static fn(string $x):string=>'');\n$flags=['uploads_present','all_statuses_read','any_processed','all_processed','any_matched','any_linkage_failure','only_waiting_statuses','more_than_eight_uploads','provider_write_requests','ledger_complete','initial_processed_present','initial_processed_still_processed','counter_timezone_verified','reports_read','reports_scoped','reports_unsampled','reports_complete','each_processed_has_one_goal_visit','each_visit_counts_equal_ledger','each_visit_revenue_equal_ledger','each_processed_in_visit_window','all_initial_processed_uniquely_reconciled','all_fresh_processed_uniquely_reconciled','source_rows_valid','any_report_forbidden','any_report_invalid_query','any_report_transport_failure','any_report_schema_failure'];\n$out=['ok'=>false,'reader_completed'=>false,'response_within_cap'=>true,'byte_limit'=>false,'time_limit'=>false,'database_read_only'=>false,'reason'=>'none','stage'=>'bootstrap','error_type'=>'none','error_file'=>'none','error_line'=>0];\nforeach($flags as$f)$out[$f]=false;\ntry{\n $root='/var/www/anytoour/data/www/app.anytoour.ru';\n require $root.'/config.php';require_once $root.'/services/ProjectAccessService.php';\n require_once $root.'/services/MetrikaOfflineClient.php';require_once $root.'/services/ModeledConversionValueContract.php';\n if(posix_geteuid()!==1012||ProjectConfig::projectId()!=='anytour'||!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635'||!defined('METRIKA_OAUTH_TOKEN'))throw new RuntimeException();\n ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');\n $out['database_read_only']=true;$out['stage']='reader';$started=microtime(true);\n $q=$pdo->query(\"SELECT id,target,value_profile_id,client_id,upload_id,upload_status,state,event_unix,value_rub,project_key,counter_id,transport_target,value_contract,conversation_id FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635' AND transport_target='anytour_modeled_value_v1' AND value_contract='semantic_stage_value_25000_v1' ORDER BY id DESC LIMIT 1001\");\n $all=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$out['ledger_complete']=count($all)<1001;if(!$out['ledger_complete'])throw new RuntimeException();\n $selected=[];$initial=[];\n foreach($all as$r){\n  if(!ModeledConversionValueContract::isKey($r['target'])||(int)$r['value_rub']<0||(int)$r['value_rub']>25000)throw new RuntimeException();\n  if(!str_starts_with($r['target'],'anytour_value_pred_')||(int)$r['value_rub']===0)continue;\n  if($r['target']!==ModeledConversionValueContract::predictionKey((string)$r['value_profile_id']))throw new RuntimeException();\n  if($r['upload_id']!==null&&$r['upload_id']!==''){$selected[]=$r;if($r['state']==='processed'&&$r['upload_status']==='PROCESSED')$initial[(string)$r['id']]=true;}\n }\n if(count($selected)>32)throw new RuntimeException();\n $out['uploads_present']=$selected!==[];$out['initial_processed_present']=$initial!==[];\n $api=new MetrikaOfflineClient('98615635',(string)METRIKA_OAUTH_TOKEN);$polls=[];\n $poll=static function(array$r)use(&$polls,$api,$started):?array{\n  $id=(string)$r['upload_id'];if(isset($polls[$id]))return $polls[$id];\n  if(microtime(true)-$started>95||count($polls)>=40)throw new RuntimeException();\n  $v=$api->poll($id);if(is_array($v)&&isset($v['comment'])&&$v['comment']!==MetrikaOfflineClient::comment($r))return null;\n  $polls[$id]=$v;return $v;\n };\n $fresh=[];$complete=true;$allProcessed=true;$waiting=true;$initialStill=true;$sourceValid=true;\n foreach($selected as$r){\n  $v=$poll($r);if(!is_array($v)){$complete=false;$allProcessed=false;$waiting=false;if(isset($initial[(string)$r['id']]))$initialStill=false;continue;}\n  $status=$v['status'];$out['any_processed']=$out['any_processed']||$status==='PROCESSED';$out['any_matched']=$out['any_matched']||$status==='MATCHED';$out['any_linkage_failure']=$out['any_linkage_failure']||$status==='LINKAGE_FAILURE';\n  $allProcessed=$allProcessed&&$status==='PROCESSED';$waiting=$waiting&&in_array($status,['PREPARED','UPLOADED','EXPORTED'],true);\n  if(isset($initial[(string)$r['id']])&&$status!=='PROCESSED')$initialStill=false;\n  if($status==='PROCESSED'){$fresh[]=$r;$sourceValid=$sourceValid&&(int)($v['source_quantity']??-1)===1&&(int)($v['line_quantity']??-1)===1;}\n }\n $out['all_statuses_read']=$complete&&$selected!==[];$out['all_processed']=$complete&&$allProcessed&&$selected!==[];\n $out['only_waiting_statuses']=$complete&&$waiting&&$selected!==[];$out['initial_processed_still_processed']=$initialStill&&$initial!==[];\n $out['source_rows_valid']=$sourceValid&&$fresh!==[];\n $get=static function(string$path,bool$stat=false)use(&$out,$started):?array{\n  if(microtime(true)-$started>95)throw new RuntimeException();\n  $url='https://api-metrika.yandex.net/'.($stat?'stat/v1/':'management/v1/counter/98615635'.($path!==''?'/':'')).$path;$body='';$large=false;$ch=curl_init($url);\n  curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>12,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,\n   CURLOPT_HTTPHEADER=>['Authorization: OAuth '.(string)METRIKA_OAUTH_TOKEN,'Accept: application/json'],\n   CURLOPT_WRITEFUNCTION=>static function($ch,string$x)use(&$body,&$large):int{if(strlen($body)+strlen($x)>131072){$large=true;return 0;}$body.=$x;return strlen($x);}]);\n  $ok=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);$errno=curl_errno($ch);curl_close($ch);\n  if($stat){$out['any_report_forbidden']=$out['any_report_forbidden']||in_array($http,[401,403],true);$out['any_report_invalid_query']=$out['any_report_invalid_query']||$http===400;$out['any_report_transport_failure']=$out['any_report_transport_failure']||$ok===false||$errno!==0||$large;}\n  if($ok===false||$errno!==0||$large||$http!==200)return null;\n  $d=json_decode($body,true,32,JSON_BIGINT_AS_STRING);return is_array($d)?$d:null;\n };\n $counter=$get('');$counter=$counter['counter']??null;$zone=is_array($counter)?($counter['time_zone_name']??null):null;\n $tz=null;if(is_array($counter)&&(string)($counter['id']??'')==='98615635'&&is_string($zone)&&in_array($zone,DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC),true))$tz=new DateTimeZone($zone);\n $out['counter_timezone_verified']=$tz!==null;\n $byClient=[];foreach($fresh as$r){$cid=(string)$r['client_id'];if(preg_match('/\\A[1-9][0-9]{0,39}\\z/D',$cid)!==1)throw new RuntimeException();$byClient[$cid][]=$r;}\n $rr=$rs=$ru=$rc=$one=$cn=$money=$window=$allInitial=$allFresh=$byClient!==[];\n $settings=$pdo->query(\"SELECT activated_at_unix,goal_id,goal_intent,contract_version FROM modeled_conversion_value_export_settings WHERE project_key='anytour' AND counter_id='98615635' LIMIT 1\")->fetch(PDO::FETCH_ASSOC);\n if(($settings['goal_id']??null)!=='678187097'||($settings['goal_intent']??null)!=='verified'||($settings['contract_version']??null)!==ModeledConversionValueContract::VERSION)throw new RuntimeException();\n $since=(int)$settings['activated_at_unix'];if($since<946684800||$since>time())throw new RuntimeException();\n $metrics=['ym:s:visits','ym:s:goal678187097reaches','ym:s:goal678187097convertedRUBRevenue'];$dimensions=['ym:s:clientID','ym:s:dateTime'];\n foreach($byClient as$cid=>$events){\n  $cid=(string)$cid;$expected=[];$valid=true;\n  foreach($all as$r)if((string)$r['client_id']===$cid&&(int)$r['value_rub']>0&&is_string($r['upload_id'])&&$r['upload_id']!==''){\n   $v=$poll($r);if(!is_array($v)){$valid=false;continue;}\n   if($v['status']==='PROCESSED'){\n    $valid=$valid&&(int)($v['source_quantity']??-1)===1&&(int)($v['line_quantity']??-1)===1;\n    $expected[]=$r;\n   }\n  }\n  $filter=\"ym:s:clientID=='\".$cid.\"' AND ym:s:goal==678187097\";\n  $query=['ids'=>'98615635','metrics'=>implode(',',$metrics),'dimensions'=>implode(',',$dimensions),'filters'=>$filter,'date1'=>gmdate('Y-m-d',$since-21*86400-86400),'date2'=>'today','accuracy'=>'full','limit'=>101];\n  $d=$get('data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),true);\n  if($d===null){$rr=false;$allFresh=false;foreach($events as$e)if(isset($initial[(string)$e['id']]))$allInitial=false;continue;}\n  $q=$d['query']??[];$scope=is_array($q)&&array_map('strval',$q['ids']??[])===['98615635']&&($q['metrics']??null)===$metrics&&($q['dimensions']??null)===$dimensions;\n  $scope=$scope&&(!isset($q['filters'])||$q['filters']===$filter);$rs=$rs&&$scope;\n  $unsampled=($d['sampled']??null)===false;$ru=$ru&&$unsampled;$rows=$d['data']??null;\n  $full=is_array($rows)&&is_numeric($d['total_rows']??null)&&(int)$d['total_rows']===count($rows)&&count($rows)<101;$rc=$rc&&$full;\n  $schema=true;$positive=[];\n  if(is_array($rows))foreach($rows as$row){\n   $dims=$row['dimensions']??null;$m=$row['metrics']??null;\n   if(!is_array($dims)||count($dims)!==2||!is_array($m)||count($m)!==3){$schema=false;continue;}\n   $client=(string)($dims[0]['name']??$dims[0]['id']??'');if($client!==$cid){$schema=false;continue;}\n   foreach($m as$v)if((!is_int($v)&&!is_float($v))||!is_finite((float)$v)||$v<0)$schema=false;\n   if((float)$m[1]>0)$positive[]=$row;\n  }\n  $out['any_report_schema_failure']=$out['any_report_schema_failure']||!$schema;\n  $unique=count($positive)===1&&(float)($positive[0]['metrics'][0]??0)===1.0;$one=$one&&$unique;\n  $counts=$unique&&$schema&&$valid&&(float)$positive[0]['metrics'][1]===(float)count($expected);$cn=$cn&&$counts;\n  $sum=array_sum(array_column($expected,'value_rub'));$amount=$unique&&$schema&&$valid&&abs((float)$positive[0]['metrics'][2]-(float)$sum)<0.005;$money=$money&&$amount;\n  $windowOk=false;\n  if($unique&&$tz!==null){$dt=(string)($positive[0]['dimensions'][1]['name']??$positive[0]['dimensions'][1]['id']??'');$time=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$dt,$tz);$windowOk=$time!==false&&$time->format('Y-m-d H:i:s')===$dt;\n   if($windowOk)foreach($expected as$e){$age=(int)$e['event_unix']-$time->getTimestamp();if($age<0||$age>21*86400)$windowOk=false;}\n  }\n  $window=$window&&$windowOk;$matched=$scope&&$unsampled&&$full&&$schema&&$valid&&$counts&&$amount&&$windowOk;\n  $allFresh=$allFresh&&$matched;foreach($events as$e)if(isset($initial[(string)$e['id']]))$allInitial=$allInitial&&$matched;\n }\n $out['reports_read']=$rr;$out['reports_scoped']=$rs;$out['reports_unsampled']=$ru;$out['reports_complete']=$rc;\n $out['each_processed_has_one_goal_visit']=$one;$out['each_visit_counts_equal_ledger']=$cn;$out['each_visit_revenue_equal_ledger']=$money;$out['each_processed_in_visit_window']=$window;\n $out['all_initial_processed_uniquely_reconciled']=$allInitial&&$initialStill&&$sourceValid;\n $out['all_fresh_processed_uniquely_reconciled']=$allFresh&&$sourceValid;\n $out['reader_completed']=true;$out['stage']='complete';$out['ok']=true;\n}catch(Throwable $e){$out['reason']='read_failed';}\nwhile(ob_get_level()>$level)ob_end_clean();\necho json_encode($out,JSON_THROW_ON_ERROR).\"\\n\";\n"
+              process=subprocess.run(['/usr/bin/php','-d','auto_prepend_file=','-d','auto_append_file=','-d','opcache.enable_cli=0','-d','display_errors=0','-d','log_errors=0'],input=php.encode(),capture_output=True,timeout=150)
+              assert len(process.stdout)<=8192 and len(process.stderr)<=8192
+              proof=json.loads(process.stdout)
+              assert set(proof)=={'ok','reader_completed','response_within_cap','byte_limit','time_limit','database_read_only','reason','stage','error_type','error_file','error_line','uploads_present','all_statuses_read','any_processed','all_processed','any_matched','any_linkage_failure','only_waiting_statuses','more_than_eight_uploads','provider_write_requests','ledger_complete','initial_processed_present','initial_processed_still_processed','counter_timezone_verified','reports_read','reports_scoped','reports_unsampled','reports_complete','each_processed_has_one_goal_visit','each_visit_counts_equal_ledger','each_visit_revenue_equal_ledger','each_processed_in_visit_window','all_initial_processed_uniquely_reconciled','all_fresh_processed_uniquely_reconciled','source_rows_valid','any_report_forbidden','any_report_invalid_query','any_report_transport_failure','any_report_schema_failure'}
+              assert all(isinstance(v,bool) for k,v in proof.items() if k not in ('reason','stage','error_type','error_file','error_line'))
+              assert proof['reason'] in ['none','byte_limit','time_limit','unknown','read_failed']
+              assert proof['stage'] in ['bootstrap','reader','forecast','value_delivery','input_diagnosis','latency','daily_delivery','telegram_linkage','monitor','complete']
+              assert proof['error_type'] in ['none','Error','TypeError','ValueError','PDOException','RuntimeException','InvalidArgumentException','DomainException','other']
+              assert proof['error_file']=='none' or proof['error_file']=='other' or re.fullmatch(r'(?:services|manager/lib)/[A-Za-z0-9_]+[.]php',proof['error_file'])
+              assert isinstance(proof['error_line'],int) and 0<=proof['error_line']<=100000
+              receipt.update(proof)
+              verify_source(root)
+          except Exception:
+              receipt['ok']=False
+          print(json.dumps(receipt,separators=(',',':')))
+          sys.exit(0 if receipt['ok'] else 1)
+          """
+              command=['ssh','-i',str(temporary/'study-key'),
+                       '-o','BatchMode=yes','-o','IdentitiesOnly=yes',
+                       '-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+str(temporary/'study-hosts'),
+                       '-o','HostKeyAlgorithms=ssh-ed25519','-o','ConnectTimeout=10',
+                       '-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3',
+                       account+'@'+host,'/usr/bin/python3 -I -B -']
+              result=subprocess.run(command,input=(remote_header+remote_body).encode(),
+                                    capture_output=True,timeout=180)
+              assert len(result.stdout)<=8192 and len(result.stderr)<=8192
+              proof=json.loads(result.stdout)
+              keys=set(["ok","operator_verified","source_verified","reader_completed","response_within_cap","byte_limit","time_limit","database_read_only","reason","stage","error_type","error_file","error_line","uploads_present","all_statuses_read","any_processed","all_processed","any_matched","any_linkage_failure","only_waiting_statuses","more_than_eight_uploads","provider_write_requests","ledger_complete","initial_processed_present","initial_processed_still_processed","counter_timezone_verified","reports_read","reports_scoped","reports_unsampled","reports_complete","each_processed_has_one_goal_visit","each_visit_counts_equal_ledger","each_visit_revenue_equal_ledger","each_processed_in_visit_window","all_initial_processed_uniquely_reconciled","all_fresh_processed_uniquely_reconciled","source_rows_valid","any_report_forbidden","any_report_invalid_query","any_report_transport_failure","any_report_schema_failure"])
+              assert isinstance(proof,dict) and set(proof)==keys and all(isinstance(v,bool) for k,v in proof.items() if k not in ('reason','stage','error_type','error_file','error_line'))
+              assert proof['reason'] in ['none','byte_limit','time_limit','unknown','read_failed']
+              assert proof['stage'] in ['operator','bootstrap','reader','forecast','value_delivery','input_diagnosis','latency','daily_delivery','telegram_linkage','monitor','complete']
+              print(json.dumps(proof,separators=(',',':')))
+              raise SystemExit(0 if result.returncode==0 and proof['ok'] else 1)
+          except Exception:
+              print('{"ok":false,"technical_receipt_verified":false}')
+              raise SystemExit(1)
+          PY
+      - name: Remove runner credentials and temporary technical files
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,pathlib
+          temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+          for name in ('study-key','study-hosts','study-source.json'):
+              (temporary/name).unlink(missing_ok=True)
+          print('{"ok":true,"runner_credentials_removed":true}')
+          PY
