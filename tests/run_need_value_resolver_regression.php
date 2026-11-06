@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 require_once __DIR__ . '/../services/NeedValueResolver.php';
+require_once __DIR__ . '/../services/ChildAgeValueContract.php';
+require_once __DIR__ . '/../services/AiSearchContextService.php';
+require_once __DIR__ . '/../maxsearchbaseclass.php';
 
 $passed = 0;
 $failed = 0;
@@ -75,6 +78,54 @@ $childAgesWrongCount = NeedValueResolver::resolve('child_ages', '5', ['children'
 nvrCheck('child ages wrong count stays unresolved', $childAgesWrongCount['recognized'], false);
 $childAgesOutOfRange = NeedValueResolver::resolve('child_ages', '5 и 18', ['children'=>2]);
 nvrCheck('child ages out of range stays unresolved', $childAgesOutOfRange['recognized'], false);
+
+$infantMonths = NeedValueResolver::resolve('child_ages', 'Малышу 7 месяцев', ['children'=>1]);
+nvrCheck('explicit infant months do not become years', $infantMonths['value'], [0]);
+nvrCheck('infant zero uses existing completed-year storage', ChildAgeValueContract::toStorage($infantMonths['value'], 1), '0');
+$monthsAboveYear = NeedValueResolver::resolve('child_ages', '18 месяцев', ['children'=>1]);
+nvrCheck('explicit months retain completed years', $monthsAboveYear['value'], [1]);
+$yearsAndMonths = NeedValueResolver::resolve('child_ages', '1 год 7 месяцев', ['children'=>1]);
+nvrCheck('compound age is one child, not two children', $yearsAndMonths['value'], [1]);
+$mixedUnits = NeedValueResolver::resolve('child_ages', '7 месяцев и 4 года', ['children'=>2]);
+nvrCheck('each explicit unit belongs to its child', $mixedUnits['value'], [0,4]);
+foreach (['7 месяцев и 4', 'почти 12 месяцев', 'не 7 месяцев', '1 год 12 месяцев', '7-8 месяцев', '-7 месяцев', '07.12.2027', '2 ребенка, 7 месяцев', '7 месяцев или 8 лет'] as $text) {
+    $unresolvedAge = NeedValueResolver::resolve('child_ages', $text, ['children'=>1]);
+    nvrCheck('ambiguous or contradictory unit age stays unresolved: '.$text, $unresolvedAge['recognized'], false);
+}
+$alternativeMonthAges = NeedValueResolver::resolve('child_ages', '7 месяцев или 8 лет', ['children'=>2]);
+nvrCheck('an age alternative is not two children', $alternativeMonthAges['recognized'], false);
+$upperMonthUnit = NeedValueResolver::resolve('child_ages', '7 МЕСЯЦЕВ', ['children'=>1]);
+nvrCheck('month units remain explicit regardless of letter case', $upperMonthUnit['value'], [0]);
+$wrongMonthCount = NeedValueResolver::resolve('child_ages', '7 месяцев', ['children'=>2]);
+nvrCheck('months never invent a missing second age', $wrongMonthCount['recognized'], false);
+
+
+$infantNormalized = AiSearchContextService::normalizeParameters(
+    ['child_ages'=>$infantMonths['value']], static fn($name)=>null, static fn($name)=>null);
+nvrCheck('infant remains zero through canonical normalization', $infantNormalized['child_ages'] ?? null, '0');
+$infantStatus = ['city'=>101,'country'=>102,'adults'=>103,'children'=>104,'child_ages'=>105,'stars'=>106,'meal'=>107,'nights'=>108,'date'=>109];
+$infantSaved = [101=>1,102=>1,103=>2,104=>1,105=>'0',106=>null,107=>null,108=>'7',109=>'15.12.2030'];
+$infantContext = AiSearchContextService::contextFromSaved($infantSaved, $infantStatus,
+    static fn($id)=>'Fixture origin', static fn($id)=>'Fixture country');
+nvrCheck('saved zero age survives the next-turn context', $infantContext['child_ages'] ?? null, '0');
+nvrCheck('saved zero age is complete rather than missing', AiSearchContextService::missingFromSaved($infantSaved, $infantStatus), []);
+$wrongInfantParty = $infantSaved;
+$wrongInfantParty[104] = 2;
+$wrongInfantContext = AiSearchContextService::contextFromSaved($wrongInfantParty, $infantStatus,
+    static fn($id)=>'Fixture origin', static fn($id)=>'Fixture country');
+nvrCheck('one infant age cannot fill a second child', array_key_exists('child_ages', $wrongInfantContext), false);
+class InfantAgeSummaryFixture extends MaxSearchBase
+{
+    static $statusCityChoose=101; static $statusContryChoose=102;
+    static $statusAdults=103; static $statusChild=104; static $statusAge=105;
+    static $statusStars=106; static $statusMeal=107; static $statusNights=108; static $statusDate=109;
+}
+foreach ([0, '0'] as $zeroAge) {
+    $summarySaved = [101=>null,102=>null,103=>2,104=>1,105=>$zeroAge,106=>null,107=>null,108=>null,109=>null];
+    nvrCheck('actual trip summary shows an infant instead of dropping zero age',
+        InfantAgeSummaryFixture::formatSavedData($summarySaved), ['👥 2 взр. + 1 реб. (до 1 года)']);
+}
+
 $childAgesNoContext = NeedValueResolver::resolve('child_ages', '5');
 nvrCheck('child ages without child count stays unresolved', $childAgesNoContext['recognized'], false);
 
