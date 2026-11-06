@@ -1,6 +1,6 @@
 {
     "ok": true,
-    "generated_at": "2026-11-06T15:03:34+00:00",
+    "generated_at": "2026-11-06T15:12:04+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
@@ -57,7 +57,7 @@
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-06T15:03:34Z",
+        "sampled_at": "2026-11-06T15:12:04Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -66,8 +66,8 @@
             "pending": 23,
             "ready": 0,
             "uploading": 0,
-            "accepted": 1,
-            "processed": 2,
+            "accepted": 0,
+            "processed": 3,
             "unknown": 0,
             "unmatched": 0,
             "failed": 0,
