@@ -9,11 +9,12 @@ require_once __DIR__.'/ModeledConversionTelegramLinkageReader.php';
 require_once __DIR__.'/ModeledConversionDailyDeliveryReader.php';
 require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 require_once __DIR__.'/ModeledConversionDealValue.php';
+require_once __DIR__.'/ModeledConversionVisitProof.php';
 
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_14';
+    public const VERSION='saved_semantic_prediction_status_v1_15';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -154,6 +155,7 @@ final class ModeledConversionForecastStatusReader
                     }else $out['window']['invalid_followup_blocks']++;
                 }
             };
+            $out['visit_delivery_check']=$this->optionalRead(function():array{$this->auth();$r=ModeledConversionVisitProof::privateSummary(time(),$this->budget);$this->auth();return $r;});
             $readProfiles(1);
             $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
             $activation=$out['value_delivery']['activated_at']??null;
@@ -169,9 +171,30 @@ final class ModeledConversionForecastStatusReader
             $out['saved']['distinct_inspected_scopes']=$out['saved']['valid_v1_versions'];
             $out['confirmation']=$out['saved']['prospective_estimates']>0?'saved_prospective_estimates':
                 ($out['saved']['valid_v1_versions']>0?'saved_v1_without_prospective_estimate':'no_v1_confirmation_in_checked_suffix');
+            $out=$this->boundedResponse($out);
             $this->auth();return $out;
         }catch(ModeledConversionStatusLimit $error){throw $error;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
+    }
+
+    /** Keep the unchanged adapter ceiling; counts survive while optional examples are explicitly shortened. */
+    private function boundedResponse(array $out):array
+    {
+        $bytes=static fn(array $v):int=>strlen(json_encode($v,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        foreach([['value_delivery','predictive_v1','examples'],['saved_input_diagnosis','examples']]as$path){
+            if(count($path)===3){
+                while($bytes($out)>28000&&!empty($out[$path[0]][$path[1]][$path[2]])){
+                    array_pop($out[$path[0]][$path[1]][$path[2]]);
+                    $out[$path[0]][$path[1]]['examples_omitted_due_to_response_budget']=true;
+                }
+            }else{
+                while($bytes($out)>28000&&!empty($out[$path[0]][$path[1]])){
+                    array_pop($out[$path[0]][$path[1]]);
+                    $out[$path[0]]['examples_omitted_due_to_response_budget']=true;
+                }
+            }
+        }
+        return $out;
     }
 
     /** Resource omission is explicit; access denial and the shared deadline still fail closed. */

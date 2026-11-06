@@ -178,6 +178,8 @@ final class ModeledConversionValueDeliveryReader
                 ." LEFT JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND p.project_key=o.project_key"
                 ." AND p.platform=o.platform AND p.conversation_id=o.conversation_id"
                 ." WHERE o.target LIKE 'anytour_value_pred_%' ORDER BY o.id DESC LIMIT 17";
+            $size=$this->query('SELECT COALESCE(SUM('.($mysql?'OCTET_LENGTH(JSON_QUOTE(packet))':'LENGTH(CAST(JSON_QUOTE(packet) AS BLOB))').'+24),0)+2 AS bytes FROM ('.$sql.') packet_sizes',[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
+            if((int)($size[0]['bytes']??PHP_INT_MAX)+8192>$this->budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
             $rows=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
             $out=['available'=>true,'basis'=>'saved_predictive_key_rows_and_frozen_scalar_calculations_not_reclassification',
                 'window'=>['max_goal_rows'=>self::ROW_LIMIT,'max_predictive_rows'=>17,'inspected_predictive_rows'=>count($rows),
