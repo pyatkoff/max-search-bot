@@ -16,7 +16,7 @@ final class ModeledConversionDailyDeliveryReader
         if($now<946684800)return $this->done(['available'=>false,'reason'=>'invalid_clock']);
         if($this->budget->remainingBytes()<8192)return $this->done(['available'=>false,'reason'=>'budget_headroom']);
         try{
-            $day=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->setTime(0,0,0);
+            $day=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->setTime(0,0,0);
             $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();
             $scope="project_key='anytour' AND counter_id='98615635' AND transport_target='anytour_modeled_value_v1' AND value_contract='semantic_stage_value_25000_v1'";
             $receipt="upload_id IS NOT NULL AND upload_id<>''";
@@ -56,7 +56,7 @@ final class ModeledConversionDailyDeliveryReader
                     throw new UnexpectedValueException();
                 $values[$key]=self::summary($r);
             }
-            return $this->done(['available'=>true,'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Kaliningrad',
+            return $this->done(['available'=>true,'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Moscow',
                 'as_of'=>gmdate('Y-m-d\TH:i:s\Z',$now),
                 'window'=>['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)],'currency'=>'RUB',
                 'upload_claims_today'=>['basis'=>'last_current_persisted_upload_claim_not_api_response_time']+$values['claims'],

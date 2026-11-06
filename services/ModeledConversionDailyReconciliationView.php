@@ -27,7 +27,7 @@ final class ModeledConversionDailyReconciliationView
             .'<nav><a href="'.self::e(self::delivery($date,$platform)).'">Начисления по диалогам →</a></nav>';
         if($unavailable||!self::valid($page))return$html.'<section class="error" role="status"><h2>Сверка сейчас недоступна</h2>'
             .'<p>Полные суммы не получены. Это не ноль начислений или отправок.</p></section></main></body></html>';
-        $html.='<section class="notice"><p>День: <strong>'.self::e($date).'</strong>, часовой пояс — Калининград. Проверено: '.self::moment($page['as_of']).'.</p>'
+        $html.='<section class="notice"><p>День: <strong>'.self::e($date).'</strong>, часовой пояс — Москва (МСК). Проверено: '.self::moment($page['as_of']).'.</p>'
             .'<p>Один диалог может иметь несколько приростов ценности. Считаем записи начислений и отдельные диалоги, а не покупки или уникальных людей.</p></section>'
             .'<section><h2>Движение по календарному дню</h2><div class="scroll"><table><thead><tr><th>Показатель</th>';
         $columns=$platform==='all'?['all'=>'Всего','max'=>'MAX','telegram'=>'Telegram']:[$platform=>$platform==='max'?'MAX':'Telegram'];
@@ -67,7 +67,7 @@ final class ModeledConversionDailyReconciliationView
     private static function valid(?array $p):bool
     {
         if(!is_array($p)||($p['available']??false)!==true||($p['schema_version']??null)!==1
-            ||($p['version']??null)!=='modeled_daily_reconciliation_v1'||($p['timezone']??null)!=='Europe/Kaliningrad'
+            ||($p['version']??null)!=='modeled_daily_reconciliation_v1'||($p['timezone']??null)!=='Europe/Moscow'
             ||($p['currency']??null)!=='RUB'||!in_array($p['platform']??null,['all','max','telegram'],true)
             ||!self::iso($p['as_of']??null)||!is_array($p['calendar']??null))return false;
         foreach(self::ROWS as$key=>$unused)if(!self::group($p['calendar'][$key]??null))return false;
@@ -111,7 +111,7 @@ final class ModeledConversionDailyReconciliationView
     private static function iso($v):bool
     {return is_string($v)&&preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z\z/D',$v)===1&&strtotime($v)!==false;}
     private static function moment(string $v):string
-    {return(new DateTimeImmutable($v))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('d.m.Y H:i:s');}
+    {return(new DateTimeImmutable($v))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('d.m.Y H:i:s');}
     private static function delivery(string $date,string $platform):string
     {return'/manager/assigned-value.php?'.http_build_query(['view'=>'delivery','date'=>$date,'platform'=>$platform],'','&',PHP_QUERY_RFC3986);}
     private static function e(string $v):string{return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}

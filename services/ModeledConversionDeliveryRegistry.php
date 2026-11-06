@@ -28,11 +28,11 @@ final class ModeledConversionDeliveryRegistry
         $this->started=($this->clock)();$this->bytes=0;$this->auth();
         try{
             if($now<946684800||array_diff(array_keys($input),['date','platform','cursor']))throw new InvalidArgumentException();
-            $date=$input['date']??(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('Y-m-d');
+            $date=$input['date']??(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
             $platform=$input['platform']??'all';
             if(!is_string($date)||preg_match('/\A20[0-9]{2}-[0-9]{2}-[0-9]{2}\z/D',$date)!==1
                 ||!is_string($platform)||!in_array($platform,['all','max','telegram'],true))throw new InvalidArgumentException();
-            $day=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Kaliningrad'));
+            $day=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Moscow'));
             if(!$day||$day->format('Y-m-d')!==$date||$day->getTimestamp()>$now)throw new InvalidArgumentException();
             $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();
             $cursor=$input['cursor']??null;$saved=null;
@@ -153,7 +153,7 @@ final class ModeledConversionDeliveryRegistry
             $next=$hasMore&&$selected?$this->encodeCursor(['v'=>1,'date'=>$date,'platform'=>$platform,
                 'snapshot'=>$snapshot,'before'=>$selected[count($selected)-1],'as_of'=>$asOf]):null;
             $this->pdo->commit();$started=false;
-            $out=['available'=>true,'version'=>self::VERSION,'date'=>$date,'timezone'=>'Europe/Kaliningrad',
+            $out=['available'=>true,'version'=>self::VERSION,'date'=>$date,'timezone'=>'Europe/Moscow',
                 'basis'=>'saved_value_event_unix','as_of'=>gmdate('Y-m-d\TH:i:s\Z',$asOf),'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
                 'window'=>['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)],
                 'platform'=>$platform,'currency'=>'RUB','summary'=>$summary,'rows'=>$items,
@@ -227,7 +227,7 @@ final class ModeledConversionDeliveryRegistry
     private function decodeCursor(string $cursor,string $date,string $platform,int $now):?array
     {
         if(strlen($cursor)>1024||preg_match('/\Av1\.([A-Za-z0-9_-]+)\.([a-f0-9]{64})\z/D',$cursor,$m)!==1
-            ||!hash_equals(hash_hmac('sha256',$m[1],$this->cursorKey),$m[2]))return null;
+            ||!hash_equals(hash_hmac('sha256',"delivery-registry-v1\nEurope/Moscow\n".$m[1],$this->cursorKey),$m[2]))return null;
         $raw=base64_decode(strtr($m[1],'-_','+/'),true);if($raw===false)return null;
         try{$v=json_decode($raw,true,8,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){return null;}
         if(!is_array($v)||array_keys($v)!==['v','date','platform','snapshot','before','as_of']||$v['v']!==1
@@ -237,8 +237,9 @@ final class ModeledConversionDeliveryRegistry
     }
     private function encodeCursor(array $v):string
     {
+        // A continuation from the old calendar must not silently select a different cohort.
         $data=rtrim(strtr(base64_encode(json_encode($v,JSON_THROW_ON_ERROR)),'+/','-_'),'=');
-        return 'v1.'.$data.'.'.hash_hmac('sha256',$data,$this->cursorKey);
+        return 'v1.'.$data.'.'.hash_hmac('sha256',"delivery-registry-v1\nEurope/Moscow\n".$data,$this->cursorKey);
     }
     private static function decimal(mixed $v,bool $zero=false):string
     {

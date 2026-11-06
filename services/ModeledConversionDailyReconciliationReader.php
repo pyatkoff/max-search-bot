@@ -20,7 +20,7 @@ final class ModeledConversionDailyReconciliationReader
         $this->started=($this->clock)();$this->bytes=0;$this->auth();
         try{
             if($now<946684800||array_diff(array_keys($input),['date','platform']))throw new InvalidArgumentException();
-            $zone=new DateTimeZone('Europe/Kaliningrad');
+            $zone=new DateTimeZone('Europe/Moscow');
             $date=$input['date']??(new DateTimeImmutable('@'.$now))->setTimezone($zone)->format('Y-m-d');
             $platform=$input['platform']??'all';
             if(!is_string($date)||preg_match('/\A20[0-9]{2}-[0-9]{2}-[0-9]{2}\z/D',$date)!==1
@@ -114,7 +114,7 @@ final class ModeledConversionDailyReconciliationReader
             $byState=[];foreach(self::STATES as$state)$byState[$state]=$status['state_'.$state];
             $this->pdo->rollBack();$own=false;
             return$this->done(['available'=>true,'schema_version'=>1,'version'=>self::VERSION,
-                'date'=>$date,'timezone'=>'Europe/Kaliningrad','platform'=>$platform,'currency'=>'RUB',
+                'date'=>$date,'timezone'=>'Europe/Moscow','platform'=>$platform,'currency'=>'RUB',
                 'as_of'=>gmdate('Y-m-d\TH:i:s\Z',$now),
                 'window'=>['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)],
                 'calendar'=>$calendar,'current_statuses'=>['basis'=>'current_state_of_selected_day_accruals','by_state'=>$byState,

@@ -4,7 +4,7 @@ The canonical closed page is /manager/assigned-value.php?view=delivery, also lin
 
 The default page reads actual recorded rows for counter98615635 / targetanytour_modeled_value_v1 / contractsemantic_stage_value_25000_v1. Former members/profiles views remain explicit legacy research views and are not the delivery ledger.
 
-- Day means the saved assignment/export event clock (`event_unix`) in Europe/Kaliningrad. This differs from the existing daily upload-claim, first API-observation and processing-observation cohorts.
+- Day means the saved assignment/export event clock (`event_unix`) in Europe/Moscow. This differs from the existing daily upload-claim, first API-observation and processing-observation cohorts.
 - One row is one conversation: name, platform, selected-day delta, lifetime reserved value under the same contract and strongest selected-day stage. It is not a proven unique tourist or verified trip.
 - Expanded rows contain the up to six real stage awards, current state/allowlisted hold reason, origin, independent lifecycle clocks and exact frozen-profile metadata. A saved-stage profile is not a quotation or fresh interpretation of the transcript. Missing or invalid profile grounds remain unavailable.
 - Day totals and visible rows share the same exact project/counter/contract/current binding/test/internal-owner predicate. Invalid stage/target/state/origin/value anywhere in the selected-day scope withholds all totals before the first page.
@@ -345,7 +345,7 @@ advances cursors, and missing checkpoint storage remains unknown rather than zer
 
 ### Today's private timing
 
-The existing empty-argument forecasts:read status adds today_latency under the same shared64KiB/5s budget. It inspects at most2001message revisions captured on the current Europe/Kaliningrad day and at most201live value rows. Only scalar timing/status aggregates and at most6anonymous distinct message-scope examples plus6value examples leave the server. Source/profile text, customer/conversation/native/provider IDs are never returned.
+The existing empty-argument forecasts:read status adds today_latency under the same shared64KiB/5s budget. It inspects at most2001message revisions captured on the current Europe/Moscow day and at most201live value rows. Only scalar timing/status aggregates and at most6anonymous distinct message-scope examples plus6value examples leave the server. Source/profile text, customer/conversation/native/provider IDs are never returned.
 
 First customer messages persisted today are timed separately from edited messages, older messages first captured today and invalid clocks. A correlated metadata lookup finds the first later profile of the same project/platform/customer/conversation whose journal cursor covers that revision. This proves profile-save progress; it does not prove every message was admitted into a numeric prediction. Recorded prediction statuses remain descriptive, not new semantic validation. The captured suffix does not establish completeness of native source capture.
 
@@ -381,7 +381,7 @@ SQLite/native tests cover scope isolation, late enrichment, chronology, ambiguit
 ## Daily delivery and technical monitoring (release 1)
 
 The same empty-argument forecasts:read result includes daily_delivery. It uses
-Europe/Kaliningrad calendar boundaries converted once to UTC and direct
+Europe/Moscow calendar boundaries converted once to UTC and direct
 COUNT(DISTINCT conversation_id) for every cohort/platform/history subset.
 It does not truncate the day at the old 201-row delivery-view bound. The fixed
 project/counter/target/value-contract scope and shared 64KiB/5s budgets apply.
@@ -519,7 +519,7 @@ The reader has its own bounded read transaction; it does not extend the already
 composed forecast RPC or its budget. Managers receive no new access.
 
 The default cohort is people whose FIRST OBSERVED saved substantive customer
-inquiry falls in the selected 30-day Kaliningrad window. The end date is inclusive;
+inquiry falls in the selected 30-day Moscow window. The end date is inclusive;
 7 and 90 days are also available. One customer is counted once per platform;
 MAX and Telegram are separate. The minimum is taken across admitted immutable
 profile versions BEFORE applying the inquiry-date window, not from the latest
@@ -731,3 +731,17 @@ No global deadline, response ceiling, query-row limit or authorization floor is
 increased.
 
 Private cache reads use standard filesystem ownership checks against the deployed service-file owner, for both the cache directory and file. Reading does not require the optional POSIX extension used by the finite CLI writer. The fixed path, 0700/0600 modes, schema/hash validation, freshness and event fingerprints remain mandatory. A synthetic subprocess verifies reading with posix_geteuid disabled.
+
+## Moscow calendar and presentation
+
+Current delivery, daily reconciliation, acquisition and forecast-payment reports use
+`Europe/Moscow` for default dates, explicit date validation and half-open calendar
+windows. Their two private daily status sections share one observation instant.
+Known event instants in conversion, profile and membership views are displayed in
+Moscow; legacy values without a validated explicit timezone remain as saved.
+
+This is a read/presentation change: stored UTC instants, frozen profiles, monetary
+values, IDs, attribution, upload receipts and advertising conversions are not
+rewritten or replayed. The already completed historical-review windows and their
+original timezone metadata remain unchanged. Old calendar-bound pagination tokens
+are rejected; refresh the selected report to start a new consistent snapshot.

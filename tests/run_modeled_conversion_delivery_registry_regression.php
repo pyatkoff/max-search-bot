@@ -52,7 +52,7 @@ function deliveryRegistryDataDigest(PDO $p):string
 /** Shared SQLite/native-MySQL assertions. Real-data identities never enter this fixture. */
 function dailyReconciliationAssertions(PDO $p,callable $check):void
 {
-    $zone=new DateTimeZone('Europe/Kaliningrad');$date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',$zone);
+    $zone=new DateTimeZone('Europe/Moscow');$date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',$zone);
     $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$now=$until+3600;
     $auth=static function():void{};$ids=[];
     $event=static function(int $conversation,int $rank,int $at,array $options=[])use($p,&$ids):string{
@@ -110,8 +110,8 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
         $read=static fn(array $input=[]):array=>(new ModeledConversionDailyReconciliationReader($p,$auth))->read(['date'=>$date]+$input,$now);
         $page=$read();
         $check('daily reconciliation uses the real shared schema on each SQL driver',($page['available']??false)===true);
-        $check('owner reconciliation fixes Kaliningrad calendar midnight independently of UTC',
-            $page['date']===$date&&$page['timezone']==='Europe/Kaliningrad'
+        $check('owner reconciliation fixes Moscow calendar midnight independently of UTC',
+            $page['date']===$date&&$page['timezone']==='Europe/Moscow'
             &&$page['window']===['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)]
             &&$page['as_of']===gmdate('Y-m-d\TH:i:s\Z',$now));
         $accrual=$page['calendar']['accruals'];
@@ -232,7 +232,7 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
 
 function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
 {
-    $day=(new DateTimeImmutable('2026-11-02 00:00:00',new DateTimeZone('Europe/Kaliningrad')))->getTimestamp();$now=$day+8000;
+    $day=(new DateTimeImmutable('2026-11-02 00:00:00',new DateTimeZone('Europe/Moscow')))->getTimestamp();$now=$day+8000;
     $legacy=['id'=>'1','conversation_id'=>'600','project_key'=>'anytour','counter_id'=>'98615635','transport_target'=>ModeledConversionValueContract::TARGET,
         'value_contract'=>ModeledConversionValueContract::VERSION,'platform'=>'max','target'=>ModeledConversionValueContract::key(1),
         'value_profile_id'=>'1','value_stage'=>'interest','value_rub'=>100,'event_unix'=>$day+120,'client_id'=>'900000000000000001',
@@ -387,6 +387,45 @@ function deliveryRegistryValueCapAssertions(PDO $p,callable $check):void
     }
 }
 
+function deliveryRegistryMoscowAssertions(PDO $p,callable $check):void
+{
+    $midnight=strtotime('2026-12-31T21:00:00Z');$auth=static function():void{};
+    $key=str_repeat('moscow-calendar-fixture-',3);
+    foreach([-1,0,1]as$i=>$offset)deliveryRegistryFixtureEvent($p,31000+$i,1,$midnight+$offset);
+    $before=deliveryRegistryDataDigest($p);
+    foreach([[-1,'2026-12-31',1,'2026-12-30T21:00:00Z','2026-12-31T21:00:00Z'],
+        [0,'2027-01-01',1,'2026-12-31T21:00:00Z','2027-01-01T21:00:00Z'],
+        [1,'2027-01-01',2,'2026-12-31T21:00:00Z','2027-01-01T21:00:00Z']]as[$offset,$date,$count,$from,$until]){
+        foreach(['registry','reconciliation']as$kind){
+            $reader=$kind==='registry'?new ModeledConversionDeliveryRegistry($p,$auth,$key):new ModeledConversionDailyReconciliationReader($p,$auth);
+            $automatic=$reader->read([],$midnight+$offset);$explicit=$reader->read(['date'=>$date],$midnight+$offset);
+            $events=$kind==='registry'?($automatic['summary']['events']??null):($automatic['calendar']['accruals']['events']??null);
+            $check($kind.' uses Moscow midnight for default and explicit dates at offset '.$offset,
+                ($automatic['available']??false)&&($explicit['available']??false)&&$automatic['date']===$date
+                &&$automatic['timezone']==='Europe/Moscow'&&$events===$count
+                &&$automatic['window']===['from'=>$from,'until_exclusive'=>$until]&&$automatic['window']===$explicit['window']);
+        }
+    }
+    foreach([new ModeledConversionDeliveryRegistry($p,$auth,$key),new ModeledConversionDailyReconciliationReader($p,$auth)]as$reader)
+        $check('next Moscow date stays invalid before midnight',($reader->read(['date'=>'2027-01-01'],$midnight-1)['reason']??null)==='invalid_request');
+    $check('Moscow calendar reads preserve every UTC record value receipt and identity',deliveryRegistryDataDigest($p)===$before);
+    // An old-day assignment can receive a new-day API receipt; do not shift either stored clock.
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_id='calendar-receipt',upload_status='PROCESSED',claimed_at_unix=?,value_api_accepted_at_unix=?,value_processed_at_unix=?,value_receipt_basis='post_response' WHERE conversation_id=31000")
+        ->execute([$midnight-1,$midnight,$midnight+1]);
+    $before=deliveryRegistryDataDigest($p);$reader=new ModeledConversionDailyReconciliationReader($p,$auth);
+    $prior=$reader->read(['date'=>'2026-12-31'],$midnight+2);$next=$reader->read(['date'=>'2027-01-01'],$midnight+2);
+    $check('assignment claim and receipt keep their own calendar days across Moscow midnight',
+        ($prior['available']??false)&&($next['available']??false)
+        &&$prior['calendar']['accruals']['events']===1&&$prior['calendar']['upload_claims']['events']===1
+        &&$prior['calendar']['api_receipts']['events']===0&&$prior['calendar']['processed']['events']===0
+        &&$next['calendar']['accruals']['events']===2&&$next['calendar']['upload_claims']['events']===0
+        &&$next['calendar']['api_receipts']['events']===1&&$next['calendar']['processed']['events']===1
+        &&deliveryRegistryDataDigest($p)===$before);
+    $check('reconciliation renders the explicit year-boundary instant in Moscow',
+        str_contains(ModeledConversionDailyReconciliationView::render($next),'01.01.2027 00:00:02'));
+    foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
+}
+
 function deliveryRegistryAssertions(PDO $p,callable $check):void
 {
     // The dedicated forecast fixture cleans its disposable schema before the ledger suite resets it.
@@ -395,7 +434,8 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     dailyReconciliationAssertions($p,$check);
     deliveryPredictiveAndVisitAssertions($p,$check);
     deliveryRegistryValueCapAssertions($p,$check);
-    $date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Kaliningrad'));
+    deliveryRegistryMoscowAssertions($p,$check);
+    $date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Moscow'));
     $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$now=$until+3600;
     $key=str_repeat('fixture-session-key-only-',3);$auth=static function():void{};
     for($id=10;$id<=66;$id++){
@@ -435,10 +475,10 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
         echo 'REGISTRY SYNTHETIC FIRST READ UNAVAILABLE reason='.$reason.PHP_EOL;
     }
     $check('registry is an actual recorded-value read with an explicit event-day basis',
-        $first['available']&&$first['basis']==='saved_value_event_unix'&&$first['timezone']==='Europe/Kaliningrad');
+        $first['available']&&$first['basis']==='saved_value_event_unix'&&$first['timezone']==='Europe/Moscow');
     $check('same-scope exact day summary counts sixty deltas and fifty-nine conversations beyond one page',
         $first['summary']['events']===60&&$first['summary']['conversations']===59&&$first['summary']['value_rub']===74166);
-    $check('Kaliningrad half-open midnight window preserves the correct UTC boundaries',
+    $check('Moscow half-open midnight window preserves the correct UTC boundaries',
         $first['window']['from']===gmdate('Y-m-d\TH:i:s\Z',$from)&&$first['window']['until_exclusive']===gmdate('Y-m-d\TH:i:s\Z',$until));
     $check('history is a direct origin subset and not a different sending day',
         $first['summary']['historical_review']===['events'=>1,'conversations'=>1,'value_rub'=>1250]
@@ -499,6 +539,9 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
         $check('strict date channel and parameter admission rejects malformed or unsupported requests',$r===['available'=>false,'reason'=>'invalid_request']);
     }
     $cursor=$first['pagination']['next_cursor'];
+    $parts=explode('.',$cursor);$legacy='v1.'.$parts[1].'.'.hash_hmac('sha256',$parts[1],$key);
+    $check('a correctly signed old-calendar cursor cannot change the cohort during paging',
+        ($read(['cursor'=>$legacy])['reason']??null)==='invalid_cursor');
     $check('edited signed cursor is rejected before releasing any result',
         ($read(['cursor'=>substr($cursor,0,-1).(str_ends_with($cursor,'0')?'1':'0')])['reason']??null)==='invalid_cursor');
     $check('cursor is bound to the selected platform',($read(['cursor'=>$cursor,'platform'=>'telegram'])['reason']??null)==='invalid_cursor');

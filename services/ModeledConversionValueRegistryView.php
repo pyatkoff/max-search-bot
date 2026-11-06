@@ -24,7 +24,8 @@ final class ModeledConversionValueRegistryView
         $html='<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             .'<title>'.$title.' · AnyTour</title><style>'.self::css().'</style></head><body><header><a href="/manager2/">AnyTour · к диалогам</a>'
             .'<p class="eyebrow">Приватный просмотр · только администратор</p><h1>'.$title.'</h1>'
-            .'<p>Наблюдаемые этапы показаны отдельно от экспериментальной оценки. Веса 50/25/50/50/100 и сумма 275 ₽ были примером и не утверждены как доход или денежная шкала.</p></header><main>'
+            .'<p>Наблюдаемые этапы показаны отдельно от экспериментальной оценки. Веса 50/25/50/50/100 и сумма 275 ₽ были примером и не утверждены как доход или денежная шкала.</p>'
+            .'<p>Время по Москве (МСК). Даты без известного часового пояса показаны как сохранены.</p></header><main>'
             .'<nav aria-label="Источники реестра">'.self::nav('members','Подписчики MAX',$view).self::nav('profiles','Диалоги MAX / Telegram',$view).'<a class="button" href="/manager/assigned-value.php?view=acquisition">От вступления до обращения</a></nav>'
             .'<section class="notice"><h2>Границы этого просмотра</h2>'
             .'<p>Один запрос показывает не более 5 строк одного источника. Общий размер доступного источника и доля полного охвата здесь неизвестны; эта страница не доказывает проверку всех подписчиков.</p>'
@@ -84,7 +85,7 @@ final class ModeledConversionValueRegistryView
         $amount=is_int($subtotal)&&$subtotal>=0?(string)$subtotal.' ₽':'неизвестно';
         $complete=($row['completeness']??null)==='all_five_awarded'?'Наблюдаются основания всех пяти этапов. Денежная интерпретация экспериментальная.':'Экспериментальная сумма частичная; неподтверждённые этапы остаются неизвестными.';
         $html='<article class="row"><h3>'.self::e($platformLabel.' · '.$identity).'</h3><div class="subtotal"><span>Экспериментальная сумма</span><strong>'.self::e($amount).'</strong></div>'
-            .'<p>'.$complete.'</p><p class="muted">Версия правил: '.self::e($row['rules_version']??null).' · Оценка на: '.self::e($row['evaluated_at']??null).'</p>';
+            .'<p>'.$complete.'</p><p class="muted">Версия правил: '.self::e($row['rules_version']??null).' · Оценка на: '.self::moment($row['evaluated_at']??null).'</p>';
         if($view==='profiles')$html.='<p class="warning">Это наблюдаемый префикс переписки, не подтверждённая текущая поездка и не установленный уникальный человек. Связь с подписчиком не предполагается.</p>';
         else $html.='<p>Связанный профиль: '.self::e(self::binding($row['profile_binding']??null)).'.</p>'
             .'<p class="muted">Даже связанный профиль описывает наблюдаемый префикс переписки; границы текущей поездки не подтверждены.</p>';
@@ -107,7 +108,7 @@ final class ModeledConversionValueRegistryView
             }
             $html.='<dl>';
             foreach(['occurred_at'=>'Событие произошло','recorded_at'=>'Основание записано','available_at'=>'Основание стало доступно']as$field=>$name)
-                $html.='<dt>'.$name.'</dt><dd>'.self::e($stage[$field]??null).'</dd>';
+                $html.='<dt>'.$name.'</dt><dd>'.self::moment($stage[$field]??null).'</dd>';
             $html.='</dl></details></section>';
         }
         return $html.'</div><details><summary>Стабильная единица оценки и точный охват строки</summary>'
@@ -135,9 +136,9 @@ final class ModeledConversionValueRegistryView
             };
             $html.='<p class="predictionNumber"><span>P(оплата в текущем агентстве)</span><strong>'.self::e($probability).'</strong></p>'
                 .'<p>'.self::e($status).'.</p><p class="muted">Первая оценка по смыслу переписки: правила не обучены и не откалиброваны. Новизна обращения и текущая поездка не подтверждены. Экспериментальная денежная сумма рассчитывается отдельно.</p>'
-                .'<dl><dt>Прогноз фактически сохранён</dt><dd>'.self::e($p['prediction_at']).'</dd>'
-                .'<dt>Входные данные доступны до</dt><dd>'.self::e($p['input_cutoff_at']).'</dd>'
-                .'<dt>Горизонт прогноза до</dt><dd>'.self::e($p['horizon_end_at']).'</dd>'
+                .'<dl><dt>Прогноз фактически сохранён</dt><dd>'.self::moment($p['prediction_at']).'</dd>'
+                .'<dt>Входные данные доступны до</dt><dd>'.self::moment($p['input_cutoff_at']).'</dd>'
+                .'<dt>Горизонт прогноза до</dt><dd>'.self::moment($p['horizon_end_at']).'</dd>'
                 .'<dt>Начало текущего запроса</dt><dd><code>'.self::e($p['current_request_anchor']).'</code>'
                 .' · ревизия '.self::e($p['anchor_source_version_no']).' · сообщений клиента: '.$p['current_customer_turn_count'].'</dd></dl>';
             if($p['reasons']){
@@ -148,15 +149,15 @@ final class ModeledConversionValueRegistryView
             if($p['evidence']){
                 $html.='<details><summary>Ссылки и время оснований прогноза</summary><ul>';
                 foreach($p['evidence']as$e)$html.='<li><code>'.self::e($e['source_ref']).'</code>'
-                    .' · '.self::e($e['occurred_at']).' · доступно '.self::e($e['available_at'])
+                    .' · '.self::moment($e['occurred_at']).' · доступно '.self::moment($e['available_at'])
                     .' · ревизия '.$e['source_version_no'].'</li>';
                 $html.='</ul></details>';
             }
             if($p['outcome_observations']){
                 $html.='<details><summary>Отдельные наблюдения исходов</summary><p>Заявления и операционные записи не подтверждают банковскую оплату.</p><ul>';
                 foreach($p['outcome_observations']as$e)$html.='<li>'.self::e(self::outcomeKind($e['kind']))
-                    .' · <code>'.self::e($e['source_ref']).'</code> · '.self::e($e['occurred_at'])
-                    .' · доступно '.self::e($e['available_at']).' · ревизия '.$e['source_version_no'].'</li>';
+                    .' · <code>'.self::e($e['source_ref']).'</code> · '.self::moment($e['occurred_at'])
+                    .' · доступно '.self::moment($e['available_at']).' · ревизия '.$e['source_version_no'].'</li>';
                 $html.='</ul></details>';
             }
         }
@@ -194,17 +195,17 @@ final class ModeledConversionValueRegistryView
         $status=match($f['status']){'waiting'=>'Ожидание','unknown'=>'Результат неизвестен','observed'=>'Наблюдение получено'};
         $html.='<p><strong>'.self::e($status).'</strong> · '.self::e($reason).'.</p>'
             .'<p class="muted">Сравниваются сохранённый прогноз и более поздние сообщения. Это диагностическое наблюдение, без банковской проверки и независимой оценки точности. Отсутствие сообщения об оплате не считается неоплатой.</p>'
-            .'<dl><dt>Сравнение сохранено</dt><dd>'.self::e($f['observed_at']).'</dd>';
-        if($f['prior_prediction_at']!==null)$html.='<dt>Более ранний прогноз</dt><dd>'.self::e($f['prior_prediction_at']).'</dd>'
+            .'<dl><dt>Сравнение сохранено</dt><dd>'.self::moment($f['observed_at']).'</dd>';
+        if($f['prior_prediction_at']!==null)$html.='<dt>Более ранний прогноз</dt><dd>'.self::moment($f['prior_prediction_at']).'</dd>'
             .'<dt>Сохранённая ранее вероятность</dt><dd>'.self::e(number_format($f['prior_estimated_probability']*100,2,',',' ').'%').'</dd>'
-            .'<dt>Его горизонт до</dt><dd>'.self::e($f['horizon_end_at']).'</dd>';
+            .'<dt>Его горизонт до</dt><dd>'.self::moment($f['horizon_end_at']).'</dd>';
         $html.='</dl>';
         if($f['evidence']){
             $html.='<ul>';
             foreach($f['evidence']as$e)$html.='<li>'.($e['label']==='self_reported_payment'
                 ?'Клиент сообщил об оплате':'Менеджер сообщил о получении денег')
-                .' · <code>'.self::e($e['source_ref']).'</code> · '.self::e($e['occurred_at'])
-                .' · доступно '.self::e($e['available_at']).' · ревизия '.$e['source_version_no'].'</li>';
+                .' · <code>'.self::e($e['source_ref']).'</code> · '.self::moment($e['occurred_at'])
+                .' · доступно '.self::moment($e['available_at']).' · ревизия '.$e['source_version_no'].'</li>';
             $html.='</ul>';
         }
         return$html.'</section>';
@@ -318,6 +319,16 @@ final class ModeledConversionValueRegistryView
     private static function value(mixed $value):string
     {
         return is_string($value)||is_int($value)||is_float($value)?(string)$value:'неизвестно';
+    }
+
+    private static function moment(mixed $value):string
+    {
+        // Legacy bare dates have mixed bases. Only a validated explicit instant may be projected.
+        if(!is_string($value)||preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:Z|[+-][0-9]{2}:[0-9]{2})\z/D',$value)!==1)return self::e($value);
+        $explicit=str_ends_with($value,'Z')?substr($value,0,-1).'+00:00':$value;
+        $date=DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:sP',$explicit,new DateTimeZone('UTC'));
+        if(!$date||$date->format('Y-m-d\TH:i:sP')!==$explicit||abs($date->getOffset())>14*3600)return self::e($value);
+        return self::e($date->setTimezone(new DateTimeZone('Europe/Moscow'))->format('d.m.Y H:i:s'));
     }
 
     private static function e(mixed $value):string
