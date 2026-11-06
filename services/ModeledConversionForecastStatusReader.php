@@ -8,11 +8,12 @@ require_once __DIR__.'/ModeledConversionLatencyReader.php';
 require_once __DIR__.'/ModeledConversionTelegramLinkageReader.php';
 require_once __DIR__.'/ModeledConversionDailyDeliveryReader.php';
 require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
+require_once __DIR__.'/ModeledConversionDealValue.php';
 
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_13';
+    public const VERSION='saved_semantic_prediction_status_v1_14';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -84,6 +85,7 @@ final class ModeledConversionForecastStatusReader
                         $p=json_decode($body[0]['binding_json'],true,32,JSON_THROW_ON_ERROR);
                         $p['semantic_prediction']=json_decode($body[0]['prediction_json']??'null',true,32,JSON_THROW_ON_ERROR);
                         $p['prediction_followup']=json_decode($body[0]['followup_json']??'null',true,32,JSON_THROW_ON_ERROR);
+                        $p['deal_value_prediction']=json_decode($body[0]['deal_json']??'null',true,32,JSON_THROW_ON_ERROR);
                     }catch(JsonException $ignored){$out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['invalid_json']++;continue;}
                     $subject=['project_key'=>'anytour','platform'=>$row['platform'],
                         'customer_key'=>(string)$row['customer_key'],'conversation_id'=>(string)$row['conversation_id']];
@@ -108,11 +110,25 @@ final class ModeledConversionForecastStatusReader
                         $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['input_summary']++;continue;
                     }
 
+                    if(is_array($p['deal_value_prediction']??null)){
+                        $money=ModeledConversionDealValue::saved($p);
+                        if($money!==null){
+                            if(!isset($out['saved']['deal_value']))$out['saved']['deal_value']=['versions'=>0,'estimated_deal_versions'=>0,
+                                'source_counts'=>[],'commission_rate'=>0.07,'deal_point_range_rub'=>['minimum'=>null,'maximum'=>null],
+                                'value_range_rub'=>['minimum'=>null,'maximum'=>null],'early_window_counts'=>[]];
+                            $mv=&$out['saved']['deal_value'];$mv['versions']++;
+                            $key=$money['deal_amount_rub']['source_kind'];$mv['source_counts'][$key]=($mv['source_counts'][$key]??0)+1;
+                            $key=$money['early_window'];$mv['early_window_counts'][$key]=($mv['early_window_counts'][$key]??0)+1;
+                            if(is_int($money['deal_amount_rub']['point'])){$mv['estimated_deal_versions']++;$this->probabilityRange($mv['deal_point_range_rub'],$money['deal_amount_rub']['point']);}
+                            if(is_int($money['value_rub']))$this->probabilityRange($mv['value_range_rub'],$money['value_rub']);
+                            unset($mv);
+                        }
+                    }
                     $out['saved']['valid_v1_versions']++;$out['saved']['channel_counts'][$row['platform']]++;
                     $out['saved']['status_counts'][$s['status']]++;
-                    $weighting=($s['mode']??null)==='contextual_stage_baseline'?'stage_baseline':
-                        (($s['training_status']??null)==='archive_relative_weights'?'archive_relative_weights':'illustrative');
-                    $out['saved']['weighting_version_counts'][$weighting]++;
+                    $weighting=($s['mode']??null)==='contextual_advertising_v1'?'expert_dialogue':(($s['mode']??null)==='contextual_stage_baseline'?'stage_baseline':
+                        (($s['training_status']??null)==='archive_relative_weights'?'archive_relative_weights':'illustrative'));
+                    $out['saved']['weighting_version_counts'][$weighting]=($out['saved']['weighting_version_counts'][$weighting]??0)+1;
                     if($weighting==='archive_relative_weights'){
                         $weightSha=$s['relative_weights']['package_sha256'];
                         $out['saved']['relative_weight_package_counts'][$weightSha]=($out['saved']['relative_weight_package_counts'][$weightSha]??0)+1;
@@ -208,7 +224,7 @@ final class ModeledConversionForecastStatusReader
             .",'wizard_applications',".$this->boundedCount('coverage.applied_wizard_fields',50)
             .",'action_or_unknown_type_rows',".$this->boundedCount('coverage.errors.action_or_unknown_message_type',1000)
             .",'legacy_status',CASE WHEN ".$status." IN ('early_assessment','target_already_observed','no_usable_customer_context','access_denied') THEN ".$status." ELSE NULL END".$continuity.")";
-        return ['prediction_json'=>$s('semantic_prediction'),'followup_json'=>$s('prediction_followup'),
+        return ['prediction_json'=>$s('semantic_prediction'),'followup_json'=>$s('prediction_followup'),'deal_json'=>$s('deal_value_prediction'),
             'binding_json'=>"JSON_OBJECT('access_status',".$s('access_status').",'subject',JSON_OBJECT('project_key',".$s('subject.project_key')
                 .",'platform',".$s('subject.platform').",'customer_key',".$s('subject.customer_key').",'conversation_id',".$s('subject.conversation_id')
                 ."),'profile',JSON_OBJECT('prediction_at',".$s('profile.prediction_at')

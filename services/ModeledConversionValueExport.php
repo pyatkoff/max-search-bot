@@ -255,7 +255,7 @@ final class ModeledConversionValueExport
                 $reserved=(int)$q->fetchColumn();$delta=$candidate['value']-$reserved;if($delta<=0)continue;
                 $insert=$mysql?'INSERT IGNORE':'INSERT OR IGNORE';
                 $q=$this->pdo->prepare($insert." INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,identity_source_key,value_rub,value_profile_id,value_stage,value_contract) VALUES('anytour',?,?,'98615635',?,?,?,?,?,?,?,?,?)");
-                $q->execute([$r['conversation_id'],$binding['external_user_id'],ModeledConversionValueContract::key($candidate['rank']),
+                $q->execute([$r['conversation_id'],$binding['external_user_id'],!empty($candidate['prediction_value'])?ModeledConversionValueContract::predictionKey((string)$r['id']):ModeledConversionValueContract::key($candidate['rank']),
                     ModeledConversionValueContract::TARGET,$candidate['event_unix'],$r['platform'],$r['platform']==='telegram'?'tgmini':'max_tracker',
                     $delta,$r['id'],$candidate['stage'],ModeledConversionValueContract::VERSION]);$written+=$q->rowCount()===1?1:0;
             }

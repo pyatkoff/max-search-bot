@@ -106,6 +106,7 @@ final class ModeledValueTestLookup
 }
 function modeledValueAssertions(PDO $p,callable $check):void
 {
+    modeledValuePredictionAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
     modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
@@ -380,6 +381,92 @@ function modeledValueFairProgressAssertions(PDO $p,callable $check):void
     $check('fair progress keeps missing rows and polls the accepted receipt without resending',
         $wire->posts===1&&(int)$p->query("SELECT COUNT(*) FROM max_channel_conversion_outbox WHERE state='pending'")->fetchColumn()===5
         &&$p->query("SELECT state FROM max_channel_conversion_outbox WHERE conversation_id=506")->fetchColumn()==='processed');
+}
+
+
+/** Synthetic admitted prefix used by both SQLite and the isolated native-MySQL contract. */
+function modeledExpertWrapper(array $subject,int $now,int $budget,bool $office=false,bool $hold=false,?string $holdText=null,bool $posted=false):array
+{
+    $freeze=gmdate('Y-m-d\TH:i:s\Z',$now);$messages=[['customer','Подберите тур в Турцию на 7 ночей. Бюджет '.$budget.' рублей на всех.']];
+    if($office)$messages[]=['customer','Где находится ваш офис?'];
+    if($hold){$messages[]=['customer','Оплатила'];$messages[]=['manager',$holdText??'Денежные средства заморожены, списания еще нет.'];
+        if($posted)$messages[]=['manager','Денежные средства успешно списаны.'];}
+    $model=new ModeledConversionSemanticPrediction($subject,$freeze,$freeze,$freeze,'1000','1000',null,true);
+    $state=ArchiveResearchSemanticExtractor::initialState();$evidence=[];$rows=[];$events=[];
+    foreach($messages as$i=>[$role,$text]){
+        $id=(string)(101+$i);$ref='journal:'.$id;$at=$now-200+$i*10;$available=$at+1;
+        $r=ArchiveResearchSemanticExtractor::step(['source_ref'=>$ref,'created_at'=>$at,'read_status'=>'available','text'=>$text,
+            'role'=>$role,'direction'=>$role==='customer'?'inbound':'outbound','role_verified'=>true,'text_minimized'=>true,'forwarded'=>false,
+            'media'=>[],'media_contents_read'=>false,'selection_links_unread'=>false,'links_redacted'=>false],$state);
+        $state=$r['state'];$model->observeMessage($role,$text,$ref,$at,$available,1,$r);$events=[...$events,...$r['events']];
+        $atText=gmdate('Y-m-d\TH:i:s\Z',$at);$availableText=gmdate('Y-m-d\TH:i:s\Z',$available);
+        $reference=['source'=>'message','id'=>$ref,'at'=>$atText,'available_at'=>$availableText];
+        $evidence[]=['id'=>'message:'.$ref,'subject'=>$subject,'kind'=>$role.'_message','at'=>$atText,'available_at'=>$availableText,'references'=>[$reference]];
+        $rows[]=['journal_id'=>$id,'source_kind'=>'message','source_id'=>$id,'source_version_no'=>1,'observed_at_unix'=>$available,
+            'snapshot'=>$subject+['source_kind'=>'message','source_id'=>$id,'source_status'=>'present','payload_status'=>'copied',
+                'source_created_at_unix'=>$at,'source_timestamp_basis'=>'database_session_timezone_to_unix',
+                'payload'=>['text'=>$text,'direction'=>$role==='customer'?'inbound':'outbound','sender_type'=>$role,'metadata_json'=>'{"type":"message"}']]];
+    }
+    $w=['subject'=>$subject,'access_status'=>'allowed','profile'=>['prediction_at'=>$freeze,
+        'observation_input'=>['subject'=>$subject,'evidence'=>$evidence],
+        'fields'=>['budget'=>['status'=>'known','usable_at_prediction'=>true,'available_at'=>$freeze,
+            'value'=>['minimum'=>$budget,'maximum'=>$budget,'currency'=>'RUB','unit'=>'party_total'],'references'=>$evidence[0]['references']]]],
+        'processing'=>['source_sha256'=>hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionProfiles.php')],
+        'contextual_signals'=>['version'=>ModeledConversionEarlyForecast::VERSION,'extractor_sha256'=>hash_file('sha256',dirname(__DIR__).'/services/ArchiveResearchSemanticExtractor.php'),
+            'adapter_sha256'=>hash_file('sha256',dirname(__DIR__).'/services/ModeledConversionEarlyForecast.php'),
+            'frozen_at'=>$freeze,'input_cutoff_at'=>$freeze,'events'=>$events]];
+    $w['semantic_prediction']=$model->finish(['early_forecast'=>['status'=>'early_assessment']]);
+    $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,['subject'=>$subject,'rows'=>$rows]);
+    return $w;
+}
+function modeledValuePredictionAssertions(PDO $p,callable $check):void
+{
+    modeledValueSchema($p);$now=1793665000;$scope=modeledValueBinding($p,650);
+    $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+    $control->configure('create-goal',$api,$now-500);$control->configure('enable',$api,$now-500);
+    $lookup=new class{public function lookup(string $counter,array $users):array{$out=[];foreach($users as$u)$out[$u]=['external_user_id'=>$u,'client_id'=>'88000001','record_id'=>'1','observed_at_unix'=>1793665000];return$out;}};
+    $gate=static fn(string $chat):bool=>true;
+    $first=modeledExpertWrapper($scope,$now,200000);modeledValueSave($p,$first);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+    $sum=static fn():int=>(int)$p->query("SELECT COALESCE(SUM(value_rub),0) FROM max_channel_conversion_outbox WHERE conversation_id=650")->fetchColumn();
+    $check('expert V1 actual CSV carries seven-percent expected commission rather than fixed stage value',
+        $wire->posts===1&&$sum()===1167&&str_contains($wire->csv[0],',1167,RUB')
+        &&str_starts_with((string)$p->query("SELECT target FROM max_channel_conversion_outbox")->fetchColumn(),'anytour_value_pred_'));
+    $stronger=modeledExpertWrapper($scope,$now+1,200000,true);modeledValueSave($p,$stronger);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
+    $expected=$stronger['deal_value_prediction']['value_rub'];
+    $check('meaning strengthens value within the same stage and exports only the positive increment',
+        $wire->posts===2&&$sum()===$expected&&$expected>1167
+        &&$stronger['semantic_prediction']['stage']===$first['semantic_prediction']['stage']);
+    modeledValueSave($p,$stronger);ModeledConversionValueExport::tick($p,$lookup,$api,$now+2,$gate);
+    $check('an identical saved forecast version never duplicates cumulative value',$wire->posts===2&&$sum()===$expected);
+    $repriced=modeledExpertWrapper($scope,$now+3,300000,true);modeledValueSave($p,$repriced);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+3,$gate);
+    $check('same-stage amount revision exports a new bounded increment',
+        $wire->posts===3&&$sum()===$repriced['deal_value_prediction']['value_rub']&&$sum()>$expected
+        &&$repriced['semantic_prediction']['estimated_probability']===$stronger['semantic_prediction']['estimated_probability']);
+    $before=$sum();$cheaper=modeledExpertWrapper($scope,$now+4,100000,true);modeledValueSave($p,$cheaper);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+4,$gate);
+    $check('downward estimate appends no negative event or duplicate refund',$wire->posts===3&&$sum()===$before);
+    $expensive=modeledExpertWrapper($scope,$now+5,1000000,true);modeledValueSave($p,$expensive);
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now+5,$gate);
+    $check('estimated commission is capped at approved25000 rather than assuming full turnover is advertising value',
+        $expensive['deal_value_prediction']['commission_estimate_rub']===70000
+        &&$expensive['deal_value_prediction']['full_value_base_rub']===25000&&$sum()<25000);
+    $held=modeledExpertWrapper($scope,$now+6,200000,false,true);
+    $check('a payment statement followed by explicit frozen funds never awards a payment-stage increment',
+        $held['deal_value_prediction']['payment_hold_observed']
+        &&ModeledConversionValueContract::candidate($held,$scope,$now-500,$now+6)===null);
+    $policy=modeledExpertWrapper($scope,$now+7,200000,false,true,'После оплаты средства будут заморожены.');
+    $check('future hold policy is not reclassified as an existing payment hold',
+        !$policy['deal_value_prediction']['payment_hold_observed']);
+    $posted=modeledExpertWrapper($scope,$now+8,200000,false,true,null,true);
+    $check('a later explicit posting can resolve a held-funds state regardless of input row ordering',
+        !$posted['deal_value_prediction']['payment_hold_observed']
+        &&ModeledConversionValueContract::candidate($posted,$scope,$now-500,$now+8)!==null);
+    $bad=$stronger;$bad['deal_value_prediction']['value_rub']=24000;
+    $check('modified monetary capsule cannot fall back to a legacy positive award',
+        ModeledConversionValueContract::candidate($bad,$scope,$now-500,$now+6)===null);
 }
 
 if(realpath((string)($_SERVER['SCRIPT_FILENAME']??''))===__FILE__){
