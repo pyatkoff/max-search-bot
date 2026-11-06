@@ -227,13 +227,11 @@ function forecastNativeAuthRegression():void
 
     $pdo->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT,last_report_success_unix BIGINT,last_report_success_json TEXT,report_failure_since_unix BIGINT)");
         $pdo->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,last_receipt_json,history_from_unix,history_until_unix,history_cursor,history_ceiling) VALUES('anytour','98615635','send','678187097','verified',1793656800,?,?,'{}',1793570400,1793656800,1,30099)")->execute([time(),ModeledConversionValueContract::VERSION]);
-        // All subviews exist together: 32 sampled scopes, 100 saved packets and a real migrated OAuth grant.
-        // The newest core packet exercises monetary-policy visibility without a numeric probability.
+        // All subviews exist together: 32 sampled scopes, 100 rich saved packets and a real migrated OAuth grant.
         $insert=$pdo->prepare("INSERT INTO modeled_conversion_profile_versions(id,project_key,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,profile_json) VALUES(?,'anytour','telegram',?,?,?,?,?)");
         for($i=0;$i<100;$i++){
             $person=(string)(9000+$i%32);$conversation=(string)(10000+$i%32);
-            $packet=$i===99?forecastV1Packet($person,$conversation,[['text'=>'Здравствуйте!']]):forecastV1Packet($person,$conversation);
-            if($i===99)$packet['deal_value_prediction']=ModeledConversionDealValue::freeze($packet,[]);
+            $packet=forecastV1Packet($person,$conversation);
             $insert->execute([30000+$i,$person,$conversation,$packet['journal_cursor'],strtotime($packet['profile']['prediction_at']),json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
         }
         // The component above keeps its fixed Nov 3 clock and exact delay assertions.
@@ -287,15 +285,35 @@ function forecastNativeAuthRegression():void
                 &&$afterRead>0&&$afterRead<$afterBearer
                 &&strlen(json_encode($data,JSON_THROW_ON_ERROR))<=30000
                 &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
-            $money=$data['saved']['deal_value']['by_monetary_policy'][ModeledConversionDealValue::VERSION]??[];
-            $check('composed real OAuth read retains validated monetary policy inside unchanged response limits',
-                ($money['versions']??null)===1&&($money['estimated_value_versions']??null)===0
-                &&($money['value_cap_rub']??null)===100000
-                &&($money['unknown_price_base_rub']??null)===10000
-                &&($money['unknown_price_versions']??null)===$money['versions']
-                &&($money['full_value_base_range_rub']??null)===['minimum'=>10000,'maximum'=>10000]);
         });
         $check('combined private status preserves every OAuth and saved profile row',forecastNativeAuthSnapshot($pdo)===$before);
+
+        $phase='composed_monetary_policy';
+        // Keep the original all-subviews baseline above unchanged. The newer monetary
+        // core is a separate read whose optional sections may declare their own budget limit.
+        $packet=forecastV1Packet($person,$conversation,[['text'=>'Здравствуйте!']]);
+        $packet['deal_value_prediction']=ModeledConversionDealValue::freeze($packet,[]);
+        $pdo->prepare("UPDATE modeled_conversion_profile_versions SET journal_cursor=?,observed_at_unix=?,profile_json=? WHERE id=30099 AND project_key='anytour' AND platform='telegram'")
+            ->execute([$packet['journal_cursor'],strtotime($packet['profile']['prediction_at']),json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+        $before=forecastNativeAuthSnapshot($pdo);
+        forecastNativeReadOnly($pdo,static function()use($pdo,$forecast,$check):void{
+            [$response]=forecastNativeAuthDispatch($pdo,$forecast);
+            $data=$response['result']['structuredContent']??[];
+            $money=$data['saved']['deal_value']['by_monetary_policy'][ModeledConversionDealValue::VERSION]??[];
+            $check('composed real OAuth read retains validated V2 policy without inventing a numeric estimate',
+                ($data['available']??false)&&($money['versions']??null)===1&&($money['estimated_value_versions']??null)===0
+                &&($money['value_cap_rub']??null)===100000&&($money['unknown_price_base_rub']??null)===10000
+                &&($money['unknown_price_versions']??null)===1
+                &&($money['full_value_base_range_rub']??null)===['minimum'=>10000,'maximum'=>10000]
+                &&($data['saved']['deal_value']['value_range_rub']??null)===['minimum'=>null,'maximum'=>null]
+                &&($data['model_calls']??null)===0&&($data['conversion_uploads']??null)===0
+                &&strlen(json_encode($data,JSON_THROW_ON_ERROR))<=30000
+                &&strlen(json_encode($response,JSON_THROW_ON_ERROR))<=65536);
+            $daily=$data['daily_delivery']??[];
+            $check('a heavier monetary core retains an available daily section or its exact optional byte-limit diagnosis',
+                ($daily['available']??false)||$daily===['available'=>false,'reason'=>'budget_headroom']);
+        });
+        $check('monetary composed read preserves every OAuth and saved profile row',forecastNativeAuthSnapshot($pdo)===$before);
         echo 'NATIVE FORECAST AUTH PASSED '.$passed.PHP_EOL;
     }catch(Throwable $error){
         // Fixed phases and sanitized codes only: no tokens, SQL, fixture texts or connection details.
