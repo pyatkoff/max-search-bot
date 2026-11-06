@@ -416,6 +416,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
         !$r['available']&&$r['reason']==='storage_unavailable'&&$r['saved']===null);
     forecastValueDeliveryAssertions($p,$check);
     forecastInputDiagnosisAssertions($p,$check);
+    forecastPredictiveValueAssertions($p,$check);
 }
 
 function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
@@ -626,6 +627,75 @@ function forecastTelegramLinkageAssertions(PDO $p,callable $check):void
         $r['pending']['events']===32&&!$r['pending']['complete_within_bound']);
     $p->exec('DROP TABLE advertising_visit_observations');$r=$read();
     $check('missing identity storage stays explicit without changing other status contracts',$r===['available'=>false,'reason'=>'storage_unavailable']);
+}
+
+
+function forecastPredictiveValueAssertions(PDO $p,callable $check):void
+{
+    foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions']as$table)$p->exec('DROP TABLE IF EXISTS '.$table);
+    $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,profile_json TEXT)");
+    $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),platform VARCHAR(16),conversation_id BIGINT,value_profile_id BIGINT,value_stage VARCHAR(40),value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),event_unix BIGINT,claimed_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,upload_id VARCHAR(40),client_id VARCHAR(40))");
+    $now=time();
+    $profile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,'770001',?,?,?)");
+    $row=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+    $put=static function(int $id,string $platform,int $scope,float $prob,?int $price,int $full,int $delta,string $state,string $status)use($profile,$row,$now):void{
+        $commission=$price===null?null:(int)round($price*0.07);$base=$price===null?25000:min(25000,$commission);
+        $packet=['access_status'=>'allowed','subject'=>['project_key'=>'anytour','platform'=>$platform,'customer_key'=>'770001','conversation_id'=>(string)$scope],
+            'semantic_prediction'=>['mode'=>'contextual_advertising_v1','status'=>'predicted','stage'=>'substantive_dialogue','estimated_probability'=>$prob,
+                'hypothesis_odds_multiplier'=>1.1,'reasons'=>['expert_dialogue_continued_meaningful_engagement','PRIVATE_REASON_NEVER_RETURN']],
+            'deal_value_prediction'=>['version'=>'early_deal_commission_7pct_v1','commission_rate'=>0.07,
+                'deal_amount_rub'=>['point'=>$price,'low'=>$price,'high'=>$price,'basis'=>$price===null?'unknown':'customer_budget_ceiling_proxy',
+                    'source_kind'=>$price===null?'unknown':'customer_budget'],
+                'commission_estimate_rub'=>$commission,'full_value_base_rub'=>$base,'value_rub'=>$full],
+            'private_marker'=>'PRIVATE_PROFILE_NEVER_RETURN'];
+        $profile->execute([$id,$platform,$scope,$now-10,json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
+        $upload=$state==='pending'?null:(string)(800000+$id);
+        $row->execute([$id,ModeledConversionValueContract::predictionKey((string)$id),$platform,$scope,$id,'interest',$delta,$state,$status,$now-20,
+            $upload===null?null:$now-9,$upload===null?null:$now-8,$state==='processed'?$now-7:null,$upload,'990001PRIVATE_CLIENT']);
+    };
+    // A legacy reservation must reduce a later predictive amount without appearing as a V1 event.
+    $row->execute([1,'anytour_value_1_v1','max',51,null,'interest',1250,'processed','PROCESSED',$now-100,$now-99,$now-98,$now-97,'800001','PRIVATE_OLD_CLIENT']);
+    $put(2,'max',51,0.1,200000,1400,150,'accepted','UPLOADED');
+    $put(3,'max',51,0.1,null,2500,1100,'processed','PROCESSED');
+    $put(4,'telegram',52,0.2,100000,1400,1400,'unmatched','LINKAGE_FAILURE');
+    $put(5,'max',53,0.5,200000,25000,25000,'pending','PREPARED'); // Inconsistent frozen arithmetic stays unavailable.
+    $put(6,'max',54,0.2,1000000,5000,5000,'accepted','MATCHED');
+    $p->exec("INSERT INTO max_channel_conversion_outbox SELECT 9,'foreign',counter_id,transport_target,value_contract,target,platform,conversation_id,value_profile_id,value_stage,value_rub,state,upload_status,event_unix,claimed_at_unix,value_api_accepted_at_unix,value_processed_at_unix,upload_id,client_id FROM max_channel_conversion_outbox WHERE id=6");
+    $read=static fn():array=>(new ModeledConversionValueDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->predictiveV1($now);
+    $snapshot=static fn():string=>json_encode([$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),
+        $p->query('SELECT * FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)],JSON_THROW_ON_ERROR);
+    $before=$snapshot();$r=$read();
+    $check('predictive delivery separates new keys from legacy and foreign reservations',
+        $r['available']&&$r['events']===5&&$r['conversations']===4&&$r['value_rub']===32650
+        &&$r['api_accepted_events']===4&&$r['api_accepted_value_rub']===7650&&$r['processed_events']===1&&$r['processed_value_rub']===1100);
+    $byDelta=[];foreach($r['examples']as$e)$byDelta[$e['increment_rub']]=$e;
+    $a=$byDelta[150]['calculation'];$b=$byDelta[1100]['calculation'];$c=$byDelta[5000]['calculation'];
+    $check('saved price commission probability and earlier reservation explain the exact positive delta',
+        $a!==null&&$a['estimated_deal_rub']===200000&&$a['estimated_commission_rub']===14000.0
+        &&$a['estimated_probability']===0.1&&$a['estimated_cumulative_value_rub']===1400&&$a['prior_reserved_rub']===1250);
+    $check('unknown price retains explicit existing base and known high price retains commission cap',
+        $b!==null&&$b['estimated_deal_rub']===null&&$b['full_value_base_rub']===25000&&$b['prior_reserved_rub']===1400
+        &&$c!==null&&$c['estimated_commission_rub']===70000.0&&$c['full_value_base_rub']===25000);
+    $check('inconsistent saved arithmetic cannot acquire a made up calculation',
+        $r['calculation_unavailable_rows']===1&&$byDelta[25000]['calculation']===null);
+    $check('upload receipt processing and visitor matching never assert per event visit attribution',
+        $byDelta[1400]['state']==='unmatched'&&$byDelta[5000]['upload_status']==='MATCHED'
+        &&$byDelta[1100]['state']==='processed'&&array_unique(array_column($r['examples'],'visit_linkage'))===['unverified']);
+    $json=json_encode($r,JSON_THROW_ON_ERROR);
+    $check('predictive scalar view returns no raw source text native identifiers or untrusted reasons',
+        !str_contains($json,'PRIVATE_')&&!str_contains($json,'770001')&&!str_contains($json,'990001')
+        &&!str_contains($json,'value_profile_id')&&!str_contains($json,'conversation_id'));
+    $read();$check('repeated predictive inspection leaves every profile and outbox row byte identical',$before===$snapshot());
+    $calls=0;$revoked=false;
+    try{(new ModeledConversionValueDeliveryReader($p,static function()use(&$calls):void{if(++$calls>=2)throw new DomainException('revoked');},new ModeledConversionStatusBudget()))->predictiveV1($now);}
+    catch(DomainException $ignored){$revoked=true;}
+    $check('authorization revoked after the scalar read prevents predictive release',$revoked);
+    $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(50000);
+    $limited=(new ModeledConversionValueDeliveryReader($p,static function():void{},$budget))->predictiveV1($now);
+    $check('predictive optional read preserves the existing shared authorization headroom',$limited===['available'=>false,'reason'=>'budget_headroom']);
+    for($i=10;$i<25;$i++)$put($i,'max',100+$i,0.1,null,2500,2500,'accepted','UPLOADED');
+    $r=$read();$check('predictive examples and suffix completeness remain explicitly bounded',
+        $r['window']['inspected_predictive_rows']===17&&!$r['window']['complete_within_goal_suffix']&&count($r['examples'])===16);
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
