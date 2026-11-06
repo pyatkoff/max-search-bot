@@ -389,6 +389,13 @@ if (($argv[1]??'')==='--search3-only') {
     exit(0);
 }
 
+if (($argv[1]??'')==='--hotel-rubi-knowledge') {
+    require_once __DIR__.'/hotel_rubi_knowledge_checks.php';
+    hotelRubiKnowledgeChecks();
+    echo 'Hotel Rubi knowledge: '.$passed." checks passed\n";
+    exit(0);
+}
+
 if (($argv[1]??'')==='--hotel-knowledge-read') {
     require_once __DIR__.'/hotel_knowledge_read_checks.php';
     hotelKnowledgeReadChecks();
@@ -1100,6 +1107,8 @@ INSERT INTO catalog_countries VALUES(1,'Египет',1),(4,'Турция',1),(9
     draftSearch3Checks();
     require_once __DIR__.'/hotel_offer_reference_checks.php';
     hotelOfferReferenceChecks();
+    require_once __DIR__.'/hotel_rubi_knowledge_checks.php';
+    hotelRubiKnowledgeChecks();
     require_once __DIR__.'/hotel_knowledge_read_checks.php';
     hotelKnowledgeReadChecks();
     require_once __DIR__.'/support/hotel-knowledge-http.php';

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "2026-11-04.1",
+  "version": "2026-11-06.1",
   "project_key": "anytour",
   "bindings": [
     {
@@ -927,6 +927,64 @@
         "common_version": 59,
         "member": "hotel-knowledge-20261104/identity/b04-blu-spa/accepted-binding.json",
         "scope": "B04 stage0: four accepted official declarations with original03Nov answers, source dates and qualifications. Exact typed property identity only; no operator-room, guest-composition, meal-plan, tariff, future-operation or model-use proof."
+      }
+    },
+    {
+      "status": "accepted",
+      "source_identity": {
+        "adapter": "tourvisor-snapshot-v1",
+        "country": "4",
+        "hotel": "27426"
+      },
+      "accepted_source_names": [
+        "RUBI PLATINUM SPA RESORT & SUITES"
+      ],
+      "accepted_binding": {
+        "accepted_chain": [
+          {
+            "id": 27426,
+            "namespace": "legacy_catalog/catalog_hotels.id"
+          },
+          {
+            "catalog_revision": 1,
+            "id": 5537,
+            "namespace": "anytour"
+          },
+          {
+            "catalog_revision": 3,
+            "id": 27426,
+            "namespace": "local-tv"
+          }
+        ],
+        "hotel_ref": {
+          "catalog": "anytour",
+          "id": 5537
+        },
+        "identity_anchor": {
+          "address": "Avsallar, İncekum Cd. No:38, 07410 Alanya/Antalya, Турция",
+          "city": "Аланья / Авсаллар",
+          "country": "Turkey",
+          "official_url": "https://rubiplatinum.com/en/hotel/rubiplatinum/rooms/deluxe",
+          "research_source_id": "top500_dca4e4a0c9ae44ca_run10_s01",
+          "research_source_record_sha256": "37bb7e49f5e4cc3ce0f9a0b881e09ae07fbe9a7c70d1f92c61866802b2f304ba"
+        },
+        "project_key": "anytour",
+        "proofs": {
+          "anex-8401-effective-20261020.json": "0ef353a185d9f177d4ae0214cf37bbc6a643dbe3fa2b1bb8d7ef7e49287f39c4",
+          "legacy-27426.raw.json": "bef5bc24dc87956b694fbf63f876f883828287823516841a9dc96b31c313d3fb",
+          "local-tv-from-canonical.raw.json": "b2666284d50b97e90b86ec0036174b3dda76d4d18874b8286a7a3fd810bffc0d",
+          "saved-identity-anchor.json": "0546a5ac3eece007781efd769dc1ad5fdb54eaa795f449b1d308e4649852fda1"
+        },
+        "research_hotel_key": "top500_dca4e4a0c9ae44ca"
+      },
+      "binding_revision": "873f8ae16051d060e2349d12ae99255edeced5e4fae47b5e48d03616a07a90c1",
+      "bundle_file": "anytour-5537-rubi-platinum.json",
+      "bundle_sha256": "f0ff057b1fae8a4c916bb803c8d26eac1ca988ae12fb5e121cc410fd9d10e459",
+      "approval": {
+        "library_file_id": "libfile_9e7abc6ea0f08191a0f7fae662d4cc5e",
+        "common_version": 1,
+        "member": "hotel-rubi-20261106/rubi-platinum/accepted-binding.json",
+        "scope": "Five unchanged inherited-baseline ANEX declarations and their original source are admitted as conditional published information for Tourvisor 27426/country 4 -> AnyTour 5537 only, after independent scoped identity/content review. Original research status, dates, records and zero new collector credit remain unchanged; no current native ANEX, room/tariff, future-operation or runtime/model-use proof."
       }
     }
   ]
