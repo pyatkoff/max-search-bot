@@ -1,0 +1,90 @@
+{
+  "operation": "commercial-top500-20261106-8208-country-contract-source-review1",
+  "state": "CLOSED_SOURCE_REVIEW_NO_RUNTIME_ACTIVATION_NO_COUNTRY_ALLOWLIST_CHANGE",
+  "goal": "Resolve whether Thailand native country2 requires changing the generic existing publisher before the original one-property retained-facts work; preserve that active original operation.",
+  "source_read_only_plan": {
+    "property_ids": [
+      8208
+    ],
+    "repository": "pyatkoff/max-search-bot",
+    "scope": "Three existing publisher/preparation/legacy-price context source files and already accepted original metadata; one ordinary audit JSON only.",
+    "runtime_or_workflow_changes": 0,
+    "server_calls": 0,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "quote_calls": 0,
+    "photo_http": 0,
+    "canva": 0,
+    "message_sends": 0,
+    "old_fixtures_rerun": 0,
+    "agents_or_controllers_created": 0
+  },
+  "identity_evidence": {
+    "run": 42166900411,
+    "job": 127725362810,
+    "source": "f0dcd1733dc700844d04af283d7f33d8e7071ffa",
+    "original_capture_run": 42165764181,
+    "original_capture_epoch_utc": 1793941232,
+    "native_id": 8208,
+    "name": "THE SARANN",
+    "native_country_id": 2,
+    "country_name": "Таиланд",
+    "region_name": "Самуи",
+    "is_active_at_original_capture": 1,
+    "not_current_availability": true
+  },
+  "reviewed_sources": [
+    {
+      "path": "tools/direct_demand/operations/commercial-batch-template-20261102.php",
+      "revision": "f0dcd1733dc700844d04af283d7f33d8e7071ffa",
+      "sha256": "34228db195c0dd65da65ab002756c4df77970da2124f9152465fcedacad3f53f"
+    },
+    {
+      "path": "tools/direct_demand/operations/prepare-commercial-batch.py",
+      "revision": "f0dcd1733dc700844d04af283d7f33d8e7071ffa",
+      "sha256": "216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf"
+    },
+    {
+      "path": "tools/direct_demand/operations/read-legacy-priced-hotel-inline-contexts-20261105.php",
+      "revision": "c5905c966e6a12b336b580a9093160ac501a5df7",
+      "sha256": "899126768bf42f9e1489be79e2c1996d0e67a99adf54ee9099aaa00061103ab5"
+    }
+  ],
+  "findings": [
+    {
+      "component": "generic_existing_serial_publisher_and_preparation",
+      "finding": "These exact two source files contain no country-specific admission or country mapping. The existing five-key approval binds the explicit hotel ID scope and immutable manifest. Country2 by itself does not establish a need to modify these files.",
+      "limits": "This is source-only absence of a country-specific guard, not readiness or live compatibility acceptance. Exact current native identity, approved media/rights/caption, dedup, private intent, same-source production gates and original once/UNKNOWN contracts remain required."
+    },
+    {
+      "component": "legacy_price_context_contextRole18",
+      "finding": "The reviewed function explicitly admits expected_country_id only in [1,4] and requires current_confirmed_own_legacy_price_manifest_and_receipt, prior owned price operation and exact original publication role evidence.",
+      "consequence": "Unpublished native8208 with country2 cannot use this legacy existing-post price context. Changing only the country allowlist would not supply the missing publication/price role. Preserve the accepted legacy code; review the appropriate new-material price contract only after its actual inputs are available."
+    },
+    {
+      "component": "stored_gallery_and_price_metadata",
+      "finding": "Original projection reports41 declared static.tourvisor.ru image URLs, revision3, stored source_fetched_at2026-10-10 10:06:20, no closed URL/basename matches, and175 stored observations/70 condition-field rows at original capture.",
+      "limits": "Stored DATETIME timezone remains unverified. Gallery metadata is not rights/whole-complex hero/pixel proof. Observations are not final tour baskets, availability or current price checks."
+    }
+  ],
+  "criteria": [
+    "No new carrier, queue, workflow, server command or repeated ten-ID read is introduced.",
+    "No all-country compatibility claim is inferred from the generic publisher source.",
+    "No legacy country guard, identity/receipt role or hard media acceptance requirement is weakened.",
+    "The original existing8208 operation retains ownership of new facts/photoDetails/rights work.",
+    "Only this ordinary JSON is committed; no CI or runtime gate is rerun for this source review."
+  ],
+  "risks": [
+    "The generic publisher relies on earlier approved native/country binding and is not itself an identity validator.",
+    "A publisher template without a country guard does not prove country-specific price/link support.",
+    "Another executor is actively advancing the original workflow; do not activate a parallel facts reader or projection."
+  ],
+  "next": "Use the original8208 authenticated projection for the already planned genuinely unread facts/photoDetails/rights read. Country2 is a precise input to preserve; it is not a reason to rewrite the generic publisher or reuse the Egypt/Turkey legacy price context.",
+  "current_totals": {
+    "actual_pairs": 161,
+    "priced": 85,
+    "linked": 155,
+    "ready_materials": 0,
+    "goal500_complete": false
+  }
+}
