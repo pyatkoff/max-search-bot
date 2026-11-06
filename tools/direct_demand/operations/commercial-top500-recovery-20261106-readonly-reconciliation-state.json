@@ -1,0 +1,89 @@
+{
+  "operation": "commercial-top500-recovery-20261106-readonly-reconciliation",
+  "state": "CLOSED_RECOVERED_CURRENT_ORIGINAL_PROGRESS_NO_DUPLICATE_EXECUTION",
+  "goal": "Reconcile the uploaded05Nov checkpoint with the newer original TOP500 execution and preserve the newly read original collector evidence without taking over the active carrier.",
+  "bounds": {
+    "changed_runtime_files": 0,
+    "workflow_changes": 0,
+    "server_calls": 0,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "quote_calls": 0,
+    "photo_http": 0,
+    "post_writes": 0,
+    "agents_created": 0,
+    "other_automations_changed": 0
+  },
+  "original_progress": {
+    "canonical_audit_head": "f0dcd1733dc700844d04af283d7f33d8e7071ffa",
+    "exact_ten_accepted_run": 42165764181,
+    "exact_ten_accepted_source": "3b6bd27ff9f433aff38f7e21913979ef7451e17a",
+    "ten_native_present": 8,
+    "ten_native_missing": [
+      8520,
+      12575
+    ],
+    "one_property_projection_run": 42166900411,
+    "one_property_projection_job": 127725362810,
+    "projection_source": "f0dcd1733dc700844d04af283d7f33d8e7071ffa",
+    "projection_success": true
+  },
+  "retained_property": {
+    "native_id": 8208,
+    "name": "THE SARANN",
+    "country_id": 2,
+    "country_name": "Таиланд",
+    "region_name": "Самуи",
+    "active_at_original_capture": 1,
+    "source_capture_epoch_utc": 1793941232,
+    "declared_gallery_urls": 41,
+    "local_revision": 3,
+    "source_fetched_at": "2026-10-10 10:06:20",
+    "source_fetched_at_timezone": "UNVERIFIED_STORED_DATETIME",
+    "gallery_host": "static.tourvisor.ru",
+    "previously_closed_url_matches": 0,
+    "previously_closed_basename_matches": 0,
+    "price_rows_at_original_capture": 175,
+    "policy_condition_rows_at_original_capture": 70,
+    "prices_final_or_available": false,
+    "rights_verified": false,
+    "whole_complex_hero_verified": false,
+    "ready_for_publication": false
+  },
+  "newly_closed_source_evidence": "commercial-price-monitor-20261106-normal42117386591-original-log-state.json",
+  "duplicate_prevention": {
+    "prepared_ten_reader_commit": "80208890727b9c91ea2a1aa01aed480a8e575a32",
+    "prepared_ten_reader_never_activated": true,
+    "prepared_ten_reader_ci_runs": 0,
+    "prepared_ten_reader_do_not_activate": true,
+    "second_property_projection_not_activated": true,
+    "original_executor_current_workflow_preserved": true,
+    "closed_ten_scope_repeat_prohibited": true
+  },
+  "latest_production_metadata": {
+    "main": "fc9d16f414378f2cb9ccd7435de2cb059f99b88f",
+    "deploy": 42166383153,
+    "tls": 42166873635,
+    "diagnostics": 42166873723,
+    "conclusions": "success",
+    "this_is_not_new_runtime_verification": true
+  },
+  "criteria": [
+    "Only two ordinary audit JSON files are added; current carrier and original source/results remain untouched.",
+    "No new publication, price check or live-read acceptance is claimed.",
+    "Original source evidence preserves7158 observations as observations; it does not create prices or readiness."
+  ],
+  "risks": [
+    "THE SARANN is Thailand/native country2. Existing Egypt/Turkey-specific code and search links cannot be blindly reused; preserve exact country binding and review the affected native contract before any action.",
+    "The original05:00UTC metadata is not a fresh price check or photo/rights acceptance.",
+    "The original executor advanced this same branch twice during recovery; continuation belongs to that existing operation."
+  ],
+  "current_totals": {
+    "actual_pairs": 161,
+    "priced": 85,
+    "linked": 155,
+    "ready_materials": 0,
+    "goal500_complete": false
+  },
+  "next": "Continue the original one-property8208 retained-facts/photoDetails/rights work under the existing next-after-ten1 plan. Reuse its original authenticated projection, not another projection or the closed ten-ID DB scope."
+}

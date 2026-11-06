@@ -1,0 +1,57 @@
+{
+  "operation": "commercial-price-monitor-20261106-normal42117386591-original-log",
+  "state": "CLOSED_ORIGINAL_NEW_RUN_PRODUCER_WRITES_PROVEN_NO_PRICE_CANDIDATE_READ",
+  "repository": "pyatkoff/poisk-turov-test",
+  "source_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "run_id": 42117386591,
+  "job_id": 127560614978,
+  "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/42117386591",
+  "original_collect_log_reads": 1,
+  "previous_metadata_state": "commercial-price-monitor-20261105-normal-run-metadata33-state.json",
+  "collector": {
+    "started_at_utc": "2026-11-05T21:59:21.4324231Z",
+    "completed_at_utc": "2026-11-05T22:07:26.1820853Z",
+    "processed_targets": 64,
+    "page_gap_processed": 5,
+    "failed": 0,
+    "partial": 0,
+    "observations_written": 7158,
+    "fresh_targets": 187,
+    "pending_targets": 4002,
+    "complete": false
+  },
+  "later_job_outcome": "cancelled; original log shows cancellation after successful monthly pass and daily rollup; root cause not determined",
+  "first_ten_original_native_404_ids": [
+    8520,
+    12575
+  ],
+  "original_readonly_producer_witnesses": [
+    {
+      "started_epoch_utc": 1793915961,
+      "finished_epoch_utc": 1793915976,
+      "status": "success",
+      "rows_received": 58,
+      "observations_written": 1176,
+      "clock_tolerance_seconds": 2
+    },
+    {
+      "started_epoch_utc": 1793915976,
+      "finished_epoch_utc": 1793915991,
+      "status": "success",
+      "rows_received": 57,
+      "observations_written": 1192,
+      "clock_tolerance_seconds": 2
+    }
+  ],
+  "usable_prices_verified": 0,
+  "full_price_tuples_read": 0,
+  "supplier_calls_by_this_work": 0,
+  "db_calls_by_this_log_read": 0,
+  "collectors_or_migrations_executed_by_this_work": 0,
+  "closed_log_no_refetch_or_rerun": true,
+  "actual_pairs": 161,
+  "prices": 85,
+  "links": 155,
+  "new_deliveries": 0,
+  "next": "Consume only the declared two source attempt metadata witnesses inside the gated ten-ID metadata pass. Never treat7158 observations as7158 prices or repeat the source run."
+}
