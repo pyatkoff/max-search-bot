@@ -12,7 +12,7 @@ on:
         default: status
         options: [status, create-goal, enable, disable, launch-v1, launch-history-20261102, launch-history-fortnight-v1]
       expected_sha:
-        description: Exact installed current main SHA
+        description: Exact installed application SHA verified against the accepted current repository release
         type: string
         required: true
 permissions:
@@ -27,10 +27,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Checkout current repository tools without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
       - name: Validate finite operation and current authoritative main
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-fortnight-v1]') && 'launch-history-fortnight-v1' || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
-          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
+          REQUESTED_SHA: ${{ inputs.expected_sha }}
           GH_TOKEN: ${{ github.token }}
           REPO_NAME: ${{ github.repository }}
           WORKFLOW_SHA: ${{ github.sha }}
@@ -40,12 +53,14 @@ jobs:
           [[ "$EXPECTED_SHA" =~ ^[a-f0-9]{40}$ ]]
           case "$VALUE_OPERATION" in status|create-goal|enable|disable|launch-v1|launch-history-20261102|launch-history-fortnight-v1) ;; *) exit 1;; esac
           actual="$(curl --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$REPO_NAME/git/ref/heads/main" | python3 -c 'import json,sys; print(json.load(sys.stdin)["object"]["sha"])')"
-          test "$actual" = "$EXPECTED_SHA"
-          test "$WORKFLOW_SHA" = "$EXPECTED_SHA"
+          test "$actual" = "$REPOSITORY_SHA"
+          test "$WORKFLOW_SHA" = "$REPOSITORY_SHA"
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then test "$REQUESTED_SHA" = "$EXPECTED_SHA"; fi
       - name: Wait for successful mandatory checks of this exact installed release
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.repository_sha }}
           REPO_NAME: ${{ github.repository }}
           VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-fortnight-v1]') && 'launch-history-fortnight-v1' || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
         shell: bash
@@ -79,6 +94,7 @@ jobs:
               time.sleep(20)
           VALUE_GATES
       - name: Prepare existing canonical server credential
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           VALUE_SSH_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
@@ -92,9 +108,10 @@ jobs:
           chmod 600 "$value_key_path"
           ssh-keygen -y -f "$value_key_path" >/dev/null
       - name: Execute exact bounded installed operation
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           VALUE_OPERATION: ${{ github.event_name == 'workflow_run' && (contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-fortnight-v1]') && 'launch-history-fortnight-v1' || contains(github.event.workflow_run.head_commit.message, '[anytour-value-history-1293]') && 'launch-history-20261102' || 'launch-v1') || inputs.operation }}
-          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha || inputs.expected_sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
           VALUE_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           VALUE_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
@@ -107,7 +124,7 @@ jobs:
           php tools/modeled_conversion_value_export.php "$2"
           VALUE_REMOTE
       - name: Remove ephemeral credential
-        if: always()
+        if: always() && steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         shell: bash
         run: rm -f "$RUNNER_TEMP/value_goal_key"
 
@@ -118,7 +135,9 @@ jobs:
     # Manual value operations never release a publisher.
     if: always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.run_attempt == 1 || github.event.workflow_run.run_attempt == 2) && (needs.configure.result == 'success' || needs.configure.result == 'skipped')
     permissions:
-      contents: read
+      # Only diagnostics/deploy_status.json and its existing privacy cleanup;
+      # no production credential, main update or server operation is added.
+      contents: write
       actions: read
       pull-requests: read
       issues: write
@@ -130,8 +149,24 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
-      - name: Release only the admitted publisher after all original mandatory gates
+      - name: Prepare the exact release proof before terminal publication
+        id: prepared
         env:
           GITHUB_TOKEN: ${{ github.token }}
           CONFIGURE_RESULT: ${{ needs.configure.result }}
+        run: node tools/release_slot_close.js --prepare-closure --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
+      - name: Bind the terminal candidate to the original closer run — ${{ steps.prepared.outputs.record_digest }}
+        if: steps.prepared.outputs.publication_artifact != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepared.outputs.publication_artifact }}
+          path: ${{ runner.temp }}/deployment-release-publication.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Release only the admitted publisher after all original mandatory gates
+        if: steps.prepared.outputs.record_digest != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CONFIGURE_RESULT: ${{ needs.configure.result }}
+          PREPARED_RECORD_DIGEST: ${{ steps.prepared.outputs.record_digest }}
         run: node tools/release_slot_close.js

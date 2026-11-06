@@ -85,6 +85,9 @@ jobs:
     if: always()
     needs: [verify-inventory, verify-syntax, verify-groups]
     runs-on: ubuntu-latest
+    outputs:
+      kind: ${{ steps.release.outputs.kind }}
+      record_json: ${{ steps.release.outputs.record_json }}
     steps:
       - name: Require the complete deployment verification
         env:
@@ -111,9 +114,17 @@ jobs:
         shell: bash
         run: bash tools/verify_deploy_main_provenance.sh
 
+      - name: Resolve original accepted installation and complete release intent
+        id: release_plan
+        if: steps.provenance.outcome == 'success'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js plan-deployment --output "$RUNNER_TEMP/release-plan.json" >> "$GITHUB_OUTPUT"
+
       - name: Prepare canonical SSH private key
         id: ssh_key
-        if: steps.provenance.outcome == 'success'
+        if: steps.provenance.outcome == 'success' && steps.release_plan.outcome == 'success'
         continue-on-error: true
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -133,9 +144,37 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
+      - name: Select installation or prove the unchanged application without mutation
+        id: release
+        if: steps.ssh_key.outcome == 'success'
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_PLAN: ${{ steps.release_plan.outputs.plan }}
+          APPLICATION_SHA: ${{ steps.release_plan.outputs.application_sha }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_PLAN" == install ]]; then
+            printf 'kind=installed\n' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          test "$RELEASE_PLAN" = observe_unchanged
+          [[ "$APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
+          ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$APPLICATION_SHA" > "$RUNNER_TEMP/runtime-fingerprint.json" <<'READ_UNCHANGED'
+          set -euo pipefail
+          root=/var/www/anytoour/data/www/app.anytoour.ru
+          cd "$root"
+          test "$(git rev-parse HEAD)" = "$1"
+          crontab -l | php tools/deployment_runtime_fingerprint.php --mode=all --root="$root" --application-sha="$1" --config="$root/config.php" --private-config-root=/var/www/anytoour/data/config --cron-file=- --public-site=/var/www/anytoour/data/www/tours.anytoour.ru --public-releases=/var/www/anytoour/data/selection-public-releases --public-marker=/var/www/anytoour/data/www/max-search-bot-private-logs/selection-public-host.json --editor-releases=/var/www/anytoour/data/www/max-search-bot-private-logs/selection-editor-releases
+          READ_UNCHANGED
+          node tools/deployment_release.js admit-unchanged --plan "$RUNNER_TEMP/release-plan.json" --observation "$RUNNER_TEMP/runtime-fingerprint.json" --output "$RUNNER_TEMP/deploy-status.json" >> "$GITHUB_OUTPUT"
+
       - name: Build exact deployment bundle
         id: bundle
-        if: steps.ssh_key.outcome == 'success'
+        if: steps.ssh_key.outcome == 'success' && steps.release.outputs.kind == 'installed'
         continue-on-error: true
         env:
           EXPECTED_SHA: ${{ github.sha }}
@@ -377,6 +416,9 @@ jobs:
         if: always()
         env:
           PROVENANCE_OUTCOME: ${{ steps.provenance.outcome }}
+          PLAN_OUTCOME: ${{ steps.release_plan.outcome }}
+          RELEASE_OUTCOME: ${{ steps.release.outcome }}
+          RELEASE_KIND: ${{ steps.release.outputs.kind }}
           KEY_OUTCOME: ${{ steps.ssh_key.outcome }}
           BUNDLE_OUTCOME: ${{ steps.bundle.outcome }}
           SYNC_OUTCOME: ${{ steps.sync.outcome }}
@@ -386,7 +428,19 @@ jobs:
           INSTALLED_OUTCOME: ${{ steps.installed.outcome }}
         run: |
           test "$PROVENANCE_OUTCOME" = success
+          test "$PLAN_OUTCOME" = success
+          test "$RELEASE_OUTCOME" = success
           test "$KEY_OUTCOME" = success
+          if test "$RELEASE_KIND" = application_unchanged; then
+            test "$BUNDLE_OUTCOME" = skipped
+            test "$SYNC_OUTCOME" = skipped
+            test "$MIGRATION_OUTCOME" = skipped
+            test "$MAX_WEBHOOK_OUTCOME" = skipped
+            test "$METRIKA_CRON_OUTCOME" = skipped
+            test "$INSTALLED_OUTCOME" = skipped
+            exit 0
+          fi
+          test "$RELEASE_KIND" = installed
           test "$BUNDLE_OUTCOME" = success
           test "$SYNC_OUTCOME" = success
           test "$MIGRATION_OUTCOME" = success
@@ -405,9 +459,23 @@ jobs:
           fetch-depth: 0
       - name: Admit only unfinished verification without installation
         id: admission
+        if: needs.deploy.outputs.kind == 'installed'
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/release_slot_close.js --admit-verification >> "$GITHUB_OUTPUT"
+      - name: Publish the proven unchanged result without installed stages
+        id: unchanged
+        if: needs.deploy.outputs.kind == 'application_unchanged'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_RECORD_JSON: ${{ needs.deploy.outputs.record_json }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test -n "$RELEASE_RECORD_JSON"
+          printf '%s\n' "$RELEASE_RECORD_JSON" > "$RUNNER_TEMP/deploy-status.json"
+          node tools/release_slot_close.js --publish-pending --record "$RUNNER_TEMP/deploy-status.json" --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
       - name: Prepare canonical SSH private key
         id: ssh_key
         if: steps.admission.outcome == 'success'
@@ -494,25 +562,25 @@ jobs:
         run: |
           set -euo pipefail
           node tools/release_slot_close.js --stage-status > "$RUNNER_TEMP/deploy-status.json"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin diagnostics
-          git checkout -B diagnostics origin/diagnostics
-          rm -rf production-diagnostics "$RUNNER_TEMP/production-diagnostics"
-          find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.json' ! -name 'ops_status.json' ! -name 'autopilot_snapshot.json' ! -name 'architecture_inventory.json' ! -name 'public_live_status.json' ! -name 'public_daily_status.json' -delete
-          rm -f migration.log
-          if test -f deploy_status.json && node -e 'const fs=require("node:fs");const a=JSON.parse(fs.readFileSync("deploy_status.json"));const b=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/deploy-status.json"));delete a.reported_at;process.exit(JSON.stringify(a)===JSON.stringify(b)?0:1)'; then exit 0; fi
-          node -e 'const fs=require("node:fs");const p=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/deploy-status.json"));p.reported_at=new Date().toISOString().replace(/\.\d{3}Z$/,"Z");fs.writeFileSync("deploy_status.json",JSON.stringify(p)+"\n")'
-          git add -A
-          git commit -m "Report installed verification status" || true
-          for attempt in 1 2 3; do
-            if git push origin diagnostics; then exit 0; fi
-            git fetch origin diagnostics
-            git show origin/diagnostics:deploy_status.json > "$RUNNER_TEMP/remote-deploy-status.json"
-            if node -e 'const fs=require("node:fs");const a=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/remote-deploy-status.json"));const b=JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP+"/deploy-status.json"));delete a.reported_at;process.exit(JSON.stringify(a)===JSON.stringify(b)?0:1)'; then exit 0; fi
-            git rebase origin/diagnostics
-          done
-          exit 1
+          node tools/deployment_release.js wrap-installed --installation "$RUNNER_TEMP/deploy-status.json" --output "$RUNNER_TEMP/deploy-status.json"
+          node tools/release_slot_close.js --publish-pending --record "$RUNNER_TEMP/deploy-status.json" --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
+
+      - name: Reuse the exact status when only its publication proof failed
+        id: resumed_publication
+        if: always() && needs.deploy.outputs.kind == 'installed' && steps.admission.outputs.run_publication == 'true' && steps.admission.outputs.run_status == 'false'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_slot_close.js --resume-publication --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"
+
+      - name: Bind the published result to its original deployment run — ${{ steps.status.outputs.record_digest || steps.unchanged.outputs.record_digest || steps.resumed_publication.outputs.record_digest }}
+        id: publication
+        if: always() && (steps.status.outcome == 'success' || steps.unchanged.outcome == 'success' || steps.resumed_publication.outcome == 'success')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.status.outputs.publication_artifact || steps.unchanged.outputs.publication_artifact || steps.resumed_publication.outputs.publication_artifact }}
+          path: ${{ runner.temp }}/deployment-release-publication.json
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Remove acknowledged diagnostic snapshot
         id: cleanup
@@ -552,10 +620,34 @@ jobs:
           STATUS_ACCEPTED: ${{ steps.admission.outputs.status_result }}
           CLEANUP: ${{ steps.cleanup.outcome }}
           CLEANUP_ACCEPTED: ${{ steps.admission.outputs.cleanup_result }}
+          RELEASE_KIND: ${{ needs.deploy.outputs.kind }}
+          UNCHANGED: ${{ steps.unchanged.outcome }}
+          PUBLICATION: ${{ steps.publication.outcome }}
+          PUBLICATION_ACCEPTED: ${{ steps.admission.outputs.publication_result }}
         run: |
+          if test "$RELEASE_KIND" = application_unchanged; then
+            test "$UNCHANGED" = success
+            test "$PUBLICATION" = success
+            test "$ADMISSION" = skipped
+            test "$KEY" = skipped
+            test "$CHECK" = skipped
+            test "$DOWNLOAD" = skipped
+            test "$STATUS" = skipped
+            test "$CLEANUP" = skipped
+            exit 0
+          fi
+          test "$RELEASE_KIND" = installed
+          test "$UNCHANGED" = skipped
           test "$ADMISSION" = success
           test "$KEY" = success
-          test "$CHECK" = success || test "$CHECK_ACCEPTED" = success
-          test "$DOWNLOAD" = success || test "$DOWNLOAD_ACCEPTED" = success
-          test "$STATUS" = success || test "$STATUS_ACCEPTED" = success
-          test "$CLEANUP" = success || test "$CLEANUP_ACCEPTED" = success
+          accepted_step() {
+            case "$1:$2" in
+              success:skipped|skipped:success) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+          accepted_step "$CHECK" "$CHECK_ACCEPTED"
+          accepted_step "$DOWNLOAD" "$DOWNLOAD_ACCEPTED"
+          accepted_step "$STATUS" "$STATUS_ACCEPTED"
+          accepted_step "$PUBLICATION" "$PUBLICATION_ACCEPTED"
+          accepted_step "$CLEANUP" "$CLEANUP_ACCEPTED"

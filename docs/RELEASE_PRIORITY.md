@@ -100,8 +100,11 @@ The existing post-deploy workflow `modeled-conversion-value-export.yml` now has
 a metadata-only `release-slot` job after its unchanged `configure` job. It uses
 the same existing workflow serialization. No new workflow, schedule, business
 operation, check dispatch, publisher, queue or customer notification is created.
-The closer has only repository/actions/PR read and issue-comment write permission;
-it has no deployment credential and cannot change main or deploy.
+The closer has repository contents write only for the existing public-safe
+diagnostics result, actions/PR read and issue-comment write permission. It has no
+deployment credential and cannot change main or deploy. Its content writer uses
+the fixed diagnostics ref, preserves the existing public JSON allowlist and
+removes legacy raw captures; it never commits a downloaded diagnostic archive.
 
 Before the normal expected-head merge, the **same authorized publisher** writes
 its one existing issue #1122 record as the exact text
@@ -135,14 +138,28 @@ be successful or explicitly skipped. Scheduled/manual checks cannot substitute
 for original post-deploy runs; duplicate origins or incomplete snapshots stop closure.
 The narrowly admitted verification-only second attempt below is the sole rerun exception. An unclassified new post-deploy workflow also stops closure until
 its gate is included in the same checked package; it is never silently ignored.
-The existing deployment and diagnostic telemetry must also match
-this exact source and deployment run. No new live probe or acceptance is run.
+For an ordinary installation, the existing deployment and diagnostic telemetry
+must also match this exact source and deployment run. For `application_unchanged`,
+the original accepted installation telemetry continues to identify A; the versioned
+repository release identifies R and authenticates that inheritance. The closer
+also proves that automatic child jobs executed only their finite metadata steps
+and skipped the protected operations. No new live probe or acceptance is run.
 
 Pending gates are read together every 20 seconds for at most 18 minutes within
 the existing server job. Completed gates are not rerun. Failed/cancelled/skipped
 mandatory gates, changed main, unavailable/ambiguous metadata, API refusal,
 rate limiting and timeouts stop without freeing the slot. There is no retry on
 429 or other API errors.
+
+Before the one terminal update, the same closer prepares `pending_terminal` in
+the existing `deploy_status.json` using a non-force diagnostics ref update. The
+next job step binds the exact record digest into its original GitHub
+step name and uploads the small publication proof. A write or upload failure
+retains the publisher. Later consumers require that original digest-bound step
+and the successful final terminal step; a record alone or an expired/downloaded
+artifact cannot manufacture acceptance. No fail-capable publication follows the
+terminal PATCH. Unknown writes are reconciled by reading the original state,
+never blindly repeated.
 
 Immediately before the one update, the helper rereads main, original results,
 PR binding and the exact publisher comment/version. It updates **only that
@@ -180,7 +197,7 @@ successful parents are accepted only when all execution timestamps, runner and
 step metadata are identical; a real second installer execution is refused.
 Attempt 3, cancelled/unknown history, missing metadata, API refusal and 429 stop.
 
-Within verification, a successful check, transfer, status or cleanup is reused.
+Within verification, a successful check, transfer, status, publication or cleanup is reused.
 A negative published result is refreshed when the failed check/transfer recovers.
 The original private snapshot has a SHA/run-owned directory outside the webroot,
 one sealed archive and transfer checksum. A failed export is an installer failure
@@ -188,6 +205,13 @@ and cannot use this recovery. Failed transfer retains that exact snapshot; it
 never regenerates diagnostic input. Cleanup follows successful transfer/status,
 reconciles an already absent directory and never deletes original logs or data.
 Raw diagnostics are never committed to the public diagnostics branch.
+
+Status and its original digest-bound publication are distinct outcomes. If only
+publication failed, recovery binds the same immutable status without writing a
+new installation receipt. If only cleanup failed, the accepted original status
+and publication remain authoritative. A successful status alone cannot replace
+missing publication proof. The unchanged-application route requires attempt 1;
+this recovery remains limited to unfinished verification of a real installation.
 
 Existing post-deploy workflows record the upstream deployment ID and attempt in
 their run title. Activation records its exact monitor ID and attempt. On recovery

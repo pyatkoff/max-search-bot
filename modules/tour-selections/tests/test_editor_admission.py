@@ -32,10 +32,15 @@ class AdmissionTest(unittest.TestCase):
         self.backend = self.base / 'backend'
         self.backend.mkdir()
         *_, tracked = pack.inputs(ROOT)
-        for name in [*tracked, 'modules/tour-selections/admit-editor.py']:
+        for name in [*tracked, 'modules/tour-selections/admit-editor.py', 'tools/deployment_content_plan.py']:
             p = self.backend / name
             p.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, p)
+        # A is an installed source containing the trusted policy and the one
+        # existing regular test leaf that policy can classify as development-only.
+        leaf = self.backend / 'tests/run_purchase_study_runtime.py'
+        leaf.parent.mkdir(parents=True, exist_ok=True)
+        leaf.write_bytes(b'# synthetic installed development-only test\n')
         if getattr(self, 'base_version', None):
             manifest = self.backend / pack.MODULE
             spec = json.loads(manifest.read_bytes())
@@ -52,6 +57,11 @@ class AdmissionTest(unittest.TestCase):
         subprocess.run(['git', 'clone', '-q', '--no-hardlinks', str(self.backend), str(self.candidate)], check=True)
         self.git(self.candidate, 'config', 'user.name', 'Synthetic admission test')
         self.git(self.candidate, 'config', 'user.email', 'admission@example.invalid')
+        if getattr(self, 'repository_only_base', False):
+            leaf = self.candidate / 'tests/run_purchase_study_runtime.py'
+            leaf.write_bytes(leaf.read_bytes() + b'# accepted repository-only revision\n')
+            self.commit(self.candidate)
+            self.repository_sha = self.git(self.candidate, 'rev-parse', 'HEAD')
         p = self.candidate / pack.FILES['editor.js']
         p.write_bytes(p.read_bytes() + b'\n// synthetic independent component\n')
         m = self.candidate / pack.MODULE
@@ -66,9 +76,9 @@ class AdmissionTest(unittest.TestCase):
     def git(self, root, *args):
         return pack.git(root, *args)
 
-    def commit(self, root):
+    def commit(self, root, message='synthetic revision'):
         self.git(root, 'add', '.')
-        self.git(root, 'commit', '-qm', 'synthetic revision')
+        self.git(root, 'commit', '-qm', message)
 
     def admit(self, **overrides):
         args = dict(backend=self.backend, candidate=self.candidate, output=self.output,
@@ -254,6 +264,187 @@ echo json_encode(['native_independent'=>true,'backend_unchanged'=>true,'stale_ca
         (self.output / 'payload/editor.js').write_bytes(b'foreign')
         with self.assertRaisesRegex(ValueError, 'editor_package_bytes_mismatch'):
             self.admit()
+
+
+class RepositoryAdmissionTest(unittest.TestCase):
+    """A remains installed; accepted R changes one test; S changes only the editor."""
+    repository_only_base = True
+    setUp = AdmissionTest.setUp
+    git = AdmissionTest.git
+    commit = AdmissionTest.commit
+    rebuild = AdmissionTest.rebuild
+
+    def admit(self, **overrides):
+        arguments = {'repository_sha': self.repository_sha}
+        arguments.update(overrides)
+        return AdmissionTest.admit(self, **arguments)
+
+    def replace_interval(self, edit, message='synthetic repository update', followup=False):
+        """Rebuild real A -> R -> S commits while keeping S editor-only."""
+        editor = {name: (self.candidate / name).read_bytes() for name in (pack.FILES['editor.js'], pack.MODULE)}
+        self.git(self.candidate, 'reset', '--hard', self.backend_sha)
+        edit(self.candidate)
+        self.commit(self.candidate, message)
+        if followup:
+            leaf = self.candidate / 'tests/run_purchase_study_runtime.py'
+            leaf.write_bytes(leaf.read_bytes() + b'# later ordinary repository message\n')
+            self.commit(self.candidate, 'synthetic final repository revision')
+        self.repository_sha = self.git(self.candidate, 'rev-parse', 'HEAD')
+        for name, content in editor.items():
+            (self.candidate / name).write_bytes(content)
+        self.rebuild()
+
+    def ci_fixture(self):
+        source = self.receipt['source_commit']
+        binding = {'number': 31, 'head': {'sha': source}, 'base': {'sha': self.repository_sha}}
+        workflows = admission.REQUIRED_WORKFLOWS | {'.github/workflows/workspace-sound.yml', '.github/workflows/channel-post-context.yml'}
+        rows = [{'id': index + 10, 'path': path, 'head_sha': source,
+                 'head_repository': {'full_name': 'pyatkoff/max-search-bot'}, 'event': 'pull_request',
+                 'status': 'completed', 'conclusion': 'success', 'pull_requests': [binding]}
+                for index, path in enumerate(sorted(workflows))]
+        return {'pulls/31': {'state': 'open', 'draft': False,
+                            'head': {'sha': source, 'repo': {'full_name': 'pyatkoff/max-search-bot'}},
+                            'base': {'sha': self.repository_sha, 'ref': 'main'}},
+                'commits/main': {'sha': self.repository_sha},
+                'runs': {'total_count': len(rows), 'workflow_runs': rows}}
+
+    def verify_ci(self, fixture, repository_sha=None):
+        def read(path):
+            return fixture['runs'] if path.startswith('actions/runs?') else fixture[path]
+        return admission.verify_ci(31, self.receipt['source_commit'], self.backend_sha,
+                                   [pack.FILES['editor.js']], read,
+                                   repository_sha=repository_sha or self.repository_sha)
+
+    def test_accepted_repository_base_admits_editor_without_advancing_installed_source(self):
+        installed = self.git(self.backend, 'rev-parse', 'HEAD')
+        source = self.receipt['source_commit']
+        self.assertEqual(len({installed, self.repository_sha, source}), 3)
+        self.assertEqual(self.git(self.candidate, 'diff', '--name-only', installed, self.repository_sha),
+                         'tests/run_purchase_study_runtime.py')
+        seal = self.admit()
+        self.assertEqual((seal['backend_sha'], seal['repository_sha'], seal['source_sha']),
+                         (installed, self.repository_sha, source))
+        self.assertEqual(seal['expected_current_package'], self.current)
+        self.assertEqual(seal['changed_paths'], sorted([pack.FILES['editor.js'], pack.MODULE]))
+        self.assertEqual(seal['backend_fingerprint'], self.receipt['backend_fingerprint'])
+        self.assertEqual(len(self.verify_ci(self.ci_fixture())), 7)
+        self.assertEqual(self.git(self.backend, 'rev-parse', 'HEAD'), installed)
+        self.assertEqual(self.git(self.backend, 'status', '--porcelain'), '')
+        self.assertFalse(list(self.backend.rglob('__pycache__')))
+
+    def test_repository_identity_is_explicit_and_cannot_be_inferred_from_archive(self):
+        for repository_sha, reason in [(self.backend_sha, 'editor_shared_change'),
+                                       (self.receipt['source_commit'], 'editor_repository_interval_not_development_only'),
+                                       ('main', 'invalid_editor_repository_commit')]:
+            with self.subTest(repository_sha=repository_sha), self.assertRaisesRegex(ValueError, reason):
+                AdmissionTest.admit(self, repository_sha=repository_sha)
+        with self.assertRaisesRegex(ValueError, 'editor_shared_change'):
+            AdmissionTest.admit(self)
+
+    def test_repository_must_be_an_ancestor_of_the_editor_source(self):
+        source = self.receipt['source_commit']
+        self.git(self.candidate, 'checkout', '-q', '-b', 'synthetic-other-repository', self.backend_sha)
+        leaf = self.candidate / 'tests/run_purchase_study_runtime.py'
+        leaf.write_bytes(leaf.read_bytes() + b'# a different development-only branch\n')
+        self.commit(self.candidate)
+        unrelated = self.git(self.candidate, 'rev-parse', 'HEAD')
+        self.git(self.candidate, 'checkout', '-q', '--detach', source)
+        with self.assertRaisesRegex(ValueError, 'editor_repository_not_ancestor'):
+            AdmissionTest.admit(self, repository_sha=unrelated)
+
+    def test_current_repository_ci_cannot_use_installed_base_old_main_or_old_ci(self):
+        original = self.ci_fixture()
+        self.assertEqual(len(self.verify_ci(original)), 7)
+        for kind in ['pr-base-installed', 'main-installed', 'ci-base-installed', 'ci-source-installed',
+                     'missing-gate', 'failed-gate', 'new-failed-attempt', 'wrong-repository-argument']:
+            fixture = copy.deepcopy(original)
+            if kind == 'pr-base-installed': fixture['pulls/31']['base']['sha'] = self.backend_sha
+            if kind == 'main-installed': fixture['commits/main']['sha'] = self.backend_sha
+            if kind == 'ci-base-installed': fixture['runs']['workflow_runs'][0]['pull_requests'][0]['base']['sha'] = self.backend_sha
+            if kind == 'ci-source-installed': fixture['runs']['workflow_runs'][0]['head_sha'] = self.backend_sha
+            if kind == 'missing-gate': fixture['runs']['workflow_runs'].pop()
+            if kind == 'failed-gate': fixture['runs']['workflow_runs'][0]['conclusion'] = 'failure'
+            if kind == 'new-failed-attempt':
+                row = copy.deepcopy(fixture['runs']['workflow_runs'][0]); row.update(id=999, conclusion='failure')
+                fixture['runs']['workflow_runs'].append(row)
+            repository_sha = self.receipt['source_commit'] if kind == 'wrong-repository-argument' else None
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                self.verify_ci(fixture, repository_sha)
+
+    def test_whole_installed_to_repository_interval_rejects_runtime_mode_delete_and_marker(self):
+        for kind in ['runtime', 'mode', 'delete', 'marker']:
+            def edit(root):
+                leaf = root / 'tests/run_purchase_study_runtime.py'
+                leaf.write_bytes(leaf.read_bytes() + b'# repository-only-looking final change\n')
+                if kind == 'runtime':
+                    shared = root / pack.FILES['http.js']
+                    shared.write_bytes(shared.read_bytes() + b'\n// hidden before the editor branch\n')
+                elif kind == 'mode': leaf.chmod(0o755)
+                elif kind == 'delete': leaf.unlink()
+            self.replace_interval(edit,
+                                  message='synthetic [modeled-pipeline-monitor-activation-v1]' if kind == 'marker' else 'synthetic repository interval',
+                                  followup=kind == 'marker')
+            # R -> S is still a valid editor-only diff. Rejection must come from
+            # complete A -> R proof, not an accidental wider component allowlist.
+            self.assertEqual(self.git(self.candidate, 'diff', '--name-only', self.repository_sha, self.receipt['source_commit']).splitlines(),
+                             sorted([pack.FILES['editor.js'], pack.MODULE]))
+            with self.subTest(kind=kind), self.assertRaisesRegex(ValueError, 'editor_repository_interval_not_development_only'):
+                self.admit()
+
+    def test_candidate_content_policy_is_never_imported(self):
+        marker = self.base / 'candidate-policy-executed'
+        def edit(root):
+            leaf = root / 'tests/run_purchase_study_runtime.py'
+            leaf.write_bytes(leaf.read_bytes() + b'# misleading development-only claim\n')
+            (root / 'tools/deployment_content_plan.py').write_text(
+                'from pathlib import Path\nPath(' + repr(str(marker)) + ').write_text("executed")\n'
+                'def compare_range(*args):\n return {"release_path":"content_candidate","runtime_contents_unchanged":True}\n')
+        self.replace_interval(edit)
+        with self.assertRaisesRegex(ValueError, 'editor_repository_interval_not_development_only'):
+            self.admit()
+        self.assertFalse(marker.exists())
+        self.assertEqual(self.git(self.backend, 'rev-parse', 'HEAD'), self.backend_sha)
+        self.assertEqual(self.git(self.backend, 'status', '--porcelain'), '')
+
+    @unittest.skipUnless(shutil.which('php'), 'native PHP required')
+    def test_native_server_forwards_repository_revision_and_preserves_package_cas(self):
+        program = self.base / 'native-repository.php'
+        program.write_text(r'''<?php
+require $argv[1].'/modules/tour-selections/deploy-editor.php';
+[$script,$root,$backend,$candidate,$original,$output,$application,$repository,$source,$expected]=$argv;
+$site=dirname($backend).'/repository-site';$releases=dirname($backend).'/repository-releases';mkdir($site,0700);
+$d=new TourSelectionEditorDeployment($backend,$site,$releases);
+$request=static function($origin,$path,$method,$body)use($backend,$releases){
+ $i=ManagerTourSelectionEditorHost::installed($backend,$releases);
+ $h="Cache-Control: private, no-store\nContent-Security-Policy: frame-src https://app.anytoour.ru; frame-ancestors https://tours.anytoour.ru";
+ if($method==='POST')return ['status'=>401,'headers'=>$h,'body'=>'{"error":"unauthorized"}'];
+ parse_str((string)parse_url($path,PHP_URL_QUERY),$q);
+ if(isset($q['asset']))return ['status'=>200,'headers'=>$h,'body'=>file_get_contents($i['directory'].'/'.$q['asset'])];
+ return ['status'=>200,'headers'=>$h,'body'=>'Manager2 id="editorLauncher" https://app.anytoour.ru/manager/tour-selection-editor.php?conversation_id=1&amp;editor_actor=1'];
+};
+$d->install($original,$application);$d->activate($request);
+$before=file_get_contents($backend.'/manager/assets/workspace-v2-tour-selection.js');
+$stale=false;try{$d->installIndependent($output,$candidate,$application,$source,str_repeat('f',64),'synthetic-repository-stale',$repository);}catch(RuntimeException $e){$stale=$e->getMessage()==='editor_current_package_changed';}
+if(!$stale||file_exists($releases.'/operations/synthetic-repository-stale.json'))throw new RuntimeException('repository forwarding lost package CAS');
+$wrong=false;try{$d->installIndependent($output,$candidate,$application,$source,$expected,'synthetic-repository-wrong',$source);}catch(RuntimeException $e){$wrong=$e->getMessage()==='editor_source_not_admitted';}
+if(!$wrong||file_exists($releases.'/operations/synthetic-repository-wrong.json'))throw new RuntimeException('wrong repository wrote intent');
+$d->installIndependent($output,$candidate,$application,$source,$expected,'synthetic-repository-good',$repository);
+if(ManagerTourSelectionEditorHost::entry($backend,$releases)!==null)throw new RuntimeException('staged editor active before smoke');
+$d->activateIndependent('synthetic-repository-good',$request);
+$active=ManagerTourSelectionEditorHost::installed($backend,$releases);
+if($active['backend_source']!==$application||$active['source']!==$source||$active['package_id']===$expected||$before!==file_get_contents($backend.'/manager/assets/workspace-v2-tour-selection.js'))throw new RuntimeException('application or component provenance changed');
+if(!$d->install($original,$application)['preserved_independent'])throw new RuntimeException('normal install replaced accepted editor');
+if($d->installIndependent($output,$candidate,$application,$source,$expected,'synthetic-repository-good',$repository)['changed']!==false)throw new RuntimeException('known operation replayed');
+echo json_encode(['repository_forwarded'=>true,'installed_backend_preserved'=>true,'stale_cas_rejected'=>true,'wrong_repository_rejected'=>true,'independent_preserved'=>true]);
+''')
+        before = self.git(self.backend, 'rev-parse', 'HEAD')
+        result = subprocess.run(['php', str(program), str(ROOT), str(self.backend), str(self.candidate), str(self.original), str(self.output),
+                                 self.backend_sha, self.repository_sha, self.receipt['source_commit'], self.current], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertTrue(all(json.loads(result.stdout).values()))
+        self.assertEqual(self.git(self.backend, 'rev-parse', 'HEAD'), before)
+        self.assertEqual(self.git(self.backend, 'status', '--porcelain'), '')
+
 
 class CommonAdmissionTest(unittest.TestCase):
     """A newer main artifact may replace an accepted, now-incompatible editor."""
@@ -688,7 +879,7 @@ class PublicationWorkflowTest(unittest.TestCase):
         self.assertLess(workflow.index('run: bash tools/verify_deploy_main_provenance.sh'), admission_at)
         self.assertLess(admission_at, workflow.index('DEPLOY_KEY:'))
         self.assertIn("root/'modules/tour-selections/build-editor.py'", workflow)
-        self.assertEqual(workflow.count('persist-credentials: false'), 2)
+        self.assertEqual(workflow.count('persist-credentials: false'), 3)
         self.assertNotIn('run: python3 editor-candidate/', workflow)
         for foreign in ['git pull', 'git reset', 'rsync ', 'migrate', 'composer install']:
             self.assertNotIn(foreign, self.shell())
@@ -719,7 +910,8 @@ if name=='ssh':
                     env = dict(os.environ, PATH=str(bin_dir)+os.pathsep+os.environ['PATH'], RUNNER_TEMP=str(run),
                                CALLS=str(calls), FAIL_AT=failure, DEPLOY_KEY='PRIVATE KEY synthetic fixture',
                                DEPLOY_USER='synthetic', DEPLOY_HOST='example.invalid', EXPECTED_SHA='a'*40,
-                               EDITOR_SOURCE='b'*40, CURRENT_PACKAGE='c'*64, EDITOR_OPERATION='owned-operation-1')
+                               EDITOR_SOURCE='b'*40, CURRENT_PACKAGE='c'*64, EDITOR_OPERATION='owned-operation-1',
+                               REPOSITORY_SHA='d'*40)
                     result = subprocess.run(['bash', '-c', self.shell()], env=env, capture_output=True, text=True)
                     self.assertEqual(result.returncode, expected_code, result.stdout+result.stderr)
                     commands = [args[-1] for name,args in map(json.loads,calls.read_text().splitlines()) if name=='ssh']
@@ -727,7 +919,7 @@ if name=='ssh':
                     self.assertEqual(len(rollback), int(failure=='activate'))
                     if rollback:self.assertTrue(rollback[0].endswith("rollback-independent 'owned-operation-1'"))
                     install = next(c for c in commands if 'install-independent' in c)
-                    self.assertIn("'"+'a'*40+"' '"+'b'*40+"' '"+'c'*64+"' 'owned-operation-1'", install)
+                    self.assertIn("'"+'a'*40+"' '"+'b'*40+"' '"+'c'*64+"' 'owned-operation-1' '"+'d'*40+"'", install)
                     if failure!='install':
                         activate = next(c for c in commands if 'activate-independent' in c)
                         self.assertIn('$(git rev-parse HEAD)', activate)

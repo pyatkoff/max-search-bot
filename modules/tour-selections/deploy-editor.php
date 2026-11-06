@@ -66,19 +66,23 @@ final class TourSelectionEditorDeployment
     }
 
     /** CLI publisher authority supplies exact immutable source, never an HTTP/client grant. */
-    public function installIndependent(string $output,string $candidate,string $backendSha,string $source,string $expectedCurrent,string $operation): array
+    public function installIndependent(string $output,string $candidate,string $backendSha,string $source,string $expectedCurrent,string $operation,?string $repositorySha=null): array
     {
-        return $this->exclusive(function()use($output,$candidate,$backendSha,$source,$expectedCurrent,$operation):array {
-            return $this->installPackage($output,$source,$this->admission($output,$candidate,$backendSha,$source,$expectedCurrent,$operation,false));
+        return $this->exclusive(function()use($output,$candidate,$backendSha,$source,$expectedCurrent,$operation,$repositorySha):array {
+            return $this->installPackage($output,$source,$this->admission($output,$candidate,$backendSha,$source,$expectedCurrent,$operation,false,$repositorySha));
         });
     }
 
-    private function admission(string $output,string $candidate,string $backendSha,string $source,string $expectedCurrent,string $operation,bool $common): array
+    private function admission(string $output,string $candidate,string $backendSha,string $source,string $expectedCurrent,string $operation,bool $common,?string $repositorySha=null): array
     {
             $args=['python3',$this->backend.'/modules/tour-selections/admit-editor.py',
                 '--backend',$this->backend,'--candidate',$candidate,'--output',$output,'--backend-sha',$backendSha,
                 '--source-sha',$source,'--current-package',$expectedCurrent,'--operation',$operation];
             if ($common) $args[]='--common-release';
+            if ($repositorySha!==null) {
+                if (!preg_match('/\A[a-f0-9]{40}\z/D',$repositorySha)) throw new RuntimeException('invalid_editor_repository_commit');
+                array_push($args,'--repository-sha',$repositorySha);
+            }
             $process=proc_open($args,
                 [['pipe','r'],['pipe','w'],['pipe','w']],$pipes);
             if (!is_resource($process)) throw new RuntimeException('editor_admission_unavailable');
@@ -86,7 +90,8 @@ final class TourSelectionEditorDeployment
             if ($status!==0 || !is_string($json) || strlen($json)>32768) throw new RuntimeException('editor_source_not_admitted');
             $grant=json_decode($json,true,32,JSON_THROW_ON_ERROR);
             if (!is_array($grant) || ($grant['kind']??null)!==($common?'selection-editor-common-release-v1':'selection-editor-source-admission-v1') || ($grant['source_sha']??null)!==$source
-                || ($grant['backend_sha']??null)!==$backendSha || ($grant['expected_current_package']??null)!==$expectedCurrent || ($grant['operation']??null)!==$operation) throw new RuntimeException('invalid_editor_admission');
+                || ($grant['backend_sha']??null)!==$backendSha || ($grant['expected_current_package']??null)!==$expectedCurrent || ($grant['operation']??null)!==$operation
+                || ($repositorySha!==null && ($grant['repository_sha']??null)!==$repositorySha)) throw new RuntimeException('invalid_editor_admission');
             return $grant;
     }
 
@@ -327,7 +332,7 @@ if (PHP_SAPI==='cli' && realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__) {
             'install-common'=>$deploy->installCommon($argv[2]??'',$argv[3]??'',$argv[4]??'',$argv[5]??''),
             'activate-common'=>$deploy->activateCommon($argv[2]??'',[TourSelectionEditorDeployment::class,'strictRequest']),
             'rollback-common'=>$deploy->rollbackCommon($argv[2]??''),
-            'install-independent'=>$deploy->installIndependent($argv[2]??'',$argv[3]??'',$argv[4]??'',$argv[5]??'',$argv[6]??'',$argv[7]??''),
+            'install-independent'=>$deploy->installIndependent($argv[2]??'',$argv[3]??'',$argv[4]??'',$argv[5]??'',$argv[6]??'',$argv[7]??'',$argv[8]??null),
             'activate-independent'=>$deploy->activateIndependent($argv[2]??'',[TourSelectionEditorDeployment::class,'strictRequest']),
             'rollback-independent'=>$deploy->rollbackIndependent($argv[2]??''),
             'activate'=>$deploy->activate([TourSelectionEditorDeployment::class,'strictRequest']),

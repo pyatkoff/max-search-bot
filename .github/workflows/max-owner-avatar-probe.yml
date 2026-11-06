@@ -23,6 +23,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: max-owner-avatar-probe
@@ -50,17 +51,51 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      - name: Checkout exact repository source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify exact repository source is current main
+        id: provenance
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          bash tools/verify_deploy_main_provenance.sh
+
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Validate exact installed main SHA before loading credentials
         env:
           EXPECTED_SHA: ${{ inputs.expected_sha }}
           WORKFLOW_SHA: ${{ github.sha }}
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+          RELEASE_READY: ${{ steps.release.outputs.ready }}
+          PERFORM_ACTIONS: ${{ steps.release.outputs.perform_actions }}
         shell: bash
         run: |
           set -euo pipefail
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
-          test "$EXPECTED_SHA" = "$WORKFLOW_SHA"
+          [[ "$REPOSITORY_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
+          [[ "$APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 2
+          test "$RELEASE_READY" = true
+          test "$PERFORM_ACTIONS" = true
+          test "$WORKFLOW_SHA" = "$REPOSITORY_SHA"
+          test "$EXPECTED_SHA" = "$APPLICATION_SHA"
 
       - name: Prepare existing deployment SSH key
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
@@ -79,6 +114,7 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
 
       - name: Run one fixed read-only owner probe with redacted output
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -100,6 +136,6 @@ jobs:
           REMOTE
 
       - name: Remove ephemeral SSH key
-        if: always()
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always())
         shell: bash
         run: rm -f "$RUNNER_TEMP/deploy_key"
