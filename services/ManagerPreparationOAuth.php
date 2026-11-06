@@ -42,8 +42,9 @@ final class ManagerPreparationOAuth
     public const ARCHIVE_SCOPE = 'archive:read';
     public const FORECAST_SCOPE = 'forecasts:read';
     public const DIALOGUE_SCOPE = 'dialogues:read';
+    public const QUALITY_SCOPE = 'quality:read';
     public const SELECTION_SCOPE = 'selections:write';
-    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE, self::FORECAST_SCOPE, self::DIALOGUE_SCOPE, self::SELECTION_SCOPE];
+    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE, self::FORECAST_SCOPE, self::DIALOGUE_SCOPE, self::SELECTION_SCOPE, self::QUALITY_SCOPE];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
     private PDO $pdo;
@@ -308,6 +309,12 @@ final class ManagerPreparationOAuth
     public function dialogueCursorKey(string $familyId,int $adminId): string
     {
         return $this->consentedCursorKey($familyId,$adminId,self::DIALOGUE_SCOPE,'anytour.dialogue-review.cursor.v1');
+    }
+
+    /** Explicit retained-history read consent; refresh cannot add this capability. */
+    public function qualityCursorKey(string $familyId,int $adminId): string
+    {
+        return $this->consentedCursorKey($familyId,$adminId,self::QUALITY_SCOPE,'anytour.monthly-reply-quality.cursor.v1');
     }
 
     private function consentedCursorKey(string $familyId,int $adminId,string $scope,string $domain): string
@@ -662,7 +669,7 @@ final class ManagerPreparationOAuth
 
     private function scope($value): string
     {
-        if (!is_string($value) || strlen($value)>128) $this->fail('invalid_scope');
+        if (!is_string($value) || strlen($value)>160) $this->fail('invalid_scope');
         if ($this->profile!==self::PROFILE_LEGACY) {
             $required=self::profileDefinition($this->profile)['scopes'];
             $given=explode(' ',$value);
@@ -678,10 +685,11 @@ final class ManagerPreparationOAuth
         $forecast=in_array(self::FORECAST_SCOPE,$scopes,true);
         $dialogue=in_array(self::DIALOGUE_SCOPE,$scopes,true);
         $selection=in_array(self::SELECTION_SCOPE,$scopes,true);
+        $quality=in_array(self::QUALITY_SCOPE,$scopes,true);
         // Reply read/write remain one capability. Hotel and development metadata
         // each require separate explicit consent; refresh never adds a scope.
         // Archive, aggregate forecast and current-dialogue reads each require fresh consent.
-        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive && !$forecast && !$dialogue && !$selection)) $this->fail('invalid_scope');
+        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive && !$forecast && !$dialogue && !$selection && !$quality)) $this->fail('invalid_scope');
         return implode(' ',array_values(array_intersect(self::SUPPORTED_SCOPES,$scopes)));
     }
 

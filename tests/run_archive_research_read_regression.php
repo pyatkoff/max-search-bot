@@ -291,6 +291,25 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check(strlen(json_encode($final,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=ArchiveResearchReadService::MAX_RESPONSE_BYTES,'full_envelope_byte_cap');
         $check(!$pdo->inTransaction(),'successful_read_rolls_back');
         if(!$mysql)$check((int)$pdo->query('PRAGMA query_only')->fetchColumn()===0,'sqlite_query_only_restored');
+        // The separately consented monthly history mode may include business-only chats.
+        $qualityHistory=new ArchiveResearchReadService($pdo,$clock,$provider,true);
+        $historyFingerprint=$fingerprint();ArchiveResearchTraceStatement::$queries=[];
+        $qualityPage=$qualityHistory->inventory(1,$connection,['limit'=>50]);$qualityChats=[];
+        foreach($qualityPage['chats']as$chat){
+            $body=explode('.',$chat['chat_ref'])[0];$v=json_decode(base64_decode(strtr($body,'-_','+/')),true);
+            $qualityChats[$v['a'].':'.$v['c']]=$chat;
+        }
+        $check(isset($qualityChats['100:198'])&&!in_array('100:198',$pageKeys,true),
+            'explicit_quality_mode_includes_business_only_without_changing_default_inventory');
+        $qualityChat=$qualityChats['100:198'];
+        $check(strlen($qualityChat['chat_key'])===64&&$qualityChat['period_clock_metadata']['latest_created_at']===1700000000,
+            'quality_inventory_exposes_private_stable_key_and_declared_clock_hint');
+        $qualityMessages=$qualityHistory->history(1,$connection,['chat_ref'=>$qualityChat['chat_ref']]);
+        $check(count($qualityMessages['messages'])===1&&$qualityMessages['messages'][0]['text']==='BUSINESS ONLY',
+            'quality_history_reads_existing_canonical_business_projection');
+        $check(($qualityChats['100:201']['period_clock_metadata']['unknown_created_at_records']??0)===1,
+            'quality_inventory_reports_unknown_clock_instead_of_silently_dropping_record');
+        $check($fingerprint()===$historyFingerprint,'quality_archive_reads_leave_records_permissions_and_markers_unchanged');
         // Explicit feature mode is opt-in through a separate cursor; old inventory pages stay metadata-only.
         $seed(2400,100,197,1,'Готовы бронировать, пришлите ссылку на оплату. https://example.test/private +7 999 123-45-67 @synthetic_handle');
         $seed(2401,100,197,2,'Деньги поступили, оплату вижу.',['sender_id'=>'100','sender_type'=>'manager','direction'=>'outbound']);

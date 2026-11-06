@@ -71,7 +71,7 @@ function forecastMcpAssertions():void
         &&str_contains($auth,'queue:read prepared:write archive:read')&&$calls===0
         &&$before===$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll());
     $all=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
-    forecastMcpCheck('all supported capabilities fit the forward 128-byte grant column',strlen($all)===125&&strlen($all)<=128);
+    forecastMcpCheck('all supported capabilities fit the forward160-byte grant column',strlen($all)===138&&strlen($all)<=160);
     $forecastTools=$service->handle(forecastMcpRpc('tools/list',['_meta'=>[]]),1,$family,[ManagerPreparationOAuth::FORECAST_SCOPE]);
     forecastMcpCheck('forecast-only discovery exposes its aggregate and separate dialogue-read consent metadata',
         array_column($forecastTools['result']['tools']??[],'name')===array_merge([ModeledConversionStatusMcpAdapter::NAME],DialogueReviewMcpAdapter::NAMES,ManagerTourSelectionMcpAdapter::NAMES)

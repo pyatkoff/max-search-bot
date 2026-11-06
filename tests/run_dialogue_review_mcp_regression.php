@@ -74,7 +74,7 @@ try{
         CREATE TABLE managers(id INTEGER PRIMARY KEY,role TEXT,is_active INTEGER,is_working INTEGER);
         CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
         CREATE TABLE manager_preparation_oauth_clients(client_id TEXT PRIMARY KEY,redirect_uri TEXT,registration_bucket TEXT,created_at INTEGER);
-        CREATE TABLE manager_preparation_oauth_grants(grant_id TEXT PRIMARY KEY,client_id TEXT,admin_id INTEGER,project_key TEXT,resource TEXT,scopes TEXT CHECK(length(scopes)<=128),created_at INTEGER,expires_at INTEGER,revoked_at INTEGER);
+        CREATE TABLE manager_preparation_oauth_grants(grant_id TEXT PRIMARY KEY,client_id TEXT,admin_id INTEGER,project_key TEXT,resource TEXT,scopes TEXT CHECK(length(scopes)<=160),created_at INTEGER,expires_at INTEGER,revoked_at INTEGER);
         CREATE TABLE manager_preparation_oauth_codes(code_hash TEXT PRIMARY KEY,grant_id TEXT,redirect_uri TEXT,code_challenge TEXT,expires_at INTEGER,consumed_at INTEGER);
         CREATE TABLE manager_preparation_oauth_tokens(token_hash TEXT PRIMARY KEY,grant_id TEXT,token_kind TEXT,expires_at INTEGER,consumed_at INTEGER);
         INSERT INTO projects VALUES(1,'anytour','Synthetic dialogue review',1),(2,'other','Other',1);
@@ -96,9 +96,10 @@ try{
     $archiveScope=ManagerPreparationOAuth::ARCHIVE_SCOPE;
     $forecastScope=ManagerPreparationOAuth::FORECAST_SCOPE;
     $dialogueScope=ManagerPreparationOAuth::DIALOGUE_SCOPE;
+    $qualityScope=ManagerPreparationOAuth::QUALITY_SCOPE;
     $allScope=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
     $profiles=[$legacyScope,$archiveScope,$forecastScope,$dialogueScope,
-        $legacyScope.' '.$dialogueScope,$archiveScope.' '.$dialogueScope,$forecastScope.' '.$dialogueScope,$allScope];
+        $legacyScope.' '.$dialogueScope,$archiveScope.' '.$dialogueScope,$forecastScope.' '.$dialogueScope,$qualityScope,$dialogueScope.' '.$qualityScope,$allScope];
     $tokens=[];$contexts=[];
     foreach($profiles as $scope){
         [$tokens[$scope],$contexts[$scope]]=dialogueMcpGrant($oauth,$client,$scope);
@@ -109,7 +110,27 @@ try{
     dialogueMcpCheck('ordinary registration and defaults grant no live transcript access',
         $registration['scope']===$legacyScope&&ManagerPreparationOAuth::SCOPES===['queue:read','prepared:write']
         &&!$oauth->connectionAuthorized($legacy,1,[$dialogueScope]));
-    dialogueMcpCheck('all explicit capabilities fit the forward 128-byte scope column',strlen($allScope)===125&&strlen($allScope)<=128);
+    $previousAllScope=implode(' ',array_values(array_filter(ManagerPreparationOAuth::SUPPORTED_SCOPES,static fn(string $scope):bool=>$scope!==$qualityScope)));
+    dialogueMcpCheck('existing explicit rights remain the same125-byte sequence',strlen($previousAllScope)===125&&strlen($previousAllScope)<=128);
+    dialogueMcpCheck('optional history rights fit forward160-byte storage',strlen($allScope)===138&&strlen($allScope)<=160);
+    $historyBefore=dialogueMcpCredentialRows($pdo);
+    try{
+        $oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,
+            'refresh_token'=>$tokens[$dialogueScope]['refresh_token'],'scope'=>$dialogueScope.' '.$qualityScope]);
+        throw new RuntimeException('FAIL refresh added historical scope');
+    }catch(InvalidArgumentException $error){
+        dialogueMcpCheck('existing transcript refresh cannot silently add closed dialogue or proposal history',
+            $error->getMessage()==='invalid_scope'&&dialogueMcpCredentialRows($pdo)===$historyBefore);
+    }
+    $oversizedScopeBefore=dialogueMcpCredentialRows($pdo);
+    try{$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>str_repeat('x',161)],'synthetic-history-overflow');throw new RuntimeException('FAIL oversized scope accepted');}
+    catch(InvalidArgumentException $error){dialogueMcpCheck('forward160-byte scope parser still rejects oversized input without credential mutation',$error->getMessage()==='invalid_scope'&&dialogueMcpCredentialRows($pdo)===$oversizedScopeBefore);}
+    $historyConnection=$contexts[$dialogueScope.' '.$qualityScope]['connection_id'];
+    $historyKey=$oauth->qualityCursorKey($historyConnection,1);
+    dialogueMcpCheck('history cursor key is separately consented and domain-separated',
+        strlen($historyKey)===32&&!hash_equals($historyKey,$oauth->dialogueCursorKey($historyConnection,1)));
+    try{$oauth->qualityCursorKey($contexts[$dialogueScope]['connection_id'],1);throw new RuntimeException('FAIL old read grant obtained historical key');}
+    catch(DomainException $error){dialogueMcpCheck('old read grant is not silently upgraded to history',true);}
     $before=dialogueMcpCredentialRows($pdo);
     try{
         $oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,
@@ -191,10 +212,21 @@ try{
     }
     dialogueMcpCheck('advertising and requesting live review do not mutate existing credentials',
         dialogueMcpCredentialRows($pdo)===$before&&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes);
+    $historyCalls=count($calls);
+    $historyStepUp=$invoke('list_current_dialogues',['cursor'=>'qh.manual.start']);
+    dialogueMcpCheck('history descriptor requires explicit separate consent before any source read',
+        str_contains(dialogueMcpChallenge($historyStepUp),'scope="'.$dialogueScope.' '.$qualityScope.'"')
+        &&count($calls)===$historyCalls&&dialogueMcpCredentialRows($pdo)===$before);
+    $historyTools=$list($contexts[$qualityScope]['connection_id'],[$qualityScope]);
+    dialogueMcpCheck('explicit history-only grant discovers existing readers without adding other rights',
+        array_values(array_intersect(array_column($historyTools,'name'),DialogueReviewMcpAdapter::NAMES))===DialogueReviewMcpAdapter::NAMES);
     $inventory=$invoke('list_current_dialogues',['limit'=>3]);
     dialogueMcpCheck('inventory dispatch uses trusted actor and connection with no arbitrary account selector',
         ($inventory['result']['structuredContent']['operation']??null)==='inventory'
         &&end($calls)===['inventory',[1,$connection,['limit'=>3]]]);
+    dialogueMcpCheck('ordinary inventory advertises separately consented monthly lanes without payload',
+        ($inventory['result']['structuredContent']['quality_history']['scope']??null)===$qualityScope
+        &&array_keys($inventory['result']['structuredContent']['quality_history']['lanes'])===['native','archive','manual','prepared','virtual']);
     $contextArgs=['dialogue_ref'=>'synthetic.ref','cursor'=>'synthetic.cursor','limit'=>10];
     $context=$invoke('get_dialogue_review_context',$contextArgs);
     dialogueMcpCheck('context dispatch preserves exact arguments and both returned JSON representations',
@@ -329,7 +361,6 @@ try{
     dialogueMcpCheck('ordinary token refresh retains exact rights and stales previous cursor key',
         $rotated['scope']===$dialogueScope&&$oauth->contextForBearer('Bearer '.$rotated['access_token'])['connection_id']===$connection
         &&!hash_equals($beforeRefreshKey,$oauth->dialogueCursorKey($connection,1)));
-
     // Exercise the production adapter/store factory with actual grants and native
     // source rows, rather than supplying a caller-controlled projection flag.
     $pdo->exec("DROP TABLE messages;
