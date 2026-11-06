@@ -1,0 +1,81 @@
+{
+  "operation": "commercial-top500-internal-base-20261106-8208-original-metadata1",
+  "state": "CLOSED_FIRST_NEEDED_OFFLINE_ONE_NATIVE_ORIGINAL_AUTH_METADATA_PROJECTION_NO_SERVER_OR_PHOTO_ACCESS",
+  "native_hotel_id": 8208,
+  "original_source_run": 42165764181,
+  "original_source_artifact": 13479140677,
+  "source_capture_installed_sha": "5a18f64f790fdc3ace989d99e8efc84046159795",
+  "projection_run": 42166900411,
+  "projection_job": 127725362810,
+  "projection_source": "f0dcd1733dc700844d04af283d7f33d8e7071ffa",
+  "projection_artifact": {
+    "id": 13479576337,
+    "name": "commercial-top500-internal-base-20261106-8208-metadata1",
+    "created_at": "2026-11-06T05:11:24Z",
+    "digest": "sha256:ed36b6cd60fac0e292c440d9e81393b7266e8a33f64092bbd06551852b541581"
+  },
+  "private_file": "top500-8208-metadata.private.json",
+  "native_proof": {
+    "id": 8208,
+    "country_id": 2,
+    "is_active": 1,
+    "region_id": 9,
+    "current_name_sha256": "136ea191d3b8cff3fa1094b349620cf343fcbc26b19a2b680b4fbe55582a2e18",
+    "country_name_sha256": "ebc322441a9016a81c0d382f6dcaf46f0edd81e7f36df2094a9fe84a138abf88",
+    "region_name_sha256": "e77bf758a1d638a1a4b597114650af207ebfa8a81cd06dd70f6813d5620b5c6a",
+    "names_not_raw_public_checkpoint": true,
+    "capture_time_role": "ORIGINAL_20261106T0500_NATIVE_READ_NOT_NEW_LIVE_GET"
+  },
+  "gallery": {
+    "declared_urls": 41,
+    "revision": 3,
+    "source_fetched_at": "2026-10-10 10:06:20",
+    "content_state": "ready",
+    "manual_field_names": null,
+    "manual_null_not_invented_zero": true,
+    "source_domain": "static.tourvisor.ru",
+    "closed_url_matches": 0,
+    "closed_decoded_basename_matches": 0,
+    "canonical_exclusions": {
+      "urls": 293,
+      "decoded_basenames": 292
+    },
+    "hero_rights_effective_gallery_unverified": true,
+    "photo_http": 0,
+    "pixels_inspected": 0
+  },
+  "price_coverage": {
+    "hotel_id": 8208,
+    "recent_rows": 175,
+    "oldest_persisted_epoch": 1793688932,
+    "newest_persisted_epoch": 1793892657,
+    "existing_policy_condition_rows": 70,
+    "stored_search_price_is_final_or_available": false
+  },
+  "newest_persisted_utc": "2026-11-05T15:30:57.000Z",
+  "actual_age_at_next_action_must_be_recomputed": true,
+  "new_native_input_case_groups": 10,
+  "old_cases_rerun": 0,
+  "original_projection_log_read_once_closed": true,
+  "original_ten1_db_scope_not_repeated": true,
+  "bounds": {
+    "hotels_projected": 1,
+    "original_artifacts": 1,
+    "server_calls": 0,
+    "db_calls": 0,
+    "provider_calls": 0,
+    "quotes": 0,
+    "owner_or_photo_http": 0,
+    "canva": 0,
+    "new_posts": 0
+  },
+  "ready_materials": 0,
+  "new_price_or_link_delivery": 0,
+  "prior_coverage_notification_already_reported_do_not_repeat": true,
+  "concurrent_own_audit_reconciliation_preserved": {
+    "head": "6897d01cc88ac5313b60a09313c1995e38dc5dcf",
+    "prepared_duplicate_ten_reader_802088_never_activate": true,
+    "no_original_scope_or_projection_repeat": true,
+    "ordinary_json_files_preserved": 3
+  }
+}
