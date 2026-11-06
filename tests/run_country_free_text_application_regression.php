@@ -123,7 +123,8 @@ class MaxSearchApi
         return true;
     }
     public static function getAiSearchContext($chatId): array { return []; }
-    public static function getAiMissingFields($chatId): array { return ['country']; }
+    public static array $missingNeeds = ['country'];
+    public static function getAiMissingFields($chatId): array { return self::$missingNeeds; }
     public static function applyAiParameters($chatId, array $params): array
     {
         self::$aiApplications[] = $params;
@@ -243,6 +244,8 @@ countryFreeTextCheck('rejected directory id does not progress', MaxSearchApi::$t
 countryFreeTextCheck('rejected directory id sends no validation', $messenger->sent, []);
 
 $messenger = countryFreeTextReset(1600);
+// The edit case has a complete surrounding trip; earlier AI-route cases retain their missing country.
+MaxSearchApi::$missingNeeds = [];
 EditFlowService::begin(1600, 'country');
 StateMessageHandler::handle(['text'=>'Шри-Ланка'], 1600, MaxSearchApi::$statusContryChoose);
 countryFreeTextCheck('country edit stores exact directory id', MaxSearchApi::getSavedData(1600)[MaxSearchApi::$statusContryChoose] ?? null, '12');
