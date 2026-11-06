@@ -50,6 +50,9 @@ $personalDraft=$draft;
 $personalDraft['appearance']=['template'=>'personal','palette'=>'ocean','agency_name'=>'Synthetic agency','manager'=>['name'=>'  Synthetic <manager>  ','note'=>"Personal introduction\nSecond line",'phone'=>'+7 (000) 000-00-00','email'=>'manager@example.invalid']];
 $personalNormalized=ManagerTourSelectionDraft::normalize($personalDraft);
 tsCheck('personal presentation is explicit bounded text and preserves every offer',$personalNormalized['appearance']['manager']['name']==='Synthetic <manager>'&&$personalNormalized['offers']===$normalized['offers']);
+$brandedDraft=$personalDraft;$brandedDraft['appearance']['palette']='anytour';
+$brandedNormalized=ManagerTourSelectionDraft::normalize($brandedDraft);
+tsCheck('fixed AnyTour brand choice retains all exact offers and explicit manager presentation',$brandedNormalized!==null&&$brandedNormalized['appearance']['palette']==='anytour'&&$brandedNormalized['offers']===$normalized['offers']&&$brandedNormalized['appearance']['manager']===$personalNormalized['appearance']['manager']);
 $savedAppearance=json_encode($personalNormalized['appearance'],JSON_THROW_ON_ERROR);$later=$personalDraft;$later['appearance']['manager']['name']='Later working draft';
 tsCheck('normalizing later manager edits cannot mutate prior presentation',ManagerTourSelectionDraft::normalize($later)['appearance']['manager']['name']==='Later working draft'&&json_encode($personalNormalized['appearance'],JSON_THROW_ON_ERROR)===$savedAppearance);
 foreach ([null,[],['name'=>'x','note'=>'','phone'=>'','email'=>'','account_id'=>99],['name'=>str_repeat('x',101),'note'=>'','phone'=>'','email'=>''],['name'=>'x','note'=>'','phone'=>"123\r\nInjected",'email'=>''],['name'=>'x','note'=>'','phone'=>'','email'=>[]]] as $badManager) {
