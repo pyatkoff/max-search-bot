@@ -117,3 +117,22 @@
 .tsPalette-anytour .tsPreviewCard{border-color:#d9e2ff}
 @media(max-width:600px){.tsPalette-anytour .tsSelectionHeading{padding:16px}.tsPalette-anytour .tsSelectionHeading h4{font-size:24px}.tsAnyTourLogo{width:156px}}
 @media print{.tsPalette-anytour .tsPrintBrand{color:#2743CB}.tsPalette-anytour .tsAnyTourLogo{width:45mm}.tsPalette-anytour .tsSelectionHeading{box-shadow:none;background:white}}
+
+/* Explicit batch terms share the existing modal, scroll and fixed footer layout. */
+#tsBulkTermsOpen{min-width:88px}
+#tsTermsFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.tsTermsField{min-width:0;padding:0 0 12px;border-bottom:1px solid #e5ece7}
+.tsTermsField>label{font-weight:600}
+.tsTermsField input:not([type=checkbox]),.tsTermsField textarea,.tsTermsField select{display:block;width:100%;max-width:100%;min-height:44px;padding:10px;border:1px solid #bdcec2;border-radius:8px;font:inherit;background:#fff;color:#20372b;margin:0 0 7px;box-sizing:border-box}
+.tsTermsField textarea{resize:vertical;min-height:84px}
+.tsTermsField :disabled{background:#f1f4f2;color:#65756c}
+.tsTermsField small{font-size:12px;line-height:1.5}
+.tsTermsField:not(.isChosen)>:not(label){display:none}
+.tsTermsRow{border:1px solid #d6e1da;border-radius:10px;padding:14px;margin:10px 0;overflow-wrap:anywhere}
+.tsTermsRow h5{font-size:15px;margin:0 0 12px}
+.tsTermsRow>div{border-top:1px solid #e5ece7;padding-top:10px;margin-top:10px}
+.tsTermsRow strong{font-size:13px}.tsTermsRow p{white-space:pre-wrap;margin:6px 0;line-height:1.5}
+.tsBulkTerms .tsTermsConfirm{display:flex;align-items:center;gap:10px;min-height:52px;font-size:13px;line-height:1.5;margin:16px 0}
+.tsTermsConfirm input{flex:none;width:20px;min-width:20px;margin:0}
+.tsBulkTerms :focus-visible{outline:3px solid #81b7a3;outline-offset:2px}
+@media(max-width:767px){#tsTermsFields{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tsTermsField.isChosen{grid-column:1/-1}.tsTermsField>label{font-size:13px}.tsTermsRow{padding:12px}.tsImportActions #tsBulkTermsOpen{flex:1;min-width:88px;padding:8px;font-size:12px}}
