@@ -669,7 +669,7 @@ final class ManagerPreparationOAuth
 
     private function scope($value): string
     {
-        if (!is_string($value) || strlen($value)>128) $this->fail('invalid_scope');
+        if (!is_string($value) || strlen($value)>160) $this->fail('invalid_scope');
         if ($this->profile!==self::PROFILE_LEGACY) {
             $required=self::profileDefinition($this->profile)['scopes'];
             $given=explode(' ',$value);

@@ -122,6 +122,9 @@ try{
         dialogueMcpCheck('existing transcript refresh cannot silently add closed dialogue or proposal history',
             $error->getMessage()==='invalid_scope'&&dialogueMcpCredentialRows($pdo)===$historyBefore);
     }
+    $oversizedScopeBefore=dialogueMcpCredentialRows($pdo);
+    try{$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI],'scope'=>str_repeat('x',161)],'synthetic-history-overflow');throw new RuntimeException('FAIL oversized scope accepted');}
+    catch(InvalidArgumentException $error){dialogueMcpCheck('forward160-byte scope parser still rejects oversized input without credential mutation',$error->getMessage()==='invalid_scope'&&dialogueMcpCredentialRows($pdo)===$oversizedScopeBefore);}
     $historyConnection=$contexts[$dialogueScope.' '.$qualityScope]['connection_id'];
     $historyKey=$oauth->qualityCursorKey($historyConnection,1);
     dialogueMcpCheck('history cursor key is separately consented and domain-separated',
