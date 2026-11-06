@@ -8,6 +8,11 @@ function scopeOk(array $s):bool{
  foreach($ids as $id)if(!is_int($id)||$id<1||!in_array($id,TOP500_CANONICAL_IDS,true)||in_array($id,$s['excluded_published_native_ids']??[],true))return false;
  return ($s['schema']??null)===1&&($s['operation']??null)===TOP500_OPERATION&&($s['source_repository']??null)==='pyatkoff/poisk-turov-test'&&($s['source_revision']??null)==='64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d'&&($s['canonical_ids_sha256']??null)===TOP500_ROSTER_SHA256&&($s['id_namespace']??null)==='tourvisor_native_catalog_hotels_id'&&($s['excluded_published_native_ids']??null)===TOP500_PUBLISHED_IDS&&($s['max_hotels']??null)===10&&($s['price_max_age_seconds']??null)===259200&&($s['metadata_only']??null)===true&&($s['provider_post_reads']??null)===0&&($s['photo_http']??null)===0&&($s['quotes']??null)===0&&($s['post_writes']??null)===0;
 }
+function registryMetadataSql(array $ids):string{
+ need($ids===TOP500_HOTEL_IDS,'registry_scope_changed');
+ $marks=implode(',',array_fill(0,count($ids),'?'));
+ return "SELECT pc.platform,CAST(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS UNSIGNED) AS native_hotel_id,v.state,COUNT(*) AS matches FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN post_versions v ON v.id=pp.current_version_id AND v.publication_id=pp.id WHERE pp.post_channel_id IN (9,10) AND CAST(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS UNSIGNED) IN (".$marks.") GROUP BY pc.platform,native_hotel_id,v.state ORDER BY native_hotel_id,pc.platform,v.state";
+}
 function metadataUrl(?string $v):?string{
  if($v===null||strlen($v)>2048||preg_match('/\Ahttps:\/\/[^\s]+\z/D',$v)!==1)return null;
  $p=parse_url($v);if(!is_array($p)||empty($p['host'])||isset($p['user'])||isset($p['pass'])||isset($p['fragment']))return null;
@@ -23,6 +28,22 @@ function selectColumn(array $cols,string $name):string{return in_array($name,$co
 function jsonArrayMetadata($v):?array{if($v===null)return null;need(is_string($v)&&strlen($v)<=1048576,'metadata_field_size');$a=json_decode($v,true,128,JSON_THROW_ON_ERROR);need(is_array($a)&&count($a)<=1000,'metadata_array_invalid');return $a;}
 $raw=base64_decode(TOP500_SCOPE_B64,true);need(is_string($raw)&&hash_equals(TOP500_SCOPE_SHA256,hash('sha256',$raw)),'scope_bytes_changed');
 $scope=json_decode($raw,true,256,JSON_THROW_ON_ERROR);need(is_array($scope)&&scopeOk($scope),'scope_rejected');
+if(getenv('ANYTOUR_TOP500_REGISTRY_OWNER_CASES')==='1'){
+ $db=new PDO('sqlite::memory:');$db->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);$db->sqliteCreateFunction('JSON_UNQUOTE',fn($v)=>$v,1);
+ $db->exec('CREATE TABLE post_channels(id INTEGER PRIMARY KEY,platform TEXT);CREATE TABLE post_publications(id INTEGER PRIMARY KEY,post_channel_id INTEGER,current_version_id INTEGER);CREATE TABLE post_versions(id INTEGER PRIMARY KEY,publication_id INTEGER,state TEXT,snapshot_json TEXT)');
+ $db->exec("INSERT INTO post_channels VALUES(9,'max'),(10,'telegram'),(11,'max');INSERT INTO post_publications VALUES(1,9,1),(2,10,2),(3,9,3),(4,11,4)");
+ $q=$db->prepare('INSERT INTO post_versions VALUES(?,?,?,?)');
+ foreach([[1,1,'sent',22879],[2,2,'pending',22879],[3,3,'sent',999999999],[4,4,'sent',22879]] as $r)$q->execute([$r[0],$r[1],$r[2],json_encode(['metadata'=>['hotel_catalog_id'=>$r[3]]])]);
+ $sql=registryMetadataSql(TOP500_HOTEL_IDS);$q=$db->prepare($sql);$q->execute(TOP500_HOTEL_IDS);$rows=$q->fetchAll(PDO::FETCH_ASSOC);
+ need(count($rows)===2,'registry_native_channel_scope_not_exact');
+ need(array_column($rows,'state')===['sent','pending'],'registry_version_states_not_preserved');
+ need(array_keys($rows[0])===['platform','native_hotel_id','state','matches'],'registry_projection_private_fields_exposed');
+ need(array_sum(array_column($rows,'matches'))===2&&array_unique(array_column($rows,'native_hotel_id'))===[22879],'foreign_hotel_or_channel_not_excluded');
+ need(substr_count($sql,'?')===10,'registry_explicit_scope_bounds_changed');
+ $rejected=false;try{$q=$db->prepare(str_replace('v.state','pp.state',$sql));$q->execute(TOP500_HOTEL_IDS);}catch(PDOException $e){$rejected=true;}need($rejected,'wrong_state_table_owner_not_detected');
+ $rejected=false;try{registryMetadataSql(array_reverse(TOP500_HOTEL_IDS));}catch(RuntimeException $e){$rejected=true;}need($rejected,'registry_wrong_native_scope_admitted');
+ echo json_encode(['operation'=>TOP500_OPERATION,'new_native_registry_case_groups'=>7,'old_case_groups_rerun'=>0,'server_db_provider_calls'=>0]),PHP_EOL;exit;
+}
 if(getenv('ANYTOUR_TOP500_NEW_CASES')==='1'){
  $n=1;
  foreach(['extra','missing','duplicate','string_id','reordered','foreign_id','published_id','namespace','source_repo','source_sha','roster_sha','age','writes','metadata_only'] as $case){
@@ -89,6 +110,7 @@ try {
  $fields=['id','name','country_id','country_name','region_id','region_name','is_active','primary_image_url','image_updated_at'];
  $q=$catalog->prepare('SELECT '.implode(',',array_map(fn($f)=>selectColumn($hc,$f),$fields)).' FROM catalog_hotels WHERE id IN ('.$marks.') ORDER BY id');$q->execute($ids);$native=[];
  foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$id=(int)$r['id'];need(in_array($id,$ids,true)&&!isset($native[$id]),'unexpected_native_row');$r['id']=$id;$r['country_id']=$r['country_id']===null?null:(int)$r['country_id'];$r['is_active']=$r['is_active']===null?null:(int)$r['is_active'];$r['primary_image_url']=metadataUrl($r['primary_image_url']);$native[$id]=$r;}
+ $out['partial_native_metadata']=$native;$out['last_completed_stage']='native_metadata';
  $lc=columns($catalog,'local_tv_hotels');$details=[];$detailsState='TABLE_ABSENT_UNVERIFIED';
  $lreq=['id','state','revision','source_fetched_at','source_json','discovery_json','content_json','manual_json'];
  if(is_array($lc)&&!array_diff($lreq,$lc)){
@@ -102,6 +124,7 @@ try {
    $details[$id]=['id'=>$id,'content_state'=>$r['state'],'revision'=>(int)$r['revision'],'source_fetched_at'=>$r['source_fetched_at'],'details_available'=>(bool)$r['details_available'],'distinct_declared_image_urls'=>array_keys($urls),'distinct_declared_image_url_count'=>count($urls),'manual_field_names'=>jsonArrayMetadata($r['manual_field_names']),'effective_media_proof'=>'NOT_PROJECTED_MANUAL_OVERRIDES_MAY_REQUIRE_CANONICAL_READER','rights'=>'UNVERIFIED','whole_complex_hero'=>'UNVERIFIED'];
   }
  }elseif(is_array($lc))$detailsState='SCHEMA_INCOMPLETE_UNVERIFIED';
+ $out['partial_local_tv_metadata']=$details;$out['last_completed_stage']='local_tv_metadata';
  $pc=columns($catalog,'tour_price_observations');$prices=[];$priceState='TABLE_ABSENT_UNVERIFIED';
  $preq=['hotel_id','created_at','departure_date','departure_id','adults','children_count','currency','nights','room_type','meal_id','source','search_id','tour_id','price'];
  $now=time();$from=$now-259200;$today=gmdate('Y-m-d',$now);
@@ -111,11 +134,13 @@ try {
   $q=$catalog->prepare($sql);$q->execute(array_merge([$today],$ids,[$from,$now]));
   foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$id=(int)$r['hotel_id'];need(in_array($id,$ids,true)&&!isset($prices[$id]),'unexpected_price_row');foreach($r as &$v)$v=$v===null?null:(int)$v;unset($v);$r['stored_search_price_is_final_or_available']=false;$prices[$id]=$r;}
  }elseif(is_array($pc))$priceState='NO_AUTHORITATIVE_PERSISTED_UTC_OR_CONDITION_SCHEMA_UNVERIFIED';
- $sql="SELECT pc.platform,CAST(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS UNSIGNED) AS native_hotel_id,pp.state,COUNT(*) AS matches FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN post_versions v ON v.id=pp.current_version_id AND v.publication_id=pp.id WHERE pp.post_channel_id IN (9,10) AND CAST(JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS UNSIGNED) IN (".$marks.") GROUP BY pc.platform,native_hotel_id,pp.state ORDER BY native_hotel_id,pc.platform,pp.state";
+ $out['partial_stored_price_metadata']=$prices;$out['last_completed_stage']='stored_price_metadata';
+ $sql=registryMetadataSql($ids);
  $q=$pdo->prepare($sql);$q->execute($ids);$dedup=[];
  foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){$id=(int)$r['native_hotel_id'];need(in_array($id,$ids,true)&&in_array($r['platform'],['max','telegram'],true),'unexpected_registry_metadata');$dedup[$id][]=['platform'=>$r['platform'],'state'=>$r['state'],'matches'=>(int)$r['matches']];}
  foreach($ids as $id)$out['hotels'][]=['native_hotel_id'=>$id,'owner_top500_membership'=>true,'current_native'=>$native[$id]??null,'local_tv_metadata_state'=>$detailsState,'local_tv_metadata'=>$details[$id]??null,'stored_price_metadata_state'=>$priceState,'stored_price_last72h'=>$prices[$id]??null,'registry_exact_native_metadata_matches'=>$dedup[$id]??[],'registry_metadata_absence_not_full_dedup_acceptance'=>true,'publisher_role'=>null,'ready_for_publication'=>false];
+ $out['last_completed_stage']='registry_metadata';unset($out['partial_native_metadata'],$out['partial_local_tv_metadata'],$out['partial_stored_price_metadata']);
  $pdo->rollBack();if(!$shared)$catalog->rollBack();
  $out['catalog_connection_role']='EXISTING_ANYTOUR_DATA_DB_CONTRACT_SHARED_WITH_PRODUCER_SOURCE_NO_CONFIG_VALUES_EXPORTED';$out['server_epoch_utc']=$now;$out['price_window_start_epoch_utc']=$from;$out['price_departure_after_utc_date']=$today;$out['scope_native_ids']=$ids;$out['installed_sha']=EXPECTED_INSTALLED_SHA;$out['ok']=true;
-}catch(Throwable $e){if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();if(isset($catalog)&&$catalog->inTransaction())$catalog->rollBack();$out['error']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$e->getMessage())?$e->getMessage():'bounded_internal_metadata_read_failed';}
+}catch(Throwable $e){$out['error_class']=get_class($e);$out['sqlstate']=$e instanceof PDOException?($e->errorInfo[0]??null):null;$out['metadata_failure_is_not_absence']=true;if(isset($pdo)&&$pdo->inTransaction())$pdo->rollBack();if(isset($catalog)&&$catalog->inTransaction())$catalog->rollBack();$out['error']=preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D',$e->getMessage())?$e->getMessage():'bounded_internal_metadata_read_failed';}
 echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;exit($out['ok']?0:2);

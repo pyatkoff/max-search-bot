@@ -1,4 +1,4 @@
-name: Read retained TOP500 metadata after PHP declaration preparation fix
+name: Complete the same TOP500 metadata read after registry column owner correction
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -12,7 +12,7 @@ concurrency:
 env:
   EXPECTED_PRODUCTION_SHA: 5a18f64f790fdc3ace989d99e8efc84046159795
   EXPECTED_TOP500_SCOPE_SHA256: 65101acdccb501864e99a289038b41574e7a401af681358da898b648ebb0162b
-  EXPECTED_TOP500_READER_SHA256: 758f2e68575d57cebbe7d0f5dc43bf5312adfd5815f4f70aed1949c9f78c925e
+  EXPECTED_TOP500_READER_SHA256: 86fe5907f9c50e4dcc66bf2a07bed3facb1e338d70274769ea2c5327a972bc69
   EXPECTED_CATALOG_CONNECTOR_SHA256: 8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5
 jobs:
   inspect:
@@ -68,14 +68,14 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring
+          extensions: mbstring, pdo_sqlite
       - name: Validate only new frozen TOP500 metadata inputs
         run: |
           set -euo pipefail
           python3 -m py_compile tools/direct_demand/operations/prepare-top500-internal-metadata-20261105-ten1.py tools/direct_demand/operations/run-top500-internal-metadata-20261105-ten1.py
           python3 tools/direct_demand/operations/prepare-top500-internal-metadata-20261105-ten1.py
           php -l "$RUNNER_TEMP/top500-metadata.php"
-          ANYTOUR_TOP500_NEW_CASES=1 php "$RUNNER_TEMP/top500-metadata.php"
+          ANYTOUR_TOP500_REGISTRY_OWNER_CASES=1 php "$RUNNER_TEMP/top500-metadata.php"
       - name: Retain frozen private intent before server or rights access
         uses: actions/upload-artifact@v4
         with:

@@ -1,0 +1,36 @@
+{
+  "operation": "commercial-top500-internal-base-20261105-ten1-read1",
+  "state": "ONE_JUSTIFIED_READONLY_CORRECTION_PLAN_NO_BUSINESS_RETRY",
+  "goal": "Complete the same explicit10 internal metadata measurement after a confirmed new SQL table-owner defect; preserve partial metadata on errors.",
+  "scope_sha256": "65101acdccb501864e99a289038b41574e7a401af681358da898b648ebb0162b",
+  "new_reader_sha256": "86fe5907f9c50e4dcc66bf2a07bed3facb1e338d70274769ea2c5327a972bc69",
+  "original_first_runtime_run": 42165343894,
+  "full_dataset_previously_accepted": false,
+  "metadata_scope_reread_disclosed": true,
+  "logical_read_success_limit": 1,
+  "corrective_runtime_attempt_limit": 1,
+  "old_native24_cases_rerun": 0,
+  "new_registry_schema_case_groups": 7,
+  "criteria": [
+    "Native SQL fixture uses post_publications without state and post_versions with state; new helper must succeed and original wrong-owner projection must reject.",
+    "No scope/ID/roster/age changes. Fresh same-source Deploy/TLS/diag, full21/host25/clean/schema/rights remain mandatory.",
+    "Upload new same-operation private input before the single corrective read. Original input/result/logs remain closed; no unrelated publication reads.",
+    "A second runtime failure preserves private partial stages and stops for diagnosis; do not blindly repeat the complete metadata scope."
+  ],
+  "bounds": {
+    "hotels": 10,
+    "corrective_readonly_attempts": 1,
+    "post_writes": 0,
+    "db_writes": 0,
+    "quotes": 0,
+    "photo_http": 0,
+    "supplier_searches": 0,
+    "provider_post_reads": 0,
+    "mandatory_channel_rights_reads": 2
+  },
+  "risks": [
+    "The original runtime exception was sanitized; v.state is code-proven necessary but another error may precede it.",
+    "The first failed metadata attempt may have read records whose in-memory values were lost. This correction repeats unaccepted metadata scope and must not be described as zero prior DB access.",
+    "No absence/price/photo/ready conclusion follows from the original empty summary."
+  ]
+}
