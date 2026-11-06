@@ -74,6 +74,21 @@ dcrCheck('spaced explicit date clears obsolete month context', PendingMonthStore
 $spacedGuard = AiDateContextService::applyAiGuard($chatId, '18 . 11.2030', ['date'=>'20.12.2030']);
 dcrCheck('spaced explicit user date wins over AI guess', ($spacedGuard['date'] ?? '') === '18.11.2030');
 
+// Synthetic cross-month windows cannot borrow a phase from another month.
+foreach (['конец июня — начало июля', 'июль или июнь', 'с середины августа до начала сентября'] as $window) {
+    DateContextResolver::rememberMonth($chatId, 12, 2030);
+    $windowLocal = AiDateContextService::resolveLocal($chatId, $window);
+    dcrCheck('two-month window requires clarification: ' . $window,
+        !empty($windowLocal['ambiguous_months']) && $windowLocal['date'] === '' && !$windowLocal['month_only']);
+    dcrCheck('two-month window discards stale pending month', PendingMonthStore::get($chatId) === []);
+    $windowGuard = AiDateContextService::applyAiGuard($chatId, $window, ['date'=>'05.06.2030', 'nights'=>'8']);
+    dcrCheck('AI cannot invent one departure for two months', $windowGuard['date'] === null && $windowGuard['nights'] === '8');
+}
+dcrCheck('single-month phase still resolves in its own month',
+    (DateParser::resolveDate('начало июля 2030')['date'] ?? '') === '05.07.2030');
+$clarified = AiDateContextService::resolveLocal($chatId, '29.06.2030');
+dcrCheck('explicit clarification resolves without a stale pending month', $clarified['date'] === '29.06.2030');
+
 $monthOnly = DateContextResolver::resolveFromText($chatId, 'в декабре 2026');
 dcrCheck('month-only text is recognized without inventing a day', empty($monthOnly['date']) && ($monthOnly['month'] ?? null) === 12 && ($monthOnly['year'] ?? null) === 2026);
 $pending = PendingMonthStore::get($chatId);

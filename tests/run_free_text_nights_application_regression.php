@@ -243,6 +243,8 @@ freeTextNightsCheck('invalid text does not advance', MaxSearchApi::$transitions,
 freeTextNightsCheck('invalid text emits no transition observation', freeTextNightsTransitionEvents(), []);
 
 $messenger = freeTextNightsReset(300);
+// The isolated edit starts from a trip that already has a departure date.
+FreeTextNightsFakeData::$rows[] = ['ID'=>21,'UF_CHAT_ID'=>300,'UF_STATUS'=>MaxSearchApi::$statusDate,'UF_VALUE'=>'20.07.2030'];
 MaxSearchApi::$editMode = 'nights';
 StateMessageHandler::handle(['text'=>'На 6'], 300, MaxSearchApi::$statusNights);
 freeTextNightsCheck('edit flow stores the resolved value', MaxSearchApi::getSavedData(300)[MaxSearchApi::$statusNights] ?? null, '6');

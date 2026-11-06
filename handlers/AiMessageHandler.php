@@ -60,6 +60,14 @@ class AiMessageHandler
                     }
                 }
 
+                // Keep an unsupported multi-month window out of both local
+                // anchoring and remote inference. Clarification changes no needs.
+                $dateContext = AiDateContextService::resolveLocal($chat_id, $userText);
+                if (!empty($dateContext['ambiguous_months'])) {
+                    MissingFieldQuestionService::send($chat_id, 'date', ['ambiguous_months'=>true]);
+                    return;
+                }
+
                 // Сначала классифицируем сообщение. Полноценные запросы по-прежнему
                 // проходят через AI, но явные факты из текста применяем до внешнего вызова.
                 // Это сохраняет прогресс и позволяет задать следующий вопрос даже при timeout/error AI.
@@ -80,7 +88,7 @@ class AiMessageHandler
                     if (empty($current['city']) && !$departure) {
                         unset($richLocalParams['city']);
                     }
-                    $richLocalDate = AiDateContextService::resolveLocal($chat_id, $userText);
+                    $richLocalDate = $dateContext;
                     if (!empty($richLocalDate['date'])) {
                         $richLocalParams['date'] = $richLocalDate['date'];
                     }
@@ -99,7 +107,7 @@ class AiMessageHandler
                     if($sourceQualification&&empty($current['city']))unset($localParams['city']);
 
                     // Stateful month-only/date clarification policy lives behind one boundary.
-                    $localDate = AiDateContextService::resolveLocal($chat_id, $userText);
+                    $localDate = $dateContext;
                     $localMonthOnly = !empty($localDate['month_only']);
                     if (!empty($localDate['date'])) {
                         $localParams['date'] = $localDate['date'];

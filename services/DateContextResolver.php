@@ -16,6 +16,11 @@ class DateContextResolver
     {
         $resolved = DateParser::resolveDate($text);
 
+        if (!empty($resolved['ambiguous_months'])) {
+            PendingMonthStore::clear($chatId);
+            return $resolved;
+        }
+
         if (!empty($resolved['date'])) {
             PendingMonthStore::clear($chatId);
             return $resolved;

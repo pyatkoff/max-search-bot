@@ -58,6 +58,9 @@ eval('namespace Bitrix\\Highloadblock { class HighloadBlockTable { public static
 
 class MaxSearchApi
 {
+    // This field-application fixture supplies a complete surrounding trip.
+    // Current readiness itself is covered by the canonical dialogue/result tests.
+    public static function getAiMissingFields($chatId): array { return []; }
     public static $HL = 1;
     public static $statusStart = 64;
     public static $statusCityChoose = 65;
