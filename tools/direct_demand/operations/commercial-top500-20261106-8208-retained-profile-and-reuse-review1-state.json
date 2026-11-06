@@ -1,0 +1,181 @@
+{
+  "operation": "commercial-top500-20261106-8208-retained-profile-and-reuse-review1",
+  "state": "CLOSED_ORIGINAL_PROFILE_REUSED_PUBLIC_MEDIA_TERMS_CHECKED_NO_READY_CREDIT",
+  "goal": "Continue exact owner TOP500 using retained native8208 facts and close only the newly proven media-permission gap without taking over the original runtime carrier.",
+  "canonical_membership": {
+    "source_repository": "pyatkoff/poisk-turov-test",
+    "revision": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+    "path": "v2/data/top-hotels-v1.php",
+    "native_hotel_id": 8208,
+    "country_id": 2
+  },
+  "original_profile": {
+    "operation": "commercial-top500-internal-base-20261106-8208-profile1",
+    "run": 42169281674,
+    "job": 127733038585,
+    "source": "2b779bf2a398c8dbacf096aa718f2222cbe31fb5",
+    "installed_sha": "0e57de3a6a06cc46b97ff10777c9821818b03af1",
+    "ok": true,
+    "last_completed_stage": "complete_selected_profile",
+    "artifacts": [
+      {
+        "id": 13480212630,
+        "name": "commercial-top500-internal-base-20261106-8208-profile1-input",
+        "digest": "sha256:3795283ebca3c82a13994444d46e41881a12efe309a720859e30a90765445d33",
+        "created_at": "2026-11-06T05:35:20Z"
+      },
+      {
+        "id": 13479768487,
+        "name": "commercial-top500-internal-base-20261106-8208-profile1-result",
+        "digest": "sha256:49fd5266133b56bb2f04497de17de49e8294bf1d6584742fa5afdb51dd727b96",
+        "created_at": "2026-11-06T05:35:25Z"
+      }
+    ],
+    "source_binding": {
+      "native_hotel_id": 8208,
+      "country_id": 2,
+      "revision": 3,
+      "state": "ready",
+      "source_fetched_at": "2026-10-10 10:06:20",
+      "stored_datetime_timezone": "UNVERIFIED",
+      "manual_type": "ARRAY",
+      "manual_length": 0
+    },
+    "retained_fields": [
+      "name",
+      "country",
+      "region",
+      "subRegion",
+      "category",
+      "rating",
+      "description",
+      "photoDetails",
+      "hotelInformation",
+      "descriptionSections",
+      "coordinates",
+      "address",
+      "place",
+      "build",
+      "repair",
+      "square",
+      "site"
+    ],
+    "declared_photos": 41,
+    "photos_with_nonempty_captions": 0,
+    "hotel_information_field_names": {
+      "meals": [
+        "list"
+      ],
+      "services": [
+        "free",
+        "tags",
+        "child",
+        "inRoom",
+        "available",
+        "servicesPay"
+      ],
+      "roomTypes": null,
+      "infrastructure": [
+        "beach",
+        "territory"
+      ]
+    },
+    "original_case_groups": 19,
+    "old_case_groups_rerun": 0,
+    "original_channel_rights_checks": 2,
+    "server_db_provider_photo_reads_by_this_review": 0,
+    "raw_profile_in_authenticated_artifact_only": true,
+    "original_job_log_read_once_for_safe_scalar_summary": true,
+    "original_job_log_now_closed": true,
+    "same_scope_db_or_photo_replay_prohibited": true
+  },
+  "proven_gaps": {
+    "photo_captions": "ALL41_ABSENT_IN_RETAINED_PHOTO_DETAILS",
+    "whole_complex_hero": "UNVERIFIED_NO_PIXEL_INSPECTION",
+    "supplier_media_reuse": "UNVERIFIED_NO_ACCOUNT_CONTRACT_REVIEWED",
+    "official_assets_identity_vs_retained41": "UNVERIFIED_NO_URL_OR_PIXEL_MATCH",
+    "full_tour_price_and_availability": "NOT_CHECKED_BY_PROFILE_READ"
+  },
+  "public_primary_evidence": [
+    {
+      "url": "https://agentsdownload.thesarann.com/",
+      "accessed_date_utc": "2026-11-06",
+      "kind": "hotel_owned_agent_photo_download_page",
+      "finding": "Photo Disclaimer requires express written consent from The Sarann Koh Samui before further distribution or commercial use of these photos.",
+      "scope_limit": "Applies to this stated official asset source. It does not establish or revoke the owner's separate Tourvisor contractual rights, nor prove these assets match the retained41.",
+      "use_permission_accepted": false
+    },
+    {
+      "url": "https://thesarann.com/downloads/",
+      "accessed_date_utc": "2026-11-06",
+      "kind": "current_hotel_download_page",
+      "finding": "Offers photo downloads/ZIP/factsheet and carries a copyright notice. Retrieved page text does not supply a specific commercial-use permission overriding the agent-page restriction.",
+      "photo_zip_or_factsheet_downloaded": false,
+      "use_permission_accepted": false
+    },
+    {
+      "url": "https://api.tourvisor.ru/search/docs",
+      "accessed_date_utc": "2026-11-06",
+      "kind": "supplier_api_documentation",
+      "finding": "Hotel description service supplies photos; the flight endpoint supplies actualized operator basket prices. Service functionality alone is not proof of this account's redistribution permission.",
+      "api_or_quote_calls": 0
+    },
+    {
+      "url": "https://tourvisor.ru/legal",
+      "accessed_date_utc": "2026-11-06",
+      "kind": "supplier_legal_index",
+      "finding": "Links a specific intellectual-rights regulation at https://tourvisor.ru/legal/copyright.pdf.",
+      "document_status": "WEB_RETRIEVER_RESTRICTED_URL_NOT_READ",
+      "scope_limit": "No HTTP403/absence/contract-content inference and no access workaround."
+    },
+    {
+      "url": "https://tourvisor.ru/b2b/poisk-turov-pro/posting-v-socialnyh-setyah",
+      "accessed_date_utc": "2026-11-06",
+      "kind": "supplier_social_posting_product",
+      "finding": "Advertises ready social-posting content through the supplier's own tool. This is a possible authorized product route, not proof of rights for all41 stored API gallery assets or authorization to use another account/tool."
+    }
+  ],
+  "price_source_review": {
+    "mode": "SOURCE_ONLY_NO_ROLE_OR_ALLOWLIST_CHANGE",
+    "revision": "2b779bf2a398c8dbacf096aa718f2222cbe31fb5",
+    "files": [
+      "tools/direct_demand/operations/check-new-normal674-current-price-20261105-pass1.php",
+      "tools/direct_demand/operations/read-new-normal674-unpriced-20261105-read14.php",
+      "tools/direct_demand/operations/prepare-new-normal674-current-price-20261105-pass1.py",
+      "tools/direct_demand/operations/check-commercial-price-20261103-quote1.php",
+      "tools/direct_demand/operations/read-commercial-price-monitor-20261102.php"
+    ],
+    "finding": "New-normal674 quote preparation/checker binds already-published MAX/TG contexts, seven prior native IDs and one old normal window. The earliest quote1 also binds a different native/country and historical conditions. Neither is an admitted new-material quote role for unpublished8208; do not copy or loosen these accepted operations.",
+    "unchanged_policy": "Any future new-material price step needs exact8208/country2/native binding, an actually new unconsumed persisted tuple, actual UTC72h/future departure policy, full known conditions, private intent and one final-basket request; no manual search/refresh, old quote replay or second-tuple bypass."
+  },
+  "next": [
+    "Reuse the original private profile result13479768487 and its established native/source binding; do not read the original ten-ID scope or profile fields again for lost context.",
+    "Resolve supplier reuse rights from an existing relevant owner/account permission if available; no inference from API access/download links. No external messages are authorized.",
+    "If media permission remains unavailable, defer this property's publication and continue the next exact TOP500 candidate in the existing original operation; this hotel's issue must not hold other ready materials.",
+    "After permission is established, choose only the finite accepted new-photo scope, prove whole-complex hero plus two actual property images, and continue exact full-price/text/Canva acceptance under the original plan.",
+    "The original executor retains the existing workflow/serial publisher. This review adds one audit JSON only; it does not activate a second reader, projection, timer or queue."
+  ],
+  "bounds": {
+    "new_workflows": 0,
+    "workflow_edits": 0,
+    "new_ci_or_runtime_runs": 0,
+    "server_calls": 0,
+    "db_calls": 0,
+    "supplier_api_calls": 0,
+    "quote_calls": 0,
+    "photo_http": 0,
+    "canva_transactions": 0,
+    "posts": 0,
+    "emails_or_other_messages": 0,
+    "agents": 0
+  },
+  "ready_for_publication": false,
+  "last_confirmed_publication_totals": {
+    "actual_pairs": 161,
+    "priced": 85,
+    "linked": 155,
+    "exact_top500_members": 4,
+    "new_pairs_from_this_review": 0,
+    "goal500_complete": false
+  }
+}
