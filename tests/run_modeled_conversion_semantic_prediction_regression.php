@@ -710,6 +710,60 @@ $tests['historical prefix study leakage and model comparison']=static function()
     fclose($pipes[1]);fclose($pipes[2]);$exit=proc_close($process);
     semanticPredictionAssert($exit===0,'archive study regression failed '.substr($out.$err,-4000));
 };
+
+require_once dirname(__DIR__).'/services/ModeledConversionDealValue.php';
+$tests['early advertising hypothesis uses meaning without timing or deferral penalties']=static function():void{
+    $make=static function(array $messages):array{
+        [$case,$w,$doc]=semanticPredictionFreezeFixture($messages);
+        $packet=ModeledConversionEarlyForecast::freeze($case,$w,$doc,null,strtotime($doc['requested_at']),null,true);
+        return array_replace($w,$packet);
+    };
+    $base=$make([['text'=>'Подберите тур в Турцию на 7 ночей.']]);
+    $office=$make([['text'=>'Подберите тур в Турцию на 7 ночей.'],['text'=>'Где находится ваш офис?']]);
+    $later=$make([['text'=>'Подберите тур в Турцию на 7 ночей на следующий год.'],['text'=>'Подумаем, обсудим позже.']]);
+    semanticPredictionAssert($base['semantic_prediction']['mode']==='contextual_advertising_v1'
+        &&$office['semantic_prediction']['estimated_probability']>$base['semantic_prediction']['estimated_probability']
+        &&$later['semantic_prediction']['estimated_probability']===$base['semantic_prediction']['estimated_probability'],'meaning or neutral timing policy');
+    foreach([$base,$office,$later]as$w)semanticPredictionAssert(
+        ModeledConversionValueRegistry::predictionFields($w)['semantic_prediction']['availability']==='available','expert frozen packet readback');
+    $bad=$office;$bad['semantic_prediction']['estimated_probability']=0.9;
+    $bad['semantic_prediction']['prediction_digest']=ModeledConversionSemanticPrediction::digest($bad['semantic_prediction']);
+    semanticPredictionAssert(ModeledConversionValueRegistry::predictionFields($bad)['semantic_prediction']['availability']==='unavailable','inconsistent signed percentage accepted');
+};
+$tests['deal value uses seven percent commission and immutable budget evidence']=static function():void{
+    [$case,$w,$doc]=semanticPredictionFreezeFixture([['text'=>'Подберите тур в Турцию на 7 ночей. Бюджет 200 тысяч на всех.']]);
+    $packet=ModeledConversionEarlyForecast::freeze($case,$w,$doc,null,strtotime($doc['requested_at']),null,true);$w=array_replace($w,$packet);
+    $r=$w['profile']['observation_input']['evidence'][0]['references'][0];
+    $w['profile']['fields']['budget']=['status'=>'known','usable_at_prediction'=>true,'available_at'=>$w['profile']['prediction_at'],
+        'value'=>['minimum'=>200000,'maximum'=>200000,'currency'=>'RUB','unit'=>'party_total'],'references'=>[$r]];
+    $w['deal_value_prediction']=ModeledConversionDealValue::freeze($w,$case);
+    $v=$w['deal_value_prediction'];
+    semanticPredictionAssert($v['deal_amount_rub']['point']===200000&&$v['commission_estimate_rub']===14000
+        &&$v['full_value_base_rub']===14000&&$v['value_rub']===1167&&$v['early_window']==='first_hour'
+        &&ModeledConversionDealValue::saved($w)!==null,'seven percent budget value or readback');
+    $before=json_encode($w,JSON_THROW_ON_ERROR);
+    ModeledConversionDealValue::saved($w);
+    semanticPredictionAssert(json_encode($w,JSON_THROW_ON_ERROR)===$before,'readback mutates forecast');
+    $bad=$w;$bad['deal_value_prediction']['commission_rate']=0.1;
+    unset($bad['deal_value_prediction']['deal_digest']);
+    $bad['deal_value_prediction']['deal_digest']=ModeledConversionSemanticPrediction::digest($bad['deal_value_prediction']);
+    semanticPredictionAssert(ModeledConversionDealValue::saved($bad)===null,'unapproved commission accepted');
+    $unknown=$w;unset($unknown['profile']['fields']);$unknown['deal_value_prediction']=ModeledConversionDealValue::freeze($unknown,$case);
+    semanticPredictionAssert($unknown['deal_value_prediction']['deal_amount_rub']['point']===null
+        &&$unknown['deal_value_prediction']['base_basis']==='existing_25000_fallback','unknown price invented');
+    $foreign=$w;$foreign['profile']['fields']['budget']['value']['currency']='USD';
+    $foreign['deal_value_prediction']=ModeledConversionDealValue::freeze($foreign,$case);
+    semanticPredictionAssert($foreign['deal_value_prediction']['deal_amount_rub']['point']===null,'unverified FX conversion');
+};
+$tests['publication estimate distinguishes total party nightly foreign and unknown basis']=static function():void{
+    $v=ModeledConversionDealValue::publicationRange('Тур от 150–200 тыс руб за 2 взрослых');
+    semanticPredictionAssert($v['point']===175000&&$v['unit']==='party_total'&&$v['party_size']===2,'publication range');
+    semanticPredictionAssert(ModeledConversionDealValue::publicationRange('Цена 5000 руб за ночь')===null
+        &&ModeledConversionDealValue::publicationRange('Тур 2000 USD')===null,'nightly or foreign price interpreted as tour RUB');
+    $v=ModeledConversionDealValue::publicationRange('Тур от 150000 ₽ на двоих');
+    semanticPredictionAssert($v['low']===150000&&$v['high']===null&&$v['point']===150000,'advertised floor precision');
+};
+
 $failures=0;
 set_error_handler(static function(int $severity,string $message,string $file,int $line):never{
     throw new ErrorException($message,0,$severity,$file,$line);
