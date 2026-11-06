@@ -602,9 +602,9 @@ changes, rejected inconsistent re-signed packets and unchanged historical scores
 ### Shared read-budget headroom
 
 The private status reader validates one core frozen forecast before optional
-diagnostic sections, then inspects additional candidates only with spare budget. Every optional section reserves bytes for the final
-reader, adapter and dispatcher authorization checks, including their existing
-4 KiB floor. A skipped section explicitly returns unavailable with
+diagnostic sections, then inspects additional candidates only with spare budget. Optional sections reserve bytes for the final reader, adapter and dispatcher
+authorization checks, alongside their existing 4 KiB floor. The Telegram linkage
+reader retains its own existing 8 KiB admission gate without a second reserve. A skipped section explicitly returns unavailable with
 `reason=budget_headroom`; it does not publish partial statistics or zeros.
 
 The 64 KiB shared read budget, 30 KiB result cap, five-second deadline and all

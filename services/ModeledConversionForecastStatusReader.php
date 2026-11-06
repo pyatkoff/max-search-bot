@@ -145,7 +145,8 @@ final class ModeledConversionForecastStatusReader
             $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation));
             $out['today_latency']=$this->optionalRead(fn():array=>(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time()));
             $out['daily_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
-            $out['telegram_linkage']=$this->optionalRead(fn():array=>(new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            // This bounded reader already owns an 8KiB admission gate; do not reserve that headroom twice.
+            $out['telegram_linkage']=(new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $out['external_monitor']=$this->optionalRead(fn():array=>ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time()));
             $readProfiles(self::PROFILE_LIMIT);
             $out['window']['selected_document_bytes']=$this->copied;
