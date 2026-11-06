@@ -613,3 +613,53 @@ result that exceeds its slice is still charged; absolute global exhaustion and
 the deadline still fail closed. Revocation and unrelated errors propagate.
 The same registered SQLite/native-MySQL regressions exercise optional pressure,
 unchanged saved rows, mandatory final authorization and absolute exhaustion.
+
+
+### Owner-authorized early advertising V1 — 2026-11-06
+
+New live profiles opt into contextual_advertising_v1. Stage priors remain the
+starting point. Expert odds modifiers are bounded: continued meaningful dialogue
+1.10, continued offer search1.10, office question1.10, payment-terms question1.15;
+combined odds are capped at1.30. Deferral, trip horizon and urgency are neutral.
+Direct refusal retains its conservative guard. These are explicit advertising
+hypotheses, not fitted or calibrated purchase probabilities. Isolated historical
+and explicit research-weight calls keep their original contracts.
+
+The same immutable profile stores deal_value_prediction, bound to the semantic
+digest, cutoff, subject and current request. It records first-hour, first-three-
+hours, first-day or later age from the observed request anchor, not a claimed
+channel-join time. Each natural admitted update appends a forecast; an idle tick
+does not fabricate a new customer observation.
+
+The commission rate is the owner's7%. Advertising value is estimated probability
+times min(25000, estimated tour amount times0.07). Customer budget, native selected
+hotel inquiry, delivered party-price offers and a pinned channel publication
+range are distinct observational sources. Unknown/foreign/nightly/per-person
+prices do not become a verified party quote. With no usable deal price, the
+existing25000 advertising base remains explicitly marked as a fallback.
+A fresh price observation is frozen at its admission time; source text, routing,
+messages and native publication records are never modified.
+
+The existing scoped outbox/goal/counter/transport contract remains the delivery
+owner. Live prediction rows have an immutable profile-ID key, allowing a positive
+increment within the same stage. The collector holds its existing settings lock
+and subtracts every previously reserved value for that conversation. Repeated,
+lower or identical estimates create no event. Commission base and total cumulative
+value remain capped at25000. Historical rows, activation/cursors, existing claims
+and receipts are retained; they are not repriced or replayed. Explicit frozen-funds
+context suppresses a new payment-stage award. No new scheduler or sender exists.
+
+The private bounded forecast reader validates the new probability contract and
+reports monetary coverage/source/window/ranges without customer text or IDs.
+Registered semantic, real-interpreter, SQLite and native-MySQL exporter checks
+cover same-stage upgrades, amount revisions, duplicates, decrease, cap, unknown
+price, currency/unit guards, immutable readback and frozen funds.
+
+
+### Private V1 delivery calculation readback
+
+The existing forecasts:read status now includes value_delivery.predictive_v1. It selects only exact anytour_value_pred_<profileId>_v1 keys from the newest201 fixed-goal rows, inspects at most17 predictive rows and returns at most16 anonymous scalar examples. Repeated increments retain an anonymous same-dialogue grouping; legacy rows affect only the independently summed earlier reservation. Other projects/counters and stage-only keys are excluded. Global coverage remains unknown; a full17-row slice is explicitly incomplete.
+
+The view reads frozen price basis,7% commission,25,000RUB cap, probability, prior reserved amount and actual delta without extracting transcript text or rerunning a model. It independently checks the stored arithmetic and profile/scope binding. This is a scalar readback, not a new signature attestation or permission to export. Missing/inconsistent calculations are explicit while the recorded row/status stays visible. All source kinds, stages, states, factor reasons and times are whitelisted; native/customer/provider identifiers and free text never leave the server. Existing shared64KiB/five-second limits, authorization revocation and30,000-byte result cap remain unchanged.
+
+API receipt presence, saved upload status, processed state and visit attribution remain separate. Even MATCHED/PROCESSED is not per-event session evidence. The cached all-goal visit report cannot establish that a particular V1 increment reached a visit. This read performs SELECT-only queries, no provider request, poll, capture, upload, queue or conversation mutation.

@@ -29,7 +29,7 @@ final class ArchiveResearchReadService
     private array $permissionRows=[];
     private array $accountAliases=[];
 
-    public function __construct(private PDO $pdo, private $clock=null, private $keyProvider=null)
+    public function __construct(private PDO $pdo, private $clock=null, private $keyProvider=null,private bool $qualityHistory=false)
     {
         $driver=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if (!in_array($driver,['mysql','sqlite'],true)) self::fail('unavailable');
@@ -55,6 +55,11 @@ final class ArchiveResearchReadService
                     'account_alias'=>$this->accountAliases[$a],'message_records'=>(int)$row['records'],
                     'source_json_bytes'=>null,'source_json_bytes_status'=>'not_scanned','deleted_records'=>(int)$row['deleted_records'],
                     'brand'=>'unknown','trip_count'=>null,'person_identity'=>'unverified'];
+                if($this->qualityHistory){$chats[count($chats)-1]['chat_key']=hash('sha256',self::json([$admin,$connection,$a,$c]));$chats[count($chats)-1]['period_clock_metadata']=[
+                    'latest_created_at'=>self::time($row['latest_created_at']??null),
+                    'latest_version_at'=>self::time($row['latest_version_at']??null),
+                    'unknown_created_at_records'=>(int)($row['unknown_created_at_records']??0),
+                    'meaning'=>'retained_declared_source_instants_not_historical_availability'];}
             }
             $next=null;
             if($more&&$rows){$last=$rows[count($rows)-1];$next=$this->encode(['v'=>1,'k'=>'inventory','a'=>(string)$last['account_id'],
@@ -338,7 +343,7 @@ final class ArchiveResearchReadService
         if(!$ids)self::fail('forbidden');
         return["m.project_key=? AND p.is_active=1 AND m.account_id IN (".implode(',',array_fill(0,count($ids),'?')).')'
             .' AND m.id<=? AND m.chat_id<>777000 AND NOT '.InternalOwnerDialogueScope::archiveSql('m')
-            .($historical?" AND m.source_kind='desktop_import'":" AND m.source_kind IN ('desktop_import','business_message')"),
+            .($historical&&!$this->qualityHistory?" AND m.source_kind='desktop_import'":" AND m.source_kind IN ('desktop_import','business_message')"),
             ['anytour',...$ids,$fence]];
     }
 
@@ -393,8 +398,16 @@ final class ArchiveResearchReadService
         $more=count($keys)>$limit;$keys=array_slice($keys,0,$limit);$selected=[];$metadata=[];
         foreach($keys as$row)$selected[(string)$row['account_id']][]=(string)$row['chat_id'];
         foreach($selected as$account=>$chats){
+            $clockSelect='';
+            if($this->qualityHistory){
+                $created=$this->mysql
+                    ? "CASE WHEN JSON_VALID(m.record_json)=1 THEN CASE WHEN JSON_TYPE(JSON_EXTRACT(m.record_json,'$.created_at'))='INTEGER' THEN CAST(JSON_UNQUOTE(JSON_EXTRACT(m.record_json,'$.created_at')) AS UNSIGNED) ELSE NULL END ELSE NULL END"
+                    : "CASE WHEN json_valid(m.record_json)=1 THEN CASE WHEN json_type(m.record_json,'$.created_at')='integer' THEN json_extract(m.record_json,'$.created_at') ELSE NULL END ELSE NULL END";
+                $created='CASE WHEN ('.$created.')>0 AND ('.$created.')<=253402300799 THEN ('.$created.') ELSE NULL END';
+                $clockSelect=',MAX('.$created.') AS latest_created_at,MAX(m.version_at) AS latest_version_at,SUM(CASE WHEN ('.$created.') IS NULL THEN 1 ELSE 0 END) AS unknown_created_at_records';
+            }
             $rows=$this->q('SELECT m.account_id,m.chat_id,COUNT(*) AS records,'
-                .'COALESCE(SUM(m.is_deleted<>0),0) AS deleted_records '.$from.'WHERE '.$where
+                .'COALESCE(SUM(m.is_deleted<>0),0) AS deleted_records '.$clockSelect.' '.$from.'WHERE '.$where
                 .' AND m.account_id=? AND m.chat_id IN ('.implode(',',array_fill(0,count($chats),'?')).')'
                 .' GROUP BY m.account_id,m.chat_id ORDER BY m.chat_id',[...$values,(string)$account,...$chats])->fetchAll(PDO::FETCH_ASSOC);
             foreach($rows as$row)$metadata[(string)$row['account_id'].':'.(string)$row['chat_id']]=$row;

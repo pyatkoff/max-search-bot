@@ -97,6 +97,7 @@ function applyInteractionState(){applyComposerState();applyActionState();renderL
 // A failed request is not proof that the recipient did not receive the message.
 // Keep explicit server reasons, but never turn a transport uncertainty into a retry instruction.
 function sendFailureNotice(failure,fallback=''){
+  if(failure?.category==='not_dispatched'&&failure.http_code===0&&['file_unavailable','context_changed'].includes(failure.reason))return String(failure.notice||fallback||'Отправка файла не началась. Проверьте диалог перед новой отправкой.');
   if(['suspended','blocked','unavailable','unsupported'].includes(failure?.category)){
     const notice=String(failure.notice||fallback||failure.error_message||'');
     if(notice)return notice;

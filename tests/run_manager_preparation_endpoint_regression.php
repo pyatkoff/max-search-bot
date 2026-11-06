@@ -16,6 +16,7 @@ final class ManagerPreparationOAuth{
 public const PROFILE_LEGACY='legacy',PROFILE_DEVELOPMENT='development';
 public const DEVELOPMENT_ENDPOINT='https://app.anytoour.ru/manager/development-oauth.php';
 public const DIALOGUE_SCOPE='dialogues:read';
+public const QUALITY_SCOPE='quality:read';
 public const SELECTION_SCOPE='selections:write';
 public function __construct($pdo=null,$clock=null,private string $profile=self::PROFILE_LEGACY){}
 public function contextForBearer(string $header):?array{return $this->profile===self::PROFILE_DEVELOPMENT&&$header==='Bearer '.str_repeat('d',43)?['admin_id'=>7,'connection_id'=>str_repeat('d',32),'scopes'=>['development_work:write']]:null;}
@@ -126,6 +127,15 @@ PHP);
     $dialogue=$request($rpc,$dialogueToken);
     preparationHttpCheck('exact HTTP endpoint forwards dialogue-only stored grant without adding other capabilities',
         $dialogue['status']===200&&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('f',32),'scopes'=>['dialogues:read']]);
+    foreach([['list_current_dialogues',['cursor'=>'qh.manual.start']],['get_dialogue_review_context',['dialogue_ref'=>'qh.PRIVATE.synthetic.history']]]as[$historyName,$historyArgs]){
+        @unlink($tmp.'/dispatch');
+        $historyRpc=json_encode(['jsonrpc'=>'2.0','id'=>18,'method'=>'tools/call','params'=>['name'=>$historyName,'arguments'=>$historyArgs]]);
+        $historyDenied=$request($historyRpc,'');
+        preparationHttpCheck('unauthenticated history RPC requires its own explicit capability before dispatch',
+            $historyDenied['status']===401&&!file_exists($tmp.'/dispatch')
+            &&str_contains($historyDenied['headers'],'scope="quality:read"')
+            &&!str_contains($historyDenied['body'],'PRIVATE'));
+    }
     foreach(['list_current_dialogues','get_dialogue_review_context']as $name){
         $dialogueRpc=json_encode(['jsonrpc'=>'2.0','id'=>17,'method'=>'tools/call','params'=>['name'=>$name,'arguments'=>['dialogue_ref'=>'PRIVATE.fixture.reference']]]);
         foreach(['','Bearer '.str_repeat('z',43)]as $auth){
