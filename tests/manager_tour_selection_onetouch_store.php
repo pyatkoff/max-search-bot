@@ -83,4 +83,38 @@ storeCheck((int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operation
 foreach($before as $table=>$rows)storeCheck($p->query('SELECT * FROM '.$table)->fetchAll()===$rows,'new party imports cause no collateral change '.$table);
 
 
+// Direct URL photos are already canonical: no counterfeit file mode or upload.
+$beforeDirect=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];
+$fDirect=syntheticOneTouchSource(3);$qDirect=$fDirect['query'];$qDirect['CHECKIN_BEG']='20770108';$qDirect['CHECKIN_END']='20770108';$qDirect['rev']='3187520523';
+$urlDirect='https://b2b.onetouch.travel/search_tour?'.http_build_query($qDirect,'','&',PHP_QUERY_RFC3986);
+$responseDirect=str_replace(['20770107','07.01.2077'],['20770108','08.01.2077'],$fDirect['response']);
+$searchDirect=ManagerTourSelectionOneTouchIntake::search(8,1,$key,['url'=>$urlDirect],static fn($url):array=>['url'=>$urlDirect,'response'=>$responseDirect,'form'=>$fDirect['form'],'observed_at'=>gmdate('Y-m-d\TH:i:s\Z')]);
+storeCheck($searchDirect['ok']===true,'direct source uses actual canonical context');
+$reviewDirect=ManagerTourSelectionOneTouchIntake::review(8,1,$key,['ticket'=>$searchDirect['offers'][0]['ticket']],static fn($url):string=>$fDirect['hotel']);
+storeCheck($reviewDirect['ok']===true,'direct linked gallery produces normal ready ticket');
+$collisionOperations=(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
+$collision=ManagerTourSelectionService::importOneTouch(8,1,$key,['operation_id'=>'fixture-direct-native-collision-0001','ticket'=>$reviewDirect['ticket'],'confirm_price_from'=>true,'manager_amount'=>'135000']);
+storeCheck(($collision['error']??'')==='ambiguous_offer','same native quote id with different trip is correctly refused');
+storeCheck(ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$beforeDirect&&(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$collisionOperations,'native identity collision changes neither saved offers nor receipts');
+// A distinct trip has its own native claim; do not weaken the production guard.
+$responseDirect=str_replace('0x'.hash('sha256','synthetic-adults-3'),'0x'.hash('sha256','synthetic-direct-20770108-adults-3'),$responseDirect);
+$searchDirect=ManagerTourSelectionOneTouchIntake::search(8,1,$key,['url'=>$urlDirect],static fn($url):array=>['url'=>$urlDirect,'response'=>$responseDirect,'form'=>$fDirect['form'],'observed_at'=>gmdate('Y-m-d\TH:i:s\Z')]);
+storeCheck($searchDirect['ok']===true,'distinct native direct quote admitted without overwriting old identity');
+$reviewDirect=ManagerTourSelectionOneTouchIntake::review(8,1,$key,['ticket'=>$searchDirect['offers'][0]['ticket']],static fn($url):string=>$fDirect['hotel']);
+storeCheck($reviewDirect['ok']===true,'distinct native direct ready ticket keeps linked photo provenance');
+$directCommand=['operation_id'=>'fixture-direct-lost-receipt-0001','ticket'=>$reviewDirect['ticket'],'confirm_price_from'=>true,'manager_amount'=>'135000'];
+$beforeDirectOperations=(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
+$directAdd=ManagerTourSelectionService::importOneTouch(8,1,$key,$directCommand);
+storeCheck($directAdd['ok']===true&&$directAdd['count']===count($beforeDirect)+1,'direct ready offer appends once');
+$directDraft=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];$directOffer=$directDraft[array_key_last($directDraft)];
+storeCheck(array_slice($directDraft,0,count($beforeDirect))===$beforeDirect,'saved Biblio and prior file offers remain byte-identical');
+storeCheck($directOffer['photos']===[['url'=>$fDirect['photo'],'kind'=>'cover','illustrative'=>true]]&&$directOffer['import_source']['photos']===[$fDirect['photo']],'normal direct import retains native canonical URL photo without deferred upload');
+storeCheck(!isset($directOffer['import_source']['raw']['capture_mode'])&&$directOffer['import_source']['url']===$urlDirect,'direct original executed URL retained without fake capture mode');
+storeCheck($directOffer['amount']==='135000'&&$directOffer['import_source']['fields']['amount']==='123456.78'&&$directOffer['price_qualifier']==='from'&&$directOffer['adults']===3,'manual price source minimum and exact party retained separately');
+$directRecovered=ManagerTourSelectionService::importOneTouch(8,1,$key,$directCommand,true);
+storeCheck($directRecovered['ok']&&$directRecovered['found']&&$directRecovered['saved_version']===$directAdd['saved_version'],'lost direct receipt reconciles original operation readonly without requiring a new offer id');
+storeCheck((int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$beforeDirectOperations+1&&ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$directDraft,'readonly direct recovery performs no second import or photo write');
+foreach($before as $table=>$rows)storeCheck($p->query('SELECT * FROM '.$table)->fetchAll()===$rows,'direct import causes no collateral change '.$table);
+
+
 echo json_encode(['checks'=>$count,'database'=>'sqlite::memory:','realDatabase'=>false,'network'=>0,'realImports'=>0],JSON_THROW_ON_ERROR)."\n";
