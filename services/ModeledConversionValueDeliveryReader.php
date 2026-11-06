@@ -192,13 +192,14 @@ final class ModeledConversionValueDeliveryReader
                 'events'=>0,'conversations'=>0,'value_rub'=>0,'api_accepted_events'=>0,'api_accepted_value_rub'=>0,
                 'processed_events'=>0,'processed_value_rub'=>0,'by_state'=>[],'by_platform'=>[],
                 'invalid_binding_rows'=>0,'voided_zero_value_rows'=>0,'calculation_unavailable_rows'=>0,'examples'=>[],
+                'examples_selection'=>'comparison_differences_first_then_newest',
                 'calculation_basis_counts'=>['probability_prediction'=>0,'stage_fraction'=>0,'unavailable'=>0],
                 'stage_comparison_counts'=>['above_stage'=>0,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>0,'unavailable'=>0],
                 'calculation_unavailable_reason_counts'=>['profile_binding_unverified'=>0,'probability_prediction_unavailable'=>0,
                     'monetary_policy_unavailable'=>0,'scalar_contract_unverified'=>0,'price_base_unverified'=>0,
                     'frozen_value_unverified'=>0,'increment_not_explained'=>0],
                 'per_event_visit_linkage'=>'not_observed_by_this_cached_upload_reader','provider_requests'=>0];
-            $cases=[];
+            $cases=[];$differenceExamples=[];$otherExamples=[];
             foreach($rows as$row){
                 $v=json_decode($row['packet'],true,16,JSON_THROW_ON_ERROR);
                 if(!is_array($v)||count($v)!==38)throw new UnexpectedValueException();
@@ -316,8 +317,11 @@ final class ModeledConversionValueDeliveryReader
                 if($comparisonBucket==='available')$comparisonBucket=$comparison['contextual_minus_stage_rub']>0?'above_stage':
                     ($comparison['contextual_minus_stage_rub']<0?'below_stage':'equal_stage');
                 $out['stage_comparison_counts'][$comparisonBucket]++;
-                if(count($out['examples'])<16)$out['examples'][]=$e;
+                if($comparison['status']==='available'&&$comparison['contextual_minus_stage_rub']!==0)$differenceExamples[]=$e;
+                else $otherExamples[]=$e;
             }
+            // Stable selection within the same inspected suffix, before the existing example/response caps.
+            $out['examples']=array_slice(array_merge($differenceExamples,$otherExamples),0,16);
             $out['conversations']=count($cases);
             $this->budget->check();($this->authorize)();$this->budget->check();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}

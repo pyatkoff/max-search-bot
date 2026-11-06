@@ -855,6 +855,15 @@ amounts. Unavailable is never interpreted as zero effect.
 window into `above_stage`, `equal_stage`, `below_stage`, `stage_only` and
 `unavailable`. Counts remain when optional examples are removed to fit the
 response budget. They describe saved event rows, not unique people or trips.
+`examples_selection` is `comparison_differences_first_then_newest`: explained
+nonzero comparisons, positive and negative alike, precede the other examples.
+Each group retains the original newest-first order. Selection considers only
+the same at-most-17 inspected rows, then applies the unchanged 16-example cap;
+response compaction still removes examples from the tail. This is a diagnostic
+selection, not a representative sample or a ranking of business value. Under a
+tighter response budget even prioritized examples may be omitted; the fixed
+counts and explicit omission flag remain authoritative for the inspected window.
+
 The difference is between two formulas, not an isolated effect of contextual
 factors. For example, the semantic prior 0.083333 and the stage fraction
 2083/25000 produce 8333 and 8332 RUB on a 100000 RUB base even without a context
