@@ -1,13 +1,14 @@
 <?php
 declare(strict_types=1);
-/* One B04 typed-identity evidence read; no acceptance or runtime mutation. */
-const HOTEL_EXPECTED_INSTALLED_SHA='08f821759be6f63c324d5419c3104551313c1e79';
+/* One canonical TOP500 ID identity read; no acceptance or runtime mutation. */
+const HOTEL_EXPECTED_INSTALLED_SHA='0e57de3a6a06cc46b97ff10777c9821818b03af1';
 const HOTEL_RECEIPT_RECIPIENT_SHA='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d';
 const HOTEL_STATUS_KIND='hotel-server-private-incident-v1';
-const HOTEL_OPERATION='701196c685cd7369f5b5a539ff761daf40ea5ea5cb1ed1db304211ebfe19edf5';
+const HOTEL_OPERATION='081834ab2e0acb0f75c0f742ee813f52b3e3a07c65930dbfe0d3d729b15bdd89';
 const HOTEL_SOURCE_PINS_JSON='{"services/HotelDatabase.php":"8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5"}';
-const HOTEL_OBSERVATION_IDENTITY_JSON='{"accepted_campaign_id":"HOTEL-SERVER-20261103-B04","accepted_candidate_sha256":"01ee6fd39ca8032c782339c8a14b93469bca8d53d6b58fc594091c33e6c517ad","accepted_receipt_sha256":"e9db9e67850683e754c7499c10aabc5446994723aa679dd9f799a4e06ea0a3cf","accepted_stage_index":0,"binding_admission":false,"candidate_filter":{"country_id":1,"name_pattern":"%BLU%SPA%"},"database_writes":0,"expected_catalog_database_identity_sha256":"a0eeb9b531321e9854c472e91a4ff4b7191533b8037c707fadc5251d964b1491","expected_ops_parent":"0a870ef472464645c3ccc6886d935d7066d7d10a","installed_sha":"08f821759be6f63c324d5419c3104551313c1e79","mapping_connect_timeout_seconds":10,"mapping_host":"anytoour.ru","mapping_paths":["/_preview/search3-local-candidate/data/hotel-details-read-v1.php","/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php"],"mapping_total_timeout_seconds":20,"maximum_mapping_body_bytes":65536,"maximum_mapping_gets":2,"maximum_query_rows":4,"maximum_read_only_snapshots":1,"maximum_retained_candidates":3,"maximum_select_queries":2,"observation_kind":"property_catalog_identity","original_installed_deploy_run_id":"41851487224","original_predecessor_run_id":"41852939457","provider_calls":0,"research_hotel_key":"official_pickalbatros_blu_spa_hurghada","schema":"hotel-server-private-incident-v1","server_file_writes":0,"source_pins":{"services/HotelDatabase.php":"8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5"},"source_ref":"https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6607905718"}';
+const HOTEL_OBSERVATION_IDENTITY_JSON='{"binding_admission":false,"candidate_filter":{"id":39873,"namespace":"legacy_catalog/catalog_hotels.id"},"canonical_top500":{"blob_sha":"abc30114e8d9f780db4b2ef6b56164a1fa47fb9d","branch":"release/search3-production-ready-v1","commit":"863ae0ff8ad1424b2a4645877d89cb4849ab7a43","count":492,"ordered_ids_sha256":"0ec0e7ed0852b88e2264249c1e70da54194e5138fdbb19026a3b0a3de88f2b61","original_owner_source":"500 отелей .csv","path":"v2/data/hotel-popularity-v1.php","position":11,"position_meaning":"original canonical cohort order; not a quality rating","repository":"pyatkoff/poisk-turov-test","sha256":"d4a49f07e6a4dbe1f8256fc350e991cfd54cdc1b5afc84b63d14ea595344af53","url":"https://github.com/pyatkoff/poisk-turov-test/blob/863ae0ff8ad1424b2a4645877d89cb4849ab7a43/v2/data/hotel-popularity-v1.php"},"country_policy":"Read country_id from the exact legacy row; require the returned local-tv item to match it. No country inferred from hotel name.","database_writes":0,"expected_catalog_database_identity_sha256":"a0eeb9b531321e9854c472e91a4ff4b7191533b8037c707fadc5251d964b1491","expected_ops_parent":"19ba436daefc08f5f097655cf1d6317e7d2a1e0e","installed_sha":"0e57de3a6a06cc46b97ff10777c9821818b03af1","mapping_connect_timeout_seconds":10,"mapping_host":"anytoour.ru","mapping_paths":["/_preview/search3-local-candidate/data/hotel-details-read-v1.php","/_preview/search3-next-candidate/data/local-tv-catalog-read-v1.php"],"mapping_total_timeout_seconds":20,"maximum_mapping_body_bytes":65536,"maximum_mapping_gets":2,"maximum_query_rows":2,"maximum_read_only_snapshots":1,"maximum_retained_candidates":1,"maximum_select_queries":2,"observation_kind":"top500_catalog_identity","original_installed_deploy_run_id":"42168413861","original_predecessor_run_id":"41862474777","provider_calls":0,"schema":"hotel-server-private-incident-v1","server_file_writes":0,"source_pins":{"services/HotelDatabase.php":"8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5"},"source_ref":"https://github.com/pyatkoff/max-search-bot/issues/1122#issuecomment-6607905718"}';
 const HOTEL_EXPECTED_CATALOG_DB='a0eeb9b531321e9854c472e91a4ff4b7191533b8037c707fadc5251d964b1491';
+const HOTEL_TARGET_LEGACY_ID='39873';
 const HOTEL_PLAIN_LIMIT=524288;
 const HOTEL_WIRE_LIMIT=786432;
 
@@ -100,7 +101,7 @@ function identityPositive(mixed $value,bool $jsonInteger=false): int {
 
 function identityRows(PDO $pdo,string $sql,int $cap): array {
     global $report;
-    if(!str_starts_with($sql,'SELECT ')||str_contains($sql,'FOR UPDATE')||$cap<1||$cap>4)
+    if(!str_starts_with($sql,'SELECT ')||str_contains($sql,'FOR UPDATE')||$cap<1||$cap>2)
         hotelFail('catalog_identity_read_scope');
     if(++$report['query_count']>2)hotelFail('catalog_identity_query_bound');
     $s=$pdo->prepare($sql);$s->execute();$rows=[];
@@ -133,12 +134,12 @@ function identitySnapshot(PDO $pdo): void {
         $report['catalogue_database_identity_sha256']=$digest;
         if(!hash_equals(HOTEL_EXPECTED_CATALOG_DB,$digest))hotelFail('catalog_identity_database_changed');
         $rows=identityRows($pdo,"SELECT /*+ MAX_EXECUTION_TIME(2500) */ id,country_id,region_id,name FROM catalog_hotels"
-            ." WHERE country_id=1 AND UPPER(name) LIKE '%BLU%SPA%' ORDER BY id LIMIT 4",4);
-        $report['candidate']['returned_rows']=count($rows);$report['candidate']['overflow']=count($rows)>3;
-        foreach(array_slice($rows,0,3) as $row){
+            ." WHERE id=39873 LIMIT 2",2);
+        $report['candidate']['returned_rows']=count($rows);$report['candidate']['overflow']=count($rows)>1;
+        foreach(array_slice($rows,0,1) as $row){
             $row['id']=identityPositive($row['id']??null);$row['country_id']=identityPositive($row['country_id']??null);
             $row['region_id']=($row['region_id']??null)===null?null:hotelInt($row['region_id']);
-            if($row['country_id']!==1||!is_string($row['name']??null)||trim($row['name'])===''||strlen($row['name'])>1024)
+            if($row['id']!==(int)HOTEL_TARGET_LEGACY_ID||!is_string($row['name']??null)||trim($row['name'])===''||strlen($row['name'])>1024)
                 hotelFail('catalog_identity_candidate_shape');
             $report['candidate']['rows'][]=$row;
         }
@@ -218,7 +219,7 @@ function identityGet(string $kind,int $id): array {
     }finally{curl_close($ch);identityAttachBodies();}
 }
 
-function identityItem(array $item,string $catalog,int $id): array {
+function identityItem(array $item,string $catalog,int $id,?int $countryId=null): array {
     if(($item['catalog']??null)!==$catalog||identityPositive($item['id']??null,true)!==$id)
         hotelFail('catalog_identity_item_unconfirmed');
     $revision=identityPositive($item['revision']??null,true);
@@ -227,7 +228,7 @@ function identityItem(array $item,string $catalog,int $id): array {
         ||trim($item['country']['name'])===''||strlen($item['country']['name'])>256
         ||!is_string($item['address']??null)||trim($item['address'])===''||strlen($item['address'])>2048)
         hotelFail('catalog_identity_item_unconfirmed');
-    if($catalog==='local-tv'&&identityPositive($item['country']['id']??null,true)!==1)
+    if($catalog==='local-tv'&&($countryId===null||identityPositive($item['country']['id']??null,true)!==$countryId))
         hotelFail('catalog_identity_country_unconfirmed');
     $out=['id'=>$id,'catalog'=>$catalog,'revision'=>$revision,'name'=>$item['name'],
         'country'=>$item['country'],'address'=>$item['address']];
@@ -249,7 +250,7 @@ function identityAnyTour(array $data,int $legacy): array {
         'item'=>identityItem($data['items'][0],'anytour',$native)];
 }
 
-function identityLocalTv(array $data,int $native): array {
+function identityLocalTv(array $data,int $native,int $countryId): array {
     if(($data['ok']??null)!==true||($data['source']??null)!=='anytour-local-tv-catalog-v1'||($data['catalog']??null)!=='local-tv'
         ||($data['requestedIds']??null)!==[$native]||($data['missingIds']??null)!==[]
         ||!is_array($data['links']??null)||!array_is_list($data['links'])||count($data['links'])!==1||!is_array($data['links'][0])
@@ -259,18 +260,18 @@ function identityLocalTv(array $data,int $native): array {
     if(identityPositive($link['oldLocalId']??null,true)!==$native)hotelFail('catalog_identity_local_tv_link');
     $tv=identityPositive($link['tourvisorHotelId']??null,true);
     return ['link'=>['oldLocalId'=>$native,'tourvisorHotelId'=>$tv],
-        'item'=>identityItem($data['items'][0],'local-tv',$tv)];
+        'item'=>identityItem($data['items'][0],'local-tv',$tv,$countryId)];
 }
 
 ini_set('display_errors','0');ini_set('log_errors','0');
 $level=ob_get_level();ob_start(static fn(string $ignored):string=>'');
 $catalogPdo=null;$snapshotOwned=false;$httpBodies=[];$target=false;$outputDone=false;$emergencyMemory=str_repeat('x',2097152);
-$report=['schema'=>HOTEL_STATUS_KIND,'operation_id'=>HOTEL_OPERATION,'observation_kind'=>'property_catalog_identity',
+$report=['schema'=>HOTEL_STATUS_KIND,'operation_id'=>HOTEL_OPERATION,'observation_kind'=>'top500_catalog_identity',
     'state'=>'HOLD','phase'=>'target','operator_provider_calls'=>0,'database_writes'=>0,'server_file_writes'=>0,
     'application_database_opened'=>false,'runtime_config_changed'=>false,'cron_changed'=>false,'new_campaign_started'=>false,
     'automatic_retry_allowed'=>false,'native_binding_accepted'=>false,'identity_admission_required'=>true,
     'snapshot_count'=>0,'query_count'=>0,'snapshot'=>['started'=>false,'rolled_back'=>false],
-    'candidate'=>['country_id'=>1,'name_pattern'=>'%BLU%SPA%','maximum_rows'=>3,'returned_rows'=>null,'overflow'=>false,'rows'=>[]],
+    'candidate'=>['requested_legacy_id'=>(int)HOTEL_TARGET_LEGACY_ID,'maximum_rows'=>1,'returned_rows'=>null,'overflow'=>false,'rows'=>[]],
     'http_attempts'=>0,'http'=>[],'catalogue_response_shapes_verified'=>false,'section_errors'=>[]];
 
 function identityReason(Throwable $e): string {
@@ -323,11 +324,11 @@ try{
     if($report['candidate']['overflow'])hotelFail('catalog_identity_candidate_bound');
     if($report['candidate']['returned_rows']===0)hotelFail('catalog_identity_candidate_missing');
     if($report['candidate']['returned_rows']!==1)hotelFail('catalog_identity_candidate_ambiguous');
-    $legacy=$report['candidate']['rows'][0]['id'];
+    $legacy=$report['candidate']['rows'][0]['id'];$country=$report['candidate']['rows'][0]['country_id'];
     $report['phase']='anytour_read';$anytour=identityAnyTour(identityGet('anytour',$legacy),$legacy);
     $report['http']['anytour']['validated']=$anytour;$report['http']['anytour']['shape_verified']=true;
     $native=$anytour['link']['anytourHotelId'];
-    $report['phase']='local_tv_read';$local=identityLocalTv(identityGet('local_tv',$native),$native);
+    $report['phase']='local_tv_read';$local=identityLocalTv(identityGet('local_tv',$native),$native,$country);
     $report['http']['local_tv']['validated']=$local;$report['http']['local_tv']['shape_verified']=true;
     $tv=$local['link']['tourvisorHotelId'];
     $report['typed_chain']=[['namespace'=>'legacy_catalog/catalog_hotels.id','id'=>$legacy],

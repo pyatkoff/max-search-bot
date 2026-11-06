@@ -1,4 +1,4 @@
-name: Read one accepted hotel typed identity through the existing private channel
+name: Read one canonical TOP500 ID through the existing private channel
 on:
   push:
     branches: [ops/hotel-server-private-activation-20261102]
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   private_observation:
-    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '0a870ef472464645c3ccc6886d935d7066d7d10a' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    if: github.ref == 'refs/heads/ops/hotel-server-private-activation-20261102' && github.event.before == '19ba436daefc08f5f097655cf1d6317e7d2a1e0e' && github.event.created == false && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -27,8 +27,8 @@ jobs:
           python3 - <<'PY'
           import os,json,pathlib,base64,hashlib,re
           root=pathlib.Path(os.environ['RUNNER_TEMP'])
-          operator_blob = 'c5f44309718889281a5c90882ea62d92ee934214'
-          operator_sha = '3d5f6c48cef15a3b3ef41cf6ff87dac1ad779692659c95a780820a4b80a93b07'
+          operator_blob = 'ef9f8d6e58f03e3ad703b4e288e3d6a96b22584e'
+          operator_sha = '03d1fb538759e362aa6f5acec4feb7969ecc85654b7b89f3ffd258048e27b353'
           builder_blob = '3f1f772991e633438fb7f78ec0aab5c5e71503a2'
           builder_sha = 'f46e24b7d298891ab06bc61c675afe0867f7a34f79432406b4b25affc512e38f'
           for input_name,output_name,expected_blob,expected_sha,limit in [
@@ -74,8 +74,8 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          gh api 'repos/pyatkoff/max-search-bot/actions/runs/41852939457' >"$RUNNER_TEMP/hotel_catalog_predecessor.json"
-          gh api 'repos/pyatkoff/max-search-bot/actions/runs/41851487224' >"$RUNNER_TEMP/hotel_catalog_deploy.json"
+          gh api 'repos/pyatkoff/max-search-bot/actions/runs/41862474777' >"$RUNNER_TEMP/hotel_catalog_predecessor.json"
+          gh api 'repos/pyatkoff/max-search-bot/actions/runs/42168413861' >"$RUNNER_TEMP/hotel_catalog_deploy.json"
           gh api 'repos/pyatkoff/max-search-bot/git/ref/heads/main' >"$RUNNER_TEMP/hotel_catalog_main.json"
           python3 - <<'PY'
           import os,json,pathlib
@@ -83,13 +83,13 @@ jobs:
           original=json.loads((root/'hotel_catalog_predecessor.json').read_text())
           deploy=json.loads((root/'hotel_catalog_deploy.json').read_text())
           main=json.loads((root/'hotel_catalog_main.json').read_text())
-          assert original['id']==41852939457 and original['head_sha']=='0a870ef472464645c3ccc6886d935d7066d7d10a'
+          assert original['id']==41862474777 and original['head_sha']=='19ba436daefc08f5f097655cf1d6317e7d2a1e0e'
           assert original['event']=='push' and original['run_attempt']==1
           assert original['status']=='completed' and original['conclusion']=='success'
-          assert deploy['id']==41851487224 and deploy['head_sha']=='08f821759be6f63c324d5419c3104551313c1e79'
+          assert deploy['id']==42168413861 and deploy['head_sha']=='0e57de3a6a06cc46b97ff10777c9821818b03af1'
           assert deploy['path']=='.github/workflows/deploy.yml' and deploy['event']=='push' and deploy['run_attempt']==1
           assert deploy['status']=='completed' and deploy['conclusion']=='success'
-          assert main['object']['sha']=='08f821759be6f63c324d5419c3104551313c1e79'
+          assert main['object']['sha']=='0e57de3a6a06cc46b97ff10777c9821818b03af1'
           print('{"original_predecessor":"closed","installed_release":"success","observation":"read_only","provider_calls":0}')
           PY
       - name: Prepare the existing administrator connection and approved host continuity
@@ -124,7 +124,7 @@ jobs:
           assert approved,'Existing host continuity mismatch; STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/hotel_handoff_hosts').write_text('\n'.join(approved)+'\n')
           PY
-      - name: Read one catalog candidate and its exact typed links without mutation
+      - name: Read exact TOP500 legacy ID 39873 and its typed links without mutation
         id: handoff
         env:
           CONNECTION_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -150,7 +150,7 @@ jobs:
               if d['state']=='sealed':
                   assert set(d)=={'operation','state','operator_provider_calls','algorithm','recipient_sha256','aad','key','nonce','tag','ciphertext','ciphertext_sha256'}
                   assert d['algorithm']=='RSA-OAEP-SHA1+A256GCM' and d['recipient_sha256']=='71f2b177d6baa924fa466765027c37f51a00f23f803a6d900060bf42944d237d'
-                  assert d['aad']=='hotel-server-private-incident-v1|08f821759be6f63c324d5419c3104551313c1e79|701196c685cd7369f5b5a539ff761daf40ea5ea5cb1ed1db304211ebfe19edf5'
+                  assert d['aad']=='hotel-server-private-incident-v1|0e57de3a6a06cc46b97ff10777c9821818b03af1|081834ab2e0acb0f75c0f742ee813f52b3e3a07c65930dbfe0d3d729b15bdd89'
                   decoded={k:base64.b64decode(d[k],validate=True) for k in ['key','nonce','tag','ciphertext']}
                   assert len(decoded['key'])==384 and len(decoded['nonce'])==12 and len(decoded['tag'])==16
                   assert 0<len(decoded['ciphertext'])<=524288 and hashlib.sha256(decoded['ciphertext']).hexdigest()==d['ciphertext_sha256']
