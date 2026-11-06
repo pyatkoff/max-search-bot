@@ -601,8 +601,8 @@ changes, rejected inconsistent re-signed packets and unchanged historical scores
 
 ### Shared read-budget headroom
 
-The private status reader validates its core frozen forecasts before optional
-diagnostic sections. Every optional section reserves bytes for the final
+The private status reader validates one core frozen forecast before optional
+diagnostic sections, then inspects additional candidates only with spare budget. Every optional section reserves bytes for the final
 reader, adapter and dispatcher authorization checks, including their existing
 4 KiB floor. A skipped section explicitly returns unavailable with
 `reason=budget_headroom`; it does not publish partial statistics or zeros.
