@@ -672,3 +672,43 @@ A missing current tour price must not restore a larger advertising base over an 
 The same existing tick checks at most1001 fixed-goal ledger rows and32 previously unaudited predictive rows before resolution/sending. Exact subject/binding, immutable monetary digest and the prior row order are checked. Unattempted pending/ready overstatements may be reduced; a fully false delta becomes a zero-valued failed derived row with price_loss_reconciled. The new append-only price-audit table retains the original amount, applied amount, earlier reservation, reference basis, hash and assessment time. No source profile or conversation is rewritten. Any existing claim, attempt or API receipt stays unchanged and is explicitly flagged review_required; the exporter sends no negative reversal or duplicate.
 
 Fresh predictive rows record the applied decision atomically with their reservation. The normal ready claim requires that audit and the same amount, rejecting stale send snapshots. No new worker, queue, timer, provider write, goal, credential or customer message is introduced. The private forecasts:read receipt includes bounded price_continuity_audit coverage, action totals and anonymous corrections; zero-valued voided records are counted separately from active predictive increments.
+
+
+## Predictive ledger and finite visit reconciliation
+
+The administrator-only delivery registry accepts both exact stage keys and exact
+profile-bound predictive keys. A voided zero-value price-loss correction is not
+an active award. Conversation totals include all bound rows; each page shows at
+most 10 conversations and the latest 32 events per conversation, with an explicit
+omission count. Earlier events remain in totals. No customer/native/advertising
+identity or transcript is returned by the private status projection.
+
+The unchanged 64 KiB selected-data budget and 30,000-byte MCP result ceiling are
+preserved. Scalar packet lengths are checked before copying optional diagnostics.
+Optional examples are shortened explicitly when the result approaches its ceiling;
+their aggregate denominators and the saved verification cohort are retained.
+
+    php tools/modeled_conversion_visit_proof.php check UTC_CHECKPOINT
+
+performs one finite server check using the existing counter and OAuth token. The
+checkpoint is the completed earlier technical check's public UTC timestamp. Its
+cohort contains predictive rows first accepted before that instant and not yet
+recorded processed at that instant. New receipts do not change that cohort. All
+requests are GET; the outbox, profiles, identity observations, configuration,
+customer messages and schedules are never updated.
+
+The receipt is saved atomically outside the document root in
+max-search-bot-modeled-visit-proof/last-check.json (directory 0700, file 0600).
+The owner registry reads it per exact event fingerprint; visit_delivery_check
+in the existing private status tool exposes its anonymous checkpoint cohort.
+Neither reader makes a provider request. Missing, changed, corrupt or stale
+evidence is explicit. A finite check creates no standing monitoring claim.
+
+A unique visit is reconciled only when an unsampled complete report has exactly
+one goal-bearing visit for that exact ClientID and second-precision visit start,
+and both its reaches and RUB value equal every known processed one-row receipt
+for the same ClientID/goal. Legacy increments are included. The verified counter
+timezone converts the start to UTC; the original event must lie within 21 days
+after the visit. Multiple possible visits, missing receipts, a sampled/truncated
+report, wrong scope or unequal counts/amounts remain unverified. This is unique
+visit reconciliation, not a native VisitID or offline-event-log export.

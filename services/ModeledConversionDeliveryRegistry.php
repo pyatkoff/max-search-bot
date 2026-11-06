@@ -2,12 +2,14 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionValueContract.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/ModeledConversionVisitProof.php';
 
 /** Private, read-only projection of recorded value rows; never scores or sends. */
 final class ModeledConversionDeliveryRegistry
 {
-    public const VERSION='modeled_delivery_registry_v1';
-    public const PAGE_SIZE=25;
+    public const VERSION='modeled_delivery_registry_v2';
+    public const EVENTS_PER_CONVERSATION=32;
+    public const PAGE_SIZE=10;
     private const BYTES=524288;
     private const STATES=['pending','ready','uploading','accepted','processed','unknown','failed','expired','unmatched'];
     private const UPLOADS=['PREPARED','UPLOADED','EXPORTED','MATCHED','PROCESSED','LINKAGE_FAILURE'];
@@ -41,7 +43,7 @@ final class ModeledConversionDeliveryRegistry
         }catch(InvalidArgumentException $ignored){return $this->done(['available'=>false,'reason'=>'invalid_request']);}
         $asOf=$saved['as_of']??$now;$snapshot=$saved['snapshot']??null;$before=$saved['before']??null;
         $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
-        $base=$this->base($mysql);$started=false;
+        $base=self::sourceSql($mysql);$started=false;
         try{
             if($this->pdo->inTransaction())throw new UnexpectedValueException('outer_transaction');
             if($mysql){$this->pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');$this->pdo->exec('SET TRANSACTION READ ONLY');}
@@ -62,6 +64,10 @@ final class ModeledConversionDeliveryRegistry
             $pairs=[];
             foreach(ModeledConversionValueContract::STAGES as$rank=>$stage)
                 $pairs[]="(HEX(o.target)=HEX('".ModeledConversionValueContract::key($rank)."') AND HEX(o.value_stage)=HEX('".$stage."'))";
+            $cast=$mysql?'CHAR':'TEXT';
+            $pred=$mysql?"CONCAT('anytour_value_pred_',CAST(o.value_profile_id AS CHAR),'_v1')":"'anytour_value_pred_'||CAST(o.value_profile_id AS TEXT)||'_v1'";
+            $stageHex=implode(',',array_map(static fn(string $stage):string=>"HEX('".$stage."')",ModeledConversionValueContract::STAGES));
+            $pairs[]="(o.value_profile_id>0 AND HEX(o.target)=HEX(".$pred.") AND HEX(o.value_stage) IN (".$stageHex."))";
             $stateHex=implode(',',array_map(static fn(string $state):string=>"HEX('".$state."')",self::STATES));
             $invalid="o.target IS NULL OR o.value_stage IS NULL OR NOT (".implode(' OR ',$pairs).")"
                 ." OR o.state IS NULL OR HEX(o.state) NOT IN (".$stateHex.")"
@@ -99,37 +105,49 @@ final class ModeledConversionDeliveryRegistry
                     ." AND HEX(".$extract('$.subject.platform').")=HEX(o.platform)"
                     ." AND HEX(CAST(".$extract('$.subject.customer_key')." AS ".$cast."))=HEX(CAST(c.customer_id AS ".$cast."))"
                     ." AND HEX(CAST(".$extract('$.subject.conversation_id')." AS ".$cast."))=HEX(CAST(o.conversation_id AS ".$cast."))";
-                $sql='SELECT o.id,o.conversation_id,o.platform,o.target,o.event_unix,o.value_rub,o.value_stage,o.state,o.last_error,o.upload_status,'
+                $rankSql='CASE o.value_stage '.implode(' ',array_map(static fn(int $rank,string $stage):string=>"WHEN '".$stage."' THEN ".$rank,array_keys(ModeledConversionValueContract::STAGES),array_values(ModeledConversionValueContract::STAGES))).' ELSE 0 END';
+                $daySql='o.event_unix>='.(int)$from.' AND o.event_unix<'.(int)$until;
+                $win=' OVER (PARTITION BY o.conversation_id)';
+                $scalarColumns=[];
+                foreach(['semantic_prediction.estimated_probability'=>'probability','deal_value_prediction.deal_amount_rub.point'=>'deal_rub',
+                    'deal_value_prediction.full_value_base_rub'=>'frozen_base_rub','deal_value_prediction.value_rub'=>'frozen_value_rub']as$path=>$alias)
+                    $scalarColumns[]='CASE WHEN '.$frozen.' THEN '.$extract('$.'.$path).' ELSE NULL END AS '.$alias;
+                $sql='SELECT * FROM (SELECT o.id,o.conversation_id,o.platform,o.target,o.event_unix,o.value_rub,o.value_stage,o.state,o.last_error,o.upload_status,o.client_id,o.upload_id,'
                     .'o.value_origin,o.value_profile_id,o.value_ready_at_unix,o.claimed_at_unix,o.value_api_accepted_at_unix,o.value_processed_at_unix,o.value_receipt_basis,'
                     ."CASE WHEN ".$receipt." THEN 1 ELSE 0 END AS receipt_present,"
                     ."CASE WHEN o.client_id IS NOT NULL AND o.client_id<>'' THEN 1 ELSE 0 END AS identity_present,"
-                    ."SUBSTR(COALESCE(cu.display_name,''),1,200) AS customer_name,"
-                    .'p.observed_at_unix AS profile_at,CASE WHEN '.$frozen.' THEN 1 ELSE 0 END AS frozen_valid '
-                    .$this->base($mysql,true)
+                    ."SUBSTR(COALESCE(cu.display_name,''),1,120) AS customer_name,"
+                    .'p.observed_at_unix AS profile_at,CASE WHEN '.$frozen.' THEN 1 ELSE 0 END AS frozen_valid,'
+                    .implode(',',$scalarColumns).',COUNT(*)'.$win.' AS event_count,SUM(o.value_rub)'.$win.' AS total_rub,'
+                    .'SUM(CASE WHEN '.$daySql.' THEN o.value_rub ELSE 0 END)'.$win.' AS day_rub,'
+                    .'MAX(CASE WHEN '.$daySql.' THEN '.$rankSql.' ELSE 0 END)'.$win.' AS day_rank,'
+                    .'ROW_NUMBER() OVER (PARTITION BY o.conversation_id ORDER BY o.id DESC) AS event_position '
+                    .self::sourceSql($mysql,true)
                     .' AND o.id<=? AND o.event_unix<=? AND o.conversation_id IN ('.implode(',',array_fill(0,count($selected),'?')).')'
-                    .' ORDER BY o.conversation_id DESC,o.id ASC LIMIT '.(self::PAGE_SIZE*6+1);
+                    .') bounded_events WHERE event_position<='.self::EVENTS_PER_CONVERSATION
+                    .' ORDER BY conversation_id DESC,id ASC LIMIT '.(self::PAGE_SIZE*self::EVENTS_PER_CONVERSATION+1);
                 $events=$this->query($sql,[$snapshot,$asOf,...$selected]);
-                if(count($events)>self::PAGE_SIZE*6)throw new UnexpectedValueException();
+                if(count($events)>self::PAGE_SIZE*self::EVENTS_PER_CONVERSATION)throw new UnexpectedValueException();
+                $proof=ModeledConversionVisitProof::readCache($now);
                 $grouped=[];foreach($events as$row)$grouped[(string)$row['conversation_id']][]=$row;
                 foreach($selected as$id){
-                    $rows=$grouped[$id]??[];if(!$rows||count($rows)>6)throw new UnexpectedValueException();
-                    $item=['conversation_id'=>$id,'platform'=>null,'customer_name'=>'Турист','period_value_rub'=>0,'total_value_rub'=>0,'stage'=>null,'events'=>[]];
-                    $period=0;$total=0;$rank=0;$seen=[];
+                    $rows=$grouped[$id]??[];if(!$rows||count($rows)>self::EVENTS_PER_CONVERSATION)throw new UnexpectedValueException();
+                    $first=$rows[0];$period=self::cents($first['day_rub']);$total=self::cents($first['total_rub']);
+                    $count=self::count($first['event_count']);$rank=(int)$first['day_rank'];
+                    if($period<=0||$total>2500000||$count<count($rows)||!isset(ModeledConversionValueContract::STAGES[$rank]))throw new UnexpectedValueException();
+                    $item=['conversation_id'=>$id,'platform'=>null,'customer_name'=>'Турист','period_value_rub'=>self::rub($period),
+                        'total_value_rub'=>self::rub($total),'stage'=>ModeledConversionValueContract::STAGES[$rank],
+                        'events_total'=>$count,'events_omitted'=>$count-count($rows),'events'=>[]];$seen=[];
                     foreach($rows as$row){
                         $event=$this->event($row,$now);$target=(string)$row['target'];
                         if(isset($seen[$target]))throw new UnexpectedValueException();$seen[$target]=true;
                         if($item['platform']!==null&&$item['platform']!==$row['platform'])throw new UnexpectedValueException();
                         $item['platform']=$row['platform'];$name=trim((string)$row['customer_name']);if($name!=='')$item['customer_name']=$name;
-                        $cents=self::cents($row['value_rub']);$total+=$cents;
-                        if((int)$row['event_unix']>=$from&&(int)$row['event_unix']<$until){
-                            $period+=$cents;$event['in_selected_day']=true;
-                            $r=array_search($event['stage'],ModeledConversionValueContract::STAGES,true);
-                            if($r>$rank){$rank=$r;$item['stage']=$event['stage'];}
-                        }else $event['in_selected_day']=false;
+                        $event['in_selected_day']=(int)$row['event_unix']>=$from&&(int)$row['event_unix']<$until;
+                        $event['visit_check']=ModeledConversionVisitProof::forEvent($proof,$row);
                         $item['events'][]=$event;
                     }
-                    if($period<=0||$total>2500000)throw new UnexpectedValueException();
-                    $item['period_value_rub']=self::rub($period);$item['total_value_rub']=self::rub($total);$items[]=$item;
+                    $items[]=$item;
                 }
             }
             $next=$hasMore&&$selected?$this->encodeCursor(['v'=>1,'date'=>$date,'platform'=>$platform,
@@ -145,7 +163,7 @@ final class ModeledConversionDeliveryRegistry
                     'processed_is_not_individual_visit_linkage'=>true,'old_receipt_clock_is_unknown'=>true,
                     'upper_id_and_event_cutoff_fixed_statuses_are_current_reads'=>true,'late_commits_or_scope_changes_can_change_membership'=>true,'grounds_are_saved_stage_not_a_new_text_interpretation'=>true,
                     'no_transcripts_or_advertising_identifiers'=>true],
-                'limits'=>['page_conversations'=>self::PAGE_SIZE,'events_per_conversation'=>6,'read_bytes'=>self::BYTES,'seconds'=>5]];
+                'limits'=>['page_conversations'=>self::PAGE_SIZE,'events_per_conversation'=>self::EVENTS_PER_CONVERSATION,'read_bytes'=>self::BYTES,'seconds'=>5]];
             return $this->done($out);
         }catch(PDOException $ignored){
             if($started&&$this->pdo->inTransaction())$this->pdo->rollBack();
@@ -161,7 +179,7 @@ final class ModeledConversionDeliveryRegistry
             throw $error;
         }
     }
-    private function base(bool $mysql,bool $profile=false):string
+    public static function sourceSql(bool $mysql,bool $profile=false):string
     {
         $cast=$mysql?'CHAR':'TEXT';$peer=$mysql?"CONCAT('-',o.external_user_id)":"'-'||o.external_user_id";
         return 'FROM max_channel_conversion_outbox o JOIN conversations c ON c.id=o.conversation_id AND HEX(c.project_key)=HEX(o.project_key) AND HEX(c.channel)=HEX(o.platform)'
@@ -170,6 +188,7 @@ final class ModeledConversionDeliveryRegistry
             .($profile?' LEFT JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND HEX(p.project_key)=HEX(o.project_key) AND HEX(p.platform)=HEX(o.platform) AND p.conversation_id=o.conversation_id AND HEX(p.customer_key)=HEX(CAST(c.customer_id AS '.$cast.'))':'')
             ." WHERE o.project_key='anytour' AND o.counter_id='98615635' AND o.transport_target='anytour_modeled_value_v1' AND o.value_contract='semantic_stage_value_25000_v1'"
             ." AND HEX(o.project_key)=HEX('anytour') AND HEX(o.transport_target)=HEX('anytour_modeled_value_v1') AND HEX(o.value_contract)=HEX('semantic_stage_value_25000_v1')"
+            ." AND NOT (COALESCE(o.value_rub,-1)=0 AND COALESCE(HEX(o.state),'')=HEX('failed') AND COALESCE(HEX(o.last_error),'')=HEX('price_loss_reconciled'))"
             ." AND o.platform IN ('max','telegram') AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')
             .' AND HEX(CAST(cc.external_user_id AS '.$cast.'))=HEX(CAST(o.external_user_id AS '.$cast.'))'
             .' AND HEX(CAST(cc.external_chat_id AS '.$cast.'))=HEX(CAST(c.external_chat_id AS '.$cast.'))'
@@ -178,7 +197,8 @@ final class ModeledConversionDeliveryRegistry
     private function event(array $r,int $now):array
     {
         $id=self::decimal($r['id']??null);$stage=$r['value_stage']??null;$rank=array_search($stage,ModeledConversionValueContract::STAGES,true);
-        if($rank===false||($r['target']??null)!==ModeledConversionValueContract::key($rank)
+        $pred=is_numeric($r['value_profile_id']??null)&&($r['target']??null)===ModeledConversionValueContract::predictionKey((string)$r['value_profile_id']);
+        if($rank===false||(!$pred&&($r['target']??null)!==ModeledConversionValueContract::key($rank))
             ||!in_array($r['state']??null,self::STATES,true)||self::cents($r['value_rub'])<=0
             ||self::cents($r['value_rub'])>2500000||!in_array($r['platform']??null,['max','telegram'],true))
             throw new UnexpectedValueException();
@@ -198,7 +218,11 @@ final class ModeledConversionDeliveryRegistry
             'processed_at'=>self::moment($r['value_processed_at_unix']??null,$now),'receipt_basis'=>$basis,
             'api_receipt_present'=>(string)$r['receipt_present']==='1','identity_resolved'=>(string)$r['identity_present']==='1',
             'origin'=>$origin===null?'live':$origin,'profile_id'=>$profileId,'profile_saved_at'=>$valid?$profileAt:null,
-            'grounds_status'=>$valid?'saved_stage_profile':'profile_unavailable'];
+            'grounds_status'=>$valid?'saved_stage_profile':'profile_unavailable',
+            'valuation'=>['basis'=>$pred?'predictive_v1':'stage_v1','probability'=>$valid&&is_numeric($r['probability']??null)?(float)$r['probability']:null,
+                'deal_rub'=>$valid&&is_numeric($r['deal_rub']??null)?(int)$r['deal_rub']:null,
+                'frozen_base_rub'=>$valid&&is_numeric($r['frozen_base_rub']??null)?(int)$r['frozen_base_rub']:null,
+                'frozen_value_rub'=>$valid&&is_numeric($r['frozen_value_rub']??null)?(int)$r['frozen_value_rub']:null,'commission_rate'=>0.07]];
     }
     private function decodeCursor(string $cursor,string $date,string $platform,int $now):?array
     {
@@ -240,7 +264,7 @@ final class ModeledConversionDeliveryRegistry
     private static function summary(array $r,string $prefix=''):array
     {
         $n=self::count($r[$prefix.'n']??null);$c=self::count($r[$prefix.'c']??null);$v=self::cents($r[$prefix.'v']??null);
-        if($c>$n||$n>$c*6||($n===0&&($c!==0||$v!==0))||($n>0&&($v<$n||$v>$n*2500000)))throw new UnexpectedValueException();
+        if($c>$n||($n===0&&($c!==0||$v!==0))||($n>0&&($v<$n||$v>$n*2500000)))throw new UnexpectedValueException();
         return ['events'=>$n,'conversations'=>$c,'value_rub'=>self::rub($v)];
     }
     private static function moment(mixed $v,int $now):?string

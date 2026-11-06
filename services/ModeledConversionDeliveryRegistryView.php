@@ -135,7 +135,8 @@ final class ModeledConversionDeliveryRegistryView
             .'<div class="amount"><span>За день</span><strong>'.self::money($r['period_value_rub']??null).'</strong></div>'
             .'<div class="amount total-amount"><span>Накоплено</span><strong>'.self::money($r['total_value_rub']??null).'</strong></div></div>'
             .'<details class="event-details"><summary>Начисления и результат отправки</summary><p class="muted small" style="padding:0 20px">Все сохранённые начисления по этому диалогу до среза выборки.</p><div class="event-list">';
-        foreach(array_slice(is_array($r['events']??null)?$r['events']:[],0,6)as$event)if(is_array($event))$html.=self::event($event);
+        if(is_int($r['events_omitted']??null)&&$r['events_omitted']>0)$html.='<p class="muted small">Показаны последние 32 начисления; более ранних: '.self::integer($r['events_omitted']).'. Итоги учитывают все начисления.</p>';
+        foreach(array_slice(is_array($r['events']??null)?$r['events']:[],0,32)as$event)if(is_array($event))$html.=self::event($event);
         return $html.'</div></details></article>';
     }
 
@@ -159,6 +160,25 @@ final class ModeledConversionDeliveryRegistryView
         $html.='</p><p class="muted small">'.(($e['identity_resolved']??false)===true?'Рекламная связка сохранена.':'Подтверждённая рекламная связка пока отсутствует.').'</p>';
         if(($e['api_accepted_at']??null)===null&&($e['api_receipt_present']??false)===true)
             $html.='<p class="muted small">Приём загрузки известен, но точное время подтверждения для этой старой записи не сохранялось.</p>';
+        $v=is_array($e['valuation']??null)?$e['valuation']:[];
+        if(($v['basis']??null)==='predictive_v1'){
+            $html.='<p class="ground">Предиктив v1 · комиссия для оценки 7%.';
+            if(is_numeric($v['probability']??null))$html.=' Оценка покупки: '.self::e(number_format((float)$v['probability']*100,2,',',' ')).'%.';
+            if(is_numeric($v['deal_rub']??null))$html.=' Оценка тура: '.self::money($v['deal_rub']).'.';
+            if(is_numeric($v['frozen_base_rub']??null))$html.=' База сохранённого прогноза: '.self::money($v['frozen_base_rub']).'.';
+            $html.=' Отправляется только положительный прирост; ограничение при потере цены учитывается отдельно.</p>';
+        }
+        $p=is_array($e['visit_check']??null)?$e['visit_check']:[];
+        if(($p['available']??false)===true){
+            $linked=($p['linkage']??null)==='unique_visit_reconciled';
+            $html.='<div class="ground"><strong>'.($linked?'Однозначно сверено с целевым визитом':'Привязка к визиту ещё не подтверждена').'</strong>'
+                .'<p>Дополнительная проверка Метрики: '.self::moment($p['checked_at']??null).'. Статус загрузки: '.self::e($p['upload_status']??'не получен').'.</p>';
+            if(($p['fresh']??false)!==true)$html.='<p class="hold-reason">Проверка устарела; это сохранённый результат.</p>';
+            if($linked)$html.='<p>Начало визита: '.self::moment($p['visit_started_at']??null).'. Достижений этой цели в визите: '
+                .self::integer($p['visit_goal_reaches']??null).'; сумма: '.self::money($p['visit_goal_value_rub']??null).'. Учтены прежние начисления того же посетителя.</p>'
+                .'<p class="muted small">Сверка по ClientID и точному времени визита; отдельный VisitID не выгружался.</p>';
+            $html.='</div>';
+        }else $html.='<p class="muted small">Отдельная сверка этого начисления с визитом пока не сохранена.</p>';
         return $html.'</section>';
     }
 

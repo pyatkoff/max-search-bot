@@ -155,6 +155,17 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
 
 function forecastV1Assertions(PDO $p,callable $check):void
 {
+    $projection=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
+    $method=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
+    $large=['value_delivery'=>['predictive_v1'=>['events'=>91,'value_rub'=>1234,'examples'=>array_fill(0,16,['synthetic'=>str_repeat('x',2000)])]],
+        'saved_input_diagnosis'=>['examples'=>array_fill(0,8,['synthetic'=>str_repeat('y',1000)])],
+        'visit_delivery_check'=>['cohort_events'=>2,'cohort_value_rub'=>106]];
+    $boundedOutput=$method->invoke($projection,$large);
+    $check('private response preserves exact totals and visit cohort while explicitly trimming oversized optional examples',
+        strlen(json_encode($boundedOutput,JSON_THROW_ON_ERROR))<=28000&&$boundedOutput['value_delivery']['predictive_v1']['events']===91
+        &&$boundedOutput['value_delivery']['predictive_v1']['value_rub']===1234
+        &&$boundedOutput['value_delivery']['predictive_v1']['examples_omitted_due_to_response_budget']===true
+        &&$boundedOutput['visit_delivery_check']===$large['visit_delivery_check']);
     $b=new ModeledConversionStatusBudget();$b->consumeBytes(49536);
     $limited=false;
     try{$b->withReservedBytes(8000,static function()use($b):void{
@@ -438,6 +449,7 @@ function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
     foreach([$human,$human,$actions,$guided,$unknown,$foreign]as$v)forecastV1Append($p,$v);
     $before=forecastV1Rows($p);$auth=0;
     $d=(new ModeledConversionInputDiagnosisReader($p,static function()use(&$auth):void{$auth++;},new ModeledConversionStatusBudget()))->read(1793000000);
+    if(($d['available']??false)!==true)echo 'INPUT_DIAGNOSIS_SYNTHETIC '.json_encode(['result'=>$d,'synthetic_sql'=>$p->errorInfo()],JSON_THROW_ON_ERROR).PHP_EOL;
     $check('diverse input diagnosis deduplicates scopes and keeps channel shape groups',
         $d['window']['inspected_versions']===5&&$d['window']['distinct_current_scopes']===4
         &&$d['scope_counts']['max']===1&&$d['scope_counts']['telegram']===3
@@ -696,6 +708,11 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     for($i=10;$i<25;$i++)$put($i,'max',100+$i,0.1,null,2500,2500,'accepted','UPLOADED');
     $r=$read();$check('predictive examples and suffix completeness remain explicitly bounded',
         $r['window']['inspected_predictive_rows']===17&&!$r['window']['complete_within_goal_suffix']&&count($r['examples'])===16);
+    $p->prepare("UPDATE modeled_conversion_profile_versions SET profile_json=JSON_SET(profile_json,'$.semantic_prediction.reasons',JSON_ARRAY(?))")->execute([str_repeat('я',600)]);
+    $tight=new ModeledConversionStatusBudget();$tight->consumeBytes(40000);
+    $bounded=(new ModeledConversionValueDeliveryReader($p,static function():void{},$tight))->predictiveV1($now);
+    $check('oversized multibyte scalar detail is preflighted before copying and retains authorization bytes',
+        $bounded===['available'=>false,'reason'=>'budget_headroom']&&$tight->remainingBytes()>=8192);
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){
