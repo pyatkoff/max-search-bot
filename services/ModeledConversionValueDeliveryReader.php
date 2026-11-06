@@ -193,6 +193,7 @@ final class ModeledConversionValueDeliveryReader
                 'processed_events'=>0,'processed_value_rub'=>0,'by_state'=>[],'by_platform'=>[],
                 'invalid_binding_rows'=>0,'voided_zero_value_rows'=>0,'calculation_unavailable_rows'=>0,'examples'=>[],
                 'calculation_basis_counts'=>['probability_prediction'=>0,'stage_fraction'=>0,'unavailable'=>0],
+                'stage_comparison_counts'=>['above_stage'=>0,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>0,'unavailable'=>0],
                 'calculation_unavailable_reason_counts'=>['profile_binding_unverified'=>0,'probability_prediction_unavailable'=>0,
                     'monetary_policy_unavailable'=>0,'scalar_contract_unverified'=>0,'price_base_unverified'=>0,
                     'frozen_value_unverified'=>0,'increment_not_explained'=>0],
@@ -286,6 +287,35 @@ final class ModeledConversionValueDeliveryReader
                     $out['calculation_unavailable_reason_counts'][$calculationReason]++;
                     $e['calculation_unavailable_reason']=$calculationReason;
                 }
+                // Compare cumulative values at this frozen profile only. Neither value is a new
+                // reservation, an alternative export history, or evidence of calibrated accuracy.
+                $comparison=['version'=>'frozen_context_vs_stage_v1','status'=>'unavailable',
+                    'basis'=>'same_frozen_base_existing_stage_fraction_not_export_history',
+                    'reason'=>$calculationReason,'monetary_policy'=>null,'stage_contract'=>ModeledConversionValueContract::VERSION,
+                    'frozen_base_rub'=>null,'stage_fraction'=>null,'contextual_cumulative_value_rub'=>null,
+                    'stage_cumulative_value_rub'=>null,'contextual_minus_stage_rub'=>null];
+                $predictionStages=[1=>'substantive_dialogue',2=>'concrete_request',3=>'exact_offer_discussion',
+                    4=>'general_purchase_intent',5=>'agency_purchase_intent'];
+                if($calculationReason===null&&(!isset($predictionStages[$stageRank])||$predictionStages[$stageRank]!==$v[23])){
+                    $comparison['reason']='prediction_stage_unverified';
+                }elseif($calculationReason===null||$stageValue!==null){
+                    $baseline=$stageValue??(int)round(ModeledConversionValueContract::VALUES[$stageRank]/ModeledConversionValueContract::BASE*$base);
+                    $comparison['status']=$calculationReason===null?'available':'stage_only';
+                    $comparison['reason']=$calculationReason===null?null:'contextual_prediction_unavailable';
+                    $comparison['monetary_policy']=$v[25];$comparison['frozen_base_rub']=(int)$base;
+                    $comparison['stage_fraction']=['numerator'=>ModeledConversionValueContract::VALUES[$stageRank],
+                        'denominator'=>ModeledConversionValueContract::BASE];
+                    $comparison['stage_cumulative_value_rub']=$baseline;
+                    if($calculationReason===null){
+                        $comparison['contextual_cumulative_value_rub']=(int)$full;
+                        $comparison['contextual_minus_stage_rub']=(int)$full-$baseline;
+                    }
+                }
+                $e['stage_comparison']=$comparison;
+                $comparisonBucket=$comparison['status'];
+                if($comparisonBucket==='available')$comparisonBucket=$comparison['contextual_minus_stage_rub']>0?'above_stage':
+                    ($comparison['contextual_minus_stage_rub']<0?'below_stage':'equal_stage');
+                $out['stage_comparison_counts'][$comparisonBucket]++;
                 if(count($out['examples'])<16)$out['examples'][]=$e;
             }
             $out['conversations']=count($cases);
