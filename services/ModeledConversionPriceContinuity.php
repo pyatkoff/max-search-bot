@@ -101,8 +101,8 @@ final class ModeledConversionPriceContinuity
                         if($expected<$original){
                             if(in_array($r['state'],['pending','ready'],true)&&empty($r['upload_id'])&&empty($r['upload_status'])&&empty($r['claim_token'])&&$r['claimed_at_unix']===null&&(int)$r['attempts']===0){
                                 $applied=$expected;$action=$expected===0?'voided':'reduced';
-                                $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET value_rub=?,state=CASE WHEN ?=0 THEN 'failed' ELSE state END,last_error=CASE WHEN ?=0 THEN 'price_loss_reconciled' ELSE last_error END WHERE id=? AND state=? AND value_rub=? AND upload_id IS NULL AND (upload_status IS NULL OR upload_status='') AND (claim_token IS NULL OR claim_token='') AND claimed_at_unix IS NULL AND attempts=0");
-                                $q->execute([$applied,$applied,$applied,$r['id'],$r['state'],$r['value_rub']]);
+                                $q=$this->pdo->prepare("UPDATE max_channel_conversion_outbox SET value_rub=?,state=?,last_error=? WHERE id=? AND state=? AND value_rub=? AND upload_id IS NULL AND (upload_status IS NULL OR upload_status='') AND (claim_token IS NULL OR claim_token='') AND claimed_at_unix IS NULL AND attempts=0");
+                                $q->execute([$applied,$applied===0?'failed':$r['state'],$applied===0?'price_loss_reconciled':$r['last_error'],$r['id'],$r['state'],$r['value_rub']]);
                                 if($q->rowCount()!==1)throw new RuntimeException('price_audit_cas');
                             }else{$action='review_required';$basis['reason']='price_loss_upload_already_claimed_or_recorded';}
                         }

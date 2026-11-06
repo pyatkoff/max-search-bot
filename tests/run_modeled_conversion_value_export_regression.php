@@ -528,7 +528,8 @@ function modeledPriceLossAssertions(PDO $p,callable $check):void
     ModeledConversionValueExport::tick($p,$lookup,$api,$now+1,$gate);
     $row=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id='.(int)$bad)->fetch(PDO::FETCH_ASSOC);
     $entry=$p->query('SELECT * FROM modeled_conversion_price_audit WHERE outbox_id='.(int)$bad)->fetch(PDO::FETCH_ASSOC);
-    $check('an unattempted false fallback reservation is voided before identity resolution and upload',
+    $repairDetail=['posts'=>$wire->posts,'before_posts'=>$beforePosts,'delta'=>$falseDelta,'reserved'=>$reserved,'row'=>array_intersect_key($row,array_flip(['state','value_rub','last_error','attempts'])),'audit'=>array_intersect_key($entry?:[],array_flip(['action','original_value_rub','applied_value_rub']))];
+    $check('an unattempted false fallback reservation is voided before identity resolution and upload '.json_encode($repairDetail,JSON_THROW_ON_ERROR),
         $falseDelta>0&&(int)$row['value_rub']===0&&$row['state']==='failed'&&$row['last_error']==='price_loss_reconciled'
         &&$entry['action']==='voided'&&(int)$entry['original_value_rub']===$falseDelta
         &&$wire->posts===$beforePosts&&(int)$p->query('SELECT SUM(value_rub) FROM max_channel_conversion_outbox')->fetchColumn()===$reserved);
