@@ -449,6 +449,7 @@ function forecastInputDiagnosisAssertions(PDO $p,callable $check):void
     foreach([$human,$human,$actions,$guided,$unknown,$foreign]as$v)forecastV1Append($p,$v);
     $before=forecastV1Rows($p);$auth=0;
     $d=(new ModeledConversionInputDiagnosisReader($p,static function()use(&$auth):void{$auth++;},new ModeledConversionStatusBudget()))->read(1793000000);
+    if(($d['available']??false)!==true)echo 'INPUT_DIAGNOSIS_SYNTHETIC '.json_encode($d,JSON_THROW_ON_ERROR).PHP_EOL;
     $check('diverse input diagnosis deduplicates scopes and keeps channel shape groups',
         $d['window']['inspected_versions']===5&&$d['window']['distinct_current_scopes']===4
         &&$d['scope_counts']['max']===1&&$d['scope_counts']['telegram']===3
