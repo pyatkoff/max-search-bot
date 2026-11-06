@@ -260,17 +260,35 @@ close = tail_workflow['jobs']['release-slot']
 check(close['needs'] == 'configure', 'value operation must finish or be declared skipped before closing')
 expected_close_if = "always() && github.event_name == 'workflow_run' && github.ref == 'refs/heads/main' && github.repository == 'pyatkoff/max-search-bot' && github.event.workflow_run.name == 'Deploy production' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.run_attempt == 1 || github.event.workflow_run.run_attempt == 2) && (needs.configure.result == 'success' || needs.configure.result == 'skipped')"
 check(close['if'] == expected_close_if, 'only original or proven verification recovery may enter the fail-closed closer')
-check(close['permissions'] == {'contents':'read', 'actions':'read', 'pull-requests':'read', 'issues':'write'},
-      'comment capability belongs only to metadata closer')
+check(close['permissions'] == {'contents':'write', 'actions':'read', 'pull-requests':'read', 'issues':'write'},
+      'only the metadata closer may publish the finite diagnostics record and terminal comment')
 check(close['runs-on'] == 'ubuntu-latest' and close['timeout-minutes'] == 20, 'bounded existing server runner')
-check(len(close['steps']) == 2, 'no dispatch, deployment or extra acceptance in closing job')
-checkout, closing = close['steps']
+check(len(close['steps']) == 4, 'proof preparation and upload precede the only terminal mutation in the same job')
+checkout, prepared, publication, closing = close['steps']
 check(checkout['uses'] == 'actions/checkout@v4' and checkout['with'] == {
     'ref':'${{ github.event.workflow_run.head_sha }}', 'persist-credentials':False},
-    'closer runs exact installed source without persisted token')
-check(closing['run'] == 'node tools/release_slot_close.js'
-      and closing['env'] == {'GITHUB_TOKEN':'${{ github.token }}','CONFIGURE_RESULT':'${{ needs.configure.result }}'}
-      and not closing.get('if') and not closing.get('continue-on-error'), 'one fail-closed canonical closure')
+    'closer runs exact repository source without persisted token')
+check(prepared['id'] == 'prepared'
+      and prepared['run'] == 'node tools/release_slot_close.js --prepare-closure --proof "$RUNNER_TEMP/deployment-release-publication.json" >> "$GITHUB_OUTPUT"'
+      and prepared['env'] == {'GITHUB_TOKEN':'${{ github.token }}','CONFIGURE_RESULT':'${{ needs.configure.result }}'}
+      and not prepared.get('continue-on-error') and not prepared.get('if'),
+      'prepare waits for the original gates and saves the exact terminal candidate before closure')
+check(publication['name'] == 'Bind the terminal candidate to the original closer run — ${{ steps.prepared.outputs.record_digest }}'
+      and publication['uses'] == 'actions/upload-artifact@v4'
+      and publication['if'] == "steps.prepared.outputs.publication_artifact != ''"
+      and publication['with'] == {
+          'name':'${{ steps.prepared.outputs.publication_artifact }}',
+          'path':'${{ runner.temp }}/deployment-release-publication.json',
+          'if-no-files-found':'error','retention-days':90}
+      and not publication.get('continue-on-error'),
+      'original successful publication binds its exact digest and contains only the finite metadata proof')
+check(closing['name'] == 'Release only the admitted publisher after all original mandatory gates'
+      and closing['run'] == 'node tools/release_slot_close.js'
+      and closing['env'] == {'GITHUB_TOKEN':'${{ github.token }}','CONFIGURE_RESULT':'${{ needs.configure.result }}',
+                            'PREPARED_RECORD_DIGEST':'${{ steps.prepared.outputs.record_digest }}'}
+      and closing['if'] == "steps.prepared.outputs.record_digest != ''"
+      and not closing.get('continue-on-error'),
+      'only the exact prepared result may reach the final single terminal mutation')
 check('${{ secrets.' not in json.dumps(close), 'closer never receives production credentials')
 check('release-slot-close:v1' in (root/'docs/RELEASE_PRIORITY.md').read_text(),
       'single existing publisher opt-in is documented')

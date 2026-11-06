@@ -15,6 +15,7 @@ OWNER = WORKFLOW.split('\n  owner-send:\n', 1)[1]
 SHA = 'a' * 40
 REMOTE_DIR = 'cd /var/www/anytoour/data/www/app.anytoour.ru'
 COMMAND = 'php tools/max_owner_tour_preview.php --expected-sha="$expected_sha" --confirm-owner-send'
+ALLOW = "steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'"
 
 
 def run_blocks(source):
@@ -41,6 +42,13 @@ assert re.findall(r'^      ([a-z_]+):$', WORKFLOW.split('permissions:', 1)[0], r
 assert 'needs: regression' in OWNER and 'cancel-in-progress: false' in WORKFLOW
 assert 'timeout-minutes: 20' in OWNER  # Bounded fixed six-message batch and nine MAX image uploads.
 assert OWNER.index('GITHUB_EVENT_PATH') < OWNER.index('secrets.STANDBY_DEPLOY_SSH_KEY')
+assert 'permissions:\n  contents: read\n  actions: read\n' in WORKFLOW
+assert 'ref: ${{ github.sha }}' in OWNER
+assert OWNER.index('actions/checkout@v4') < OWNER.index('bash tools/verify_deploy_main_provenance.sh') < OWNER.index('node tools/deployment_release.js resolve-consumer') < OWNER.index('GITHUB_EVENT_PATH')
+assert 'REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}' in OWNER
+assert 'APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}' in OWNER
+protected = OWNER[OWNER.index('      - name: Prepare existing deployment SSH key'):]
+assert re.findall(r'^        if: (.+)$', protected, re.M) == [ALLOW, ALLOW, 'always()']
 assert '${{ github.event.comment.body }}' not in WORKFLOW
 assert 'issue_comment:\n    types: [created]' in WORKFLOW
 assert 'EXPECTED_SHA: ${{ steps.authorize.outputs.expected_sha }}' in OWNER
@@ -74,7 +82,7 @@ cases = 0
 
 
 def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, event=None, env_changes=None,
-            shell_revision=None, remote_revision=None):
+            shell_revision=None, remote_revision=None, repository=SHA, application=SHA):
     global cases
     cases += 1
     with tempfile.TemporaryDirectory(prefix='max-owner-tour-test-') as temp:
@@ -114,9 +122,11 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0, eve
         event_path = directory / 'event.json'
         event_path.write_text(json.dumps(EVENT if event is None else event))
         env = {**os.environ, 'PATH': str(directory) + ':/usr/bin:/bin',
-               'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'CONFIRM_OWNER_RECOVERY': 'false', 'CONFIRM_OWNER_COMPARISON': 'false', 'CONFIRM_OWNER_VARIANTS': 'false', 'CONFIRM_OWNER_TELEGRAM': 'false', 'CONFIRM_OWNER_TRIO': 'false', 'CONFIRM_OWNER_EMPHASIS': 'false', 'CONFIRM_OWNER_CHOICE': 'false', 'CONFIRM_OWNER_PHOTO_CHOICE': 'false', 'CONFIRM_OWNER_LIVE_QUOTE': 'false', 'ACTUAL_MAIN_SHA': SHA,
+               'EXPECTED_SHA': expected, 'CONFIRM_OWNER_SEND': 'true', 'CONFIRM_OWNER_RECOVERY': 'false', 'CONFIRM_OWNER_COMPARISON': 'false', 'CONFIRM_OWNER_VARIANTS': 'false', 'CONFIRM_OWNER_TELEGRAM': 'false', 'CONFIRM_OWNER_TRIO': 'false', 'CONFIRM_OWNER_EMPHASIS': 'false', 'CONFIRM_OWNER_CHOICE': 'false', 'CONFIRM_OWNER_PHOTO_CHOICE': 'false', 'CONFIRM_OWNER_LIVE_QUOTE': 'false', 'ACTUAL_MAIN_SHA': workflow,
                'CARD_REVISION': '', 'PYTHONPATH': temp, 'REPOSITORY_READ_TOKEN': 'READ_ONLY_TOKEN', 'API_LOG': str(directory / 'api.log'),
                'GITHUB_SHA': workflow, 'GITHUB_EVENT_NAME': 'workflow_dispatch',
+               'REPOSITORY_SHA': repository, 'APPLICATION_SHA': application,
+               'RELEASE_READY': 'true', 'PERFORM_ACTIONS': 'true',
                'GITHUB_EVENT_PATH': str(event_path), 'GITHUB_OUTPUT': str(directory / 'output'),
                'GITHUB_REF': 'refs/heads/main', 'GITHUB_REPOSITORY': 'pyatkoff/max-search-bot',
                'GITHUB_WORKFLOW_REF': 'pyatkoff/max-search-bot/.github/workflows/max-owner-tour-preview.yml@refs/heads/main',
@@ -153,6 +163,28 @@ for event_name in ['workflow_dispatch', 'issue_comment']:
     code, ssh, php = execute(env_changes={'GITHUB_EVENT_NAME': event_name})
     assert code == 0 and len(ssh) == 1
     assert php == [f'tools/max_owner_tour_preview.php --expected-sha={SHA} --confirm-owner-send']
+
+# An accepted repository-only release preserves the explicit application target;
+# current-main authority follows R while fixed remote sends remain pinned to A.
+for event_name in ['workflow_dispatch', 'issue_comment']:
+    code, ssh, php = execute(workflow='b' * 40, repository='b' * 40,
+                            env_changes={'GITHUB_EVENT_NAME': event_name})
+    assert code == 0 and len(ssh) == 1
+    assert php == [f'tools/max_owner_tour_preview.php --expected-sha={SHA} --confirm-owner-send']
+    wrong_target = copy.deepcopy(EVENT)
+    wrong_target['comment']['body'] = '/owner-tour-preview ' + 'b' * 40
+    code, ssh, php = execute(expected='b' * 40, workflow='b' * 40, repository='b' * 40,
+                            event=wrong_target, env_changes={'GITHUB_EVENT_NAME': event_name})
+    assert code != 0 and ssh == [] and php == []
+for changes in [{'RELEASE_READY': 'false'}, {'PERFORM_ACTIONS': 'false'},
+                {'APPLICATION_SHA': ''}, {'APPLICATION_SHA': 'A' * 40},
+                {'REPOSITORY_SHA': ''}, {'REPOSITORY_SHA': 'a' * 39},
+                {'REPOSITORY_SHA': 'b' * 40}]:
+    code, ssh, php = execute(env_changes=changes)
+    assert code != 0 and ssh == [] and php == [], changes
+code, ssh, php = execute(workflow='b' * 40, repository='b' * 40,
+                        env_changes={'ACTUAL_MAIN_SHA': SHA})
+assert code != 0 and ssh == [] and php == []
 
 # Execute the real Python authorizer, not a second implementation of its policy.
 for changes in [{'CONFIRM_OWNER_SEND': 'false'}, {'GITHUB_EVENT_NAME': 'push'},

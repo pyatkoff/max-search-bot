@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   strict-tls-preflight:
@@ -71,7 +72,14 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           bash tools/verify_deploy_main_provenance.sh
 
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Prepare SSH private key
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
@@ -91,10 +99,11 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
 
       - name: Wait for exact active-server SHA and verify strict TLS
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail

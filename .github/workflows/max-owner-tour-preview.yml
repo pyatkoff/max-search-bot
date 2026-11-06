@@ -98,6 +98,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: max-owner-tour-preview
@@ -142,6 +143,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Checkout exact repository source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify exact repository source is current main
+        id: provenance
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          bash tools/verify_deploy_main_provenance.sh
+
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Validate exact installed main SHA before loading credentials
         id: authorize
         env:
@@ -158,6 +183,10 @@ jobs:
           CONFIRM_OWNER_LIVE_QUOTE: ${{ inputs.confirm_owner_live_quote }}
           CARD_REVISION: ${{ inputs.card_revision }}
           REPOSITORY_READ_TOKEN: ${{ github.token }}
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+          RELEASE_READY: ${{ steps.release.outputs.ready }}
+          PERFORM_ACTIONS: ${{ steps.release.outputs.perform_actions }}
         shell: bash
         run: |
           set -euo pipefail
@@ -209,7 +238,13 @@ jobs:
               raise SystemExit(2)
           if mode in ['recover', 'compare', 'variants', 'telegram', 'trio', 'emphasis', 'choice', 'photo-choice', 'live-quote'] and (os.environ.get('GITHUB_ACTOR') != owner['login'] or os.environ.get('GITHUB_ACTOR_ID') != str(owner['id'])):
               raise SystemExit(2)
-          if not re.fullmatch(r'[0-9a-f]{40}', expected) or expected != os.environ.get('GITHUB_SHA'):
+          repository_sha = os.environ.get('REPOSITORY_SHA', '')
+          application_sha = os.environ.get('APPLICATION_SHA', '')
+          if (os.environ.get('RELEASE_READY') != 'true' or os.environ.get('PERFORM_ACTIONS') != 'true'
+                  or not re.fullmatch(r'[0-9a-f]{40}', repository_sha)
+                  or not re.fullmatch(r'[0-9a-f]{40}', application_sha)
+                  or os.environ.get('GITHUB_SHA') != repository_sha
+                  or not re.fullmatch(r'[0-9a-f]{40}', expected) or expected != application_sha):
               raise SystemExit(2)
           # Independently refresh current main before deployment credentials exist.
           try:
@@ -229,13 +264,14 @@ jobs:
                   head = json.loads(raw)
           except Exception:
               raise SystemExit(2)
-          if head.get('ref') != 'refs/heads/main' or head.get('object', {}).get('type') != 'commit' or head.get('object', {}).get('sha') != expected:
+          if head.get('ref') != 'refs/heads/main' or head.get('object', {}).get('type') != 'commit' or head.get('object', {}).get('sha') != repository_sha:
               raise SystemExit(2)
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
               output.write('expected_sha=' + expected + '\nowner_mode=' + mode + '\nowner_revision=' + revision + '\n')
           PY
 
       - name: Prepare existing deployment SSH key
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
@@ -254,6 +290,7 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
 
       - name: Run one fixed owner demo send with redacted output
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}

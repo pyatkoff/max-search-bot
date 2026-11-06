@@ -77,15 +77,19 @@ fi
 pass "malformed deployment SHA is rejected"
 
 provenance_line="$(line_number "Verify deployment SHA is current main")"
+plan_line="$(line_number "Resolve original accepted installation and complete release intent")"
 ssh_line="$(line_number "Prepare canonical SSH private key")"
+release_line="$(line_number "Select installation or prove the unchanged application without mutation")"
 bundle_line="$(line_number "Build exact deployment bundle")"
 sync_line="$(line_number "Sync canonical production checkout")"
-(( provenance_line < ssh_line && ssh_line < bundle_line && bundle_line < sync_line )) \
-  || fail "provenance must run before credentials, bundle and production sync"
+(( provenance_line < plan_line && plan_line < ssh_line && ssh_line < release_line && release_line < bundle_line && bundle_line < sync_line )) \
+  || fail "provenance and release plan must run before credentials, unchanged observation, bundle and production sync"
 grep -Fq 'bash tools/verify_deploy_main_provenance.sh' "$WORKFLOW" \
   || fail "workflow does not execute the provenance verifier"
-grep -Fq "if: steps.provenance.outcome == 'success'" "$WORKFLOW" \
+grep -Fq "if: steps.provenance.outcome == 'success' && steps.release_plan.outcome == 'success'" "$WORKFLOW" \
   || fail "SSH preparation is not gated by provenance"
+grep -Fq "if: steps.ssh_key.outcome == 'success' && steps.release.outputs.kind == 'installed'" "$WORKFLOW" \
+  || fail "only the installed route may build a deployment bundle"
 grep -Fq 'PROVENANCE_OUTCOME: ${{ steps.provenance.outcome }}' "$WORKFLOW" \
   || fail "deploy telemetry does not capture provenance outcome"
 grep -Fq 'node tools/release_slot_close.js --stage-status' "$WORKFLOW" \

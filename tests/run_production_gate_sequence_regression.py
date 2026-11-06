@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Execute the five real production-source resolvers offline, without credentials."""
 import argparse
+import ast
 import copy
+import fnmatch
 import json
 import os
 from pathlib import Path
@@ -25,6 +27,9 @@ TIMED_WORKFLOWS = {
 }
 CANONICAL_REPOSITORY = 'pyatkoff/max-search-bot'
 SHA_EXPRESSION = '${{ steps.source.outputs.sha }}'
+APPLICATION_SHA_EXPRESSION = '${{ steps.release.outputs.application_sha }}'
+REPOSITORY_SHA_EXPRESSION = '${{ steps.release.outputs.repository_sha }}'
+RELEASE_ACTIONS = "steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'"
 DEPLOY_SHA = 'a' * 40
 DOWNSTREAM_SHA = 'b' * 40
 CHECKS = 0
@@ -140,20 +145,346 @@ def source_step(source, filename, job_name=None):
     check('test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"' in provenance_run
           and 'bash tools/verify_deploy_main_provenance.sh' in provenance_run, label + 'canonical provenance checks checkout and current main')
     expected_values = re.findall(r'^          EXPECTED_SHA:\s*(.+)$', source, re.MULTILINE)
-    check(len(expected_values) >= 2 and all(value == SHA_EXPRESSION for value in expected_values),
-          label + 'provenance and production checks share the resolved SHA with no fallback')
+    check(len(expected_values) >= 2 and expected_values[0] == SHA_EXPRESSION
+          and all(value == APPLICATION_SHA_EXPRESSION for value in expected_values[1:]),
+          label + 'main provenance follows repository SHA and production checks follow accepted application SHA')
     remote_steps = [step for step in steps if 'git rev-parse HEAD' in step and 'ssh ' in step]
-    check(remote_steps and all('          EXPECTED_SHA: ' + SHA_EXPRESSION in step.splitlines()
+    check(remote_steps and all('          EXPECTED_SHA: ' + APPLICATION_SHA_EXPRESSION in step.splitlines()
                                and '"$EXPECTED_SHA"' in step for step in remote_steps), label + 'remote installed SHA comparison remains pinned')
-    for step in steps:
+    for index, step in enumerate(steps):
         if '        run: |' in step:
             shell = run_block(step)
             if '$EXPECTED_SHA' in shell or '${EXPECTED_SHA}' in shell:
-                check('          EXPECTED_SHA: ' + SHA_EXPRESSION in step.splitlines(),
+                expected = SHA_EXPRESSION if index == provenance[0] else APPLICATION_SHA_EXPRESSION
+                check('          EXPECTED_SHA: ' + expected in step.splitlines(),
                       label + 'every strict shell EXPECTED_SHA use has an exact step environment binding')
     resolver = run_block(steps[0])
     check('${{' not in resolver and field(steps[0], 'shell') == 'bash', label + 'resolver consumes event data through shell environment, not expression interpolation')
     return resolver
+
+
+def workflow_condition(expression, values):
+    """Evaluate the actual finite step predicates, with no workflow commands or IO."""
+    expression = re.sub(r'steps\.[A-Za-z_][A-Za-z0-9_]*\.(?:outputs\.[A-Za-z_][A-Za-z0-9_]*|outcome)',
+                        lambda match: repr(values.get(match[0], '')), expression)
+    tree = ast.parse(expression.replace('&&', ' and ').replace('||', ' or ')
+                     .replace('always()', 'True'), mode='eval')
+
+    def evaluate(node):
+        if isinstance(node, ast.Constant) and isinstance(node.value, (str, bool)):
+            return node.value
+        if isinstance(node, ast.BoolOp):
+            results = [evaluate(value) for value in node.values]
+            if isinstance(node.op, ast.And):
+                return all(results)
+            if isinstance(node.op, ast.Or):
+                return any(results)
+        if isinstance(node, ast.Compare) and len(node.ops) == len(node.comparators) == 1:
+            left, right = evaluate(node.left), evaluate(node.comparators[0])
+            if isinstance(node.ops[0], ast.Eq):
+                return left == right
+            if isinstance(node.ops[0], ast.NotEq):
+                return left != right
+        raise AssertionError('Unsupported step condition: ' + expression)
+
+    return evaluate(tree.body)
+
+
+def release_wiring_cases(root, sources):
+    """The existing jobs consume the typed decision before any private operation."""
+    local_cleanup = {
+        'publish-conversation-diagnostics.yml': (
+            'Remove private capture files',
+            'rm -f production_snapshot.json live_session_report.json daily_session_report.json '
+            'yesterday_session_report.json handoff.json autopilot_snapshot.private.json\n'
+            'rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/dialogue-evidence.age"\n'
+            'rm -rf "$RUNNER_TEMP/evidence-python"'),
+        'modeled-conversion-monitor.yml': (
+            'Remove private ephemeral monitor data',
+            'rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/monitor-route.json" '
+            '"$RUNNER_TEMP/monitor-health.json" "$RUNNER_TEMP/monitor-decision.json" '
+            '"$RUNNER_TEMP/monitor-result.json"\n'
+            'rm -rf "$RUNNER_TEMP/monitor-python" "$RUNNER_TEMP/monitor-cache" '
+            '"$RUNNER_TEMP/monitor-intent" "$RUNNER_TEMP/monitor-final"'),
+    }
+    additional = ('publish-conversation-diagnostics.yml', 'repair-lead-receiver-config.yml',
+                  'restore-live-runtime.yml', 'sync-legacy-lead-receiver.yml', 'telegram-webhook-status.yml')
+    all_sources = dict(sources)
+    all_sources.update({name: (root / '.github/workflows' / name).read_text(encoding='utf-8')
+                        for name in additional})
+    ordinary = {'steps.release.outputs.ready': 'true', 'steps.release.outputs.perform_actions': 'true',
+                'steps.source_ready.outputs.ready': 'true', 'steps.retained.outputs.present': 'true',
+                'steps.decision.outputs.send': 'true', 'steps.decision.outcome': 'success',
+                'steps.durable_intent.outcome': 'success', 'steps.health.outputs.ok': 'true'}
+    for filename, source in all_sources.items():
+        label = filename + ': '
+        steps = step_blocks(source)
+        release = [i for i, step in enumerate(steps) if field(step, 'id') == 'release']
+        checkout = [i for i, step in enumerate(steps) if field(step, 'uses') == 'actions/checkout@v4'
+                    or step.startswith('      - uses: actions/checkout@v4\n')]
+        check(len(release) == len(checkout) == 1 and checkout[0] < release[0],
+              label + 'exact source checkout precedes the single shared release resolver')
+        index = release[0]
+        resolver = steps[index]
+        check(resolver.startswith('      - name: Resolve accepted repository and application\n')
+              and field(resolver, 'run') == 'node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"'
+              and '          GITHUB_TOKEN: ${{ github.token }}' in resolver.splitlines(),
+              label + 'the terminal job proof uses the canonical authenticated resolver')
+        check(field(resolver, 'if') is None and field(resolver, 'continue-on-error') is None,
+              label + 'invalid or missing release proof fails before credentials')
+        check('  actions: read' in top_section(source, 'permissions').splitlines(),
+              label + 'bounded release/run verification has read-only Actions authority')
+        check(not any('${{ secrets.' in step for step in steps[:index + 1]),
+              label + 'no private credential is introduced before typed release admission')
+        if filename in ('repair-lead-receiver-config.yml', 'restore-live-runtime.yml',
+                        'sync-legacy-lead-receiver.yml', 'telegram-webhook-status.yml'):
+            check('          ref: ${{ github.sha }}' in steps[checkout[0]].splitlines(),
+                  label + 'manual and runtime-push source checkout remains the repository revision')
+            provenance = [step for step in steps[:index] if field(step, 'id') == 'provenance']
+            check(len(provenance) == 1
+                  and '          EXPECTED_SHA: ${{ github.sha }}' in provenance[0].splitlines()
+                  and 'bash tools/verify_deploy_main_provenance.sh' in run_block(provenance[0]),
+                  label + 'main admission still uses R before resolving installed A')
+        cleanup = local_cleanup.get(filename)
+        if cleanup:
+            check(sum(step.startswith('      - name: ' + cleanup[0] + '\n')
+                      for step in steps[index + 1:]) == 1,
+                  label + 'the unconditional local cleanup remains present exactly once')
+        actions = []
+        for step in steps[index + 1:]:
+            if step.startswith('      - name: Validate explicit operation and installed SHA\n'):
+                check(filename == 'telegram-webhook-status.yml' and '${{ secrets.' not in step
+                      and field(step, 'if') is None, label + 'explicit manual authority remains mandatory')
+                continue
+            condition = field(step, 'if')
+            if cleanup and step.startswith('      - name: ' + cleanup[0] + '\n'):
+                expected = ('      - name: ' + cleanup[0] + '\n'
+                            '        if: always()\n'
+                            '        shell: bash\n'
+                            '        run: |\n'
+                            + '\n'.join('          ' + line for line in cleanup[1].splitlines()))
+                check(step.rstrip() == expected,
+                      label + 'only exact local cleanup runs unconditionally, without credentials or remote actions')
+                continue
+            check(condition is not None and (condition == RELEASE_ACTIONS
+                  or condition.startswith(RELEASE_ACTIONS + ' && (') and condition.endswith(')')),
+                  label + 'every production operation and receipt requires ready/action admission: ' + step.splitlines()[0])
+            actions.append(condition)
+            for ready, perform in [('true', 'false'), ('false', 'false'), ('false', 'true')]:
+                state = dict(ordinary, **{'steps.release.outputs.ready': ready,
+                                         'steps.release.outputs.perform_actions': perform})
+                check(workflow_condition(condition, state) is False,
+                      label + 'unchanged or pending release cannot execute ' + step.splitlines()[0])
+            for value in re.findall(r'^          EXPECTED_SHA:\s*(.+)$', step, re.MULTILINE):
+                check(value == APPLICATION_SHA_EXPRESSION, label + 'runtime checks remain pinned to A')
+        check(actions and any(workflow_condition(condition, ordinary) for condition in actions),
+              label + 'ordinary installed releases and accepted scheduled work retain their action path')
+        if filename == 'publish-conversation-diagnostics.yml':
+            check('test "$(git rev-parse HEAD)" = "$TARGET_SHA"' in steps[index - 1],
+                  label + 'repository checkout is verified before capture admission')
+            targets = re.findall(r'^          TARGET_SHA:\s*(.+)$', source, re.MULTILINE)
+            check(targets == [APPLICATION_SHA_EXPRESSION, APPLICATION_SHA_EXPRESSION],
+                  label + 'capture and published production receipts both describe application A')
+            check(source.count('name: encrypted-dialogue-evidence-${{ steps.release.outputs.application_sha }}') == 1
+                  and source.count('name: metrika-delivery-diagnostic-${{ steps.release.outputs.application_sha }}') == 1,
+                  label + 'new artifacts cannot mislabel unchanged application data as repository R')
+
+    monitor = step_blocks(sources['modeled-conversion-monitor.yml'])
+    send = next(step for step in monitor if step.startswith('      - name: Send only this original retained intent\n'))
+    for overrides, allowed in [({}, True), ({'steps.decision.outputs.send': 'false'}, False),
+                               ({'steps.durable_intent.outcome': 'failure'}, False),
+                               ({'steps.source_ready.outputs.ready': 'false',
+                                 'steps.decision.outputs.send': '', 'steps.durable_intent.outcome': ''}, False)]:
+        check(workflow_condition(field(send, 'if'), dict(ordinary, **overrides)) is allowed,
+              'monitor: release admission preserves original durable-intent and no-send decisions')
+
+
+def operation_trigger_cases(root):
+    """A workflow-only change cannot request a production repair or migration."""
+    expected = {
+        'repair-lead-receiver-config.yml': (['services/LeadReceiverConfigEditor.php',
+                                            'tools/repair_lead_receiver_config.php'], True),
+        'restore-live-runtime.yml': (['tools/standby_enable_standalone.php'], True),
+        'restore-route-cache.yml': (['services/RouteCacheRestorer.php', 'tools/restore_route_cache.php'], False),
+        'sync-legacy-lead-receiver.yml': (['lead-receiver.php', 'services/RuntimeBootstrap.php'], True),
+    }
+    workflow_package = ['.github/workflows/' + name for name in expected]
+    for filename, (runtime_paths, manual) in expected.items():
+        source = (root / '.github/workflows' / filename).read_text(encoding='utf-8')
+        events = top_section(source, 'on')
+        keys = re.findall(r'^  ([a-z_]+):', events, re.MULTILINE)
+        patterns = re.findall(r"^      - '([^']+)'$", events, re.MULTILINE)
+        check(keys == (['push', 'workflow_dispatch'] if manual else ['push'])
+              and '    branches: [main]' in events.splitlines() and patterns == runtime_paths,
+              filename + ': existing main runtime paths and exact manual availability are retained')
+        matches = lambda changed: any(fnmatch.fnmatchcase(path, pattern)
+                                      for path in changed for pattern in patterns)
+        check(not matches(workflow_package), filename + ': a workflow-only package does not request an operation')
+        check(not matches(['tests/run_purchase_study_runtime.py']),
+              filename + ': the admitted development-only change does not request an operation')
+        for path in runtime_paths:
+            check(matches([path]) and matches(workflow_package + [path]),
+                  filename + ': a real existing runtime change still requests the original operation: ' + path)
+        if filename == 'restore-route-cache.yml':
+            check('deployment_release.js' not in source
+                  and 'EXPECTED_SHA: ${{ github.sha }}' in source
+                  and 'Wait for successful canonical deployment of this exact SHA' in source,
+                  'route-cache: runtime-only pushes retain their original full-deployment wait')
+
+
+def telegram_operation_cases(root):
+    """Execute explicit manual authority and fixed remote commands with offline doubles."""
+    source = (root / '.github/workflows/telegram-webhook-status.yml').read_text(encoding='utf-8')
+    steps = step_blocks(source)
+    validate = run_block(next(step for step in steps
+                             if step.startswith('      - name: Validate explicit operation and installed SHA\n')))
+    action = run_block(next(step for step in steps
+                           if step.startswith('      - name: Inspect or explicitly configure Telegram channel post updates\n')))
+    expected_commands = {
+        'inspect': 'tools/telegram_webhook_status.php',
+        'preview_channel_posts': 'tools/channel_post_webhook_updates.php telegram',
+        'enable_channel_posts': 'tools/channel_post_webhook_updates.php telegram --apply',
+        'reconcile_channel_posts': 'tools/channel_post_webhook_updates.php telegram --reconcile',
+    }
+    cases = [(operation, {}, True) for operation in expected_commands]
+    cases += [('inspect', {'EXPECTED_SHA': ''}, True),
+              ('inspect', {'INSTALLED_SHA': DOWNSTREAM_SHA}, False),
+              ('enable_channel_posts', {'EXPECTED_SHA': DEPLOY_SHA.upper()}, True),
+              ('enable_channel_posts', {'EXPECTED_SHA': DOWNSTREAM_SHA}, False),
+              ('enable_channel_posts', {'EXPECTED_SHA': ''}, False),
+              ('enable_channel_posts', {'INSTALLED_SHA': DOWNSTREAM_SHA}, False),
+              ('enable_channel_posts', {'UNSTAGED': '1'}, False),
+              ('reconcile_channel_posts', {'STAGED': '1'}, False),
+              ('inspect', {'RELEASE_READY': 'false'}, False),
+              ('inspect', {'PERFORM_ACTIONS': 'false'}, False),
+              ('inspect', {'APPLICATION_SHA': ''}, False),
+              ('inspect', {'APPLICATION_SHA': 'A' * 40}, False),
+              ('unsupported', {}, False)]
+    bash = shutil.which('bash')
+    if not bash:
+        raise RuntimeError('Existing runner bash is required')
+    for operation, overrides, valid in cases:
+        with tempfile.TemporaryDirectory(prefix='telegram-operation-release-') as temporary:
+            work = Path(temporary)
+            for name, body in {
+                'ssh': 'printf "ssh\\n" >> "$SSH_TRACE"\n' + shlex.quote(bash) + ' -s -- "${@: -2}"\n',
+                'git': 'case "$*" in\n"rev-parse HEAD") printf "%s\\n" "$INSTALLED_SHA";;\n'
+                       '"diff --quiet") exit "$UNSTAGED";;\n"diff --cached --quiet") exit "$STAGED";;\n*) exit 90;;\nesac\n',
+                'php': 'printf "%s\\n" "$*" >> "$PHP_TRACE"\n',
+            }.items():
+                binary = work / name
+                binary.write_text('#!' + bash + '\nset -euo pipefail\n' + body, encoding='utf-8')
+                binary.chmod(0o700)
+            env = {'PATH': str(work), 'LC_ALL': 'C', 'OPERATION': operation,
+                   'EXPECTED_SHA': DEPLOY_SHA, 'APPLICATION_SHA': DEPLOY_SHA,
+                   'RELEASE_READY': 'true', 'PERFORM_ACTIONS': 'true', 'INSTALLED_SHA': DEPLOY_SHA,
+                   'UNSTAGED': '0', 'STAGED': '0', 'DEPLOY_USER': 'synthetic', 'DEPLOY_HOST': 'offline.invalid',
+                   'RUNNER_TEMP': str(work), 'OFFLINE_CHECKOUT': str(work),
+                   'SSH_TRACE': str(work / 'ssh.trace'), 'PHP_TRACE': str(work / 'php.trace')}
+            env.update(overrides)
+            result = subprocess.run([bash, '--noprofile', '--norc', '-c', validate], cwd=work, env=env,
+                                    text=True, capture_output=True, timeout=5)
+            admitted = result.returncode == 0
+            if admitted:
+                env['EXPECTED_SHA'] = env['APPLICATION_SHA']
+                shell = action.replace('cd /var/www/anytoour/data/www/app.anytoour.ru', 'cd "$OFFLINE_CHECKOUT"')
+                result = subprocess.run([bash, '--noprofile', '--norc', '-c', shell], cwd=work, env=env,
+                                        text=True, capture_output=True, timeout=5)
+            commands = (work / 'php.trace').read_text().splitlines() if (work / 'php.trace').exists() else []
+            check((result.returncode == 0) is valid
+                  and commands == ([expected_commands[operation]] if valid else []),
+                  'telegram: exact operation and application admission: ' + repr((operation, overrides)))
+            check((work / 'ssh.trace').exists() is admitted,
+                  'telegram: invalid explicit authority or release proof cannot reach SSH')
+
+
+def deployment_aggregate_cases(root):
+    """Run both real terminal shells; no Git, credentials or external command is available."""
+    source = (root / '.github/workflows/deploy.yml').read_text(encoding='utf-8')
+    steps = step_blocks(source)
+    bash = shutil.which('bash')
+    if not bash:
+        raise RuntimeError('Existing runner bash is required')
+    proof = ('PROVENANCE_OUTCOME', 'PLAN_OUTCOME', 'RELEASE_OUTCOME', 'KEY_OUTCOME')
+    operations = ('BUNDLE_OUTCOME', 'SYNC_OUTCOME', 'MIGRATION_OUTCOME',
+                  'MAX_WEBHOOK_OUTCOME', 'METRIKA_CRON_OUTCOME', 'INSTALLED_OUTCOME')
+    installed = dict.fromkeys(proof + operations, 'success')
+    installed['RELEASE_KIND'] = 'installed'
+    unchanged = dict(installed, RELEASE_KIND='application_unchanged',
+                     **dict.fromkeys(operations, 'skipped'))
+    installation_cases = [('complete installation', installed, True),
+                          ('proved unchanged installation performs no protected stage', unchanged, True)]
+    for branch, baseline in [('installed', installed), ('unchanged', unchanged)]:
+        for key in proof:
+            for bad in ('failure', 'cancelled', 'skipped', ''):
+                installation_cases.append((branch + ' invalid ' + key + '=' + bad,
+                                           dict(baseline, **{key: bad}), False))
+        for key in operations:
+            for bad in (('failure', 'cancelled', 'skipped') if branch == 'installed'
+                        else ('success', 'failure', 'cancelled')):
+                installation_cases.append((branch + ' invalid protected ' + key + '=' + bad,
+                                           dict(baseline, **{key: bad}), False))
+
+    reusable = ('CHECK', 'DOWNLOAD', 'STATUS', 'PUBLICATION', 'CLEANUP')
+    verified = dict.fromkeys(('ADMISSION', 'KEY') + reusable, 'success')
+    verified.update({key + '_ACCEPTED': 'skipped' for key in reusable})
+    verified.update(RELEASE_KIND='installed', UNCHANGED='skipped')
+    verification_cases = [('complete installed verification', verified, True)]
+    for key in ('ADMISSION', 'KEY'):
+        for bad in ('failure', 'cancelled', 'skipped', ''):
+            verification_cases.append(('invalid verification ' + key + '=' + bad,
+                                       dict(verified, **{key: bad}), False))
+    for bad in ('success', 'failure', 'cancelled', ''):
+        verification_cases.append(('installed must skip unchanged publication=' + bad,
+                                   dict(verified, UNCHANGED=bad), False))
+    for key in reusable:
+        # An accepted old result permits an actually skipped step, never a
+        # repeated, failed or cancelled execution disguised by inherited success.
+        for actual, accepted, valid in [('success', 'skipped', True), ('skipped', 'success', True),
+                                        ('skipped', 'skipped', False), ('failure', 'skipped', False),
+                                        ('cancelled', 'skipped', False), ('failure', 'success', False),
+                                        ('cancelled', 'success', False), ('success', 'success', False),
+                                        ('skipped', '', False)]:
+            verification_cases.append((key + ' actual=' + actual + ' accepted=' + accepted,
+                                       dict(verified, **{key: actual, key + '_ACCEPTED': accepted}), valid))
+    inherited = dict(verified, **dict.fromkeys(reusable, 'skipped'))
+    inherited.update({key + '_ACCEPTED': 'success' for key in reusable})
+    verification_cases.append(('all exact successful prior stages retained', inherited, True))
+    unchanged_verified = dict.fromkeys(verified, '')
+    protected = ('ADMISSION', 'KEY', 'CHECK', 'DOWNLOAD', 'STATUS', 'CLEANUP')
+    unchanged_verified.update(dict.fromkeys(protected, 'skipped'))
+    unchanged_verified.update(RELEASE_KIND='application_unchanged', UNCHANGED='success', PUBLICATION='success')
+    verification_cases.append(('own unchanged proof and publication with no protected action', unchanged_verified, True))
+    for key in ('UNCHANGED', 'PUBLICATION'):
+        for bad in ('failure', 'cancelled', 'skipped', ''):
+            verification_cases.append(('unchanged lacks own ' + key + '=' + bad,
+                                       dict(unchanged_verified, **{key: bad}), False))
+    for key in protected:
+        for bad in ('success', 'failure', 'cancelled'):
+            verification_cases.append(('unchanged protected stage was executed: ' + key + '=' + bad,
+                                       dict(unchanged_verified, **{key: bad}), False))
+    verification_cases.append(('unchanged cannot borrow a previous publication',
+                               dict(unchanged_verified, PUBLICATION='skipped', PUBLICATION_ACCEPTED='success'), False))
+    cases_executed = 0
+    for name, cases, baseline in [
+        ('Fail failed installation', installation_cases, installed),
+        ('Require complete installed verification', verification_cases, verified),
+    ]:
+        matches = [step for step in steps if step.startswith('      - name: ' + name + '\n')]
+        check(len(matches) == 1 and field(matches[0], 'if') == 'always()'
+              and field(matches[0], 'continue-on-error') is None, name + ': mandatory terminal failure boundary')
+        shell = run_block(matches[0])
+        check('${{' not in shell, name + ': actual shell receives only declared environment bindings')
+        cases.extend(('unknown release kind=' + kind, dict(baseline, RELEASE_KIND=kind), False)
+                     for kind in ('', 'unknown', 'Installed'))
+        with tempfile.TemporaryDirectory(prefix='deployment-aggregate-') as temporary:
+            for label, values, valid in cases:
+                env = {'PATH': temporary, 'LC_ALL': 'C', **values}
+                completed = subprocess.run([bash, '--noprofile', '--norc', '-e', '-u', '-o', 'pipefail', '-c', shell],
+                                           cwd=temporary, env=env, text=True, capture_output=True, timeout=2)
+                check((completed.returncode == 0) is valid, name + ': ' + label)
+                cases_executed += 1
+    print('DEPLOYMENT AGGREGATES: ' + str(cases_executed) + ' actual shell cases PASS (offline)')
 
 
 def event_payload():
@@ -256,14 +587,15 @@ def monitor_source_ready_cases(source):
     ready_index, ready_step = ready[0]
     check(installed_index < ready_index < decision[0][0],
           'monitor: installed source and active-installation admission precede notification decision')
-    check('          EXPECTED_SHA: ' + SHA_EXPRESSION in installed_step.splitlines()
-          and '          EXPECTED_SHA: ' + SHA_EXPRESSION in ready_step.splitlines()
+    check('          EXPECTED_SHA: ' + APPLICATION_SHA_EXPRESSION in installed_step.splitlines()
+          and '          EXPECTED_SHA: ' + APPLICATION_SHA_EXPRESSION in ready_step.splitlines()
+          and '          REPOSITORY_SHA: ' + REPOSITORY_SHA_EXPRESSION in ready_step.splitlines()
           and '          INSTALLED_SHA: ${{ steps.installed.outputs.sha }}' in ready_step.splitlines(),
           'monitor: installation observations retain fixed trusted source bindings')
     check('timeout 15s ssh ' in run_block(installed_step),
           'monitor: installed-source transport probe has a finite outer timeout')
     check(field(ready_step, 'uses') == 'actions/github-script@v7'
-          and field(ready_step, 'if') is None and field(ready_step, 'continue-on-error') is None
+          and field(ready_step, 'if') == RELEASE_ACTIONS and field(ready_step, 'continue-on-error') is None
           and '          retries: 0' in ready_step.splitlines(),
           'monitor: source-ready gate is mandatory with no retries or error suppression')
     ready_if = "steps.source_ready.outputs.ready == 'true'"
@@ -282,7 +614,7 @@ def monitor_source_ready_cases(source):
     for name, expected_if in guards.items():
         matches = [(i, step) for i, step in enumerate(steps) if step.startswith('      - name: ' + name + '\n')]
         check(len(matches) == 1 and ready_index < matches[0][0]
-              and field(matches[0][1], 'if') == expected_if,
+              and field(matches[0][1], 'if') == RELEASE_ACTIONS + ' && (' + expected_if + ')',
               'monitor: state, send and always-step admission remains gated: ' + name)
 
     node = shutil.which('node')
@@ -295,6 +627,14 @@ def monitor_source_ready_cases(source):
               'conclusion': None, 'status': 'in_progress'}
     cases = [
         ('installed source already matches', {'installed': DEPLOY_SHA, 'list_error': True}, 'true', 1),
+        ('accepted repository-only release reads the unchanged application',
+         {'repository': DOWNSTREAM_SHA, 'main': DOWNSTREAM_SHA, 'installed': DEPLOY_SHA,
+          'list_error': True}, 'true', 1),
+        ('repository-only release rejects stale authoritative main',
+         {'repository': DOWNSTREAM_SHA, 'installed': DEPLOY_SHA}, None, 1),
+        ('installation race lookup follows repository SHA while application remains distinct',
+         {'repository': DOWNSTREAM_SHA, 'main': DOWNSTREAM_SHA, 'installed': 'c' * 40,
+          'runs': [dict(active, head_sha=DOWNSTREAM_SHA)]}, 'false', 2),
         ('unavailable installed source must reach actual health handling',
          {'installed': 'unavailable', 'list_error': True}, 'true', 1),
         ('no matching deployment', {'runs': []}, 'true', 2),
@@ -327,7 +667,7 @@ def monitor_source_ready_cases(source):
     manual = copy.deepcopy(active)
     manual['event'] = 'workflow_dispatch'
     cases.append(('identified manual main installation', {'runs': [manual]}, 'false', 2))
-    for name in ('expected', 'installed'):
+    for name in ('expected', 'repository', 'installed'):
         for value in (None, '', 'a' * 39, 'a' * 41, 'g' * 40, 'A' * 40, DEPLOY_SHA + '\n'):
             cases.append(('invalid trusted ' + name + '=' + repr(value), {name: value}, None, 0))
 
@@ -351,7 +691,7 @@ const github = {rest: {
     calls.push('deploy');
     if (args.owner !== context.repo.owner || args.repo !== context.repo.repo ||
         args.workflow_id !== 'deploy.yml' || args.branch !== 'main' ||
-        args.head_sha !== process.env.EXPECTED_SHA || args.per_page !== 20 ||
+        args.head_sha !== process.env.REPOSITORY_SHA || args.per_page !== 20 ||
         args.request?.timeout !== 10000) throw new Error('unexpected_deployment_lookup');
     if (fixture.list_error) throw new Error('synthetic_deployment_api_error');
     return Object.prototype.hasOwnProperty.call(fixture, 'deploy_response')
@@ -376,7 +716,8 @@ const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 })().catch(() => process.exit(2));
 """
     for name, patch, expected_ready, expected_calls in cases:
-        fixture = {'expected': DEPLOY_SHA, 'installed': DOWNSTREAM_SHA, 'main': DEPLOY_SHA, 'runs': [active]}
+        fixture = {'expected': DEPLOY_SHA, 'repository': DEPLOY_SHA, 'installed': DOWNSTREAM_SHA,
+                   'main': DEPLOY_SHA, 'runs': [active]}
         fixture.update(patch)
         with tempfile.TemporaryDirectory(prefix='monitor-source-ready-') as temporary:
             work = Path(temporary)
@@ -385,7 +726,8 @@ const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
             source_file.write_text(script, encoding='utf-8')
             harness_file.write_text(harness, encoding='utf-8')
             env = {'PATH': str(work), 'LC_ALL': 'C'}
-            for field_name, env_name in (('expected', 'EXPECTED_SHA'), ('installed', 'INSTALLED_SHA')):
+            for field_name, env_name in (('expected', 'EXPECTED_SHA'), ('repository', 'REPOSITORY_SHA'),
+                                        ('installed', 'INSTALLED_SHA')):
                 if isinstance(fixture[field_name], str):
                     env[env_name] = fixture[field_name]
             completed = subprocess.run([node, str(harness_file), str(fixture_file), str(source_file)],
@@ -411,7 +753,7 @@ def monitor_record_cases(source):
           and not re.search(r'^    continue-on-error:', source, re.MULTILINE),
           'monitor: failed receipt cannot be suppressed at step or job level')
     expected_env = {
-        'EXPECTED_SHA': SHA_EXPRESSION,
+        'EXPECTED_SHA': APPLICATION_SHA_EXPRESSION,
         'MONITOR_EVENT': '${{ github.event_name }}',
         'MONITOR_RUN_ID': '${{ github.run_id }}',
         'MONITOR_RUN_ATTEMPT': '${{ github.run_attempt }}',
@@ -840,7 +1182,7 @@ def monitor_retained_read_cases(source):
     check(len(steps) == 1, 'monitor: one retained encrypted-state lookup')
     step = steps[0]
     check(field(step, 'uses') == 'actions/github-script@v7'
-          and field(step, 'if') == "steps.source_ready.outputs.ready == 'true'"
+          and field(step, 'if') == RELEASE_ACTIONS + " && (steps.source_ready.outputs.ready == 'true')"
           and field(step, 'continue-on-error') is None,
           'monitor: retained-state lookup keeps its admission and failure boundary')
     node = shutil.which('node')
@@ -999,6 +1341,10 @@ def main():
     sources = {filename: (args.root / '.github/workflows' / filename).read_text(encoding='utf-8')
                for filename in WORKFLOWS}
     monitor_schedule_cases(args.root, sources)
+    release_wiring_cases(args.root, sources)
+    operation_trigger_cases(args.root)
+    telegram_operation_cases(args.root)
+    deployment_aggregate_cases(args.root)
     for filename, source in sources.items():
         behavior_cases(source_step(source, filename), filename)
         if filename == 'modeled-conversion-monitor.yml':

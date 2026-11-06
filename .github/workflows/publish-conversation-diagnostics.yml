@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: production-diagnostics
@@ -38,10 +39,18 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
           git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
           test "$(git rev-parse refs/remotes/origin/main)" = "$TARGET_SHA"
 
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Prepare evidence encryption
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -50,6 +59,7 @@ jobs:
           "$RUNNER_TEMP/evidence-python/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
 
       - name: Prepare SSH private key
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
@@ -67,7 +77,9 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
 
       - name: Verify deployed SHA and capture production
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
+          TARGET_SHA: ${{ steps.release.outputs.application_sha }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
           PROFILE_MANAGER_LISTS: ${{ github.event_name == 'workflow_dispatch' && inputs.profile_manager_lists == true && 'true' || 'false' }}
@@ -144,6 +156,9 @@ jobs:
           rm -f "$RUNNER_TEMP/deploy_key"
 
       - name: Publish production snapshot
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
+        env:
+          TARGET_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -172,18 +187,20 @@ jobs:
           exit 1
 
       - name: Upload encrypted dialogue evidence
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: encrypted-dialogue-evidence-${{ env.TARGET_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: encrypted-dialogue-evidence-${{ steps.release.outputs.application_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/dialogue-evidence.age
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
 
       - name: Upload Metrika delivery diagnostic
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: metrika-delivery-diagnostic-${{ env.TARGET_SHA }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: metrika-delivery-diagnostic-${{ steps.release.outputs.application_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/production-diagnostics-out/metrika_delivery_diagnostic.txt
           if-no-files-found: error
           retention-days: 1

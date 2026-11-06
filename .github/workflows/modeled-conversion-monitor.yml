@@ -81,7 +81,14 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           bash tools/verify_deploy_main_provenance.sh
 
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Prepare SSH private key
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
@@ -99,11 +106,12 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
 
       - name: Read the installed source before opening notification state
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         id: installed
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -113,28 +121,30 @@ jobs:
           printf 'sha=%s\n' "$installed_sha" >> "$GITHUB_OUTPUT"
 
       - name: Defer only an identified active installation
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         id: source_ready
         uses: actions/github-script@v7
         env:
-          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
           INSTALLED_SHA: ${{ steps.installed.outputs.sha }}
         with:
           retries: 0
           script: |
-            const expected=process.env.EXPECTED_SHA,installed=process.env.INSTALLED_SHA;
+            const expected=process.env.EXPECTED_SHA,repository=process.env.REPOSITORY_SHA,installed=process.env.INSTALLED_SHA;
             const isSha=v=>typeof v==='string'&&v.length===40&&/^[0-9a-f]{40}$/.test(v);
-            if(!isSha(expected)||!(installed==='unavailable'||isSha(installed)))
+            if(!isSha(expected)||!isSha(repository)||!(installed==='unavailable'||isSha(installed)))
               throw new Error('invalid_installation_metadata');
             const main=await github.rest.git.getRef({...context.repo,ref:'heads/main',request:{timeout:10000}});
-            if(main.data.object.sha!==expected)throw new Error('monitor_source_changed');
+            if(main.data.object.sha!==repository)throw new Error('monitor_source_changed');
             if(installed===expected||installed==='unavailable'){
               core.setOutput('ready','true');return;
             }
             const response=await github.rest.actions.listWorkflowRuns({...context.repo,
-              workflow_id:'deploy.yml',branch:'main',head_sha:expected,per_page:20,request:{timeout:10000}});
+              workflow_id:'deploy.yml',branch:'main',head_sha:repository,per_page:20,request:{timeout:10000}});
             const runs=response.data.workflow_runs;
             if(!Array.isArray(runs)||runs.length>20)throw new Error('invalid_deployment_metadata');
-            const active=runs.some(r=>r.name==='Deploy production'&&r.head_sha===expected&&
+            const active=runs.some(r=>r.name==='Deploy production'&&r.head_sha===repository&&
               r.head_branch==='main'&&r.head_repository?.full_name==='pyatkoff/max-search-bot'&&
               ['push','workflow_dispatch'].includes(r.event)&&r.conclusion===null&&
               ['queued','in_progress','requested','waiting','pending'].includes(r.status));
@@ -142,7 +152,7 @@ jobs:
             if(active)core.info('monitor_installation_pending');
 
       - name: Prepare existing pinned encrypted evidence runtime
-        if: steps.source_ready.outputs.ready == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true')
         env:
           MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
         shell: bash
@@ -155,7 +165,7 @@ jobs:
           "$RUNNER_TEMP/monitor-python/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
 
       - name: Locate latest retained encrypted monitor state
-        if: steps.source_ready.outputs.ready == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true')
         id: retained
         uses: actions/github-script@v7
         with:
@@ -237,7 +247,7 @@ jobs:
             }
 
       - name: Download retained ciphertext only
-        if: steps.source_ready.outputs.ready == 'true' && steps.retained.outputs.present == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true' && steps.retained.outputs.present == 'true')
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
@@ -246,11 +256,11 @@ jobs:
           path: ${{ runner.temp }}/monitor-cache
 
       - name: Read fixed installed technical health and bootstrap route when required
-        if: steps.source_ready.outputs.ready == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true')
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -268,7 +278,7 @@ jobs:
           fi
 
       - name: Prepare one immutable notification intent
-        if: steps.source_ready.outputs.ready == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true')
         env:
           MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
         id: decision
@@ -296,7 +306,7 @@ jobs:
 
       - name: Persist encrypted intent before any Telegram send
         id: durable_intent
-        if: steps.decision.outputs.send == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.decision.outputs.send == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: modeled-monitor-private-intent
@@ -305,7 +315,7 @@ jobs:
           if-no-files-found: error
 
       - name: Send only this original retained intent
-        if: steps.decision.outputs.send == 'true' && steps.durable_intent.outcome == 'success'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.decision.outputs.send == 'true' && steps.durable_intent.outcome == 'success')
         env:
           INTENT_ARTIFACT_ID: ${{ steps.durable_intent.outputs.artifact-id }}
           MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
@@ -319,7 +329,7 @@ jobs:
             > "$RUNNER_TEMP/monitor-result.json" || true
 
       - name: Retain final encrypted state
-        if: always() && steps.decision.outcome == 'success'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && steps.decision.outcome == 'success')
         uses: actions/upload-artifact@v4
         with:
           name: modeled-monitor-private-final
@@ -328,11 +338,11 @@ jobs:
           if-no-files-found: error
 
       - name: Record sanitized external monitoring receipt
-        if: always() && steps.decision.outcome == 'success'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && steps.decision.outcome == 'success')
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
           MONITOR_EVENT: ${{ github.event_name }}
           MONITOR_RUN_ID: ${{ github.run_id }}
           MONITOR_RUN_ATTEMPT: ${{ github.run_attempt }}
@@ -350,7 +360,7 @@ jobs:
           fi
 
       - name: Verify technical monitoring result
-        if: always() && steps.decision.outcome == 'success'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && steps.decision.outcome == 'success')
         shell: bash
         run: |
           set -euo pipefail

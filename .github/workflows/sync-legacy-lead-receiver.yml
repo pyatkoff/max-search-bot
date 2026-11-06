@@ -6,11 +6,11 @@ on:
     paths:
       - 'lead-receiver.php'
       - 'services/RuntimeBootstrap.php'
-      - '.github/workflows/sync-legacy-lead-receiver.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: legacy-bitrix-lead-receiver-sync
@@ -25,7 +25,26 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
+      - name: Verify exact repository source is current main
+        id: provenance
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          bash tools/verify_deploy_main_provenance.sh
+
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Prepare legacy and canonical SSH keys
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           LEGACY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           CANONICAL_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -47,10 +66,11 @@ jobs:
           write_key "$CANONICAL_KEY" "$RUNNER_TEMP/canonical_key"
 
       - name: Wait for exact canonical production SHA
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -65,6 +85,7 @@ jobs:
           exit 1
 
       - name: Discover retained legacy receiver
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         id: receiver
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
@@ -92,10 +113,11 @@ jobs:
           echo "LEGACY_RECEIVER_DISCOVERY=OK"
 
       - name: Install exact receiver bootstrap with rollback
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
           USER: ${{ secrets.DEPLOY_USER }}
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -134,13 +156,14 @@ jobs:
           echo "LEGACY_RECEIVER_FILES_INSTALLED=OK"
 
       - name: Verify legacy receiver and canonical HMAC bridge
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           URL: ${{ steps.receiver.outputs.url }}
           LEGACY_HOST: ${{ secrets.DEPLOY_HOST }}
           LEGACY_USER: ${{ secrets.DEPLOY_USER }}
           CANONICAL_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           CANONICAL_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -170,12 +193,13 @@ jobs:
           echo "LEGACY_RECEIVER_SYNC=VERIFIED_BACKUP_RETAINED"
 
       - name: Wait for natural Telegram retry to clear
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER: ${{ secrets.STANDBY_DEPLOY_USER }}
           LEGACY_HOST: ${{ secrets.DEPLOY_HOST }}
           LEGACY_USER: ${{ secrets.DEPLOY_USER }}
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail

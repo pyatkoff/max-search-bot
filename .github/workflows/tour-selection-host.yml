@@ -12,7 +12,7 @@ on:
         description: Approved editor-only PR head (empty for normal host reconciliation)
         required: false
       backend_sha:
-        description: Exact current main and installed backend SHA
+        description: Exact installed backend SHA, joined to current main by the accepted release result
         required: false
       current_package:
         description: Expected currently active editor package ID
@@ -46,12 +46,25 @@ jobs:
           fetch-depth: 0
       - name: Require current authoritative main before loading deployment credentials
         run: bash tools/verify_deploy_main_provenance.sh
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+      - name: Checkout the actual backend for an explicitly requested host reconciliation
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && steps.release.outputs.application_sha != steps.release.outputs.repository_sha
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.application_sha }}
+          fetch-depth: 0
       - uses: shivammathur/setup-php@v2
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         with:
           php-version: '8.3'
           extensions: pdo_sqlite
           coverage: none
       - name: Verify the exact independent public package and safe installation
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         run: |
           set -euo pipefail
           python3 modules/tour-selections/build.py build --output "$RUNNER_TEMP/selection-public"
@@ -61,7 +74,9 @@ jobs:
           python3 modules/tour-selections/build-editor.py verify --output "$RUNNER_TEMP/selection-editor"
           php modules/tour-selections/tests/test_editor_deploy.php "$RUNNER_TEMP/selection-editor"
       - name: Install only the owned tours host and enable links after strict hosted smoke
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
           DEPLOY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -125,7 +140,25 @@ jobs:
             editor_installed=1
             ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && php modules/tour-selections/deploy-editor.php activate && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'" | tee "$RUNNER_TEMP/selection-editor-host-receipt.json"
           fi
+          # Observe the settled installation through the same existing SSH owner.
+          # An unavailable optimization proof is explicit and never rolls back an
+          # otherwise accepted ordinary installation. A proven blocked state is
+          # retained in the artifact for the existing closer to reject.
+          if ! ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" bash -s -- "$EXPECTED_SHA" > "$RUNNER_TEMP/runtime-fingerprint.json" <<'HOST_FINGERPRINT'
+          set -euo pipefail
+          root=/var/www/anytoour/data/www/app.anytoour.ru
+          cd "$root"
+          test "$(git rev-parse HEAD)" = "$1"
+          crontab -l | php tools/deployment_runtime_fingerprint.php --mode=all --root="$root" --application-sha="$1" --config="$root/config.php" --private-config-root=/var/www/anytoour/data/config --cron-file=- --public-site=/var/www/anytoour/data/www/tours.anytoour.ru --public-releases=/var/www/anytoour/data/selection-public-releases --public-marker=/var/www/anytoour/data/www/max-search-bot-private-logs/selection-public-host.json --editor-releases=/var/www/anytoour/data/www/max-search-bot-private-logs/selection-editor-releases
+          HOST_FINGERPRINT
+          then
+            python3 - <<'UNKNOWN_FINGERPRINT' > "$RUNNER_TEMP/runtime-fingerprint.json"
+          import json, os
+          print(json.dumps({'schema':1,'protocol':'anytour-deployment-runtime-v1','mode':'all','status':'unknown','reason_code':'collector_unavailable','application_sha':os.environ['EXPECTED_SHA'],'core_digest':None,'configuration_key_id':None,'components':{'public':None,'editor':None},'digest':None},sort_keys=True,separators=(',',':')))
+          UNKNOWN_FINGERPRINT
+          fi
       - uses: actions/upload-artifact@v4
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         with:
           name: selection-host-${{ env.EXPECTED_SHA }}
           path: |
@@ -136,6 +169,7 @@ jobs:
             ${{ runner.temp }}/selection-editor/receipt.json
             ${{ runner.temp }}/selection-editor/compatibility.json
             ${{ runner.temp }}/editor-host-status.json
+            ${{ runner.temp }}/runtime-fingerprint.json
           if-no-files-found: error
           retention-days: 14
 
@@ -160,25 +194,47 @@ jobs:
           PY
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.backend_sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Require exact authoritative main before loading publication credentials
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
         run: bash tools/verify_deploy_main_provenance.sh
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+          node tools/deployment_release.js resolve-editor --repository-sha "$GITHUB_SHA" --application-sha "$EXPECTED_SHA" > "$RUNNER_TEMP/editor-release-mapping.json"
+      - name: Checkout the verified installed backend tools
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.backend_sha }}
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/checkout@v4
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         with:
           ref: ${{ inputs.source_sha }}
           path: editor-candidate
           fetch-depth: 0
           persist-credentials: false
       - uses: shivammathur/setup-php@v2
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         with:
           php-version: '8.3'
           extensions: pdo_sqlite
           coverage: none
       - name: Build with trusted backend tools and admit exact source plus required CI
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
@@ -188,10 +244,12 @@ jobs:
           pack=importlib.util.module_from_spec(spec);spec.loader.exec_module(pack)
           pack.build(root/'editor-candidate',pathlib.Path(os.environ['RUNNER_TEMP'])/'independent-editor')
           PY
-          python3 modules/tour-selections/admit-editor.py --backend "$GITHUB_WORKSPACE" --candidate "$GITHUB_WORKSPACE/editor-candidate" --output "$RUNNER_TEMP/independent-editor" --backend-sha "$EXPECTED_SHA" --source-sha "$EDITOR_SOURCE" --current-package "$CURRENT_PACKAGE" --operation "$EDITOR_OPERATION" --pull-request "$EDITOR_PR" > "$RUNNER_TEMP/editor-source-admission.json"
+          python3 modules/tour-selections/admit-editor.py --backend "$GITHUB_WORKSPACE" --candidate "$GITHUB_WORKSPACE/editor-candidate" --output "$RUNNER_TEMP/independent-editor" --backend-sha "$EXPECTED_SHA" --repository-sha "$REPOSITORY_SHA" --source-sha "$EDITOR_SOURCE" --current-package "$CURRENT_PACKAGE" --operation "$EDITOR_OPERATION" --pull-request "$EDITOR_PR" > "$RUNNER_TEMP/editor-source-admission.json"
           git -C editor-candidate bundle create "$RUNNER_TEMP/editor-source.bundle" HEAD
       - name: Install admitted component on unchanged backend with operation and package CAS
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
           DEPLOY_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -224,11 +282,11 @@ jobs:
           scp "${opts[@]}" "$RUNNER_TEMP/editor-source.bundle" "$DEPLOY_USER@$DEPLOY_HOST:$stage/source.bundle"
           scp -r "${opts[@]}" "$RUNNER_TEMP/independent-editor" "$DEPLOY_USER@$DEPLOY_HOST:$stage/package"
           ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "git -c core.hooksPath=/dev/null clone --no-checkout '$stage/source.bundle' '$stage/candidate' && git -C '$stage/candidate' -c core.hooksPath=/dev/null checkout --detach '$EDITOR_SOURCE'"
-          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php modules/tour-selections/deploy-editor.php install-independent '$stage/package' '$stage/candidate' '$EXPECTED_SHA' '$EDITOR_SOURCE' '$CURRENT_PACKAGE' '$EDITOR_OPERATION'" | tee "$RUNNER_TEMP/editor-independent-install.json"
+          ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php modules/tour-selections/deploy-editor.php install-independent '$stage/package' '$stage/candidate' '$EXPECTED_SHA' '$EDITOR_SOURCE' '$CURRENT_PACKAGE' '$EDITOR_OPERATION' '$REPOSITORY_SHA'" | tee "$RUNNER_TEMP/editor-independent-install.json"
           installed=1
           ssh "${opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && php modules/tour-selections/deploy-editor.php activate-independent '$EDITOR_OPERATION' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'" | tee "$RUNNER_TEMP/editor-independent-active.json"
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         with:
           name: independent-editor-${{ inputs.source_sha }}-${{ github.run_id }}
           path: |
