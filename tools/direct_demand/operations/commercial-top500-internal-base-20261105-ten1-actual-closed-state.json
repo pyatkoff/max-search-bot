@@ -1,0 +1,266 @@
+{
+  "operation": "commercial-top500-internal-base-20261105-ten1-read1",
+  "state": "CLOSED_SUCCESSFUL_EXACT10_INTERNAL_METADATA_READ_ALL_INPUTS_CONSUMED_NO_DELIVERY",
+  "canonical_top500_source_rows": 500,
+  "canonical_unique_ids": 492,
+  "canonical_source_repository": "pyatkoff/poisk-turov-test",
+  "canonical_roster_revision": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+  "scope_sha256": "65101acdccb501864e99a289038b41574e7a401af681358da898b648ebb0162b",
+  "hotel_ids": [
+    22879,
+    8520,
+    8208,
+    12575,
+    8188,
+    39872,
+    35319,
+    27611,
+    8554,
+    8602
+  ],
+  "actual_run": 42165764181,
+  "actual_job": 127721769001,
+  "execution_source": "3b6bd27ff9f433aff38f7e21913979ef7451e17a",
+  "installed_source": "5a18f64f790fdc3ace989d99e8efc84046159795",
+  "artifacts": [
+    {
+      "id": 13479260131,
+      "name": "commercial-top500-internal-base-20261105-ten1-input",
+      "created_at": "2026-11-06T05:00:27Z",
+      "digest": "sha256:2e2803d5b36137ef60ad7863a0ed4c28261019635767552a0db64e071de1dda0"
+    },
+    {
+      "id": 13479140677,
+      "name": "commercial-top500-internal-base-20261105-ten1-result",
+      "created_at": "2026-11-06T05:00:33Z",
+      "digest": "sha256:35391823ee8d0d8f2c88d049eb94948736879f6dc302480250a9b5a663f4320b"
+    }
+  ],
+  "input_before_result": true,
+  "current_main_deploy_verify_tls_diagnostics_full_remote21_host25_clean_schema_rights": "PASS",
+  "full_remote21_byte_identical": true,
+  "host_step25_byte_identical": true,
+  "native_input24_cases": {
+    "run": 42165343894,
+    "state": "PASS_CLOSED_NOT_RERUN"
+  },
+  "new_native_registry_sql_groups": {
+    "run": 42165764181,
+    "groups": 7,
+    "state": "PASS_OLD_GROUPS_RERUN_ZERO"
+  },
+  "preparation_failure": {
+    "run": 42165191758,
+    "job": 127719916740,
+    "php_strict_header_order_fixed": true,
+    "native_cases": 0,
+    "server_access": 0,
+    "closed": true
+  },
+  "first_runtime_failure": {
+    "run": 42165343894,
+    "job": 127720393365,
+    "error": "bounded_internal_metadata_read_failed",
+    "provider_rights_reads": 2,
+    "accepted_dataset": false,
+    "partial_db_reads_unmeasured_not_zero": true,
+    "code_proven_registry_owner_defect": "pp.state replaced with post_versions v.state",
+    "closed": true
+  },
+  "corrective_runtime_attempts": 1,
+  "total_runtime_metadata_attempts": 2,
+  "scope_reread_of_unaccepted_metadata_disclosed": true,
+  "further_same_scope_db_read_for_missing_store_prohibited": true,
+  "safe_summary": {
+    "operation": "commercial-top500-internal-base-20261105-ten1-read1",
+    "ok": true,
+    "error": null,
+    "error_class": null,
+    "sqlstate": null,
+    "last_completed_stage": "registry_metadata",
+    "metadata_failure_is_not_absence": null,
+    "installed_sha": "5a18f64f790fdc3ace989d99e8efc84046159795",
+    "db_writes": 0,
+    "gateway_calls": 0,
+    "provider_post_reads": 0,
+    "provider_channel_rights_checks": 2,
+    "message_sends": 0,
+    "photo_http": 0,
+    "hotels": 10,
+    "native_present": 8,
+    "local_tv_present": 1,
+    "catalog_primary_image_hotels": 1,
+    "local_tv_gallery_hotels": 1,
+    "stored_price_recent_hotels": 1,
+    "stored_price_recent_rows": 175,
+    "policy_condition_rows": 70,
+    "bound_native_ids": [
+      22879,
+      8520,
+      8208,
+      12575,
+      8188,
+      39872,
+      35319,
+      27611,
+      8554,
+      8602
+    ],
+    "rows": [
+      {
+        "native_id": 22879,
+        "native_present": true,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 8520,
+        "native_present": false,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 8208,
+        "native_present": true,
+        "has_catalog_primary": true,
+        "local_tv_images": 41,
+        "recent_price_rows": 175,
+        "policy_condition_rows": 70,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 12575,
+        "native_present": false,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 8188,
+        "native_present": true,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 39872,
+        "native_present": true,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 35319,
+        "native_present": true,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 27611,
+        "native_present": true,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 8554,
+        "native_present": true,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      },
+      {
+        "native_id": 8602,
+        "native_present": true,
+        "has_catalog_primary": false,
+        "local_tv_images": null,
+        "recent_price_rows": null,
+        "policy_condition_rows": null,
+        "price_metadata_state": "LAST72H_PERSISTED_UTC_METADATA_ONLY",
+        "registry_match_count": 0
+      }
+    ]
+  },
+  "confirmed_findings": {
+    "native_present": 8,
+    "native_missing_in_exact_query": [
+      8520,
+      12575
+    ],
+    "native_missing_does_not_prove_deleted_or_wrong_identity": true,
+    "retained_local_tv_gallery_native_id": 8208,
+    "retained_distinct_declared_photo_urls": 41,
+    "catalog_primary_image_native_ids": [
+      8208
+    ],
+    "native_with_last72h_stored_price_metadata": [
+      8208
+    ],
+    "stored_price_observation_rows": 175,
+    "rows_with_existing_policy_condition_fields": 70,
+    "stored_search_rows_are_not_final_prices_or_availability": true,
+    "gateway_quote_candidates_or_fingerprints_exported": 0,
+    "registry_exact_native_metadata_matches_for10": 0,
+    "zero_metadata_matches_are_not_full_dedup_acceptance": true
+  },
+  "remaining_coverage_unknown": "Other9 no gallery in tested local_tv metadata and no recent persisted rows in measured72h. This does not establish absence from every retained internal source or older history. No whole-gallery pixels/rights/hero proof accepted.",
+  "bounds": {
+    "total_channel_rights_reads_in_runtime_attempts": 4,
+    "provider_post_reads": 0,
+    "gateway_calls": 0,
+    "db_writes": 0,
+    "photo_http": 0,
+    "canva_transactions": 0,
+    "new_posts": 0,
+    "price_edits": 0,
+    "search_link_edits": 0,
+    "old_cases_or_logs_replayed": 0
+  },
+  "current_totals": {
+    "actual_pairs": 161,
+    "priced": 85,
+    "linked": 155,
+    "top500_exact_id_overlap": 4,
+    "feeds": [
+      161,
+      161,
+      322
+    ],
+    "max_aliases": 161,
+    "monitor_targets": 674,
+    "ready_materials": 0,
+    "unknown_provider_outcomes": 0,
+    "open_canva_transactions": 0,
+    "goal500_complete": false
+  },
+  "all_original_logs_closed_after_once": true,
+  "next": "Offline first-needed projection for native8208 from exact original authenticated result13479140677, then genuinely unread stored facts/photoDetails/current-native proof and new normal source42150109043. No same10 database repeat or external media yet."
+}

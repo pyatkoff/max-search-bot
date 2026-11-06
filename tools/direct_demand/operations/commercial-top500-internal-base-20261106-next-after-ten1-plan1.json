@@ -1,0 +1,41 @@
+{
+  "operation": "commercial-top500-internal-base-20261106-next-after-ten1-plan1",
+  "state": "PREPARED_ONE_PROPERTY_RETAINED_DATA_FIRST_NO_GALLERY_OR_PRICE_DELIVERY_YET",
+  "goal": "Advance one real canonical TOP500 hotel8208 using the already-retained internal gallery and stored price evidence; measure missing fields before any external work.",
+  "priority_native_ids": [
+    8208
+  ],
+  "original_auth_artifact": {
+    "repository": "pyatkoff/max-search-bot",
+    "run": 42165764181,
+    "artifact_id": 13479140677,
+    "name": "commercial-top500-internal-base-20261105-ten1-result",
+    "source": "3b6bd27ff9f433aff38f7e21913979ef7451e17a",
+    "file": "top500-readback.private.json"
+  },
+  "steps": [
+    "Recover only native8208 scalar current name/country/active metadata, gallery source revision/fetched_at/41declared URLs and price UTC coverage from original authenticated artifact. First needed metadata projection; no server/provider/quote/photo access or whole-body console.",
+    "Do not repeat the closed10 metadata DB scope to recover memory. Original result is authoritative. Missing store is not undone work.",
+    "Identify genuinely unread internal fields for8208: retained facts/whole caption inputs/photoDetails/rights and whole-complex hero evidence. Plan one narrow related read only after fresh main/same healthy DeployTLSdiag/full21/host25/clean/schema-rights/privateintent; no original metadata replay.",
+    "Metadata34 newly identifies successful normal collector42150109043 and hot inventory42134740222; inspect only needed original new source phase/jobs/logs once if selecting a new persisted price tuple. Never treat workflow success/175 raw rows/70condition rows as final prices.",
+    "Price first for this property only after current native proof: use genuinely unconsumed persisted tuple with user72h, actualUTCday, known full conditions and a single actionflights final basket/private intent/once. No supplier search/manual refresh, no old quotes/secondtuple bypass.",
+    "Whole-main-complex hero plus two different actual internal property photos, reuse proof, current native binding/facts/caption must be accepted before fresh Canva TX. Respect existing293URLs292basenames exclusions and closed pixels; do not blindly fetch41URLs.",
+    "Existing serial publisher only when ready; dedup/once/UNKNOWN original first. No ready credit now. Only actual new pair allows MAX162/feed17/monitor append. Other9 hard gaps do not hold this candidate."
+  ],
+  "bounds": {
+    "property_groups": 1,
+    "max_related_native_ids": 1,
+    "external_gallery_pdf_photo_http": 0,
+    "manual_supplier_searches": 0,
+    "post_writes_before_ready": 0,
+    "new_agents_queues_controllers": 0
+  },
+  "risks": [
+    "Country/active/name/photo URLs exist only in original private result, not projected into current model yet; do not invent them.",
+    "Provider/catalog photos and stored search-price rows do not independently establish reuse rights, hero quality, final basket or availability.",
+    "492unique source IDs cannot itself satisfy500distinctTOP500 hotels; no invented8 IDs."
+  ],
+  "metadata_next_window_after": "2026-11-06T05:02:42Z",
+  "current_durable_before_save": "3b6bd27ff9f433aff38f7e21913979ef7451e17a",
+  "goal500_complete": false
+}

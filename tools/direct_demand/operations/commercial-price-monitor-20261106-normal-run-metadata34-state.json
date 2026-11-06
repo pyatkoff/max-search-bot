@@ -1,0 +1,35 @@
+{
+  "operation": "commercial-price-monitor-20261106-metadata34-correct-producer",
+  "state": "CLOSED_NEW_BOUNDED_SCHEDULED_METADATA_TWO_SUCCESSFUL_RUNS_LOGS_UNREAD",
+  "repository": "pyatkoff/poisk-turov-test",
+  "query_start_inclusive": "2026-11-05T23:05:22Z",
+  "upper_utc": "2026-11-06T05:02:42Z",
+  "total_count": 2,
+  "runs": [
+    {
+      "id": 42150109043,
+      "name": "Collect AnyTour tour observations",
+      "path": ".github/workflows/collect-anytour-tours.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-06T02:24:22Z",
+      "source_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/42150109043"
+    },
+    {
+      "id": 42134740222,
+      "name": "Build AnyTour hot inventory",
+      "path": ".github/workflows/build-anytour-hot.yml",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-06T00:09:24Z",
+      "source_sha": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+      "run_url": "https://github.com/pyatkoff/poisk-turov-test/actions/runs/42134740222"
+    }
+  ],
+  "logs_read": 0,
+  "db_calls": 0,
+  "provider_calls": 0,
+  "prices_proven_from_workflow_metadata": false,
+  "do_not_repeat_same_window": true
+}
