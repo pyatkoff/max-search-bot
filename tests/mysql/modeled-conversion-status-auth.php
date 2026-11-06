@@ -235,8 +235,8 @@ function forecastNativeAuthRegression():void
         }
         // The component above keeps its fixed Nov 3 clock and exact delay assertions.
         // The real OAuth dispatcher reads time(); only its dense synthetic cohort
-        // must be inside the current Kaliningrad day, including its first second.
-        $composedDay=(new DateTimeImmutable('@'.time()))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->setTime(0,0);
+        // must be inside the current Moscow day, including its first second.
+        $composedDay=(new DateTimeImmutable('@'.time()))->setTimezone(new DateTimeZone('Europe/Moscow'))->setTime(0,0);
         $composedDayStart=$composedDay->getTimestamp();
         $alignSource=$pdo->prepare("UPDATE modeled_conversion_stream_versions SET observed_at_unix=?,snapshot_json=JSON_SET(snapshot_json,'$.source_created_at_unix',CAST(? AS UNSIGNED)) WHERE project_key='anytour' AND source_kind='message' AND id BETWEEN 3000 AND 5004");
         $alignSource->execute([$composedDayStart,$composedDayStart]);

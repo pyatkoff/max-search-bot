@@ -169,26 +169,27 @@ final class ModeledConversionForecastPaymentReader
     private function filters(array $v,int $now):array
     {
         if($now<946684800||array_diff(array_keys($v),['date','period','platform','cursor']))throw new InvalidArgumentException();
-        $date=$v['date']??(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('Y-m-d');
+        $date=$v['date']??(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
         $period=$v['period']??30;$platform=$v['platform']??'all';
         if(!is_string($date)||!is_int($period)||!in_array($period,[7,30,90],true)||!is_string($platform)||!in_array($platform,['all','max','telegram'],true))throw new InvalidArgumentException();
-        $d=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Kaliningrad'));
+        $d=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Moscow'));
         if(!$d||$d->format('Y-m-d')!==$date||$d->getTimestamp()>$now||isset($v['cursor'])&&!is_string($v['cursor']))throw new InvalidArgumentException();
         return['date'=>$date,'period'=>$period,'platform'=>$platform];
     }
     private function window(array $f,int $at):array
     {
-        $day=new DateTimeImmutable($f['date'].' 00:00:00',new DateTimeZone('Europe/Kaliningrad'));$from=$day->modify('-'.($f['period']-1).' days')->getTimestamp();$until=min($at+1,$day->modify('+1 day')->getTimestamp());
-        return['from_unix'=>$from,'until_unix'=>$until,'from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until'=>gmdate('Y-m-d\TH:i:s\Z',$until),'timezone'=>'Europe/Kaliningrad'];
+        $day=new DateTimeImmutable($f['date'].' 00:00:00',new DateTimeZone('Europe/Moscow'));$from=$day->modify('-'.($f['period']-1).' days')->getTimestamp();$until=min($at+1,$day->modify('+1 day')->getTimestamp());
+        return['from_unix'=>$from,'until_unix'=>$until,'from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until'=>gmdate('Y-m-d\TH:i:s\Z',$until),'timezone'=>'Europe/Moscow'];
     }
     private function encode(array $s,array $f):string
     {
+        // Calendar membership changed; a pre-Moscow cursor must not continue a different cohort.
         $json=json_encode([1,$s['at'],$s['fence'],$s['after'],$f['date'],$f['period'],$f['platform']],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
-        $b=rtrim(strtr(base64_encode($json),'+/','-_'),'=');return'fpr1.'.$b.'.'.hash_hmac('sha256',"forecast-payment-owner-v1\n".$b,$this->cursorKey);
+        $b=rtrim(strtr(base64_encode($json),'+/','-_'),'=');return'fpr1.'.$b.'.'.hash_hmac('sha256',"forecast-payment-owner-v1\nEurope/Moscow\n".$b,$this->cursorKey);
     }
     private function decode(string $v,array $f,int $now):?array
     {
-        if(strlen($v)>2048||preg_match('/\Afpr1\.([A-Za-z0-9_-]+)\.([a-f0-9]{64})\z/D',$v,$m)!==1||!hash_equals(hash_hmac('sha256',"forecast-payment-owner-v1\n".$m[1],$this->cursorKey),$m[2]))return null;
+        if(strlen($v)>2048||preg_match('/\Afpr1\.([A-Za-z0-9_-]+)\.([a-f0-9]{64})\z/D',$v,$m)!==1||!hash_equals(hash_hmac('sha256',"forecast-payment-owner-v1\nEurope/Moscow\n".$m[1],$this->cursorKey),$m[2]))return null;
         $raw=base64_decode(strtr($m[1],'-_','+/'),true);if(!is_string($raw)||rtrim(strtr(base64_encode($raw),'+/','-_'),'=')!==$m[1])return null;
         try{$v=json_decode($raw,true,8,JSON_THROW_ON_ERROR);}catch(Throwable $e){return null;}
         if(!is_array($v)||!array_is_list($v)||count($v)!==7||$v[0]!==1||!is_int($v[1])||$v[1]>$now||$now-$v[1]>3600

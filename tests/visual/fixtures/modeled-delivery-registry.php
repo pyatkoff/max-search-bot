@@ -21,7 +21,7 @@ function modeledDeliveryViewFixture(string $scenario='ready'):array
         'error'=>'identity_ambiguous','identity_resolved'=>false,'api_receipt_present'=>false,
         'ready_at'=>null,'upload_claim_at'=>null,'profile_id'=>'902',
         'origin'=>'owner_fortnight_review_v1','profile_saved_at'=>'2026-11-02T10:00:00Z']);
-    $page=['available'=>true,'date'=>'2026-11-03','timezone'=>'Europe/Kaliningrad',
+    $page=['available'=>true,'date'=>'2026-11-03','timezone'=>'Europe/Moscow',
         'basis'=>'saved_value_event_unix','as_of'=>'2026-11-03T12:11:00Z','checked_at'=>'2026-11-03T12:11:01Z',
         'summary'=>['events'=>2,'conversations'=>2,'value_rub'=>13333,
             'live'=>['events'=>1,'conversations'=>1,'value_rub'=>833],

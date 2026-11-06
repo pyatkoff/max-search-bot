@@ -21,15 +21,25 @@ $check(str_contains($html,'По дате начисления')&&str_contains($h
 $check(str_contains($html,'method="get"')&&str_contains($html,'name="platform"')&&str_contains($html,'name="date"'),'filters perform GET only');
 $check(str_contains($html,'rel="next"')&&str_contains($html,'cursor=v1.synthetic-fixture.abcdef'),'bounded next-page cursor link');
 $check(str_contains($html,'профилем №901')&&str_contains($html,'Конкретный запрос'),'award tied to recorded stage profile');
-$check(str_contains($html,'03.11.2026 14:00:00'),'UTC times rendered in Kaliningrad timezone');
+$check(str_contains($html,'03.11.2026 15:00:00')&&str_contains($html,'МСК'),'UTC times rendered and labelled in Moscow timezone');
+$oldCalendar=$page;$oldCalendar['timezone']='Europe/Kaliningrad';
+$oldHtml=ModeledConversionDeliveryRegistryView::render($oldCalendar,$input,$monitor);
+$check(str_contains($oldHtml,'Реестр сейчас недоступен')&&!str_contains($oldHtml,'Анна'),'old calendar cohort cannot be labelled Moscow');
+foreach(['2026-12-31T20:59:59Z'=>'31.12.2026 23:59:59','2026-12-31T21:00:00Z'=>'01.01.2027 00:00:00',
+    '2026-12-31T21:00:01Z'=>'01.01.2027 00:00:01']as$utc=>$local){
+    $boundary=$page;$boundary['rows'][0]['events'][1]['event_at']=$utc;
+    $before=$boundary;
+    $check(str_contains(ModeledConversionDeliveryRegistryView::render($boundary,$input,$monitor),$local)
+        &&$boundary===$before,'Moscow midnight display preserves the original event instant: '.$utc);
+}
 $check(str_contains($html,'точное время подтверждения')&&str_contains($html,'Не записано'),'legacy receipt clock is not fabricated');
 $check(str_contains($html,'найдено несколько')||str_contains($html,'Найдено несколько'),'held identity has a human reason');
 $check(str_contains($primaryHtml,'Контроль обработчиков')&&str_contains($primaryHtml,'Регулярность подтверждена')
     &&str_contains($primaryHtml,'По серверному расписанию'),'three confirmed local scheduled checks displayed');
 $check(str_contains($externalHtml,'Внешняя проверка сервера')&&str_contains($externalHtml,'После обновления приложения')
     &&!str_contains($externalHtml,'Регулярность подтверждена'),'post-deploy external check remains separately labelled');
-$check(str_contains($primaryHtml,'Последнее уведомление об обработчиках')&&str_contains($primaryHtml,'03.11.2026 12:17:00')
-    &&str_contains($externalHtml,'Последнее уведомление о сервере')&&str_contains($externalHtml,'03.11.2026 11:17:00'),'quiet local and external notifications retain distinct timestamps');
+$check(str_contains($primaryHtml,'Последнее уведомление об обработчиках')&&str_contains($primaryHtml,'03.11.2026 13:17:00')
+    &&str_contains($externalHtml,'Последнее уведомление о сервере')&&str_contains($externalHtml,'03.11.2026 12:17:00'),'quiet local and external notifications retain distinct timestamps');
 $check(str_contains($externalHtml,'GitHub может задерживать или пропускать запуски')
     &&str_contains($externalHtml,'Гарантии внешней проверки каждые пять минут нет'),'external best-effort coverage is explicit');
 $check(!str_contains($html,'<script')&&!str_contains($html,'ClientID')&&!str_contains($html,'YCLID'),'no scripts or advertising identifiers');

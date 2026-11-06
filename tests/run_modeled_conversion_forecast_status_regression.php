@@ -497,7 +497,7 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
     $p->exec("CREATE TABLE modeled_conversion_stream_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_kind VARCHAR(16),source_id BIGINT,version_no INT,observed_at_unix BIGINT,snapshot_json TEXT)");
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,journal_cursor BIGINT,observed_at_unix BIGINT,profile_json TEXT)");
     $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),conversation_id BIGINT,counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),value_origin VARCHAR(32),value_profile_id BIGINT,event_unix BIGINT,value_rub DECIMAL(12,2),value_stage VARCHAR(32),state VARCHAR(24),client_id VARCHAR(40),upload_id VARCHAR(40),upload_status VARCHAR(32),last_error VARCHAR(64),claimed_at_unix BIGINT,created_at DATETIME)");
-    $day=1793656800;$now=$day+43200;
+    $day=strtotime('2026-11-02T21:00:00Z');$now=$day+43200;
     $oldTimeZone=$mysql?$p->query('SELECT @@session.time_zone')->fetchColumn():null;
     if($mysql)$p->exec("SET time_zone='+00:00'");
     $save=static function(int $id,int $conversation,string $platform,int $persisted,int $captured,int $version=1,string $project='anytour',string $sender='customer',string $status='present')use($p,$day):void{
@@ -527,6 +527,12 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         return(new ModeledConversionLatencyReader($p,static function()use(&$authorizationChecks):void{$authorizationChecks++;},new ModeledConversionStatusBudget()))->read($now);
     };
     $before=json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR);
+    foreach([[-1,'2026-11-02',0],[0,'2026-11-03',0],[120,'2026-11-03',1]]as[$offset,$date,$count]){
+        $calendar=(new ModeledConversionLatencyReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($day+$offset);
+        $check('latency uses the Moscow day and exact capture cutoff at offset '.$offset,
+            ($calendar['available']??false)&&$calendar['date']===$date&&$calendar['timezone']==='Europe/Moscow'
+            &&$calendar['messages']['persisted_today']===$count);
+    }
     $r=$read();
     $check('today latency separates first messages edits late history and invalid clocks',
         $r['available']&&$r['date']==='2026-11-03'&&$r['messages']['first_customer_message_rows']===6

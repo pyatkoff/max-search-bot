@@ -43,7 +43,7 @@ final class MaxMemberHistoryView
             .'<p>Список не получен. По этому результату нельзя судить о числе подписчиков.</p>'
             .'<a class="button" href="/manager/assigned-value.php?view=members">Обновить историю</a></section></main></body></html>';
         $html.='<section class="notice"><h2>Срез на '.self::time($page['cutoff_unix']).'</h2>'
-            .'<p>Время по Калининграду. Состояние определяется по записанным вступлениям и выходам, отдельно для каждого источника MAX. Проверка текущего состава через MAX API здесь не выполняется.</p>'
+            .'<p>Время по Москве (МСК). Состояние определяется по записанным вступлениям и выходам, отдельно для каждого источника MAX. Проверка текущего состава через MAX API здесь не выполняется.</p>'
             .'<p>Повторное вступление без записанного выхода не меняет начало периода. Переписка для попадания в список не требуется.</p></section>'
             .'<section aria-labelledby="members-title"><h2 id="members-title">Подписки на этой странице</h2>';
         if(!$page['rows'])$html.='<p class="empty">В просмотренном блоке истории подходящих строк нет.'
@@ -70,5 +70,5 @@ final class MaxMemberHistoryView
     }
     private static function e(string $value):string{return htmlspecialchars($value,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
     private static function time(int $unix):string
-    {return(new DateTimeImmutable('@'.$unix))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('d.m.Y H:i:s');}
+    {return(new DateTimeImmutable('@'.$unix))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('d.m.Y H:i:s');}
 }

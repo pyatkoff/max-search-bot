@@ -15,7 +15,7 @@ final class ModeledConversionLatencyReader
     public function read(int $now):array
     {
         $this->auth();
-        $day=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->setTime(0,0);
+        $day=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->setTime(0,0);
         $since=$day->getTimestamp();
         try{
             $journal="SELECT id,source_id,version_no,observed_at_unix,snapshot_json FROM modeled_conversion_stream_versions WHERE project_key='anytour' AND source_kind='message' AND observed_at_unix>=".$since." AND observed_at_unix<=".$now." ORDER BY id DESC LIMIT ".self::JOURNAL_LIMIT;
@@ -37,7 +37,7 @@ final class ModeledConversionLatencyReader
             foreach(['max','telegram']as$platform)$columns[]="COUNT(DISTINCT CASE WHEN ".$valid." AND platform='".$platform."' THEN conversation_id ELSE NULL END) AS ".$platform."_conversations";
             $columns=array_merge($columns,$this->delayColumns('persistence_to_capture','captured-persisted',$valid));
             $r=$this->query('SELECT '.implode(',',$columns).' FROM ('.$base.') messages')[0];
-            $out=['available'=>true,'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Kaliningrad',
+            $out=['available'=>true,'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Moscow',
                 'basis'=>'server_persistence_and_immutable_capture_profile_metadata_not_device_send_time',
                 'window'=>['max_message_versions'=>self::JOURNAL_LIMIT,'inspected_message_versions'=>$this->count($r['inspected_versions']),
                     'complete_within_bound'=>(int)$r['inspected_versions']<self::JOURNAL_LIMIT],
