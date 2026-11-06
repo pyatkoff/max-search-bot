@@ -49,17 +49,13 @@ final class ModeledConversionInputDiagnosisReader
                 .' FROM (SELECT id,platform,customer_key,conversation_id,observed_at_unix,profile_json'
                 ." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform IN ('max','telegram')"
                 .' ORDER BY id DESC LIMIT '.self::LIMIT.') bounded_profiles ORDER BY id DESC';
-            // Preflight scalar lengths without copying the diagnostic packets.
-            $marker=' AS diagnosis_json';$end=strpos($sql,$marker);
-            if($end===false)throw new LogicException('diagnosis_projection');
-            $expression=substr($sql,7,$end-7);
-            $packetBytes=$this->mysql?'OCTET_LENGTH(JSON_QUOTE(CAST('.$expression.' AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST('.$expression.' AS TEXT)) AS BLOB))';
-            $estimate=$this->budget->prepare($this->pdo,'SELECT '.$packetBytes.'+24 AS packet_bytes'.substr($sql,$end+strlen($marker)));
+            // One aggregate preflight avoids copying optional packets or one size record per profile.
+            $packetBytes=$this->mysql?'OCTET_LENGTH(JSON_QUOTE(CAST(diagnosis_json AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST(diagnosis_json AS TEXT)) AS BLOB))';
+            $estimate=$this->budget->prepare($this->pdo,'SELECT COALESCE(SUM('.$packetBytes.'+24),0)+2 AS packet_bytes FROM ('.$sql.') packet_sizes');
             $estimate->bindValue(1,$model,PDO::PARAM_STR);$estimate->bindValue(2,$processor,PDO::PARAM_STR);$estimate->execute();
-            $sizes=$estimate->fetchAll(PDO::FETCH_ASSOC);$estimate->closeCursor();$this->auth();
-            $this->budget->consumeBytes(strlen(json_encode($sizes,JSON_THROW_ON_ERROR)));
-            $packetTotal=2;foreach($sizes as$size)$packetTotal+=(int)($size['packet_bytes']??PHP_INT_MAX);
-            if($packetTotal+8192>$this->budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
+            $size=$estimate->fetch(PDO::FETCH_ASSOC);$estimate->closeCursor();$this->auth();
+            $this->budget->consumeBytes(strlen(json_encode($size,JSON_THROW_ON_ERROR)));
+            if((int)($size['packet_bytes']??PHP_INT_MAX)+8192>$this->budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
             $q=$this->budget->prepare($this->pdo,$sql);$q->bindValue(1,$model,PDO::PARAM_STR);$q->bindValue(2,$processor,PDO::PARAM_STR);
             $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$this->auth();
             $bytes=strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));

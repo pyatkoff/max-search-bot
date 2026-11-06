@@ -178,12 +178,9 @@ final class ModeledConversionValueDeliveryReader
                 ." LEFT JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND p.project_key=o.project_key"
                 ." AND p.platform=o.platform AND p.conversation_id=o.conversation_id"
                 ." WHERE o.target LIKE 'anytour_value_pred_%' ORDER BY o.id DESC LIMIT 17";
-            $marker=' AS packet';$end=strpos($sql,$marker);if($end===false)throw new LogicException('predictive_projection');
-            $expression=substr($sql,7,$end-7);
-            $packetBytes=$mysql?'OCTET_LENGTH(JSON_QUOTE(CAST('.$expression.' AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST('.$expression.' AS TEXT)) AS BLOB))';
-            $sizes=$this->query('SELECT '.$packetBytes.'+24 AS packet_bytes'.substr($sql,$end+strlen($marker)),[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
-            $total=2;foreach($sizes as$size)$total+=(int)($size['packet_bytes']??PHP_INT_MAX);
-            if($total+8192>$this->budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
+            $packetBytes=$mysql?'OCTET_LENGTH(JSON_QUOTE(CAST(packet AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST(packet AS TEXT)) AS BLOB))';
+            $size=$this->query('SELECT COALESCE(SUM('.$packetBytes.'+24),0)+2 AS packet_bytes FROM ('.$sql.') packet_sizes',[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
+            if((int)($size[0]['packet_bytes']??PHP_INT_MAX)+8192>$this->budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
             $rows=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
             $out=['available'=>true,'basis'=>'saved_predictive_key_rows_and_frozen_scalar_calculations_not_reclassification',
                 'window'=>['max_goal_rows'=>self::ROW_LIMIT,'max_predictive_rows'=>17,'inspected_predictive_rows'=>count($rows),

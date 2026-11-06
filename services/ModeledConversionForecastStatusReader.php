@@ -155,7 +155,7 @@ final class ModeledConversionForecastStatusReader
                     }else $out['window']['invalid_followup_blocks']++;
                 }
             };
-            $out['visit_delivery_check']=$this->optionalRead(function():array{$this->auth();$r=ModeledConversionVisitProof::privateSummary(time(),$this->budget);$this->auth();return $r;});
+            $out['visit_delivery_check']=$this->optionalRead(fn():array=>ModeledConversionVisitProof::privateSummary(time(),$this->budget));
             $readProfiles(1);
             $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
             $activation=$out['value_delivery']['activated_at']??null;
