@@ -1,10 +1,8 @@
 {
   "operation": "commercial-top500-internal-base-20261106-next-after-ten1-plan1",
-  "state": "PREPARED_ONE_PROPERTY_RETAINED_DATA_FIRST_NO_GALLERY_OR_PRICE_DELIVERY_YET",
-  "goal": "Advance one real canonical TOP500 hotel8208 using the already-retained internal gallery and stored price evidence; measure missing fields before any external work.",
-  "priority_native_ids": [
-    8208
-  ],
+  "state": "HOLD_OWNER_ANEX_TO_TOURVISOR_MAPPING_REQUIRED",
+  "goal": "Restore the ANEX namespace and verified cross-provider identity before any further TOP500-derived candidate action.",
+  "priority_native_ids": [],
   "original_auth_artifact": {
     "repository": "pyatkoff/max-search-bot",
     "run": 42165764181,
@@ -14,13 +12,12 @@
     "file": "top500-readback.private.json"
   },
   "steps": [
-    "Recover only native8208 scalar current name/country/active metadata, gallery source revision/fetched_at/41declared URLs and price UTC coverage from original authenticated artifact. First needed metadata projection; no server/provider/quote/photo access or whole-body console.",
-    "Do not repeat the closed10 metadata DB scope to recover memory. Original result is authoritative. Missing store is not undone work.",
-    "Identify genuinely unread internal fields for8208: retained facts/whole caption inputs/photoDetails/rights and whole-complex hero evidence. Plan one narrow related read only after fresh main/same healthy DeployTLSdiag/full21/host25/clean/schema-rights/privateintent; no original metadata replay.",
-    "Metadata34 newly identifies successful normal collector42150109043 and hot inventory42134740222; inspect only needed original new source phase/jobs/logs once if selecting a new persisted price tuple. Never treat workflow success/175 raw rows/70condition rows as final prices.",
-    "Price first for this property only after current native proof: use genuinely unconsumed persisted tuple with user72h, actualUTCday, known full conditions and a single actionflights final basket/private intent/once. No supplier search/manual refresh, no old quotes/secondtuple bypass.",
-    "Whole-main-complex hero plus two different actual internal property photos, reuse proof, current native binding/facts/caption must be accepted before fresh Canva TX. Respect existing293URLs292basenames exclusions and closed pixels; do not blindly fetch41URLs.",
-    "Existing serial publisher only when ready; dedup/once/UNKNOWN original first. No ready credit now. Only actual new pair allows MAX162/feed17/monitor append. Other9 hard gaps do not hold this candidate."
+    "Do not repeat the consumed ten-ID metadata or Tourvisor8208 profile scope.",
+    "Locate original retained ANEX names/countries or the existing accepted typed ANEX-to-Tourvisor mapping; use saved records first.",
+    "Verify mapping provenance and acceptance; retain unmapped/conflicting/ambiguous rows as explicit gaps.",
+    "Recompute TOP500 membership and candidate order only after verified mapping. Withdraw4/157/488 as identity counts.",
+    "Resume original publication operations only on mapped identities with all existing media/price/native/dedup/private-intent/once/UNKNOWN requirements.",
+    "Review producer collection/popularity namespace use with its existing owner before any related production change; do not patch IDs by numeric equality."
   ],
   "bounds": {
     "property_groups": 1,
@@ -37,5 +34,13 @@
   ],
   "metadata_next_window_after": "2026-11-06T05:02:42Z",
   "current_durable_before_save": "3b6bd27ff9f433aff38f7e21913979ef7451e17a",
-  "goal500_complete": false
+  "goal500_complete": false,
+  "previous_record_revision": "a177c1d98cd08c5670435fda5fcad86799243369",
+  "previous_record_state": "PREPARED_ONE_PROPERTY_RETAINED_DATA_FIRST_NO_GALLERY_OR_PRICE_DELIVERY_YET",
+  "owner_namespace_correction": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
+  "owner_top500_namespace": "anex_hotel_id",
+  "top500_membership": null,
+  "previous_unverified_priority_native_ids": [
+    8208
+  ]
 }

@@ -1,7 +1,7 @@
 {
   "operation": "commercial-top500-internal-base-20261106-8208-unread-profile-plan1",
-  "state": "PREPARED_NEW_RELATED_RETAINED_FIELDS_NO_DUPLICATE_TEN1_DB_SCOPE",
-  "goal": "Advance canonical native8208 from retained internal data: genuinely unread facts and photoDetails/captions/reuse evidence, then proper country2 price/publication role if needed; no external sources until proven internal gaps.",
+  "state": "HOLD_OWNER_ANEX_TO_TOURVISOR_MAPPING_REQUIRED",
+  "goal": "Restore the ANEX namespace and verified cross-provider identity before any further TOP500-derived candidate action.",
   "hotel_ids": [
     8208
   ],
@@ -14,7 +14,9 @@
     "original_artifact": 13479140677,
     "projection_run": 42166900411,
     "projection_artifact": 13479576337,
-    "private_profile_file": "top500-8208-metadata.private.json"
+    "private_profile_file": "top500-8208-metadata.private.json",
+    "identity_namespace": "tourvisor_hotel_id",
+    "proves_owner_top500_membership": false
   },
   "facts_known_without_guessing": [
     "Native current name/country/region are in authenticated projection and session safe summary; use exact strings, do not invent country1/4.",
@@ -22,16 +24,12 @@
     "Original stored-price newest persistence2026-11-05T15:30:57Z;175raw/70condition rows as measured05:00 only, not fresh availability or quoted final prices."
   ],
   "steps": [
-    "Recover needed original one-property authenticated projection only if session missing; no original ten1 log/result/DB/pixel replay.",
-    "Before any new server/DB action: fresh currentmain and same healthy Deploy/TLS/diag/fullremote21/host25BYTEIDENTICAL/clean/runtime/native/schema-rights/privateintent/UNKNOWN first. Expected5a18 is historical, not forever.",
-    "One bounded8208 read of genuinely unread normalized internal fields: photoDetails captions/structured hotelInformation and selected content facts. Use exact local_tv native id and bind stored revision3/source_fetched_at to original gallery witness. Mandatory fresh identity revalidation is a guard for the new fields, not recovery of the old10metadata scope.",
-    "Full raw descriptions/sections/source text stay only authenticated artifact; emit small fact metadata/hashes or structured evidence, no wholebody console or publicGit. Avoid raw source_json and unrelated fields/private customer data.",
-    "Determine effective manual field handling from canonical reader; NULL manual_field_names is unverified, not invented no-overrides. Missing rights/photo labels remainNULL, not permission to fetch all41.",
-    "Compare declared internal asset URLs to293URL292basename exclusions before selecting finite≤2new photos. No photoHTTP until exact native-property/source/reuse proof and frozen explicit URLs; preserve wholecomplexhero+two other photos standard before Canva.",
-    "Country2 source review already closed in canonical review1 state. Reuse its findings: generic publisher/template and preparation need no country change alone; unpublished8208 cannot use legacy existing-post price context or a blanket country allowlist modification. Proper new-material price inputs/role still need review at preparation time.",
-    "New normal42150109043 source proof is closed: monthly02:25:27.3664810..02:33:09.3267641/1294raw writes,64processed,failedpartial0,completefalse. Those counts are not quotes. Original8208newest persisted epoch predates this new run; do not claim the new run refreshed8208.",
-    "Any price selection must be genuinely unconsumed persisted8208 input with own exact source/current conditions/72h actual UTCdate, proper nativecountry2 and final basket; no supplier/manual search, oldquote, secondtuple or operation bypass.",
-    "Only ready material can enter existing serial publisher; no ready credit now. Only actual new pair advances MAX162/feed17/monitor. Other9 hard cases do not hold a ready candidate."
+    "Do not repeat the consumed ten-ID metadata or Tourvisor8208 profile scope.",
+    "Locate original retained ANEX names/countries or the existing accepted typed ANEX-to-Tourvisor mapping; use saved records first.",
+    "Verify mapping provenance and acceptance; retain unmapped/conflicting/ambiguous rows as explicit gaps.",
+    "Recompute TOP500 membership and candidate order only after verified mapping. Withdraw4/157/488 as identity counts.",
+    "Resume original publication operations only on mapped identities with all existing media/price/native/dedup/private-intent/once/UNKNOWN requirements.",
+    "Review producer collection/popularity namespace use with its existing owner before any related production change; do not patch IDs by numeric equality."
   ],
   "bounds": {
     "property_groups": 1,
@@ -61,5 +59,10 @@
   "earlier_cancelled_run42117386591_log_is_now_closed_do_not_read_again": true,
   "original_duplicate_ten_reader_802088_and_second_projection_never_activate": true,
   "country_contract_review_already_closed": "commercial-top500-20261106-8208-country-contract-source-review1-state.json",
-  "country_contract_summary": "Generic existing publisher+prepare have no country gate; no change warranted solely forcountry2. Legacy existing-post price context requirescountry1/4 ANDprior confirmed publication/price roles, so it is not the role for unpublished8208. Preserve legacy code; evaluate new-material price contract only with actual new inputs."
+  "country_contract_summary": "Generic existing publisher+prepare have no country gate; no change warranted solely forcountry2. Legacy existing-post price context requirescountry1/4 ANDprior confirmed publication/price roles, so it is not the role for unpublished8208. Preserve legacy code; evaluate new-material price contract only with actual new inputs.",
+  "previous_record_revision": "a177c1d98cd08c5670435fda5fcad86799243369",
+  "previous_record_state": "PREPARED_NEW_RELATED_RETAINED_FIELDS_NO_DUPLICATE_TEN1_DB_SCOPE",
+  "owner_namespace_correction": "commercial-top500-owner-anex-namespace-20261106-correction1.json",
+  "owner_top500_namespace": "anex_hotel_id",
+  "top500_membership": null
 }

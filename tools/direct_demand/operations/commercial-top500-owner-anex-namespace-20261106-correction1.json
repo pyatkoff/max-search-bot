@@ -1,0 +1,83 @@
+{
+  "operation": "commercial-top500-owner-anex-namespace-20261106-correction1",
+  "state": "OWNER_ANEX_NAMESPACE_ACCEPTED_TOP500_ADMISSION_HELD_UNTIL_VERIFIED_MAPPING",
+  "owner_instruction": {
+    "date": "2026-11-06",
+    "exact_text": "в ТОП500 айди анекса, если что",
+    "authority": "Direct current owner correction supersedes previous source comments and numeric-join assumptions."
+  },
+  "goal": "Correct TOP500 to the ANEX namespace and prevent Tourvisor membership/readiness/coverage claims based only on equal numbers.",
+  "plan": {
+    "changed_files": "This record and three existing active continuation/review JSON records only.",
+    "bounds": {
+      "runtime_code_changes": 0,
+      "workflow_changes": 0,
+      "server_calls": 0,
+      "db_calls": 0,
+      "provider_calls": 0,
+      "quotes": 0,
+      "photo_http": 0,
+      "posts": 0,
+      "people_messages": 0,
+      "new_agents_or_queues": 0,
+      "old_cases_or_logs_replayed": 0
+    },
+    "criteria": [
+      "Require verified ANEX-to-canonical-to-Tourvisor mapping before TOP500-derived actions.",
+      "Keep every original native record, publication, receipt and consumed operation.",
+      "Withdraw numeric membership counts without replacing them with zero or invented mappings.",
+      "No name-only or equal-number join.",
+      "Do not claim production collection/ranking repair from this audit-only change."
+    ],
+    "risk": "The producer code and earlier PR3623 share the incorrect Tourvisor declaration. Their consumers require a separate scoped correction through the existing owner; no incidental cron/budget/runtime changes."
+  },
+  "namespace": {
+    "owner_source": "anex_hotel_id",
+    "observed_catalog": "tourvisor_hotel_id/catalog_hotels.id",
+    "numeric_equality_is_identity_proof": false,
+    "required_binding": [
+      "ANEX hotel ID",
+      "verified canonical hotel mapping",
+      "Tourvisor hotel ID"
+    ]
+  },
+  "wrong_source_declaration": {
+    "repository": "pyatkoff/poisk-turov-test",
+    "revision": "64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d",
+    "path": "v2/data/top-hotels-v1.php",
+    "issue_or_pr": 3623,
+    "finding": "The code comment and earlier integration text call the owner's numbers Tourvisor IDs. These declarations do not override the owner's ANEX correction."
+  },
+  "withdrawn_claims": {
+    "confirmed_top500_members_among161": null,
+    "previously_claimed_outside157": null,
+    "previously_claimed_unpublished488": null,
+    "previous_numeric_overlap4": "NOT_VERIFIED_IDENTITY",
+    "first10": "NOT_VERIFIED_UNPUBLISHED_TOURVISOR_CANDIDATES",
+    "anex8208_equals_tourvisor8208_the_sarann": "UNVERIFIED",
+    "qualification": "Unverified does not prove that any property is absent from the correctly mapped owner list."
+  },
+  "preserved_evidence": {
+    "numeric_source_unique_values": 492,
+    "source_rows500": "Historical code declaration, no original CSV newly inspected.",
+    "original_native_read_run": 42165764181,
+    "tourvisor8208_projection_run": 42166900411,
+    "tourvisor8208_profile_run": 42169281674,
+    "meaning": "Results remain evidence about the Tourvisor IDs actually queried, not owner ANEX membership.",
+    "actual_pairs": 161,
+    "priced": 85,
+    "linked": 155
+  },
+  "next": [
+    "Locate original retained ANEX names/countries or the existing accepted typed ANEX-to-Tourvisor mapping; use saved records first.",
+    "Verify mapping provenance and acceptance; retain unmapped/conflicting/ambiguous rows as explicit gaps.",
+    "Recompute TOP500 membership and candidate order only after verified mapping. Withdraw4/157/488 as identity counts.",
+    "Resume original publication operations only on mapped identities with all existing media/price/native/dedup/private-intent/once/UNKNOWN requirements.",
+    "Review producer collection/popularity namespace use with its existing owner before any related production change; do not patch IDs by numeric equality."
+  ],
+  "source_link_question": "Already asked once; do not repeat or invent a URL.",
+  "superseded_head": "a177c1d98cd08c5670435fda5fcad86799243369",
+  "source_review6897_validity": "Generic publisher versus legacy-price code findings remain true for the Tourvisor context. They are not proof of owner ANEX8208 membership.",
+  "ready_for_publication": false,
+  "goal500_complete": false
+}
