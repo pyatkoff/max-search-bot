@@ -714,6 +714,16 @@ report, wrong scope or unequal counts/amounts remain unverified. This is unique
 visit reconciliation, not a native VisitID or offline-event-log export.
 
 
+The optional 100-version input diagnosis first checks only source lengths. It does
+not parse the cohort when its frozen JSON exceeds 2 MiB, and it is not started
+without four seconds of the existing execution budget. Both omissions are
+explicit; they never represent zero signals. The private saved visit cohort and
+the administrator financial ledger are independent of that optional diagnosis.
+No global deadline, response ceiling, query-row limit or authorization floor is
+increased.
+
+Private cache reads use standard filesystem ownership checks against the deployed service-file owner, for both the cache directory and file. Reading does not require the optional POSIX extension used by the finite CLI writer. The fixed path, 0700/0600 modes, schema/hash validation, freshness and event fingerprints remain mandatory. A synthetic subprocess verifies reading with posix_geteuid disabled.
+
 ## Moscow calendar and presentation
 
 Current delivery, daily reconciliation, acquisition and forecast-payment reports use

@@ -270,6 +270,19 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $corrupt=$wrap($proof);$corrupt['receipt']['events'][0]['increment_rub']=18;
     $check('corrupted private receipt is unavailable rather than trusted',!ModeledConversionVisitProof::validateCache($corrupt,$now)['available']);
     $check('saved visit evidence becomes explicitly stale',ModeledConversionVisitProof::validateCache($wrap($proof),$now+901)['fresh']===false);
+    $directory=sys_get_temp_dir().'/modeled-visit-cache-fixture-'.bin2hex(random_bytes(8));
+    if(!mkdir($directory,0700))throw new RuntimeException('fixture_cache_directory');$file=$directory.'/receipt.json';
+    try{
+        if(file_put_contents($file,json_encode($wrap($proof),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===false
+            ||!chmod($file,0600))throw new RuntimeException('fixture_cache_write');
+        $process=proc_open([PHP_BINARY,'-d','disable_functions=posix_geteuid',__DIR__.'/fixtures/modeled_visit_cache_without_posix.php',$file,(string)$now],
+            [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($process))throw new RuntimeException('fixture_cache_process');
+        fclose($pipes[0]);$output=stream_get_contents($pipes[1],1024);fclose($pipes[1]);$errors=stream_get_contents($pipes[2],1024);fclose($pipes[2]);$code=proc_close($process);
+        $check('private cache remains owner-bound and readable when the web runtime has no POSIX function',
+            $code===0&&json_decode((string)$output,true)===['ok'=>true]&&$errors==='');
+    }finally{if(is_file($file))unlink($file);if(is_dir($directory))rmdir($directory);}
+
     $api->duplicate=true;$bad=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
     $check('multiple goal visits are unverified rather than guessed by amount',$bad['events'][0]['linkage']==='unverified'&&$bad['events'][0]['reason']==='no_unique_goal_visit');
     $api->duplicate=false;$api->mismatch=true;$bad=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
