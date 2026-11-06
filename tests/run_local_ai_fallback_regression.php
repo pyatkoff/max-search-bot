@@ -86,6 +86,22 @@ localCheck('rich request pre-applies deterministic local parameters before exter
 localCheck('rich preseed never applies legacy Moscow default unless departure was explicit', strpos($handler, "unset(\$richLocalParams['city'])") !== false, true);
 localCheck('rich AI receives refreshed deterministic context', strpos($handler, "AiInvocationService::invoke('RICH_AI', \$chat_id, \$userText, \$current)") !== false, true);
 
+
+$params = LocalAiFallbackService::parameters('Не Турция, а Египет, 2 взрослых без детей на неделю', ['city'=>'Казань','country'=>'Турция']);
+localCheck('country preseed cannot reapply the rejected first country', $params['country'] ?? null, 'Египет');
+localCheck('country correction keeps explicit party', $params['adults'] ?? null, 2);
+localCheck('country correction keeps explicit child zero', $params['children'] ?? null, 0);
+localCheck('country correction keeps explicit duration', $params['nights'] ?? null, '7');
+localCheck('country correction does not overwrite departure', array_key_exists('city', $params), false);
+foreach (['Не Египет', 'А в Египет можно?', 'Если Египет', 'Турция или Египет', 'Расскажите про Египет', 'Раньше были в Египте', 'Пляж в Египте'] as $neutral) {
+    $params = LocalAiFallbackService::parameters($neutral, ['city'=>'Казань','country'=>'Турция']);
+    localCheck('neutral/negative country cannot become a replacement: ' . $neutral, array_key_exists('country', $params), false);
+}
+$params = LocalAiFallbackService::parameters('В Египет', ['city'=>'Казань','country'=>'Турция']);
+localCheck('explicit short country choice replaces current country', $params['country'] ?? null, 'Египет');
+$params = LocalAiFallbackService::parameters('Хочу в Египет, 2 взрослых', ['city'=>'Казань','country'=>'Турция']);
+localCheck('explicit rich country choice replaces current country', $params['country'] ?? null, 'Египет');
+
 $total = $passed + $failed;
 echo "\n----------------------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";

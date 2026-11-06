@@ -89,6 +89,34 @@ dcrCheck('single-month phase still resolves in its own month',
 $clarified = AiDateContextService::resolveLocal($chatId, '29.06.2030');
 dcrCheck('explicit clarification resolves without a stale pending month', $clarified['date'] === '29.06.2030');
 
+
+// Synthetic spellings and replacements; no real tourist transcript in fixtures.
+foreach (['17ое августа 2030', '17ого августа 2030', '17-го августа 2030', '17-е августа 2030'] as $ordinal) {
+    dcrCheck('ordinal day before named month: ' . $ordinal,
+        (DateParser::resolveDate($ordinal)['date'] ?? '') === '17.08.2030');
+}
+dcrCheck('ordinal parsing still rejects an impossible calendar day',
+    empty(DateParser::resolveDate('31ое февраля 2030')['date']));
+dcrCheck('ordinal date does not turn a child age into a departure day',
+    empty(DateParser::resolveDate('ребёнку 5 лет, август 2030')['date']));
+foreach ([
+    ['не 12.03.2030, а 19.04.2030', '19.04.2030'],
+    ['Не 12 марта 2030 а 19 апреля 2030', '19.04.2030'],
+    ['не 12 марта, а 19ое апреля 2030', '19.04.2030'],
+] as [$correction, $expectedDate]) {
+    dcrCheck('replacement date wins over rejected first literal: ' . $correction,
+        (DateParser::resolveDate($correction)['date'] ?? '') === $expectedDate);
+    $guard = AiDateContextService::applyAiGuard($chatId, $correction, ['date'=>'12.03.2030', 'nights'=>'9']);
+    dcrCheck('canonical guard keeps replacement and unrelated nights',
+        ($guard['date'] ?? '') === $expectedDate && $guard['nights'] === '9');
+}
+dcrCheck('invalid replacement never falls back to rejected old date',
+    empty(DateParser::resolveDate('не 12.03.2030, а 31.02.2030')['date']));
+DateContextResolver::rememberMonth($chatId, 12, 2030);
+$ordinalLocal = AiDateContextService::resolveLocal($chatId, '17ое августа 2030');
+dcrCheck('ordinal day passes through actual local date boundary',
+    $ordinalLocal['date'] === '17.08.2030' && PendingMonthStore::get($chatId) === []);
+
 $monthOnly = DateContextResolver::resolveFromText($chatId, 'в декабре 2026');
 dcrCheck('month-only text is recognized without inventing a day', empty($monthOnly['date']) && ($monthOnly['month'] ?? null) === 12 && ($monthOnly['year'] ?? null) === 2026);
 $pending = PendingMonthStore::get($chatId);

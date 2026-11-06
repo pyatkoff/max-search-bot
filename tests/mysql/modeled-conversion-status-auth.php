@@ -222,7 +222,8 @@ function forecastNativeAuthRegression():void
         $pdo->exec('ALTER TABLE max_channel_conversion_outbox ADD value_ready_at_unix BIGINT NULL,ADD value_api_accepted_at_unix BIGINT NULL,ADD value_processed_at_unix BIGINT NULL,ADD value_receipt_basis VARCHAR(24) NULL');
         $pdo->exec('UPDATE max_channel_conversion_outbox SET external_user_id=CAST(conversation_id AS CHAR)');
         $pdo->exec("CREATE TABLE advertising_visit_observations(id BIGINT PRIMARY KEY,project_key VARCHAR(40),source_key VARCHAR(80),platform VARCHAR(16),counter_id VARCHAR(20),external_user_id VARCHAR(32),identity_status VARCHAR(16),client_id VARCHAR(40),visit_at_unix BIGINT,observed_at_unix BIGINT,received_at_unix BIGINT)");
-        $pdo->exec("INSERT INTO advertising_visit_observations VALUES(1,'anytour','tgmini','telegram','98615635','333','verified','88000003',1793657300,1793657400,1793657500)");
+        // Keep the synthetic visit before its pending signal when the fixture calendar changes.
+        $pdo->exec("INSERT INTO advertising_visit_observations SELECT 1,'anytour','tgmini','telegram','98615635','333','verified','88000003',event_unix-1300,event_unix-1200,event_unix-1100 FROM max_channel_conversion_outbox WHERE id=3");
 
     $pdo->exec("CREATE TABLE modeled_conversion_value_export_settings(project_key VARCHAR(40) PRIMARY KEY,counter_id VARCHAR(20),mode VARCHAR(16),goal_id VARCHAR(20),goal_intent VARCHAR(20),activated_at_unix BIGINT,last_tick_unix BIGINT,contract_version VARCHAR(64),last_receipt_json TEXT,history_from_unix BIGINT,history_until_unix BIGINT,history_completed_at_unix BIGINT,history_scanned BIGINT,history_collected BIGINT,history_stats_json TEXT,history_cursor BIGINT,history_ceiling BIGINT,history_fortnight_requested_at_unix BIGINT,history_day_receipt_json TEXT,last_report_success_unix BIGINT,last_report_success_json TEXT,report_failure_since_unix BIGINT)");
         $pdo->prepare("INSERT INTO modeled_conversion_value_export_settings(project_key,counter_id,mode,goal_id,goal_intent,activated_at_unix,last_tick_unix,contract_version,last_receipt_json,history_from_unix,history_until_unix,history_cursor,history_ceiling) VALUES('anytour','98615635','send','678187097','verified',1793656800,?,?,'{}',1793570400,1793656800,1,30099)")->execute([time(),ModeledConversionValueContract::VERSION]);
@@ -235,8 +236,8 @@ function forecastNativeAuthRegression():void
         }
         // The component above keeps its fixed Nov 3 clock and exact delay assertions.
         // The real OAuth dispatcher reads time(); only its dense synthetic cohort
-        // must be inside the current Kaliningrad day, including its first second.
-        $composedDay=(new DateTimeImmutable('@'.time()))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->setTime(0,0);
+        // must be inside the current Moscow day, including its first second.
+        $composedDay=(new DateTimeImmutable('@'.time()))->setTimezone(new DateTimeZone('Europe/Moscow'))->setTime(0,0);
         $composedDayStart=$composedDay->getTimestamp();
         $alignSource=$pdo->prepare("UPDATE modeled_conversion_stream_versions SET observed_at_unix=?,snapshot_json=JSON_SET(snapshot_json,'$.source_created_at_unix',CAST(? AS UNSIGNED)) WHERE project_key='anytour' AND source_kind='message' AND id BETWEEN 3000 AND 5004");
         $alignSource->execute([$composedDayStart,$composedDayStart]);

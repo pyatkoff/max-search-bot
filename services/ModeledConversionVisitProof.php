@@ -33,7 +33,7 @@ final class ModeledConversionVisitProof
                 ||($r['transport_target']??null)!==ModeledConversionValueContract::TARGET
                 ||($r['value_contract']??null)!==ModeledConversionValueContract::VERSION
                 ||!ModeledConversionValueContract::isKey($r['target']??null)||!in_array($r['platform']??null,['max','telegram'],true)
-                ||!is_numeric($r['value_rub']??null)||(float)$r['value_rub']<=0||(float)$r['value_rub']>25000
+                ||!is_numeric($r['value_rub']??null)||(float)$r['value_rub']<=0||(float)$r['value_rub']>ModeledConversionValueContract::MAX_VALUE_RUB
                 ||!in_array($r['value_stage']??null,ModeledConversionValueContract::STAGES,true)
                 ||preg_match('/\A[1-9][0-9]{0,19}\z/D',(string)($r['id']??''))!==1
                 ||preg_match('/\A[1-9][0-9]{0,19}\z/D',(string)($r['conversation_id']??''))!==1
@@ -129,11 +129,15 @@ final class ModeledConversionVisitProof
     }
     public static function readCache(int $now,?ModeledConversionStatusBudget $budget=null):array
     {
-        $path=self::path();
+        return self::readCacheAt(self::path(),$now,$budget);
+    }
+    /** Fixed public reader delegates to an internal path loader; no path is accepted by a tool. */
+    private static function readCacheAt(string $path,int $now,?ModeledConversionStatusBudget $budget=null):array
+    {
         if(is_link(dirname($path))||is_link($path)||!is_file($path)||!is_readable($path))return ['available'=>false,'reason'=>'not_recorded'];
-        $size=filesize($path);
-        if(!is_int($size)||$size>self::MAX_BYTES||(fileperms($path)&0777)!==0600||(fileperms(dirname($path))&0777)!==0700
-            ||fileowner($path)!==posix_geteuid())return ['available'=>false,'reason'=>'invalid_cache'];
+        $size=filesize($path);$owner=fileowner(__FILE__);
+        if(!is_int($owner)||!is_int($size)||$size>self::MAX_BYTES||(fileperms($path)&0777)!==0600||(fileperms(dirname($path))&0777)!==0700
+            ||fileowner($path)!==$owner||fileowner(dirname($path))!==$owner)return ['available'=>false,'reason'=>'invalid_cache'];
         if($budget!==null&&$size+8192>$budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
         $raw=file_get_contents($path);if(!is_string($raw)||strlen($raw)!==$size)return ['available'=>false,'reason'=>'invalid_cache'];
         if($budget!==null)$budget->consumeBytes(strlen($raw));
@@ -151,7 +155,7 @@ final class ModeledConversionVisitProof
             ||($r['source_writes']??null)!==0||$at===false||$at>$now||!is_array($r['events']??null)||count($r['events'])>self::MAX_ROWS)
             return ['available'=>false,'reason'=>'invalid_cache'];
         foreach($r['events']as$e)if(!is_array($e)||preg_match('/\A[a-f0-9]{64}\z/D',(string)($e['fingerprint']??''))!==1
-            ||!is_int($e['increment_rub']??null)||$e['increment_rub']<=0||$e['increment_rub']>25000||!is_bool($e['cohort']??null)
+            ||!is_int($e['increment_rub']??null)||$e['increment_rub']<=0||$e['increment_rub']>ModeledConversionValueContract::MAX_VALUE_RUB||!is_bool($e['cohort']??null)
             ||!in_array($e['platform']??null,['max','telegram'],true)||!in_array($e['stage']??null,ModeledConversionValueContract::STAGES,true)
             ||!in_array($e['linkage']??null,['not_checked','failed','unverified','unique_visit_reconciled'],true))return ['available'=>false,'reason'=>'invalid_cache'];
         return ['available'=>true,'fresh'=>$now-$at<=900,'receipt'=>$r];

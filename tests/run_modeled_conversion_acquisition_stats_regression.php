@@ -182,10 +182,35 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     $check($m($r)['inquiries']===0,'string source revision does not coerce into canonical integer version one');
     $reset();$person(10,'max');$packet(10,'max',10,[['at'=>$now-3600,'version'=>true]],$now-60);$r=$read();
     $check($m($r)['inquiries']===0,'boolean source revision does not coerce into canonical integer version one');
-    $reset();$person(10,'max');$packet(10,'max',10,[['at'=>strtotime('2026-11-03 21:59:59 UTC')]],$now-60);
-    $person(11,'max');$packet(11,'max',11,[['at'=>strtotime('2026-11-03 22:00:00 UTC')]],$now-60);
+    $reset();$person(10,'max');$packet(10,'max',10,[['at'=>strtotime('2026-11-03T20:59:59Z')]],$now-60);
+    $person(11,'max');$packet(11,'max',11,[['at'=>strtotime('2026-11-03T21:00:00Z')]],$now-60);
+    $person(12,'max');$packet(12,'max',12,[['at'=>strtotime('2026-11-03T21:59:59Z')]],$now-60);
     $oldDay=$read(['date'=>'2026-11-03','period'=>7]);$newDay=$read(['date'=>'2026-11-04','period'=>7]);
-    $check($m($oldDay)['inquiries']===1&&$m($newDay)['inquiries']===2,'Kaliningrad inclusive end day uses occurrence rather than profile or availability date');
+    $check($m($oldDay)['inquiries']===1&&$m($newDay)['inquiries']===3,'Moscow inclusive end day uses occurrence rather than profile or availability date');
+    $reset();$calendarReader=new ModeledConversionAcquisitionStatsReader($pdo,static function():void{});
+    foreach([
+        ['2026-11-03T20:59:59Z','2026-11-03'],['2026-11-03T21:00:00Z','2026-11-04'],['2026-11-03T21:30:00Z','2026-11-04'],
+        ['2026-12-31T20:59:59Z','2026-12-31'],['2026-12-31T21:00:00Z','2027-01-01'],['2026-12-31T21:00:01Z','2027-01-01'],
+    ]as[$instant,$date]){
+        $at=strtotime($instant);$automatic=$calendarReader->read([],$at);$explicit=$calendarReader->read(['date'=>$date],$at);
+        $check($automatic['available']&&$automatic['filters']['date']===$date&&$automatic['window']['timezone']==='Europe/Moscow'
+            &&$explicit['available']&&$automatic['window']===$explicit['window'],'default and explicit date agree at Moscow midnight '.$instant);
+    }
+    $future=false;try{$calendarReader->read(['date'=>'2027-01-01'],strtotime('2026-12-31T20:59:59Z'));}catch(InvalidArgumentException $e){$future=true;}
+    $check($future,'next Moscow day remains a future filter until midnight');
+    foreach([7=>'2026-12-25T21:00:00Z',30=>'2026-12-02T21:00:00Z',90=>'2026-10-03T21:00:00Z']as$period=>$start){
+        $reset();$end='2027-01-01T21:00:00Z';$calendarNow=strtotime('2027-01-02T12:00:00Z');
+        foreach([strtotime($start)-1,strtotime($start),strtotime($end)-1,strtotime($end)]as$i=>$at){
+            $id=20+$i;$person($id,'max');$packet($id,'max',$id,[['at'=>$at]],$calendarNow-60);
+        }
+        $saved=[];foreach(['customers','customer_channels','conversations','messages','conversation_events','modeled_conversion_stream_versions','modeled_conversion_profile_versions']as$table)
+            $saved[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $r=$calendarReader->read(['date'=>'2027-01-01','period'=>$period],$calendarNow);
+        $check($r['available']&&$r['window']===['from'=>$start,'until'=>$end,'timezone'=>'Europe/Moscow']&&$m($r)['inquiries']===2,
+            'Moscow '.$period.' day window includes its first instant and excludes its next midnight');
+        $unchanged=true;foreach($saved as$table=>$rows)$unchanged=$unchanged&&$rows===$pdo->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $check($unchanged&&!$pdo->inTransaction(),'calendar projection preserves original UTC records and identities for '.$period.' days');
+    }
     $normal();$calls=0;$countAuth=static function()use(&$calls):void{$calls++;};
     (new ModeledConversionAcquisitionStatsReader($pdo,$countAuth))->read([],$now);$last=$calls;
     $calls=0;$revoked=false;

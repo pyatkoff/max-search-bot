@@ -32,7 +32,7 @@ final class ModeledConversionAcquisitionStatsView
             .'<p class="lead">Первое зафиксированное содержательное обращение в доступной истории.</p></div><span class="private">Закрытый просмотр</span></div>'
             .'<nav aria-label="Разделы аналитики"><a href="/manager/assigned-value.php?view=delivery">← Начисления и мониторинг</a></nav>'
             .'<section id="acquisition" aria-labelledby="cohortTitle"><div class="section-heading"><h2 id="cohortTitle">Обращения за период</h2>'
-            .'<p class="muted">Период определяется по времени обращения. Все даты и время — Калининград.</p></div>'
+            .'<p class="muted">Период определяется по времени обращения. Все даты и время — Москва (МСК).</p></div>'
             .self::filters($date,$period,$platform);
         if(!$ok){
             $html.='<div class="notice error" role="status"><h3>Статистика сейчас недоступна</h3><p>Не удалось получить полную выборку в пределах проверки. Это не ноль обращений. Обновите страницу позже.</p></div>';
@@ -57,7 +57,7 @@ final class ModeledConversionAcquisitionStatsView
     private static function valid(?array $page):bool
     {
         if(($page['available']??null)!==true||($page['schema_version']??null)!==1
-            ||($page['meaning']??null)!=='first_observed_substantive_inquiry_not_first_ever'
+            ||($page['meaning']??null)!=='first_observed_substantive_inquiry_not_first_ever'||($page['window']['timezone']??null)!=='Europe/Moscow'
             ||!is_array($page['platforms']??null)||!is_array($page['sources']??null))return false;
         foreach(['max','telegram']as$key){
             $p=$page['platforms'][$key]??null;
@@ -132,7 +132,7 @@ final class ModeledConversionAcquisitionStatsView
     private static function moment(mixed $v):string
     {
         if(!is_string($v)||preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\z/D',$v)!==1)return 'неизвестно';
-        try{return (new DateTimeImmutable($v))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('d.m.Y H:i:s');}catch(Throwable $ignored){return 'неизвестно';}
+        try{return (new DateTimeImmutable($v))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('d.m.Y H:i:s');}catch(Throwable $ignored){return 'неизвестно';}
     }
     private static function e(string $v):string{return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
     private static function css():string

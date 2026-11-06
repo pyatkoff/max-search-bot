@@ -160,9 +160,10 @@ final class ModeledConversionForecastStatusReader
             $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
             $activation=$out['value_delivery']['activated_at']??null;
             $activation=is_string($activation)?strtotime($activation):false;
-            $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation));
-            $out['today_latency']=$this->optionalRead(fn():array=>(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time()));
-            $out['daily_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation),4000);
+            $reportNow=time(); // Both calendar sections belong to the same Moscow day.
+            $out['today_latency']=$this->optionalRead(fn():array=>(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read($reportNow));
+            $out['daily_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read($reportNow));
             // This bounded reader already owns an 8KiB admission gate; do not reserve that headroom twice.
             $out['telegram_linkage']=(new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $out['external_monitor']=$this->optionalRead(fn():array=>ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time()));
@@ -198,8 +199,9 @@ final class ModeledConversionForecastStatusReader
     }
 
     /** Resource omission is explicit; access denial and the shared deadline still fail closed. */
-    private function optionalRead(callable $read):array
+    private function optionalRead(callable $read,int $minimumMilliseconds=0):array
     {
+        if($this->budget->remainingMilliseconds()<$minimumMilliseconds)return ['available'=>false,'reason'=>'time_headroom'];
         if($this->budget->remainingBytes()<self::OPTIONAL_RESERVE+4096)
             return ['available'=>false,'reason'=>'budget_headroom'];
         try{return $this->budget->withReservedBytes(self::OPTIONAL_RESERVE,$read);}

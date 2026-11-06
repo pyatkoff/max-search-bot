@@ -28,11 +28,11 @@ final class ModeledConversionDeliveryRegistry
         $this->started=($this->clock)();$this->bytes=0;$this->auth();
         try{
             if($now<946684800||array_diff(array_keys($input),['date','platform','cursor']))throw new InvalidArgumentException();
-            $date=$input['date']??(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('Y-m-d');
+            $date=$input['date']??(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
             $platform=$input['platform']??'all';
             if(!is_string($date)||preg_match('/\A20[0-9]{2}-[0-9]{2}-[0-9]{2}\z/D',$date)!==1
                 ||!is_string($platform)||!in_array($platform,['all','max','telegram'],true))throw new InvalidArgumentException();
-            $day=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Kaliningrad'));
+            $day=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Moscow'));
             if(!$day||$day->format('Y-m-d')!==$date||$day->getTimestamp()>$now)throw new InvalidArgumentException();
             $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();
             $cursor=$input['cursor']??null;$saved=null;
@@ -67,13 +67,13 @@ final class ModeledConversionDeliveryRegistry
             $cast=$mysql?'CHAR':'TEXT';
             $pred=$mysql?"CONCAT('anytour_value_pred_',CAST(o.value_profile_id AS CHAR),'_v1')":"'anytour_value_pred_'||CAST(o.value_profile_id AS TEXT)||'_v1'";
             $stageHex=implode(',',array_map(static fn(string $stage):string=>"HEX('".$stage."')",ModeledConversionValueContract::STAGES));
-            $pairs[]="(o.value_profile_id>0 AND HEX(o.target)=HEX(".$pred.") AND HEX(o.value_stage) IN (".$stageHex."))";
+            $pairs[]="(o.value_profile_id IS NOT NULL AND o.value_profile_id>0 AND HEX(o.target)=HEX(".$pred.") AND HEX(o.value_stage) IN (".$stageHex."))";
             $stateHex=implode(',',array_map(static fn(string $state):string=>"HEX('".$state."')",self::STATES));
             $invalid="o.target IS NULL OR o.value_stage IS NULL OR NOT (".implode(' OR ',$pairs).")"
                 ." OR o.state IS NULL OR HEX(o.state) NOT IN (".$stateHex.")"
                 ." OR o.platform IS NULL OR HEX(o.platform) NOT IN (HEX('max'),HEX('telegram'))"
                 ." OR (o.value_origin IS NOT NULL AND HEX(o.value_origin) NOT IN (HEX('owner_day_review_v1'),HEX('owner_fortnight_review_v1')))"
-                ." OR o.value_rub IS NULL OR o.value_rub<=0 OR o.value_rub>25000";
+                ." OR o.value_rub IS NULL OR o.value_rub<=0 OR o.value_rub>".ModeledConversionValueContract::MAX_VALUE_RUB;
             $columns=['COUNT(*) AS n','COUNT(DISTINCT o.conversation_id) AS c','COALESCE(SUM(o.value_rub),0) AS v',
                 'COALESCE(SUM(CASE WHEN '.$invalid.' THEN 1 ELSE 0 END),0) AS invalid_n'];
             foreach($conditions as$key=>$condition){
@@ -134,7 +134,7 @@ final class ModeledConversionDeliveryRegistry
                     $rows=$grouped[$id]??[];if(!$rows||count($rows)>self::EVENTS_PER_CONVERSATION)throw new UnexpectedValueException();
                     $first=$rows[0];$period=self::cents($first['day_rub']);$total=self::cents($first['total_rub']);
                     $count=self::count($first['event_count']);$rank=(int)$first['day_rank'];
-                    if($period<=0||$total>2500000||$count<count($rows)||!isset(ModeledConversionValueContract::STAGES[$rank]))throw new UnexpectedValueException();
+                    if($period<=0||$total>100*ModeledConversionValueContract::MAX_VALUE_RUB||$count<count($rows)||!isset(ModeledConversionValueContract::STAGES[$rank]))throw new UnexpectedValueException();
                     $item=['conversation_id'=>$id,'platform'=>null,'customer_name'=>'Турист','period_value_rub'=>self::rub($period),
                         'total_value_rub'=>self::rub($total),'stage'=>ModeledConversionValueContract::STAGES[$rank],
                         'events_total'=>$count,'events_omitted'=>$count-count($rows),'events'=>[]];$seen=[];
@@ -153,7 +153,7 @@ final class ModeledConversionDeliveryRegistry
             $next=$hasMore&&$selected?$this->encodeCursor(['v'=>1,'date'=>$date,'platform'=>$platform,
                 'snapshot'=>$snapshot,'before'=>$selected[count($selected)-1],'as_of'=>$asOf]):null;
             $this->pdo->commit();$started=false;
-            $out=['available'=>true,'version'=>self::VERSION,'date'=>$date,'timezone'=>'Europe/Kaliningrad',
+            $out=['available'=>true,'version'=>self::VERSION,'date'=>$date,'timezone'=>'Europe/Moscow',
                 'basis'=>'saved_value_event_unix','as_of'=>gmdate('Y-m-d\TH:i:s\Z',$asOf),'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
                 'window'=>['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)],
                 'platform'=>$platform,'currency'=>'RUB','summary'=>$summary,'rows'=>$items,
@@ -200,7 +200,7 @@ final class ModeledConversionDeliveryRegistry
         $pred=is_numeric($r['value_profile_id']??null)&&($r['target']??null)===ModeledConversionValueContract::predictionKey((string)$r['value_profile_id']);
         if($rank===false||(!$pred&&($r['target']??null)!==ModeledConversionValueContract::key($rank))
             ||!in_array($r['state']??null,self::STATES,true)||self::cents($r['value_rub'])<=0
-            ||self::cents($r['value_rub'])>2500000||!in_array($r['platform']??null,['max','telegram'],true))
+            ||self::cents($r['value_rub'])>100*ModeledConversionValueContract::MAX_VALUE_RUB||!in_array($r['platform']??null,['max','telegram'],true))
             throw new UnexpectedValueException();
         $origin=$r['value_origin']??null;
         if($origin!==null&&!in_array($origin,['owner_day_review_v1','owner_fortnight_review_v1'],true))throw new UnexpectedValueException();
@@ -227,7 +227,7 @@ final class ModeledConversionDeliveryRegistry
     private function decodeCursor(string $cursor,string $date,string $platform,int $now):?array
     {
         if(strlen($cursor)>1024||preg_match('/\Av1\.([A-Za-z0-9_-]+)\.([a-f0-9]{64})\z/D',$cursor,$m)!==1
-            ||!hash_equals(hash_hmac('sha256',$m[1],$this->cursorKey),$m[2]))return null;
+            ||!hash_equals(hash_hmac('sha256',"delivery-registry-v1\nEurope/Moscow\n".$m[1],$this->cursorKey),$m[2]))return null;
         $raw=base64_decode(strtr($m[1],'-_','+/'),true);if($raw===false)return null;
         try{$v=json_decode($raw,true,8,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){return null;}
         if(!is_array($v)||array_keys($v)!==['v','date','platform','snapshot','before','as_of']||$v['v']!==1
@@ -237,8 +237,9 @@ final class ModeledConversionDeliveryRegistry
     }
     private function encodeCursor(array $v):string
     {
+        // A continuation from the old calendar must not silently select a different cohort.
         $data=rtrim(strtr(base64_encode(json_encode($v,JSON_THROW_ON_ERROR)),'+/','-_'),'=');
-        return 'v1.'.$data.'.'.hash_hmac('sha256',$data,$this->cursorKey);
+        return 'v1.'.$data.'.'.hash_hmac('sha256',"delivery-registry-v1\nEurope/Moscow\n".$data,$this->cursorKey);
     }
     private static function decimal(mixed $v,bool $zero=false):string
     {
@@ -264,7 +265,7 @@ final class ModeledConversionDeliveryRegistry
     private static function summary(array $r,string $prefix=''):array
     {
         $n=self::count($r[$prefix.'n']??null);$c=self::count($r[$prefix.'c']??null);$v=self::cents($r[$prefix.'v']??null);
-        if($c>$n||($n===0&&($c!==0||$v!==0))||($n>0&&($v<$n||$v>$n*2500000)))throw new UnexpectedValueException();
+        if($c>$n||($n===0&&($c!==0||$v!==0))||($n>0&&($v<$n||$v>$n*100*ModeledConversionValueContract::MAX_VALUE_RUB)))throw new UnexpectedValueException();
         return ['events'=>$n,'conversations'=>$c,'value_rub'=>self::rub($v)];
     }
     private static function moment(mixed $v,int $now):?string

@@ -52,7 +52,7 @@ function deliveryRegistryDataDigest(PDO $p):string
 /** Shared SQLite/native-MySQL assertions. Real-data identities never enter this fixture. */
 function dailyReconciliationAssertions(PDO $p,callable $check):void
 {
-    $zone=new DateTimeZone('Europe/Kaliningrad');$date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',$zone);
+    $zone=new DateTimeZone('Europe/Moscow');$date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',$zone);
     $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$now=$until+3600;
     $auth=static function():void{};$ids=[];
     $event=static function(int $conversation,int $rank,int $at,array $options=[])use($p,&$ids):string{
@@ -110,8 +110,8 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
         $read=static fn(array $input=[]):array=>(new ModeledConversionDailyReconciliationReader($p,$auth))->read(['date'=>$date]+$input,$now);
         $page=$read();
         $check('daily reconciliation uses the real shared schema on each SQL driver',($page['available']??false)===true);
-        $check('owner reconciliation fixes Kaliningrad calendar midnight independently of UTC',
-            $page['date']===$date&&$page['timezone']==='Europe/Kaliningrad'
+        $check('owner reconciliation fixes Moscow calendar midnight independently of UTC',
+            $page['date']===$date&&$page['timezone']==='Europe/Moscow'
             &&$page['window']===['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)]
             &&$page['as_of']===gmdate('Y-m-d\TH:i:s\Z',$now));
         $accrual=$page['calendar']['accruals'];
@@ -232,7 +232,7 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
 
 function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
 {
-    $day=(new DateTimeImmutable('2026-11-02 00:00:00',new DateTimeZone('Europe/Kaliningrad')))->getTimestamp();$now=$day+8000;
+    $day=(new DateTimeImmutable('2026-11-02 00:00:00',new DateTimeZone('Europe/Moscow')))->getTimestamp();$now=$day+8000;
     $legacy=['id'=>'1','conversation_id'=>'600','project_key'=>'anytour','counter_id'=>'98615635','transport_target'=>ModeledConversionValueContract::TARGET,
         'value_contract'=>ModeledConversionValueContract::VERSION,'platform'=>'max','target'=>ModeledConversionValueContract::key(1),
         'value_profile_id'=>'1','value_stage'=>'interest','value_rub'=>100,'event_unix'=>$day+120,'client_id'=>'900000000000000001',
@@ -241,14 +241,14 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $a=$legacy;$a['id']='2';$a['target']=ModeledConversionValueContract::predictionKey('2');$a['value_profile_id']='2';
     $a['value_rub']=17;$a['event_unix']=$day+220;$a['upload_id']='502';$a['value_api_accepted_at_unix']=$day+230;$a['value_processed_at_unix']=null;
     $b=$a;$b['id']='3';$b['target']=ModeledConversionValueContract::predictionKey('3');$b['value_profile_id']='3';
-    $b['value_rub']=89;$b['conversation_id']='601';$b['platform']='telegram';$b['client_id']='900000000000000002';$b['upload_id']='503';
+    $b['value_rub']=100000;$b['conversation_id']='601';$b['platform']='telegram';$b['client_id']='900000000000000002';$b['upload_id']='503';
     $api=new class($day) {
         public array $statuses=['501'=>'PROCESSED','502'=>'PROCESSED','503'=>'UPLOADED'];public bool $duplicate=false;public bool $mismatch=false;public array $calls=[];
         public function __construct(public int $day){}
         public function poll(string $id):array{$this->calls[]='GET receipt';return ['id'=>$id,'status'=>$this->statuses[$id],'source_quantity'=>1,'line_quantity'=>1];}
         public function modeledValueVisits(string $cid,int $activation,int $now):array{
             $this->calls[]='GET report';$visits=[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$this->day+60),'visits'=>1,'goal_reaches'=>$cid==='900000000000000001'?2:1,
-                'revenue_rub'=>($cid==='900000000000000001'?117:89)+($this->mismatch?1:0)]];
+                'revenue_rub'=>($cid==='900000000000000001'?117:100000)+($this->mismatch?1:0)]];
             if($this->duplicate)$visits[]=$visits[0];return ['status'=>'ok','visits'=>$visits];
         }
     };
@@ -264,12 +264,35 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $cache=ModeledConversionVisitProof::validateCache($wrap($proof),$now);
     $check('saved proof is fingerprint-bound to the exact row amount and advertising binding',
         ModeledConversionVisitProof::forEvent($cache,$a)['linkage']==='unique_visit_reconciled');
+    $check('a 100000 increment can be reconciled by the fake visit report and retained in the checked cache',
+        $cache['available']&&$proof['events'][1]['increment_rub']===100000
+        &&ModeledConversionVisitProof::forEvent($cache,$b)['linkage']==='unique_visit_reconciled');
+    $over=$b;$over['value_rub']=100001;$calls=count($api->calls);$blocked=false;
+    try{ModeledConversionVisitProof::verify([$over],$api,$day,$day+500,$now);}
+    catch(RuntimeException $e){$blocked=$e->getMessage()==='verification_invalid_ledger';}
+    $overCache=$proof;$overCache['events'][1]['increment_rub']=100001;
+    $check('an over-cap ledger fails before provider reads and a freshly hashed over-cap cache remains invalid',
+        $blocked&&count($api->calls)===$calls
+        &&ModeledConversionVisitProof::validateCache($wrap($overCache),$now)===['available'=>false,'reason'=>'invalid_cache']);
     $changed=$a;$changed['value_rub']=18;
     $check('an amended ledger row cannot inherit the old visit proof',
         ModeledConversionVisitProof::forEvent($cache,$changed)===['available'=>false,'reason'=>'event_changed']);
     $corrupt=$wrap($proof);$corrupt['receipt']['events'][0]['increment_rub']=18;
     $check('corrupted private receipt is unavailable rather than trusted',!ModeledConversionVisitProof::validateCache($corrupt,$now)['available']);
     $check('saved visit evidence becomes explicitly stale',ModeledConversionVisitProof::validateCache($wrap($proof),$now+901)['fresh']===false);
+    $directory=sys_get_temp_dir().'/modeled-visit-cache-fixture-'.bin2hex(random_bytes(8));
+    if(!mkdir($directory,0700))throw new RuntimeException('fixture_cache_directory');$file=$directory.'/receipt.json';
+    try{
+        if(file_put_contents($file,json_encode($wrap($proof),JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))===false
+            ||!chmod($file,0600))throw new RuntimeException('fixture_cache_write');
+        $process=proc_open([PHP_BINARY,'-d','disable_functions=posix_geteuid',__DIR__.'/fixtures/modeled_visit_cache_without_posix.php',$file,(string)$now],
+            [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if(!is_resource($process))throw new RuntimeException('fixture_cache_process');
+        fclose($pipes[0]);$output=stream_get_contents($pipes[1],1024);fclose($pipes[1]);$errors=stream_get_contents($pipes[2],1024);fclose($pipes[2]);$code=proc_close($process);
+        $check('private cache remains owner-bound and readable when the web runtime has no POSIX function',
+            $code===0&&json_decode((string)$output,true)===['ok'=>true]&&$errors==='');
+    }finally{if(is_file($file))unlink($file);if(is_dir($directory))rmdir($directory);}
+
     $api->duplicate=true;$bad=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
     $check('multiple goal visits are unverified rather than guessed by amount',$bad['events'][0]['linkage']==='unverified'&&$bad['events'][0]['reason']==='no_unique_goal_visit');
     $api->duplicate=false;$api->mismatch=true;$bad=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
@@ -305,6 +328,101 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         &&count($page['rows'])===1&&$page['rows'][0]['events_total']===35&&$page['rows'][0]['events_omitted']===3
         &&count($page['rows'][0]['events'])===32&&$page['rows'][0]['total_value_rub']===350
         &&$page['rows'][0]['events'][0]['valuation']['basis']==='predictive_v1'&&deliveryRegistryDataDigest($p)===$digest);
+    $daily=(new ModeledConversionDailyReconciliationReader($p,static function():void{}))->read(['date'=>'2026-11-02'],$now);
+    $check('daily reconciliation admits all 35 predictive increments and excludes the recorded zero-value cancellation',
+        ($daily['available']??false)&&$daily['calendar']['accruals']['events']===35
+        &&$daily['calendar']['accruals']['conversations']===1&&$daily['calendar']['accruals']['value_rub']===350
+        &&$daily['current_statuses']['by_state']['failed']['events']===0&&deliveryRegistryDataDigest($p)===$digest);
+    foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
+}
+
+function deliveryRegistryValueCapAssertions(PDO $p,callable $check):void
+{
+    $date='2026-11-03';$anchor=strtotime('2026-11-03T12:00:00Z');$now=$anchor+3600;
+    $auth=static function():void{};$key=str_repeat('value-cap-fixture-',3);
+    $registry=static fn():array=>(new ModeledConversionDeliveryRegistry($p,$auth,$key))->read(['date'=>$date],$now);
+    $daily=static fn():array=>(new ModeledConversionDailyReconciliationReader($p,$auth))->read(['date'=>$date],$now);
+    $set=static function(string $id,string $field,mixed $value)use($p):void{
+        $clock=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?',updated_at=updated_at':'';
+        $p->prepare('UPDATE max_channel_conversion_outbox SET '.$field.'=?'.$clock.' WHERE id=?')->execute([$value,$id]);
+    };
+    try{
+        deliveryRegistryFixtureEvent($p,620,6,$anchor-86400,['value'=>25000,'state'=>'processed']);
+        $increment=deliveryRegistryFixtureEvent($p,620,6,$anchor+100,['predictive'=>true,'value'=>45000,'state'=>'processed']);
+        $page=$registry();$reconciliation=$daily();
+        $check('a legacy 25000 plus a new 45000 delta preserves the 70000 lifetime total and the 45000 current day',
+            ($page['available']??false)&&($reconciliation['available']??false)&&count($page['rows'])===1
+            &&$page['rows'][0]['total_value_rub']===70000&&$page['rows'][0]['period_value_rub']===45000
+            &&$reconciliation['calendar']['accruals']['events']===1&&$reconciliation['calendar']['accruals']['value_rub']===45000);
+        $tail=deliveryRegistryFixtureEvent($p,620,6,$anchor+200,['predictive'=>true,'value'=>30000,'state'=>'processed']);
+        $cap=deliveryRegistryFixtureEvent($p,622,6,$anchor+300,['predictive'=>true,'value'=>100000,'state'=>'processed']);
+        $before=deliveryRegistryDataDigest($p);$page=$registry();$reconciliation=$daily();$by=array_column($page['rows']??[],null,'conversation_id');
+        $check('mixed increments reach 100000 per conversation while separate conversations may total more in a day',
+            ($page['available']??false)&&($reconciliation['available']??false)
+            &&$page['summary']['events']===3&&$page['summary']['conversations']===2&&$page['summary']['value_rub']===175000
+            &&$by['620']['total_value_rub']===100000&&$by['620']['period_value_rub']===75000
+            &&array_column($by['620']['events'],'value_rub')===[25000,45000,30000]&&$by['622']['total_value_rub']===100000
+            &&$reconciliation['calendar']['accruals']['value_rub']===175000
+            &&$reconciliation['calendar']['api_receipts']['value_rub']===175000&&$reconciliation['calendar']['processed']['value_rub']===175000);
+        $set($cap,'value_rub',100001);
+        $check('a recorded event above 100000 withholds both financial reports',
+            $registry()===['available'=>false,'reason'=>'invalid_ledger']&&$daily()===['available'=>false,'reason'=>'invalid_aggregate']);
+        $set($cap,'value_rub',100000);$set($tail,'value_rub',30001);
+        $check('individually valid increments cannot conceal a conversation total above 100000',
+            $registry()===['available'=>false,'reason'=>'invalid_ledger']);
+        $set($tail,'value_rub',30000);
+        $binding=$p->query('SELECT target,value_profile_id FROM max_channel_conversion_outbox WHERE id='.(int)$increment)->fetch(PDO::FETCH_ASSOC);
+        $set($increment,'target',ModeledConversionValueContract::predictionKey('999999'));
+        $check('a predictive key for another profile cannot enter either financial aggregate',
+            $registry()===['available'=>false,'reason'=>'invalid_ledger']&&$daily()===['available'=>false,'reason'=>'invalid_aggregate']);
+        $set($increment,'value_profile_id',null);
+        $check('a predictive key with a NULL profile fails closed on native SQL as well as SQLite',
+            $registry()===['available'=>false,'reason'=>'invalid_ledger']&&$daily()===['available'=>false,'reason'=>'invalid_aggregate']);
+        $set($increment,'value_profile_id',$binding['value_profile_id']);$set($increment,'target',$binding['target']);
+        $check('successful and rejected financial reads preserve all recorded values profiles and clocks',
+            deliveryRegistryDataDigest($p)===$before&&!$p->inTransaction());
+    }finally{
+        if($p->inTransaction())$p->rollBack();
+        foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
+    }
+}
+
+function deliveryRegistryMoscowAssertions(PDO $p,callable $check):void
+{
+    $midnight=strtotime('2026-12-31T21:00:00Z');$auth=static function():void{};
+    $key=str_repeat('moscow-calendar-fixture-',3);
+    foreach([-1,0,1]as$i=>$offset)deliveryRegistryFixtureEvent($p,31000+$i,1,$midnight+$offset);
+    $before=deliveryRegistryDataDigest($p);
+    foreach([[-1,'2026-12-31',1,'2026-12-30T21:00:00Z','2026-12-31T21:00:00Z'],
+        [0,'2027-01-01',1,'2026-12-31T21:00:00Z','2027-01-01T21:00:00Z'],
+        [1,'2027-01-01',2,'2026-12-31T21:00:00Z','2027-01-01T21:00:00Z']]as[$offset,$date,$count,$from,$until]){
+        foreach(['registry','reconciliation']as$kind){
+            $reader=$kind==='registry'?new ModeledConversionDeliveryRegistry($p,$auth,$key):new ModeledConversionDailyReconciliationReader($p,$auth);
+            $automatic=$reader->read([],$midnight+$offset);$explicit=$reader->read(['date'=>$date],$midnight+$offset);
+            $events=$kind==='registry'?($automatic['summary']['events']??null):($automatic['calendar']['accruals']['events']??null);
+            $check($kind.' uses Moscow midnight for default and explicit dates at offset '.$offset,
+                ($automatic['available']??false)&&($explicit['available']??false)&&$automatic['date']===$date
+                &&$automatic['timezone']==='Europe/Moscow'&&$events===$count
+                &&$automatic['window']===['from'=>$from,'until_exclusive'=>$until]&&$automatic['window']===$explicit['window']);
+        }
+    }
+    foreach([new ModeledConversionDeliveryRegistry($p,$auth,$key),new ModeledConversionDailyReconciliationReader($p,$auth)]as$reader)
+        $check('next Moscow date stays invalid before midnight',($reader->read(['date'=>'2027-01-01'],$midnight-1)['reason']??null)==='invalid_request');
+    $check('Moscow calendar reads preserve every UTC record value receipt and identity',deliveryRegistryDataDigest($p)===$before);
+    // An old-day assignment can receive a new-day API receipt; do not shift either stored clock.
+    $p->prepare("UPDATE max_channel_conversion_outbox SET state='processed',upload_id='calendar-receipt',upload_status='PROCESSED',claimed_at_unix=?,value_api_accepted_at_unix=?,value_processed_at_unix=?,value_receipt_basis='post_response' WHERE conversation_id=31000")
+        ->execute([$midnight-1,$midnight,$midnight+1]);
+    $before=deliveryRegistryDataDigest($p);$reader=new ModeledConversionDailyReconciliationReader($p,$auth);
+    $prior=$reader->read(['date'=>'2026-12-31'],$midnight+2);$next=$reader->read(['date'=>'2027-01-01'],$midnight+2);
+    $check('assignment claim and receipt keep their own calendar days across Moscow midnight',
+        ($prior['available']??false)&&($next['available']??false)
+        &&$prior['calendar']['accruals']['events']===1&&$prior['calendar']['upload_claims']['events']===1
+        &&$prior['calendar']['api_receipts']['events']===0&&$prior['calendar']['processed']['events']===0
+        &&$next['calendar']['accruals']['events']===2&&$next['calendar']['upload_claims']['events']===0
+        &&$next['calendar']['api_receipts']['events']===1&&$next['calendar']['processed']['events']===1
+        &&deliveryRegistryDataDigest($p)===$before);
+    $check('reconciliation renders the explicit year-boundary instant in Moscow',
+        str_contains(ModeledConversionDailyReconciliationView::render($next),'01.01.2027 00:00:02'));
     foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
 }
 
@@ -315,7 +433,9 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     deliveryRegistrySchema($p);
     dailyReconciliationAssertions($p,$check);
     deliveryPredictiveAndVisitAssertions($p,$check);
-    $date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Kaliningrad'));
+    deliveryRegistryValueCapAssertions($p,$check);
+    deliveryRegistryMoscowAssertions($p,$check);
+    $date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Moscow'));
     $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$now=$until+3600;
     $key=str_repeat('fixture-session-key-only-',3);$auth=static function():void{};
     for($id=10;$id<=66;$id++){
@@ -355,10 +475,10 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
         echo 'REGISTRY SYNTHETIC FIRST READ UNAVAILABLE reason='.$reason.PHP_EOL;
     }
     $check('registry is an actual recorded-value read with an explicit event-day basis',
-        $first['available']&&$first['basis']==='saved_value_event_unix'&&$first['timezone']==='Europe/Kaliningrad');
+        $first['available']&&$first['basis']==='saved_value_event_unix'&&$first['timezone']==='Europe/Moscow');
     $check('same-scope exact day summary counts sixty deltas and fifty-nine conversations beyond one page',
         $first['summary']['events']===60&&$first['summary']['conversations']===59&&$first['summary']['value_rub']===74166);
-    $check('Kaliningrad half-open midnight window preserves the correct UTC boundaries',
+    $check('Moscow half-open midnight window preserves the correct UTC boundaries',
         $first['window']['from']===gmdate('Y-m-d\TH:i:s\Z',$from)&&$first['window']['until_exclusive']===gmdate('Y-m-d\TH:i:s\Z',$until));
     $check('history is a direct origin subset and not a different sending day',
         $first['summary']['historical_review']===['events'=>1,'conversations'=>1,'value_rub'=>1250]
@@ -419,6 +539,9 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
         $check('strict date channel and parameter admission rejects malformed or unsupported requests',$r===['available'=>false,'reason'=>'invalid_request']);
     }
     $cursor=$first['pagination']['next_cursor'];
+    $parts=explode('.',$cursor);$legacy='v1.'.$parts[1].'.'.hash_hmac('sha256',$parts[1],$key);
+    $check('a correctly signed old-calendar cursor cannot change the cohort during paging',
+        ($read(['cursor'=>$legacy])['reason']??null)==='invalid_cursor');
     $check('edited signed cursor is rejected before releasing any result',
         ($read(['cursor'=>substr($cursor,0,-1).(str_ends_with($cursor,'0')?'1':'0')])['reason']??null)==='invalid_cursor');
     $check('cursor is bound to the selected platform',($read(['cursor'=>$cursor,'platform'=>'telegram'])['reason']??null)==='invalid_cursor');

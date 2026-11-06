@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
+require_once __DIR__.'/ModeledConversionValueContract.php';
 
 /** Fixed-scope goal-row aggregates; observation clocks are not provider event times. */
 final class ModeledConversionDailyDeliveryReader
@@ -15,13 +16,13 @@ final class ModeledConversionDailyDeliveryReader
         if($now<946684800)return $this->done(['available'=>false,'reason'=>'invalid_clock']);
         if($this->budget->remainingBytes()<8192)return $this->done(['available'=>false,'reason'=>'budget_headroom']);
         try{
-            $day=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->setTime(0,0,0);
+            $day=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->setTime(0,0,0);
             $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();
             $scope="project_key='anytour' AND counter_id='98615635' AND transport_target='anytour_modeled_value_v1' AND value_contract='semantic_stage_value_25000_v1'";
             $receipt="upload_id IS NOT NULL AND upload_id<>''";
             $history="value_origin IN ('owner_day_review_v1','owner_fortnight_review_v1')";
             $bad="platform IS NULL OR platform NOT IN ('max','telegram') OR conversation_id IS NULL OR conversation_id<=0"
-                ." OR value_rub IS NULL OR value_rub<=0 OR value_rub>25000"
+                ." OR value_rub IS NULL OR value_rub<=0 OR value_rub>".ModeledConversionValueContract::MAX_VALUE_RUB
                 ." OR (value_api_accepted_at_unix IS NOT NULL AND (value_api_accepted_at_unix<946684800 OR NOT (".$receipt.")"
                 ." OR value_receipt_basis IS NULL OR value_receipt_basis NOT IN ('post_response','get_reconciliation')))"
                 ." OR (value_processed_at_unix IS NOT NULL AND (value_processed_at_unix<946684800 OR NOT (".$receipt.")"
@@ -55,7 +56,7 @@ final class ModeledConversionDailyDeliveryReader
                     throw new UnexpectedValueException();
                 $values[$key]=self::summary($r);
             }
-            return $this->done(['available'=>true,'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Kaliningrad',
+            return $this->done(['available'=>true,'date'=>$day->format('Y-m-d'),'timezone'=>'Europe/Moscow',
                 'as_of'=>gmdate('Y-m-d\TH:i:s\Z',$now),
                 'window'=>['from'=>gmdate('Y-m-d\TH:i:s\Z',$from),'until_exclusive'=>gmdate('Y-m-d\TH:i:s\Z',$until)],'currency'=>'RUB',
                 'upload_claims_today'=>['basis'=>'last_current_persisted_upload_claim_not_api_response_time']+$values['claims'],
@@ -82,7 +83,7 @@ final class ModeledConversionDailyDeliveryReader
     private static function numbers(array $r,string $prefix):array
     {
         $n=self::countValue($r[$prefix.'n']??null);$c=self::countValue($r[$prefix.'c']??null);$v=self::cents($r[$prefix.'v']??null);
-        if($c>$n||($n===0&&($c!==0||$v!==0))||($n>0&&($c===0||$v<$n||$v>$n*2500000)))throw new UnexpectedValueException();
+        if($c>$n||($n===0&&($c!==0||$v!==0))||($n>0&&($c===0||$v<$n||$v>$n*100*ModeledConversionValueContract::MAX_VALUE_RUB)))throw new UnexpectedValueException();
         return [$n,$c,$v];
     }
     private static function display(array $v):array

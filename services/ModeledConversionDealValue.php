@@ -4,9 +4,22 @@ declare(strict_types=1);
 /** Pure monetary projection of admitted evidence; estimates are not a quote, income or bank receipt. */
 final class ModeledConversionDealValue
 {
-    public const VERSION='early_deal_commission_7pct_v1';
+    public const VERSION='early_deal_commission_7pct_v2';
     public const COMMISSION_RATE=0.07;
-    public const CAP=25000;
+    public const CAP=100000;
+    public const UNKNOWN_BASE=10000;
+    private const LEGACY_VERSION='early_deal_commission_7pct_v1';
+    private const LEGACY_RULES_SHA256='f4f205793ce51a18f7268292df3e0362b152869d60c71a5bc9c62017ca136593';
+
+    /** Monetary policy belongs to the frozen version; existing capsules are never re-priced. */
+    public static function policy(string $version):?array
+    {
+        return match($version){
+            self::LEGACY_VERSION=>['cap_rub'=>25000,'unknown_base_rub'=>25000,'unknown_base_basis'=>'existing_25000_fallback'],
+            self::VERSION=>['cap_rub'=>self::CAP,'unknown_base_rub'=>self::UNKNOWN_BASE,'unknown_base_basis'=>'provisional_commission_10000'],
+            default=>null,
+        };
+    }
 
     /** Explicit RUB publication amounts only; no FX, bare-number or nightly-price inference. */
     public static function publicationRange(string $text):?array
@@ -40,13 +53,14 @@ final class ModeledConversionDealValue
     {
         $p=$wrapper['semantic_prediction']??[];$subject=$wrapper['subject']??[];
         $cutoff=self::moment($p['input_cutoff_at']??null);$freeze=self::moment($p['frozen_at']??null);
+        $policy=self::policy(self::VERSION);
         $out=['version'=>self::VERSION,'rules_sha256'=>hash_file('sha256',__FILE__),'subject'=>$subject,
             'semantic_prediction_digest'=>$p['prediction_digest']??null,'current_request_anchor'=>$p['current_request_anchor']??null,
             'profile_prediction_at'=>$p['profile_prediction_at']??null,'input_cutoff_at'=>$p['input_cutoff_at']??null,
             'frozen_at'=>$p['frozen_at']??null,'commission_rate'=>self::COMMISSION_RATE,'currency'=>'RUB',
             'status'=>'unavailable','reason'=>'insufficient_context','early_window'=>'unknown','age_seconds'=>null,
             'deal_amount_rub'=>['low'=>null,'high'=>null,'point'=>null,'basis'=>'unknown','source_kind'=>'unknown','source_refs'=>[]],
-            'commission_estimate_rub'=>null,'full_value_base_rub'=>self::CAP,'base_basis'=>'existing_25000_fallback',
+            'commission_estimate_rub'=>null,'full_value_base_rub'=>$policy['unknown_base_rub'],'base_basis'=>$policy['unknown_base_basis'],
             'estimated_probability'=>null,'value_rub'=>null,'payment_hold_observed'=>false,
             'calibration_status'=>'expert_estimate_not_calibrated','price_verified'=>false,'trip_identity'=>'unverified',
             'export_allowed'=>false,'model_calls'=>0,'conversion_uploads'=>0];
@@ -152,7 +166,7 @@ final class ModeledConversionDealValue
         }
         $prob=$p['estimated_probability']??null;
         if(($p['status']??null)==='predicted'&&(is_float($prob)||is_int($prob))&&$prob>0&&$prob<=1){
-            $out['status']='estimated';$out['reason']=$deal===null?'deal_price_unknown_existing_base':'stage_dialogue_and_estimated_commission';
+            $out['status']='estimated';$out['reason']=$deal===null?'deal_price_unknown_provisional_base':'stage_dialogue_and_estimated_commission';
             $out['estimated_probability']=$prob;$out['value_rub']=(int)round($prob*$out['full_value_base_rub']);
         }
         return self::seal($out);
@@ -163,7 +177,10 @@ final class ModeledConversionDealValue
     {
         $v=$wrapper['deal_value_prediction']??null;$p=$wrapper['semantic_prediction']??null;
         if(!is_array($v)||!is_array($p)||($wrapper['access_status']??null)!=='allowed'||strlen(json_encode($v))>8192
-            ||($v['version']??null)!==self::VERSION||($v['rules_sha256']??null)!==hash_file('sha256',__FILE__)
+            ||!is_string($v['version']??null))return null;
+        $policy=self::policy($v['version']);
+        $rulesSha256=$v['version']===self::VERSION?hash_file('sha256',__FILE__):self::LEGACY_RULES_SHA256;
+        if($policy===null||($v['rules_sha256']??null)!==$rulesSha256
             ||!self::sameSubject($v['subject']??null,$wrapper['subject']??null)||($v['semantic_prediction_digest']??null)!==($p['prediction_digest']??null)
             ||($v['commission_rate']??null)!==self::COMMISSION_RATE||($v['currency']??null)!=='RUB'
             ||($v['frozen_at']??null)!==($p['frozen_at']??null)||($v['input_cutoff_at']??null)!==($p['input_cutoff_at']??null)
@@ -186,12 +203,13 @@ final class ModeledConversionDealValue
         if(!hash_equals($given,ModeledConversionSemanticPrediction::digest($copy)))return null;
         $d=$v['deal_amount_rub']??[];$point=$d['point']??null;
         if($point===null){
-            if(($v['commission_estimate_rub']??null)!==null||($v['full_value_base_rub']??null)!==self::CAP||($v['base_basis']??null)!=='existing_25000_fallback')return null;
+            if(($v['commission_estimate_rub']??null)!==null||($v['full_value_base_rub']??null)!==$policy['unknown_base_rub']
+                ||($v['base_basis']??null)!==$policy['unknown_base_basis'])return null;
         }else{
             if(!is_int($point)||!self::range($d['low']??null,$d['high']??null)
                 ||($d['low']!==null&&$point<$d['low'])||($d['high']!==null&&$point>$d['high'])
                 ||($v['commission_estimate_rub']??null)!==(int)round($point*self::COMMISSION_RATE)
-                ||($v['full_value_base_rub']??null)!==min(self::CAP,(int)round($point*self::COMMISSION_RATE)))return null;
+                ||($v['full_value_base_rub']??null)!==min($policy['cap_rub'],(int)round($point*self::COMMISSION_RATE)))return null;
         }
         if(($v['status']??null)==='estimated'){
             if(($p['status']??null)!=='predicted'||($v['estimated_probability']??null)!==($p['estimated_probability']??null)

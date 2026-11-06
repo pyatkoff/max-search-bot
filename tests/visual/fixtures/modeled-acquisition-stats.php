@@ -16,7 +16,7 @@ function modeledAcquisitionViewFixture(string $scenario='ready'):array
     $input=['date'=>'2026-11-04','period'=>30,'platform'=>'all'];
     $page=['schema_version'=>1,'available'=>true,'reason'=>null,'as_of'=>'2026-11-04T10:20:30Z',
         'meaning'=>'first_observed_substantive_inquiry_not_first_ever','rule_version'=>'saved_substantive_interest_v1',
-        'filters'=>$input,'window'=>['from'=>'2026-10-05T22:00:00Z','until'=>'2026-11-04T22:00:00Z','timezone'=>'Europe/Kaliningrad'],
+        'filters'=>$input,'window'=>['from'=>'2026-10-05T21:00:00Z','until'=>'2026-11-04T10:20:30Z','timezone'=>'Europe/Moscow'],
         'platforms'=>['max'=>$max,'telegram'=>$telegram],
         'sources'=>['profile_fence'=>'99','profiles_examined'=>43,'projected_records'=>32,
             'first_profile_at'=>'2026-10-10T08:00:00Z','last_profile_at'=>'2026-11-04T10:20:00Z',

@@ -539,21 +539,21 @@ final class ModeledConversionAcquisitionStatsReader
     private function filters(array $input,int $now):array
     {
         if($now<946684800||array_diff(array_keys($input),['date','period','platform']))throw new InvalidArgumentException('acquisition_filters');
-        $today=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('Y-m-d');
+        $today=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
         $date=$input['date']??$today;$period=$input['period']??30;$platform=$input['platform']??'all';
         if(!is_string($date)||!is_int($period)||!in_array($period,[7,30,90],true)||!in_array($platform,['all','max','telegram'],true))
             throw new InvalidArgumentException('acquisition_filters');
-        $d=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Kaliningrad'));
+        $d=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Moscow'));
         if(!$d||$d->format('Y-m-d')!==$date||$date>$today)throw new InvalidArgumentException('acquisition_filters');
         return ['date'=>$date,'period'=>$period,'platform'=>$platform];
     }
     private function window(array $f,int $now):array
     {
-        $end=new DateTimeImmutable($f['date'].' 00:00:00',new DateTimeZone('Europe/Kaliningrad'));
+        $end=new DateTimeImmutable($f['date'].' 00:00:00',new DateTimeZone('Europe/Moscow'));
         return ['from'=>self::iso($end->modify('-'.($f['period']-1).' days')->getTimestamp()),
-            'until'=>self::iso(min($end->modify('+1 day')->getTimestamp(),$now)),'timezone'=>'Europe/Kaliningrad'];
+            'until'=>self::iso(min($end->modify('+1 day')->getTimestamp(),$now)),'timezone'=>'Europe/Moscow'];
     }
-    private function endExclusive(string $date):int{return(new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Kaliningrad')))->modify('+1 day')->getTimestamp();}
+    private function endExclusive(string $date):int{return(new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Moscow')))->modify('+1 day')->getTimestamp();}
     private function emptyPlatform(string $membership):array
     {
         return ['inquiries'=>0,'valid_pairs'=>0,'coverage_pct'=>null,'median_seconds'=>null,'p90_seconds'=>null,

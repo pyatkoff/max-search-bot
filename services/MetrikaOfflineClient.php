@@ -192,7 +192,7 @@ final class MetrikaOfflineClient
             ||($event['transport_target']??null)!==ModeledConversionValueContract::TARGET
             ||($event['value_contract']??null)!==ModeledConversionValueContract::VERSION
             ||!MaxTrackerLookupProtocol::id($event['client_id']??null,40)
-            ||preg_match('/\A[1-9][0-9]{0,4}(?:\.0{1,2})?\z/D',$value)!==1||(float)$value>25000
+            ||preg_match('/\A[1-9][0-9]{0,5}(?:\.0{1,2})?\z/D',$value)!==1||(float)$value>ModeledConversionValueContract::MAX_VALUE_RUB
             ||!is_numeric($event['event_unix']??null)||(int)$event['event_unix']>$now||(int)$event['event_unix']<$now-21*86400)
             throw new InvalidArgumentException('invalid_modeled_value_event');
         $f=fopen('php://temp','w+');fputcsv($f,['ClientId','Target','DateTime','Price','Currency']);
