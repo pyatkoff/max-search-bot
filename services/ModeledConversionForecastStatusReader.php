@@ -12,13 +12,14 @@ require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_12';
+    public const VERSION='saved_semantic_prediction_status_v1_13';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
-    // Remaining tail is the bounded linkage query/file receipt and final authorization.
-    // Projection admission already charges twice the candidate bytes plus2KiB.
-    private const RELEASE_RESERVE=4096;
+    // Keep the final reader/adapter/dispatcher OAuth checks above their 4KiB authorization floor.
+    private const RELEASE_RESERVE=8192;
+    // Each optional reader retains its own unchanged 4KiB OAuth floor in addition to this reserve.
+    private const OPTIONAL_RESERVE=4096;
     private const CONTINUITY_FIELDS=['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
         'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'];
     private bool $mysql;
@@ -33,12 +34,6 @@ final class ModeledConversionForecastStatusReader
         try{
             $this->copied=0;$out=$this->emptyResult();
             $out['state']=$this->state();
-            $out['value_delivery']=(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time());
-            $activation=$out['value_delivery']['activated_at']??null;
-            $activation=is_string($activation)?strtotime($activation):false;
-            $out['saved_input_diagnosis']=(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation);
-            $out['today_latency']=(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time());
-            $out['daily_delivery']=(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
             $processor=hash_file('sha256',__DIR__.'/ModeledConversionProfiles.php');
             if(!is_string($model)||!is_string($processor))return $this->unavailable('source_unavailable');
@@ -55,98 +50,125 @@ final class ModeledConversionForecastStatusReader
                 ['semantic_purchase_heuristic_v1',$model,$processor,'anytour','max','telegram']);
             $out['window']['metadata_rows']=count($meta);$out['window']['metadata_limit_reached']=count($meta)===self::METADATA_LIMIT;
             $fence=$meta?(string)$meta[0]['id']:'0';$scopes=[];
-            foreach($meta as$row){
-                $this->budget->check();
-                if(!$this->validMeta($row)){$out['window']['invalid_metadata_rows']++;continue;}
-                if((string)$row['namespace_matches']!=='1'){$out['window']['other_namespace_rows']++;continue;}
-                $out['window']['current_v1_candidates']++;
-                $key=$row['platform'].'|'.$row['customer_key'].'|'.$row['conversation_id'];
-                if(isset($scopes[$key])){$out['window']['duplicate_scope_rows']++;continue;}
-                $scopes[$key]=true;
-                $size=(int)$row['packet_bytes'];
-                if($size<2||$size>self::PROFILE_BYTES){$out['window']['oversize_rows']++;continue;}
-                if($out['window']['profile_rows_read']>=self::PROFILE_LIMIT){$out['window']['row_limit_omissions']++;continue;}
-                if($this->copied+$size>self::PROFILE_BYTES||$size*2+2048>$this->budget->remainingBytes()-self::RELEASE_RESERVE){
-                    $out['window']['byte_limit_omissions']++;continue;
-                }
-                $columns=[];
-                foreach($parts as$name=>$sql)$columns[]='CASE WHEN JSON_VALID(profile_json) THEN '.$sql.' ELSE NULL END AS '.$name;
-                $body=$this->query('SELECT '.implode(',',$columns).' FROM modeled_conversion_profile_versions WHERE project_key=?'
-                    .' AND id=? AND id<=? AND '.$bytes.'=? AND '.$bytes.'<=? AND JSON_VALID(profile_json) LIMIT 1',
-                    ['anytour',(string)$row['id'],$fence,$size,self::PROFILE_BYTES]);
-                $actual=0;
-                if(count($body)===1)foreach(array_keys($parts)as$name){
-                    $v=$body[0][$name]??null;if($v!==null&&!is_string($v)){$actual=-1;break;}$actual+=strlen($v??'');
-                }
-                if(count($body)!==1||$actual!==$size){$out['window']['changed_or_missing_rows']++;continue;}
-                $this->copied+=$actual;$out['window']['profile_rows_read']++;
-                try{
-                    $p=json_decode($body[0]['binding_json'],true,32,JSON_THROW_ON_ERROR);
-                    $p['semantic_prediction']=json_decode($body[0]['prediction_json']??'null',true,32,JSON_THROW_ON_ERROR);
-                    $p['prediction_followup']=json_decode($body[0]['followup_json']??'null',true,32,JSON_THROW_ON_ERROR);
-                }catch(JsonException $ignored){$out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['invalid_json']++;continue;}
-                $subject=['project_key'=>'anytour','platform'=>$row['platform'],
-                    'customer_key'=>(string)$row['customer_key'],'conversation_id'=>(string)$row['conversation_id']];
-                $s=$p['semantic_prediction']??null;
-                if(!is_array($p)||!self::sameSubject($p['subject']??null,$subject)||!is_array($s)
-                    ||($p['processing']['source_sha256']??null)!==$processor||($s['model_sha256']??null)!==$model
-                    ||($p['processing']['journal_cursor']??null)!==(string)$row['journal_cursor']
-                    ||($s['journal_cursor']??null)!==(string)$row['journal_cursor']
-                    ||($p['processing']['source_fence_journal_id']??null)!==($s['source_fence_journal_id']??null)
-                    ||($s['profile_prediction_at']??null)!==gmdate('Y-m-d\TH:i:s\Z',(int)$row['observed_at_unix'])
-                    ||!is_string($s['frozen_at']??null)||($frozen=strtotime($s['frozen_at']))===false||$frozen>time()){
-                    $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['parent_binding']++;continue;
-                }
-                $fields=ModeledConversionValueRegistry::predictionFields($p);
-                if($fields['semantic_prediction']['availability']!=='available'){
-                    $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['prediction_contract']++;
-                    $reason=is_array($s)&&ModeledConversionSemanticPrediction::digestMatches($s)?'fields':'digest';
-                    $out['window']['prediction_contract_reason_counts'][$reason]++;continue;
-                }
-                $s=$fields['semantic_prediction']['value'];
-                if(!$this->inputCoverage($out['input_coverage'],$p['input_summary']??null,$s)){
-                    $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['input_summary']++;continue;
-                }
-
-                $out['saved']['valid_v1_versions']++;$out['saved']['channel_counts'][$row['platform']]++;
-                $out['saved']['status_counts'][$s['status']]++;
-                $weighting=($s['mode']??null)==='contextual_stage_baseline'?'stage_baseline':
-                    (($s['training_status']??null)==='archive_relative_weights'?'archive_relative_weights':'illustrative');
-                $out['saved']['weighting_version_counts'][$weighting]++;
-                if($weighting==='archive_relative_weights'){
-                    $weightSha=$s['relative_weights']['package_sha256'];
-                    $out['saved']['relative_weight_package_counts'][$weightSha]=($out['saved']['relative_weight_package_counts'][$weightSha]??0)+1;
-                }
-                if($s['stage']!==null)$out['saved']['stage_counts'][$s['stage']]++;
-                foreach(['prediction_at','input_cutoff_at','profile_prediction_at']as$k)$this->range($out['saved'][$k.'_range'],$s[$k]);
-                if($s['status']==='predicted'){
-                    $out['saved']['prospective_estimates']++;
-                    $this->probabilityRange($out['saved']['estimated_probability_range'],$s['estimated_probability']);
-                    // These are validated current-segment customer feature clocks, not a new source read.
-                    $lastOccurred=null;$lastAvailable=null;
-                    foreach($s['evidence']as$e){
-                        if($lastOccurred===null||$e['occurred_at']>$lastOccurred)$lastOccurred=$e['occurred_at'];
-                        if($lastAvailable===null||$e['available_at']>$lastAvailable)$lastAvailable=$e['available_at'];
+            $next=0;
+            $readProfiles=function(int $limit)use(&$out,&$scopes,&$next,$meta,$parts,$bytes,$fence,$model,$processor):void{
+                for(;$next<count($meta);$next++){
+                    // Validate one core packet before diagnostics; inspect remaining candidates only with spare budget.
+                    if($limit<self::PROFILE_LIMIT&&$out['window']['profile_rows_read']>=$limit)break;
+                    $row=$meta[$next];
+                    $this->budget->check();
+                    if(!$this->validMeta($row)){$out['window']['invalid_metadata_rows']++;continue;}
+                    if((string)$row['namespace_matches']!=='1'){$out['window']['other_namespace_rows']++;continue;}
+                    $out['window']['current_v1_candidates']++;
+                    $key=$row['platform'].'|'.$row['customer_key'].'|'.$row['conversation_id'];
+                    if(isset($scopes[$key])){$out['window']['duplicate_scope_rows']++;continue;}
+                    $scopes[$key]=true;
+                    $size=(int)$row['packet_bytes'];
+                    if($size<2||$size>self::PROFILE_BYTES){$out['window']['oversize_rows']++;continue;}
+                    if($out['window']['profile_rows_read']>=self::PROFILE_LIMIT){$out['window']['row_limit_omissions']++;continue;}
+                    if($this->copied+$size>self::PROFILE_BYTES||$size*2+2048>$this->budget->remainingBytes()-self::RELEASE_RESERVE){
+                        $out['window']['byte_limit_omissions']++;continue;
                     }
-                    if($lastOccurred!==null)$this->range($out['saved']['customer_evidence_occurred_at_range'],$lastOccurred);
-                    if($lastAvailable!==null)$this->range($out['saved']['customer_evidence_available_at_range'],$lastAvailable);
+                    $columns=[];
+                    foreach($parts as$name=>$sql)$columns[]='CASE WHEN JSON_VALID(profile_json) THEN '.$sql.' ELSE NULL END AS '.$name;
+                    $body=$this->query('SELECT '.implode(',',$columns).' FROM modeled_conversion_profile_versions WHERE project_key=?'
+                        .' AND id=? AND id<=? AND '.$bytes.'=? AND '.$bytes.'<=? AND JSON_VALID(profile_json) LIMIT 1',
+                        ['anytour',(string)$row['id'],$fence,$size,self::PROFILE_BYTES]);
+                    $actual=0;
+                    if(count($body)===1)foreach(array_keys($parts)as$name){
+                        $v=$body[0][$name]??null;if($v!==null&&!is_string($v)){$actual=-1;break;}$actual+=strlen($v??'');
+                    }
+                    if(count($body)!==1||$actual!==$size){$out['window']['changed_or_missing_rows']++;continue;}
+                    $this->copied+=$actual;$out['window']['profile_rows_read']++;
+                    try{
+                        $p=json_decode($body[0]['binding_json'],true,32,JSON_THROW_ON_ERROR);
+                        $p['semantic_prediction']=json_decode($body[0]['prediction_json']??'null',true,32,JSON_THROW_ON_ERROR);
+                        $p['prediction_followup']=json_decode($body[0]['followup_json']??'null',true,32,JSON_THROW_ON_ERROR);
+                    }catch(JsonException $ignored){$out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['invalid_json']++;continue;}
+                    $subject=['project_key'=>'anytour','platform'=>$row['platform'],
+                        'customer_key'=>(string)$row['customer_key'],'conversation_id'=>(string)$row['conversation_id']];
+                    $s=$p['semantic_prediction']??null;
+                    if(!is_array($p)||!self::sameSubject($p['subject']??null,$subject)||!is_array($s)
+                        ||($p['processing']['source_sha256']??null)!==$processor||($s['model_sha256']??null)!==$model
+                        ||($p['processing']['journal_cursor']??null)!==(string)$row['journal_cursor']
+                        ||($s['journal_cursor']??null)!==(string)$row['journal_cursor']
+                        ||($p['processing']['source_fence_journal_id']??null)!==($s['source_fence_journal_id']??null)
+                        ||($s['profile_prediction_at']??null)!==gmdate('Y-m-d\TH:i:s\Z',(int)$row['observed_at_unix'])
+                        ||!is_string($s['frozen_at']??null)||($frozen=strtotime($s['frozen_at']))===false||$frozen>time()){
+                        $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['parent_binding']++;continue;
+                    }
+                    $fields=ModeledConversionValueRegistry::predictionFields($p);
+                    if($fields['semantic_prediction']['availability']!=='available'){
+                        $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['prediction_contract']++;
+                        $reason=is_array($s)&&ModeledConversionSemanticPrediction::digestMatches($s)?'fields':'digest';
+                        $out['window']['prediction_contract_reason_counts'][$reason]++;continue;
+                    }
+                    $s=$fields['semantic_prediction']['value'];
+                    if(!$this->inputCoverage($out['input_coverage'],$p['input_summary']??null,$s)){
+                        $out['window']['invalid_blocks']++;$out['window']['invalid_block_reason_counts']['input_summary']++;continue;
+                    }
 
+                    $out['saved']['valid_v1_versions']++;$out['saved']['channel_counts'][$row['platform']]++;
+                    $out['saved']['status_counts'][$s['status']]++;
+                    $weighting=($s['mode']??null)==='contextual_stage_baseline'?'stage_baseline':
+                        (($s['training_status']??null)==='archive_relative_weights'?'archive_relative_weights':'illustrative');
+                    $out['saved']['weighting_version_counts'][$weighting]++;
+                    if($weighting==='archive_relative_weights'){
+                        $weightSha=$s['relative_weights']['package_sha256'];
+                        $out['saved']['relative_weight_package_counts'][$weightSha]=($out['saved']['relative_weight_package_counts'][$weightSha]??0)+1;
+                    }
+                    if($s['stage']!==null)$out['saved']['stage_counts'][$s['stage']]++;
+                    foreach(['prediction_at','input_cutoff_at','profile_prediction_at']as$k)$this->range($out['saved'][$k.'_range'],$s[$k]);
+                    if($s['status']==='predicted'){
+                        $out['saved']['prospective_estimates']++;
+                        $this->probabilityRange($out['saved']['estimated_probability_range'],$s['estimated_probability']);
+                        // These are validated current-segment customer feature clocks, not a new source read.
+                        $lastOccurred=null;$lastAvailable=null;
+                        foreach($s['evidence']as$e){
+                            if($lastOccurred===null||$e['occurred_at']>$lastOccurred)$lastOccurred=$e['occurred_at'];
+                            if($lastAvailable===null||$e['available_at']>$lastAvailable)$lastAvailable=$e['available_at'];
+                        }
+                        if($lastOccurred!==null)$this->range($out['saved']['customer_evidence_occurred_at_range'],$lastOccurred);
+                        if($lastAvailable!==null)$this->range($out['saved']['customer_evidence_available_at_range'],$lastAvailable);
+
+                    }
+                    if($fields['prediction_followup']['availability']==='available'){
+                        $f=$fields['prediction_followup']['value'];$out['saved']['followup_status_counts'][$f['status']]++;
+                        if($f['status']==='observed')$out['saved']['later_payment_evidence_versions']++;
+                    }else $out['window']['invalid_followup_blocks']++;
                 }
-                if($fields['prediction_followup']['availability']==='available'){
-                    $f=$fields['prediction_followup']['value'];$out['saved']['followup_status_counts'][$f['status']]++;
-                    if($f['status']==='observed')$out['saved']['later_payment_evidence_versions']++;
-                }else $out['window']['invalid_followup_blocks']++;
-            }
+            };
+            $readProfiles(1);
+            $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $activation=$out['value_delivery']['activated_at']??null;
+            $activation=is_string($activation)?strtotime($activation):false;
+            $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation));
+            $out['today_latency']=$this->optionalRead(fn():array=>(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $out['daily_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            // This bounded reader already owns an 8KiB admission gate; do not reserve that headroom twice.
+            $out['telegram_linkage']=(new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
+            $out['external_monitor']=$this->optionalRead(fn():array=>ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time()));
+            $readProfiles(self::PROFILE_LIMIT);
             $out['window']['selected_document_bytes']=$this->copied;
             $out['saved']['distinct_inspected_scopes']=$out['saved']['valid_v1_versions'];
             $out['confirmation']=$out['saved']['prospective_estimates']>0?'saved_prospective_estimates':
                 ($out['saved']['valid_v1_versions']>0?'saved_v1_without_prospective_estimate':'no_v1_confirmation_in_checked_suffix');
-            $out['telegram_linkage']=$this->budget->remainingBytes()<8192?['available'=>false,'reason'=>'budget_headroom']:
-                (new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
-            $out['external_monitor']=ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time());
             $this->auth();return $out;
         }catch(ModeledConversionStatusLimit $error){throw $error;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
+    }
+
+    /** Resource omission is explicit; access denial and the shared deadline still fail closed. */
+    private function optionalRead(callable $read):array
+    {
+        if($this->budget->remainingBytes()<self::OPTIONAL_RESERVE+4096)
+            return ['available'=>false,'reason'=>'budget_headroom'];
+        try{return $this->budget->withReservedBytes(self::OPTIONAL_RESERVE,$read);}
+        catch(ModeledConversionStatusLimit $error){
+            if($error->reason!=='byte_limit')throw $error;
+            $this->budget->check();
+            return ['available'=>false,'reason'=>'budget_headroom'];
+        }
     }
 
     private function state():array

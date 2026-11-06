@@ -347,6 +347,110 @@ function dialogueReviewReadRegression(PDO $pdo):int
         $service->inventory(1,$connection);$service->context(1,$connection,['dialogue_ref'=>$refs['10']]);
         $check(!array_filter(DialogueReviewTraceStatement::$queries,static fn(string $sql):bool=>!str_starts_with($sql,'SELECT '))
             &&$finalBefore===$fingerprint(),'all_service_data_queries_select_only_and_sources_unchanged');
+
+        // The ordinary transcript remains unchanged. Only the separately verified
+        // constructor purpose can receive strict public-share references.
+        $sourceAuthorizations=0;
+        $sourceAuthorize=static function(int $actor,string $family)use($connection,&$sourceAuthorizations):void{
+            if($actor!==1||$family!==$connection)throw new DomainException();
+            ++$sourceAuthorizations;
+        };
+        $withSources=new DialogueReviewReadService($pdo,static fn():int=>1793793600,$provider,$sourceAuthorize);
+        $sourceText='Вариант http://www.qui-quo.ru/AB12-CD34). https://qui-quo.ru/AB12-CD34 '
+            .'https://qui-quo.ru/EF56-GH78?token=PRIVATE_SOURCE_SECRET '
+            .'https://user@qui-quo.ru/IJ90-KL12 https://example.test/PRIVATE_OTHER '
+            .'person@example.test +7 999 123-45-67';
+        $message(9000001,10,$sourceText,['type'=>'message'],'manager','outbound');
+        $plain=$service->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]);
+        $packet=$withSources->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]);
+        $row=$packet['messages'][0];$projection=$row['selection_sources'];$reference=$projection['references'][0]??[];
+        $withoutProjection=$row;unset($withoutProjection['selection_sources']);
+        $check($withoutProjection===$plain['messages'][0]&&!array_key_exists('selection_sources',$plain['messages'][0])
+            &&$row['links_redacted']&&$row['selection_links_unread'],'ordinary_transcript_and_redaction_remain_identical');
+        $check($sourceAuthorizations===2&&count($projection['references'])===1
+            &&$reference===['message_id'=>'9000001','source_ref'=>'message:9000001','message_revision'=>$row['revision'],
+                'provider'=>'qui_quo_public_selection','url'=>'https://qui-quo.ru/AB12-CD34',
+                'untrusted_source'=>true,'source_page_fetched'=>false],
+            'bounded_reference_has_exact_row_revision_and_canonical_provider_provenance');
+        $serialized=json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+        $check(!str_contains($row['text'],'https://')&&!str_contains($serialized,'PRIVATE_SOURCE_SECRET')
+            &&!str_contains($serialized,'PRIVATE_OTHER')&&!str_contains($serialized,'person@example.test')
+            &&!str_contains($serialized,'999 123')&&!$projection['complete']&&$projection['unsupported_links_within_limit']===1,
+            'other_links_credentials_query_secrets_and_contacts_never_enter_reference_output');
+        $previousRevision=$reference['message_revision'];
+        $pdo->prepare('UPDATE messages SET text=? WHERE id=9000001')->execute([$sourceText.' Условия изменены.']);
+        $changed=$withSources->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]);
+        $check($changed['messages'][0]['revision']!==$previousRevision
+            &&$changed['messages'][0]['selection_sources']['references'][0]['message_revision']===$changed['messages'][0]['revision'],
+            'same_url_after_message_edit_binds_the_actual_new_source_revision');
+        foreach([
+            ['ai','outbound',['type'=>'message']],['bot','outbound',['type'=>'message']],
+            ['system','outbound',['type'=>'message']],['manager','inbound',['type'=>'message']],
+            ['customer','outbound',['type'=>'message']],['customer','inbound',['type'=>'callback']],
+            ['manager','outbound','{'],
+        ]as$i=>[$sender,$direction,$metadata]){
+            $message(9000010+$i,10,'https://qui-quo.ru/AB12-CD34',$metadata,$sender,$direction);
+            $excluded=$withSources->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]);
+            $check($excluded['messages'][0]['selection_sources']['references']===[],
+                'non_message_bot_system_or_inconsistent_role_has_no_public_reference_'.$i);
+        }
+        $many='';for($i=1;$i<=45;++$i)$many.='https://qui-quo.ru/CCCC-'.str_pad((string)$i,4,'0',STR_PAD_LEFT).' ';
+        $message(9000050,10,$many,['type'=>'message'],'manager','outbound');
+        $limited=$withSources->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]);
+        $projection=$limited['messages'][0]['selection_sources'];
+        $check(array_column($projection['references'],'url')===['https://qui-quo.ru/CCCC-0044','https://qui-quo.ru/CCCC-0045']
+            &&!$projection['complete']&&$projection['classifier_limit_reached']&&$projection['references_omitted_within_limit']===39,
+            'per_message_and_existing_classifier_caps_keep_latest_references_with_honest_omission');
+        for($i=1;$i<=11;++$i){
+            $prefix='https://qui-quo.ru/A'.str_pad((string)$i,3,'0',STR_PAD_LEFT).'-';
+            $message(9000100+$i,10,$prefix.'0001 '.$prefix.'0002 '.$prefix.'0003',['type'=>'message'],'manager','outbound');
+        }
+        foreach([1,2]as$reuse){
+            $limited=$withSources->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>11]);$count=0;$bound=true;
+            foreach($limited['messages']as$item){
+                foreach($item['selection_sources']['references']as$source){
+                    ++$count;$bound=$bound&&$source['message_id']===$item['message_id']&&$source['message_revision']===$item['revision'];
+                }
+            }
+            $check($bound&&$count===20&&$limited['messages'][0]['message_id']==='9000101'
+                &&$limited['messages'][0]['selection_sources']['references']===[]
+                &&!$limited['messages'][0]['selection_sources']['complete'],
+                'page_cap_applies_to_newest_rows_and_resets_on_reader_reuse_'.$reuse);
+        }
+        $message(9000200,10,str_repeat('"',32650).' https://qui-quo.ru/AB12-CD34',['type'=>'message'],'manager','outbound');
+        $oversized=$withSources->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]);
+        $check($oversized['messages'][0]['read_status']==='response_record_limit'
+            &&$oversized['messages'][0]['selection_sources']['references']===[]
+            &&$oversized['messages'][0]['selection_sources']['reason']==='response_record_limit'
+            &&strlen(json_encode($oversized,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=65536,
+            'response_omission_never_leaves_capability_links_from_an_omitted_record');
+        $message(9000300,10,'https://qui-quo.ru/ZX90-YW87',['type'=>'message'],'manager','outbound');
+        $beforePurpose=$fingerprint();DialogueReviewTraceStatement::$queries=[];
+        $withSources->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]);
+        $check($beforePurpose===$fingerprint()
+            &&!array_filter(DialogueReviewTraceStatement::$queries,static fn(string $sql):bool=>!str_starts_with($sql,'SELECT ')),
+            'purpose_projection_remains_select_only_without_source_or_read_marker_writes');
+        $purposeCalls=0;
+        $purposeRevoker=static function()use(&$purposeCalls):void{if(++$purposeCalls===2)throw new DomainException('PRIVATE_GRANT');};
+        $purposeRace=new DialogueReviewReadService($pdo,static fn():int=>1793793600,$provider,$purposeRevoker);
+        $reject(fn()=>$purposeRace->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]),'permission_changed');
+        $check($purposeCalls===2&&!$pdo->inTransaction(),'purpose_revocation_after_projection_withholds_the_whole_packet');
+        foreach([
+            ["UPDATE managers SET is_active=0 WHERE id=1","UPDATE managers SET is_active=1 WHERE id=1",'permission_changed'],
+            ["UPDATE projects SET is_active=0 WHERE id=1","UPDATE projects SET is_active=1 WHERE id=1",'permission_changed'],
+            ["UPDATE customer_channels SET customer_id=9999 WHERE id=10","UPDATE customer_channels SET customer_id=1010 WHERE id=10",'source_changed'],
+        ]as[$withdraw,$restore,$reason]){
+            $purposeCalls=0;
+            $lateChange=static function()use(&$purposeCalls,$pdo,$withdraw):void{if(++$purposeCalls===2)$pdo->exec($withdraw);};
+            $lateReader=new DialogueReviewReadService($pdo,static fn():int=>1793793600,$provider,$lateChange);
+            $reject(fn()=>$lateReader->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]),$reason);
+            $pdo->exec($restore);
+        }
+        $prePurpose=new DialogueReviewReadService($pdo,static fn():int=>1793793600,$provider,
+            static function():void{throw new DomainException('PRIVATE_GRANT');});
+        DialogueReviewTraceStatement::$queries=[];
+        $reject(fn()=>$prePurpose->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>1]),'forbidden');
+        $check(DialogueReviewTraceStatement::$queries===[],'missing_purpose_grant_reads_no_message_or_project_rows');
         echo 'Dialogue review read checks: '.$checks." passed.\n";return$checks;
     }finally{
         if($pdo->inTransaction())$pdo->rollBack();

@@ -9,7 +9,7 @@ final class DialogueReviewMcpAdapter
     public const NAMES=['list_current_dialogues','get_dialogue_review_context'];
     public const MAX_OUTPUT_BYTES=65536;
 
-    public function __construct(private PDO $pdo,private $store=null,private $clock=null) {}
+    public function __construct(private PDO $pdo,private $store=null,private $clock=null,private $selectionSourceAuthorize=null) {}
 
     public static function tools(): array
     {
@@ -52,7 +52,7 @@ final class DialogueReviewMcpAdapter
                     require_once __DIR__.'/DialogueReviewReadService.php';
                     $oauth=new ManagerPreparationOAuth($this->pdo,$this->clock);
                     $key=static fn(int $actor,string $family):string=>$oauth->dialogueCursorKey($family,$actor);
-                    $this->store=new DialogueReviewReadService($this->pdo,$this->clock,$key);
+                    $this->store=new DialogueReviewReadService($this->pdo,$this->clock,$key,$this->selectionSourceAuthorize);
                 }
                 $result=$this->store->$operation($admin,$connection,$args);
             }

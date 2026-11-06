@@ -155,6 +155,52 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
 
 function forecastV1Assertions(PDO $p,callable $check):void
 {
+    $b=new ModeledConversionStatusBudget();$b->consumeBytes(49536);
+    $limited=false;
+    try{$b->withReservedBytes(8000,static function()use($b):void{
+        $b->consumeBytes(5000);
+        if($b->remainingBytes()<4096)throw new ModeledConversionStatusLimit('byte_limit');
+    });}catch(ModeledConversionStatusLimit $e){$limited=$e->reason==='byte_limit';}
+    $check('optional authorization floor restores reserved headroom without refunding consumed reads',
+        $limited&&$b->remainingBytes()===11000);
+    $b->consumeBytes(2100);
+    $check('mandatory final authorization retains the original four KiB floor',$b->remainingBytes()>=4096);
+    $slice=new ModeledConversionStatusBudget();$slice->consumeBytes(53536);
+    try{$slice->withReservedBytes(8000,static fn()=>$slice->consumeBytes(4500));}
+    catch(ModeledConversionStatusLimit $ignored){}
+    $check('an oversized optional copy is fully charged against the original global byte cap',$slice->remainingBytes()===7500);
+    $absolute=new ModeledConversionStatusBudget();$absolute->consumeBytes(60000);
+    try{$absolute->withReservedBytes(4096,static fn()=>$absolute->consumeBytes(6000));}
+    catch(ModeledConversionStatusLimit $ignored){}
+    $exhausted=false;
+    try{$absolute->check();}catch(ModeledConversionStatusLimit $e){$exhausted=$e->reason==='byte_limit';}
+    $check('absolute byte exhaustion cannot be hidden by optional fallback',$exhausted);
+    $deniedBudget=new ModeledConversionStatusBudget();$denied=false;
+    try{$deniedBudget->withReservedBytes(8192,static function():void{throw new DomainException('revoked_fixture');});}
+    catch(DomainException $ignored){$denied=true;}
+    $check('permission denial is preserved and reservation cleanup never changes the global cap',
+        $denied&&$deniedBudget->remainingBytes()===65536);
+
+    forecastV1Schema($p);forecastV1Append($p,forecastV1Packet());$guardBudget=new ModeledConversionStatusBudget();
+    $injected=false;$authChecks=0;
+    $guard=static function()use($guardBudget,&$injected,&$authChecks):void{
+        $authChecks++;
+        if(!$injected){
+            foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,12)as$frame)
+                if(($frame['class']??null)===ModeledConversionInputDiagnosisReader::class){
+                    $injected=true;$guardBudget->consumeBytes(max(0,$guardBudget->remainingBytes()-3000));
+                    throw new ModeledConversionStatusLimit('byte_limit');
+                }
+        }
+        if($guardBudget->remainingBytes()<4096)throw new ModeledConversionStatusLimit('byte_limit');
+        $guardBudget->consumeBytes(128);
+    };
+    $rowsBeforeBudget=forecastV1Rows($p);$bounded=forecastV1Read($p,$guard,$guardBudget);
+    $check('core forecast survives optional diagnostic pressure with fresh final authorization',
+        $injected&&$authChecks>4&&$bounded['saved']['prospective_estimates']===1
+        &&$bounded['saved_input_diagnosis']===['available'=>false,'reason'=>'budget_headroom']
+        &&$guardBudget->remainingBytes()>4096&&forecastV1Rows($p)===$rowsBeforeBudget);
+
     forecastV1Schema($p);
     $descriptive=forecastV1Packet(messages:[
         ['text'=>'Подберите тур в Турцию на 7 ночей на следующий год.'],
