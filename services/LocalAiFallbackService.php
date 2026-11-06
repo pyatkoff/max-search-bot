@@ -48,10 +48,30 @@ class LocalAiFallbackService
             'китай'=>'Китай',
             'хайнан'=>'Китай',
         ];
-        foreach ($countries as $stem => $name) {
-            if (preg_match('/'.preg_quote($stem, '/').'/ui', $userText)) {
-                $params['country'] = $name;
-                break;
+        // Only country matching uses the positive replacement clause. Party
+        // and duration below still read the complete original tourist message.
+        $countryText = $userText;
+        $explicitReplacement = false;
+        if (preg_match('/^\s*не\s+.+?\s*,?\s+а\s+(.+?)\s*$/ui', $countryText, $correction)) {
+            $countryText = trim($correction[1]);
+            $explicitReplacement = true;
+        }
+        $countryMatches = [];
+        if (!preg_match('/[?？]|(?:^|[^\p{L}])(?:не|нет|или|ли|если|например|возможно|сравни[а-яё]*|почему|узнать|расскажите|были|раньше)(?!\p{L})/ui', $countryText)) {
+            foreach ($countries as $stem => $name) {
+                if (preg_match('/'.preg_quote($stem, '/').'/ui', $countryText)) $countryMatches[$name] = $name;
+            }
+        }
+        if (count($countryMatches) === 1) {
+            $candidate = reset($countryMatches);
+            $bareChoice = false;
+            foreach ($countries as $stem => $name) {
+                if ($name === $candidate
+                    && preg_match('/^\s*(?:(?:в|во|на)\s+)?'.preg_quote($stem, '/').'[а-яё-]*[.!]?\s*$/ui', $countryText)) $bareChoice = true;
+            }
+            $choiceIntent = (bool)preg_match('/(?:^|\s)(?:хочу|хотим|нужен|нужна|нужно|едем|летим|поедем|полетим|давайте|меняем|замените|выбираем|направление|страна)(?=\s|:|,)/ui', $countryText);
+            if (empty($current['country']) || $current['country'] === $candidate || $explicitReplacement || $bareChoice || $choiceIntent) {
+                $params['country'] = $candidate;
             }
         }
 
