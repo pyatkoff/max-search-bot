@@ -12,10 +12,10 @@ assert hashlib.sha256(json.dumps(c['canonical_ids'],separators=(',',':')).encode
 assert not set(s['hotel_ids'])&set(s['excluded_published_native_ids'])
 template=(root/'read-top500-internal-metadata-20261105-ten1.php').read_bytes()
 assert hashlib.sha256(template).hexdigest()==os.environ['EXPECTED_TOP500_READER_SHA256']
-head="<?php\n"
+head="<?php\ndeclare(strict_types=1);\n"
 values={'EXPECTED_INSTALLED_SHA':os.environ['EXPECTED_PRODUCTION_SHA'],'TOP500_OPERATION':s['operation'],'TOP500_SCOPE_SHA256':hashlib.sha256(raw).hexdigest(),'TOP500_ROSTER_SHA256':s['canonical_ids_sha256'],'TOP500_CATALOG_CONNECTOR_SHA256':os.environ['EXPECTED_CATALOG_CONNECTOR_SHA256'],'TOP500_SCOPE_B64':base64.b64encode(raw).decode(),'TOP500_CANONICAL_IDS':c['canonical_ids'],'TOP500_HOTEL_IDS':s['hotel_ids'],'TOP500_PUBLISHED_IDS':s['excluded_published_native_ids']}
 for k,v in values.items():head+='define('+json.dumps(k)+','+json.dumps(v,separators=(',',':'))+');\n'
-assert template.startswith(b'<?php\n');prepared=head.encode()+template[len(b'<?php\n'):]
+prefix=b'<?php\ndeclare(strict_types=1);\n';assert template.startswith(prefix);prepared=head.encode()+template[len(prefix):]
 out=t/'top500-metadata.php';assert not out.exists();out.write_bytes(prepared)
 intent={'operation':s['operation'],'scope_sha256':hashlib.sha256(raw).hexdigest(),'reader_template_sha256':hashlib.sha256(template).hexdigest(),'prepared_php_sha256':hashlib.sha256(prepared).hexdigest(),'expected_installed_sha':os.environ['EXPECTED_PRODUCTION_SHA'],'hotel_ids':s['hotel_ids'],'db_read_only':True,'quotes':0,'post_writes':0,'photo_http':0}
 (t/'top500-input.private.json').write_text(json.dumps(intent,separators=(',',':'))+'\n')

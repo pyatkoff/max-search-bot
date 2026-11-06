@@ -1,4 +1,4 @@
-name: Read retained internal metadata for ten exact owner TOP500 hotels
+name: Read retained TOP500 metadata after PHP declaration preparation fix
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
