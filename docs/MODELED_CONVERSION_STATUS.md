@@ -721,3 +721,5 @@ explicit; they never represent zero signals. The private saved visit cohort and
 the administrator financial ledger are independent of that optional diagnosis.
 No global deadline, response ceiling, query-row limit or authorization floor is
 increased.
+
+Private cache reads use standard filesystem ownership checks against the deployed service-file owner, for both the cache directory and file. Reading does not require the optional POSIX extension used by the finite CLI writer. The fixed path, 0700/0600 modes, schema/hash validation, freshness and event fingerprints remain mandatory. A synthetic subprocess verifies reading with posix_geteuid disabled.
