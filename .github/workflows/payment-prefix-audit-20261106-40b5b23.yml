@@ -1,0 +1,389 @@
+name: Private payment lifecycle and within-stage audit
+on:
+  push:
+    branches: [ops/payment-prefix-audit-20261106-40b5b23]
+    paths: [.github/workflows/payment-prefix-audit-20261106-40b5b23.yml]
+permissions:
+  contents: read
+concurrency:
+  group: anytour-private-archive-predictive-study
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.event_name == 'push' && github.ref == 'refs/heads/ops/payment-prefix-audit-20261106-40b5b23' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 42
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate the one purpose source envelope
+        env:
+          API_TOKEN: ${{ github.token }}
+          ACCEPTED_MAIN_SHA: 40b5b2325776930c2b45eee829a1abb86da3fa1f
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,stat,subprocess,urllib.request
+          ANALYZER="import collections,hashlib,json,math,os,random,re,stat,sys,time\nFEATURES=(\"continued_meaningful_engagement\",\"near_term_urgency\",\"long_range_planning\",\"deferral\",\"continued_offer_search\",\"office_question\",\"payment_terms_question\")\nEVENTS=(\"payment_claim\",\"manager_ack\",\"posted_receipt\",\"hold_active\",\"hold_policy\",\"hold_released\",\"hold_release_promised\",\"booking_cancelled\",\"cancellation_requested\",\"refund_received\",\"refund_requested\")\nPROTOCOL={\"version\":\"payment_prefix_lifecycle_audit_v1\",\"prefixes\":\"unchanged_parent_frozen_prefixes\",\"target\":\"corroborated_retained_payment_evidence_30d\",\"bank_settlement_verified\":False,\"controls\":\"no_retained_payment_evidence_not_verified_nonbuyers\",\"split\":\"unchanged_parent_peer_group_assignment\",\"exposed_control\":True,\"multiple_comparison_alpha\":0.05/(2*len(FEATURES)),\"bootstrap\":1000,\"weight_activation\":False,\"lifecycle\":\"same_parent_episode_only;corroboration_72h;hold_without_later_explicit_posting_unknown\"}\ndef enc(v):return json.dumps(v,sort_keys=True,separators=(\",\",\":\"),ensure_ascii=True,allow_nan=False).encode()\ndef sha(v):return hashlib.sha256(enc(v)).hexdigest()\ndef classify(text,role,flags=None):\n    flags=flags or {}; t=re.sub(r\"\\s+\",\" \",text.lower().replace(\"ё\",\"е\")).strip(); e={k:False for k in EVENTS}\n    if role not in (\"customer\",\"manager\") or flags.get(\"quoted_or_relayed\") or flags.get(\"past_trip\"):return e\n    def has(p):return bool(re.search(p,t))\n    money=r\"(?:деньг\\w*|средств\\w*|сумм\\w*|оплат\\w*|платеж\\w*)\"\n    e[\"hold_active\"]=has(r\"(?:замороженн\\w*|заблокированн\\w*|захолдированн\\w*) (?:денежн\\w* )?(?:средств\\w*|деньг\\w*|сумм\\w*)|\"+money+r\".{0,55}(?:заморожены|заморожена|заморожен|заблокированы|заблокирована|захолдированы)|(?:сделан|установлен|стоит) холд\")\n    e[\"hold_policy\"]=has(r\"холд|предавторизац|замороз|заморож|заблокир\") and not e[\"hold_active\"]\n    e[\"hold_released\"]=has(r\"(?:деньг\\w*|средств\\w*|сумм\\w*).{0,35}(?:разморожены|разблокированы|снова доступны|вновь доступны)|(?:разморозили|разблокировали).{0,35}(?:деньг|средств)\")\n    e[\"hold_release_promised\"]=has(r\"(?:отменю|отменим|разморозим|разморозят|разблокируем|будут доступны).{0,65}(?:заморож|средств|деньг)|(?:деньг\\w*|средств\\w*).{0,50}(?:разморозятся|будут доступны|будут разморожены)\")\n    uncertain=has(r\"\\b(?:если|когда|после того как|в случае|надо|нужно|можно|можете|должны|должен|будет|будут|будем|буду)\\b\")\n    question=\"?\" in t\n    negated=has(r\"\\bне (?:оплат|оплачен|поступ|прош|получ|спис|вернул|возвращ|отмен|аннулир)\")\n    if not uncertain and not question and not negated:\n        e[\"payment_claim\"]=role==\"customer\" and has(r\"\\b(?:оплатил[аи]?|оплачено|я оплатил[аи]?|перевел[аи]? (?:деньги|сумму)|деньги отправил[аи]?)\\b\")\n        e[\"manager_ack\"]=role==\"manager\" and has(r\"(?:оплат\\w*.{0,18}(?:вижу|получил|получена|получили)|вижу.{0,18}оплат)\")\n        e[\"posted_receipt\"]=has(r\"(?:деньг\\w*|средств\\w*|оплат\\w*|платеж\\w*).{0,28}(?:поступили|зачислены|зачислена|прошла успешно|успешно проведен|окончательно списаны|успешно списаны)|получил[аи]? (?:ваш )?платеж\")\n        e[\"booking_cancelled\"]=has(r\"(?:тур|бронь|бронирование|заявка|договор).{0,30}(?:отменен[аоы]?|аннулирован[аоы]?)|(?:отменили|аннулировали).{0,30}(?:тур|бронь|бронирование|заявку|договор)\")\n        e[\"refund_received\"]=has(r\"(?:деньги|средства|оплату).{0,25}(?:вернули|возвратили)|(?:возврат|деньги|средства).{0,25}(?:поступил[аи]?|вернул[а-я]*|зачислен[аоы]?)|(?:получил[аи]?|получили).{0,15}возврат\")\n    e[\"refund_requested\"]=has(r\"возврат|вернуть деньг|верните деньг\") and not e[\"refund_received\"]\n    e[\"cancellation_requested\"]=has(r\"отменить|отмените|отменяйте|аннулировать|аннулируйте\") and not e[\"booking_cancelled\"]\n    return e\ndef trajectory(atoms,events):\n    valid=[(a,events.get(a[\"ref\"])) for a in atoms if events.get(a[\"ref\"],{}).get(\"valid\") and a[\"at\"] is not None]\n    counts=collections.Counter(k for a,e in valid for k,v in e[\"events\"].items() if v)\n    reliable=[(a,e) for a,e in valid if a[\"version_at\"]==a[\"at\"] and a[\"status\"]==\"scanned\" and a[\"role\"]!=\"unknown\" and not any(a[\"flags\"].get(k) for k in (\"reversed_clock\",\"unknown_time\",\"quoted_or_relayed\",\"past_trip\",\"unresolved_trip_boundary\",\"party_change_unresolved\",\"product_changed_or_alternative\",\"source_namespace_barrier\"))]\n    candidates=[]\n    for a,e in reliable:\n        posted=e[\"events\"][\"posted_receipt\"]\n        pair_times=[b[\"at\"] for b,f in reliable if\n            (e[\"events\"][\"payment_claim\"] or e[\"events\"][\"manager_ack\"]) and\n            b[\"role\"]!=a[\"role\"] and abs(b[\"at\"]-a[\"at\"])<=259200 and\n            (f[\"events\"][\"payment_claim\"] if a[\"role\"]==\"manager\" else f[\"events\"][\"manager_ack\"])]\n        paired=bool(pair_times)\n        if not (posted or paired):continue\n        # A later explicit description of a hold corrects an earlier ambiguous \"I see payment\".\n        holds=[b[\"at\"] for b,f in reliable if f[\"events\"][\"hold_active\"]]\n        last_hold=max(holds,default=None)\n        explicit_after_hold=posted and (last_hold is None or a[\"at\"]>last_hold)\n        if last_hold is not None and not explicit_after_hold:continue\n        candidates.append(a[\"at\"] if posted else max(a[\"at\"],min(pair_times)))\n    received=min(candidates,default=None)\n    cancelled=any(e[\"events\"][\"booking_cancelled\"] for a,e in reliable if received is None or a[\"at\"]>=received)\n    refunded=any(e[\"events\"][\"refund_received\"] for a,e in reliable if received is None or a[\"at\"]>=received)\n    if received is not None:category=\"received_then_refunded\" if refunded else \"received_then_cancelled\" if cancelled else \"received_without_known_reversal\"\n    elif counts[\"hold_active\"] or counts[\"hold_released\"]:category=\"hold_or_release_without_posted_receipt\"\n    elif counts[\"refund_received\"]:category=\"refund_evidence_without_resolved_prior_receipt\"\n    elif counts[\"booking_cancelled\"]:category=\"cancellation_without_resolved_receipt\"\n    elif counts[\"payment_claim\"] or counts[\"manager_ack\"] or counts[\"posted_receipt\"]:category=\"payment_statement_uncorroborated\"\n    else:category=\"no_resolved_payment_statement\"\n    return {\"category\":category,\"received_at\":received,\"event_counts\":dict(counts),\"cancelled\":cancelled,\"refunded\":refunded,\"matched_records\":len(valid),\"reliable_records\":len(reliable)}\ndef verify_tests():\n    assert classify(\"Оплатила\",\"customer\")[\"payment_claim\"]\n    assert not classify(\"Если оплатила?\",\"customer\")[\"payment_claim\"]\n    assert not classify(\"Не оплатила\",\"customer\")[\"payment_claim\"]\n    assert classify(\"Оплату вижу\",\"manager\")[\"manager_ack\"]\n    assert not classify(\"Оплату вижу\",\"customer\")[\"manager_ack\"]\n    assert classify(\"Если не согласны, отменю замороженные денежные средства и они вновь будут доступны на карте.\",\"manager\")[\"hold_active\"]\n    assert not classify(\"Средства будут заморожены при оплате\",\"manager\")[\"hold_active\"]\n    assert classify(\"Средства будут заморожены при оплате\",\"manager\")[\"hold_policy\"]\n    assert classify(\"Деньги разморожены\",\"manager\")[\"hold_released\"]\n    assert classify(\"Деньги вернули на карту\",\"customer\")[\"refund_received\"]\n    assert not classify(\"Верните деньги\",\"customer\")[\"refund_received\"]\n    assert classify(\"Верните деньги\",\"customer\")[\"refund_requested\"]\n    assert classify(\"Бронь отменена\",\"manager\")[\"booking_cancelled\"]\n    assert not classify(\"Если бронь отменена, деньги вернутся\",\"manager\")[\"booking_cancelled\"]\n    assert classify(\"Отмените бронь\",\"customer\")[\"cancellation_requested\"]\n    def a(ref,role,at):return {\"ref\":ref,\"role\":role,\"at\":at,\"version_at\":at,\"status\":\"scanned\",\"flags\":{}}\n    atoms=[a(\"1\",\"customer\",1),a(\"2\",\"manager\",2),a(\"3\",\"manager\",3)]\n    ev=lambda x:{\"valid\":True,\"events\":classify(*x)}\n    events={\"1\":ev((\"Оплатила\",\"customer\")),\"2\":ev((\"Оплату вижу\",\"manager\"))}\n    assert trajectory(atoms,events)[\"received_at\"]==2\n    events[\"3\"]=ev((\"Средства заморожены\",\"manager\"))\n    assert trajectory(atoms,events)[\"received_at\"] is None\n    events[\"3\"]=ev((\"Бронь отменена\",\"manager\"))\n    assert trajectory(atoms,events)[\"category\"]==\"received_then_cancelled\"\n    events[\"3\"]=ev((\"Деньги вернули на карту\",\"manager\"))\n    assert trajectory(atoms,events)[\"category\"]==\"received_then_refunded\"\n    assert not classify(\"Оплатила\",\"customer\",{\"quoted_or_relayed\":True})[\"payment_claim\"]\ndef signal_utility(rows,common_module):\n    dev=common_module.normalized_rows([r for r in rows if r[\"assignment\"]==\"development\"])\n    control=common_module.normalized_rows([r for r in rows if r[\"assignment\"]==\"control\"])\n    pos_dev={r[\"group_key\"] for r,w in dev if r[\"label\"]==1};pos_ctrl={r[\"group_key\"] for r,w in control if r[\"label\"]==1}\n    result={\"target\":PROTOCOL[\"target\"],\"development_groups\":len({r[\"group_key\"] for r,w in dev}),\"control_groups\":len({r[\"group_key\"] for r,w in control}),\"development_positive_groups\":len(pos_dev),\"control_positive_groups\":len(pos_ctrl),\"control_previously_exposed\":True,\"true_purchase_calibrated\":False,\"feature_results\":{}}\n    if len(pos_dev)<8 or len(pos_ctrl)<8 or not any(r[\"label\"]==0 for r,w in dev):\n        result[\"status\"]=\"insufficient_strict_positive_groups\"\n        for f in FEATURES:result[\"feature_results\"][f]={\"development_positive_groups\":len({r[\"group_key\"] for r,w in dev if r[\"label\"]==1 and r[\"features\"][f]}),\"control_positive_groups\":len({r[\"group_key\"] for r,w in control if r[\"label\"]==1 and r[\"features\"][f]}),\"useful_beyond_stage\":False}\n        return result\n    common=common_module.learn_common(dev)\n    total=sum(w for r,w in dev)\n    for f in FEATURES:\n        coefficient=0.0\n        compressed=collections.defaultdict(lambda:[0.0,0.0])\n        for r,w in dev:\n            offset=common_module.base_logit(r,common)+(math.log(.25) if r[\"explicit_decline\"] else 0)\n            compressed[(round(offset,12),int(bool(r[\"features\"][f])))][0]+=w\n            compressed[(round(offset,12),int(bool(r[\"features\"][f])))][1]+=w*r[\"label\"]\n        for it in range(200):\n            grad=sum(x*(common_module.sigmoid(offset+coefficient*x)*weight-target) for (offset,x),(weight,target) in compressed.items())/total\n            coefficient-=.25*(grad+.05*coefficient)\n        grouped=collections.defaultdict(lambda:[0.0,0.0])\n        for r,w in control:\n            b=common_module.base_logit(r,common)+(math.log(.25) if r[\"explicit_decline\"] else 0)\n            old=common_module.row_losses(r[\"label\"],common_module.sigmoid(b))[1]\n            new=common_module.row_losses(r[\"label\"],common_module.sigmoid(b+coefficient*bool(r[\"features\"][f])))[1]\n            grouped[r[\"group_key\"]][0]+=w*(new-old);grouped[r[\"group_key\"]][1]+=w\n        diffs=[x/y for x,y in grouped.values()]\n        delta=sum(diffs)/len(diffs);rng=random.Random(128937);boots=[]\n        for unused in range(1000):boots.append(sum(diffs[rng.randrange(len(diffs))] for g in diffs)/len(diffs))\n        boots.sort();alpha=PROTOCOL[\"multiple_comparison_alpha\"];lower=boots[int(len(boots)*alpha/2)];upper=boots[min(len(boots)-1,int(len(boots)*(1-alpha/2)))]\n        pd=len({r[\"group_key\"] for r,w in dev if r[\"label\"]==1 and r[\"features\"][f]});pc=len({r[\"group_key\"] for r,w in control if r[\"label\"]==1 and r[\"features\"][f]})\n        result[\"feature_results\"][f]={\"development_positive_groups\":pd,\"control_positive_groups\":pc,\"logloss_delta\":delta,\"adjusted_interval\":[lower,upper],\"useful_beyond_stage\":bool(pd>=5 and pc>=3 and upper<0 and delta< -1e-6)}\n    result[\"status\"]=\"retrospective_group_control_completed\"\n    return result\n"
+          COLLECTOR_PHP="\nini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);\n$ob=ob_get_level();ob_start(static fn(string $s):string=>'');\ntry{\n $input=json_decode(stream_get_contents(STDIN),true,64,JSON_THROW_ON_ERROR);\n $root='/var/www/anytoour/data/www/app.anytoour.ru';\n require $root.'/config.php';\n require_once $root.'/services/ProjectAccessService.php';\n require_once $root.'/services/ArchiveResearchReadService.php';\n if(PHP_SAPI!=='cli'||posix_geteuid()!==1012||ProjectConfig::projectId()!=='anytour')throw new RuntimeException();\n ProjectAccessService::initializeReadOnly();$pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');\n $auth=static function()use($root,$input):void{\n   if(posix_geteuid()!==1012||ProjectConfig::projectId()!=='anytour')throw new DomainException();\n   foreach($input['hashes']as$file=>$hash)if(is_link($root.'/'.$file)||!hash_equals($hash,(string)hash_file('sha256',$root.'/'.$file)))throw new DomainException();\n };\n $reader=new ArchiveResearchReadService($pdo);$auth();\n $fresh=$reader->operatorStudyPage($auth,[],1);\n if(!hash_equals($input['scope_digest'],$fresh['scope_digest']))throw new RuntimeException();\n $salt=hex2bin($input['salt_hex']);if(!is_string($salt)||strlen($salt)!==32)throw new RuntimeException();\n $out=static function(array $v)use($ob):void{while(ob_get_level()>$ob)ob_end_clean();echo json_encode($v,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).\"\\n\";ob_start(static fn(string $s):string=>'');};\n $started=hrtime(true);$pages=0;$total=0;\n foreach($input['cases']as$case){\n   $ref=$case['ref'];if(preg_match('/\\Aarchive_message:([1-9][0-9]{0,19})\\z/D',$ref,$match)!==1)throw new RuntimeException();\n   $auth();$q=$pdo->prepare(\"SELECT id,account_id,chat_id FROM telegram_dialogue_messages WHERE project_key='anytour' AND id=? AND id<=? LIMIT 1\");$q->execute([$match[1],$input['fence']]);$row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();\n   $complete=false;\n   if($row&&hash_equals($case['case_key'],hash_hmac('sha256',\"archive-case-v1\\0\".$row['account_id'].\"\\0\".$row['chat_id'],$salt))){\n     $a=(string)$row['account_id'];$c=(string)$row['chat_id'];\n     $position=['f'=>$input['fence'],'a'=>$a,'c'=>$c,'n'=>'0','scope_digest'=>$input['scope_digest']];\n     while(true){\n       if(++$pages>10000||hrtime(true)-$started>1500000000000)throw new RuntimeException();\n       $page=$reader->operatorStudyPage($auth,$position,1);$window=$page['windows'][0]??null;\n       if(!$window||$window['account_id']!==$a||$window['chat_id']!==$c)break;\n       foreach($window['messages']as$m){if(++$total>200000)throw new RuntimeException();$out(['type'=>'message','case_key'=>$case['case_key'],'message'=>$m]);}\n       if($window['chat_window_complete']){$complete=true;break;}\n       $next=$page['next_position'];if(!is_array($next)||$next['n']===$position['n'])throw new RuntimeException();$position=$next;\n     }\n   }\n   $out(['type'=>'case_complete','case_key'=>$case['case_key'],'complete'=>$complete]);\n }\n $auth();$out(['type'=>'complete','ok'=>true,'database_read_only'=>true]);\n while(ob_get_level()>$ob)ob_end_clean();\n}catch(Throwable $e){while(ob_get_level()>$ob)ob_end_clean();echo \"{\\\"type\\\":\\\"failed\\\",\\\"ok\\\":false}\\n\";exit(1);}\n"
+          DERIVE_PHP="ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);$level=ob_get_level();ob_start(static fn(string $s):string=>'');try{$in=json_decode(stream_get_contents(STDIN),true,64,JSON_THROW_ON_ERROR);if(PHP_SAPI!=='cli'||posix_geteuid()!==1012)throw new RuntimeException();require '/var/www/anytoour/data/www/app.anytoour.ru/services/ArchivePredictiveStudyStore.php';$s=new ArchivePredictiveStudyStore();$s->deriveCompleted($in['parent'],$in['run'],$in['provenance'],$in['scope']);if(!$s->claimAnalysis())throw new RuntimeException();$s->close();while(ob_get_level()>$level)ob_end_clean();echo '{\"ok\":true}';}catch(Throwable $e){while(ob_get_level()>$level)ob_end_clean();echo '{\"ok\":false}';exit(1);}"
+          PUBLISH_PHP="ini_set('display_errors','0');ini_set('log_errors','0');error_reporting(0);$level=ob_get_level();ob_start(static fn(string $s):string=>'');try{$in=json_decode(stream_get_contents(STDIN),true,64,JSON_THROW_ON_ERROR);if(PHP_SAPI!=='cli'||posix_geteuid()!==1012)throw new RuntimeException();require '/var/www/anytoour/data/www/app.anytoour.ru/services/ArchivePredictiveStudyStore.php';$s=new ArchivePredictiveStudyStore();$s->begin($in['run'],$in['provenance']);$result=$s->publishAnalysis();$s->close();$read=ArchivePredictiveStudyStore::summaryForScope($in['scope']);if(($result['completed']??false)!==true||($read['run_id']??null)!==$in['run']||($read['weights_eligible']??null)!==false)throw new RuntimeException();while(ob_get_level()>$level)ob_end_clean();echo '{\"ok\":true}';}catch(Throwable $e){while(ob_get_level()>$level)ob_end_clean();echo '{\"ok\":false}';exit(1);}"
+          def git(*args):
+              return subprocess.check_output(['git',*args],stderr=subprocess.DEVNULL)
+          try:
+              expected=os.environ['ACCEPTED_MAIN_SHA']
+              head=os.environ['GITHUB_SHA']
+              event=json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+              assert len(expected)==40 and all(c in '0123456789abcdef' for c in expected)
+              assert event['repository']['full_name']=='pyatkoff/max-search-bot'
+              assert event['ref']=='refs/heads/ops/payment-prefix-audit-20261106-40b5b23'
+              assert event['before']==expected and event['after']==head
+              assert not event.get('forced') and not event.get('deleted')
+              assert git('rev-parse','HEAD').decode().strip()==head
+              assert git('rev-list','--parents','-n','1',head).decode().split()==[head,expected]
+              changed=git('diff','--name-status',expected,head).decode()
+              assert changed=='A\t.github/workflows/payment-prefix-audit-20261106-40b5b23.yml\n'
+              request=urllib.request.Request(
+                  'https://api.github.com/repos/pyatkoff/max-search-bot/git/ref/heads/main',
+                  headers={'Authorization':'Bearer '+os.environ['API_TOKEN'],
+                           'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'})
+              with urllib.request.urlopen(request,timeout=20) as response:
+                  assert json.load(response)['object']['sha']==expected
+              paths=[
+                  'services/ArchiveResearchReadService.php','services/ArchiveResearchSemanticExtractor.php',
+                  'services/ManagerAiTextRedactor.php','services/InternalOwnerDialogueScope.php',
+                  'services/ModeledConversionSemanticPrediction.php','services/ArchivePredictiveStudyAtoms.php',
+                  'services/ModeledConversionTextSignals.php','services/ArchivePredictiveStudyStore.php',
+                  'services/ArchivePredictiveRelativeWeights.php','tools/archive_predictive_study.php',
+                  'tools/archive_predictive_study.py']
+              for label,program in (("collector",COLLECTOR_PHP),("derive",DERIVE_PHP),("publish",PUBLISH_PHP)):
+                  import subprocess
+                  check=subprocess.run(["php","-l"],input=("<?php\n"+program).encode(),capture_output=True,timeout=10)
+                  assert check.returncode==0
+              hashes={}
+              for name in paths:
+                  source=git('show',expected+':'+name)
+                  path=pathlib.Path(name)
+                  assert stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert path.read_bytes()==source
+                  hashes[name]=hashlib.sha256(source).hexdigest()
+
+              test_namespace={}
+              exec(compile(ANALYZER,"reviewed_payment_audit","exec"),test_namespace)
+              test_namespace["verify_tests"]()
+              import importlib.util
+              spec=importlib.util.spec_from_file_location("canonical_study",pathlib.Path("tools/archive_predictive_study.py"))
+              model=importlib.util.module_from_spec(spec);spec.loader.exec_module(model)
+              rows=[]
+              for assignment in ("development","control"):
+                  for i in range(40):
+                      feature=bool(i%2)
+                      rows.append({"group_key":assignment+str(i),"assignment":assignment,"eligible":True,
+                          "label":int(feature),"stage":"concrete_request","prefix_kind":"first_meaningful",
+                          "explicit_decline":False,"features":{f:(feature if f=="continued_meaningful_engagement" else False) for f in test_namespace["FEATURES"]}})
+              result=test_namespace["signal_utility"](rows,model)
+              assert result["feature_results"]["continued_meaningful_engagement"]["useful_beyond_stage"]
+              assert not result["feature_results"]["office_question"]["useful_beyond_stage"]
+
+              destination=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-source.json'
+              destination.write_text(json.dumps({'source_commit':expected,'workflow_commit':head,'hashes':hashes,'analyzer':ANALYZER,'collector_php':COLLECTOR_PHP,'derive_php':DERIVE_PHP,'publish_php':PUBLISH_PHP,'parent_run_id':"archive-prefix-v2-20261106-23c5a2a"},separators=(',',':')))
+              destination.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"source_envelope_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"source_envelope_verified":true}')
+          PY
+      - name: Prepare the existing identity and strict canonical host pin
+        env:
+          K: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              key=os.environ['K']
+              raw=key.replace('\\n','\n').replace('\r','').encode() if 'PRIVATE KEY' in key else base64.b64decode(key,validate=True)
+              keypath=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-key'
+              keypath.write_bytes(raw.rstrip(b'\n')+b'\n')
+              keypath.chmod(0o600)
+              check=subprocess.run(['ssh-keygen','-y','-f',str(keypath)],capture_output=True,timeout=10)
+              assert check.returncode==0
+              approved=set()
+              for attempt in range(2):
+                  try:
+                      scan=subprocess.run(['ssh-keyscan','-t','ed25519','-T','10',host],capture_output=True,text=True,timeout=30)
+                      lines=scan.stdout.splitlines()
+                  except subprocess.TimeoutExpired as error:
+                      output=error.stdout or b''
+                      lines=(output.decode(errors='replace') if isinstance(output,bytes) else output).splitlines()
+                  for line in lines:
+                      fields=line.split()
+                      if len(fields)!=3 or fields[1]!='ssh-ed25519':continue
+                      try:
+                          material=base64.b64decode(fields[2],validate=True)
+                      except ValueError:continue
+                      fingerprint='SHA256:'+base64.b64encode(hashlib.sha256(material).digest()).decode().rstrip('=')
+                      if fingerprint=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':
+                          approved.add(host+' ssh-ed25519 '+fields[2])
+                  if approved:break
+              assert len(approved)==1
+              known=pathlib.Path(os.environ['RUNNER_TEMP'])/'study-hosts'
+              known.write_text('\n'.join(sorted(approved))+'\n')
+              known.chmod(0o600)
+          except Exception:
+              print('{"ok":false,"canonical_host_verified":false}')
+              raise SystemExit(1)
+          print('{"ok":true,"canonical_host_verified":true}')
+          PY
+      - name: Perform the finite build with a technical receipt
+        env:
+          TARGET: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          SSH_ACCOUNT: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import json,os,pathlib,re,socket,subprocess
+          try:
+              host=os.environ['TARGET']
+              account=os.environ['SSH_ACCOUNT']
+              assert re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.-]{0,252}',host)
+              assert re.fullmatch(r'[a-z_][a-z0-9_-]{0,31}',account)
+              assert {a[4][0] for a in socket.getaddrinfo(host,22,type=socket.SOCK_STREAM)}=={'5.45.122.54'}
+              temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+              contract=json.loads((temporary/'study-source.json').read_text())
+              remote_header='CONTRACT='+repr(contract)+'\nRUN_ID="archive-payment-audit-20261106-40b5b23"\n'
+              remote_body=r"""
+          import hashlib,json,os,pathlib,stat,subprocess,sys,collections,time
+          receipt={"ok":False,"operator_verified":False,"source_verified":False,"study_completed":False,"private_outputs_written":False,"live_files_changed":False,"stage":"operator","failure_kind":"none"}
+          def verify_source(root):
+              environment=dict(os.environ)
+              environment['GIT_OPTIONAL_LOCKS']='0'
+              head=subprocess.check_output(['/usr/bin/git','-C',str(root),'rev-parse','HEAD'],
+                                           stderr=subprocess.DEVNULL,timeout=10,env=environment).decode().strip()
+              assert head==CONTRACT['source_commit']
+              for arguments in (['diff','--quiet','HEAD'],['diff','--cached','--quiet']):
+                  subprocess.run(['/usr/bin/git','-C',str(root),*arguments],stdout=subprocess.DEVNULL,
+                                 stderr=subprocess.DEVNULL,timeout=10,check=True,env=environment)
+              for name,digest in CONTRACT['hashes'].items():
+                  path=root/name
+                  assert path.resolve()==path and stat.S_ISREG(path.lstat().st_mode) and not path.is_symlink()
+                  assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
+          
+          try:
+              root=pathlib.Path("/var/www/anytoour/data/www/app.anytoour.ru")
+              assert root.resolve()==root and root.stat().st_uid==1012 and os.geteuid()==1012
+              os.chdir(root)
+              receipt["operator_verified"]=True
+              verify_source(root)
+              receipt["source_verified"]=True
+              exec(compile(CONTRACT["analyzer"],"reviewed_inline_payment_audit","exec"),globals())
+              verify_tests()
+              receipt["stage"]="parent_verification"
+              import importlib.util,hmac,resource
+              resource.setrlimit(resource.RLIMIT_AS,(1073741824,1073741824))
+              os.nice(10)
+              receipt["stage"]="parent_verification"
+              parent_id=CONTRACT["parent_run_id"]
+              store_root=pathlib.Path("/var/www/anytoour/data/private/archive-predictive-study")
+              parent=store_root/parent_id
+              def private_file(path,cap):
+                  st=path.lstat()
+                  assert stat.S_ISREG(st.st_mode) and not path.is_symlink() and st.st_uid==1012 and st.st_nlink==1 and st.st_mode&0o077==0 and st.st_size<=cap
+                  fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+                  try:
+                      fs=os.fstat(fd);assert (fs.st_dev,fs.st_ino,fs.st_size)==(st.st_dev,st.st_ino,st.st_size)
+                      with os.fdopen(fd,"rb",closefd=False) as f:raw=f.read(cap+1)
+                      assert len(raw)<=cap and len(raw)==st.st_size
+                      return raw
+                  finally:os.close(fd)
+              def read_json(path,cap):return json.loads(private_file(path,cap))
+              def private_dir(path):
+                  st=path.lstat();assert stat.S_ISDIR(st.st_mode) and not path.is_symlink() and st.st_uid==1012 and st.st_mode&0o077==0
+              private_dir(store_root);private_dir(parent);private_dir(parent/"analysis")
+              receipt_old=read_json(parent/"analysis-complete.json",4096)
+              manifest_raw=private_file(parent/"manifest.json",262144)
+              assert hashlib.sha256(manifest_raw).hexdigest()==receipt_old["manifest_sha256"]
+              old_summary_raw=private_file(parent/"analysis/summary.json",12288)
+              assert hashlib.sha256(old_summary_raw).hexdigest()==receipt_old["summary_sha256"]
+              old_summary=json.loads(old_summary_raw)
+              audit_raw=private_file(parent/"analysis/case_audits.jsonl",16777216)
+              assert hashlib.sha256(audit_raw).hexdigest()==receipt_old["audits_sha256"]
+              cohort=[json.loads(x) for x in audit_raw.splitlines()]
+              assert 0<len(cohort)<=500 and len({x["case_key"] for x in cohort})==len(cohort)
+              cohort_keys={x["case_key"] for x in cohort}
+              module_spec=importlib.util.spec_from_file_location("canonical_archive_study",root/"tools/archive_predictive_study.py")
+              canonical=importlib.util.module_from_spec(module_spec);module_spec.loader.exec_module(canonical)
+              manifest,parent_sha,iterator=canonical.read_dataset(str(parent))
+              assert parent_sha==receipt_old["manifest_sha256"]
+              selected=collections.defaultdict(list)
+              for atom in iterator:
+                  canonical.validate_atom(atom)
+                  if atom["case_key"] in cohort_keys:selected[atom["case_key"]].append(atom)
+              assert set(selected)==cohort_keys
+              prefix_raw=private_file(parent/"analysis/prefixes.jsonl",268435456)
+              assert hashlib.sha256(prefix_raw).hexdigest()==receipt_old["prefixes_sha256"]
+              prefixes=[json.loads(x) for x in prefix_raw.splitlines()]
+              checkpoint=read_json(parent/"checkpoint.json",262144)
+              assert checkpoint["scope_digest"]==manifest["scope_digest"]
+              # Derived copied atoms and a separate analysis source are declared explicitly.
+              provenance={"source_commit":CONTRACT["workflow_commit"],"extractor_sha256":manifest["extractor_sha256"],
+              "text_features_sha256":manifest["text_features_sha256"],"analyzer_sha256":hashlib.sha256(CONTRACT["analyzer"].encode()).hexdigest(),
+              "rule_revision":3,"captured_at_unix":int(time.time()),"code_hashes":dict(CONTRACT["hashes"])}
+              provenance["code_hashes"]["tools/archive_payment_prefix_audit.py"]=provenance["analyzer_sha256"]
+              receipt["stage"]="derivation"
+              derive_php=CONTRACT["derive_php"]
+              call=subprocess.run(["/usr/bin/php","-d","auto_prepend_file=","-d","auto_append_file=","-d","opcache.enable_cli=0","-d","display_errors=0","-d","log_errors=0","-r",derive_php],
+               input=json.dumps({"parent":parent_id,"run":RUN_ID,"provenance":provenance,"scope":manifest["scope_digest"]}).encode(),capture_output=True,timeout=600)
+              assert call.returncode==0 and json.loads(call.stdout)=={"ok":True}
+              run=store_root/RUN_ID;private_dir(run)
+              new_manifest_raw=private_file(run/"manifest.json",262144);new_manifest=json.loads(new_manifest_raw);new_manifest_sha=hashlib.sha256(new_manifest_raw).hexdigest()
+              assert new_manifest["lineage"]["parent_manifest_sha256"]==parent_sha
+              request={"hashes":CONTRACT["hashes"],"scope_digest":manifest["scope_digest"],"fence":manifest["source_fence"],"salt_hex":checkpoint["salt_hex"],
+              "cases":[{"case_key":a["case_key"],"ref":a["first_payment_refs"][0]} for a in cohort]}
+              receipt["stage"]="source_collection"
+              old_by_ref={a["ref"]:a for v in selected.values() for a in v}
+              events={};completion={};changed=0;nonparent=0;reader_done=False
+              process=subprocess.Popen(["/usr/bin/php","-d","auto_prepend_file=","-d","auto_append_file=","-d","opcache.enable_cli=0","-d","display_errors=0","-d","log_errors=0","-r",CONTRACT["collector_php"]],
+               stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
+              process.stdin.write(json.dumps(request).encode());process.stdin.close()
+              began=time.monotonic()
+              for line in iter(process.stdout.readline,b""):
+                  assert len(line)<=1048576 and time.monotonic()-began<1600
+                  value=json.loads(line)
+                  if value["type"]=="message":
+                      m=value["message"];ref=m["source_ref"];old=old_by_ref.get(ref)
+                      if old is None:nonparent+=1;continue
+                      assert value["case_key"]==old["case_key"] and ref not in events
+                      valid=(m.get("read_status")=="available" and m.get("role_verified") is True and m.get("forwarded") is False
+                             and m.get("record_sha256")==old["record_sha256"] and m.get("created_at")==old["at"]
+                             and m.get("version_at")==old["version_at"] and m.get("role")==old["role"] and isinstance(m.get("text"),str))
+                      changed+=int(not valid)
+                      flags=classify(m["text"],old["role"],old["flags"]) if valid else {k:False for k in EVENTS}
+                      events[ref]={"valid":valid,"events":flags}
+                  elif value["type"]=="case_complete":
+                      assert value["case_key"] in cohort_keys and value["case_key"] not in completion
+                      completion[value["case_key"]]=value["complete"]
+                  elif value["type"]=="complete":reader_done=value.get("ok") is True and value.get("database_read_only") is True
+                  else:raise ValueError("private_collection_failed")
+              process.stdout.close();assert process.wait(timeout=10)==0 and reader_done and set(completion)==cohort_keys
+              verify_source(root)
+              receipt["stage"]="outcome_analysis"
+              episode_results={};case_results=[];case_categories=collections.Counter();event_cases=collections.Counter()
+              for case,atoms in selected.items():
+                  by_episode=collections.defaultdict(list)
+                  for a in atoms:by_episode[a["episode"]].append(a)
+                  eps={str(e):trajectory(v,events) for e,v in by_episode.items()}
+                  for e,v in by_episode.items():episode_results[(case,e)]=(v,eps[str(e)])
+                  all_counts=collections.Counter()
+                  for value in eps.values():all_counts.update(value["event_counts"])
+                  for k,v in all_counts.items():event_cases[k]+=int(v>0)
+                  received=[x for x in eps.values() if x["received_at"] is not None]
+                  if received:category="received_then_refunded" if any(x["refunded"] for x in received) else "received_then_cancelled" if any(x["cancelled"] for x in received) else "received_without_known_reversal"
+                  elif all_counts["hold_active"] or all_counts["hold_released"]:category="hold_or_release_without_posted_receipt"
+                  elif all_counts["refund_received"]:category="refund_without_resolved_receipt"
+                  elif all_counts["booking_cancelled"]:category="cancellation_without_resolved_receipt"
+                  elif any(all_counts[k] for k in ("payment_claim","manager_ack","posted_receipt")):category="payment_statement_uncorroborated"
+                  else:category="no_resolved_payment_statement"
+                  case_categories[category]+=1
+                  case_results.append({"case_key":case,"group_key":atoms[0]["group_key"],"category":category,"complete_source_page":completion[case],
+                    "parent_atoms":len(atoms),"matched_atoms":sum(a["ref"] in events and events[a["ref"]]["valid"] for a in atoms),"episodes":eps,"bank_settlement_verified":False})
+              refined=[];unreversed=[];label_counts=collections.Counter();allowed=("future_retained_payment_evidence","no_payment_evidence_in_retained_archive_window_not_no_purchase","contrary_outcome_observed")
+              for old in prefixes:
+                  row=dict(old);row["features"]=dict(old["features"]);row["label"]=None;row["target"]=PROTOCOL["target"]
+                  row["audit_label_reason"]="parent_unresolved"
+                  if old["eligible"] and old["label_reason"] in allowed:
+                      if old["case_key"] not in cohort_keys:
+                          if old["label"]==0:row["label"]=0;row["audit_label_reason"]="retained_evidence_absent_not_no_purchase"
+                      else:
+                          found=episode_results.get((old["case_key"],old["episode"]))
+                          if found is not None and completion.get(old["case_key"]):
+                              atoms,_=found;cut=old["cutoff_at_unix"];end=cut+2592000
+                              future=[a for a in atoms if a["at"] is not None and cut<a["at"]<end]
+                              t=trajectory(future,events)
+                              # Every candidate outcome must still match its retained source version and known role.
+                              all_candidates=[a for a in future if set(a["goals"])&canonical.PAYMENTS]
+                              candidate_versions_ok=all(events.get(a["ref"],{}).get("valid") for a in all_candidates)
+                              if t["received_at"] is not None and candidate_versions_ok:
+                                  row["label"]=1;row["audit_label_reason"]="corroborated_received_evidence"
+                                  row["audit_reversal"]=t["refunded"] or t["cancelled"]
+                              elif old["label"]==0 and not any(t["event_counts"].get(k) for k in ("hold_active","hold_released","payment_claim","manager_ack","posted_receipt","refund_received")):
+                                  row["label"]=0;row["audit_label_reason"]="retained_evidence_absent_not_no_purchase"
+                              else:row["audit_label_reason"]="hold_reversal_or_unresolved_receipt"
+                  label_counts[row["audit_label_reason"]]+=1;refined.append(row)
+                  alt=dict(row)
+                  if alt.get("audit_reversal"):alt["label"]=None
+                  unreversed.append(alt)
+              receipt["stage"]="stage_comparison"
+              utility=signal_utility(refined,canonical);sensitivity=signal_utility(unreversed,canonical)
+              summary={"schema":1,"kind":"archive_predictive_study_summary_v1","project_key":"anytour","run_id":RUN_ID,"complete":True,
+               "manifest_sha256":new_manifest_sha,"protocol_sha256":sha(PROTOCOL),"source_fence":new_manifest["source_fence"],"scope_digest":new_manifest["scope_digest"],
+               "target":PROTOCOL["target"],"issued_at_unix":int(time.time()),"weights_eligible":False,"stage_priors_unchanged":True,"probability_calibrated_purchase":False,
+               "analysis_provenance":{"workflow_commit":CONTRACT["workflow_commit"],"installed_source_commit":CONTRACT["source_commit"],"analyzer_sha256":provenance["analyzer_sha256"],"analyzer_location":"inline_reviewed_ops_workflow","parent_run_id":parent_id,"parent_summary_sha256":receipt_old["summary_sha256"]},
+               "counts":{"account_chat_pairs":manifest["expected"]["account_chat_pairs"],"source_records":sum(c["records"] for c in manifest["chunks"]),"payment_candidate_cases":len(cohort),"early_prefixes":len(prefixes)},
+               "payment_lifecycle_audit":{"case_categories":dict(case_categories),"event_case_counts":dict(event_cases),"source_complete_cases":sum(bool(v) for v in completion.values()),"source_records_matched":sum(e["valid"] for e in events.values()),"source_records_changed_or_unavailable":changed,"parent_records_not_returned":len(old_by_ref)-len(events),"current_extra_records_ignored":nonparent,"prefix_labels":dict(label_counts),"bank_settlement_verified":False,"case_unit":"account_chat_not_unique_people","same_episode_only":True},
+               "signal_utility":utility,"unreversed_sensitivity":sensitivity,
+               "coverage":{"historical_availability":"unknown","true_purchase_labels_available":False,"source_history_external_completeness":"unknown","unread_media":old_summary["coverage"]["unread_media"],"prior_control_previously_exposed":True,"accepted_16000_membership":"unverified"},
+               "model_calls":0,"provider_calls":0,"conversion_uploads":0,"business_writes":0}
+              candidate=read_json(parent/"analysis/candidate_weights.json",16384)
+              candidate.update({"run_id":RUN_ID,"manifest_sha256":new_manifest_sha,"protocol_sha256":sha(PROTOCOL),"target":PROTOCOL["target"],"issued_at_unix":summary["issued_at_unix"],"weights_eligible":False,"multipliers":{f:1.0 for f in FEATURES}})
+              result={"summary":summary,"candidate_weights":candidate,"case_audits":case_results,"prefixes":refined}
+              assert len(enc(summary))<=11800
+              receipt["stage"]="private_outputs"
+              canonical.write_outputs(str(run),result)
+              verify_source(root)
+              receipt["stage"]="publication"
+              published=subprocess.run(["/usr/bin/php","-d","auto_prepend_file=","-d","auto_append_file=","-d","opcache.enable_cli=0","-d","display_errors=0","-d","log_errors=0","-r",CONTRACT["publish_php"]],
+               input=json.dumps({"run":RUN_ID,"provenance":provenance,"scope":manifest["scope_digest"]}).encode(),capture_output=True,timeout=120)
+              assert published.returncode==0 and json.loads(published.stdout)=={"ok":True}
+              verify_source(root)
+              receipt["study_completed"]=True
+              receipt["private_outputs_written"]=True
+              receipt["stage"]="complete"
+              receipt["ok"]=True
+          except BaseException as error:
+              receipt["failure_kind"]=type(error).__name__ if type(error).__name__ in ["AssertionError","ValueError","MemoryError","TimeoutExpired","InvalidStudy","FileNotFoundError","PermissionError","SyntaxError","NameError","KeyError","TypeError"] else "unavailable"
+          print(json.dumps(receipt,separators=(",",":")))
+          sys.exit(0 if receipt["ok"] else 1)
+          
+          """
+              command=['ssh','-i',str(temporary/'study-key'),
+                       '-o','BatchMode=yes','-o','IdentitiesOnly=yes',
+                       '-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+str(temporary/'study-hosts'),
+                       '-o','HostKeyAlgorithms=ssh-ed25519','-o','ConnectTimeout=10',
+                       '-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3',
+                       account+'@'+host,'/usr/bin/python3 -I -B -']
+              result=subprocess.run(command,input=(remote_header+remote_body).encode(),
+                                    capture_output=True,timeout=2250)
+              assert len(result.stdout)<=8192 and len(result.stderr)<=8192
+              proof=json.loads(result.stdout)
+              keys={'ok','operator_verified','source_verified','study_completed','private_outputs_written','live_files_changed','stage','failure_kind'}
+              assert isinstance(proof,dict) and set(proof)==keys and all(isinstance(v,bool) for k,v in proof.items() if k not in ('stage','failure_kind'))
+              assert proof['live_files_changed'] is False
+              assert proof['stage'] in ['operator','parent_verification','derivation','source_collection','outcome_analysis','stage_comparison','private_outputs','publication','complete']
+              assert proof['failure_kind'] in ['none','AssertionError','ValueError','MemoryError','TimeoutExpired','InvalidStudy','FileNotFoundError','PermissionError','SyntaxError','NameError','KeyError','TypeError','unavailable']
+              print(json.dumps(proof,separators=(',',':')))
+              raise SystemExit(0 if result.returncode==0 and proof['ok'] else 1)
+          except Exception:
+              print('{"ok":false,"technical_receipt_verified":false}')
+              raise SystemExit(1)
+          PY
+      - name: Remove runner credentials and temporary technical files
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os,pathlib
+          temporary=pathlib.Path(os.environ['RUNNER_TEMP'])
+          for name in ('study-key','study-hosts','study-source.json'):
+              (temporary/name).unlink(missing_ok=True)
+          print('{"ok":true,"runner_credentials_removed":true}')
+          PY
