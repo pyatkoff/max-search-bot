@@ -10,6 +10,8 @@ final class ModeledConversionValueContract
     public const VERSION='semantic_stage_value_25000_v1';
     public const TARGET='anytour_modeled_value_v1';
     public const NAME='AnyTour: оценочная ценность обращения v1';
+    /** Current monetary envelope; BASE/VALUES below retain the historical stage fractions. */
+    public const MAX_VALUE_RUB=ModeledConversionDealValue::CAP;
     public const BASE=25000;
     public const VALUES=[1=>1250,2=>2083,3=>4167,4=>8333,5=>12500,6=>25000];
     public const STAGES=[1=>'interest',2=>'specific_request',3=>'offer_discussion',4=>'purchase_intent',5=>'agency_choice',6=>'payment_report'];

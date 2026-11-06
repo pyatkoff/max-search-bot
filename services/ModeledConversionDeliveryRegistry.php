@@ -67,13 +67,13 @@ final class ModeledConversionDeliveryRegistry
             $cast=$mysql?'CHAR':'TEXT';
             $pred=$mysql?"CONCAT('anytour_value_pred_',CAST(o.value_profile_id AS CHAR),'_v1')":"'anytour_value_pred_'||CAST(o.value_profile_id AS TEXT)||'_v1'";
             $stageHex=implode(',',array_map(static fn(string $stage):string=>"HEX('".$stage."')",ModeledConversionValueContract::STAGES));
-            $pairs[]="(o.value_profile_id>0 AND HEX(o.target)=HEX(".$pred.") AND HEX(o.value_stage) IN (".$stageHex."))";
+            $pairs[]="(o.value_profile_id IS NOT NULL AND o.value_profile_id>0 AND HEX(o.target)=HEX(".$pred.") AND HEX(o.value_stage) IN (".$stageHex."))";
             $stateHex=implode(',',array_map(static fn(string $state):string=>"HEX('".$state."')",self::STATES));
             $invalid="o.target IS NULL OR o.value_stage IS NULL OR NOT (".implode(' OR ',$pairs).")"
                 ." OR o.state IS NULL OR HEX(o.state) NOT IN (".$stateHex.")"
                 ." OR o.platform IS NULL OR HEX(o.platform) NOT IN (HEX('max'),HEX('telegram'))"
                 ." OR (o.value_origin IS NOT NULL AND HEX(o.value_origin) NOT IN (HEX('owner_day_review_v1'),HEX('owner_fortnight_review_v1')))"
-                ." OR o.value_rub IS NULL OR o.value_rub<=0 OR o.value_rub>25000";
+                ." OR o.value_rub IS NULL OR o.value_rub<=0 OR o.value_rub>".ModeledConversionValueContract::MAX_VALUE_RUB;
             $columns=['COUNT(*) AS n','COUNT(DISTINCT o.conversation_id) AS c','COALESCE(SUM(o.value_rub),0) AS v',
                 'COALESCE(SUM(CASE WHEN '.$invalid.' THEN 1 ELSE 0 END),0) AS invalid_n'];
             foreach($conditions as$key=>$condition){
@@ -134,7 +134,7 @@ final class ModeledConversionDeliveryRegistry
                     $rows=$grouped[$id]??[];if(!$rows||count($rows)>self::EVENTS_PER_CONVERSATION)throw new UnexpectedValueException();
                     $first=$rows[0];$period=self::cents($first['day_rub']);$total=self::cents($first['total_rub']);
                     $count=self::count($first['event_count']);$rank=(int)$first['day_rank'];
-                    if($period<=0||$total>2500000||$count<count($rows)||!isset(ModeledConversionValueContract::STAGES[$rank]))throw new UnexpectedValueException();
+                    if($period<=0||$total>100*ModeledConversionValueContract::MAX_VALUE_RUB||$count<count($rows)||!isset(ModeledConversionValueContract::STAGES[$rank]))throw new UnexpectedValueException();
                     $item=['conversation_id'=>$id,'platform'=>null,'customer_name'=>'Турист','period_value_rub'=>self::rub($period),
                         'total_value_rub'=>self::rub($total),'stage'=>ModeledConversionValueContract::STAGES[$rank],
                         'events_total'=>$count,'events_omitted'=>$count-count($rows),'events'=>[]];$seen=[];
@@ -200,7 +200,7 @@ final class ModeledConversionDeliveryRegistry
         $pred=is_numeric($r['value_profile_id']??null)&&($r['target']??null)===ModeledConversionValueContract::predictionKey((string)$r['value_profile_id']);
         if($rank===false||(!$pred&&($r['target']??null)!==ModeledConversionValueContract::key($rank))
             ||!in_array($r['state']??null,self::STATES,true)||self::cents($r['value_rub'])<=0
-            ||self::cents($r['value_rub'])>2500000||!in_array($r['platform']??null,['max','telegram'],true))
+            ||self::cents($r['value_rub'])>100*ModeledConversionValueContract::MAX_VALUE_RUB||!in_array($r['platform']??null,['max','telegram'],true))
             throw new UnexpectedValueException();
         $origin=$r['value_origin']??null;
         if($origin!==null&&!in_array($origin,['owner_day_review_v1','owner_fortnight_review_v1'],true))throw new UnexpectedValueException();
@@ -264,7 +264,7 @@ final class ModeledConversionDeliveryRegistry
     private static function summary(array $r,string $prefix=''):array
     {
         $n=self::count($r[$prefix.'n']??null);$c=self::count($r[$prefix.'c']??null);$v=self::cents($r[$prefix.'v']??null);
-        if($c>$n||($n===0&&($c!==0||$v!==0))||($n>0&&($v<$n||$v>$n*2500000)))throw new UnexpectedValueException();
+        if($c>$n||($n===0&&($c!==0||$v!==0))||($n>0&&($v<$n||$v>$n*100*ModeledConversionValueContract::MAX_VALUE_RUB)))throw new UnexpectedValueException();
         return ['events'=>$n,'conversations'=>$c,'value_rub'=>self::rub($v)];
     }
     private static function moment(mixed $v,int $now):?string

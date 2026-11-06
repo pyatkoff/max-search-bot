@@ -28,6 +28,7 @@ function deliveryObservationInsert(PDO $p,array $v):void
 }
 function deliveryDailyAssertions(PDO $p,callable $check):void
 {
+    deliveryDailyValueCapAssertions($p,$check);
     $now=1793700000;$from=1793656800;$until=$from+86400;deliveryObservationFixture($p,$now);
     deliveryObservationInsert($p,['id'=>1,'claimed_at_unix'=>$from,'value_api_accepted_at_unix'=>$from,'value_receipt_basis'=>'post_response']);
     deliveryObservationInsert($p,['id'=>2,'conversation_id'=>101,'value_rub'=>833,'value_stage'=>'specific_request','claimed_at_unix'=>$from+1,
@@ -58,6 +59,30 @@ function deliveryDailyAssertions(PDO $p,callable $check):void
     $check('revoked authorization prevents release of daily sums',$revoked);
     deliveryObservationInsert($p,['id'=>300,'conversation_id'=>1300,'platform'=>'foreign','claimed_at_unix'=>$from+1]);
     $check('invalid platform fails closed rather than vanishing from totals',($read()['reason']??null)==='invalid_aggregate');
+}
+function deliveryDailyValueCapAssertions(PDO $p,callable $check):void
+{
+    $anchor=strtotime('2026-11-03T12:00:00Z');$now=$anchor+3600;deliveryObservationFixture($p,$now);
+    foreach([[1,101,'max',25000],[2,101,'max',45000],[3,101,'max',30000],[4,102,'telegram',100000]]as[$id,$conversation,$platform,$value])
+        deliveryObservationInsert($p,['id'=>$id,'conversation_id'=>$conversation,'platform'=>$platform,'value_rub'=>$value,
+            'event_unix'=>$id===1?$anchor-86400:$anchor+$id,
+            'state'=>'processed','upload_id'=>(string)(6000+$id),'upload_status'=>'PROCESSED',
+            'claimed_at_unix'=>$anchor+$id,'value_api_accepted_at_unix'=>$anchor+$id,'value_processed_at_unix'=>$anchor+$id,
+            'value_receipt_basis'=>'post_response']);
+    $read=static fn():array=>(new ModeledConversionDailyDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+    $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$r=$read();
+    foreach(['upload_claims_today','api_receipts_observed_today','processed_observed_today']as$key)
+        $check($key.' counts mixed increments and the 100000 boundary with independent dialogue and platform totals',
+            ($r['available']??false)&&$r[$key]['events']===4&&$r[$key]['conversations']===2&&$r[$key]['value_rub']===200000
+            &&$r[$key]['by_platform']['max']===['events'=>3,'conversations'=>1,'value_rub'=>100000]
+            &&$r[$key]['by_platform']['telegram']===['events'=>1,'conversations'=>1,'value_rub'=>100000]);
+    $check('large-value daily reads preserve the recorded ledger',
+        $before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+    $p->exec('UPDATE max_channel_conversion_outbox SET value_rub=100001 WHERE id=4');
+    $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $check('one event above 100000 withholds every daily cohort without changing any stored row',
+        $read()===['available'=>false,'reason'=>'invalid_aggregate']
+        &&$before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
 }
 function deliveryHealthAssertions(PDO $p,callable $check):void
 {

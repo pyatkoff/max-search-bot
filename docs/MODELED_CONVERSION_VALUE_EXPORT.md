@@ -1,9 +1,44 @@
-# First real experimental semantic-stage value goal
+# Modeled advertising conversion values
 
-Owner authorization in SAME1140, 2 November: create a separate Metrika goal and
+Initial owner authorization in SAME1140, 2 November: create a separate Metrika goal and
 begin actual offline value delivery now. Owner explicitly selected the 25,000 RUB
 base and incremental delivery. This is a business-assigned advertising estimate,
 not actual revenue, measured commission or a calibrated purchase probability.
+
+## Monetary policy from 6 November 2026
+
+The owner raised the prospective advertising-value ceiling to **100,000 RUB**
+and selected a **10,000 RUB provisional commission base** when the tour price
+is unknown. New frozen monetary capsules use `early_deal_commission_7pct_v2`:
+
+- Known total tour price: commission = round(price × 0.07), base = min(100000, commission).
+- Unknown price: base = 10000; the price and estimated commission remain null.
+  `provisional_commission_10000` labels an assumption, not an observed commission.
+- Forecast value = round(purchase probability × base), in whole RUB.
+- A later known price replaces the provisional base, including a commission below
+  10000. This is not a minimum award or a permanent floor for priced tours.
+
+For example, unknown price at probability10% gives1000 RUB. A later price300000
+at the same probability gives2100 RUB and only a1100 RUB increment. A price1000000
+at probability100% gives70000 RUB; if25000 is already reserved, the increment is
+45000. A price2000000 reaches the100000 RUB ceiling at probability100%.
+
+Existing V1 capsules retain their exact original source hash,25,000 RUB cap and
+25,000 RUB unknown-price base. Their digests, amounts and evidence are not rewritten.
+The V2 validator selects arithmetic by monetary version; unsupported versions or
+source hashes are rejected. The same goal, ledger contract, profile cursor and
+deduplication keys remain in use, so all prior reservations, including failed,
+expired and UNKNOWN rows, still reduce the next positive increment. A decrease
+does not send a negative conversion or reverse previously reserved value.
+
+The existing price-continuity guard remains conservative: when a later profile
+loses a known price, it uses the lower of the current provisional base and the
+previous valid priced base. CSV transport, private summaries and visit-proof
+receipts admit amounts through100000 RUB; formula displays retain each saved
+monetary version. Processing receipts still do not prove a sale or visit attribution.
+This policy change runs no backfill, replay, manual export or queue reset.
+
+## Original ledger identity and historical stage values
 
 Counter: 98615635. Exact action target: `anytour_modeled_value_v1`.
 Name: AnyTour: оценочная ценность обращения v1.
@@ -19,9 +54,10 @@ is appended. Example:1250 then2083 yields1250+833, not3333. A first observed age
 choice yields one12500 row. Repeat profiles/lower stages add nothing; all states,
 including UNKNOWN, reserve their value to prevent duplicate credit. Failed or
 expired delivery can understate the total and requires separate review, never
-automatic extra credit. Total per conversation cannot exceed25000. Conversation
+automatic extra credit. The original stage-only target remains capped at25000;
+new V2 monetary targets can raise the total reservation to100000. Conversation
 identity is the explicit initial unit; repeat trips in one conversation are not
-yet separately valued. These values must not be described as expected commission.
+yet separately valued. The original stage values must not be described as expected commission.
 
 Migration086 adds nullable value provenance to the EXISTING conversion outbox
 and one default-OFF configuration row. It does not create another queue, process,
@@ -135,7 +171,8 @@ The ordinary value tick reviews at most40 bounded metadata rows and2MiB of
 original immutable packets, at most128KiB each, then uses existing outbox identity,
 claims, receipts and UNKNOWN reconciliation. The historical high-watermark includes
 all reserved live and historical values, so repetition/overlapping stages cannot
-increase a conversation beyond its existing25000RUB cap. Current access, personal
+increase the historical stage target beyond25000 RUB or re-award a higher existing
+V2 reservation. Current access, personal
 binding, destination gate and later contrary evidence are checked; denied/unknown
 does not become an assumed positive. No original dialogue, profile, read marker
 or customer send is changed.

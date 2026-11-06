@@ -241,14 +241,14 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $a=$legacy;$a['id']='2';$a['target']=ModeledConversionValueContract::predictionKey('2');$a['value_profile_id']='2';
     $a['value_rub']=17;$a['event_unix']=$day+220;$a['upload_id']='502';$a['value_api_accepted_at_unix']=$day+230;$a['value_processed_at_unix']=null;
     $b=$a;$b['id']='3';$b['target']=ModeledConversionValueContract::predictionKey('3');$b['value_profile_id']='3';
-    $b['value_rub']=89;$b['conversation_id']='601';$b['platform']='telegram';$b['client_id']='900000000000000002';$b['upload_id']='503';
+    $b['value_rub']=100000;$b['conversation_id']='601';$b['platform']='telegram';$b['client_id']='900000000000000002';$b['upload_id']='503';
     $api=new class($day) {
         public array $statuses=['501'=>'PROCESSED','502'=>'PROCESSED','503'=>'UPLOADED'];public bool $duplicate=false;public bool $mismatch=false;public array $calls=[];
         public function __construct(public int $day){}
         public function poll(string $id):array{$this->calls[]='GET receipt';return ['id'=>$id,'status'=>$this->statuses[$id],'source_quantity'=>1,'line_quantity'=>1];}
         public function modeledValueVisits(string $cid,int $activation,int $now):array{
             $this->calls[]='GET report';$visits=[['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$this->day+60),'visits'=>1,'goal_reaches'=>$cid==='900000000000000001'?2:1,
-                'revenue_rub'=>($cid==='900000000000000001'?117:89)+($this->mismatch?1:0)]];
+                'revenue_rub'=>($cid==='900000000000000001'?117:100000)+($this->mismatch?1:0)]];
             if($this->duplicate)$visits[]=$visits[0];return ['status'=>'ok','visits'=>$visits];
         }
     };
@@ -264,6 +264,16 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $cache=ModeledConversionVisitProof::validateCache($wrap($proof),$now);
     $check('saved proof is fingerprint-bound to the exact row amount and advertising binding',
         ModeledConversionVisitProof::forEvent($cache,$a)['linkage']==='unique_visit_reconciled');
+    $check('a 100000 increment can be reconciled by the fake visit report and retained in the checked cache',
+        $cache['available']&&$proof['events'][1]['increment_rub']===100000
+        &&ModeledConversionVisitProof::forEvent($cache,$b)['linkage']==='unique_visit_reconciled');
+    $over=$b;$over['value_rub']=100001;$calls=count($api->calls);$blocked=false;
+    try{ModeledConversionVisitProof::verify([$over],$api,$day,$day+500,$now);}
+    catch(RuntimeException $e){$blocked=$e->getMessage()==='verification_invalid_ledger';}
+    $overCache=$proof;$overCache['events'][1]['increment_rub']=100001;
+    $check('an over-cap ledger fails before provider reads and a freshly hashed over-cap cache remains invalid',
+        $blocked&&count($api->calls)===$calls
+        &&ModeledConversionVisitProof::validateCache($wrap($overCache),$now)===['available'=>false,'reason'=>'invalid_cache']);
     $changed=$a;$changed['value_rub']=18;
     $check('an amended ledger row cannot inherit the old visit proof',
         ModeledConversionVisitProof::forEvent($cache,$changed)===['available'=>false,'reason'=>'event_changed']);
@@ -318,7 +328,63 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         &&count($page['rows'])===1&&$page['rows'][0]['events_total']===35&&$page['rows'][0]['events_omitted']===3
         &&count($page['rows'][0]['events'])===32&&$page['rows'][0]['total_value_rub']===350
         &&$page['rows'][0]['events'][0]['valuation']['basis']==='predictive_v1'&&deliveryRegistryDataDigest($p)===$digest);
+    $daily=(new ModeledConversionDailyReconciliationReader($p,static function():void{}))->read(['date'=>'2026-11-02'],$now);
+    $check('daily reconciliation admits all 35 predictive increments and excludes the recorded zero-value cancellation',
+        ($daily['available']??false)&&$daily['calendar']['accruals']['events']===35
+        &&$daily['calendar']['accruals']['conversations']===1&&$daily['calendar']['accruals']['value_rub']===350
+        &&$daily['current_statuses']['by_state']['failed']['events']===0&&deliveryRegistryDataDigest($p)===$digest);
     foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
+}
+
+function deliveryRegistryValueCapAssertions(PDO $p,callable $check):void
+{
+    $date='2026-11-03';$anchor=strtotime('2026-11-03T12:00:00Z');$now=$anchor+3600;
+    $auth=static function():void{};$key=str_repeat('value-cap-fixture-',3);
+    $registry=static fn():array=>(new ModeledConversionDeliveryRegistry($p,$auth,$key))->read(['date'=>$date],$now);
+    $daily=static fn():array=>(new ModeledConversionDailyReconciliationReader($p,$auth))->read(['date'=>$date],$now);
+    $set=static function(string $id,string $field,mixed $value)use($p):void{
+        $clock=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?',updated_at=updated_at':'';
+        $p->prepare('UPDATE max_channel_conversion_outbox SET '.$field.'=?'.$clock.' WHERE id=?')->execute([$value,$id]);
+    };
+    try{
+        deliveryRegistryFixtureEvent($p,620,6,$anchor-86400,['value'=>25000,'state'=>'processed']);
+        $increment=deliveryRegistryFixtureEvent($p,620,6,$anchor+100,['predictive'=>true,'value'=>45000,'state'=>'processed']);
+        $page=$registry();$reconciliation=$daily();
+        $check('a legacy 25000 plus a new 45000 delta preserves the 70000 lifetime total and the 45000 current day',
+            ($page['available']??false)&&($reconciliation['available']??false)&&count($page['rows'])===1
+            &&$page['rows'][0]['total_value_rub']===70000&&$page['rows'][0]['period_value_rub']===45000
+            &&$reconciliation['calendar']['accruals']['events']===1&&$reconciliation['calendar']['accruals']['value_rub']===45000);
+        $tail=deliveryRegistryFixtureEvent($p,620,6,$anchor+200,['predictive'=>true,'value'=>30000,'state'=>'processed']);
+        $cap=deliveryRegistryFixtureEvent($p,622,6,$anchor+300,['predictive'=>true,'value'=>100000,'state'=>'processed']);
+        $before=deliveryRegistryDataDigest($p);$page=$registry();$reconciliation=$daily();$by=array_column($page['rows']??[],null,'conversation_id');
+        $check('mixed increments reach 100000 per conversation while separate conversations may total more in a day',
+            ($page['available']??false)&&($reconciliation['available']??false)
+            &&$page['summary']['events']===3&&$page['summary']['conversations']===2&&$page['summary']['value_rub']===175000
+            &&$by['620']['total_value_rub']===100000&&$by['620']['period_value_rub']===75000
+            &&array_column($by['620']['events'],'value_rub')===[25000,45000,30000]&&$by['622']['total_value_rub']===100000
+            &&$reconciliation['calendar']['accruals']['value_rub']===175000
+            &&$reconciliation['calendar']['api_receipts']['value_rub']===175000&&$reconciliation['calendar']['processed']['value_rub']===175000);
+        $set($cap,'value_rub',100001);
+        $check('a recorded event above 100000 withholds both financial reports',
+            $registry()===['available'=>false,'reason'=>'invalid_ledger']&&$daily()===['available'=>false,'reason'=>'invalid_aggregate']);
+        $set($cap,'value_rub',100000);$set($tail,'value_rub',30001);
+        $check('individually valid increments cannot conceal a conversation total above 100000',
+            $registry()===['available'=>false,'reason'=>'invalid_ledger']);
+        $set($tail,'value_rub',30000);
+        $binding=$p->query('SELECT target,value_profile_id FROM max_channel_conversion_outbox WHERE id='.(int)$increment)->fetch(PDO::FETCH_ASSOC);
+        $set($increment,'target',ModeledConversionValueContract::predictionKey('999999'));
+        $check('a predictive key for another profile cannot enter either financial aggregate',
+            $registry()===['available'=>false,'reason'=>'invalid_ledger']&&$daily()===['available'=>false,'reason'=>'invalid_aggregate']);
+        $set($increment,'value_profile_id',null);
+        $check('a predictive key with a NULL profile fails closed on native SQL as well as SQLite',
+            $registry()===['available'=>false,'reason'=>'invalid_ledger']&&$daily()===['available'=>false,'reason'=>'invalid_aggregate']);
+        $set($increment,'value_profile_id',$binding['value_profile_id']);$set($increment,'target',$binding['target']);
+        $check('successful and rejected financial reads preserve all recorded values profiles and clocks',
+            deliveryRegistryDataDigest($p)===$before&&!$p->inTransaction());
+    }finally{
+        if($p->inTransaction())$p->rollBack();
+        foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
+    }
 }
 
 function deliveryRegistryAssertions(PDO $p,callable $check):void
@@ -328,6 +394,7 @@ function deliveryRegistryAssertions(PDO $p,callable $check):void
     deliveryRegistrySchema($p);
     dailyReconciliationAssertions($p,$check);
     deliveryPredictiveAndVisitAssertions($p,$check);
+    deliveryRegistryValueCapAssertions($p,$check);
     $date='2026-11-02';$day=new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Kaliningrad'));
     $from=$day->getTimestamp();$until=$day->modify('+1 day')->getTimestamp();$now=$until+3600;
     $key=str_repeat('fixture-session-key-only-',3);$auth=static function():void{};

@@ -45,12 +45,15 @@ final class ModeledConversionDailyReconciliationReader
             $pairs=[];
             foreach(ModeledConversionValueContract::STAGES as$rank=>$stage)
                 $pairs[]="(HEX(o.target)=HEX('".ModeledConversionValueContract::key($rank)."') AND HEX(o.value_stage)=HEX('".$stage."'))";
+            $pred=$mysql?"CONCAT('anytour_value_pred_',CAST(o.value_profile_id AS CHAR),'_v1')":"'anytour_value_pred_'||CAST(o.value_profile_id AS TEXT)||'_v1'";
+            $stageHex=implode(',',array_map(static fn(string $stage):string=>"HEX('".$stage."')",ModeledConversionValueContract::STAGES));
+            $pairs[]="(o.value_profile_id IS NOT NULL AND o.value_profile_id>0 AND HEX(o.target)=HEX(".$pred.") AND HEX(o.value_stage) IN (".$stageHex."))";
             $states=implode(',',array_map(static fn(string $v):string=>"HEX('".$v."')",self::STATES));
             $bad="o.target IS NULL OR o.value_stage IS NULL OR NOT (".implode(' OR ',$pairs).")"
                 ." OR o.platform IS NULL OR HEX(o.platform) NOT IN (HEX('max'),HEX('telegram'))"
                 ." OR o.state IS NULL OR HEX(o.state) NOT IN (".$states.")"
                 ." OR (o.value_origin IS NOT NULL AND HEX(o.value_origin) NOT IN (HEX('owner_day_review_v1'),HEX('owner_fortnight_review_v1')))"
-                ." OR o.value_rub IS NULL OR o.value_rub<=0 OR o.value_rub>25000"
+                ." OR o.value_rub IS NULL OR o.value_rub<=0 OR o.value_rub>".ModeledConversionValueContract::MAX_VALUE_RUB
                 ." OR (HEX(o.state) IN (HEX('accepted'),HEX('processed')) AND NOT (".$receipt."))"
                 ." OR o.event_unix IS NULL OR o.event_unix<946684800 OR o.event_unix>".$now
                 ." OR (o.value_receipt_basis IS NOT NULL AND HEX(o.value_receipt_basis) NOT IN (HEX('post_response'),HEX('get_reconciliation')))";
@@ -147,6 +150,7 @@ final class ModeledConversionDailyReconciliationReader
             .' JOIN customers cu ON cu.id=c.customer_id'
             ." WHERE o.project_key='anytour' AND o.counter_id='98615635' AND o.transport_target='anytour_modeled_value_v1' AND o.value_contract='semantic_stage_value_25000_v1'"
             ." AND HEX(o.project_key)=HEX('anytour') AND HEX(o.transport_target)=HEX('anytour_modeled_value_v1') AND HEX(o.value_contract)=HEX('semantic_stage_value_25000_v1')"
+            ." AND NOT (COALESCE(o.value_rub,-1)=0 AND COALESCE(HEX(o.state),'')=HEX('failed') AND COALESCE(HEX(o.last_error),'')=HEX('price_loss_reconciled'))"
             ." AND o.platform IN ('max','telegram') AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')
             .' AND HEX(CAST(cc.external_user_id AS '.$cast.'))=HEX(CAST(o.external_user_id AS '.$cast.'))'
             .' AND HEX(CAST(cc.external_chat_id AS '.$cast.'))=HEX(CAST(c.external_chat_id AS '.$cast.'))'
@@ -166,7 +170,7 @@ final class ModeledConversionDailyReconciliationReader
     private static function summary(array $r,string $prefix=''):array
     {
         $n=self::count($r[$prefix.'n']??null);$c=self::count($r[$prefix.'c']??null);$v=self::cents($r[$prefix.'v']??null);
-        if($c>$n||$n>$c*6||($n===0&&($c!==0||$v!==0))||($n>0&&($v<$n||$v>$n*2500000)))throw new UnexpectedValueException();
+        if($c>$n||($n===0&&($c!==0||$v!==0))||($n>0&&($c===0||$v<$n||$v>$n*100*ModeledConversionValueContract::MAX_VALUE_RUB)))throw new UnexpectedValueException();
         return['events'=>$n,'conversations'=>$c,'value_rub'=>self::rub($v)];
     }
     private static function count($v):int
