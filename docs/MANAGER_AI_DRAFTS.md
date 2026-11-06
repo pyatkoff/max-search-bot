@@ -188,12 +188,24 @@ and its bounded, approved file. It accepts the explicitly evidenced source-count
 pairs `1` → Egypt and `4` → Turkey; neither a country name nor a hotel-name match
 creates a catalogue join. The original Tourvisor9374/country1 → anytour1554
 identity and three Family Suite facts remain unchanged, alongside seven additional Egypt groups
-and eight Turkey groups. These sixteen bounded groups retain 62 saved declarations
-and 47 source records, including source-only conflict context; they are not sixteen
+and nine Turkey groups. These seventeen bounded groups retain 67 saved declarations
+and 48 source records, including source-only conflict context; they are not seventeen
 complete hotel passports or a count of distinct hotels in the research base.
 Each manifest approval names an actual saved approval artifact version and member:
 the common archive or a bounded consumer export. The compatibility field
 `common_version` carries that artifact’s actual saved version. No native MATCH is changed.
+
+The Rubi Platinum Spa Resort & Suites group uses the explicit Tourvisor 27426/country 4
+to AnyTour 5537 and local-tv 27426 chain. ANEX 8401 identifies its original TOP500
+entry; neither 8401 nor 5537 is a Tourvisor selector for these facts. Five unchanged
+inherited declarations and their original 19 October operator source receive a
+separate bounded consumer admission, without changing their research-layer
+classification or adding collector acceptance credit. The retained effective
+ANEX edge is dated 20 October; the 6 November downstream catalog reads do not refresh
+that native state or the research dates. The original unknown room occupancy,
+untyped 100m beach statement, selected-drink scope of Platinum AI24h and paid-service
+caveats remain explicit. This is conditional published information, with no
+verified selected-room/tariff equivalence or actual model-use claim.
 
 The Pickalbatros Blu Spa group preserves four accepted B04 declarations: the hotel's
 minimum age and couples-only policy, beach length, winter heating of the named
