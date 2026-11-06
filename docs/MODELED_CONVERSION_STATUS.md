@@ -368,6 +368,28 @@ The composed view retains100 scalar diagnosis versions and the existing20metadat
 
 The combined fixture also checks that reserved final-authorization headroom cannot consume the entire useful packet window: the per-packet guard retains8KiB after the doubled projected-copy allowance plus2KiB framing, rather than a separate16KiB holdback. The total64KiB, two-copy guard, actual copy charging, real final authorization and4KiB OAuth lookup floor remain enforced. Exhaustion still fails closed; no limit or grant rule is raised.
 
+### Compact selected timing fields (v1_18)
+
+The same two timing selections use short private SQL result aliases for the six
+message-scope fields and four indexed-profile fields. Immediately after each
+budgeted query, the reader restores the original named internal row before any
+validation, parameter binding, delay calculation or example selection. Result
+names, values, types and nulls are unchanged; aliases never appear in the private
+API response. The same predicates, order,32-scope limit and query count remain.
+
+Repeated field names are part of the selected-row byte accounting. The compact
+selection saves48 bytes per sampled scope and46 bytes per returned profile,
+or3008 bytes with32 rows in each selection. This leaves more of the existing
+shared budget for the following daily delivery and Telegram views. It does not
+change any authorization reservation, admission floor, read order or response
+limit. Daily and Telegram coverage is checked together with the monetary core
+through the existing real-OAuth/native composed regression.
+
+The saving depends on the number of selected rows; it is not a guarantee that
+every optional view fits for every input. Existing explicit budget omissions
+remain unavailable data, not zero totals. No raw source, new query, provider
+request, forecast calculation, delivery operation or stored-row mutation is added.
+
 
 ### Telegram identity diagnosis (v1_10)
 
@@ -748,7 +770,7 @@ are rejected; refresh the selected report to start a new consistent snapshot.
 
 ## Saved monetary-policy visibility and calculation availability
 
-Reader `saved_semantic_prediction_status_v1_17` exposes
+Reader `saved_semantic_prediction_status_v1_18` exposes
 `saved.deal_value.by_monetary_policy` from the monetary capsules already validated
 in the ordinary core-packet read. Each supported saved version reports its count,
 policy cap and unknown-price base, unknown-price/numeric-value counts, and the

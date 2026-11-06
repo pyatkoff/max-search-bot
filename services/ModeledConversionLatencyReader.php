@@ -52,12 +52,16 @@ final class ModeledConversionLatencyReader
             // Aggregate capture counters need no profile join. Only distinct recent scopes
             // use parameter-bound indexed lookups; JSON collations cannot force a global scan.
             $ranked="SELECT b.*,ROW_NUMBER() OVER(PARTITION BY platform,customer_key,conversation_id ORDER BY id DESC) AS scope_row FROM (".$base.") b WHERE ".$valid;
-            $sample=$this->query("SELECT id,platform,customer_key,conversation_id,persisted,captured FROM (".$ranked.") latest"
-                ." WHERE scope_row=1 ORDER BY captured DESC,id DESC LIMIT 32");
+            // Compact wire aliases avoid charging repeated field names for every sampled row.
+            // Restore the original internal shape before validation, bindings or timing arithmetic.
+            $sample=array_map(static fn(array $r):array=>['id'=>$r['i'],'platform'=>$r['p'],'customer_key'=>$r['k'],
+                'conversation_id'=>$r['c'],'persisted'=>$r['t'],'captured'=>$r['u']],
+                $this->query("SELECT id AS i,platform AS p,customer_key AS k,conversation_id AS c,persisted AS t,captured AS u FROM (".$ranked.") latest"
+                ." WHERE scope_row=1 ORDER BY captured DESC,id DESC LIMIT 32"));
             $profileSafe="CASE WHEN JSON_VALID(profile_json) THEN profile_json ELSE '{}' END";
             $status=$this->scalar($profileSafe,'semantic_prediction.status');$stage=$this->scalar($profileSafe,'semantic_prediction.stage');
-            $profileSql="SELECT observed_at_unix AS saved,CASE WHEN ".$status." IN ('predicted','insufficient_context','known_outcome','access_denied') THEN ".$status." ELSE 'unknown' END AS prediction_status,"
-                ."CASE WHEN ".$stage." IN ('substantive_dialogue','concrete_request','exact_offer_discussion','general_purchase_intent','agency_purchase_intent') THEN ".$stage." ELSE NULL END AS prediction_stage"
+            $profileSql="SELECT observed_at_unix AS s,CASE WHEN ".$status." IN ('predicted','insufficient_context','known_outcome','access_denied') THEN ".$status." ELSE 'unknown' END AS q,"
+                ."CASE WHEN ".$stage." IN ('substantive_dialogue','concrete_request','exact_offer_discussion','general_purchase_intent','agency_purchase_intent') THEN ".$stage." ELSE NULL END AS g"
                 ." FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND platform=? AND customer_key=? AND conversation_id=?"
                 ." AND journal_cursor>=? AND observed_at_unix>=? AND observed_at_unix<=".$now." ORDER BY id LIMIT 1";
             // One bounded statement preserves each scope's indexed lookup and avoids repeating
@@ -67,11 +71,12 @@ final class ModeledConversionLatencyReader
                 $valid=true;foreach(['customer_key','conversation_id']as$key)if(preg_match('/\\A[1-9][0-9]{0,19}\\z/D',(string)$meta[$key])!==1)$valid=false;
                 if(!$valid)continue;
                 $validScopes[$index]=true;
-                $terms[]='SELECT '.$index.' AS sample_index,selected_profile.* FROM ('.$profileSql.') selected_profile';
+                $terms[]='SELECT '.$index.' AS i,selected_profile.* FROM ('.$profileSql.') selected_profile';
                 array_push($bindings,$meta['platform'],(string)$meta['customer_key'],(string)$meta['conversation_id'],(int)$meta['id'],(int)$meta['captured']);
             }
             $profiles=[];
-            if($terms)foreach($this->query(implode(' UNION ALL ',$terms),$bindings)as$profile)$profiles[(int)$profile['sample_index']]=$profile;
+            if($terms)foreach($this->query(implode(' UNION ALL ',$terms),$bindings)as$profile)$profiles[(int)$profile['i']]=[
+                'sample_index'=>$profile['i'],'saved'=>$profile['s'],'prediction_status'=>$profile['q'],'prediction_stage'=>$profile['g']];
             $profileDelays=[];$totalDelays=[];$examples=[];
             foreach($sample as$index=>$meta){
                 $out['profile_sample']['scopes_inspected']++;

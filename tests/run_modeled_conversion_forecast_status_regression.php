@@ -665,6 +665,18 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         &&$r['delays']['capture_to_profile']['maximum_seconds']===1140.0
         &&$r['profile_sample']['waiting_for_profile']===1&&$r['by_platform']['max']['conversations']===2
         &&$r['profile_sample']['recorded_prediction_status']['predicted']===1&&$r['profile_sample']['scopes_inspected']===3);
+    $at=static fn(int $offset):string=>gmdate('Y-m-d\\TH:i:s\\Z',$day+$offset);
+    $check('timing examples retain each selected scope clock status and stage after bounded projection',
+        $r['examples']===[
+            ['platform'=>'max','persisted_at'=>$at(400),'captured_at'=>$at(450),'profile_saved_at'=>null,
+                'capture_delay_seconds'=>50,'profile_queue_delay_seconds'=>null,'total_profile_delay_seconds'=>null,
+                'recorded_prediction_status'=>'unknown','recorded_prediction_stage'=>null],
+            ['platform'=>'telegram','persisted_at'=>$at(600),'captured_at'=>$at(660),'profile_saved_at'=>$at(1800),
+                'capture_delay_seconds'=>60,'profile_queue_delay_seconds'=>1140,'total_profile_delay_seconds'=>1200,
+                'recorded_prediction_status'=>'known_outcome','recorded_prediction_stage'=>null],
+            ['platform'=>'max','persisted_at'=>$at(200),'captured_at'=>$at(300),'profile_saved_at'=>$at(900),
+                'capture_delay_seconds'=>100,'profile_queue_delay_seconds'=>600,'total_profile_delay_seconds'=>700,
+                'recorded_prediction_status'=>'predicted','recorded_prediction_stage'=>'general_purchase_intent']]);
     $check('today live value latency excludes historical review and keeps receipt distinct from processing',
         $r['live_value']['events']===3&&$r['live_value']['value_rub']===33333
         &&$r['live_value']['api_accepted_events']===2&&$r['live_value']['api_accepted_value_rub']===8333
@@ -706,6 +718,23 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         &&$r['delays']['capture_to_profile']['maximum_seconds']===50.0
         &&count($r['examples'])===6&&$r['example_selection']==='up_to_three_slow_or_pending_then_recent_distinct_scopes'
         &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    // The preceding composed views share this same ceiling. Leave 13KiB for the
+    // real 32-scope read, including repeated authorization, without fabricating rows.
+    $snapshot=static function()use($p):array{
+        $out=[];
+        foreach(['modeled_conversion_stream_versions','modeled_conversion_profile_versions','max_channel_conversion_outbox']as$table)
+            $out[$table]=hash('sha256',json_encode($p->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+        return$out;
+    };
+    $beforeCompact=$snapshot();$compactBudget=new ModeledConversionStatusBudget();$compactBudget->consumeBytes(52224);$compactAuthorizations=0;
+    $compact=(new ModeledConversionLatencyReader($p,static function()use($compactBudget,&$compactAuthorizations):void{
+        if($compactBudget->remainingBytes()<4096)throw new ModeledConversionStatusLimit('byte_limit');
+        $compactBudget->consumeBytes(128);$compactAuthorizations++;
+    },$compactBudget))->read($now);
+    $check('complete 32-scope timing fits the remaining shared budget with unchanged output and authorization floor',
+        $compact===$r&&$compactAuthorizations>4&&$compactAuthorizations<=16
+        &&$compactBudget->remainingBytes()>=4096&&$compactBudget->remainingBytes()<13312);
+    $check('bounded timing projection leaves captured source profiles and value reservations unchanged',$snapshot()===$beforeCompact);
     if($mysql)$p->exec('SET time_zone='.$p->quote((string)$oldTimeZone));
 }
 
