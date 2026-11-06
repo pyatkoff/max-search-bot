@@ -131,7 +131,8 @@ PR scope does not change that deployment contract.
 Except for the styling-only subprofile below, selection keeps **all five
 required PHP groups, syntax, inventory and native prepared/delivery MySQL
 coverage**. Functional JS/PHP/API/collector changes never enter that exception. Chromium and
-WebKit execute the whole selection spec, including editor, exact conditions,
+WebKit execute the whole selection spec for component changes outside the PHP
+CLI test subprofile below, including editor, exact conditions,
 lost responses/UNKNOWN, readonly access, preview/send, publish/revoke, pending
 photos and the anonymous public page. It also executes every collector case for
 the shipped adapters, one-click import, optional price editor, destination/row
@@ -196,6 +197,43 @@ matrix exclusions, wiring and the actual aggregate truth table. Policy edits
 still receive full regression plus the existing component commissioning. Actual
 runner savings and duration must come from a subsequent ordinary styling PR,
 not an artificial release or a claimed percentage from these local fixtures.
+
+## Selection PHP CLI test subprofile
+
+The same selector independently publishes `browser=none` with
+`mode=tour-selection` and `backend=full` when the complete, nonempty PR diff
+contains only modifications to these five existing regular 100644 files:
+
+- `tests/run_manager_tour_selection_regression.php`
+- `tests/run_manager_tour_delivery_regression.php`
+- `tests/run_manager_tour_share_regression.php`
+- `tests/run_manager_tour_collector_regression.php`
+- `tests/run_manager_tour_selection_mcp_regression.php`
+
+All five execute in the existing required manager group through
+`tests/required_checks_manifest.php`; none is consumed by runtime code or a
+browser fixture. The public-module workflow also invokes the share regression
+when that workflow is selected, and its triggers and checks are unchanged.
+The similarly named `tests/run_manager_tour_collector_behavior_regression.js`
+is excluded: the selection browser spec imports its worker/provider helpers.
+Shared support files, fixtures and the MCP implementation receive no exemption.
+
+This profile retains all five backend groups, PHP syntax, inventory, native
+MySQL, required `regression` and `guard`. Visual QA still selects the complete
+diff, but its full, OAuth and selection browser branches do not start. The
+existing `screenshots` aggregate requires successful scope selection, the exact
+declared profile and `skipped` from each of `full-screenshots`, `oauth-browser`
+and `tour-browser`. Missing, failed, cancelled or unexpectedly executed results
+cannot certify the profile. No jobs, workflows, screenshot cases or assertions
+are removed.
+
+Any other path, addition, deletion, rename/copy or mode change retains the
+existing component/full decision. A mixed MCP-test/runtime change remains
+outside the general component allowlist. Manual and production checks stay
+full. This is a PR browser-selection rule; it does not skip installation or
+change application versions. Changes to the policy itself retain full
+regression and the existing component commissioning. Savings are established
+only by subsequent ordinary eligible PRs, not a separate benchmark release.
 
 ## Prepared native browser environment
 

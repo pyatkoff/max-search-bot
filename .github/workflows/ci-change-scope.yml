@@ -12,6 +12,9 @@ on:
       backend:
         description: Full server coverage or audited selection styling only
         value: ${{ jobs.scope.outputs.backend }}
+      browser:
+        description: Required browser scope, or none for audited CLI-only tests
+        value: ${{ jobs.scope.outputs.browser }}
 
 permissions:
   contents: read
@@ -24,6 +27,7 @@ jobs:
       mode: ${{ steps.scope.outputs.mode }}
       tour-proof: ${{ steps.scope.outputs.tour-proof }}
       backend: ${{ steps.scope.outputs.backend }}
+      browser: ${{ steps.scope.outputs.browser }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +41,7 @@ jobs:
           node tests/run_ci_change_scope_regression.js
           node tests/check_ci_public_manifest_scope.js
           node tests/check_ci_selection_style_scope.js
+          node tests/check_ci_cli_tests_scope.js
           node tests/run_oauth_browser_report_regression.js
           python3 -m pip install --disable-pip-version-check PyYAML==6.0.2
           python3 tests/check_ci_workflow_scopes.py
@@ -48,5 +53,10 @@ jobs:
           CI_SCOPE_RESULT="$result" node -e '
             const result = JSON.parse(process.env.CI_SCOPE_RESULT);
             const backend = result.mode === "tour-selection" && result.backend === "selection-style" ? "selection-style" : "full";
-            require("node:fs").appendFileSync(process.env.GITHUB_OUTPUT, `backend=${backend}\n`);
+            const browser = result.browser === undefined ? result.mode : result.browser;
+            const cliOnly = result.mode === "tour-selection" && result.backend === "full" &&
+              result.reason === "selection_cli_tests_only" && result.proveTourSelection === false && browser === "none";
+            if (!["full", "oauth", "tour-selection"].includes(result.mode) ||
+                (browser !== result.mode && !cliOnly)) throw new Error("Invalid browser scope");
+            require("node:fs").appendFileSync(process.env.GITHUB_OUTPUT, `backend=${backend}\nbrowser=${browser}\n`);
           '

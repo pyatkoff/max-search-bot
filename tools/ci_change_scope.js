@@ -17,6 +17,25 @@ const FIXTURE = 'tests/visual/fixtures/oauth-consent.js';
 const DOCUMENT = 'docs/MANAGER_PREPARED_REPLIES.md';
 const EDITOR_MANIFEST = 'modules/tour-selections/editor.json';
 const PUBLIC_MANIFEST = 'modules/tour-selections/module.json';
+// These exact PHP entrypoints are executed by the full required server suite.
+// Browser fixtures load services/support directly, never these CLI runners.
+// The neighboring collector behavior JS is imported by a browser spec and is
+// deliberately excluded. This is not a tests/** or component-wide exemption.
+const SELECTION_CLI_TEST_PATHS = new Set([
+  'tests/run_manager_tour_selection_regression.php',
+  'tests/run_manager_tour_delivery_regression.php',
+  'tests/run_manager_tour_share_regression.php',
+  'tests/run_manager_tour_collector_regression.php',
+  'tests/run_manager_tour_selection_mcp_regression.php',
+]);
+
+function selectionCliTestsOnlyChanges(changes) {
+  return Array.isArray(changes) && changes.length > 0 &&
+    changes.every(change => change && SELECTION_CLI_TEST_PATHS.has(change.path) &&
+      change.status === 'M' && change.previousPath === undefined &&
+      change.oldMode === '100644' && change.newMode === '100644');
+}
+
 // Explicit collector owners. These files are consumed by the selection page,
 // its MV3 package and dedicated regressions, not by other workspace UI specs.
 // Unknown adapters/helpers still require review; this is never a prefix match.
@@ -258,7 +277,12 @@ function selectScope(env = process.env) {
       throw error;
     }
     const changes = parseRawDiff(git(['diff', '--raw', '-z', '--no-renames', '--no-abbrev', base, head]));
-    const result = classifySelectionCompanionChanges(changes, () => [
+    // Decide from the complete diff before stripping any manifest companions.
+    // In particular a version bump cannot inherit the CLI-only exception.
+    const cliTestsOnly = selectionCliTestsOnlyChanges(changes);
+    const result = cliTestsOnly
+      ? { mode: 'tour-selection', reason: 'selection_cli_tests_only' }
+      : classifySelectionCompanionChanges(changes, () => [
       git(['show', `${base}:${PUBLIC_MANIFEST}`]), git(['show', `${head}:${PUBLIC_MANIFEST}`])
     ]);
     const browserSpec = 'tests/visual/manager-ai-draft.spec.js';
@@ -274,6 +298,7 @@ function selectScope(env = process.env) {
     // Ordinary full changes do not pay for this additional commissioning proof.
     return { ...result,
       backend: result.mode === 'tour-selection' && selectionStyleOnlyChanges(changes) ? 'selection-style' : 'full',
+      browser: cliTestsOnly ? 'none' : result.mode,
       proveTourSelection: result.mode === 'full' && changes.some(change => TOUR_CI_PROOF_PATHS.has(change.path)) };
   } catch (_) { return full('diff_unavailable'); }
 }
@@ -290,4 +315,4 @@ if (require.main === module) {
   process.stdout.write(`${JSON.stringify(result)}\n`);
 }
 
-module.exports = { TOUR_SELECTION_PATHS, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectionStyleOnlyChanges, selectScope };
+module.exports = { TOUR_SELECTION_PATHS, SELECTION_CLI_TEST_PATHS, selectionCliTestsOnlyChanges, classifyChanges, parseRawDiff, oauthSpecOnlyChange, editorManifestVersionOnlyChange, publicManifestVersionOnlyChange, classifySelectionCompanionChanges, selectionStyleOnlyChanges, selectScope };

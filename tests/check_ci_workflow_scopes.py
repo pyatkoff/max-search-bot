@@ -4,6 +4,7 @@ import itertools
 import fnmatch
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import yaml
@@ -84,6 +85,12 @@ check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.
       and scope_document['jobs']['scope']['outputs']['backend'] == '${{ steps.scope.outputs.backend }}',
       'backend profile is bound through the canonical scope job')
 check('node tests/check_ci_selection_style_scope.js' in policy['run'], 'style selector selftests are mandatory')
+check('node tests/check_ci_cli_tests_scope.js' in policy['run'], 'isolated CLI selector selftests are mandatory')
+check(scope_events['workflow_call']['outputs']['browser']['value'] == '${{ jobs.scope.outputs.browser }}'
+      and scope_document['jobs']['scope']['outputs']['browser'] == '${{ steps.scope.outputs.browser }}',
+      'browser profile is bound through the same canonical scope job')
+check(visual['screenshots']['steps'][-1]['env']['BROWSER_PROFILE'] == '${{ needs.change-scope.outputs.browser }}',
+      'visual aggregate uses the actual browser profile')
 check("needs.change-scope.outputs.mode == 'full'" in visual['browser-tests']['if'], 'full browser assembler must not run after OAuth-only skips')
 check(set(visual['full-screenshots']['needs']) == {'browser-tests','firefox-history','firefox-notifications'}, 'full screenshot proof preserves all engines and Firefox')
 check(visual['oauth-browser']['strategy']['matrix']['browser'] == ['chromium','webkit'], 'OAuth requires both browser engines')
@@ -108,13 +115,42 @@ def visual_triggered(*changed_paths):
             return True
     return False
 
-component_paths=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify([...require('./tools/ci_change_scope').TOUR_SELECTION_PATHS]))"],cwd=root))
+scope_paths=json.loads(subprocess.check_output(['node','-e',"const s=require('./tools/ci_change_scope');process.stdout.write(JSON.stringify({component:[...s.TOUR_SELECTION_PATHS],cli:[...s.SELECTION_CLI_TEST_PATHS]}))"],cwd=root))
+component_paths=scope_paths['component']
+cli_paths=scope_paths['cli']
 regression_document=load('regression-tests.yml')
 regression_events=regression_document.get('on',regression_document.get(True))
 check('paths' not in regression_events['pull_request'] and 'paths-ignore' not in regression_events['pull_request'], 'every component change retains required backend regression invocation')
 for component_path in component_paths:
     if not component_path.endswith('.md'):
         check(visual_triggered(component_path),'component path would skip its native gate: '+component_path)
+# The exemption changes native coverage only. Every admitted PHP entrypoint
+# remains an unfiltered command in the existing required manager group.
+manifest_source=(root/'tests/required_checks_manifest.php').read_text()
+manager_group=re.search(r"^    'manager' => \[\n(.*?)^    \],",manifest_source,re.M|re.S)
+check(manager_group is not None,'the canonical manager group is present')
+for cli_path in cli_paths:
+    command="'php "+cli_path+"'"
+    check(manifest_source.count(command)==manager_group.group(1).count(command)==1,
+          'CLI exemption must retain its exact required command: '+cli_path)
+    check(visual_triggered(cli_path),'CLI-only change still runs its current scope/aggregate: '+cli_path)
+
+# Detect a future promotion from standalone test to reusable fixture. Match
+# stems as well as full filenames, so a JS require without .php is not missed.
+# All current consumers are listed; a new source consumer requires re-auditing
+# this exemption, not silently inheriting omitted browser evidence.
+allowed_consumers=set(cli_paths)|{'tools/ci_change_scope.js','tests/required_checks_manifest.php',
+    'tests/run_ci_change_scope_regression.js','tests/check_ci_cli_tests_scope.js',
+    'tests/check_ci_workflow_scopes.py','.github/workflows/tour-selection-module.yml'}
+stems=[Path(name).stem for name in cli_paths]
+source_types={'.php','.js','.cjs','.mjs','.ts','.tsx','.py','.sh','.yml','.yaml'}
+consumers=[]
+for name in subprocess.check_output(['git','ls-files','-z'],cwd=root,text=True).split('\0'):
+    if name and name not in allowed_consumers and Path(name).suffix in source_types:
+        source=(root/name).read_text()
+        if any(stem in source for stem in stems):
+            consumers.append(name)
+check(not consumers,'CLI-only tests acquired unreviewed consumers: '+', '.join(consumers))
 editor_manifest='modules/tour-selections/editor.json'
 check(visual_triggered(editor_manifest),'manifest-only releases and contract changes need their selected native gate')
 check(visual_triggered('modules/tour-selections/editor-tours.php'),'wrapper-only edits must run complete native selection coverage')
@@ -137,7 +173,7 @@ for runtime_path in ['extensions/selection-collector/popup.js','extensions/selec
     check(visual_triggered(runtime_path),'collector runtime/package path must retain a native gate: '+runtime_path)
     check(visual_triggered(collector_readme,runtime_path),'README must not suppress another changed runtime path: '+runtime_path)
 check(tour['strategy']['matrix']['browser']==['chromium','webkit'],'selection requires both engines')
-check(tour['if']=="needs.change-scope.outputs.mode == 'tour-selection' || needs.change-scope.outputs.tour-proof == 'true'",'CI edits commission scoped runner while full gates remain')
+check(tour['if']=="needs.change-scope.outputs.browser == 'tour-selection' || needs.change-scope.outputs.tour-proof == 'true'",'CI edits commission scoped runner; only audited CLI-only input may omit native selection')
 tour_steps='\n'.join(s.get('run','') for s in tour['steps'])
 check('--list --reporter=json > tour-selection-expected.json' in tour_steps and '--grep' not in tour_steps,'selection executes and lists the entire component, without grep')
 check(tour_steps.count('--forbid-only')==2 and 'verify_tour_selection_browser_report.js tour-selection-browser.json tour-selection-expected.json' in tour_steps,'selection requires complete native execution and evidence')
@@ -221,19 +257,31 @@ for mode in ['full','tour-selection','oauth']:
         check(not gate_passes(aggregate,{**full_valid,'BACKEND_PROFILE':profile},'Require every gate'),
               'full/OAuth results need their exact declared profile')
 for mode,scope,full,oauth in itertools.product(['oauth','full','','invalid'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled'], ['success','failure','skipped','cancelled']):
-    env=dict(CI_MODE=mode,SCOPE_RESULT=scope,FULL_RESULT=full,OAUTH_RESULT=oauth,TOUR_RESULT='skipped',TOUR_PROOF='false')
+    env=dict(CI_MODE=mode,BROWSER_PROFILE=mode,SCOPE_RESULT=scope,FULL_RESULT=full,OAUTH_RESULT=oauth,TOUR_RESULT='skipped',TOUR_PROOF='false')
     expected=scope=='success' and ((mode=='oauth' and oauth=='success' and full=='skipped') or (mode=='full' and full=='success' and oauth=='skipped'))
     check(gate_passes(visual['screenshots'],env)==expected,'visual gate accepted wrong results: '+str(env))
 for mode,proof,full,oauth,tour_result in [('tour-selection','false','skipped','skipped','success'),('full','true','success','skipped','success')]:
-    valid=dict(CI_MODE=mode,TOUR_PROOF=proof,SCOPE_RESULT='success',FULL_RESULT=full,OAUTH_RESULT=oauth,TOUR_RESULT=tour_result)
+    valid=dict(CI_MODE=mode,BROWSER_PROFILE=mode,TOUR_PROOF=proof,SCOPE_RESULT='success',FULL_RESULT=full,OAUTH_RESULT=oauth,TOUR_RESULT=tour_result)
     check(gate_passes(visual['screenshots'],valid),'new profile baseline must pass')
     for field in ['SCOPE_RESULT','FULL_RESULT','OAUTH_RESULT','TOUR_RESULT']:
         for value in ['success','failure','skipped','cancelled','timed_out','']:
             env={**valid,field:value}
             check(gate_passes(visual['screenshots'],env)==(value==valid[field]),'new profile hid missing/foreign evidence: '+str(env))
-    for field,values in [('CI_MODE',['','unknown','oauth']),('TOUR_PROOF',['','invalid','0','1'])]:
+    for field,values in [('CI_MODE',['','unknown','oauth']),('BROWSER_PROFILE',['','unknown','none','oauth']),('TOUR_PROOF',['','invalid','0','1'])]:
         for value in values:
             check(not gate_passes(visual['screenshots'],{**valid,field:value}),'malformed profile/proof may not pass')
+
+cli_visual=dict(CI_MODE='tour-selection',BROWSER_PROFILE='none',TOUR_PROOF='false',
+    SCOPE_RESULT='success',FULL_RESULT='skipped',OAUTH_RESULT='skipped',TOUR_RESULT='skipped')
+check(gate_passes(visual['screenshots'],cli_visual),'audited CLI-only source may declare native checks unnecessary')
+for field in ['SCOPE_RESULT','FULL_RESULT','OAUTH_RESULT','TOUR_RESULT']:
+    for value in ['success','failure','skipped','cancelled','timed_out','']:
+        check(gate_passes(visual['screenshots'],{**cli_visual,field:value})==(value==cli_visual[field]),
+              'CLI-only browser gate cannot hide missing/foreign evidence: '+field+'='+value)
+for field,values in [('CI_MODE',['full','oauth','','unknown']),('BROWSER_PROFILE',['full','tour-selection','oauth','','unknown']),('TOUR_PROOF',['true','','unknown'])]:
+    for value in values:
+        check(not gate_passes(visual['screenshots'],{**cli_visual,field:value}),
+              'native skips require the exact CLI-only profile: '+field+'='+value)
 
 # Metadata-only release closure joins the existing post-deploy tail.
 # It must not change value operations, timers, check execution, or credentials.
