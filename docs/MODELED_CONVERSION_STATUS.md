@@ -597,3 +597,19 @@ a separate `stage_baseline` count in its bounded current-source window.
 Synthetic semantic and SQLite/native-MySQL readback cases cover neutral timing,
 deferral and engagement, preserved evidence, direct refusal, genuine stage
 changes, rejected inconsistent re-signed packets and unchanged historical scores.
+
+
+### Shared read-budget headroom
+
+The private status reader validates its core frozen forecasts before optional
+diagnostic sections. Every optional section reserves bytes for the final
+reader, adapter and dispatcher authorization checks, including their existing
+4 KiB floor. A skipped section explicitly returns unavailable with
+`reason=budget_headroom`; it does not publish partial statistics or zeros.
+
+The 64 KiB shared read budget, 30 KiB result cap, five-second deadline and all
+fresh OAuth checks remain. Reservations do not refund consumed reads. A copied
+result that exceeds its slice is still charged; absolute global exhaustion and
+the deadline still fail closed. Revocation and unrelated errors propagate.
+The same registered SQLite/native-MySQL regressions exercise optional pressure,
+unchanged saved rows, mandatory final authorization and absolute exhaustion.

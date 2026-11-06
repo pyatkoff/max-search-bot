@@ -12,13 +12,12 @@ require_once __DIR__.'/ModeledConversionDeliveryHealth.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_12';
+    public const VERSION='saved_semantic_prediction_status_v1_13';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
-    // Remaining tail is the bounded linkage query/file receipt and final authorization.
-    // Projection admission already charges twice the candidate bytes plus2KiB.
-    private const RELEASE_RESERVE=4096;
+    // Keep the final reader/adapter/dispatcher OAuth checks above their 4KiB authorization floor.
+    private const RELEASE_RESERVE=8192;
     private const CONTINUITY_FIELDS=['preserved_ai_replies','preserved_handoff_receipts','unresolved_clock_barriers',
         'long_gap_barriers','unavailable_message_barriers','unavailable_event_barriers','other_source_barriers'];
     private bool $mysql;
@@ -33,12 +32,6 @@ final class ModeledConversionForecastStatusReader
         try{
             $this->copied=0;$out=$this->emptyResult();
             $out['state']=$this->state();
-            $out['value_delivery']=(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time());
-            $activation=$out['value_delivery']['activated_at']??null;
-            $activation=is_string($activation)?strtotime($activation):false;
-            $out['saved_input_diagnosis']=(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation);
-            $out['today_latency']=(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time());
-            $out['daily_delivery']=(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
             $processor=hash_file('sha256',__DIR__.'/ModeledConversionProfiles.php');
             if(!is_string($model)||!is_string($processor))return $this->unavailable('source_unavailable');
@@ -141,12 +134,30 @@ final class ModeledConversionForecastStatusReader
             $out['saved']['distinct_inspected_scopes']=$out['saved']['valid_v1_versions'];
             $out['confirmation']=$out['saved']['prospective_estimates']>0?'saved_prospective_estimates':
                 ($out['saved']['valid_v1_versions']>0?'saved_v1_without_prospective_estimate':'no_v1_confirmation_in_checked_suffix');
-            $out['telegram_linkage']=$this->budget->remainingBytes()<8192?['available'=>false,'reason'=>'budget_headroom']:
-                (new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
-            $out['external_monitor']=ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time());
+            $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $activation=$out['value_delivery']['activated_at']??null;
+            $activation=is_string($activation)?strtotime($activation):false;
+            $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation));
+            $out['today_latency']=$this->optionalRead(fn():array=>(new ModeledConversionLatencyReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $out['daily_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionDailyDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $out['telegram_linkage']=$this->optionalRead(fn():array=>(new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $out['external_monitor']=$this->optionalRead(fn():array=>ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time()));
             $this->auth();return $out;
         }catch(ModeledConversionStatusLimit $error){throw $error;}
         catch(PDOException $ignored){return $this->unavailable('storage_unavailable');}
+    }
+
+    /** Resource omission is explicit; access denial and the shared deadline still fail closed. */
+    private function optionalRead(callable $read):array
+    {
+        if($this->budget->remainingBytes()<self::RELEASE_RESERVE+4096)
+            return ['available'=>false,'reason'=>'budget_headroom'];
+        try{return $this->budget->withReservedBytes(self::RELEASE_RESERVE,$read);}
+        catch(ModeledConversionStatusLimit $error){
+            if($error->reason!=='byte_limit')throw $error;
+            $this->budget->check();
+            return ['available'=>false,'reason'=>'budget_headroom'];
+        }
     }
 
     private function state():array
