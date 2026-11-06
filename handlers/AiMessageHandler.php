@@ -28,14 +28,6 @@ class AiMessageHandler
                 $missingNow = MaxSearchApi::getAiMissingFields($chat_id);
                 $sourceQualification=SourceHandlingService::qualifyingTurn($chat_id);
 
-                // Keep an unsupported multi-month window out of both local
-                // anchoring and remote inference. Clarification changes no needs.
-                $dateContext = AiDateContextService::resolveLocal($chat_id, $userText);
-                if (!empty($dateContext['ambiguous_months'])) {
-                    MissingFieldQuestionService::send($chat_id, 'date', ['ambiguous_months'=>true]);
-                    return;
-                }
-
                 // Короткий ответ на ранее названный месяц: "начало", "середина", "конец", "14".
                 if (in_array('date', $missingNow, true)) {
                     $shortDateValue = AiDateHandler::resolvePendingShortDate($chat_id, $userText);
@@ -66,6 +58,14 @@ class AiMessageHandler
                     if (!empty($ageResult['advanced'])) {
                         return;
                     }
+                }
+
+                // Keep an unsupported multi-month window out of both local
+                // anchoring and remote inference. Clarification changes no needs.
+                $dateContext = AiDateContextService::resolveLocal($chat_id, $userText);
+                if (!empty($dateContext['ambiguous_months'])) {
+                    MissingFieldQuestionService::send($chat_id, 'date', ['ambiguous_months'=>true]);
+                    return;
                 }
 
                 // Сначала классифицируем сообщение. Полноценные запросы по-прежнему
