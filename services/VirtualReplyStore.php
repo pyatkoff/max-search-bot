@@ -227,6 +227,45 @@ final class VirtualReplyStore
         return ['reviews'=>$reviews,'has_more'=>count($rows)>$limit];
     }
 
+    /** Chronological bounded journal, separate from the finding-first worker inventory. */
+    public function reviewPage(?string $cursor=null,string $verdict='all'): array
+    {
+        $this->outsideTransaction();
+        if (!in_array($verdict,['all','pass','revise','insufficient_context'],true)) throw new InvalidArgumentException('invalid_review_filter');
+        $before=null;
+        if ($cursor!==null) {
+            if (strlen($cursor)>256 || !preg_match('/\A[A-Za-z0-9_-]+\z/D',$cursor)) throw new InvalidArgumentException('invalid_review_cursor');
+            $raw=base64_decode(strtr($cursor,'-_','+/'),true);
+            $before=$raw===false?null:json_decode($raw,true,4);
+            if (!is_array($before) || array_keys($before)!==['at','id'] || !is_string($before['at'])
+                || !preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\z/D',$before['at'])
+                || !is_int($before['id']) || $before['id']<=0) throw new InvalidArgumentException('invalid_review_cursor');
+            $at=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$before['at'],new DateTimeZone('UTC'));
+            if ($at===false || $at->format('Y-m-d H:i:s')!==$before['at']) throw new InvalidArgumentException('invalid_review_cursor');
+        }
+        $jsonVerdict=$this->driver==='mysql'?"JSON_UNQUOTE(JSON_EXTRACT(j.result_json,'$.verdict'))":"JSON_EXTRACT(j.result_json,'$.verdict')";
+        $sql='SELECT c.*,j.completed_at AS reviewed_at FROM virtual_reply_cases c JOIN virtual_reply_jobs j ON j.case_id=c.case_id'
+            .' WHERE c.project_key=? AND c.state=? AND j.role=? AND j.status=? AND '.$this->sampling->reviewPredicate('c');
+        $params=['anytour','active','reviewer','completed'];
+        if ($verdict!=='all') {$sql.=' AND '.$jsonVerdict.'=?';$params[]=$verdict;}
+        if ($before!==null) {$sql.=' AND (j.completed_at<? OR (j.completed_at=? AND c.id<?))';array_push($params,$before['at'],$before['at'],$before['id']);}
+        $rows=$this->rows($sql.' ORDER BY j.completed_at DESC,c.id DESC LIMIT 21',$params);
+        $scanned=array_slice($rows,0,20);$reviews=[];
+        foreach ($scanned as $row) {
+            $fresh=$this->refresh($row);
+            if ($fresh===null || !$this->sampling->readable($fresh['case_id'])) continue;
+            $a=$this->job($fresh['case_id'],'author');$r=$this->job($fresh['case_id'],'reviewer');
+            if (!$a || !$r || $a['status']!=='completed' || $r['status']!=='completed' || $r['result_json']===null) continue;
+            $result=$this->decode($r['result_json']);
+            $reviews[]=['case_id'=>$fresh['case_id'],'number'=>(int)$fresh['id'],'source_kind'=>$fresh['source_kind'],
+                'reference_time'=>$fresh['reference_time'],'review_completed_at'=>$r['completed_at'],'verdict'=>$result['verdict'],
+                'disposition'=>['status'=>$fresh['lesson_state']]];
+        }
+        $last=$scanned?end($scanned):null;$more=count($rows)>20;
+        return ['reviews'=>$reviews,'has_more'=>$more,'next_cursor'=>$more&&$last!==null
+            ?rtrim(strtr(base64_encode(json_encode(['at'=>$last['reviewed_at'],'id'=>(int)$last['id']],JSON_THROW_ON_ERROR)),'+/','-_'),'='):null];
+    }
+
     public function review(string $caseId): array
     {
         $this->outsideTransaction();
