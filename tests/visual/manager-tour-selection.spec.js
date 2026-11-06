@@ -2070,6 +2070,7 @@ for(const width of [390,430,768,1440])test('bulk terms preview applies only sele
  await page.setViewportSize({width,height:900});const original=mixedPhotoDraft();original.offers[2].selected=false;
  const s=await privateEditor(page,{draft:original}),f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsBulkTermsOpen').click();
  await expect(f.locator('#tsTermsOffers input:checked')).toHaveCount(2);await expect(f.locator('#tsTermsApply')).toBeDisabled();
+ await expect(f.locator('#tsTermsValue-nights')).toBeHidden();await f.locator('#tsTermsUse-nights').check();await expect(f.locator('#tsTermsValue-nights')).toBeVisible();await f.locator('#tsTermsUse-nights').uncheck();await expect(f.locator('#tsTermsValue-nights')).toBeHidden();
  const inputs={date_from:'2077-02-28',adults:'3',child_ages:'0, 6, 6',room:'Family <img src=x>',meal:'AI',constraints:'Проверить багаж и обязательные доплаты.'};
  for(const [key,value]of Object.entries(inputs))await setBulkTerm(f,key,value);
  await expect(f.locator('.tsTermsRow')).toHaveCount(2);await expect(f.locator('.tsTermsRow').first()).toContainText('Станет: 0, 6, 6');await expect(f.locator('.tsTermsRow').first()).toContainText('Family <img src=x>');await expect(f.locator('#tsTermsPreview img,#tsTermsPreview svg,#tsTermsPreview script')).toHaveCount(0);

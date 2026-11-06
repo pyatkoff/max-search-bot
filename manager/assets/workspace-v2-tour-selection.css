@@ -122,12 +122,12 @@
 #tsBulkTermsOpen{min-width:88px}
 #tsTermsFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .tsTermsField{min-width:0;padding:0 0 12px;border-bottom:1px solid #e5ece7}
-.tsTermsField:not(.isChosen)>:not(label){display:none}
 .tsTermsField>label{font-weight:600}
 .tsTermsField input:not([type=checkbox]),.tsTermsField textarea,.tsTermsField select{display:block;width:100%;max-width:100%;min-height:44px;padding:10px;border:1px solid #bdcec2;border-radius:8px;font:inherit;background:#fff;color:#20372b;margin:0 0 7px;box-sizing:border-box}
 .tsTermsField textarea{resize:vertical;min-height:84px}
 .tsTermsField :disabled{background:#f1f4f2;color:#65756c}
 .tsTermsField small{font-size:12px;line-height:1.5}
+.tsTermsField:not(.isChosen)>:not(label){display:none}
 .tsTermsRow{border:1px solid #d6e1da;border-radius:10px;padding:14px;margin:10px 0;overflow-wrap:anywhere}
 .tsTermsRow h5{font-size:15px;margin:0 0 12px}
 .tsTermsRow>div{border-top:1px solid #e5ece7;padding-top:10px;margin-top:10px}
