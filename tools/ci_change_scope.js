@@ -83,6 +83,7 @@ const TOUR_SELECTION_PATHS = new Set([
 const TOUR_DOCUMENTS = new Set(['docs/MANAGER_TOUR_SELECTIONS.md', 'extensions/selection-collector/README.md']);
 const TOUR_CI_PROOF_PATHS = new Set([
   'tools/ci_change_scope.js', 'tools/verify_tour_selection_browser_report.js',
+  'tools/manager2_visual_shards.js',
   '.github/workflows/ci-change-scope.yml', '.github/workflows/workspace-v2-visual-qa.yml',
 ]);
 const full = reason => ({ mode: 'full', reason });
