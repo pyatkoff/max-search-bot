@@ -65,7 +65,7 @@ final class ManagerTourSelectionOneTouchIntake
     public static function transport(string $url): array
     {
         $query=ManagerTourSelectionOneTouchSource::query($url);self::runtime();$deadline=microtime(true)+self::SEARCH_SECONDS;
-        $formQuery=array_intersect_key($query,array_flip(['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM','NIGHTS_TILL','ADULT','CHILD','CURRENCY']));
+        $formQuery=array_intersect_key($query,array_flip(['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM','NIGHTS_TILL','ADULT','CHILD','AGES','CURRENCY']));
         $formUrl='https://b2b.onetouch.travel/search_tour?'.http_build_query($formQuery,'','&',PHP_QUERY_RFC3986);
         return self::withPublicAddress($formUrl,'html',$deadline,static function(string $ip,float $end)use($query,$formUrl):array{
             $handle=curl_init();if($handle===false)self::unavailable();
@@ -226,9 +226,10 @@ final class ManagerTourSelectionOneTouchIntake
         if($host==='b2b.onetouch.travel'&&$path==='/search_tour'){
             if($kind==='prices')ManagerTourSelectionOneTouchSource::query($url);
             elseif($kind==='html'){
-                $form=[];foreach(explode('&',$p['query']??'') as $pair){if(!preg_match('/\A([A-Z_]+)=([0-9]+)\z/D',$pair,$m)||isset($form[$m[1]]))self::unavailable();$form[$m[1]]=$m[2];}
+                $form=[];foreach(explode('&',$p['query']??'') as $pair){if(!preg_match('/\A([A-Z_]+)=([0-9]+(?:%2C[0-9]+){0,2})\z/D',$pair,$m)||isset($form[$m[1]])||$m[1]!=='AGES'&&str_contains($m[2],'%'))self::unavailable();$form[$m[1]]=rawurldecode($m[2]);}
                 $keys=['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM','NIGHTS_TILL','ADULT','CHILD','CURRENCY'];
-                if(array_diff(array_keys($form),$keys)||array_diff($keys,array_keys($form))||$form['TOWNFROMINC']!=='2'||$form['STATEINC']!=='9'||$form['CHILD']!=='0'||$form['CURRENCY']!=='1'||!preg_match('/\A(?:[1-9]|1[0-4])\z/D',$form['ADULT'])||self::scalar($form['CHECKIN_BEG'],true)!==$form['CHECKIN_BEG']||$form['CHECKIN_BEG']!==$form['CHECKIN_END']||$form['NIGHTS_FROM']!==$form['NIGHTS_TILL']||!preg_match('/\A[1-9][0-9]?\z/D',$form['NIGHTS_FROM'])||(int)$form['NIGHTS_FROM']>60)self::unavailable();
+                if(array_diff(array_keys($form),[...$keys,'AGES'])||array_diff($keys,array_keys($form))||$form['TOWNFROMINC']!=='2'||$form['STATEINC']!=='9'||$form['CURRENCY']!=='1'||!preg_match('/\A(?:[1-9]|1[0-4])\z/D',$form['ADULT'])||self::scalar($form['CHECKIN_BEG'],true)!==$form['CHECKIN_BEG']||$form['CHECKIN_BEG']!==$form['CHECKIN_END']||$form['NIGHTS_FROM']!==$form['NIGHTS_TILL']||!preg_match('/\A[1-9][0-9]?\z/D',$form['NIGHTS_FROM'])||(int)$form['NIGHTS_FROM']>60)self::unavailable();
+                try{ManagerTourSelectionOneTouchSource::requestedAges($form);}catch(Throwable $e){self::unavailable();}
             }else self::unavailable();
         }elseif($host==='onetouch.travel'&&$kind==='html'&&!isset($p['query'])&&preg_match('~-([1-9][0-9]{0,11})/$~D',$path,$m)&&ManagerTourSelectionOneTouchSource::hotelUrl($url,$m[1])===$url){
             // Exact linked public hotel page, never a booking or agent endpoint.
@@ -314,6 +315,9 @@ final class ManagerTourSelectionOneTouchIntake
         }
         $types=[];foreach($x->query('//input['.$class('hoteltype').'][@checked]') as $n)$types[]=self::scalar($n->getAttribute('value'));$controls['HOTELTYPES']=[implode(',',$types)];
         $parts=[];foreach($x->query('//input['.$class('PARTITION_PRICE').']') as $n)$parts[]=$n->hasAttribute('checked')?$n->getAttribute('value'):'';$controls['PARTITION_PRICE']=$parts?:[''];
+        // Public party controls only; no protective values enter the returned form.
+        try{$ages=ManagerTourSelectionOneTouchSource::requestedFormAges($x,$query);}catch(Throwable $e){self::unavailable();}
+        if($ages)$controls['AGES']=[implode(',',$ages)];
         $expected=array_diff_key($query,array_flip(['samo_action','PRICEPAGE','DYN_SEPARATE','rev']));
         if(array_diff(array_keys($controls),array_keys($expected))||array_diff(array_keys($expected),array_keys($controls)))self::unavailable();
         foreach($controls as $name=>$values)foreach($values as $value)if($value!==$expected[$name])self::unavailable();
