@@ -61,7 +61,7 @@ final class ModeledConversionDealValue
         foreach($wrapper['profile']['observation_input']['evidence']??[]as$e)foreach($e['references']??[]as$r)
             if(in_array($e['kind']??null,['customer_message','manager_message'],true)&&is_string($r['id']??null))
                 $admitted[$r['id']]=['at'=>self::moment($r['at']??null),'available'=>self::moment($r['available_at']??null),'role'=>$e['kind']];
-        $rows=[];$entry=null;$budget=null;$quote=null;$budgetAt=0;
+        $rows=[];$entry=null;$budget=null;$quote=null;$budgetAt=0;$holdAt=null;$postedAt=null;
         foreach($case['rows']??[]as$row){
             $jid=(string)($row['journal_id']??'');$fence=(string)($p['source_fence_journal_id']??'0');
             if(preg_match('/\A[1-9][0-9]{0,19}\z/D',$jid)!==1||strlen($jid)>strlen($fence)||(strlen($jid)===strlen($fence)&&strcmp($jid,$fence)>0))continue;
@@ -96,10 +96,16 @@ final class ModeledConversionDealValue
             if(isset($admitted[$ref])&&$admitted[$ref]['at']===$at&&$admitted[$ref]['available']===$available
                 &&is_string($payload['text']??null)&&strlen($payload['text'])<=32768){
                 $t=$payload['text'];
-                if(preg_match('~замороженн\pL*\s+(?:денежн\pL*\s+)?средств\pL*|(?:деньг\pL*|средств\pL*).{0,30}(?:заморожены|заблокированы)|предавторизац|\bхолд\b~iu',$t)===1)
-                    $out['payment_hold_observed']=true;
+                $heldNoun=preg_match('~замороженн\pL*\s+(?:денежн\pL*\s+)?средств\pL*~iu',$t)===1;
+                $heldState=preg_match('~(?:деньг\pL*|средств\pL*|сумм\pL*).{0,30}(?:заморожены|заморожена|заблокированы)|(?:установлен|действует)\s+холд~iu',$t)===1;
+                $futureHold=preg_match('~(?:деньг\pL*|средств\pL*|сумм\pL*).{0,20}(?:будут|будет|могут).{0,20}(?:заморож|заблокир)~iu',$t)===1;
+                if($heldNoun||($heldState&&!$futureHold))$holdAt=max($holdAt??0,$at);
+                $posting=preg_match('~(?:деньг\pL*|средств\pL*|оплат\pL*).{0,30}(?:успешно\s+списаны|окончательно\s+списаны|поступили|зачислены|зачислена)~iu',$t)===1;
+                $uncertainPosting=preg_match('~\b(?:если|когда|будут|будет)\b|не\s+(?:поступ|спис|зачис)~iu',$t)===1;
+                if($posting&&!$uncertainPosting)$postedAt=max($postedAt??0,$at);
             }
         }
+        $out['payment_hold_observed']=$holdAt!==null&&($postedAt===null||$postedAt<=$holdAt);
         $field=$wrapper['profile']['fields']['budget']??null;
         if(is_array($field)&&($field['status']??null)==='known'&&($field['usable_at_prediction']??null)===true
             &&self::moment($field['available_at']??null)!==null&&self::moment($field['available_at'])<=$freeze){

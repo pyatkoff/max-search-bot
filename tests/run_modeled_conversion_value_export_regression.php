@@ -385,11 +385,12 @@ function modeledValueFairProgressAssertions(PDO $p,callable $check):void
 
 
 /** Synthetic admitted prefix used by both SQLite and the isolated native-MySQL contract. */
-function modeledExpertWrapper(array $subject,int $now,int $budget,bool $office=false,bool $hold=false):array
+function modeledExpertWrapper(array $subject,int $now,int $budget,bool $office=false,bool $hold=false,?string $holdText=null,bool $posted=false):array
 {
     $freeze=gmdate('Y-m-d\TH:i:s\Z',$now);$messages=[['customer','Подберите тур в Турцию на 7 ночей. Бюджет '.$budget.' рублей на всех.']];
     if($office)$messages[]=['customer','Где находится ваш офис?'];
-    if($hold){$messages[]=['customer','Оплатила'];$messages[]=['manager','Денежные средства заморожены, списания еще нет.'];}
+    if($hold){$messages[]=['customer','Оплатила'];$messages[]=['manager',$holdText??'Денежные средства заморожены, списания еще нет.'];
+        if($posted)$messages[]=['manager','Денежные средства успешно списаны.'];}
     $model=new ModeledConversionSemanticPrediction($subject,$freeze,$freeze,$freeze,'1000','1000',null,true);
     $state=ArchiveResearchSemanticExtractor::initialState();$evidence=[];$rows=[];$events=[];
     foreach($messages as$i=>[$role,$text]){
@@ -456,6 +457,13 @@ function modeledValuePredictionAssertions(PDO $p,callable $check):void
     $check('a payment statement followed by explicit frozen funds never awards a payment-stage increment',
         $held['deal_value_prediction']['payment_hold_observed']
         &&ModeledConversionValueContract::candidate($held,$scope,$now-500,$now+6)===null);
+    $policy=modeledExpertWrapper($scope,$now+7,200000,false,true,'После оплаты средства будут заморожены.');
+    $check('future hold policy is not reclassified as an existing payment hold',
+        !$policy['deal_value_prediction']['payment_hold_observed']);
+    $posted=modeledExpertWrapper($scope,$now+8,200000,false,true,null,true);
+    $check('a later explicit posting can resolve a held-funds state regardless of input row ordering',
+        !$posted['deal_value_prediction']['payment_hold_observed']
+        &&ModeledConversionValueContract::candidate($posted,$scope,$now-500,$now+8)!==null);
     $bad=$stronger;$bad['deal_value_prediction']['value_rub']=24000;
     $check('modified monetary capsule cannot fall back to a legacy positive award',
         ModeledConversionValueContract::candidate($bad,$scope,$now-500,$now+6)===null);
