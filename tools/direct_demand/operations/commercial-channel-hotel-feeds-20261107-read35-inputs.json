@@ -1,0 +1,135 @@
+[
+  {
+    "hotel_id": 2219,
+    "name": "My Home Resort",
+    "accepted_first_line": "🌴 My Home Resort 5★ · Авсаллар",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/2219.png",
+    "image_sha256": "3bfe393ea574c7e2d3644cb7699af8ba43119298ceb9c48a5fece7efbccd9e4d"
+  },
+  {
+    "hotel_id": 1507,
+    "name": "Sirene Belek Hotel",
+    "accepted_first_line": "🎾 Sirene Belek Hotel 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/1507.png",
+    "image_sha256": "cda1d9c4e191e459e9cad2d77e55f835a370dcf94b3b9b9d91843f15d5743ece"
+  },
+  {
+    "hotel_id": 65020,
+    "name": "Costabella Resort Nha Trang",
+    "accepted_first_line": "🌴 Costabella Resort Nha Trang 5★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/65020.png",
+    "image_sha256": "f27c9f76445aaa59b10b8ff0ac6db9dae741443e29821c6aa5338480f6044c1d"
+  },
+  {
+    "hotel_id": 83189,
+    "name": "The Time Hotel",
+    "accepted_first_line": "🌆 The Time Hotel 3★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/83189.png",
+    "image_sha256": "beab85a91a14bfbaab7ebd69b96860338892b4c69b8f06d9d559640adf2c4ed7"
+  },
+  {
+    "hotel_id": 95159,
+    "name": "Phuket Kata Resotel",
+    "accepted_first_line": "🏖 Phuket Kata Resotel 4★ · Ката",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/95159.png",
+    "image_sha256": "04498b6f393cc02dc5474ebf7d242ededf7f5275c631e6b652709a2d1e923af5"
+  },
+  {
+    "hotel_id": 55721,
+    "name": "TND Hotel",
+    "accepted_first_line": "🌆 TND Hotel 4★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/55721.png",
+    "image_sha256": "e49b0c8da139951aa7f84389a1c11b2fe664ce767ed8bb8ca550cfc75085de12"
+  },
+  {
+    "hotel_id": 16750,
+    "name": "Dendro Hotel",
+    "accepted_first_line": "🏖 Dendro Hotel 3★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/16750.png",
+    "image_sha256": "f15442f78907c234e805fec1539fa1da2e36a320c2dfcfe0a518fb8c133736f3"
+  },
+  {
+    "hotel_id": 713,
+    "name": "Naithonburi Beach Resort",
+    "accepted_first_line": "🏖 Naithonburi Beach Resort 4★ · Наитон",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/713.png",
+    "image_sha256": "281cde95acad8409b72167716960f781592c9a498632005ce8ea8847ec7787ae"
+  },
+  {
+    "hotel_id": 341,
+    "name": "Nubian Village",
+    "accepted_first_line": "💦 Nubian Village 5★ · Набк Бей",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/341.png",
+    "image_sha256": "3686135644d856853db76db871899a73e0fbccd423fb921a23b5dfd6d59a7b8a"
+  },
+  {
+    "hotel_id": 340,
+    "name": "Nubian Island",
+    "accepted_first_line": "🌊 Nubian Island 5★ · Набк Бей",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/340.png",
+    "image_sha256": "8370ac9dac37e621dee3087d469eb5ba8417263a861e82861187c97b2cd98221"
+  },
+  {
+    "hotel_id": 1439,
+    "name": "Rai Premium Tekirova",
+    "accepted_first_line": "🌴 Rai Premium Tekirova 5★ · Текирова",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/1439.png",
+    "image_sha256": "ad26590b96dd5f536048e9951200c46526af23287c2e88bccd1ebf9e50815d3e"
+  },
+  {
+    "hotel_id": 28325,
+    "name": "Quattro Beach Resort & Spa",
+    "accepted_first_line": "🌊 Quattro Beach Resort & Spa 5★ · Конаклы",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/28325.png",
+    "image_sha256": "2c6e8f86342b5194d5f7c24c14a5765d94d533571e00f6ee97296944fe00fdf4"
+  },
+  {
+    "hotel_id": 1096,
+    "name": "Club Hotel Phaselis Rose",
+    "accepted_first_line": "🌴 Club Hotel Phaselis Rose 5★ · Текирова",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/1096.png",
+    "image_sha256": "0eba236bbc9ffdba09e5a84481c3e1b13937f3d7560d1ec6cd7f79963698a4ec"
+  },
+  {
+    "hotel_id": 1486,
+    "name": "Selcukhan Hotel",
+    "accepted_first_line": "🌴 Selcukhan Hotel 4★ · Бельдиби",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/1486.png",
+    "image_sha256": "d394d7a80eb7cdd192538cb0807ae19a4d67f001d384383194166008bd560fba"
+  },
+  {
+    "hotel_id": 37527,
+    "name": "Kimeros Park Holiday Village",
+    "accepted_first_line": "🌿 Kimeros Park Holiday Village 5★ · Гёйнюк",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/37527.png",
+    "image_sha256": "19609aa88ecf0d100159d6243b505cbd72e6f299fa05b0251f0b01d4d53cde20"
+  },
+  {
+    "hotel_id": 48863,
+    "name": "Sensitive Premium Resort & Spa",
+    "accepted_first_line": "✨ Sensitive Premium Resort & Spa 5★ · Богазкент",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/48863.png",
+    "image_sha256": "8ced7035896e21a302c1eef84dd721711f41d3eeff07d7373c1067ab16dfbb3d"
+  },
+  {
+    "hotel_id": 15889,
+    "name": "Grand Park Lara",
+    "accepted_first_line": "🌴 Grand Park Lara 5★ · Лара",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/15889.png",
+    "image_sha256": "f98bcbfe4984dc9190bbc7a875b948284d8c9046f8bfec4583ff654e7ebe075f"
+  },
+  {
+    "hotel_id": 27642,
+    "name": "Aska Lara Resort & Spa",
+    "accepted_first_line": "🎶 Aska Lara Resort & Spa 5★ · Лара",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/27642.png",
+    "image_sha256": "0df2a765076cbc71cb991872a08a964a62d3a525117d5fdab980eca22e0b19b7"
+  },
+  {
+    "hotel_id": 76588,
+    "name": "LIU Resorts",
+    "accepted_first_line": "🌴 LIU Resorts 5★ · Сиде",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/76588.png",
+    "image_sha256": "15086dd75ff14bb840668629a24398dda14721fa57d4d3d3fa65bdb88cd0b29d"
+  }
+]

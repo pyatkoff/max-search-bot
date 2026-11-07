@@ -1,0 +1,200 @@
+[
+  {
+    "hotel_id": 28326,
+    "logical_id": null,
+    "aliases": [
+      "Port Nature Luxury Resort Hotel & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 961,
+    "logical_id": null,
+    "aliases": [
+      "Utopia Resort & Residence",
+      "UTOPIA RESORT & RESIDENCE (EX. ALARA PARK HOTEL)",
+      "ALARA PARK HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1105,
+    "logical_id": null,
+    "aliases": [
+      "Club Hotel Turan Prince World"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1433,
+    "logical_id": null,
+    "aliases": [
+      "Pirate's Beach Club",
+      "PIRATES BEACH CLUB"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1246,
+    "logical_id": null,
+    "aliases": [
+      "Holiday Park Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1070,
+    "logical_id": null,
+    "aliases": [
+      "Cesars Side",
+      "CESARS SIDE (EX.CESARS RESORT)",
+      "CESARS RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 28512,
+    "logical_id": null,
+    "aliases": [
+      "Karmir Resort & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 78905,
+    "logical_id": null,
+    "aliases": [
+      "Serenity Queen Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1273,
+    "logical_id": null,
+    "aliases": [
+      "Lago Hotel",
+      "LAGO HOTEL (EX. AZURA DELUXE SORGUN)",
+      "AZURA DELUXE SORGUN"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 88750,
+    "logical_id": null,
+    "aliases": [
+      "The X Belek"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 28779,
+    "logical_id": null,
+    "aliases": [
+      "Dream Family Club",
+      "DREAM FAMILY CLUB (EX. PRIME)",
+      "PRIME"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 37396,
+    "logical_id": null,
+    "aliases": [
+      "Orka Lotus Beach"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 9419,
+    "logical_id": null,
+    "aliases": [
+      "Aqua Fantasy Aquapark Hotel & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 365,
+    "logical_id": null,
+    "aliases": [
+      "Parrotel Beach Resort (Ex. Radisson Blu Resort Sharm El Sheikh)",
+      "PARROTEL BEACH RESORT (EX. RADISSON BLU RESORT)",
+      "Parrotel Beach Resort",
+      "Radisson Blu Resort Sharm El Sheikh",
+      "RADISSON BLU RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1494,
+    "logical_id": null,
+    "aliases": [
+      "Rixos Downtown Antalya - The Land of Legends Free Access",
+      "RIXOS DOWNTOWN ANTALYA THE LAND OF LEGENDS FREE ACCESS"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1456,
+    "logical_id": null,
+    "aliases": [
+      "Sealife Kemer Resort",
+      "SEALIFE KEMER RESORT (EX. SEALIFE ROSE RESIDENCE)",
+      "SEALIFE ROSE RESIDENCE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 990,
+    "logical_id": null,
+    "aliases": [
+      "Arabella World Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 3434,
+    "logical_id": null,
+    "aliases": [
+      "Diamond Excellence Resort & Spa",
+      "DIAMOND EXCELLENCE RESORT & SPA (EX. CRYSTAL PALACE LUXURY)",
+      "CRYSTAL PALACE LUXURY"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1474,
+    "logical_id": null,
+    "aliases": [
+      "Saturn Palace Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  },
+  {
+    "hotel_id": 1292,
+    "logical_id": null,
+    "aliases": [
+      "Kempinski Hotel The Dome"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after180_first_clearance"
+  }
+]
