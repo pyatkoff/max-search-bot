@@ -1,0 +1,175 @@
+{
+  "operation": "commercial-hotel-batch-20261107-2-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue actual distinct complete MAX and Telegram pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 164,
+  "selection_source": "Accepted retained AI hotel knowledge union with original ANEX TOP500; four explicit AnyTour to native links",
+  "current_registry_clearance": {
+    "read_at_utc": "2026-11-07T10:25:08+00:00",
+    "run_id": 42363843492,
+    "ids": [
+      24462,
+      43236,
+      101694,
+      2469
+    ],
+    "all_clear": true,
+    "same_clearance_not_replayed": true
+  },
+  "media_approval_basis": "Existing mass-release mandate in accepted style and latest user instruction давай дальше. Final covers shown in chat.",
+  "rows": [
+    {
+      "hotel_id": 24462,
+      "logical_id": "commercial-uga-jungle-beach-24462-v1",
+      "aliases": [
+        "Uga Jungle Beach",
+        "Jungle Beach an Uga Experience"
+      ],
+      "text": "🌿 Uga Jungle Beach 5★ · Тринкомали\n\nОтпуск у океана в отдельном бунгало. Выбирайте свой формат отдыха:\n\n🏖 Для двоих: Beach Cabin со своей террасой, дорожкой прямо к пляжу и душем под открытым небом.\n👥 Для компании: Jungle Cluster из трёх бунгало с общим бассейном.\n\n✈️ Подберём перелёт и подходящее бунгало в Uga Jungle Beach на ваши даты.",
+      "text_sha256": "5530cbc6e0d45fabfb6e038cf55b22b5b84455ca8ded91dd6b392f08112f7fdc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/14765de8013d73ab868c02b806e085d2a53d30b5/.github/traffic-publish/commercial-batch-20261107-2/24462.png",
+      "photo_sha256": "702f66c420cafc3bab11a3c4e6845b59935fcb0f016714ec098e05d32b4a99a4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=80431&legacyHotelIds%5B%5D=241&legacyHotelIds%5B%5D=240&legacyHotelIds%5B%5D=268&legacyHotelIds%5B%5D=1981&legacyHotelIds%5B%5D=12111&legacyHotelIds%5B%5D=498&legacyHotelIds%5B%5D=24462&legacyHotelIds%5B%5D=43236&legacyHotelIds%5B%5D=101694&legacyHotelIds%5B%5D=2469&legacyHotelIds%5B%5D=1281&legacyHotelIds%5B%5D=157359&legacyHotelIds%5B%5D=1077&legacyHotelIds%5B%5D=109900&legacyHotelIds%5B%5D=28666&legacyHotelIds%5B%5D=46672&legacyHotelIds%5B%5D=111129&legacyHotelIds%5B%5D=111045&legacyHotelIds%5B%5D=1441",
+        "https://www.ugaresorts.com/junglebeach/accommodation/beach-cabin/",
+        "https://www.ugaresorts.com/junglebeach/accommodation/jungle-cluster-cabin/"
+      ],
+      "identity_binding": {
+        "anytour_id": 5517,
+        "legacy_native_id": 24462,
+        "source_file": "retained-candidate-current-catalog-1.json",
+        "source_sha256": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+        "binding": "explicit returned link, not numeric or array position equality"
+      },
+      "canva_design_id": "DAHaOsiuM48",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "catalog_category_uga_jungle_beach",
+        "uga_jungle_beach_c01",
+        "uga_jungle_beach_c02",
+        "uga_jungle_beach_c03",
+        "uga_jungle_beach_c04"
+      ]
+    },
+    {
+      "hotel_id": 43236,
+      "logical_id": "commercial-sun-siyam-pasikudah-43236-v1",
+      "aliases": [
+        "Sun Siyam Pasikudah"
+      ],
+      "text": "🌴 Sun Siyam Pasikudah 5★ · Пасикуда\n\nОтдых на тропическом побережье с личным бассейном.\n\n💧 Private Pool Pavilion: просторный павильон 118 м² со своим небольшим бассейном и ванной зоной под открытым небом.\n👨‍👩‍👧 Для большой семьи есть пляжная вилла с двумя спальнями и отдельным бассейном.\n🧒 Для детей: клуб и детский бассейн.\n\nЧасть павильонов смотрит на океан, другие окружены зеленью.\n\n✈️ Рассчитаем тур в Sun Siyam Pasikudah с перелётом и выбранным размещением на ваши даты.",
+      "text_sha256": "866fc05585f2ce820912b223dad77163dbee881947a8400b7a16eeb8456e26d5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/14765de8013d73ab868c02b806e085d2a53d30b5/.github/traffic-publish/commercial-batch-20261107-2/43236.png",
+      "photo_sha256": "7600d9d8ad4391bc94903e5c7ace13b4fce7eb14adbb3edeb5839b11a54ef658",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=80431&legacyHotelIds%5B%5D=241&legacyHotelIds%5B%5D=240&legacyHotelIds%5B%5D=268&legacyHotelIds%5B%5D=1981&legacyHotelIds%5B%5D=12111&legacyHotelIds%5B%5D=498&legacyHotelIds%5B%5D=24462&legacyHotelIds%5B%5D=43236&legacyHotelIds%5B%5D=101694&legacyHotelIds%5B%5D=2469&legacyHotelIds%5B%5D=1281&legacyHotelIds%5B%5D=157359&legacyHotelIds%5B%5D=1077&legacyHotelIds%5B%5D=109900&legacyHotelIds%5B%5D=28666&legacyHotelIds%5B%5D=46672&legacyHotelIds%5B%5D=111129&legacyHotelIds%5B%5D=111045&legacyHotelIds%5B%5D=1441",
+        "https://www.sunsiyam.com/sun-siyam-pasikudah/",
+        "https://www.sunsiyam.com/sun-siyam-pasikudah/accommodation/private-pool-pavilion/",
+        "https://www.sunsiyam.com/media/g2aj3xub/sun-siyam-pasikudah-factsheet-2026.pdf"
+      ],
+      "identity_binding": {
+        "anytour_id": 2350,
+        "legacy_native_id": 43236,
+        "source_file": "retained-candidate-current-catalog-1.json",
+        "source_sha256": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+        "binding": "explicit returned link, not numeric or array position equality"
+      },
+      "canva_design_id": "DAHaOkArj2Y",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "catalog_category_sun_siyam_pasikudah",
+        "sun_siyam_pasikudah_c01",
+        "sun_siyam_pasikudah_c02",
+        "sun_siyam_pasikudah_c03",
+        "sun_siyam_pasikudah_c04",
+        "sun_siyam_pasikudah_c05",
+        "sun_siyam_pasikudah_c09"
+      ]
+    },
+    {
+      "hotel_id": 101694,
+      "logical_id": "commercial-nooe-kunaavashi-101694-v1",
+      "aliases": [
+        "NOOE Maldives Kunaavashi"
+      ],
+      "text": "🏝 NOOE Maldives Kunaavashi 5★\n\nВаши Мальдивы: жить над водой или выходить прямо на пляж.\n\n🌊 Duplex Overwater Villa: спальня наверху, гостиная внизу, своя терраса и небольшой бассейн.\n🏖 One Bedroom Beach Villa: бунгало с непосредственным выходом на пляж.\n👨‍👩‍👧 Grand Solana: пляжная вилла с двумя спальнями, собственным бассейном и джакузи.\n\n✈️ Подберём виллу под ваш состав и бюджет. Рассчитаем тур в NOOE с перелётом на ваши даты.",
+      "text_sha256": "3db2c0a169af55475b887c662fe149c08dd9b321eea0fa7f5900ea5c00a18770",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/14765de8013d73ab868c02b806e085d2a53d30b5/.github/traffic-publish/commercial-batch-20261107-2/101694.png",
+      "photo_sha256": "fa7bad1f35340310c96d5039f6caa2d91c7a3c00555bbfc824c33bcf5742d3ee",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=80431&legacyHotelIds%5B%5D=241&legacyHotelIds%5B%5D=240&legacyHotelIds%5B%5D=268&legacyHotelIds%5B%5D=1981&legacyHotelIds%5B%5D=12111&legacyHotelIds%5B%5D=498&legacyHotelIds%5B%5D=24462&legacyHotelIds%5B%5D=43236&legacyHotelIds%5B%5D=101694&legacyHotelIds%5B%5D=2469&legacyHotelIds%5B%5D=1281&legacyHotelIds%5B%5D=157359&legacyHotelIds%5B%5D=1077&legacyHotelIds%5B%5D=109900&legacyHotelIds%5B%5D=28666&legacyHotelIds%5B%5D=46672&legacyHotelIds%5B%5D=111129&legacyHotelIds%5B%5D=111045&legacyHotelIds%5B%5D=1441",
+        "https://nooe.com/stay/",
+        "https://nooe.com/"
+      ],
+      "identity_binding": {
+        "anytour_id": 3650,
+        "legacy_native_id": 101694,
+        "source_file": "retained-candidate-current-catalog-1.json",
+        "source_sha256": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+        "binding": "explicit returned link, not numeric or array position equality"
+      },
+      "canva_design_id": "DAHaOv1doss",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "catalog_category_nooe_kunaavashi",
+        "nooe_kunaavashi_c01",
+        "nooe_kunaavashi_c02",
+        "nooe_kunaavashi_c03",
+        "nooe_kunaavashi_c04"
+      ]
+    },
+    {
+      "hotel_id": 2469,
+      "logical_id": "commercial-nika-island-2469-v1",
+      "aliases": [
+        "Nika Island Resort & Spa"
+      ],
+      "text": "🏝 Nika Island Resort & Spa 5★ · Мальдивы\n\nBeach Villa на Nika: отпуск со своим участком пляжа.\n\n🌿 Вилла с садом, отделённая зеленью от соседей.\n🫧 Джакузи у беседки для отдыха после пляжа.\n🌊 У Beach Villa на северной стороне: выход к лагуне, риф доступен вплавь.\n🍽 Можно выбрать полупансион, полный пансион или «всё включено». Состав питания уточним для выбранного тура.\n\n✈️ Подберём виллу в Nika Island и рассчитаем стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "1597c62345640297d2fed8a149498e447da16ac684ba683d6f5a5497771bf6f5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/14765de8013d73ab868c02b806e085d2a53d30b5/.github/traffic-publish/commercial-batch-20261107-2/2469.png",
+      "photo_sha256": "22135358b6c44eaa4fd9f58830915c26bd27bbc782b75b7e895f02127c97c179",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=80431&legacyHotelIds%5B%5D=241&legacyHotelIds%5B%5D=240&legacyHotelIds%5B%5D=268&legacyHotelIds%5B%5D=1981&legacyHotelIds%5B%5D=12111&legacyHotelIds%5B%5D=498&legacyHotelIds%5B%5D=24462&legacyHotelIds%5B%5D=43236&legacyHotelIds%5B%5D=101694&legacyHotelIds%5B%5D=2469&legacyHotelIds%5B%5D=1281&legacyHotelIds%5B%5D=157359&legacyHotelIds%5B%5D=1077&legacyHotelIds%5B%5D=109900&legacyHotelIds%5B%5D=28666&legacyHotelIds%5B%5D=46672&legacyHotelIds%5B%5D=111129&legacyHotelIds%5B%5D=111045&legacyHotelIds%5B%5D=1441",
+        "https://nikaisland.it/en/room/beach-villa-en/",
+        "https://nikaisland.it/en/restaurant-bar/"
+      ],
+      "identity_binding": {
+        "anytour_id": 1015,
+        "legacy_native_id": 2469,
+        "source_file": "retained-candidate-current-catalog-1.json",
+        "source_sha256": "0cd8e60cee6e4cd34e5803433f5590e1cce884d8f3d36c6c2ec13fb0871084fa",
+        "binding": "explicit returned link, not numeric or array position equality"
+      },
+      "canva_design_id": "DAHaOs0yAT8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "catalog_category_nika_island",
+        "nika_island_c02",
+        "nika_island_c03",
+        "nika_island_c05",
+        "nika_island_c06"
+      ]
+    }
+  ]
+}

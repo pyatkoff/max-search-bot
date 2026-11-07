@@ -112,18 +112,14 @@
   ],
   "private_registry_ids_and_versions_in_original_result_artifact": true,
   "current_feed_counts": {
-    "telegram": 161,
-    "max": 161,
-    "combined": 322
+    "telegram": 164,
+    "max": 164,
+    "all": 328
   },
-  "current_max_native_route_count": 161,
+  "current_max_native_route_count": 164,
   "new_route_and_feed_append_started": true,
-  "new_route_and_feed_writes": 0,
-  "pending_new_route_native_ids": [
-    27426,
-    1216,
-    1095
-  ],
+  "new_route_and_feed_writes": 2,
+  "pending_new_route_native_ids": [],
   "content_correction_required": false,
   "new_publishing_paused": false,
   "sender_operation_closed": true,
@@ -342,5 +338,68 @@
     ],
     "provider_calls": 0,
     "writes": 0
+  },
+  "new_route_and_feed_append_complete": true,
+  "max_route_extension": {
+    "run_id": 42364637179,
+    "job_id": 128380001959,
+    "result_artifact_id": 13571540528,
+    "state": "INSTALLED_AND_NATIVE_VERIFIED",
+    "previous_count": 161,
+    "current_count": 164,
+    "new_native_verified": 3,
+    "previous161_rows_identical": true
+  },
+  "feed_extension": {
+    "run_id": 42364889080,
+    "job_id": 128380762029,
+    "result_artifact_id": 13570893858,
+    "state": "PUBLISHED_AND_PUBLIC_READBACK_VERIFIED",
+    "previous_counts": [
+      161,
+      161,
+      322
+    ],
+    "current_counts": [
+      164,
+      164,
+      328
+    ],
+    "public_gets": 3,
+    "public_http_statuses": [
+      200,
+      200,
+      200
+    ],
+    "previous161_offer_blocks_identical": true,
+    "files": [
+      {
+        "bytes": 106132,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-telegram.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "rows": 164,
+        "sha256": "f4beccd914facea9f15be050b0efa6d1f254418351ec1dc680cd0237d9f25bad"
+      },
+      {
+        "bytes": 133782,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-max.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "rows": 164,
+        "sha256": "13a0bf2f15731313f748c08cf626a7b4b281c979d216088972e33cff2fd7c1c6"
+      },
+      {
+        "bytes": 239541,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-all.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "rows": 328,
+        "sha256": "8977dc648167e26a52901a36ca6dfe1259a68a4f0220c606c8520340e0ffb148"
+      }
+    ]
   }
 }
