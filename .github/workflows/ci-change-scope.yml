@@ -10,7 +10,7 @@ on:
         description: Also commission the scoped tour runner when its CI rules change
         value: ${{ jobs.scope.outputs.tour-proof }}
       backend:
-        description: Full server coverage or audited selection styling only
+        description: Full server coverage or an exact audited styling profile
         value: ${{ jobs.scope.outputs.backend }}
 
 permissions:
@@ -47,6 +47,7 @@ jobs:
           printf '%s\n' "$result"
           CI_SCOPE_RESULT="$result" node -e '
             const result = JSON.parse(process.env.CI_SCOPE_RESULT);
-            const backend = result.mode === "tour-selection" && result.backend === "selection-style" ? "selection-style" : "full";
+            const backend = result.mode === "tour-selection" && result.backend === "selection-style" ? "selection-style" :
+              result.mode === "full" && result.backend === "workspace-style" ? "workspace-style" : "full";
             require("node:fs").appendFileSync(process.env.GITHUB_OUTPUT, `backend=${backend}\n`);
           '

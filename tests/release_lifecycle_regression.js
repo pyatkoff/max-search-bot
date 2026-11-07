@@ -483,24 +483,33 @@ async function verifyReleaseRecovery() {
       completed_at:attempt===1?'2026-11-01T01:08:00Z':'2026-11-01T01:18:00Z',steps});
     const originals=M.INSTALL_JOBS.map(name=>job(name,1,'success',[step('Original required install gate','success',1)]));
     const copied=originals.map(j=>({...copy(j),id:++serial,run_attempt:2}));
-    const states={check:'success',download:'success',status:'success',cleanup:'success'};
+    const states={check:'success',download:'success',status:'success',publication:'success',cleanup:'success'};
     if(kind==='check'){states.check='failure';states.download='skipped';states.cleanup='skipped';}
     if(kind==='download'){states.download='failure';states.cleanup='skipped';}
-    if(kind==='status'){states.status='failure';states.cleanup='skipped';}
+    if(kind==='status'){states.status='failure';states.publication='skipped';states.cleanup='skipped';}
+    if(kind==='publication')states.publication='failure';
     if(kind==='cleanup')states.cleanup='failure';
-    const old=job('verify',1,'failure',Object.entries(M.VERIFY_STEPS).map(([k,n])=>step(n,states[k],1)));
-    const needed=k=>states[k]!=='success'||(k==='status'&&(states.check!=='success'||states.download!=='success'));
-    const latest=job('verify',2,'success',Object.entries(M.VERIFY_STEPS).map(([k,n])=>step(n,needed(k)?'success':'skipped',2)));
+    const named=(k,n,result)=>k==='publication'&&result!=='skipped'?n+'d'.repeat(64):n;
+    const old=job('verify',1,'failure',Object.entries(M.VERIFY_STEPS).map(([k,n])=>step(named(k,n,states[k]),states[k],1)));
+    const unfinished={check:['check','download','status','publication','cleanup'],
+      download:['download','status','publication','cleanup'],status:['status','publication','cleanup'],
+      publication:['publication'],cleanup:['cleanup']}[kind];
+    const latest=job('verify',2,'success',Object.entries(M.VERIFY_STEPS).map(([k,n])=>{
+      const result=unfinished.includes(k)?'success':'skipped';return step(named(k,n,result),result,2);
+    }));
     const jobs=[...originals,old,...copied,latest];
     return {c,first,current,old,latest,originals,copied,history:{total_count:jobs.length,jobs}};
   }
-  for(const kind of ['check','download','status','cleanup']) {
+  for(const kind of ['check','download','status','publication','cleanup']) {
     const f=fixture(kind),r=M.deploymentHistory(f.history,f.first,f.current,f.c);
     check(r.smokeAttempt,kind==='check'?2:1,'verification recovery: original smoke reused '+kind);
     check(r.diagnosticsAttempt,['check','download'].includes(kind)?2:1,'verification recovery: original copy reused '+kind);
     check(r.plan.run_check,kind==='check','verification recovery: only failed check reexecutes '+kind);
     check(r.plan.run_download,['check','download'].includes(kind),'verification recovery: only unfinished copy '+kind);
-    check(r.plan.run_status,kind!=='cleanup','verification recovery: negative result must be republished '+kind);
+    check(r.plan.run_status,!['publication','cleanup'].includes(kind),'verification recovery: negative result must be republished '+kind);
+    check(r.plan.run_publication,kind!=='cleanup','verification recovery: failed publication is not accepted '+kind);
+    if(kind==='publication')check(r.plan.run_status,false,'verification recovery: proof recovery preserves the actual installation receipt');
+    if(kind==='cleanup')check(r.plan.publication_result,'success','verification recovery: original proof is retained after cleanup failure');
   }
   const invalid=[
     ['new installer execution',f=>{f.copied.at(-1).started_at='2026-11-01T01:11:00Z';},'installation_or_source_replayed'],
@@ -519,6 +528,8 @@ async function verifyReleaseRecovery() {
     ['foreign job',f=>{f.latest.head_sha='c'.repeat(40);},'untrusted_deployment_job'],
     ['missing install job',f=>{f.history.jobs.splice(0,1);f.history.total_count--;},'ambiguous_deployment_job'],
     ['accepted check replay',f=>{f.latest.steps[0].conclusion='success';},'accepted_step_replayed_or_unconfirmed'],
+    ['failed proof accepted',f=>{f.latest.steps.find(s=>s.name.startsWith(M.VERIFY_STEPS.publication)).conclusion='skipped';},'accepted_step_replayed_or_unconfirmed'],
+    ['proof digest absent',f=>{f.old.steps.find(s=>s.name.startsWith(M.VERIFY_STEPS.publication)).name=M.VERIFY_STEPS.publication;},'incomplete_job_steps'],
     ['masked failure or unclassified skipped copy',f=>{f.old.steps[1].conclusion='skipped';f.old.steps[3].conclusion='skipped';},'unclassified_original_verification'],
     ['lost step metadata',f=>{f.old.steps.pop();},'incomplete_job_steps'],
     ['recovery still failed',f=>{f.latest.conclusion='failure';},'recovery_not_confirmed'],
@@ -556,6 +567,38 @@ async function verifyReleaseRecovery() {
   check(plan.run_download,true,'verification recovery: API admission resumes failed copy');
   check(calls.every(x=>x.method==='GET'),true,'verification recovery: admission cannot mutate');
   check(calls.filter(x=>x.path.includes('/issues/comments/')).length,2,'verification recovery: fresh publisher version');
+  // Recover only a failed upload of an already successful status. The exact
+  // digest is retained in the original failed upload step, even without artifact.
+  const R=require('../tools/deployment_release'),publication=fixture('publication');
+  const originalReceipt={...M.stageStatus({...env,GITHUB_RUN_ATTEMPT:'1',SMOKE_ATTEMPT:'1',DIAGNOSTICS_ATTEMPT:'1',
+    CHECK_OUTCOME:'success',DOWNLOAD_OUTCOME:'success'}),reported_at:'2026-11-01T01:07:00Z'};
+  const originalStatus=R.releaseRecord(originalReceipt,{sha:source,id:'100',attempt:1,event:'push'},
+    {content:R.contentSummary(null,source,source),intent:{status:'unknown'}});
+  const originalDigest=R.digest(originalStatus);
+  publication.old.steps.find(s=>s.name.startsWith(M.VERIFY_STEPS.publication)).name=M.VERIFY_STEPS.publication+originalDigest;
+  publication.current.status='in_progress';publication.current.conclusion=null;
+  publication.latest.status='in_progress';publication.latest.conclusion=null;
+  let savedStatus=copy(originalStatus),statusReads=0;
+  const publicationApi=async(method,p)=>{
+    check(method,'GET','verification recovery: publication recovery never rewrites status');
+    if(p.endsWith('/actions/runs/100')||p.endsWith('/actions/runs/100/attempts/2'))return copy(publication.current);
+    if(p.endsWith('/actions/runs/100/attempts/1'))return copy(publication.first);
+    if(p.includes('/jobs?filter=all'))return copy(publication.history);
+    if(p.endsWith('/git/ref/heads/diagnostics'))return {object:{sha:'d'.repeat(40)}};
+    if(p.includes('/contents/deploy_status.json?ref=')){
+      statusReads++;const bytes=Buffer.from(R.wire(savedStatus));return {type:'file',path:'deploy_status.json',encoding:'base64',
+        sha:R.gitBlob(bytes),size:bytes.length,content:bytes.toString('base64')};
+    }
+    return api(method,p);
+  };
+  const publicationEnv={...env,GITHUB_WORKFLOW_REF:repository+'/.github/workflows/deploy.yml@refs/heads/main'};
+  const publicationEvent={repository:{full_name:repository}};
+  check((await M.resumePublication({env:publicationEnv,event:publicationEvent,api:publicationApi})).record_digest,
+    originalDigest,'verification recovery: original failed proof digest is resumed');
+  savedStatus.repository_release.intent_scan={status:'explicit_intent'};
+  await rejects(()=>M.resumePublication({env:publicationEnv,event:publicationEvent,api:publicationApi}),
+    'publication_recovery_source_changed','concurrent status replacement cannot be newly authorized');
+  check(statusReads,2,'verification recovery: each attempt reads only the current exact receipt');
   await rejects(()=>M.admitVerification({env:{...env,GITHUB_RUN_ATTEMPT:'3'},api}),'untrusted_verification_context','third attempt before credentials');
   await rejects(()=>M.admitVerification({env,api:async()=>{throw Object.assign(Error('private'),{code:'api_http_429'});}}),'api_http_429','rate limit is not retried');
   await rejects(()=>M.admitVerification({env,api:async(m,p)=>p.endsWith('/git/ref/heads/main')?{object:{sha:'c'.repeat(40)}}:api(m,p)}),'main_changed','changed source before credentials');

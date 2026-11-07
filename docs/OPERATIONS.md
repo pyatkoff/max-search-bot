@@ -22,7 +22,7 @@ SSH credentials. A workflow-run event must identify a completed successful
 or manual dispatch. An absent upstream SHA never falls back to the downstream
 workflow's `github.sha`.
 
-Each gate checks out that exact source, checks checkout HEAD and reuses
+Each gate checks out that exact repository source, checks checkout HEAD and reuses
 `tools/verify_deploy_main_provenance.sh` for a fresh authoritative-main comparison
 before private access. Its existing production SHA equality check, bounded waits,
 TLS/webhook/smoke assertions and diagnostic sanitization remain mandatory. A
@@ -32,9 +32,81 @@ that the older deploy was checked.
 Manual dispatch remains available on current `main`. Live-session diagnostics
 also retain their hourly `25 * * * *` schedule and existing concurrency group;
 newer runs do not cancel an in-progress capture. Manual and scheduled runs use
-their own full workflow SHA and the same current-main and production-SHA gates.
+their own full repository workflow SHA and the same current-main gate. The shared
+release resolver supplies the authenticated application SHA for production checks.
 Release evidence must associate automatic checks with the recorded upstream
 Deploy run and exact target SHA, rather than searching only for `push` runs.
+
+## Retaining an accepted application without installation
+
+`tools/deployment_content_plan.py` is the single complete-tree/history policy.
+Its first audited scope is an ordinary content change to the regular file
+`tests/run_purchase_study_runtime.py`; it is not a blanket exemption for tests or
+documentation. Compare the actual installed application A with candidate R, not
+merely the last main commit. Added/deleted/renamed files, mode changes, runtime or
+workflow changes, incomplete Git history and unknown paths cannot authorize the
+shortened route. Existing activation/value markers anywhere in that history,
+unknown marker families and explicit manual/configuration intent retain the
+normal installation route.
+
+`Deploy production` keeps the same source inventory, syntax and required groups,
+including PHP 8.3. The shared `tools/deployment_release.js` first authenticates a
+previous accepted **installed** baseline using immutable diagnostics Git history
+and the original GitHub run, job and step metadata. A prior unchanged release is
+never promoted to an installation. Missing optimization evidence chooses the
+ordinary path; contradictory authority or confirmed unsafe runtime state is a
+refusal, not permission to overwrite it.
+
+Before choosing `application_unchanged`, the existing installer takes one fresh
+read-only observation with `tools/deployment_runtime_fingerprint.php`. It compares
+actual tracked bytes/modes and application HEAD, the supported static configuration
+closure, existing owned cron state and the actual accepted public/editor packages.
+Only keyed configuration digests and finite component identities leave the server;
+configuration values, customer data and raw logs do not. An unsupported configuration
+loader or unavailable signing key reports `unknown` and cannot authorize a skip.
+Tracked drift, an invalid component seal or a pending component operation reports
+`blocked`. A legitimately activated independent editor may differ from the common
+application when its existing backend fingerprint and native acceptance prove the
+same installed backend; preserve that identity rather than reinstalling it.
+
+For an unchanged release, bundle/sync, migrations, webhook/cron reconciliation,
+snapshot export/transfer and the dedicated host installation are **not performed**.
+Original technical checks are inherited explicitly from A. Automatic downstream
+workflows validate the mapping and complete their metadata-only route without
+fresh captures, sends, activation or configuration. Their skipped actions cannot
+be described as fresh runtime health measurements. The existing retired-domain
+source guard and all source checks still run.
+
+The existing `diagnostics/deploy_status.json` retains its schema-2 actual
+installation receipt: `sha`, `run_id`, stage outcomes and `reported_at` still
+describe A. Its versioned `repository_release` distinguishes `installed` from
+`application_unchanged`, repository R from application A, original installation
+evidence from current observations, and performed/inherited/not-performed stages.
+`pending_closure` and `pending_terminal` are not independent assertions of success.
+Acceptance also requires the digest-bound publication and final successful
+terminal step of the original closer. See `docs/RELEASE_PRIORITY.md` for ordering.
+Artifact expiry does not replace the immutable Git record or original run metadata.
+
+All downstream, scheduled and manual consumers use `resolve-consumer`. Automatic
+unchanged children accept the authenticated pending mapping so they can finish
+without waiting on their own closer. Scheduled/manual work requires completed
+acceptance, proves current repository R and targets A. A pending schedule defers
+without refreshing operational receipts; an unauthorized manual operation fails.
+Explicit application inputs must equal A. No consumer guesses that R was installed.
+
+The independent editor admits source S against current repository R and actual
+backend A: the same trusted policy proves A→R, the existing editable scope proves
+R→S, and exact-source PR CI uses base R. Server installation retains the existing
+package CAS, native operation/activation proof and backend identity A. GitHub
+credentials remain on the runner.
+
+The first ordinary release containing this integration must establish the new
+baseline; older schema-2 telemetry alone cannot authorize a skip. Unknown baseline
+observations leave that otherwise successful ordinary release ineligible for future
+skips. Approved post-observation configuration/activation intent also makes it
+ineligible until a later ordinary installation establishes fresh matching evidence.
+Revert through the normal checked release if this contract is defective. Never
+edit production or weaken a failed gate to obtain a baseline.
 
 ## Required scheduled-worker observations
 
@@ -64,7 +136,7 @@ This full command includes PHP syntax plus dialogue, manager, integration, websi
 
 ## Production verification
 
-A successful deploy must include all of:
+A successful ordinary installation must include all of:
 - verify job / required checks;
 - fresh authoritative-main provenance check;
 - SSH probe;
@@ -75,6 +147,10 @@ A successful deploy must include all of:
 - deploy stage telemetry/final health gate.
 
 Do not treat a diagnostics-download failure as a successful deployment.
+
+An `application_unchanged` release instead requires the authenticated evidence and
+fresh observation described above; it must retain the original installation receipt
+and label omitted actions truthfully. It is not a new installation or health capture.
 
 ## Optional Manager list attribution
 

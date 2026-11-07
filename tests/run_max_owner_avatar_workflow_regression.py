@@ -14,6 +14,7 @@ OWNER = WORKFLOW.split("\n  owner-probe:\n", 1)[1]
 SHA = "a" * 40
 REMOTE_DIR = "cd /var/www/anytoour/data/www/app.anytoour.ru"
 COMMAND = 'php tools/max_private_avatar_probe.php --expected-sha="$expected_sha" --confirm-owner-test'
+ALLOW = "steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'"
 
 
 def run_blocks(source):
@@ -39,6 +40,13 @@ assert guard == "github.event_name == 'workflow_dispatch' && github.ref == 'refs
 assert re.findall(r"^      ([a-z_]+):$", WORKFLOW.split("permissions:", 1)[0], re.M) == ["expected_sha", "confirm_owner_test"]
 assert "needs: regression" in OWNER and "cancel-in-progress: false" in WORKFLOW
 assert OWNER.index('"$WORKFLOW_SHA"') < OWNER.index("secrets.STANDBY_DEPLOY_SSH_KEY")
+assert 'permissions:\n  contents: read\n  actions: read\n' in WORKFLOW
+assert 'ref: ${{ github.sha }}' in OWNER
+assert OWNER.index('actions/checkout@v4') < OWNER.index('bash tools/verify_deploy_main_provenance.sh') < OWNER.index('node tools/deployment_release.js resolve-consumer') < OWNER.index('"$WORKFLOW_SHA"')
+assert 'REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}' in OWNER
+assert 'APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}' in OWNER
+protected = OWNER[OWNER.index('      - name: Prepare existing deployment SSH key'):]
+assert re.findall(r'^        if: (.+)$', protected, re.M) == [ALLOW, ALLOW, 'always()']
 assert [line.strip() for line in re.findall(r"^\s*php .+$", probe, re.M)] == [COMMAND]
 assert len(re.findall(r"^\s*ssh ", probe, re.M)) == 1 and probe.count(REMOTE_DIR) == 1
 assert not re.search(r"\b(?:for|while|until|retry|retries)\b", probe)
@@ -56,7 +64,8 @@ for event, ref, confirmed, allowed in [
     assert (event == "workflow_dispatch" and ref == "refs/heads/main" and confirmed is True) is allowed
 
 
-def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0):
+def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0,
+            repository=SHA, application=SHA, ready="true", actions="true"):
     with tempfile.TemporaryDirectory(prefix="max-owner-avatar-test-") as temp:
         directory = Path(temp)
         doubles = {
@@ -70,6 +79,8 @@ def execute(expected=SHA, workflow=SHA, installed=SHA, unstaged=0, staged=0):
             executable.chmod(0o700)
         env = {**os.environ, "PATH": str(directory) + ":/usr/bin:/bin",
                "EXPECTED_SHA": expected, "WORKFLOW_SHA": workflow,
+               "REPOSITORY_SHA": repository, "APPLICATION_SHA": application,
+               "RELEASE_READY": ready, "PERFORM_ACTIONS": actions,
                "INSTALLED_SHA": installed, "UNSTAGED": str(unstaged), "STAGED": str(staged),
                "DEPLOY_HOST": "offline.invalid", "DEPLOY_USER": "fixture", "RUNNER_TEMP": temp,
                "PROBE_FIXTURE_CHECKOUT": temp, "SSH_LOG": str(directory / "ssh.log"),
@@ -94,4 +105,15 @@ for kwargs in [{"installed": "b" * 40}, {"unstaged": 1}, {"staged": 1}]:
 code, ssh, php = execute()
 assert code == 0 and len(ssh) == 1
 assert php == [f"tools/max_private_avatar_probe.php --expected-sha={SHA} --confirm-owner-test"]
-print("MAX OWNER AVATAR WORKFLOW: event/ref/confirmation gates and 10 offline shell scenarios PASSED")
+code, ssh, php = execute(repository="b" * 40, workflow="b" * 40)
+assert code == 0 and len(ssh) == 1
+assert php == [f"tools/max_private_avatar_probe.php --expected-sha={SHA} --confirm-owner-test"]
+for kwargs in [
+    {"repository": "b" * 40}, {"workflow": "b" * 40},
+    {"repository": "b" * 40, "workflow": "b" * 40, "expected": "b" * 40},
+    {"ready": "false"}, {"actions": "false"}, {"application": ""},
+    {"application": "A" * 40}, {"repository": ""}, {"repository": "a" * 39},
+]:
+    code, ssh, php = execute(**kwargs)
+    assert code != 0 and ssh == [] and php == [], kwargs
+print("MAX OWNER AVATAR WORKFLOW: exact release mapping, owner confirmation and 20 offline shell scenarios PASSED")

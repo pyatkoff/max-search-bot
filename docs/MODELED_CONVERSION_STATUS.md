@@ -4,7 +4,7 @@ The canonical closed page is /manager/assigned-value.php?view=delivery, also lin
 
 The default page reads actual recorded rows for counter98615635 / targetanytour_modeled_value_v1 / contractsemantic_stage_value_25000_v1. Former members/profiles views remain explicit legacy research views and are not the delivery ledger.
 
-- Day means the saved assignment/export event clock (`event_unix`) in Europe/Kaliningrad. This differs from the existing daily upload-claim, first API-observation and processing-observation cohorts.
+- Day means the saved assignment/export event clock (`event_unix`) in Europe/Moscow. This differs from the existing daily upload-claim, first API-observation and processing-observation cohorts.
 - One row is one conversation: name, platform, selected-day delta, lifetime reserved value under the same contract and strongest selected-day stage. It is not a proven unique tourist or verified trip.
 - Expanded rows contain the up to six real stage awards, current state/allowlisted hold reason, origin, independent lifecycle clocks and exact frozen-profile metadata. A saved-stage profile is not a quotation or fresh interpretation of the transcript. Missing or invalid profile grounds remain unavailable.
 - Day totals and visible rows share the same exact project/counter/contract/current binding/test/internal-owner predicate. Invalid stage/target/state/origin/value anywhere in the selected-day scope withholds all totals before the first page.
@@ -320,6 +320,40 @@ Statuses sampled/forbidden/unavailable/not_recorded and age>900sec remain explic
 missing or stale reporting data is never fabricated as zero or exact linkage.
 Counters/values are private results, never published into Git/Actions/diagnostics.
 
+#### Retained conversion-cycle failure
+
+The same bounded settings receipt now retains `last_recorded_failure`: the start
+time of the latest recorded failed tick, its first failing phase and a fixed
+category. This is distinct from `last_tick_at` and `last_tick_errors`; a healthy
+tick keeps the historical failure without keeping the current tick degraded.
+An absent or invalid record is `null`, not proof that no previous failure occurred.
+The reader validates an integer time between activation and the current saved
+tick (itself no later than the read), and reconstructs only `tick_at`, `phase` and
+`category`. `last_recorded_failure_is_historical` makes this distinction explicit.
+
+Phases are `recover`, `price_continuity`, `collect_profiles`, `collect_history`,
+`resolve_identity`, `goal_check`, `upload` and `reconcile_receipts`. Categories are
+`storage_failed`, `configuration_unavailable`, `goal_verification_failed`,
+`goal_read_failed`, `processing_failed`, `transport_not_sent`, `rate_limited`,
+`api_rejected` and `upload_failed`. Arbitrary exception messages, SQL, provider
+responses, identifiers and customer text are never copied into this record.
+Only the existing two paths that increment conversion `errors` create it.
+An uncertain upload acknowledgement and an independent Reporting API failure
+retain their existing separate meanings and do not create a conversion failure.
+
+After all network work, a short transaction locks and merges the current settings
+receipt. A late older failed tick can add its failure to a newer healthy receipt
+without replacing that receipt's counts, tick or report clocks. A newer failure
+wins; equal-second failures retain the first saved record. No lock is held during
+network work. The same 8192-byte receipt bound and existing read queries, response
+budgets, authorization and alert rules remain. No new table or schedule is added.
+This preserves future failures only when their bounded metadata can be committed; it
+cannot recover already overwritten details or record a database-write failure in
+an unavailable database. A malformed or oversized newer receipt is not overwritten
+by the stale-tick merge. Failure enrichment that would exceed the existing receipt
+cap is omitted, preserving the current statistics and report metadata. On MySQL,
+the writer checks native JSON byte length, including its normalization whitespace.
+
 ### V1.5: diverse saved-input diagnosis
 
 The same private route additionally projects fixed scalar counters from at most
@@ -345,7 +379,7 @@ advances cursors, and missing checkpoint storage remains unknown rather than zer
 
 ### Today's private timing
 
-The existing empty-argument forecasts:read status adds today_latency under the same shared64KiB/5s budget. It inspects at most2001message revisions captured on the current Europe/Kaliningrad day and at most201live value rows. Only scalar timing/status aggregates and at most6anonymous distinct message-scope examples plus6value examples leave the server. Source/profile text, customer/conversation/native/provider IDs are never returned.
+The existing empty-argument forecasts:read status adds today_latency under the same shared64KiB/5s budget. It inspects at most2001message revisions captured on the current Europe/Moscow day and at most201live value rows. Only scalar timing/status aggregates and at most6anonymous distinct message-scope examples plus6value examples leave the server. Source/profile text, customer/conversation/native/provider IDs are never returned.
 
 First customer messages persisted today are timed separately from edited messages, older messages first captured today and invalid clocks. A correlated metadata lookup finds the first later profile of the same project/platform/customer/conversation whose journal cursor covers that revision. This proves profile-save progress; it does not prove every message was admitted into a numeric prediction. Recorded prediction statuses remain descriptive, not new semantic validation. The captured suffix does not establish completeness of native source capture.
 
@@ -368,6 +402,28 @@ The composed view retains100 scalar diagnosis versions and the existing20metadat
 
 The combined fixture also checks that reserved final-authorization headroom cannot consume the entire useful packet window: the per-packet guard retains8KiB after the doubled projected-copy allowance plus2KiB framing, rather than a separate16KiB holdback. The total64KiB, two-copy guard, actual copy charging, real final authorization and4KiB OAuth lookup floor remain enforced. Exhaustion still fails closed; no limit or grant rule is raised.
 
+### Compact selected timing fields (v1_18)
+
+The same two timing selections use short private SQL result aliases for the six
+message-scope fields and four indexed-profile fields. Immediately after each
+budgeted query, the reader restores the original named internal row before any
+validation, parameter binding, delay calculation or example selection. Result
+names, values, types and nulls are unchanged; aliases never appear in the private
+API response. The same predicates, order,32-scope limit and query count remain.
+
+Repeated field names are part of the selected-row byte accounting. The compact
+selection saves48 bytes per sampled scope and46 bytes per returned profile,
+or3008 bytes with32 rows in each selection. This leaves more of the existing
+shared budget for the following daily delivery and Telegram views. It does not
+change any authorization reservation, admission floor, read order or response
+limit. Daily and Telegram coverage is checked together with the monetary core
+through the existing real-OAuth/native composed regression.
+
+The saving depends on the number of selected rows; it is not a guarantee that
+every optional view fits for every input. Existing explicit budget omissions
+remain unavailable data, not zero totals. No raw source, new query, provider
+request, forecast calculation, delivery operation or stored-row mutation is added.
+
 
 ### Telegram identity diagnosis (v1_10)
 
@@ -381,7 +437,7 @@ SQLite/native tests cover scope isolation, late enrichment, chronology, ambiguit
 ## Daily delivery and technical monitoring (release 1)
 
 The same empty-argument forecasts:read result includes daily_delivery. It uses
-Europe/Kaliningrad calendar boundaries converted once to UTC and direct
+Europe/Moscow calendar boundaries converted once to UTC and direct
 COUNT(DISTINCT conversation_id) for every cohort/platform/history subset.
 It does not truncate the day at the old 201-row delivery-view bound. The fixed
 project/counter/target/value-contract scope and shared 64KiB/5s budgets apply.
@@ -519,7 +575,7 @@ The reader has its own bounded read transaction; it does not extend the already
 composed forecast RPC or its budget. Managers receive no new access.
 
 The default cohort is people whose FIRST OBSERVED saved substantive customer
-inquiry falls in the selected 30-day Kaliningrad window. The end date is inclusive;
+inquiry falls in the selected 30-day Moscow window. The end date is inclusive;
 7 and 90 days are also available. One customer is counted once per platform;
 MAX and Telegram are separate. The minimum is taken across admitted immutable
 profile versions BEFORE applying the inquiry-date window, not from the latest
@@ -546,6 +602,32 @@ unavailable pending the owner's later Bitrix access. This is a missing source,
 not zero subscribers, zero conversion or zero elapsed time. A verified tgmini
 visit and bot start remain different facts and never become a join proxy.
 
+The same aggregate page separately describes Telegram Mini App entry context for
+that inquiry cohort. It reads only imported `tgmini` observations from counter
+`98615635`, with verified native identity matching the exact conversation of the
+earliest admitted journal message. The four exclusive categories are: an entry
+observed no later than that message with one distinct ClientID; ambiguous prior
+ClientIDs or identity; only later entries; and no qualifying data. Repeated entries
+with the same ClientID do not prove a unique visit. Original entry time is compared
+with the journal message time, never profile freeze or conversion export time.
+Both clocks have whole-second precision: equality means “not later”, not strict
+causal order. Imported observations available at report time may describe an older
+entry; this is a retrospective as-of view, not the information known to the model
+when the customer wrote. No lower-bound attribution window or ad-click claim is
+introduced.
+
+Unverified or out-of-scope captures and raw IDs supplied in profiles/start hints
+cannot manufacture entry context. A saved Mini App observation is not proof of an
+earlier external website session, subscription, human identity or advertising
+causality. No data does not mean bot traffic or no visits. MAX receives no entry
+counts: user-to-ClientID mapping alone cannot establish a preceding website entry,
+and this report does not perform tracker lookups. No raw message, customer, visit,
+ClientID or YCLID is added to the response. Existing administrator access is unchanged.
+Entry queries share the same read transaction and authorization/time/row/byte budget,
+in batches of at most 100 identities. They do not sample the newest entries: missing
+storage, invalid accepted clocks or an incomplete bounded history make the report
+visibly unavailable rather than yielding misleading counts.
+
 Coverage is valid unambiguous join/inquiry pairs divided by all eligible inquiry
 people in that platform's cohort. It is NOT the fraction of all subscribers who
 contacted the agency. Median, nearest-rank p90 and duration bins use valid pairs
@@ -568,3 +650,299 @@ local test database after existing native cleanup. The pure view and responsive
 fixtures use synthetic aggregates only. Live acceptance checks the installed
 read-only projection and arithmetic without publishing real business totals or
 customer identifiers in the public repository.
+
+
+## Stage-baseline policy for new live forecasts
+
+The owner's 2026-11-06 policy uses `contextual_stage_baseline` with
+`assumptions_version=stage_baseline_2026_11_06_v1`. The semantic stage still
+selects the same illustrative prior. Deferral and long-range planning no longer
+multiply odds by 0.5 or 0.65. Urgency and meaningful engagement are also descriptive
+observations, without their earlier numeric boosts. The existing direct-refusal
+guard remains separate at 0.25; observed outcomes and access/coverage exclusions
+retain their existing behavior. These are owner-selected scoring rules, not
+learned or calibrated purchase probabilities.
+
+Both production profile entry points use this stage baseline without loading
+an archive candidate package. Offline comparison and explicit isolated weighted
+prediction remain available for research; a saved candidate does not become live
+through the stream. Timing, engagement, deferral, continued offer search, office
+and payment-method evidence continue to be frozen with source references for
+later comparison against payment evidence. This release does not replay the
+archive, rewrite earlier predictions, reset evaluation cohorts or alter export
+values, delivery, goals, schedules, source messages or customer sends.
+
+The immutable registry distinguishes old heuristic, stage-baseline and explicit
+archive-weight packet contracts. It validates the new stage/guard arithmetic
+without recalculating old saved percentages. The private status reader reports
+a separate `stage_baseline` count in its bounded current-source window.
+Synthetic semantic and SQLite/native-MySQL readback cases cover neutral timing,
+deferral and engagement, preserved evidence, direct refusal, genuine stage
+changes, rejected inconsistent re-signed packets and unchanged historical scores.
+
+
+### Shared read-budget headroom
+
+The private status reader validates one core frozen forecast before optional
+diagnostic sections, then inspects additional candidates only with spare budget. Optional sections reserve bytes for the final reader, adapter and dispatcher
+authorization checks, alongside their existing 4 KiB floor. The Telegram linkage
+reader retains its own existing 8 KiB admission gate without a second reserve. A skipped section explicitly returns unavailable with
+`reason=budget_headroom`; it does not publish partial statistics or zeros.
+
+The 64 KiB shared read budget, 30 KiB result cap, five-second deadline and all
+fresh OAuth checks remain. Reservations do not refund consumed reads. A copied
+result that exceeds its slice is still charged; absolute global exhaustion and
+the deadline still fail closed. Revocation and unrelated errors propagate.
+The same registered SQLite/native-MySQL regressions exercise optional pressure,
+unchanged saved rows, mandatory final authorization and absolute exhaustion.
+
+
+### Owner-authorized early advertising V1 — 2026-11-06
+
+New live profiles opt into contextual_advertising_v1. Stage priors remain the
+starting point. Expert odds modifiers are bounded: continued meaningful dialogue
+1.10, continued offer search1.10, office question1.10, payment-terms question1.15;
+combined odds are capped at1.30. Deferral, trip horizon and urgency are neutral.
+Direct refusal retains its conservative guard. These are explicit advertising
+hypotheses, not fitted or calibrated purchase probabilities. Isolated historical
+and explicit research-weight calls keep their original contracts.
+
+The same immutable profile stores deal_value_prediction, bound to the semantic
+digest, cutoff, subject and current request. It records first-hour, first-three-
+hours, first-day or later age from the observed request anchor, not a claimed
+channel-join time. Each natural admitted update appends a forecast; an idle tick
+does not fabricate a new customer observation.
+
+The commission rate is the owner's7%. From6 November2026, new monetary capsules
+use `early_deal_commission_7pct_v2`: first round the estimated tour amount times0.07,
+cap the commission base at100000 RUB, then round probability times that base.
+Without a usable tour price, the provisional commission base is10000 RUB; price
+and estimated commission remain null. This is an assumption multiplied by
+probability, not a minimum conversion award. A later known price replaces it,
+including a commission below10000 RUB. Existing V1 capsules retain their exact
+source hash,25000 RUB cap and25000 RUB fallback; validation selects their original
+policy and never reprices a saved forecast. Customer budget, native selected hotel
+inquiry, delivered party-price offers and a pinned channel publication range are
+distinct observational sources. Unknown/foreign/nightly/per-person prices do not
+become a verified party quote.
+A fresh price observation is frozen at its admission time; source text, routing,
+messages and native publication records are never modified.
+
+The existing scoped outbox/goal/counter/transport contract remains the delivery
+owner. Live prediction rows have an immutable profile-ID key, allowing a positive
+increment within the same stage. The collector holds its existing settings lock
+and subtracts every previously reserved value for that conversation. Repeated,
+lower or identical estimates create no event. Commission base and total cumulative
+value for V2 remain capped at100000, including all earlier reservations. Historical
+stage-only targets and saved V1 values retain their25000 ceiling. Historical rows,
+activation/cursors, existing claims
+and receipts are retained; they are not repriced or replayed. Explicit frozen-funds
+context suppresses a new payment-stage award. No new scheduler or sender exists.
+
+The private bounded forecast reader validates the new probability contract and
+reports monetary coverage/source/window/ranges without customer text or IDs.
+Registered semantic, real-interpreter, SQLite and native-MySQL exporter checks
+cover same-stage upgrades, amount revisions, duplicates, decrease, cap, unknown
+price, currency/unit guards, immutable readback and frozen funds.
+
+
+### Private V1 delivery calculation readback
+
+The existing forecasts:read status now includes value_delivery.predictive_v1. It selects only exact anytour_value_pred_<profileId>_v1 keys from the newest201 fixed-goal rows, inspects at most17 predictive rows and returns at most16 anonymous scalar examples. Repeated increments retain an anonymous same-dialogue grouping; legacy rows affect only the independently summed earlier reservation. Other projects/counters and stage-only keys are excluded. Global coverage remains unknown; a full17-row slice is explicitly incomplete.
+
+The view reads frozen price basis,7% commission, monetary-policy version and its cap (V1:25,000 RUB; V2:100,000 RUB), probability, prior reserved amount and actual delta without extracting transcript text or rerunning a model. It independently checks the stored arithmetic and profile/scope binding. This is a scalar readback, not a new signature attestation or permission to export. Missing/inconsistent calculations are explicit while the recorded row/status stays visible. All source kinds, stages, states, factor reasons and times are whitelisted; native/customer/provider identifiers and free text never leave the server. Existing shared64KiB/five-second limits, authorization revocation and30,000-byte result cap remain unchanged.
+
+API receipt presence, saved upload status, processed state and visit attribution remain separate. Even MATCHED/PROCESSED is not per-event session evidence. The cached all-goal visit report cannot establish that a particular V1 increment reached a visit. This read performs SELECT-only queries, no provider request, poll, capture, upload, queue or conversation mutation.
+
+
+### Monetary continuity when a price disappears
+
+A missing current tour price must not restore a larger advertising base over an earlier priced valuation. The existing exporter now caps that unpriced candidate by the latest valid priced commission base recorded earlier for the same bound conversation. This is a conservative monetary cap, not a claim that the old tour price is the current trip price. Frozen forecasts stay unchanged. A genuine probability increase still uses the retained cap; an explicitly known new price may change the base normally. V2 takes the lower of its10000 RUB provisional base and that earlier priced base; it does not turn the unknown-price assumption into a floor for known prices.
+
+The same existing tick checks at most1001 fixed-goal ledger rows and32 previously unaudited predictive rows before resolution/sending. Exact subject/binding, immutable monetary digest and the prior row order are checked. Unattempted pending/ready overstatements may be reduced; a fully false delta becomes a zero-valued failed derived row with price_loss_reconciled. The new append-only price-audit table retains the original amount, applied amount, earlier reservation, reference basis, hash and assessment time. No source profile or conversation is rewritten. Any existing claim, attempt or API receipt stays unchanged and is explicitly flagged review_required; the exporter sends no negative reversal or duplicate.
+
+Fresh predictive rows record the applied decision atomically with their reservation. The normal ready claim requires that audit and the same amount, rejecting stale send snapshots. No new worker, queue, timer, provider write, goal, credential or customer message is introduced. The private forecasts:read receipt includes bounded price_continuity_audit coverage, action totals and anonymous corrections; zero-valued voided records are counted separately from active predictive increments.
+
+
+## Predictive ledger and finite visit reconciliation
+
+The administrator-only delivery registry accepts both exact stage keys and exact
+profile-bound predictive keys. A voided zero-value price-loss correction is not
+an active award. Conversation totals include all bound rows; each page shows at
+most 10 conversations and the latest 32 events per conversation, with an explicit
+omission count. Earlier events remain in totals. No customer/native/advertising
+identity or transcript is returned by the private status projection.
+
+The unchanged 64 KiB selected-data budget and 30,000-byte MCP result ceiling are
+preserved. Scalar packet lengths are checked before copying optional diagnostics.
+Optional examples are shortened explicitly when the result approaches its ceiling;
+their aggregate denominators and the saved verification cohort are retained.
+
+    php tools/modeled_conversion_visit_proof.php check UTC_CHECKPOINT
+
+performs one finite server check using the existing counter and OAuth token. The
+checkpoint is the completed earlier technical check's public UTC timestamp. Its
+cohort contains predictive rows first accepted before that instant and not yet
+recorded processed at that instant. New receipts do not change that cohort. All
+requests are GET; the outbox, profiles, identity observations, configuration,
+customer messages and schedules are never updated.
+
+The receipt is saved atomically outside the document root in
+max-search-bot-modeled-visit-proof/last-check.json (directory 0700, file 0600).
+The owner registry reads it per exact event fingerprint; visit_delivery_check
+in the existing private status tool exposes its anonymous checkpoint cohort.
+Neither reader makes a provider request. Missing, changed, corrupt or stale
+evidence is explicit. A finite check creates no standing monitoring claim.
+
+A unique visit is reconciled only when an unsampled complete report has exactly
+one goal-bearing visit for that exact ClientID and second-precision visit start,
+and both its reaches and RUB value equal every known processed one-row receipt
+for the same ClientID/goal. Legacy increments are included. The verified counter
+timezone converts the start to UTC; the original event must lie within 21 days
+after the visit. Multiple possible visits, missing receipts, a sampled/truncated
+report, wrong scope or unequal counts/amounts remain unverified. This is unique
+visit reconciliation, not a native VisitID or offline-event-log export.
+
+
+The optional 100-version input diagnosis first checks only source lengths. It does
+not parse the cohort when its frozen JSON exceeds 2 MiB, and it is not started
+without four seconds of the existing execution budget. Both omissions are
+explicit; they never represent zero signals. The private saved visit cohort and
+the administrator financial ledger are independent of that optional diagnosis.
+No global deadline, response ceiling, query-row limit or authorization floor is
+increased.
+
+Private cache reads use standard filesystem ownership checks against the deployed service-file owner, for both the cache directory and file. Reading does not require the optional POSIX extension used by the finite CLI writer. The fixed path, 0700/0600 modes, schema/hash validation, freshness and event fingerprints remain mandatory. A synthetic subprocess verifies reading with posix_geteuid disabled.
+
+## Moscow calendar and presentation
+
+Current delivery, daily reconciliation, acquisition and forecast-payment reports use
+`Europe/Moscow` for default dates, explicit date validation and half-open calendar
+windows. Their two private daily status sections share one observation instant.
+Known event instants in conversion, profile and membership views are displayed in
+Moscow; legacy values without a validated explicit timezone remain as saved.
+
+This is a read/presentation change: stored UTC instants, frozen profiles, monetary
+values, IDs, attribution, upload receipts and advertising conversions are not
+rewritten or replayed. The already completed historical-review windows and their
+original timezone metadata remain unchanged. Old calendar-bound pagination tokens
+are rejected; refresh the selected report to start a new consistent snapshot.
+
+## Saved monetary-policy visibility and calculation availability
+
+Reader `saved_semantic_prediction_status_v1_18` exposes
+`saved.deal_value.by_monetary_policy` from the monetary capsules already validated
+in the ordinary core-packet read. Each supported saved version reports its count,
+policy cap and unknown-price base, unknown-price/numeric-value counts, and the
+range of actual saved commission bases. V1 retains its 25000/25000 policy; V2 uses
+100000/10000. A valid V2 packet without a purchase probability can show its 10000
+base and 100000 cap while probability/value remain null and it adds no prospective
+estimate. Known-price bases can be below 10000. Invalid monetary capsules do not
+enter this aggregate; the semantic-profile count remains separate.
+
+The predictive delivery view now distinguishes two scalar arithmetic explanations.
+The existing probability-based admission and its calculation fields are unchanged.
+A separately named `stage_fraction_arithmetic_checked_not_probability_prediction`
+basis can explain an existing stage award without inventing a purchase probability.
+It requires verified profile binding, the expected contextual mode,
+`insufficient_context`, null probability and frozen monetary value, a supported
+monetary policy, checked price/commission/base arithmetic, an allowed fallback
+stage and the exact positive integer difference after prior reservations.
+
+Only the producer's fallback ranks 1, 4 and 5 are admitted: `interest`,
+`purchase_intent` and `agency_choice`. The `stage_fraction` object names the
+literal numerator (1250, 8333 or 12500) and denominator (25000).
+`stage_cumulative_value_rub` is the rounded fraction times the saved base;
+`prior_reserved_rub` and the example's existing `increment_rub` explain the
+positive difference. Both `estimated_probability` and
+`estimated_cumulative_value_rub` remain null. Probability multipliers and expert
+factors are not attached to this stage calculation.
+
+For example, an unknown-price V2 interest row has a 10000 base and a stage target
+of `round(1250 / 25000 * 10000) = 500` RUB. With 200 RUB already reserved, only a
+stored 300 RUB increment matches that explanation. A known tour price of 100000
+RUB yields a 7000 commission base and a 350 RUB interest target. A high known
+commission capped at 100000 yields a 5000 RUB interest target. These fractions
+are not saved 5% purchase predictions, and no new award is produced by reading.
+
+The fixed `calculation_basis_counts` keys `probability_prediction`,
+`stage_fraction` and `unavailable` partition the inspected eligible events.
+Their sum equals `events`; the unavailable count equals
+`calculation_unavailable_rows`. Counts survive optional example compaction.
+Invalid-bound and voided zero-value rows remain separate from those events.
+
+Examples still carry `calculation_unavailable_reason` (null when either
+explanation is available), with `calculation_unavailable_reason_counts` for
+the remaining unexplained rows. The existing first-failure categories are retained:
+
+| Reason | Existing numeric check that prevents an explanation |
+| --- | --- |
+| `profile_binding_unverified` | Saved access or profile/subject binding |
+| `probability_prediction_unavailable` | Expected prediction mode/status absent and no admitted stage explanation |
+| `monetary_policy_unavailable` | Missing or unsupported monetary version |
+| `scalar_contract_unverified` | Scalar bounds, types or source/basis allowlist |
+| `price_base_unverified` | Price, commission and base do not explain one another |
+| `frozen_value_unverified` | Frozen value differs from probability times base |
+| `increment_not_explained` | Frozen value minus earlier reservations differs from the stored increment |
+
+These are the first blocking numeric check, not validation of all later fields.
+A failed optional stage check leaves that existing reason unchanged. In particular,
+a predictive key alone does not establish either calculation basis.
+
+The scalar readback is an arithmetic consistency check, not a new validation of
+the full capsule, digest, input evidence or producer decision. Four existing
+nullable scalar expressions preserve JSON types (probability, price point,
+commission and frozen value), so JSON null is distinct from the string "null",
+false, zero or malformed text. A missing path remains indistinguishable from JSON
+null in this projection; full structural validity is not claimed.
+
+### Frozen contextual value compared with the stage baseline
+
+Each predictive example also reports `stage_comparison` version
+`frozen_context_vs_stage_v1`. For an already explained probability-based row,
+it compares the saved cumulative contextual value with
+`round(VALUES[stage_rank] / BASE * frozen_full_value_base_rub)`. The saved
+semantic stage must agree with the ledger stage. Both sides use the same
+validated monetary policy and frozen base, including the original V1/V2 cap or
+unknown-price base. The signed difference is contextual minus stage value.
+
+A valid fallback row has status `stage_only`: its stage baseline is available,
+but contextual value and difference stay null. Unexplained arithmetic or an
+unverified stage yields `unavailable`, a fixed reason and null comparison
+amounts. Unavailable is never interpreted as zero effect.
+
+`stage_comparison_counts` partitions all eligible events in the bounded reader
+window into `above_stage`, `equal_stage`, `below_stage`, `stage_only` and
+`unavailable`. Counts remain when optional examples are removed to fit the
+response budget. They describe saved event rows, not unique people or trips.
+`examples_selection` is `comparison_differences_first_then_newest`: explained
+nonzero comparisons, positive and negative alike, precede the other examples.
+Each group retains the original newest-first order. Selection considers only
+the same at-most-17 inspected rows, then applies the unchanged 16-example cap;
+response compaction still removes examples from the tail. This is a diagnostic
+selection, not a representative sample or a ranking of business value. Under a
+tighter response budget even prioritized examples may be omitted; the fixed
+counts and explicit omission flag remain authoritative for the inspected window.
+
+The difference is between two formulas, not an isolated effect of contextual
+factors. For example, the semantic prior 0.083333 and the stage fraction
+2083/25000 produce 8333 and 8332 RUB on a 100000 RUB base even without a context
+multiplier. Inspect the existing factor and probability fields before attributing
+a difference to the conversation.
+
+This is a read-only diagnostic for the existing value policy, not a comparison
+with an independently verified PRAETOR sender. It does not reconstruct an
+alternative reservation/export history, predict additional sales or establish
+model calibration. Recorded increments, profile values, policy versions, source
+queries, authorization and delivery behavior are unchanged. No model call,
+customer message, collector, schedule or advertising event is added.
+
+Price-continuity adjustments may use another saved reference base. Their omitted
+audit evidence is not reconstructed from totals or the stage name; an unmatched
+increment remains unexplained. This does not declare the saved award erroneous.
+
+The same queries, 38 selected scalar positions, row selection, read order and
+authorization rules remain. The one-core-packet priority and explicit omissions,
+20 metadata/four packets/48KiB packet-copy, 64KiB shared, 30000-byte result and
+five-second limits are unchanged. There is no new query, model call, provider
+request, capture, reservation, upload, replay or mutation of saved values.

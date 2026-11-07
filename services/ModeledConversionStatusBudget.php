@@ -12,6 +12,7 @@ final class ModeledConversionStatusBudget
     private float $startedAt;
     private $monotonic;
     private int $bytes=0;
+    private int $reserved=0;
 
     public function __construct(?float $startedAt=null,?callable $monotonic=null)
     {
@@ -29,11 +30,25 @@ final class ModeledConversionStatusBudget
         $this->check();
         return max(1,(int)floor((5.0-(($this->monotonic)()-$this->startedAt))*1000));
     }
-    public function remainingBytes():int{$this->check();return self::MAX_BYTES-$this->bytes;}
+    public function remainingBytes():int{$this->check();return self::MAX_BYTES-$this->bytes-$this->reserved;}
     public function consumeBytes(int $bytes):void
     {
-        if($bytes<0||$bytes>$this->remainingBytes())throw new ModeledConversionStatusLimit('byte_limit');
+        if($bytes<0)throw new ModeledConversionStatusLimit('byte_limit');
+        if($bytes>$this->remainingBytes()){
+            // A copied optional result still costs bytes even when it exceeded its slice.
+            // Absolute exhaustion remains fatal after the reservation is released.
+            if($this->reserved>0)$this->bytes+=$bytes;
+            throw new ModeledConversionStatusLimit('byte_limit');
+        }
         $this->bytes+=$bytes;$this->check();
+    }
+    /** Preserve bytes for mandatory authorization while an optional diagnostic runs. */
+    public function withReservedBytes(int $bytes,callable $operation):mixed
+    {
+        if($bytes<0)throw new InvalidArgumentException('forecast_status_reserve');
+        if($bytes>$this->remainingBytes())throw new ModeledConversionStatusLimit('byte_limit');
+        $this->reserved+=$bytes;
+        try{return $operation();}finally{$this->reserved-=$bytes;}
     }
     public function prepare(PDO $pdo,string $sql):PDOStatement
     {

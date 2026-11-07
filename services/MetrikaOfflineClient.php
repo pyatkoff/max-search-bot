@@ -192,7 +192,7 @@ final class MetrikaOfflineClient
             ||($event['transport_target']??null)!==ModeledConversionValueContract::TARGET
             ||($event['value_contract']??null)!==ModeledConversionValueContract::VERSION
             ||!MaxTrackerLookupProtocol::id($event['client_id']??null,40)
-            ||preg_match('/\A[1-9][0-9]{0,4}(?:\.0{1,2})?\z/D',$value)!==1||(float)$value>25000
+            ||preg_match('/\A[1-9][0-9]{0,5}(?:\.0{1,2})?\z/D',$value)!==1||(float)$value>ModeledConversionValueContract::MAX_VALUE_RUB
             ||!is_numeric($event['event_unix']??null)||(int)$event['event_unix']>$now||(int)$event['event_unix']<$now-21*86400)
             throw new InvalidArgumentException('invalid_modeled_value_event');
         $f=fopen('php://temp','w+');fputcsv($f,['ClientId','Target','DateTime','Price','Currency']);
@@ -241,6 +241,43 @@ final class MetrikaOfflineClient
         $base['goal_reaches']=(int)$totals[0];$base['goal_visits']=(int)$totals[1];$base['revenue_rub']=round((float)$totals[2],2);
         $base['date2']=is_string($q['date2']??null)?$q['date2']:'today';
         return $base;
+    }
+
+    /** Exact ClientID + second precision goal-visit report. GET only; no claim of native VisitID/event-log evidence. */
+    public function modeledValueVisits(string $clientId,int $activated,int $now):array
+    {
+        $fail=['status'=>'unavailable','visits'=>[]];
+        if($this->counter!=='98615635'||!MaxTrackerLookupProtocol::id($clientId,40)||$activated<946684800||$activated>$now)return $fail;
+        $counterResponse=$this->request('GET','');
+        $counter=$this->decode($counterResponse)['counter']??null;
+        if((int)($counterResponse['error']??0)!==0||(int)($counterResponse['http']??0)!==200||!is_array($counter)
+            ||(string)($counter['id']??'')!==$this->counter||!is_string($counter['time_zone_name']??null)
+            ||!in_array($counter['time_zone_name'],DateTimeZone::listIdentifiers(DateTimeZone::ALL_WITH_BC),true))return $fail;
+        $zone=new DateTimeZone($counter['time_zone_name']);
+        $metrics=['ym:s:visits','ym:s:goal678187097reaches','ym:s:goal678187097convertedRUBRevenue'];
+        $dimensions=['ym:s:clientID','ym:s:dateTime'];$filter="ym:s:clientID=='".$clientId."' AND ym:s:goal==678187097";
+        $query=['ids'=>'98615635','metrics'=>implode(',',$metrics),'dimensions'=>implode(',',$dimensions),'filters'=>$filter,
+            'date1'=>gmdate('Y-m-d',$activated-22*86400),'date2'=>'today','accuracy'=>'full','limit'=>101];
+        $response=$this->request('GET','data?'.http_build_query($query,'','&',PHP_QUERY_RFC3986),null,null,true);
+        if((int)($response['error']??0)!==0||(int)($response['http']??0)!==200)return $fail;
+        $d=$this->decode($response);$q=$d['query']??null;$rows=$d['data']??null;
+        if(!is_array($q)||array_map('strval',$q['ids']??[])!==['98615635']||($q['metrics']??null)!==$metrics
+            ||($q['dimensions']??null)!==$dimensions||(isset($q['filters'])&&$q['filters']!==$filter)
+            ||($d['sampled']??null)!==false||!is_array($rows)||count($rows)>=101
+            ||!is_numeric($d['total_rows']??null)||(int)$d['total_rows']!==count($rows))return $fail;
+        $visits=[];
+        foreach($rows as$row){
+            $dims=$row['dimensions']??null;$m=$row['metrics']??null;
+            if(!is_array($dims)||count($dims)!==2||!is_array($m)||count($m)!==3
+                ||(string)($dims[0]['name']??$dims[0]['id']??'')!==$clientId)return $fail;
+            foreach($m as$v)if((!is_int($v)&&!is_float($v))||!is_finite((float)$v)||$v<0||$v>1000000000000)return $fail;
+            if((float)$m[0]!==floor((float)$m[0])||(float)$m[1]!==floor((float)$m[1]))return $fail;
+            $date=(string)($dims[1]['name']??$dims[1]['id']??'');$at=DateTimeImmutable::createFromFormat('!Y-m-d H:i:s',$date,$zone);
+            if(!$at||$at->format('Y-m-d H:i:s')!==$date||$at->getTimestamp()>$now)return $fail;
+            if((float)$m[1]>0)$visits[]=['started_at'=>gmdate('Y-m-d\TH:i:s\Z',$at->getTimestamp()),
+                'visits'=>(int)$m[0],'goal_reaches'=>(int)$m[1],'revenue_rub'=>round((float)$m[2],2)];
+        }
+        return ['status'=>'ok','visits'=>$visits];
     }
 
     private function selectedGoals(array $goals): array
@@ -292,7 +329,7 @@ final class MetrikaOfflineClient
 
     private function request(string $method,string $path,?string $csv=null,?array $json=null,bool $statistics=false): array
     {
-        $url='https://api-metrika.yandex.net/'.($statistics?'stat/v1/':'management/v1/counter/'.$this->counter.'/').$path;
+        $url='https://api-metrika.yandex.net/'.($statistics?'stat/v1/':'management/v1/counter/'.$this->counter.($path===''?'':'/')).$path;
         if($this->transport)return ($this->transport)($method,$url,$json!==null?json_encode($json,JSON_THROW_ON_ERROR):$csv);
         $temp=null;$ch=null;
         try{

@@ -25,7 +25,7 @@ final class ModeledConversionDeliveryRegistryView
         if(is_string($page['date']??null))$date=$page['date'];
         if(preg_match('/\A\d{4}-\d{2}-\d{2}\z/D',$date)!==1)$date='';
         $platform=in_array($input['platform']??null,['all','max','telegram'],true)?$input['platform']:'all';
-        $ok=!$unavailable&&($page['available']??false)===true;
+        $ok=!$unavailable&&($page['available']??false)===true&&($page['timezone']??null)==='Europe/Moscow';
         $html='<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
             .'<title>Конверсии · AnyTour</title><style>'.self::css().'</style></head><body>'
             .'<a class="skip" href="#registry">К начислениям</a><header class="top"><a class="brand" href="/manager2/admin.php" aria-label="AnyTour — администрирование">Any<span>Tour</span></a>'
@@ -36,7 +36,7 @@ final class ModeledConversionDeliveryRegistryView
             .'<nav class="scope-note" aria-label="Разделы аналитики"><a href="/manager/assigned-value.php?view=reconciliation">Дневная сверка</a> · <a href="/manager/assigned-value.php?view=forecast-payments">Ранний прогноз → оплата</a> · <a href="/manager/assigned-value.php?view=acquisition">От вступления до обращения →</a></nav>'
             .self::monitor($monitor)
             .'<section class="ledger" id="registry" aria-labelledby="ledgerTitle"><div class="section-heading"><div><h2 id="ledgerTitle">Начисления по диалогам</h2>'
-            .'<p class="muted">По дате начисления. Все даты и время — Калининград.</p></div></div>'
+            .'<p class="muted">По дате начисления. Все даты и время — Москва (МСК).</p></div></div>'
             .self::filters($date,$platform);
         if(!$ok){
             $html.='<div class="notice error" role="status"><h3>Реестр сейчас недоступен</h3><p>Не удалось получить актуальные начисления. Обновите страницу позже.</p></div>';
@@ -135,7 +135,8 @@ final class ModeledConversionDeliveryRegistryView
             .'<div class="amount"><span>За день</span><strong>'.self::money($r['period_value_rub']??null).'</strong></div>'
             .'<div class="amount total-amount"><span>Накоплено</span><strong>'.self::money($r['total_value_rub']??null).'</strong></div></div>'
             .'<details class="event-details"><summary>Начисления и результат отправки</summary><p class="muted small" style="padding:0 20px">Все сохранённые начисления по этому диалогу до среза выборки.</p><div class="event-list">';
-        foreach(array_slice(is_array($r['events']??null)?$r['events']:[],0,6)as$event)if(is_array($event))$html.=self::event($event);
+        if(is_int($r['events_omitted']??null)&&$r['events_omitted']>0)$html.='<p class="muted small">Показаны последние 32 начисления; более ранних: '.self::integer($r['events_omitted']).'. Итоги учитывают все начисления.</p>';
+        foreach(array_slice(is_array($r['events']??null)?$r['events']:[],0,32)as$event)if(is_array($event))$html.=self::event($event);
         return $html.'</div></details></article>';
     }
 
@@ -159,6 +160,25 @@ final class ModeledConversionDeliveryRegistryView
         $html.='</p><p class="muted small">'.(($e['identity_resolved']??false)===true?'Рекламная связка сохранена.':'Подтверждённая рекламная связка пока отсутствует.').'</p>';
         if(($e['api_accepted_at']??null)===null&&($e['api_receipt_present']??false)===true)
             $html.='<p class="muted small">Приём загрузки известен, но точное время подтверждения для этой старой записи не сохранялось.</p>';
+        $v=is_array($e['valuation']??null)?$e['valuation']:[];
+        if(($v['basis']??null)==='predictive_v1'){
+            $html.='<p class="ground">Предиктив v1 · комиссия для оценки 7%.';
+            if(is_numeric($v['probability']??null))$html.=' Оценка покупки: '.self::e(number_format((float)$v['probability']*100,2,',',' ')).'%.';
+            if(is_numeric($v['deal_rub']??null))$html.=' Оценка тура: '.self::money($v['deal_rub']).'.';
+            if(is_numeric($v['frozen_base_rub']??null))$html.=' База сохранённого прогноза: '.self::money($v['frozen_base_rub']).'.';
+            $html.=' Отправляется только положительный прирост; ограничение при потере цены учитывается отдельно.</p>';
+        }
+        $p=is_array($e['visit_check']??null)?$e['visit_check']:[];
+        if(($p['available']??false)===true){
+            $linked=($p['linkage']??null)==='unique_visit_reconciled';
+            $html.='<div class="ground"><strong>'.($linked?'Однозначно сверено с целевым визитом':'Привязка к визиту ещё не подтверждена').'</strong>'
+                .'<p>Дополнительная проверка Метрики: '.self::moment($p['checked_at']??null).'. Статус загрузки: '.self::e($p['upload_status']??'не получен').'.</p>';
+            if(($p['fresh']??false)!==true)$html.='<p class="hold-reason">Проверка устарела; это сохранённый результат.</p>';
+            if($linked)$html.='<p>Начало визита: '.self::moment($p['visit_started_at']??null).'. Достижений этой цели в визите: '
+                .self::integer($p['visit_goal_reaches']??null).'; сумма: '.self::money($p['visit_goal_value_rub']??null).'. Учтены прежние начисления того же посетителя.</p>'
+                .'<p class="muted small">Сверка по ClientID и точному времени визита; отдельный VisitID не выгружался.</p>';
+            $html.='</div>';
+        }else $html.='<p class="muted small">Отдельная сверка этого начисления с визитом пока не сохранена.</p>';
         return $html.'</section>';
     }
 
@@ -208,7 +228,7 @@ final class ModeledConversionDeliveryRegistryView
     private static function moment(mixed $v):string
     {
         if(!is_string($v)||preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z\z/D',$v)!==1)return 'Не записано';
-        try{$d=new DateTimeImmutable($v);return self::e($d->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('d.m.Y H:i:s'));}catch(Throwable $ignored){return 'Не записано';}
+        try{$d=new DateTimeImmutable($v);return self::e($d->setTimezone(new DateTimeZone('Europe/Moscow'))->format('d.m.Y H:i:s'));}catch(Throwable $ignored){return 'Не записано';}
     }
     private static function e(string $v):string{return htmlspecialchars($v,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
     private static function css():string

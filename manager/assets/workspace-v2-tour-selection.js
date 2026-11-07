@@ -98,7 +98,7 @@ const $=id=>document.getElementById(id),esc=value=>{const node=document.createEl
 const endpoint='tour-selections-api.php';
 let dialog=null,context=null,epoch=0,version=0,draft=null,selected='',canEdit=false,dirty=false,busy=false,loading=false,pending=null,conflict=null,timer=0,returnFocus=null,rawAges={};
 const sessions=new Map();
-let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,printProposal=null,imageExport=null,imageDownload=null;
+let offerDetailsOpen=false,photoEditOffer='',bulkPrice=null,bulkTerms=null,printProposal=null,imageExport=null,imageDownload=null;
 let comparison=null,tripPanel=null,previewIssues=[],photoUpload=null,hotelKnowledge=null,biblioPanel=null,oneTouchPanel=null,appearancePanel=false;
 let offerComparison=null;
 // View reads are cancellable independently of the durable send/save context.
@@ -109,10 +109,36 @@ function key(c=context){return c?.actor&&c?.conversation?'workspaceV2.tourSelect
 function clone(value){return JSON.parse(JSON.stringify(value))}
 function id(){const data=new Uint8Array(16);crypto.getRandomValues(data);return Array.from(data,n=>n.toString(16).padStart(2,'0')).join('')}
 function empty(){return {title:'Подборка туров',intro:'',offers:[]}}
-const appearancePalettes={forest:'#087654',ocean:'#1766a1',sunset:'#a14427'};
+const appearancePalettes={forest:'#087654',ocean:'#1766a1',sunset:'#a14427',anytour:'#2743CB'};
 function appearanceSettings(value){
   const valid=value&&['photo','compact','personal'].includes(value.template)&&Object.hasOwn(appearancePalettes,value.palette)&&typeof value.agency_name==='string';
   return valid?{template:value.template,palette:value.palette,agency_name:value.agency_name,accent:appearancePalettes[value.palette],...(value.manager?{manager:clone(value.manager)}:{})}:{template:'legacy',palette:'forest',agency_name:'AnyTour',accent:appearancePalettes.forest};
+}
+// Official original vector paths; fixed markup only, never manager-supplied HTML.
+const anytourLogoMarkup=`<svg class="tsAnyTourLogo" role="img" aria-label="AnyTour" focusable="false" width="224" height="61" viewBox="0 0 224 61" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M134.815 20.9902C134.829 21.0233 134.848 21.0528 134.863 21.0822L136.52 19.3623L136.483 17.3993C136.483 17.2483 136.494 17.0605 136.494 17.0605C136.494 17.0605 136.829 16.7806 136.94 16.7216L142.932 12.2101L147.167 21.5279C147.281 21.7746 147.528 21.8188 147.72 21.6236L149.325 19.9626C149.517 19.7637 149.613 19.3881 149.543 19.1229L146.843 9.04274L152.53 4.20705C153.576 3.3121 154.356 2.01939 154.268 1.30858C154.235 1.03973 154.117 0.77824 153.948 0.542533V0.535167C153.752 0.317874 153.52 0.148459 153.263 0.0600687C152.592 -0.175639 151.156 0.303142 150.058 1.1318L144.11 5.63971L134.848 0.829801C134.601 0.704582 134.218 0.71563 133.982 0.859265L132.016 2.06727C131.78 2.2109 131.769 2.46134 131.986 2.62707L140.17 8.77388L134.472 13.6501C134.391 13.7422 134.045 14.011 134.045 14.011C134.045 14.011 133.857 13.9815 133.71 13.9447L131.798 13.4844L129.762 14.7329C129.787 14.755 129.81 14.7771 129.843 14.7955C131.5 16.8616 133.157 18.924 134.815 20.9902Z" fill="#2743CB"/>
+<path d="M13.0841 23.7021C16.9364 23.7021 20.0227 24.6045 22.3393 26.4054C24.6558 28.2101 25.8123 30.7181 25.8123 33.937V49.5821H19.1314V47.6743C17.3968 49.409 14.6751 50.2745 10.9664 50.2745C7.85431 50.2745 5.42357 49.5305 3.67418 48.0463C1.92479 46.5621 1.04825 44.4591 1.04825 41.7338C1.04825 38.8353 2.17155 36.7766 4.41445 35.5538C6.66104 34.3348 9.49689 33.7234 12.9257 33.7234H19.1314C19.1314 32.346 18.5827 31.3184 17.4889 30.6482C16.3913 29.9779 14.9771 29.639 13.2461 29.639C10.1709 29.639 8.20787 30.6482 7.35711 32.6627H0.458984C1.12928 29.7274 2.64296 27.4993 4.99267 25.9819C7.34238 24.4608 10.0383 23.7021 13.0804 23.7021H13.0841ZM19.1314 39.7708V38.7101H12.9257C9.46006 38.7101 7.72909 39.7339 7.72909 41.7853C7.72909 42.7061 8.12684 43.4574 8.92236 44.0393C9.71787 44.6212 10.8412 44.9121 12.2886 44.9121C14.1963 44.9121 15.8131 44.4628 17.139 43.5605C18.4648 42.6582 19.1278 41.395 19.1278 39.7671L19.1314 39.7708Z" fill="#FF510C"/>
+<path d="M10.9641 50.64C7.77835 50.64 5.24449 49.8629 3.43249 48.3271C1.60576 46.7766 0.677659 44.5594 0.677659 41.7346C0.677659 38.7036 1.87461 36.5159 4.23905 35.2306C6.52984 33.9858 9.4504 33.356 12.9271 33.356H18.7498C18.6614 32.2916 18.1863 31.5071 17.295 30.9621C16.2601 30.3286 14.8975 30.0082 13.2438 30.0082C10.3048 30.0082 8.48916 30.9252 7.69733 32.8072L7.60157 33.0319H0L0.103122 32.5826C0.79183 29.5662 2.37181 27.2386 4.79886 25.6734C7.20013 24.1229 9.98811 23.3347 13.0855 23.3347C17.0041 23.3347 20.1935 24.2702 22.5653 26.1153C24.9629 27.9826 26.182 30.6159 26.182 33.9379V49.9513H18.7645V48.4928C16.9636 49.9181 14.345 50.64 10.9678 50.64H10.9641ZM12.9271 34.0926C9.57562 34.0926 6.77291 34.6929 4.59261 35.8788C2.45651 37.0389 1.41793 38.954 1.41793 41.7346C1.41793 44.3311 2.25764 46.3604 3.91496 47.7636C5.58701 49.1852 7.9625 49.9034 10.9678 49.9034C14.5623 49.9034 17.2214 49.0637 18.875 47.4137L19.5048 46.7839V49.2147H25.4491V33.9379C25.4491 30.8553 24.3294 28.4172 22.116 26.6972C19.8768 24.9552 16.8384 24.0713 13.0891 24.0713C10.1354 24.0713 7.48003 24.8189 5.2003 26.2921C3.0642 27.6732 1.63154 29.6915 0.935464 32.2953H7.11911C8.07667 30.2881 10.1354 29.2716 13.2438 29.2716C15.0337 29.2716 16.529 29.6288 17.6781 30.3323C18.8861 31.0726 19.4974 32.2143 19.4974 33.7206V34.0889H12.9234L12.9271 34.0926ZM12.2899 45.2813C10.7652 45.2813 9.56089 44.9646 8.70277 44.3348C7.8115 43.6792 7.3585 42.8211 7.3585 41.7825C7.3585 39.4954 9.22942 38.339 12.9234 38.339H19.4974V39.768C19.4974 41.5173 18.7756 42.8948 17.3466 43.8634C15.9655 44.8025 14.264 45.2776 12.2863 45.2776L12.2899 45.2813ZM12.9271 39.0756C8.09876 39.0756 8.09876 41.1122 8.09876 41.7825C8.09876 42.5854 8.44128 43.2262 9.14103 43.7382C9.86657 44.2722 10.9273 44.541 12.2899 44.541C14.1167 44.541 15.6782 44.1064 16.9341 43.252C18.1642 42.416 18.7608 41.2743 18.7608 39.7643V39.0719H12.9234L12.9271 39.0756Z" fill="#FF510C"/>
+<path d="M47.2882 23.7007C50.6102 23.7007 53.3061 24.6656 55.3759 26.5918C57.4457 28.518 58.4806 31.1255 58.4806 34.4144V49.5807H51.7998V35.6334C51.7998 33.7956 51.2952 32.3703 50.2861 31.3649C49.277 30.3558 47.8222 29.8549 45.9108 29.8549C44.1798 29.8549 42.703 30.492 41.4839 31.7626C40.2649 33.0369 39.6535 34.7164 39.6535 36.8009V49.5807H32.9727V24.3894H39.6535V26.2972C41.2777 24.5662 43.8263 23.697 47.2919 23.697L47.2882 23.7007Z" fill="#FF510C"/>
+<path d="M58.8444 49.951H51.427V35.6355C51.427 33.9082 50.9556 32.5602 50.0238 31.6284C49.092 30.6967 47.7072 30.2252 45.9099 30.2252C44.2674 30.2252 42.9047 30.8108 41.7482 32.0225C40.6028 33.2195 40.0209 34.8289 40.0209 36.8066V49.9547H32.6035V24.0269H40.0209V25.4522C41.7114 24.049 44.1532 23.3345 47.291 23.3345C50.6941 23.3345 53.5005 24.3399 55.6292 26.325C57.7653 28.3175 58.8481 31.0392 58.8481 34.4164V49.951H58.8444ZM52.1636 49.2144H58.1078V34.4164C58.1078 31.2491 57.1024 28.7079 55.121 26.8627C53.1322 25.0102 50.4952 24.0711 47.2837 24.0711C44.0722 24.0711 41.461 24.9071 39.9141 26.5534L39.277 27.231V24.7598H33.3327V49.2144H39.277V36.803C39.277 34.6263 39.9252 32.8475 41.2105 31.5106C42.4959 30.17 44.0758 29.4887 45.9063 29.4887C47.9061 29.4887 49.4677 30.0337 50.5431 31.1091C51.6185 32.1846 52.1636 33.7056 52.1636 35.6391V49.2181V49.2144Z" fill="#FF510C"/>
+<path d="M91.1409 24.3838L79.1567 50.9009C78.4495 52.4551 77.9376 53.56 77.6209 54.2155C77.3041 54.8711 76.8696 55.6666 76.3208 56.6021C75.772 57.5375 75.3043 58.1563 74.9139 58.4583C74.5235 58.7566 73.9932 59.1138 73.3229 59.519C72.6526 59.9241 71.9344 60.1745 71.1757 60.2629C70.4134 60.3513 69.5037 60.3955 68.443 60.3955H64.7306V54.5617H67.5959C69.4705 54.5617 70.9732 53.3243 72.1038 50.8493L73.0577 48.6764L62.0273 24.3875H69.4006L76.7186 40.6145L84.0365 24.3875H91.1446L91.1409 24.3838Z" fill="#FF510C"/>
+<path d="M68.4436 60.7646H64.3629V54.1943H67.5965C69.3275 54.1943 70.6938 53.0489 71.7692 50.6955L72.6568 48.6773L61.457 24.0164H69.6368L69.7326 24.2336L76.7154 39.7167L83.7977 24.0164H91.7123L79.4923 51.0528C78.7889 52.5996 78.2696 53.7155 77.9492 54.3748C77.6288 55.034 77.1868 55.8479 76.6381 56.7871C76.0599 57.7741 75.57 58.4149 75.1391 58.7501C74.734 59.0631 74.1889 59.4277 73.5113 59.8329C72.7968 60.2638 72.0234 60.5326 71.2168 60.6247C70.4434 60.7131 69.5079 60.761 68.4436 60.761V60.7646ZM65.0994 60.0281H68.4436C69.4821 60.0281 70.3881 59.9839 71.1321 59.8992C71.8355 59.8181 72.5095 59.5824 73.1319 59.2068C73.7838 58.8127 74.3068 58.4628 74.6898 58.1682C75.036 57.8993 75.478 57.3101 76.0009 56.4188C76.5386 55.4944 76.9732 54.6989 77.2863 54.058C77.603 53.4061 78.1186 52.2939 78.8184 50.7508L90.5669 24.7529H84.2691L76.7117 41.5103L69.1544 24.7529H62.5914L73.456 48.6736L72.4358 50.9975C71.2389 53.6087 69.611 54.9309 67.5891 54.9309H65.0921V60.0281H65.0994Z" fill="#FF510C"/>
+<path d="M98.4131 18.7078H105.094V24.3832H112.732V30.2169H105.094V40.6138C105.094 42.7021 106.066 43.7443 108.011 43.7443H112.729V49.5781H107.956C104.88 49.5781 102.52 48.8636 100.873 47.4309C99.2307 45.9983 98.4057 44.0832 98.4057 41.6782V30.2243H93.791V24.3905H98.4057V18.7151L98.4131 18.7078Z" fill="#2743CB"/>
+<path d="M113.1 49.9436H107.959C104.806 49.9436 102.342 49.1922 100.637 47.7043C98.9173 46.2054 98.0444 44.1761 98.0444 41.6717V30.5861H93.4297V24.0157H98.0444V18.3403H105.462V24.0157H113.1V30.5861H105.462V40.611C105.462 42.493 106.272 43.3732 108.01 43.3732H113.097V49.9436H113.1ZM94.1663 29.8495H98.781V41.6717C98.781 43.9846 99.547 45.7782 101.12 47.1482C102.685 48.5146 104.987 49.207 107.959 49.207H112.364V44.1098H108.014C105.863 44.1098 104.729 42.9018 104.729 40.611V29.8495H112.367V24.7523H104.729V19.0769H98.7847V24.7523H94.17V29.8495H94.1663Z" fill="#2743CB"/>
+<path d="M185.817 50.2637C182.529 50.2637 179.87 49.3025 177.837 47.3726C175.804 45.4465 174.787 42.839 174.787 39.5501V24.3838H181.468V38.331C181.468 40.1688 181.954 41.5941 182.926 42.5996C183.899 43.6087 185.32 44.1096 187.195 44.1096C188.893 44.1096 190.333 43.4724 191.519 42.2018C192.705 40.9275 193.294 39.2518 193.294 37.1636V24.3838H199.975V49.575H193.294V47.6673C191.666 49.4019 189.176 50.2674 185.817 50.2674V50.2637Z" fill="#2743CB"/>
+<path d="M185.817 50.6329C182.447 50.6329 179.674 49.6275 177.582 47.6424C175.482 45.6536 174.418 42.9319 174.418 39.551V24.0164H181.835V38.3319C181.835 40.0629 182.292 41.4145 183.191 42.3463C184.086 43.2744 185.434 43.7458 187.194 43.7458C188.8 43.7458 190.126 43.1602 191.245 41.9522C192.358 40.7553 192.925 39.1458 192.925 37.1644V24.0164H200.342V49.9442H192.925V48.5189C191.245 49.9221 188.859 50.6329 185.817 50.6329ZM175.155 24.7529V39.551C175.155 42.7183 176.142 45.2632 178.09 47.1083C180.042 48.9572 182.642 49.8963 185.817 49.8963C188.991 49.8963 191.481 49.0603 193.028 47.414L193.665 46.7364V49.2076H199.609V24.7529H193.665V37.1644C193.665 39.3373 193.035 41.1162 191.79 42.4531C190.538 43.7974 188.995 44.4787 187.198 44.4787C185.227 44.4787 183.703 43.9336 182.664 42.8546C181.629 41.7791 181.102 40.2581 181.102 38.3282V24.7493H175.158L175.155 24.7529Z" fill="#2743CB"/>
+<path d="M207.244 24.3835H213.925V26.9837C214.488 26.1366 215.376 25.4552 216.577 24.9433C217.777 24.4314 219.103 24.1736 220.554 24.1736H223.629V30.5377H220.499C218.411 30.5377 216.794 31.1564 215.649 32.3939C214.5 33.6314 213.925 35.2776 213.925 37.3253V49.5748H207.244V24.3835Z" fill="#2743CB"/>
+<path d="M214.296 49.9434H206.879V24.0156H214.296V25.9712C214.856 25.4299 215.571 24.9695 216.436 24.6012C217.677 24.0709 219.066 23.802 220.557 23.802H224.001V30.9027H220.502C218.532 30.9027 216.992 31.4883 215.921 32.641C214.841 33.8012 214.296 35.3775 214.296 37.322V49.9398V49.9434ZM207.615 49.2069H213.56V37.3257C213.56 35.1896 214.175 33.4439 215.383 32.1438C216.598 30.8327 218.322 30.1698 220.506 30.1698H223.268V24.5423H220.561C219.169 24.5423 217.88 24.789 216.727 25.2825C215.596 25.765 214.76 26.4058 214.237 27.1903L213.563 28.2031V24.7559H207.619V49.2105L207.615 49.2069Z" fill="#2743CB"/>
+<path d="M153.52 30.9358C153.781 30.7185 154.157 30.4423 154.654 30.1919C155.888 29.5731 157.011 29.5621 157.541 29.5621C159.376 29.5621 160.849 30.155 162.049 31.3778C163.254 32.6042 163.836 34.1363 163.836 36.0625C163.836 37.9886 163.254 39.506 162.053 40.714C160.852 41.922 159.379 42.5076 157.541 42.5076C155.704 42.5076 154.23 41.922 153.03 40.714C152.234 39.9148 151.715 38.972 151.454 37.8708L145.557 43.7671C146.076 44.5479 146.688 45.2845 147.391 45.9695C150.08 48.6028 153.494 49.9397 157.541 49.9397C161.589 49.9397 165.003 48.6065 167.692 45.9695C170.384 43.3326 171.75 39.9995 171.75 36.0625C171.75 32.1254 170.384 28.7371 167.692 26.1001C165.003 23.4668 161.585 22.1299 157.541 22.1299C153.711 22.1299 150.448 23.3269 147.83 25.6913C147.358 26.1811 146.883 26.671 146.412 27.1608L133.448 40.633L133.459 40.6403C133.131 40.9865 132.597 41.469 131.835 41.8557C130.586 42.4929 129.452 42.5039 128.885 42.5039C127.047 42.5039 125.574 41.9183 124.373 40.7103C123.172 39.5023 122.59 37.9776 122.59 36.0588C122.59 34.14 123.176 32.6042 124.377 31.3741C125.577 30.1513 127.05 29.5547 128.885 29.5547C130.719 29.5547 132.192 30.1477 133.392 31.3704C134.166 32.1585 134.678 33.0756 134.95 34.1363L140.836 28.251C140.324 27.4849 139.723 26.7667 139.035 26.0928C136.346 23.4595 132.928 22.1226 128.885 22.1226C124.841 22.1226 121.423 23.4558 118.734 26.0928C116.042 28.7297 114.676 32.0812 114.676 36.0551C114.676 40.029 116.042 43.3289 118.734 45.9622C121.423 48.5955 124.837 49.9324 128.885 49.9324C130.107 49.9324 132.873 49.8992 135.882 48.2861C137.646 47.3396 138.862 46.1905 139.602 45.3729C143.749 41.0676 147.896 36.7622 152.046 32.4569C152.54 31.9449 153.03 31.4367 153.523 30.9248L153.52 30.9358Z" fill="#2743CB"/>
+</svg>
+`;
+function appearanceBrand(value,className){
+  const a=appearanceSettings(value),brand=document.createElement('p');brand.className=className;
+  if(a.template!=='legacy'&&a.palette==='anytour'){
+    const template=document.createElement('template');template.innerHTML=anytourLogoMarkup;brand.append(template.content.cloneNode(true));
+    if(a.agency_name!=='AnyTour'){const label=document.createElement('span');label.className='tsBrandAgency';label.textContent=a.agency_name;brand.append(label)}
+  }else brand.textContent=a.agency_name;
+  return brand;
 }
 function applyAppearance(root,value){
   for(const key of ['photo','compact','personal'])root.classList.remove('tsTemplate-'+key);
@@ -130,9 +156,9 @@ function managerPresentation(value){
 }
 function renderAppearance(){
   const root=$('tsEditor'),a=appearanceSettings(draft.appearance);
-  root.innerHTML='<section class="tsAppearance"><h3>Оформление подборки</h3><p>Заголовок, вступление и оформление сохраняются вместе с версией подборки. Уже подготовленные версии не меняются.</p><label>Заголовок подборки<input id="tsSelectionTitle" maxlength="120"></label><label>Вступление для клиента<textarea id="tsSelectionIntro" rows="3" maxlength="1200"></textarea></label><label>Макет<select id="tsAppearanceTemplate"><option value="">Стандартное AnyTour</option><option value="photo">С фото</option><option value="compact">Для сравнения</option><option value="personal">Персональная подборка</option></select></label><label>Цвет<select id="tsAppearancePalette"><option value="forest">Зелёный</option><option value="ocean">Синий</option><option value="sunset">Терракотовый</option></select></label><label>Название агентства<input id="tsAppearanceAgency" maxlength="80"></label><fieldset id="tsPersonalFields"><legend>Представление менеджера на клиентской странице</legend><p>Заполните только те данные, которые хотите показать туристу. Они сохранятся в опубликованной версии. Данные аккаунта автоматически не подставляются.</p><label>Имя менеджера<input id="tsManagerName" maxlength="100" autocomplete="off"></label><label>Личное вступление менеджера<textarea id="tsManagerNote" rows="3" maxlength="300"></textarea></label><label>Телефон для клиента<input id="tsManagerPhone" maxlength="40" inputmode="tel" autocomplete="off"></label><label>Электронная почта для клиента<input id="tsManagerEmail" maxlength="160" inputmode="email" autocomplete="off"></label><p>На странице будут крупные фотографии, комментарий к каждому варианту, раскрываемые условия и таблица сравнения. Комментарии и существенные нюансы заполните в условиях вариантов.</p></fieldset><p>Выберите макет, чтобы задать название агентства и цвет. Все фотографии, цены, условия и предупреждения сохраняются в любом макете.</p><button id="tsAppearanceBack" type="button">К вариантам</button></section>';
+  root.innerHTML='<section class="tsAppearance"><h3>Оформление подборки</h3><p>Заголовок, вступление и оформление сохраняются вместе с версией подборки. Уже подготовленные версии не меняются.</p><label>Заголовок подборки<input id="tsSelectionTitle" maxlength="120"></label><label>Вступление для клиента<textarea id="tsSelectionIntro" rows="3" maxlength="1200"></textarea></label><label>Макет<select id="tsAppearanceTemplate"><option value="">Стандартное AnyTour</option><option value="photo">С фото</option><option value="compact">Для сравнения</option><option value="personal">Персональная подборка</option></select></label><label>Цвет<select id="tsAppearancePalette"><option value="anytour">Фирменные AnyTour</option><option value="forest">Зелёный</option><option value="ocean">Синий</option><option value="sunset">Терракотовый</option></select></label><label>Название агентства<input id="tsAppearanceAgency" maxlength="80"></label><fieldset id="tsPersonalFields"><legend>Представление менеджера на клиентской странице</legend><p>Заполните только те данные, которые хотите показать туристу. Они сохранятся в опубликованной версии. Данные аккаунта автоматически не подставляются.</p><label>Имя менеджера<input id="tsManagerName" maxlength="100" autocomplete="off"></label><label>Личное вступление менеджера<textarea id="tsManagerNote" rows="3" maxlength="300"></textarea></label><label>Телефон для клиента<input id="tsManagerPhone" maxlength="40" inputmode="tel" autocomplete="off"></label><label>Электронная почта для клиента<input id="tsManagerEmail" maxlength="160" inputmode="email" autocomplete="off"></label><p>На странице будут крупные фотографии, комментарий к каждому варианту, раскрываемые условия и таблица сравнения. Комментарии и существенные нюансы заполните в условиях вариантов.</p></fieldset><p>Выберите макет, чтобы задать название агентства и цвет. Все фотографии, цены, условия и предупреждения сохраняются в любом макете.</p><button id="tsAppearanceBack" type="button">К вариантам</button></section>';
   $('tsSelectionTitle').value=draft.title;$('tsSelectionIntro').value=draft.intro;$('tsAppearanceAgency').value=a.agency_name;
-  $('tsAppearanceTemplate').value=a.template==='legacy'?'':a.template;$('tsAppearancePalette').value=a.palette;
+  $('tsAppearanceTemplate').value=a.template==='legacy'?'':a.template;$('tsAppearancePalette').value=a.template==='legacy'?'anytour':a.palette;
   $('tsPersonalFields').hidden=a.template!=='personal';
   for(const key of ['Name','Note','Phone','Email'])$('tsManager'+key).value=a.manager?.[key.toLowerCase()]||'';
   $('tsSelectionTitle').oninput=e=>{if(!appearancePanel||!current()||!editable()||busy)return;draft.title=e.target.value.trim()||'Подборка туров';changed()};
@@ -150,7 +176,7 @@ function renderAppearance(){
   for(const key of ['Name','Note','Phone','Email'])$('tsManager'+key).oninput=update;
   $('tsAppearanceBack').onclick=()=>{if(busy)return;appearancePanel=false;render();$('tsAppearance')?.focus()};
 }
-function canCompareOffers(){return current()&&dialog?.open&&draft?.offers.length>=2&&!loading&&!busy&&!pending&&!conflict&&!preview&&!sending&&!sharing&&!photoUpload&&!bulkPrice&&!tripPanel&&!biblioPanel&&!oneTouchPanel&&!appearancePanel}
+function canCompareOffers(){return current()&&dialog?.open&&draft?.offers.length>=2&&!loading&&!busy&&!pending&&!conflict&&!preview&&!sending&&!sharing&&!photoUpload&&!bulkPrice&&!bulkTerms&&!tripPanel&&!biblioPanel&&!oneTouchPanel&&!appearancePanel}
 function comparisonCurrent(job=offerComparison){return !!job&&job===offerComparison&&job.epoch===epoch&&current(job.context)&&dialog?.open}
 function showOfferComparison(){
   if(!canCompareOffers()||offerComparison)return;
@@ -225,7 +251,7 @@ function restore(){
   try{if(!data)data=JSON.parse(sessionStorage.getItem(key())||'null')}catch(e){}
   const bounded=value=>value&&Array.isArray(value.offers)&&value.offers.length<=20&&JSON.stringify(value).length<=300000;
   // A conflict envelope can contain displayed, server and original local terms.
-  if(!data||Date.now()-Number(data.at||0)>86400000&&data.pending?.kind!=='biblio'||!bounded(data.draft)||JSON.stringify(data).length>900000||data.conflict&&!bounded(data.conflict.draft)||data.comparison&&(!data.conflict||!bounded(data.comparison.draft)))return false;
+  if(!data||Date.now()-Number(data.at||0)>86400000&&!['biblio','onetouch'].includes(data.pending?.kind)||!bounded(data.draft)||JSON.stringify(data).length>900000||data.conflict&&!bounded(data.conflict.draft)||data.comparison&&(!data.conflict||!bounded(data.comparison.draft)))return false;
   draft=clone(data.draft);version=Number(data.version||0);selected=String(data.selected||'');dirty=!!data.dirty;rawAges=data.rawAges||{};pending=data.pending||null;conflict=data.conflict||null;comparison=data.comparison||null;return true;
 }
 function status(text,error=false){const el=$('tsStatus');if(el){el.textContent=text;el.classList.toggle('tsError',error)}}
@@ -238,13 +264,13 @@ async function request(action,data={}){
     return token===epoch&&current(target)?result:{ok:false,error:'stale_context'};
   }catch(e){return {ok:false,error:current(target)?'network_error':'stale_context'}}finally{clearTimeout(timeout)}
 }
-function close(){closeOfferComparison(false);appearancePanel=false;cancelImageExport();clearPrint();closeBulkPrices(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
+function close(){closeOfferComparison(false);appearancePanel=false;cancelImageExport();clearPrint();closeBulkPrices(false);closeBulkTerms(false);clearHotelKnowledge();historyView++;cancelPhotoUpload(false);tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);clearTimeout(timer);timer=0;stash();if(dialog?.open)dialog.close()}
 function editCurrent(){
   appearancePanel=false;
   cancelImageExport();historyView++;preview=false;render();recovery(conflict?'conflict':pending?'pending':'');
   status(conflict?'Есть конфликт правок. Сравните версии перед сохранением.':pending?'Результат сохранения уточняется. Сначала проверьте его.':!canEdit?'Просмотр текущего черновика. Править может ответственный менеджер или администратор.':dirty?'Текущий черновик. Есть несохранённые изменения.':'Текущий черновик. Изменения не отправляют сообщения.',!!conflict||!!pending);
 }
-function suspend(){closeOfferComparison(false);cancelImageExport();clearPrint();closeBulkPrices(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
+function suspend(){closeOfferComparison(false);cancelImageExport();clearPrint();closeBulkPrices(false);closeBulkTerms(false);clearHotelKnowledge();cancelPhotoUpload(false);photoEditOffer='';tripPanel=null;biblioPanel=null;clearOneTouchCapture(true);previewIssues=[];stash();clearTimeout(timer);timer=0;epoch++;context=null;draft=null;pending=null;conflict=null;comparison=null;dirty=false;busy=false;loading=false;canEdit=false;publication=null;preview=false;sending=false;sharing=false;if(dialog?.open)dialog.close();$('tourSelectionOpen')?.remove()}
 function activate(){if(context&&!current())suspend();host.activate()}
 function sync(c){
   if(context&&!current())suspend();
@@ -272,6 +298,8 @@ function ensure(){
   const comparisonPanel=document.createElement('section');comparisonPanel.id='tsOfferCompare';comparisonPanel.className='tsOfferCompare';comparisonPanel.hidden=true;comparisonPanel.setAttribute('aria-labelledby','tsOfferCompareTitle');dialog.querySelector('.tsLayout').before(comparisonPanel);
   const prices=document.createElement('button');prices.id='tsBulkPrices';prices.type='button';prices.className='tsBulkButton';prices.textContent='Цены';prices.title='Изменить несколько цен';prices.setAttribute('aria-label','Изменить несколько цен');prices.onclick=showBulkPrices;actions.append(prices);
   const bulk=document.createElement('section');bulk.id='tsBulkPrice';bulk.className='tsBulkPrice';bulk.hidden=true;bulk.setAttribute('aria-labelledby','tsBulkTitle');dialog.querySelector('.tsLayout').before(bulk);
+  const terms=document.createElement('button');terms.id='tsBulkTermsOpen';terms.type='button';terms.className='tsBulkButton';terms.textContent='Условия';terms.setAttribute('aria-label','Изменить несколько условий');terms.setAttribute('aria-controls','tsBulkTerms');terms.onclick=showBulkTerms;actions.append(terms);
+  const termsPanel=document.createElement('section');termsPanel.id='tsBulkTerms';termsPanel.className='tsBulkPrice tsBulkTerms';termsPanel.hidden=true;termsPanel.setAttribute('aria-labelledby','tsTermsTitle');dialog.querySelector('.tsLayout').before(termsPanel);
   if(typeof host.openStandalone==='function'){const standalone=document.createElement('button');standalone.id='tsStandalone';standalone.type='button';standalone.textContent='Открыть отдельно';standalone.onclick=()=>{if(current())host.openStandalone(context.conversation)};actions.append(standalone)}
   for(const [name,label,handler] of [['tsHistory','История отправки',showHistory],['tsPreview','Предпросмотр',showPreview],['tsEdit','К редактированию',editCurrent],['tsPrint','Печать / PDF',printPreview],['tsShare','Общая ссылка',showShare],['tsSend','Отправить подборку',sendAll]]){const button=document.createElement('button');button.id=name;button.type='button';button.textContent=label;button.onclick=handler;footer.insertBefore(button,$('tsDone'))}
   window.addEventListener('afterprint',()=>{clearPrint();controls()});
@@ -302,7 +330,7 @@ function validSnapshot(value){return value&&Number(value.conversation_id)===cont
 async function load(){
   loading=true;controls();const token=epoch,result=await request('get');if(token!==epoch)return;loading=false;
   if(!result?.ok||!validSnapshot(result.selection)){status(error(result),true);if([403,404].includes(result?.http_status))canEdit=false;recovery('read');controls();return}
-  const snapshot=result.selection;previewIssues=[];canEdit=snapshot.can_edit;
+  const snapshot=result.selection;previewIssues=[];canEdit=snapshot.can_edit;rememberOneTouchParties(snapshot);
   if(!dirty&&!pending&&!conflict){draft=clone(snapshot.draft);version=snapshot.version}
   else if(snapshot.version!==version&&!pending){conflict=snapshot;if(comparison){draft=clone(snapshot.draft);rawAges={}}}
   render();status(!canEdit?'Просмотр. Править может ответственный менеджер или администратор.':dirty?'Восстановлены ваши несохранённые правки.':'Черновик загружен.');
@@ -337,23 +365,50 @@ async function applyTrip(){
   tripPanel=null;draft.offers.push(offer);selected=offer.id;offerDetailsOpen=true;changed();render();$('ts-hotel')?.focus();
 }
 const oneTouchPendingFiles=new Map();
+let oneTouchCanonicalParties=null;
+function oneTouchParty(value){return value&&Number.isInteger(value.adults)&&value.adults>=1&&value.adults<=14&&Array.isArray(value.child_ages)&&!value.child_ages.length?{adults:value.adults,child_ages:[]}:null}
+function oneTouchPartyLabel(value){const party=oneTouchParty(value);return party?(party.adults===1?'1 взрослый':party.adults+' взрослых')+' · без детей':'Состав не подтверждён'}
+function rememberOneTouchParties(snapshot){
+  const parties=new Map(),duplicate=new Set();
+  for(const offer of snapshot.draft.offers){
+    if(typeof offer.id!=='string'||!/^[a-f0-9]{32}$/.test(offer.id))continue;
+    if(parties.has(offer.id)||duplicate.has(offer.id)){parties.delete(offer.id);duplicate.add(offer.id);continue}
+    const party=oneTouchParty(offer);if(party)parties.set(offer.id,party);
+  }
+  oneTouchCanonicalParties={target:clone(context),epoch,version:snapshot.version,parties};
+}
+function oneTouchCanonicalPartiesCurrent(){return !!oneTouchCanonicalParties&&oneTouchCanonicalParties.epoch===epoch&&oneTouchCanonicalParties.version===version&&current(oneTouchCanonicalParties.target)}
+function oneTouchSavedSourceParty(offer){
+  const fields=offer?.import_source?.fields;
+  if(fields&&Object.hasOwn(fields,'adults')&&Object.hasOwn(fields,'child_ages'))return oneTouchParty(fields);
+  // Legacy source fields may omit party. Only a pinned canonical get supplies it;
+  // never the selected form, an unsaved draft edit, or the default of two adults.
+  if(!oneTouchCanonicalPartiesCurrent())return null;
+  const party=oneTouchCanonicalParties.parties.get(offer?.id);if(!party)return null;
+  if(fields&&(Object.hasOwn(fields,'adults')&&fields.adults!==party.adults||Object.hasOwn(fields,'child_ages')&&JSON.stringify(fields.child_ages)!==JSON.stringify(party.child_ages)))return null;
+  return {adults:party.adults,child_ages:[]};
+}
+function oneTouchPartyMatches(offer,expected){
+  const party=oneTouchSavedSourceParty(offer),wanted=oneTouchParty(expected),raw=offer?.import_source?.raw;
+  return !!party&&!!wanted&&!!raw&&party.adults===wanted.adults&&JSON.stringify(party.child_ages)===JSON.stringify(wanted.child_ages)&&(!Object.hasOwn(raw,'party')||raw.party===party.adults+'AD');
+}
 function oneTouchDropPreview(panel){for(const photo of panel?.review?.localPhotos||[])URL.revokeObjectURL(photo.preview)}
-function clearOneTouchCapture(dropFiles=false){oneTouchDropPreview(oneTouchPanel);oneTouchPanel=null;if(dropFiles){for(const saved of oneTouchPendingFiles.values())for(const photo of saved.photos)URL.revokeObjectURL(photo.preview);oneTouchPendingFiles.clear()}}
+function clearOneTouchCapture(dropFiles=false){oneTouchDropPreview(oneTouchPanel);oneTouchPanel=null;if(dropFiles){oneTouchCanonicalParties=null;for(const saved of oneTouchPendingFiles.values())for(const photo of saved.photos)URL.revokeObjectURL(photo.preview);oneTouchPendingFiles.clear()}}
 function oneTouchCaptureField(panel,editor){
-  const label=document.createElement('label');label.textContent='Файл предложений OneTouch';const input=document.createElement('input');input.type='file';input.accept='application/json,.json';input.id='tsOneTouchFile';input.onchange=()=>void oneTouchChooseCapture(panel,input.files?.[0]);label.append(input);editor.querySelector('h3').after(label);
+  const label=document.createElement('label');label.textContent='Файл предложений OneTouch';const input=document.createElement('input');input.type='file';input.accept='application/json,.json';input.id='tsOneTouchFile';input.onchange=()=>void oneTouchChooseCapture(panel,input.files?.[0]);label.append(input);const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Использовать сохранённый файл OneTouch';details.append(summary,label);details.open=panel.mode==='file';editor.querySelector('h3').after(details);
   const notice=document.createElement('p');notice.textContent=panel.bundle?'Файл: '+panel.fileName+'. Время цены из файла: '+panel.bundle.source.captured_at+'. Фото могут быть получены раньше цены.':'Выберите полученный файл источника. Цена и время в файле указаны его автором; окончательная стоимость и наличие требуют проверки.';label.after(notice);
-  const resume=document.createElement('button');resume.type='button';resume.id='tsOneTouchResumePhotos';resume.textContent='Дополнить фото сохранённого варианта';resume.hidden=!panel.bundle||item()?.import_source?.raw?.capture_mode!=='manager-file-v1';resume.onclick=()=>void oneTouchResumePhotos(panel);notice.after(resume);
+  const resume=document.createElement('button');resume.type='button';resume.id='tsOneTouchResumePhotos';resume.textContent='Дополнить фото сохранённого варианта';resume.hidden=!panel.bundle||item()?.import_source?.raw?.capture_mode!=='manager-file-v1';resume.onclick=()=>void oneTouchResumePhotos(panel);notice.after(resume);const direct=document.createElement('button');direct.type='button';direct.id='tsOneTouchDirect';direct.textContent='Вернуться к поиску на сайте';direct.hidden=panel.mode!=='file';direct.onclick=()=>{if(!oneTouchCurrent(panel)||busy)return;panel.fileRead=(panel.fileRead||0)+1;oneTouchDropPreview(panel);panel.mode='direct';panel.bundle=null;panel.review=null;panel.offers=[];panel.message='Укажите условия и прочитайте предложения с сайта.';panel.error=false;render()};resume.after(direct);
 }
 async function oneTouchChooseCapture(panel,file){
-  if(!oneTouchCurrent(panel)||busy||!file)return;oneTouchDropPreview(panel);panel.review=null;panel.offers=[];panel.bundle=null;
+  if(!oneTouchCurrent(panel)||busy||!file)return;const fileRead=panel.fileRead=(panel.fileRead||0)+1;oneTouchDropPreview(panel);panel.mode='file';panel.review=null;panel.offers=[];panel.bundle=null;render();
   try{
     if(file.size<1||file.size>8388608)throw Error('Файл слишком большой или пустой.');
-    const bundle=JSON.parse(await file.text());if(!oneTouchCurrent(panel))return;
+    const bundle=JSON.parse(await file.text());if(!oneTouchCurrent(panel)||panel.fileRead!==fileRead||panel.mode!=='file')return;
     if(bundle?.schema!=='onetouch-bundle-v1'||!bundle.source||bundle.source.schema!=='onetouch-manager-capture-v1'||!Array.isArray(bundle.gallery_cache)||!bundle.gallery_cache.length||bundle.gallery_cache.length>20)throw Error('Не удалось прочитать файл OneTouch.');
     const url=new URL(bundle.source.url);if(url.origin!=='https://b2b.onetouch.travel'||url.pathname!=='/search_tour')throw Error('Источник файла не соответствует OneTouch.');
     const seen=new Set();for(const g of bundle.gallery_cache){if(typeof g.url!=='string'||seen.has(g.url)||typeof g.html_gzip_base64!=='string'||!Array.isArray(g.images)||!g.images.length||g.images.length>3)throw Error('В файле не хватает связанных фотографий.');seen.add(g.url)}
-    panel.bundle=bundle;panel.fileName=file.name;const d=url.searchParams.get('CHECKIN_BEG')||'';panel.date=d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);panel.nights=Number(url.searchParams.get('NIGHTS_FROM'));panel.message='Файл выбран. Прочитайте предложения перед добавлением.';panel.error=false;
-  }catch(e){panel.message=e.message||'Файл не прочитан.';panel.error=true}render();
+    panel.bundle=bundle;panel.fileName=file.name;const d=url.searchParams.get('CHECKIN_BEG')||'';panel.date=d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);panel.nights=Number(url.searchParams.get('NIGHTS_FROM'));const adults=Number(url.searchParams.get('ADULT'));if(oneTouchParty({adults,child_ages:[]}))panel.adults=adults;panel.message='Файл выбран. Прочитайте предложения перед добавлением.';panel.error=false;
+  }catch(e){if(!oneTouchCurrent(panel)||panel.fileRead!==fileRead||panel.mode!=='file')return;panel.message=e.message||'Файл не прочитан.';panel.error=true}render();
 }
 function oneTouchCaptureHeader(bundle){
   const source=clone(bundle.source);source.galleries=bundle.gallery_cache.map(g=>({hotel:String(g.hotel),url:g.url,observed_at:g.observed_at,html_sha256:g.html_sha256,images:g.images.map(p=>({url:p.url,sha256:p.sha256}))}));
@@ -374,10 +429,10 @@ async function oneTouchLocalPhotos(panel,review,gallery){
 function oneTouchRememberPhotos(command,panel){
   oneTouchPendingFiles.set(command.operation_id,{target:clone(context),epoch,raw:clone(panel.review.raw),offer:clone(panel.review.offer),photos:panel.review.localPhotos});
 }
-async function oneTouchFinishPhotos(operation,offerId){
-  const saved=oneTouchPendingFiles.get(operation);if(!saved)return false;
+async function oneTouchFinishPhotos(operation,offerId,photoMode,expected){
+  const saved=oneTouchPendingFiles.get(operation);if(!saved){const offer=photoMode==='url'?oneTouchDirectPhotoOffer(offerId,expected):null;if(!offer)return false;selected=offer.id;render();status('OneTouch сохранён с фотографиями и исходными условиями. Сообщения туристу не отправлялись.');return true}
   if(!current(saved.target)||epoch!==saved.epoch||pending||conflict||dirty||busy||!dialog?.open)return false;
-  const matches=draft.offers.filter(o=>o.import_source?.adapter==='onetouch-public-v1'&&o.import_source.raw.capture_reference===saved.raw.capture_reference&&o.import_source.raw.hotel_url===saved.raw.hotel_url&&['hotel','date_from','nights','room','meal','amount'].every(k=>o.import_source.fields[k]===saved.offer[k])&&o.import_source.raw.tariff===saved.raw.tariff&&o.import_source.raw.tour===saved.raw.tour);
+  const matches=draft.offers.filter(o=>o.import_source?.adapter==='onetouch-public-v1'&&o.import_source.raw.capture_reference===saved.raw.capture_reference&&o.import_source.raw.hotel_url===saved.raw.hotel_url&&oneTouchPartyMatches(o,saved.offer)&&['hotel','date_from','nights','room','meal','amount'].every(k=>Object.hasOwn(o.import_source.fields||{},k)&&o.import_source.fields[k]===saved.offer[k])&&o.import_source.raw.tariff===saved.raw.tariff&&o.import_source.raw.tour===saved.raw.tour);
   const offer=offerId?matches.find(o=>o.id===offerId):matches.length===1?matches[0]:null;if(!offer){status('Тур сохранён; привязку фотографий нужно проверить. Повторного импорта нет.',true);return false}
   selected=offer.id;render();
   for(let i=0;i<saved.photos.length;i++){
@@ -389,9 +444,19 @@ async function oneTouchFinishPhotos(operation,offerId){
   for(const photo of saved.photos)URL.revokeObjectURL(photo.preview);oneTouchPendingFiles.delete(operation);status('OneTouch сохранён с фотографиями из файла. Сообщения туристу не отправлялись.');return true;
 }
 async function oneTouchResumePhotos(panel){
-  if(!oneTouchCurrent(panel)||busy||!panel.bundle)return;const offer=item(),source=offer?.import_source;
-  if(source?.adapter!=='onetouch-public-v1'||source.raw.capture_reference!==panel.bundle.source.reference)return;
-  try{const review={raw:source.raw,photos:source.photos},gallery=oneTouchGallery(panel.bundle,source.raw);review.localPhotos=await oneTouchLocalPhotos(panel,review,gallery);const operation=id();oneTouchPendingFiles.set(operation,{target:clone(context),epoch,raw:clone(source.raw),offer:clone(source.fields),photos:review.localPhotos});clearOneTouchCapture();render();await oneTouchFinishPhotos(operation,offer.id)}catch(e){panel.message=e.message;panel.error=true;render()}
+  if(!oneTouchCurrent(panel)||busy||!panel.bundle)return;let offer=item(),source=offer?.import_source;const offerId=offer?.id;
+  if(source?.adapter!=='onetouch-public-v1'||source.raw?.capture_reference!==panel.bundle.source.reference)return;
+  try{
+    if(!oneTouchParty(source.fields)&&!oneTouchCanonicalPartiesCurrent()){
+      await load();if(!oneTouchCurrent(panel)||selected!==offerId)throw Error('Сохранённый вариант изменился. Проверьте привязку фотографий.');
+      offer=draft.offers.find(value=>value.id===offerId);source=offer?.import_source;
+      if(source?.adapter!=='onetouch-public-v1'||source.raw?.capture_reference!==panel.bundle.source.reference)throw Error('Источник сохранённого варианта изменился.');
+    }
+    const party=oneTouchSavedSourceParty(offer);
+    if(!party||!source.fields||Object.hasOwn(source.raw,'party')&&source.raw.party!==party.adults+'AD')throw Error('Не удалось подтвердить сохранённый состав. Фотографии не перенесены.');
+    const review={raw:source.raw,photos:source.photos},gallery=oneTouchGallery(panel.bundle,source.raw);review.localPhotos=await oneTouchLocalPhotos(panel,review,gallery);
+    const operation=id();oneTouchPendingFiles.set(operation,{target:clone(context),epoch,raw:clone(source.raw),offer:{...clone(source.fields),...party},photos:review.localPhotos});clearOneTouchCapture();render();await oneTouchFinishPhotos(operation,offer.id);
+  }catch(e){panel.message=e.message;panel.error=true;render()}
 }
 
 function oneTouchCurrent(panel){return oneTouchPanel===panel&&current(panel.target)&&epoch===panel.epoch&&version===panel.version&&canEdit&&!dirty&&!pending&&!conflict&&!preview&&dialog?.open}
@@ -400,72 +465,91 @@ async function showOneTouch(){
   if(!editable()||busy||!current()||(draft?.offers.length||0)>=20)return;
   if(dirty){await save();if(dirty||pending||conflict||busy||!current())return;}
   const trip=draft.offers.find(x=>x.date_from&&x.nights);
-  oneTouchPanel={target:clone(context),epoch,version,date:trip?.date_from||'',nights:trip?.nights||7,offers:[],offset:0,review:null,message:'',error:false};render();$('tsOneTouchDate')?.focus();
+  oneTouchPanel={target:clone(context),epoch,version,date:trip?.date_from||'',nights:trip?.nights||7,adults:oneTouchParty(trip)?.adults||2,mode:'direct',offers:[],offset:0,review:null,message:'',error:false};render();$('tsOneTouchDate')?.focus();
 }
-function oneTouchQuery(date,nights){
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(nights)||nights<1||nights>60)throw Error('Проверьте дату и число ночей.');
-  const q={samo_action:'PRICES',TOWNFROMINC:'2',STATEINC:'9',TOURTYPE:'0',TOURINC:'0',PROGRAMGROUPINC:'0',PROGRAMINC:'0',CHECKIN_BEG:date.replaceAll('-',''),NIGHTS_FROM:String(nights),CHECKIN_END:date.replaceAll('-',''),NIGHTS_TILL:String(nights),ADULT:'2',CURRENCY:'1',CHILD:'0',TOWNS_ANY:'1',townssearch:'0',TOWNS:'',STARS_ANY:'1',STARS:'',HOTELS_ANY:'1',hotelsearch:'0',HOTELS:'',MEALS_ANY:'1',MEALS:'',ROOMS_ANY:'1',ROOMS:'',CHILD_IN_BED:'0',FREIGHT:'1',COMFORTABLE_SEATS:'0',FILTER:'1',MOMENT_CONFIRM:'0',WITHOUT_PROMO:'0',HOTELTYPES:'',PARTITION_PRICE:'',PRICEPAGE:'1',DYN_SEPARATE:'1',rev:'965964269'};
+function oneTouchQuery(date,nights,adults=2){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(nights)||nights<1||nights>60||!oneTouchParty({adults,child_ages:[]}))throw Error('Проверьте дату, число ночей и состав взрослых.');
+  const q={samo_action:'PRICES',TOWNFROMINC:'2',STATEINC:'9',TOURTYPE:'0',TOURINC:'0',PROGRAMGROUPINC:'0',PROGRAMINC:'0',CHECKIN_BEG:date.replaceAll('-',''),NIGHTS_FROM:String(nights),CHECKIN_END:date.replaceAll('-',''),NIGHTS_TILL:String(nights),ADULT:String(adults),CURRENCY:'1',CHILD:'0',TOWNS_ANY:'1',townssearch:'0',TOWNS:'',STARS_ANY:'1',STARS:'',HOTELS_ANY:'1',hotelsearch:'0',HOTELS:'',MEALS_ANY:'1',MEALS:'',ROOMS_ANY:'1',ROOMS:'',CHILD_IN_BED:'0',FREIGHT:'1',COMFORTABLE_SEATS:'0',FILTER:'1',MOMENT_CONFIRM:'0',WITHOUT_PROMO:'0',HOTELTYPES:'',PARTITION_PRICE:'',PRICEPAGE:'1',DYN_SEPARATE:'1',rev:'965964269'};
   return 'https://b2b.onetouch.travel/search_tour?'+new URLSearchParams(q);
 }
-function validOneTouchRow(row){return row&&typeof row.ticket==='string'&&row.ticket.length<=32768&&row.offer&&typeof row.offer.hotel==='string'&&typeof row.offer.amount==='string'&&row.offer.price_qualifier==='from'&&row.offer.currency==='RUB'&&row.offer.adults===2&&Array.isArray(row.offer.child_ages)&&!row.offer.child_ages.length&&row.raw&&['transport','tour','tariff','availability'].every(k=>typeof row.raw[k]==='string')}
-function oneTouchPhotosReady(panel){const photos=panel?.review?.localPhotos,images=Array.from($('tsOneTouchResults')?.querySelectorAll('img')||[]);return !!photos?.length&&images.length===photos.length&&images.every((img,i)=>img.isConnected&&img.getAttribute('src')===photos[i].preview&&photos[i].source===panel.review.photos[i]&&biblioImageReady(img))}
+function validOneTouchRow(row){return row&&typeof row.ticket==='string'&&row.ticket.length<=32768&&row.offer&&typeof row.offer.hotel==='string'&&typeof row.offer.amount==='string'&&row.offer.price_qualifier==='from'&&row.offer.currency==='RUB'&&!!oneTouchParty(row.offer)&&Array.isArray(row.offer.child_ages)&&!row.offer.child_ages.length&&row.raw&&['transport','tour','tariff','availability'].every(k=>typeof row.raw[k]==='string')}
+function oneTouchPhotoList(review){return review?.localPhotos||(!review?.raw?.capture_mode?(review?.photos||[]).map(source=>({source,preview:source})):[])}
+function oneTouchSourcePhoto(url){try{if(typeof url!=='string')return false;const u=new URL(url),p=u.pathname.split('/');return u.origin==='https://image.onetouch.travel'&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&u.href===url&&p.length===6&&p[0]===''&&p[1]==='images'&&p[2]==='hotels_hash'&&/^[1-9][0-9]{0,5}$/.test(p[3])&&/^[a-z0-9]{1,40}$/.test(p[4])&&/^[a-f0-9]{16,64}[.]jpg$/.test(p[5])}catch{return false}}
+function oneTouchPhotosReady(panel){const photos=oneTouchPhotoList(panel?.review),images=Array.from($('tsOneTouchResults')?.querySelectorAll('img')||[]);return photos.length>0&&images.length===photos.length&&images.every((img,i)=>img.isConnected&&img.getAttribute('src')===photos[i].preview&&photos[i].source===panel.review.photos[i]&&biblioImageReady(img))}
+function oneTouchDirectReference(value){try{const u=new URL(value?.url);return /^0x[a-f0-9]{32,1024}$/.test(value?.quote_id)&&u.origin==='https://b2b.onetouch.travel'&&!u.username&&!u.password&&!u.port&&!u.hash&&u.pathname==='/search_tour'}catch{return false}}
+function oneTouchDirectPhotoOffer(offerId,expected){
+  if(!oneTouchCanonicalPartiesCurrent()||!oneTouchDirectReference(expected?.source_reference)||!oneTouchParty(expected?.offer)||!expected?.raw||!Array.isArray(expected.photos)||!expected.photos.length||expected.photos.length>3||!expected.photos.every(oneTouchSourcePhoto))return null;
+  const matches=draft.offers.filter(offer=>{
+    const source=offer.import_source,photos=offer.photos,fields=source?.fields;
+    return source?.adapter==='onetouch-public-v1'&&source.quote_id===expected.source_reference.quote_id&&source.url===expected.source_reference.url&&source.raw&&!Object.hasOwn(source.raw,'capture_mode')&&oneTouchPartyMatches(offer,expected.offer)&&['hotel','date_from','nights','room','meal','amount','currency','price_qualifier'].every(key=>fields?.[key]===expected.offer[key])&&['hotel_url','party','tour','tariff','transport','availability'].every(key=>source.raw[key]===expected.raw[key])&&JSON.stringify(source.photos)===JSON.stringify(expected.photos)&&Array.isArray(photos)&&photos.length===expected.photos.length&&photos.every((photo,i)=>photo.url===expected.photos[i]&&photo.kind===['cover','beach','room'][i]);
+  });
+  return matches.length===1&&(offerId===undefined||matches[0].id===offerId)?matches[0]:null;
+}
 function oneTouchControls(){
   const panel=oneTouchPanel;if(!panel)return;const locked=busy||loading||!oneTouchCurrent(panel);
   $('tsEditor')?.querySelectorAll('input,button').forEach(node=>{node.disabled=locked});
-  $('tsOneTouchDate')&&( $('tsOneTouchDate').disabled=true );$('tsOneTouchNights')&&( $('tsOneTouchNights').disabled=true );$('tsOneTouchRead')&&( $('tsOneTouchRead').disabled=locked||!panel.bundle );
+  $('tsOneTouchDate')&&( $('tsOneTouchDate').disabled=locked||panel.mode==='file' );$('tsOneTouchNights')&&( $('tsOneTouchNights').disabled=locked||panel.mode==='file' );$('tsOneTouchAdults')&&( $('tsOneTouchAdults').disabled=locked||panel.mode==='file' );$('tsOneTouchRead')&&( $('tsOneTouchRead').disabled=locked||panel.mode==='file'&&!panel.bundle );
   const add=$('tsOneTouchAdd');if(add)add.disabled=locked||!$('tsOneTouchConfirm')?.checked||!oneTouchPhotosReady(panel);
   const state=$('tsOneTouchPhotoStatus');if(state)state.textContent=oneTouchPhotosReady(panel)?'Фотографии загружены.':'Ожидаем фотографии. При ошибке добавление недоступно.';
 }
 function renderOneTouch(){
   const panel=oneTouchPanel,editor=$('tsEditor');if(!panel||!editor)return;
-  editor.innerHTML='<section class="tsBiblioPanel"><h3>Предложения OneTouch</h3><p>Поддержанный поиск: Москва → Турция, 2 взрослых без детей. Цена на странице — минимальная «от». Рейсы, багаж, доплаты и окончательная стоимость требуют проверки.</p><label>Дата вылета<input id="tsOneTouchDate" type="date" value="'+esc(panel.date)+'"></label><label>Ночей<input id="tsOneTouchNights" type="number" min="1" max="60" value="'+esc(panel.nights)+'"></label><button id="tsOneTouchRead" type="button">Прочитать предложения</button><p id="tsOneTouchStatus" role="status" class="'+(panel.error?'tsError':'')+'">'+esc(busy?'Читаем OneTouch…':panel.message)+'</p><div id="tsOneTouchResults"></div><button id="tsOneTouchCancel" type="button">Вернуться к подборке</button></section>';
+  editor.innerHTML='<section class="tsBiblioPanel"><h3>Предложения OneTouch</h3><p>Поддержанный поиск: Москва → Турция, взрослые без детей. Состав задаётся ниже; при выборе файла используются его условия. Цена на странице — минимальная «от». Рейсы, багаж, доплаты и окончательная стоимость требуют проверки.</p><label>Дата вылета<input id="tsOneTouchDate" type="date" value="'+esc(panel.date)+'"></label><label>Ночей<input id="tsOneTouchNights" type="number" min="1" max="60" value="'+esc(panel.nights)+'"></label><label>Взрослых<input id="tsOneTouchAdults" type="number" min="1" max="14" value="'+esc(panel.adults)+'"></label><button id="tsOneTouchRead" type="button">Прочитать предложения</button><p id="tsOneTouchStatus" role="status" class="'+(panel.error?'tsError':'')+'">'+esc(busy?'Читаем OneTouch…':panel.message)+'</p><div id="tsOneTouchResults"></div><button id="tsOneTouchCancel" type="button">Вернуться к подборке</button></section>';
   oneTouchCaptureField(panel,editor);
   const results=$('tsOneTouchResults'),review=panel.review;
   if(review){
     const o=review.offer;
-    results.innerHTML='<article><h4>'+esc(o.hotel+(o.stars?' '+o.stars+'*':''))+'</h4><p><strong>Исходная цена: '+esc(overviewAmount(o.amount,o.currency,'from'))+'</strong></p><dl class="tsBiblioTerms">'+[['Поездка',[o.destination,o.departure,o.date_from,o.nights+' ноч.'].join(' · ')],['Состав','2 взрослых'],['Номер и размещение',o.room],['Питание',o.meal],['Тур',review.raw.tour],['Перевозка',review.raw.transport],['Тариф',review.raw.tariff],['Ограничения',review.raw.availability]].map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join('')+'</dl><div class="tsBiblioPhotos">'+(review.localPhotos||[]).map(photo=>'<img src="'+esc(photo.preview)+'" alt="Фото отеля '+esc(o.hotel)+'" referrerpolicy="no-referrer">').join('')+'</div><p id="tsOneTouchPhotoStatus" role="status"></p><p>Фото относятся к отелю. Категория номера и включённые услуги по ним не подтверждены.</p><label>Минимальная цена для клиента, RUB<input id="tsOneTouchAmount" type="text" inputmode="decimal" maxlength="12" value="'+esc(o.amount)+'"></label><label class="tsTripConfirm"><input id="tsOneTouchConfirm" type="checkbox"> Проверил состав и условия. Сохраняю минимальную цену «от», окончательная стоимость требует проверки.</label><button id="tsOneTouchAdd" type="button" disabled>Добавить с фото и условиями</button><button id="tsOneTouchBack" type="button">К предложениям</button></article>';
+    results.innerHTML='<article><h4>'+esc(o.hotel+(o.stars?' '+o.stars+'*':''))+'</h4><p><strong>Исходная цена: '+esc(overviewAmount(o.amount,o.currency,'from'))+'</strong></p><dl class="tsBiblioTerms">'+[['Поездка',[o.destination,o.departure,o.date_from,o.nights+' ноч.'].join(' · ')],['Состав',oneTouchPartyLabel(o)],['Номер и размещение',o.room],['Питание',o.meal],['Тур',review.raw.tour],['Перевозка',review.raw.transport],['Тариф',review.raw.tariff],['Ограничения',review.raw.availability]].map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join('')+'</dl><div class="tsBiblioPhotos">'+oneTouchPhotoList(review).map(photo=>'<img src="'+esc(photo.preview)+'" alt="Фото отеля '+esc(o.hotel)+'" referrerpolicy="no-referrer">').join('')+'</div><p id="tsOneTouchPhotoStatus" role="status"></p><p>Фото относятся к отелю. Категория номера и включённые услуги по ним не подтверждены.</p><label>Минимальная цена для клиента, RUB<input id="tsOneTouchAmount" type="text" inputmode="decimal" maxlength="12" value="'+esc(o.amount)+'"></label><label class="tsTripConfirm"><input id="tsOneTouchConfirm" type="checkbox"> Проверил состав и условия. Сохраняю минимальную цену «от», окончательная стоимость требует проверки.</label><button id="tsOneTouchAdd" type="button" disabled>Добавить с фото и условиями</button><button id="tsOneTouchBack" type="button">К предложениям</button></article>';
     results.querySelectorAll('img').forEach(img=>{img.onload=img.onerror=()=>{if(oneTouchPanel===panel&&panel.review===review)oneTouchControls()}});
     $('tsOneTouchConfirm').onchange=oneTouchControls;$('tsOneTouchAdd').onclick=()=>void addOneTouch(panel);
     $('tsOneTouchBack').onclick=()=>{if(busy)return;panel.review=null;render()};
   }else{
-    panel.offers.slice(panel.offset,panel.offset+20).forEach(row=>{const card=document.createElement('article');card.innerHTML='<h4>'+esc(row.offer.hotel)+'</h4><p>'+esc([row.offer.date_from,row.offer.nights+' ноч.',row.offer.room,row.offer.meal].join(' · '))+'</p><strong>'+esc(overviewAmount(row.offer.amount,row.offer.currency,'from'))+'</strong>';const select=document.createElement('button');select.type='button';select.textContent='Проверить фото и условия';select.onclick=()=>void reviewOneTouch(panel,row);card.append(select);results.append(card)});
+    panel.offers.slice(panel.offset,panel.offset+20).forEach(row=>{const card=document.createElement('article');card.innerHTML='<h4>'+esc(row.offer.hotel)+'</h4><p>'+esc([row.offer.date_from,row.offer.nights+' ноч.',oneTouchPartyLabel(row.offer),row.offer.room,row.offer.meal].join(' · '))+'</p><strong>'+esc(overviewAmount(row.offer.amount,row.offer.currency,'from'))+'</strong>';const select=document.createElement('button');select.type='button';select.textContent='Проверить фото и условия';select.onclick=()=>void reviewOneTouch(panel,row);card.append(select);results.append(card)});
     for(const [label,offset] of [['Предыдущие',panel.offset-20],['Следующие',panel.offset+20]])if(offset>=0&&offset<panel.offers.length){const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>{if(oneTouchCurrent(panel)&&!busy){panel.offset=offset;render()}};results.append(button)}
   }
-  $('tsOneTouchDate').oninput=()=>{panel.date=$('tsOneTouchDate').value};$('tsOneTouchNights').oninput=()=>{panel.nights=Number($('tsOneTouchNights').value)};
+  const changedSearch=()=>{if(panel.bundle)return;oneTouchDropPreview(panel);panel.review=null;panel.offers=[];results.replaceChildren();panel.message='Условия изменены. Прочитайте предложения заново.';$('tsOneTouchStatus').textContent=panel.message;panel.error=false};$('tsOneTouchDate').oninput=()=>{panel.date=$('tsOneTouchDate').value;changedSearch()};$('tsOneTouchNights').oninput=()=>{panel.nights=Number($('tsOneTouchNights').value);changedSearch()};$('tsOneTouchAdults').oninput=()=>{panel.adults=Number($('tsOneTouchAdults').value);changedSearch()};
   $('tsOneTouchRead').onclick=()=>void readOneTouch(panel);$('tsOneTouchCancel').onclick=()=>{if(!busy){oneTouchPanel=null;render()}};oneTouchControls();
 }
 async function readOneTouch(panel){
-  if(!oneTouchCurrent(panel)||busy||!panel.bundle)return;let input;try{input=oneTouchCaptureHeader(panel.bundle)}catch(e){panel.message=e.message;panel.error=true;render();return}
-  oneTouchDropPreview(panel);panel.review=null;busy=true;render();const result=await request('onetouch_search',{capture:input});if(epoch!==panel.epoch)return;busy=false;if(!oneTouchCurrent(panel)){controls();return}
-  if(result?.ok&&result.version===panel.version&&Array.isArray(result.offers)&&result.offers.length>0&&result.offers.length<=250&&result.offers.every(validOneTouchRow)){panel.offers=result.offers;panel.offset=0;panel.message='Прочитано предложений с сохранённой галереей: '+result.offers.length+'. Время цены и фотографий сохранены отдельно.';panel.error=false}else{panel.offers=[];panel.message=oneTouchError(result);panel.error=true}render();
+  if(!oneTouchCurrent(panel)||busy||panel.mode==='file'&&!panel.bundle)return;let input;const fromFile=panel.mode==='file',intent={date:panel.date,nights:panel.nights,adults:panel.adults};
+  try{input=fromFile?{capture:oneTouchCaptureHeader(panel.bundle)}:{url:oneTouchQuery(intent.date,intent.nights,intent.adults)}}catch(e){panel.message=e.message;panel.error=true;render();return}
+  oneTouchDropPreview(panel);panel.review=null;panel.offers=[];busy=true;render();const result=await request('onetouch_search',input);if(epoch!==panel.epoch)return;busy=false;if(!oneTouchCurrent(panel)){controls();return}
+  const matches=row=>fromFile||row.offer.date_from===intent.date&&row.offer.nights===intent.nights&&row.offer.adults===intent.adults&&row.raw.party===intent.adults+'AD'&&!Object.hasOwn(row.raw,'capture_mode');
+  if(result?.ok&&result.version===panel.version&&Array.isArray(result.offers)&&result.offers.length>0&&result.offers.length<=250&&result.offers.every(row=>validOneTouchRow(row)&&matches(row))){panel.offers=result.offers;panel.offset=0;panel.message=fromFile?'Прочитано предложений с сохранённой галереей: '+result.offers.length+'. Время цены и фотографий сохранены отдельно.':'Получено предложений с сайта: '+result.offers.length+'. Проверьте фото и условия выбранного варианта. Цена «от» не подтверждает окончательную стоимость и наличие.';panel.error=false}else{panel.offers=[];panel.message=oneTouchError(result?.ok?{error:'onetouch_source_changed'}:result);panel.error=true}render();
 }
 async function reviewOneTouch(panel,row){
-  if(!oneTouchCurrent(panel)||busy||!panel.bundle)return;let gallery;try{gallery=oneTouchGallery(panel.bundle,row.raw)}catch(e){panel.message=e.message;panel.error=true;render();return}
-  oneTouchDropPreview(panel);panel.review=null;busy=true;render();const result=await request('onetouch_review',{ticket:row.ticket,gallery_gzip_base64:gallery.html_gzip_base64});if(epoch!==panel.epoch)return;busy=false;if(!oneTouchCurrent(panel)){controls();return}
-  if(result?.ok&&result.version===panel.version&&validOneTouchRow(result)&&Array.isArray(result.photos)&&result.photos.length>0&&result.photos.length<=3){try{result.localPhotos=await oneTouchLocalPhotos(panel,result,gallery);if(!oneTouchCurrent(panel)){for(const p of result.localPhotos)URL.revokeObjectURL(p.preview);return}panel.review=result;panel.message='Цена из файла: '+result.raw.capture_price_declared_at+'. Галерея получена: '+result.raw.capture_gallery_observed_at+'. Проверьте минимальную цену и условия.';panel.error=false}catch(e){panel.message=e.message;panel.error=true}}else{panel.message=oneTouchError(result);panel.error=true}render();
+  if(!oneTouchCurrent(panel)||busy)return;let gallery;const fromFile=!!panel.bundle,input={ticket:row.ticket};
+  try{if(fromFile){gallery=oneTouchGallery(panel.bundle,row.raw);input.gallery_gzip_base64=gallery.html_gzip_base64}}catch(e){panel.message=e.message;panel.error=true;render();return}
+  oneTouchDropPreview(panel);panel.review=null;busy=true;render();const result=await request('onetouch_review',input);if(epoch!==panel.epoch)return;busy=false;if(!oneTouchCurrent(panel)){controls();return}
+  const same=row.offer&&result?.offer&&['hotel','date_from','nights','adults','room','meal','amount','currency','price_qualifier'].every(key=>row.offer[key]===result.offer[key])&&JSON.stringify(row.offer.child_ages)===JSON.stringify(result.offer.child_ages)&&row.raw.hotel_url===result.raw?.hotel_url;
+  if(result?.ok&&result.version===panel.version&&validOneTouchRow(result)&&same&&Array.isArray(result.photos)&&result.photos.length>0&&result.photos.length<=3&&(fromFile||result.photos.every(oneTouchSourcePhoto))&&new Set(result.photos).size===result.photos.length){try{
+    if(fromFile){result.localPhotos=await oneTouchLocalPhotos(panel,result,gallery);if(!oneTouchCurrent(panel)){for(const p of result.localPhotos)URL.revokeObjectURL(p.preview);return}}
+    else if(Object.hasOwn(result.raw,'capture_mode')||!oneTouchDirectReference(result.source_reference))throw Error('Источник фотографий не соответствует выбранному поиску.');
+    panel.review=result;panel.message=fromFile?'Цена из файла: '+result.raw.capture_price_declared_at+'. Галерея получена: '+result.raw.capture_gallery_observed_at+'. Проверьте минимальную цену и условия.':'Фотографии связаны с выбранным отелем. Проверьте загрузку, минимальную цену и все условия перед сохранением.';panel.error=false;
+  }catch(e){panel.message=e.message;panel.error=true}}else{panel.message=oneTouchError(result?.ok?{error:'onetouch_photos_unavailable'}:result);panel.error=true}render();
 }
 async function addOneTouch(panel){
   if(!oneTouchCurrent(panel)||busy||!panel.review||!$('tsOneTouchConfirm')?.checked||!oneTouchPhotosReady(panel))return;
   let amount;try{const units=priceUnits($('tsOneTouchAmount').value);if(units<=0n)throw Error();amount=String(units/100n)+(units%100n?'.'+String(units%100n).padStart(2,'0'):'')}catch(e){panel.message='Укажите положительную цену с точностью до двух знаков.';panel.error=true;$('tsOneTouchStatus').textContent=panel.message;return}
-  const command={kind:'onetouch',operation_id:id(),ticket:panel.review.ticket,confirm_price_from:true,manager_amount:amount,dispatched:false};oneTouchRememberPhotos(command,panel);pending=command;clearOneTouchCapture();stash();render();return submitOneTouch(command);
+  const command={kind:'onetouch',operation_id:id(),ticket:panel.review.ticket,confirm_price_from:true,manager_amount:amount,dispatched:false,photo_mode:panel.bundle?'file':'url',...(!panel.bundle?{photo_expected:{source_reference:clone(panel.review.source_reference),offer:clone(panel.review.offer),raw:clone(panel.review.raw),photos:clone(panel.review.photos)}}:{})};if(panel.bundle)oneTouchRememberPhotos(command,panel);pending=command;clearOneTouchCapture();stash();render();return submitOneTouch(command);
 }
 async function submitOneTouch(command){
   if(!current()||busy||pending!==command)return;if(command.dispatched)return reconcileOneTouch();
-  command.dispatched=true;const token=epoch;busy=true;stash();controls();const {kind,dispatched,...data}=command,result=await request('onetouch_add',data);if(token!==epoch)return;busy=false;
-  if(result?.ok&&['added','already_added','saved'].includes(result.state)&&Number.isInteger(result.saved_version)){pending=null;dirty=false;if(typeof result.offer_id==='string')selected=result.offer_id;stash();await load();if(!await oneTouchFinishPhotos(command.operation_id,result.offer_id))status('Добавление OneTouch подтверждено. Завершите перенос фотографий к этому же варианту; повторный импорт не нужен.');return}
+  command.dispatched=true;const token=epoch;busy=true;stash();controls();const {kind,dispatched,photo_mode,photo_expected,...data}=command,result=await request('onetouch_add',data);if(token!==epoch)return;busy=false;
+  if(result?.ok&&['added','already_added','saved'].includes(result.state)&&Number.isInteger(result.saved_version)){pending=null;dirty=false;if(typeof result.offer_id==='string')selected=result.offer_id;stash();await load();if(!await oneTouchFinishPhotos(command.operation_id,result.offer_id,command.photo_mode,command.photo_expected))status(command.photo_mode==='url'?'Операция OneTouch подтверждена. Привязку исходного предложения и фотографий существующего варианта нужно проверить. Повторного импорта нет.':'Добавление OneTouch подтверждено. Завершите перенос фотографий к этому же варианту; повторный импорт не нужен.');return}
   if(result?.http_status&&result.http_status<500&&!['operation_mismatch','invalid_response'].includes(result.error)){pending=null;stash();render();status(oneTouchError(result),true);return}
   stash();controls();recovery('pending');status('Исход добавления не подтверждён. Повторное добавление не выполняется; проверьте сохранённую операцию.',true);
 }
 async function reconcileOneTouch(){
-  if(!current()||busy||pending?.kind!=='onetouch')return;const token=epoch,command=pending;busy=true;controls();const {kind,dispatched,...data}=command,result=await request('onetouch_operation',data);if(token!==epoch)return;busy=false;
-  if(result?.ok&&result.found===true&&Number.isInteger(result.saved_version)){pending=null;dirty=false;stash();await load();await oneTouchFinishPhotos(command.operation_id,result.offer_id);status('Сохранённая операция OneTouch подтверждена. Повторного добавления не было.');return}
+  if(!current()||busy||pending?.kind!=='onetouch')return;const token=epoch,command=pending;busy=true;controls();const {kind,dispatched,photo_mode,photo_expected,...data}=command,result=await request('onetouch_operation',data);if(token!==epoch)return;busy=false;
+  if(result?.ok&&result.found===true&&Number.isInteger(result.saved_version)){pending=null;dirty=false;stash();await load();const finished=await oneTouchFinishPhotos(command.operation_id,result.offer_id,command.photo_mode,command.photo_expected);status(finished?'Сохранённая операция OneTouch подтверждена. Повторного добавления не было.':'Операция OneTouch подтверждена, но привязку фотографий нужно проверить. Повторного добавления не было.',!finished);return}
   stash();controls();recovery('pending');status('Сохранение OneTouch пока не подтверждено. Повторное добавление не выполняется.',true);
 }
 
 
 function newOffer(){return {id:id(),selected:true,hotel:'',destination:'',departure:'',room:'',meal:'',source_label:'',rationale:'',compromise:'',flights:'',inclusions:'',constraints:'',stars:null,nights:null,adults:null,date_from:'',child_ages:[],amount:'',currency:'RUB',source_url:'',observed_at:'',photos:[]}}
 function add(){if(!editable()||draft.offers.length>=20)return;const item=newOffer();draft.offers.push(item);selected=item.id;offerDetailsOpen=true;changed();render();$('ts-hotel')?.focus()}
-function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload&&!bulkPrice&&!biblioPanel&&!oneTouchPanel&&!offerComparison}
+function editable(){return current()&&canEdit&&!loading&&!pending&&!conflict&&!preview&&!sending&&!photoUpload&&!bulkPrice&&!bulkTerms&&!biblioPanel&&!oneTouchPanel&&!offerComparison}
 
 function biblioError(result){return {biblio_invalid_url:'Вставьте полную ссылку на результаты поиска Библио-Глобуса с городом вылета, датами и составом.',biblio_source_unavailable:'Сайт Библио-Глобуса не ответил. Варианты в подборке сохранены.',biblio_source_changed:'Не удалось однозначно прочитать условия на странице оператора.',biblio_no_quotes:'На этой странице не найдено предложений с однозначной ценой, составом и условиями.',biblio_photos_unavailable:'Фотографии именно этого отеля не подтверждены. Вариант не добавлен.',biblio_expired:'Цена прочитана более десяти минут назад. Прочитайте предложения заново.',biblio_price_confirmation:'Подтвердите цену за весь указанный состав.',source_price_changed:'У такого варианта изменилась исходная цена. Проверьте уже сохранённый вариант.',manual_price_conflict:'У этого варианта уже есть другая ручная цена. Проверьте сохранённый вариант.',ambiguous_offer:'Похожий вариант уже есть с другими условиями. Проверьте его перед добавлением.',selection_full:'В подборке уже 20 вариантов.',connection_changed:'Клиент или запрос изменился. Откройте подборку заново.'}[result?.error]||error(result)}
 function biblioCurrent(panel){return biblioPanel===panel&&current(panel.target)&&epoch===panel.epoch&&version===panel.version&&canEdit&&!dirty&&!pending&&!conflict&&!preview&&dialog?.open}
@@ -531,6 +615,99 @@ async function submitBiblio(command){
   if(result?.ok){await reconcile();return}
   if(result?.http_status&&result.http_status<500&&!['operation_mismatch','invalid_response'].includes(result.error)){pending=null;if([403,404].includes(result.http_status))canEdit=false;stash();render();status(biblioError(result),true);return}
   stash();controls();recovery('pending');status('Результат добавления не подтверждён. Сначала проверьте сохранение; повторное добавление не запускается.',true);
+}
+const bulkTermFields=[
+  {key:'departure',label:'Город вылета',type:'text',max:160},
+  {key:'date_from',label:'Дата вылета',type:'date'},
+  {key:'nights',label:'Ночей',type:'number',max:60},
+  {key:'adults',label:'Взрослых',type:'number',max:20},
+  {key:'child_ages',label:'Возраст детей',type:'ages'},
+  {key:'room',label:'Номер',type:'text',max:300},
+  {key:'meal',label:'Питание',type:'text',max:160},
+  {key:'flights',label:'Перелёт',type:'multiline',max:1200},
+  {key:'inclusions',label:'Включено',type:'multiline',max:600},
+  {key:'constraints',label:'Условия и доплаты',type:'multiline',max:1200},
+];
+function canOpenBulkTerms(){return !!draft?.offers.length&&dialog?.open&&editable()&&!busy&&!sharing&&!tripPanel&&!appearancePanel&&!invalidAges()}
+function bulkTermsCurrent(){return !!bulkTerms&&dialog?.open&&current(bulkTerms.context)&&epoch===bulkTerms.epoch&&version===bulkTerms.version&&canEdit&&!busy&&!loading&&!pending&&!conflict&&!preview&&!sending&&!sharing&&!photoUpload&&bulkTerms.signature===JSON.stringify(draft)}
+function showBulkTerms(){
+  if(!canOpenBulkTerms())return;
+  clearTimeout(timer);timer=0;clearHotelKnowledge();historyView++;recovery('');
+  const batch={context:capture(),epoch,version,signature:JSON.stringify(draft),offers:clone(draft.offers)};bulkTerms=batch;
+  const root=$('tsBulkTerms');root.hidden=false;dialog.classList.add('tsBulkMode');
+  root.innerHTML='<div class="tsBulkBody"><h3 id="tsTermsTitle">Изменить несколько условий</h3><p>Отметьте варианты и поля. До применения черновик не меняется. Цены не пересчитываются: после изменения дат или состава проверьте цену за весь состав.</p><fieldset id="tsTermsOffers"><legend>Какие варианты изменить</legend>'+batch.offers.map((offer,index)=>'<label><input type="checkbox" data-ts-terms-offer="'+esc(offer.id)+'" '+(offer.selected?'checked':'')+'><span>'+esc((index+1)+'. '+(offer.hotel||'Без названия'))+'<small>'+esc(overviewAmount(offer.amount,offer.currency,offer.price_qualifier))+(offer.selected?'':' · не включён в подборку')+'</small></span></label>').join('')+'</fieldset><fieldset id="tsTermsFields"><legend>Какие поля изменить</legend>'+bulkTermFields.map(field=>{
+    const key=field.key,valueId='tsTermsValue-'+key;
+    return '<div class="tsTermsField"><label for="tsTermsUse-'+key+'"><input id="tsTermsUse-'+key+'" type="checkbox" data-ts-terms-field="'+key+'" aria-controls="'+valueId+'">'+esc(field.label)+'</label>'+(field.type==='multiline'?'<select id="tsTermsMode-'+key+'" aria-label="Способ изменения: '+esc(field.label)+'" disabled><option value="append">Добавить к тексту</option><option value="replace">Заменить текст</option><option value="clear">Очистить поле</option></select><textarea id="'+valueId+'" rows="3" maxlength="'+field.max+'" aria-label="Новое значение: '+esc(field.label)+'" disabled></textarea>':'<input id="'+valueId+'" type="'+(field.type==='date'?'date':'text')+'" '+(field.type==='date'?'':field.type==='number'?'inputmode="numeric" maxlength="2"':field.type==='ages'?'inputmode="text" maxlength="47"':'maxlength="'+field.max+'"')+' aria-label="Новое значение: '+esc(field.label)+'" disabled>')+(field.type==='ages'?'<small>Возраст каждого ребёнка от 0 до 17 через запятую. Пустое поле — без детей.</small>':'')+'</div>';
+  }).join('')+'</fieldset><h4>Проверьте изменения</h4><div id="tsTermsError" class="tsError" role="status" aria-live="polite"></div><div id="tsTermsPreview" class="tsTermsPreview" aria-label="Предпросмотр изменения условий"></div><label class="tsTermsConfirm"><input id="tsTermsConfirm" type="checkbox" disabled>Проверил изменения. Цену и наличие проверю перед отправкой.</label><p>Изменяются только выбранные поля. Фотографии, исходные условия поставщика и уже опубликованные версии сохраняются. Новые условия — ваши правки, а не обновление предложения оператора.</p></div><div class="tsBulkFooter"><button id="tsTermsCancel" type="button">Отмена</button><button id="tsTermsApply" type="button" class="tsPrimary" disabled>Применить</button></div>';
+  root.oninput=root.onchange=event=>{if(bulkTerms===batch)previewBulkTerms(event)};
+  root.onkeydown=event=>{if(event.key==='Escape'&&bulkTerms===batch){event.preventDefault();event.stopPropagation();closeBulkTerms()}};
+  $('tsTermsCancel').onclick=()=>{if(bulkTerms===batch)closeBulkTerms()};$('tsTermsApply').onclick=()=>{if(bulkTerms===batch)applyBulkTerms()};
+  controls();root.querySelector('[data-ts-terms-offer]')?.focus();
+}
+function termText(value,field){
+  const text=String(value).replace(/\r\n?/g,'\n').trim(),multiline=field.type==='multiline';
+  if((multiline?/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/:/[\x00-\x1f\x7f]/).test(text)||Array.from(text).length>field.max)throw Error(field.label+': превышен размер или есть недопустимые символы.');
+  return text;
+}
+function bulkTermValue(field){
+  const raw=$('tsTermsValue-'+field.key).value;
+  if(field.type==='ages'){if(!validAges(raw))throw Error('Возраст детей: укажите до 12 возрастов от 0 до 17 через запятую.');return raw.trim()===''?[]:raw.split(',').map(x=>Number(x.trim()))}
+  if(field.type==='number'){if(!/^[0-9]{1,2}$/.test(raw.trim())||Number(raw)<1||Number(raw)>field.max)throw Error(field.label+': укажите целое число от 1 до '+field.max+'.');return Number(raw)}
+  if(field.type==='date'){
+    const match=/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(raw),date=new Date(0);
+    if(match)date.setUTCFullYear(Number(match[1]),Number(match[2])-1,Number(match[3]));
+    if(!match||Number(match[1])<1||date.getUTCFullYear()!==Number(match[1])||date.getUTCMonth()!==Number(match[2])-1||date.getUTCDate()!==Number(match[3]))throw Error('Дата вылета: выберите существующую календарную дату.');
+    return raw;
+  }
+  const value=termText(raw,field);if(!value)throw Error(field.label+': заполните новое значение.');return value;
+}
+function termDisplay(value,field){if(field.type==='ages')return value?.length?value.join(', '):'Без детей';return value===null||value===undefined||value===''?'Не указано':String(value)}
+function bulkTermsPlan(){
+  if(!bulkTermsCurrent())throw Error('Подборка или доступ изменились. Откройте массовую правку заново.');
+  const ids=new Set([...$('tsTermsOffers').querySelectorAll('input:checked')].map(x=>x.dataset.tsTermsOffer)),offers=bulkTerms.offers.filter(x=>ids.has(x.id));
+  if(!offers.length)throw Error('Отметьте хотя бы один вариант.');
+  const fields=bulkTermFields.filter(field=>$('tsTermsUse-'+field.key).checked);if(!fields.length)throw Error('Отметьте поля, которые нужно изменить.');
+  const values=new Map();for(const field of fields){
+    const mode=field.type==='multiline'?$('tsTermsMode-'+field.key).value:'replace';if(!['append','replace','clear'].includes(mode))throw Error('Выберите способ изменения поля.');
+    values.set(field.key,{mode,value:mode==='clear'?'':bulkTermValue(field)});
+  }
+  return offers.map(offer=>{
+    const changes=[];for(const field of fields){
+      const input=values.get(field.key),before=offer[field.key]??(field.type==='ages'?[]:''),after=input.mode==='append'?termText([before,input.value].filter(Boolean).join('\n'),field):input.value;
+      if(JSON.stringify(before)!==JSON.stringify(after))changes.push({field:field.key,label:field.label,before:termDisplay(before,field),after:termDisplay(after,field),value:after});
+    }
+    return {id:offer.id,hotel:offer.hotel,changes};
+  });
+}
+function previewBulkTerms(event){
+  if(!bulkTerms)return;const allowed=bulkTermsCurrent(),root=$('tsBulkTerms'),confirm=$('tsTermsConfirm');
+  if(event&&event.target!==confirm)confirm.checked=false;
+  root.querySelectorAll('[data-ts-terms-offer],[data-ts-terms-field]').forEach(input=>{input.disabled=!allowed});
+  for(const field of bulkTermFields){const chosen=allowed&&$('tsTermsUse-'+field.key).checked,mode=$('tsTermsMode-'+field.key);if(mode)mode.disabled=!chosen;const input=$('tsTermsValue-'+field.key);input.disabled=!chosen||mode?.value==='clear';input.closest('.tsTermsField').classList.toggle('isChosen',chosen)}
+  try{
+    const rows=bulkTermsPlan(),changed=rows.filter(x=>x.changes.length),signature=JSON.stringify(rows);
+    if(bulkTerms.previewSignature!==signature){
+      confirm.checked=false;bulkTerms.previewSignature=signature;const preview=$('tsTermsPreview');preview.replaceChildren();
+      for(const row of rows){const article=document.createElement('article'),title=document.createElement('h5');article.className='tsTermsRow';title.textContent=row.hotel||'Без названия';article.append(title);
+        if(!row.changes.length){const p=document.createElement('p');p.textContent='Нет изменений';article.append(p)}
+        for(const change of row.changes){const block=document.createElement('div'),label=document.createElement('strong'),before=document.createElement('p'),after=document.createElement('p');label.textContent=change.label;before.textContent='Было: '+change.before;after.textContent='Станет: '+change.after;block.append(label,before,after);article.append(block)}preview.append(article);
+      }
+    }
+    $('tsTermsError').textContent=changed.length?'':'Выбранные значения уже сохранены. Нет изменений.';confirm.disabled=!changed.length;$('tsTermsApply').disabled=!changed.length||!confirm.checked;$('tsTermsApply').textContent='Применить к вариантам: '+changed.length;
+  }catch(error){confirm.checked=false;confirm.disabled=true;$('tsTermsApply').disabled=true;$('tsTermsError').textContent=error.message;$('tsTermsPreview').replaceChildren();delete bulkTerms.previewSignature;}
+}
+function closeBulkTerms(resume=true){
+  if(!bulkTerms)return;bulkTerms=null;const root=$('tsBulkTerms');if(root){root.oninput=root.onchange=root.onkeydown=null;root.replaceChildren();root.hidden=true}dialog?.classList.remove('tsBulkMode');
+  if(resume&&current()&&dialog?.open){render();$('tsBulkTermsOpen')?.focus();resumeComparisonAutosave()}
+}
+function applyBulkTerms(){
+  if(!bulkTerms)return;
+  try{
+    const rows=bulkTermsPlan();if(!$('tsTermsConfirm').checked||JSON.stringify(rows)!==bulkTerms.previewSignature){previewBulkTerms();$('tsTermsError').textContent='Проверьте текущий предпросмотр и подтвердите изменения.';return}
+    const changedRows=rows.filter(row=>row.changes.length);if(!changedRows.length)return;
+    const next=clone(draft);for(const row of changedRows){const offer=next.offers.find(x=>x.id===row.id);for(const change of row.changes){offer[change.field]=clone(change.value);if(change.field==='child_ages')delete rawAges[row.id]}}
+    closeBulkTerms(false);draft=next;changed();render();status('Изменены условия вариантов: '+changedRows.length+'. Черновик сохраняется. Проверьте цену за весь новый состав перед отправкой.');
+  }catch(error){$('tsTermsError').textContent=error.message;$('tsTermsConfirm').checked=false;$('tsTermsApply').disabled=true;}
 }
 function priceUnits(value){
   const text=String(value??'').trim().replace(/[\s\u00a0\u202f]/g,'').replace(',','.');
@@ -764,7 +941,7 @@ function render(){
   dialog.classList.toggle('tsAppearanceMode',appearancePanel&&!preview);
   dialog.classList.toggle('tsOfferCompareMode',!!offerComparison);
   applyAppearance($('tsEditor'),preview?publication?.appearance:null);
-  if(bulkPrice){controls();return}
+  if(bulkPrice||bulkTerms){controls();return}
   if(offerComparison){renderOfferComparison();controls();return}
   if(oneTouchPanel){renderList();renderOneTouch();controls();return}
   if(biblioPanel){renderList();renderBiblio();controls();return}
@@ -821,6 +998,8 @@ function controls(){
   $('tsCompareOffers').hidden=preview;$('tsCompareOffers').disabled=!canCompareOffers()||!!offerComparison;$('tsCompareOffers').setAttribute('aria-expanded',String(!!offerComparison));
   $('tsAppearance').hidden=preview;$('tsAppearance').disabled=disabled||busy||!!tripPanel;
   $('tsBulkPrices').disabled=disabled||busy||!!tripPanel||!(draft?.offers.length)||invalidAges();$('tsBulkPrices').hidden=preview;
+  $('tsBulkTermsOpen').disabled=!canOpenBulkTerms();$('tsBulkTermsOpen').hidden=preview;
+  if(bulkTerms)previewBulkTerms();
   if(bulkPrice){$('tsHistory').disabled=true;previewBulkPrices();}
   const factsButton=$('tsHotelKnowledgeRead');if(factsButton){factsButton.disabled=!canReadHotelKnowledge();factsButton.title=dirty?'Сначала сохраните изменения':'';}
   $('tsAdd').disabled=disabled||busy||(draft?.offers.length||0)>=20;$('tsSave').disabled=disabled||busy||!dirty||invalidAges();$('tsDone').disabled=busy||loading||(!preview&&invalidAges());
@@ -828,10 +1007,12 @@ function controls(){
   $('tsEditor')?.querySelectorAll('input,textarea,select,[data-ts-action],[data-ts-copy-photos],[data-ts-fix-offer],[data-ts-remove-photo],[data-ts-photo-mode],#tsEmptyAdd').forEach(x=>{x.disabled=disabled||busy});
   $('tsSave').hidden=preview;$('tsPreview').hidden=preview;$('tsEdit').hidden=!preview;$('tsSend').hidden=!preview;$('tsHistory').hidden=preview;$('tsDone').hidden=!preview;
   $('tsCollector').hidden=preview;$('tsCollector').disabled=!!photoUpload||!canEdit||busy||loading||sending||sharing;
+  if(bulkTerms)$('tsCollector').disabled=true;
+  if($('tsStandalone'))$('tsStandalone').disabled=!!bulkTerms;
   $('tsOneTouch').hidden=preview;$('tsOneTouch').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
   $('tsBiblio').hidden=preview;$('tsBiblio').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
   $('tsPreview').disabled=!!photoUpload||busy||loading||sending||!canEdit||!!pending||!!conflict||invalidAges();$('tsHistory').disabled=!!photoUpload||busy||loading||sending;$('tsEdit').disabled=sending;
-  if(bulkPrice){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
+  if(bulkPrice||bulkTerms){$('tsHistory').disabled=true;$('tsPreview').disabled=true;}
   if(offerComparison){for(const id of ['tsHistory','tsPreview','tsCollector','tsAppearance','tsOneTouch','tsBiblio','tsTripAdd','tsBulkPrices','tsAdd','tsSave'])$(id).disabled=true;}
   $('tsShare').hidden=!preview;$('tsShare').disabled=busy||loading||sending||sharing;
   const printLabel=printProposal?'Вернуть предпросмотр':'Печать / PDF';$('tsPrint').hidden=!preview;if($('tsPrint').textContent!==printLabel)$('tsPrint').textContent=printLabel;$('tsPrint').disabled=printProposal?!current():!canPrint();
@@ -841,7 +1022,7 @@ function controls(){
   const publish=$('tsPublish');if(publish)publish.disabled=!canEdit||busy||sending||sharing||dirty||!!pending||!!conflict||photoPending>0||photoFailures>0;
   if(sharing){$('tsEdit').disabled=true;$('tsDone').disabled=true}else $('tsDone').disabled=false;
   $('tsTripAdd').hidden=preview;$('tsTripAdd').disabled=disabled||busy||!!tripPanel||(draft?.offers.length||0)>=20;
-  $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=!!photoUpload||busy});
+  $('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=!!photoUpload||busy||!!bulkTerms});
   if(tripPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector'])$(id).disabled=true;}
   if(oneTouchPanel){for(const id of ['tsAdd','tsSave','tsDone','tsPreview','tsHistory','tsCollector','tsBulkPrices','tsTripAdd','tsBiblio'])$(id).disabled=true;$('tsList')?.querySelectorAll('button').forEach(x=>{x.disabled=true});oneTouchControls();}
   if(appearancePanel&&!preview){
@@ -1023,7 +1204,7 @@ function printPreview(){
   const root=document.createElement('section');root.className='tsPrintProposal';root.setAttribute('aria-label','Подборка для печати');
   const text=(tag,value,parent=root)=>{const el=document.createElement(tag);el.textContent=value;parent.append(el);return el};
   applyAppearance(root,publication.appearance);
-  text('p',appearanceSettings(publication.appearance).agency_name).className='tsPrintBrand';const manager=managerPresentation(publication.appearance);if(manager)root.append(manager);text('h1',publication.title);
+  root.append(appearanceBrand(publication.appearance,'tsPrintBrand'));const manager=managerPresentation(publication.appearance);if(manager)root.append(manager);text('h1',publication.title);
   if(publication.intro)text('p',publication.intro).className='tsPrintIntro';
   text('p','Версия подборки '+publication.draft_version).className='tsPrintVersion';
   printProposal={root,images:[]};
@@ -1050,7 +1231,7 @@ function renderPreview(){
   const heading=$('tsEditor').querySelector('.tsPreviewHeading'),design=appearanceSettings(publication.appearance);
   if(publication.appearance||publication.title!=='Подборка туров'||publication.intro){
     const header=document.createElement('div');header.className='tsSelectionHeading';
-    const brand=document.createElement('p');brand.className='tsSelectionBrand';brand.textContent=design.agency_name;header.append(brand);
+    header.append(appearanceBrand(publication.appearance,'tsSelectionBrand'));
     const title=document.createElement('h4');title.textContent=publication.title;header.append(title);
     if(publication.intro){const intro=document.createElement('p');intro.className='tsSelectionIntro';intro.textContent=publication.intro;header.append(intro)}
     const manager=managerPresentation(publication.appearance);if(manager)header.prepend(manager);heading.append(header);
@@ -1080,7 +1261,7 @@ function updateDelivery(){
   controls();
 }
 async function showPreview(){
-  if(!current()||busy||sending||pending||conflict||biblioPanel||oneTouchPanel||offerComparison||invalidAges())return;
+  if(!current()||busy||sending||pending||conflict||bulkTerms||biblioPanel||oneTouchPanel||offerComparison||invalidAges())return;
   historyView++;
   clearTimeout(timer);if(dirty)await save();if(dirty||busy||pending||conflict||!current())return;
   const token=epoch;busy=true;controls();status('Готовим предпросмотр…');const result=await request('prepare',{version});if(token!==epoch)return;busy=false;
@@ -1092,12 +1273,12 @@ async function showPreview(){
   status(result?.error==='incomplete_offers'?'Заполните '+(result.fields||[]).map(x=>'в варианте '+x.position+': '+x.fields.map(f=>f==='photos'&&!draft.offers.find(o=>o.id===x.offer_id)?.import_source?'три фото':names[f]||f).join(', ')).join('; ')+'.':error(result),true);controls();
 }
 async function showHistory(){
-  if(!current()||busy||sending||bulkPrice||biblioPanel||oneTouchPanel||appearancePanel||offerComparison)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open||appearancePanel||offerComparison)return;busy=false;controls();
+  if(!current()||busy||sending||bulkPrice||bulkTerms||biblioPanel||oneTouchPanel||appearancePanel||offerComparison||bulkTerms)return;const token=epoch,view=++historyView;busy=true;controls();const result=await request('history');if(token!==epoch||view!==historyView||!current()||!dialog.open||appearancePanel||offerComparison||bulkTerms)return;busy=false;controls();
   if(!result?.ok){status(error(result),true);return}
   const root=$('tsRecovery');root.replaceChildren();root.hidden=false;
   if(!result.publications.length){root.textContent='Пока нет подготовленных к отправке подборок.';return}
   const heading=document.createElement('p');heading.textContent='Подготовленные подборки и результаты отправки:';root.appendChild(heading);
-  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice||biblioPanel||oneTouchPanel||appearancePanel||offerComparison)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open||biblioPanel||oneTouchPanel||appearancePanel||offerComparison)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
+  for(const entry of result.publications){const button=document.createElement('button');button.type='button';button.textContent='Версия '+entry.draft_version+' · '+entry.created_at+' UTC';button.onclick=async()=>{if(!current()||!dialog.open||busy||sending||sharing||bulkPrice||bulkTerms||biblioPanel||oneTouchPanel||appearancePanel||offerComparison||bulkTerms)return;const t=epoch,selectedView=++historyView;const read=await request('publication',{publication_id:entry.publication_id});if(t!==epoch||selectedView!==historyView||!current()||!dialog.open||biblioPanel||oneTouchPanel||appearancePanel||offerComparison||bulkTerms)return;if(read?.ok&&read.publication?.id===entry.publication_id){publication=read.publication;preview=true;render();recovery('');status('Показана сохранённая версия и результат отправки.')}else status(error(read),true)};root.appendChild(button)}
 }
 async function showInterest(){
   if(!current()||busy||sending||sharing||interestLoading||!publication)return;

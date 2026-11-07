@@ -59,6 +59,7 @@ file_put_contents($tmp.'/bootstrap.php', $bootstrap);
 $real = [
     'services/IncomingUpdateDispatcher.php', 'services/DialogueApplication.php',
     'services/DialogueController.php', 'services/DialogueView.php',
+    'services/MissingFieldQuestionService.php',
     'services/V2FeatureGate.php', 'services/RulesEngine.php', 'services/V2ActionExecutor.php',
     'services/ManagerHandoffDispatchService.php', 'services/ConversationControlService.php',
     'services/ConversationRecordClock.php', 'handlers/V2EarlyActionHandler.php',

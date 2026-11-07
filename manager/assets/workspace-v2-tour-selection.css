@@ -104,3 +104,35 @@
 @media(max-height:500px){.tsDialog.tsOfferCompareMode{height:100dvh;width:min(1100px,100vw);margin:0 auto;border-radius:0}.tsOfferCompareMode .tsHead{padding:8px 16px}.tsOfferCompareMode .tsKicker{display:none}.tsOfferCompareMode .tsHead h2{font-size:17px;margin:0}.tsOfferCompareMode .tsHead p{font-size:11px}.tsOfferCompareMode .tsStatus{padding:4px 16px;min-height:24px;font-size:11px}.tsCompareTools{max-height:72px}.tsCompareTools p{display:none}.tsOfferCompare{padding:8px 16px;gap:4px}.tsCompareTools h3{font-size:14px}.tsCompareTable thead th{position:static}}
 
 .tsAppearance fieldset{grid-column:1/-1;border:1px solid #d9e3df;border-radius:14px;padding:18px;margin:10px 0;min-width:0}.tsAppearance fieldset[hidden]{display:none}.tsAppearance legend{font-weight:700;padding:0 6px}.tsManagerPresentation{padding:20px;border:1px solid #dce4ef;border-radius:16px;background:#f3f6fb;margin:0 0 20px;overflow-wrap:anywhere;white-space:pre-line}.tsManagerPresentation h4{font-size:22px;margin:8px 0}.tsManagerPresentation p{line-height:1.5}.tsManagerPresentation small{color:var(--ts-appearance-accent,#1766a1);font-weight:700}.tsTemplate-personal .tsPreviewCards{grid-template-columns:minmax(0,1fr)}
+
+/* Official preset is opt-in; saved ocean/forest/sunset remain unchanged. */
+.tsPalette-anytour{--ts-appearance-accent:#2743CB;--ts-brand-light:#6F99FF;--ts-brand-orange:#FF510C}
+.tsPalette-anytour .tsSelectionHeading{padding:20px;border:1px solid #d9e2ff;border-top:4px solid var(--ts-brand-orange);border-radius:16px;background:linear-gradient(135deg,#fff 58%,#e9efff);margin-bottom:20px}
+.tsPalette-anytour .tsSelectionBrand,.tsPalette-anytour .tsPrintBrand{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.tsAnyTourLogo{display:block;width:174px;max-width:100%;height:auto;flex:none}
+.tsPalette-anytour .tsBrandAgency{font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.tsPalette-anytour .tsSelectionHeading h4{color:var(--ts-appearance-accent);font-size:27px;line-height:1.2}
+.tsPalette-anytour .tsSelectionIntro{color:#334362;line-height:1.6}
+.tsPalette-anytour .tsManagerPresentation{border-color:#d9e2ff;background:#f3f6ff}
+.tsPalette-anytour .tsPreviewCard{border-color:#d9e2ff}
+@media(max-width:600px){.tsPalette-anytour .tsSelectionHeading{padding:16px}.tsPalette-anytour .tsSelectionHeading h4{font-size:24px}.tsAnyTourLogo{width:156px}}
+@media print{.tsPalette-anytour .tsPrintBrand{color:#2743CB}.tsPalette-anytour .tsAnyTourLogo{width:45mm}.tsPalette-anytour .tsSelectionHeading{box-shadow:none;background:white}}
+
+/* Explicit batch terms share the existing modal, scroll and fixed footer layout. */
+#tsBulkTermsOpen{min-width:88px}
+#tsTermsFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.tsTermsField{min-width:0;padding:0 0 12px;border-bottom:1px solid #e5ece7}
+.tsTermsField>label{font-weight:600}
+.tsTermsField input:not([type=checkbox]),.tsTermsField textarea,.tsTermsField select{display:block;width:100%;max-width:100%;min-height:44px;padding:10px;border:1px solid #bdcec2;border-radius:8px;font:inherit;background:#fff;color:#20372b;margin:0 0 7px;box-sizing:border-box}
+.tsTermsField textarea{resize:vertical;min-height:84px}
+.tsTermsField :disabled{background:#f1f4f2;color:#65756c}
+.tsTermsField small{font-size:12px;line-height:1.5}
+.tsTermsField:not(.isChosen)>:not(label){display:none}
+.tsTermsRow{border:1px solid #d6e1da;border-radius:10px;padding:14px;margin:10px 0;overflow-wrap:anywhere}
+.tsTermsRow h5{font-size:15px;margin:0 0 12px}
+.tsTermsRow>div{border-top:1px solid #e5ece7;padding-top:10px;margin-top:10px}
+.tsTermsRow strong{font-size:13px}.tsTermsRow p{white-space:pre-wrap;margin:6px 0;line-height:1.5}
+.tsBulkTerms .tsTermsConfirm{display:flex;align-items:center;gap:10px;min-height:52px;font-size:13px;line-height:1.5;margin:16px 0}
+.tsTermsConfirm input{flex:none;width:20px;min-width:20px;margin:0}
+.tsBulkTerms :focus-visible{outline:3px solid #81b7a3;outline-offset:2px}
+@media(max-width:767px){#tsTermsFields{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.tsTermsField.isChosen{grid-column:1/-1}.tsTermsField>label{font-size:13px}.tsTermsRow{padding:12px}.tsImportActions #tsBulkTermsOpen{flex:1;min-width:88px;padding:8px;font-size:12px}}

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionEarlyForecast.php';
 require_once __DIR__.'/ModeledConversionValueRegistry.php';
+require_once __DIR__.'/ModeledConversionDealValue.php';
 
 /** Owner-selected illustrative advertising value; no calibrated probability or actual income. */
 final class ModeledConversionValueContract
@@ -9,6 +10,8 @@ final class ModeledConversionValueContract
     public const VERSION='semantic_stage_value_25000_v1';
     public const TARGET='anytour_modeled_value_v1';
     public const NAME='AnyTour: оценочная ценность обращения v1';
+    /** Current monetary envelope; BASE/VALUES below retain the historical stage fractions. */
+    public const MAX_VALUE_RUB=ModeledConversionDealValue::CAP;
     public const BASE=25000;
     public const VALUES=[1=>1250,2=>2083,3=>4167,4=>8333,5=>12500,6=>25000];
     public const STAGES=[1=>'interest',2=>'specific_request',3=>'offer_discussion',4=>'purchase_intent',5=>'agency_choice',6=>'payment_report'];
@@ -17,7 +20,9 @@ final class ModeledConversionValueContract
         if(!isset(self::VALUES[$rank]))throw new InvalidArgumentException('value_rank');
         return 'anytour_value_'.$rank.'_v1';
     }
-    public static function isKey(mixed $key):bool{return is_string($key)&&preg_match('/\Aanytour_value_[1-6]_v1\z/D',$key)===1;}
+    public static function isKey(mixed $key):bool{return is_string($key)&&preg_match('/\Aanytour_value_(?:[1-6]|pred_[1-9][0-9]{0,19})_v1\z/D',$key)===1;}
+    public static function predictionKey(string $profileId):string
+    {if(preg_match('/\A[1-9][0-9]{0,19}\z/D',$profileId)!==1)throw new InvalidArgumentException('value_profile');return 'anytour_value_pred_'.$profileId.'_v1';}
 
     /** Consume only the immutable admitted projection; never interpret raw text or callback counts. */
     public static function candidate(array $wrapper,array $subject,int $since,int $now):?array
@@ -92,6 +97,27 @@ final class ModeledConversionValueContract
                 &&($p['frozen_at']??null)===($s['frozen_at']??null)&&($best===null||$rank>$best['rank']))
                 $best=['rank'=>$rank,'stage'=>self::STAGES[$rank],'value'=>self::VALUES[$rank],'event_unix'=>$history?$now:$frozen,
                     'evidence_at'=>$r['at'],'evidence_available_at'=>$r['available'],'source_ref'=>$anchor];
+        }
+        // Live owner-authorized V1 uses its frozen probability and commission projection.
+        // Historical review keeps its original stage-only contract and never re-prices saved rows.
+        if(!$history&&array_key_exists('deal_value_prediction',$wrapper)){
+            $money=ModeledConversionDealValue::saved($wrapper);
+            if($money===null)return null;
+            if($best!==null&&$best['rank']===6){
+                if($money['payment_hold_observed'])return null;
+                $best['value']=$money['full_value_base_rub'];$best['prediction_value']=true;
+            }elseif(is_array($p)&&($p['mode']??null)==='contextual_advertising_v1'&&($p['status']??null)==='predicted'){
+                $verified=ModeledConversionValueRegistry::predictionFields($wrapper);
+                if(($verified['semantic_prediction']['availability']??null)!=='available'||$money['status']!=='estimated')return null;
+                $rank=['substantive_dialogue'=>1,'concrete_request'=>2,'exact_offer_discussion'=>3,'general_purchase_intent'=>4,'agency_purchase_intent'=>5][$p['stage']]??null;
+                $anchor=$p['current_request_anchor'];$r=$refs[$anchor]??null;
+                if($rank===null||!$r||$r['role']!=='customer'||$r['at']<$since)return null;
+                $best=['rank'=>$rank,'stage'=>self::STAGES[$rank],'value'=>$money['value_rub'],'prediction_value'=>true,
+                    'event_unix'=>$frozen,'evidence_at'=>$r['at'],'evidence_available_at'=>$r['available'],'source_ref'=>$anchor];
+            }elseif($best!==null){
+                $best['value']=(int)round(self::VALUES[$best['rank']]/self::BASE*$money['full_value_base_rub']);
+                $best['prediction_value']=true;
+            }
         }
         return $contrary?null:$best;
     }

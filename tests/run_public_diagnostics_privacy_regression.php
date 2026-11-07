@@ -37,6 +37,7 @@ exec($cmd,$lines,$code);@unlink($tmp);$raw=implode("\n",$lines);$json=json_decod
 $publish=(string)file_get_contents($root.'/.github/workflows/publish-conversation-diagnostics.yml');
 $live=(string)file_get_contents($root.'/.github/workflows/live-session-diagnostics.yml');
 $deploy=(string)file_get_contents($root.'/.github/workflows/deploy.yml');
+$publisher=(string)file_get_contents($root.'/tools/release_slot_close.js');
 $passed=0;$failed=0;
 function publicDiagCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 publicDiagCheck('sanitizer preserves aggregate health data',$code===0&&is_array($json)&&!empty($json['public_redacted'])&&($json['summary']['sessions']??null)===4);
@@ -48,7 +49,13 @@ $allowlist="find . -maxdepth 1 -type f -name '*.json' ! -name 'deploy_status.jso
 publicDiagCheck('production publisher commits only public-safe aggregate artifacts',strpos($publish,'cp production_snapshot.json live_session_report.json')===false&&strpos($publish,$allowlist)!==false&&strpos($publish,'git add -A')!==false);
 publicDiagCheck('AI private projection uses the existing encrypted production capture only',str_contains($publish,'--production production_snapshot.json')&&str_contains($publish,'--output "$RUNNER_TEMP/dialogue-evidence.age"')&&!str_contains($publish,'path: production_snapshot.json'));
 publicDiagCheck('hourly live publisher removes every non-allowlisted json',strpos($live,'public_live_status.json')!==false&&strpos($live,$allowlist)!==false&&strpos($live,'git add live_sessions.json daily_sessions.json live_anomalies.json')===false);
-publicDiagCheck('deploy telemetry does not republish downloaded raw json',strpos($deploy,"find ../production-diagnostics -maxdepth 1 -type f -name '*.json' -exec cp")===false&&strpos($deploy,'git add deploy_status.json *.json')===false&&strpos($deploy,$allowlist)!==false);
+$metadataOnly=str_contains($deploy,'--publish-pending --record "$RUNNER_TEMP/deploy-status.json"')
+    &&!str_contains($deploy,'git add ')
+    &&str_contains($publisher,"const PUBLIC_DIAGNOSTIC_JSON = new Set(['deploy_status.json','ops_status.json','autopilot_snapshot.json',")
+    &&str_contains($publisher,"'architecture_inventory.json','public_live_status.json','public_daily_status.json']")
+    &&str_contains($publisher,"e.path.endsWith('.json')&&!PUBLIC_DIAGNOSTIC_JSON.has(e.path)")
+    &&str_contains($publisher,"{path:'deploy_status.json',mode:'100644',type:'blob',content:release.wire(record)}");
+publicDiagCheck('deploy telemetry publishes only finite metadata and retains the public JSON allowlist',strpos($deploy,"find ../production-diagnostics -maxdepth 1 -type f -name '*.json' -exec cp")===false&&strpos($deploy,'git add deploy_status.json *.json')===false&&$metadataOnly);
 publicDiagCheck('raw deploy diagnostics stay outside production webroot',str_contains($deploy, 'snapshot="/tmp/max-search-diagnostics-$EXPECTED_SHA-$run_id"') && str_contains($deploy, 'MAX_SEARCH_DIAGNOSTICS_OUTPUT_DIR="$snapshot"')&&strpos($deploy,'/app.anytoour.ru/diagnostics/*.json')===false&&strpos($deploy,'rm -f diag-tdxAcIvIkZwuvgwq86B1x9fFMJo3GfRa-*.json')!==false);
-publicDiagCheck('every diagnostics writer removes the legacy raw artifact directory',substr_count($publish,'rm -rf production-diagnostics')>=1&&substr_count($live,'rm -rf production-diagnostics')>=1&&substr_count($deploy,'rm -rf production-diagnostics')>=1);
+publicDiagCheck('every diagnostics writer removes the legacy raw artifact directory',substr_count($publish,'rm -rf production-diagnostics')>=1&&substr_count($live,'rm -rf production-diagnostics')>=1&&str_contains($publisher,"e.path==='production-diagnostics'||e.path==='migration.log'")&&str_contains($publisher,'edits.push({path:e.path,mode:e.mode,type:e.type,sha:null})'));
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS {$passed} | FAIL {$failed}\n";exit($failed?1:0);

@@ -15,6 +15,9 @@ DiagnosticLogger::setFile(__DIR__.'-private/events.log');
 final class ManagerPreparationOAuth{
 public const PROFILE_LEGACY='legacy',PROFILE_DEVELOPMENT='development';
 public const DEVELOPMENT_ENDPOINT='https://app.anytoour.ru/manager/development-oauth.php';
+public const DIALOGUE_SCOPE='dialogues:read';
+public const QUALITY_SCOPE='quality:read';
+public const SELECTION_SCOPE='selections:write';
 public function __construct($pdo=null,$clock=null,private string $profile=self::PROFILE_LEGACY){}
 public function contextForBearer(string $header):?array{return $this->profile===self::PROFILE_DEVELOPMENT&&$header==='Bearer '.str_repeat('d',43)?['admin_id'=>7,'connection_id'=>str_repeat('d',32),'scopes'=>['development_work:write']]:null;}
 public static function authenticateBearer(string $header):?int{return $header==='Bearer '.str_repeat('x',43)?7:null;}
@@ -23,11 +26,25 @@ public static function bearerContext(string $header):?array{
 if($header==='Bearer '.str_repeat('y',43))return ['admin_id'=>7,'connection_id'=>str_repeat('b',32),'scopes'=>['hotel_work:write']];
 if($header==='Bearer '.str_repeat('w',43))return ['admin_id'=>7,'connection_id'=>str_repeat('c',32),'scopes'=>['archive:read']];
 if($header==='Bearer '.str_repeat('v',43))return ['admin_id'=>7,'connection_id'=>str_repeat('e',32),'scopes'=>['development_work:write']];
+if($header==='Bearer '.str_repeat('j',43))return ['admin_id'=>7,'connection_id'=>str_repeat('f',32),'scopes'=>['dialogues:read']];
+if($header==='Bearer '.str_repeat('s',43))return ['admin_id'=>7,'connection_id'=>str_repeat('e',32),'scopes'=>['selections:write']];
 return self::authenticateBearer($header)===7?['admin_id'=>7,'connection_id'=>str_repeat('a',32),'scopes'=>['queue:read','prepared:write']]:null;}
 }
 final class ManagerPreparationMcpService{
 public function handle(array $rpc,int $actor,?string $connection,array $scopes):array{
 file_put_contents(__DIR__.'/dispatch',json_encode(['actor'=>$actor,'connection'=>$connection,'scopes'=>$scopes]));
+if(($rpc['method']??null)==='tools/call'&&in_array($rpc['params']['name']??null,['list_current_dialogues','get_dialogue_review_context'],true)
+    &&!in_array(ManagerPreparationOAuth::DIALOGUE_SCOPE,$scopes,true)){
+    $challenge='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", error="insufficient_scope", scope="'.implode(' ',array_merge($scopes,[ManagerPreparationOAuth::DIALOGUE_SCOPE])).'"';
+    return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>['isError'=>true,'content'=>[['type'=>'text','text'=>'Explicit dialogue permission required']],
+        '_meta'=>['mcp/www_authenticate'=>[$challenge]]]];
+}
+if(($rpc['method']??null)==='tools/call'&&in_array($rpc['params']['name']??null,['read_tour_selection','save_tour_selection','prepare_tour_selection','review_tour_selection_photo','publish_tour_selection'],true)
+    &&!in_array(ManagerPreparationOAuth::SELECTION_SCOPE,$scopes,true)){
+    $challenge='Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", error="insufficient_scope", scope="'.implode(' ',array_merge($scopes,[ManagerPreparationOAuth::SELECTION_SCOPE])).'"';
+    return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>['isError'=>true,'content'=>[['type'=>'text','text'=>'Explicit selection permission required']],
+        '_meta'=>['mcp/www_authenticate'=>[$challenge]]]];
+}
 return ['jsonrpc'=>'2.0','id'=>$rpc['id'],'result'=>['authenticated'=>true,'method'=>$rpc['method']??'']];
 }}
 final class DevelopmentWorkMcpService{
@@ -106,6 +123,66 @@ PHP);
     $log=(string)file_get_contents($tmp.'-private/events.log');
     preparationHttpCheck('actual HTTP log never includes bearer or hostile origin',
         !str_contains($log,str_repeat('x',43))&&!str_contains($log,str_repeat('z',43))&&!str_contains($log,'hostile.example'));
+    $dialogueToken='Bearer '.str_repeat('j',43);
+    $dialogue=$request($rpc,$dialogueToken);
+    preparationHttpCheck('exact HTTP endpoint forwards dialogue-only stored grant without adding other capabilities',
+        $dialogue['status']===200&&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('f',32),'scopes'=>['dialogues:read']]);
+    foreach([['list_current_dialogues',['cursor'=>'qh.manual.start']],['get_dialogue_review_context',['dialogue_ref'=>'qh.PRIVATE.synthetic.history']]]as[$historyName,$historyArgs]){
+        @unlink($tmp.'/dispatch');
+        $historyRpc=json_encode(['jsonrpc'=>'2.0','id'=>18,'method'=>'tools/call','params'=>['name'=>$historyName,'arguments'=>$historyArgs]]);
+        $historyDenied=$request($historyRpc,'');
+        preparationHttpCheck('unauthenticated history RPC requires its own explicit capability before dispatch',
+            $historyDenied['status']===401&&!file_exists($tmp.'/dispatch')
+            &&str_contains($historyDenied['headers'],'scope="quality:read"')
+            &&!str_contains($historyDenied['body'],'PRIVATE'));
+    }
+    foreach(['list_current_dialogues','get_dialogue_review_context']as $name){
+        $dialogueRpc=json_encode(['jsonrpc'=>'2.0','id'=>17,'method'=>'tools/call','params'=>['name'=>$name,'arguments'=>['dialogue_ref'=>'PRIVATE.fixture.reference']]]);
+        foreach(['','Bearer '.str_repeat('z',43)]as $auth){
+            @unlink($tmp.'/dispatch');$r=$request($dialogueRpc,$auth);
+            preparationHttpCheck('unauthenticated dialogue call requires only its explicit read capability before dispatch',
+                $r['status']===401&&!file_exists($tmp.'/dispatch')
+                &&str_contains($r['headers'],'WWW-Authenticate: Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", scope="dialogues:read"'));
+            preparationHttpCheck('unauthenticated dialogue request values and bearer are not reflected',
+                !str_contains($r['body'],'PRIVATE.fixture.reference')&&!str_contains($r['body'],str_repeat('z',43)));
+        }
+        $r=$request($dialogueRpc,$token);
+        preparationHttpCheck('valid old connection receives HTTP403 with the exact additive dialogue consent challenge',
+            $r['status']===403&&($r['json']['result']['isError']??null)===true
+            &&($r['json']['result']['_meta']['mcp/www_authenticate']??null)===['Bearer resource_metadata="https://app.anytoour.ru/manager/ai-oauth.php?action=resource", error="insufficient_scope", scope="queue:read prepared:write dialogues:read"']
+            &&str_contains($r['headers'],'WWW-Authenticate: '.$r['json']['result']['_meta']['mcp/www_authenticate'][0])
+            &&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('a',32),'scopes'=>['queue:read','prepared:write']]
+            &&!str_contains($r['body'],'PRIVATE.fixture.reference'));
+        $r=$request($dialogueRpc,$dialogueToken);
+        preparationHttpCheck('authorized dialogue call reaches the legacy service with only its exact stored read grant',
+            $r['status']===200&&($r['json']['result']['authenticated']??null)===true
+            &&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('f',32),'scopes'=>['dialogues:read']]
+            &&!str_contains($r['headers'],'WWW-Authenticate:'));
+        @unlink($tmp.'/dispatch');
+        $oversizedId=json_encode(['jsonrpc'=>'2.0','id'=>str_repeat('i',129),'method'=>'tools/call','params'=>['name'=>$name,'arguments'=>[]]]);
+        $r=$request($oversizedId,$dialogueToken);
+        preparationHttpCheck('dialogue RPC identifiers over128 bytes fail before dispatch',
+            $r['status']===400&&($r['json']['error']['code']??null)===-32600
+            &&array_key_exists('id',$r['json'])&&$r['json']['id']===null&&!file_exists($tmp.'/dispatch'));
+    }
+    $dialogueLog=(string)file_get_contents($tmp.'-private/events.log');
+    foreach(['read_tour_selection','save_tour_selection','prepare_tour_selection','review_tour_selection_photo','publish_tour_selection']as $name){
+        $selectionRpc=json_encode(['jsonrpc'=>'2.0','id'=>31,'method'=>'tools/call','params'=>['name'=>$name,'arguments'=>['conversation_id'=>11,'private_marker'=>'PRIVATE.selection.fixture']]]);
+        @unlink($tmp.'/dispatch');$r=$request($selectionRpc,'');
+        preparationHttpCheck('selection call without bearer challenges the actual capability before dispatch',
+            $r['status']===401&&!file_exists($tmp.'/dispatch')&&str_contains($r['headers'],'scope="selections:write"')&&!str_contains($r['body'],'PRIVATE.selection.fixture'));
+        $r=$request($selectionRpc,$token);
+        preparationHttpCheck('old HTTP connection gets the explicit additive selection challenge',
+            $r['status']===403&&($r['json']['result']['isError']??false)===true
+            &&str_contains($r['headers'],'scope="queue:read prepared:write selections:write"'));
+        $r=$request($selectionRpc,'Bearer '.str_repeat('s',43));
+        preparationHttpCheck('selection HTTP dispatch preserves exactly its authenticated actor connection and grant',
+            $r['status']===200&&json_decode(file_get_contents($tmp.'/dispatch'),true)===['actor'=>7,'connection'=>str_repeat('e',32),'scopes'=>['selections:write']]);
+    }
+    $selectionLog=(string)file_get_contents($tmp.'-private/events.log');
+    preparationHttpCheck('selection HTTP diagnostics never contain bearer or private payload',!str_contains($selectionLog,str_repeat('s',43))&&!str_contains($selectionLog,'PRIVATE.selection.fixture'));
+    preparationHttpCheck('dialogue HTTP diagnostics exclude bearer and reference values',
+        !str_contains($dialogueLog,str_repeat('j',43))&&!str_contains($dialogueLog,'PRIVATE.fixture.reference'));
     foreach(['redirect','header_api']as $mode){
         @unlink($tmp.'/dispatch');$r=$request($rpc,$token,'POST','',$mode);
         preparationHttpCheck('real Authorization survives CGI representation '.$mode,
@@ -120,7 +197,7 @@ PHP);
     @unlink($tmp.'/dispatch');@unlink($tmp.'/development-dispatch');
     $devPath='/manager/development-mcp.php';$devToken='Bearer '.str_repeat('d',43);
     $devChallenge='WWW-Authenticate: Bearer resource_metadata="https://app.anytoour.ru/manager/development-oauth.php?action=resource", scope="development_work:write"';
-    foreach(['','Bearer '.str_repeat('z',43),$token,'Bearer '.str_repeat('y',43),'Bearer '.str_repeat('w',43),'Bearer '.str_repeat('v',43)]as $auth){
+    foreach(['','Bearer '.str_repeat('z',43),$token,'Bearer '.str_repeat('y',43),'Bearer '.str_repeat('w',43),'Bearer '.str_repeat('v',43),$dialogueToken]as $auth){
         $r=$request($rpc,$auth,'POST','', '',$devPath);
         preparationHttpCheck('new development ingress rejects missing or other-resource bearer before dispatch',
             $r['status']===401&&!file_exists($tmp.'/development-dispatch')&&!file_exists($tmp.'/dispatch'));

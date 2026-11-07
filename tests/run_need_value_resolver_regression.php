@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 require_once __DIR__ . '/../services/NeedValueResolver.php';
+require_once __DIR__ . '/../services/ChildAgeValueContract.php';
+require_once __DIR__ . '/../services/AiSearchContextService.php';
+require_once __DIR__ . '/../maxsearchbaseclass.php';
 
 $passed = 0;
 $failed = 0;
@@ -75,6 +78,54 @@ $childAgesWrongCount = NeedValueResolver::resolve('child_ages', '5', ['children'
 nvrCheck('child ages wrong count stays unresolved', $childAgesWrongCount['recognized'], false);
 $childAgesOutOfRange = NeedValueResolver::resolve('child_ages', '5 и 18', ['children'=>2]);
 nvrCheck('child ages out of range stays unresolved', $childAgesOutOfRange['recognized'], false);
+
+$infantMonths = NeedValueResolver::resolve('child_ages', 'Малышу 7 месяцев', ['children'=>1]);
+nvrCheck('explicit infant months do not become years', $infantMonths['value'], [0]);
+nvrCheck('infant zero uses existing completed-year storage', ChildAgeValueContract::toStorage($infantMonths['value'], 1), '0');
+$monthsAboveYear = NeedValueResolver::resolve('child_ages', '18 месяцев', ['children'=>1]);
+nvrCheck('explicit months retain completed years', $monthsAboveYear['value'], [1]);
+$yearsAndMonths = NeedValueResolver::resolve('child_ages', '1 год 7 месяцев', ['children'=>1]);
+nvrCheck('compound age is one child, not two children', $yearsAndMonths['value'], [1]);
+$mixedUnits = NeedValueResolver::resolve('child_ages', '7 месяцев и 4 года', ['children'=>2]);
+nvrCheck('each explicit unit belongs to its child', $mixedUnits['value'], [0,4]);
+foreach (['7 месяцев и 4', 'почти 12 месяцев', 'не 7 месяцев', '1 год 12 месяцев', '7-8 месяцев', '-7 месяцев', '07.12.2027', '2 ребенка, 7 месяцев', '7 месяцев или 8 лет'] as $text) {
+    $unresolvedAge = NeedValueResolver::resolve('child_ages', $text, ['children'=>1]);
+    nvrCheck('ambiguous or contradictory unit age stays unresolved: '.$text, $unresolvedAge['recognized'], false);
+}
+$alternativeMonthAges = NeedValueResolver::resolve('child_ages', '7 месяцев или 8 лет', ['children'=>2]);
+nvrCheck('an age alternative is not two children', $alternativeMonthAges['recognized'], false);
+$upperMonthUnit = NeedValueResolver::resolve('child_ages', '7 МЕСЯЦЕВ', ['children'=>1]);
+nvrCheck('month units remain explicit regardless of letter case', $upperMonthUnit['value'], [0]);
+$wrongMonthCount = NeedValueResolver::resolve('child_ages', '7 месяцев', ['children'=>2]);
+nvrCheck('months never invent a missing second age', $wrongMonthCount['recognized'], false);
+
+
+$infantNormalized = AiSearchContextService::normalizeParameters(
+    ['child_ages'=>$infantMonths['value']], static fn($name)=>null, static fn($name)=>null);
+nvrCheck('infant remains zero through canonical normalization', $infantNormalized['child_ages'] ?? null, '0');
+$infantStatus = ['city'=>101,'country'=>102,'adults'=>103,'children'=>104,'child_ages'=>105,'stars'=>106,'meal'=>107,'nights'=>108,'date'=>109];
+$infantSaved = [101=>1,102=>1,103=>2,104=>1,105=>'0',106=>null,107=>null,108=>'7',109=>'15.12.2030'];
+$infantContext = AiSearchContextService::contextFromSaved($infantSaved, $infantStatus,
+    static fn($id)=>'Fixture origin', static fn($id)=>'Fixture country');
+nvrCheck('saved zero age survives the next-turn context', $infantContext['child_ages'] ?? null, '0');
+nvrCheck('saved zero age is complete rather than missing', AiSearchContextService::missingFromSaved($infantSaved, $infantStatus), []);
+$wrongInfantParty = $infantSaved;
+$wrongInfantParty[104] = 2;
+$wrongInfantContext = AiSearchContextService::contextFromSaved($wrongInfantParty, $infantStatus,
+    static fn($id)=>'Fixture origin', static fn($id)=>'Fixture country');
+nvrCheck('one infant age cannot fill a second child', array_key_exists('child_ages', $wrongInfantContext), false);
+class InfantAgeSummaryFixture extends MaxSearchBase
+{
+    static $statusCityChoose=101; static $statusContryChoose=102;
+    static $statusAdults=103; static $statusChild=104; static $statusAge=105;
+    static $statusStars=106; static $statusMeal=107; static $statusNights=108; static $statusDate=109;
+}
+foreach ([0, '0'] as $zeroAge) {
+    $summarySaved = [101=>null,102=>null,103=>2,104=>1,105=>$zeroAge,106=>null,107=>null,108=>null,109=>null];
+    nvrCheck('actual trip summary shows an infant instead of dropping zero age',
+        InfantAgeSummaryFixture::formatSavedData($summarySaved), ['👥 2 взр. + 1 реб. (до 1 года)']);
+}
+
 $childAgesNoContext = NeedValueResolver::resolve('child_ages', '5');
 nvrCheck('child ages without child count stays unresolved', $childAgesNoContext['recognized'], false);
 
@@ -160,6 +211,75 @@ nvrCheck('AI children keeps multi-field party clarification before simple resolv
 nvrCheck('AI children no longer owns generic short number parsing', strpos($handlerSource, 'numberFromShortText') === false, true);
 nvrCheck('AI child ages delegates through application service', strpos($handlerSource, "NeedApplicationService::resolveAndApply(\$chat_id, 'child_ages'") !== false, true);
 nvrCheck('AI child ages no longer owns numeric extraction', strpos($handlerSource, 'preg_match_all(\'/\\b(\\d{1,2})\\b/u\', $lower') === false, true);
+
+// Synthetic regression: execute the actual short-answer handler/resolver/application
+// with an in-memory transport. No customer IDs, transcript or provider call.
+require_once __DIR__.'/../handlers/AiShortAnswerHandler.php';
+require_once __DIR__.'/../contracts/MessengerInterface.php';
+class UnsupportedCountTestMessenger implements MessengerInterface
+{
+    public array $sent = [];
+    public function send($chatId, string $text): bool { $this->sent[] = $text; return true; }
+    public function sendWithButtons($chatId, string $text, array $buttons): bool { throw new RuntimeException('unexpected_buttons'); }
+    public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool { throw new RuntimeException('unexpected_handoff'); }
+}
+class MaxSearchApi
+{
+    public static array $missing = ['children'];
+    public static array $context = ['adults'=>2, 'country'=>'Турция', 'child_ages'=>'4, 9'];
+    public static int $writes = 0;
+    public static function getAiMissingFields($chatId): array { return self::$missing; }
+    public static function getAiSearchContext($chatId): array { return self::$context; }
+    public static function applyAiParameters($chatId, array $params): array { self::$writes++; throw new RuntimeException('unexpected_need_write'); }
+    public static function setStatus(...$args): void { self::$writes++; throw new RuntimeException('unexpected_status_write'); }
+    public static function funnelLog(...$args): void {}
+}
+function unsupportedCheck(string $name, bool $ok): void
+{
+    nvrCheck($name, $ok, true);
+}
+$transport = new UnsupportedCountTestMessenger();
+IntegrationRegistry::resetForTests($transport, null, null);
+$before = MaxSearchApi::$context;
+foreach (['Конечно, 7 детей.', '7', '7 детей', '7детей', 'Да, семеро', 'Дети, 7 человек'] as $text) {
+    $transport->sent = [];
+    $handled = AiShortAnswerHandler::handle(['text'=>$text], 123);
+    unsupportedCheck('known unsupported count consumes the turn: '.$text, $handled === true);
+    unsupportedCheck('explains capacity and customer-initiated manager path: '.$text,
+        count($transport->sent) === 1
+        && strpos($transport->sent[0], '7 детей') !== false
+        && strpos($transport->sent[0], 'до 3 детей') !== false
+        && strpos($transport->sent[0], 'Позвать менеджера') !== false
+        && strpos($transport->sent[0], 'Будут дети?') === false);
+    unsupportedCheck('no need/status mutation, truncation or inferred ages: '.$text,
+        MaxSearchApi::$writes === 0 && MaxSearchApi::$context === $before);
+}
+foreach (['7 лет', '7 ночей', '07.12.2027', '7 и 9', 'не 7 детей', 'двое взрослых, дети 4,9 лет'] as $text) {
+    $transport->sent = [];
+    unsupportedCheck('ambiguous or unrelated input is not an unsupported count: '.$text,
+        AiShortAnswerHandler::handle(['text'=>$text], 123) === false && $transport->sent === []);
+}
+foreach ([['date'], ['city', 'children'], []] as $missing) {
+    MaxSearchApi::$missing = $missing;
+    $transport->sent = [];
+    unsupportedCheck('bare number is child-scoped, not date/city/complete input: '.json_encode($missing),
+        AiShortAnswerHandler::handle(['text'=>'7'], 123) === false && $transport->sent === []);
+}
+foreach (['нет'=>0, '1 ребенок'=>1, 'двое'=>2, 'Да, 3'=>3] as $text=>$expected) {
+    $resolved = NeedValueResolver::resolve('children', $text);
+    unsupportedCheck('supported child contract unchanged: '.$text,
+        $resolved['recognized'] === true && $resolved['value'] === $expected && !isset($resolved['unsupported_count']));
+}
+$unsupported = NeedApplicationService::resolveAndApply(123, 'children', '4 детей');
+unsupportedCheck('unsupported diagnostic survives application but never becomes a value',
+    $unsupported['recognized'] === false && $unsupported['value'] === null
+    && $unsupported['applied'] === false && ($unsupported['unsupported_count'] ?? null) === 4
+    && MaxSearchApi::$writes === 0);
+$ages = NeedValueResolver::resolve('child_ages', '7', ['children'=>1]);
+unsupportedCheck('single seven remains a valid child age in its own field',
+    $ages['recognized'] === true && $ages['value'] === [7] && !isset($ages['unsupported_count']));
+IntegrationRegistry::resetForTests();
+
 
 echo "\n--------------------------\n";
 echo 'TOTAL ' . ($passed + $failed) . " | PASS {$passed} | FAIL {$failed}\n";

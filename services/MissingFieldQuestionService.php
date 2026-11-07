@@ -22,9 +22,11 @@ class MissingFieldQuestionService
             'stars' => 'Какая минимальная категория отеля нужна — 3, 4 или 5 звёзд?',
             'meal' => 'Какое питание предпочитаете?',
             'nights' => 'На сколько ночей планируете поездку?',
-            'date' => !empty($options['month_only'])
+            'date' => !empty($options['ambiguous_months'])
+                ? 'Вы указали период в разных месяцах. Какую конкретную дату вылета взять для поиска?'
+                : (!empty($options['month_only'])
                 ? 'Подскажите ориентировочную дату вылета в этом месяце — например, в начале, середине или конце.'
-                : 'Какая ориентировочная дата вылета?',
+                : 'Какая ориентировочная дата вылета?'),
         ];
 
         return $questions[$field] ?? 'Уточните, пожалуйста, параметры поездки.';
@@ -42,6 +44,14 @@ class MissingFieldQuestionService
     {
         $field = (string)($missing[0] ?? '');
         return self::send($chatId, $field, $options);
+    }
+
+    /** Explain a known count without changing needs, status or manager ownership. */
+    public static function sendUnsupportedChildren($chatId, int $count): bool
+    {
+        return self::sendText($chatId,
+            "Вы указали {$count} детей. Онлайн-подбор поддерживает до 3 детей, поэтому для такого состава нужен подбор с менеджером.\n\nЧтобы подключить менеджера, напишите «Позвать менеджера»."
+        );
     }
 
     public static function sendText($chatId, string $text): bool

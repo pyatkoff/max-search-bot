@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/IntegrationRegistry.php';
+require_once __DIR__ . '/MissingFieldQuestionService.php';
 require_once __DIR__ . '/ButtonFactory.php';
 require_once __DIR__ . '/CallbackGeneration.php';
 require_once __DIR__ . '/CalendarViewModel.php';
@@ -194,6 +195,11 @@ class DialogueView
 
     public static function check($chatId): bool
     {
+        $missing = MaxSearchApi::getAiMissingFields($chatId);
+        if ($missing !== []) {
+            MissingFieldQuestionService::sendForMissing($chatId, $missing);
+            return false;
+        }
         MaxSearchApi::funnelLog($chatId,'search_ready');
         MaxSearchApi::deletePrevMessage($chatId);
         $savedData = MaxSearchApi::getSavedData($chatId);

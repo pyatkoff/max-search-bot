@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ArchiveResearchReadService.php';
+require_once __DIR__.'/support/archive-predictive-study-store.php';
 
 /** Fixture-only PDO instrumentation; records SQL structure, never bound source values. */
 final class ArchiveResearchTraceStatement extends PDOStatement
@@ -8,10 +9,12 @@ final class ArchiveResearchTraceStatement extends PDOStatement
     public static array $queries=[];
     public static ?string $failureNeedle=null;
     public static ?PDOException $failure=null;
+    public static $duringExecute=null;
     protected function __construct() {}
     public function execute(?array$params=null):bool
     {
         self::$queries[]=$this->queryString;
+        if(is_callable(self::$duringExecute))(self::$duringExecute)($this->queryString);
         if(self::$failureNeedle!==null&&str_contains($this->queryString,self::$failureNeedle)){
             self::$failureNeedle=null;
             throw self::$failure??new PDOException('synthetic fixture failure');
@@ -104,6 +107,15 @@ function archiveResearchReadRegression(PDO $pdo): int
         $before=$fingerprint();ArchiveResearchTraceStatement::$queries=[];
         $inventory=$service->inventory(1,$connection,['limit'=>1]);$inventorySql=ArchiveResearchTraceStatement::$queries;
         $check($inventory['database_writes']===0&&$blockedWrite,'actual_readonly_transaction_rejects_write');
+        $study=$inventory['historical_prefix_study']??null;
+        $check(is_array($study)&&($study['available']??null)===false
+            &&in_array($study['status']??null,['not_built','unavailable','scope_changed','busy'],true)
+            &&!array_key_exists('counts',$study)&&!array_key_exists('multipliers',$study),
+            'ordinary_inventory_exposes_missing_or_unadmitted_private_study_as_unknown_not_zero');
+        if(!file_exists(ArchivePredictiveStudyStore::DIRECTORY)&&!is_link(ArchivePredictiveStudyStore::DIRECTORY))
+            $check($study===['available'=>false,'status'=>'not_built'],
+                'fixed_private_study_read_does_not_create_a_missing_directory');
+
         $check(!$pdo->inTransaction()&&$keyCalls===2,'fresh_key_checks_outside_transaction');
         $check(count($inventorySql)>0&&!array_filter($inventorySql,static fn($sql)=>preg_match('/record_json|JSON_EXTRACT|JSON_VALID|\bLENGTH\s*\(/i',$sql)),'inventory_executes_metadata_sql_without_json_or_lengths');
         $seekSql=array_values(array_filter($inventorySql,static fn($sql)=>str_contains($sql,'ORDER BY m.chat_id,m.message_id LIMIT 1')));
@@ -279,6 +291,25 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check(strlen(json_encode($final,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=ArchiveResearchReadService::MAX_RESPONSE_BYTES,'full_envelope_byte_cap');
         $check(!$pdo->inTransaction(),'successful_read_rolls_back');
         if(!$mysql)$check((int)$pdo->query('PRAGMA query_only')->fetchColumn()===0,'sqlite_query_only_restored');
+        // The separately consented monthly history mode may include business-only chats.
+        $qualityHistory=new ArchiveResearchReadService($pdo,$clock,$provider,true);
+        $historyFingerprint=$fingerprint();ArchiveResearchTraceStatement::$queries=[];
+        $qualityPage=$qualityHistory->inventory(1,$connection,['limit'=>50]);$qualityChats=[];
+        foreach($qualityPage['chats']as$chat){
+            $body=explode('.',$chat['chat_ref'])[0];$v=json_decode(base64_decode(strtr($body,'-_','+/')),true);
+            $qualityChats[$v['a'].':'.$v['c']]=$chat;
+        }
+        $check(isset($qualityChats['100:198'])&&!in_array('100:198',$pageKeys,true),
+            'explicit_quality_mode_includes_business_only_without_changing_default_inventory');
+        $qualityChat=$qualityChats['100:198'];
+        $check(strlen($qualityChat['chat_key'])===64&&$qualityChat['period_clock_metadata']['latest_created_at']===1700000000,
+            'quality_inventory_exposes_private_stable_key_and_declared_clock_hint');
+        $qualityMessages=$qualityHistory->history(1,$connection,['chat_ref'=>$qualityChat['chat_ref']]);
+        $check(count($qualityMessages['messages'])===1&&$qualityMessages['messages'][0]['text']==='BUSINESS ONLY',
+            'quality_history_reads_existing_canonical_business_projection');
+        $check(($qualityChats['100:201']['period_clock_metadata']['unknown_created_at_records']??0)===1,
+            'quality_inventory_reports_unknown_clock_instead_of_silently_dropping_record');
+        $check($fingerprint()===$historyFingerprint,'quality_archive_reads_leave_records_permissions_and_markers_unchanged');
         // Explicit feature mode is opt-in through a separate cursor; old inventory pages stay metadata-only.
         $seed(2400,100,197,1,'Готовы бронировать, пришлите ссылку на оплату. https://example.test/private +7 999 123-45-67 @synthetic_handle');
         $seed(2401,100,197,2,'Деньги поступили, оплату вижу.',['sender_id'=>'100','sender_type'=>'manager','direction'=>'outbound']);
@@ -691,12 +722,152 @@ function archiveResearchReadRegression(PDO $pdo): int
         $check($resumeBefore===$fingerprint()&&$blockedWrite&&!$pdo->inTransaction()
             &&(int)$pdo->query('SELECT COUNT(*) FROM projects')->fetchColumn()===2,
             'suffix_reads_reject_business_writes_preserve_sources_and_close_transactions');
+
+        // Internal server-study reads use real operator authority, never a manufactured OAuth identity.
+        $operator=new ArchiveResearchReadService($pdo,$clock);$operatorCalls=0;$operatorWriteDenied=false;
+        $operatorAuthority=static function()use($pdo,&$operatorCalls):void{
+            if($pdo->inTransaction())throw new RuntimeException('authority_in_snapshot');$operatorCalls++;
+        };
+        ArchiveResearchTraceStatement::$duringExecute=static function(string$sql)use($pdo,&$operatorWriteDenied):void{
+            if(!str_contains($sql,'m.id,m.record_json FROM telegram_dialogue_messages'))return;
+            ArchiveResearchTraceStatement::$duringExecute=null;
+            try{$pdo->exec("INSERT INTO projects VALUES(99,'operator_must_not_write',1)");}
+            catch(PDOException$e){$operatorWriteDenied=true;}
+        };
+        $seed(33001,120,40003,1,'PRIVATE_OPERATOR_WRONG_BOT',['bot_key'=>'NotApproved']);
+        $seed(33002,120,40003,2,'PRIVATE_OPERATOR_DELETED',['is_deleted'=>true]);
+        $operatorBefore=$fingerprint();$operatorRows=[];$operatorWindows=[];$operatorPosition=[];$operatorPages=0;$operatorFirst=null;
+        do{
+            $op=$operator->operatorStudyPage($operatorAuthority,$operatorPosition,2);$operatorPages++;
+            if($operatorFirst===null)$operatorFirst=$op;
+            $check(count($op)===10&&!array_diff(array_keys($op),['project_key','source_fence','scope_digest','expected','windows',
+                'next_position','has_more','metadata_rows','source_json_bytes','returned_records'])
+                &&$op['project_key']==='anytour'&&preg_match('/\A[a-f0-9]{64}\z/D',$op['scope_digest'])===1
+                &&$op['metadata_rows']<=1000&&$op['source_json_bytes']<=1048576
+                &&strlen(json_encode($op,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=2097152,
+                'operator_page_is_a_bounded_private_source_projection_'.$operatorPages);
+            $pageRows=0;$canonicalItemsValid=true;
+            foreach($op['windows']as$window){
+                $check(count($window)===5&&!array_diff(array_keys($window),['account_id','chat_id','account_alias','chat_window_complete','messages'])
+                    &&in_array($window['account_id'],['120','121'],true)&&is_bool($window['chat_window_complete']),
+                    'operator_window_retains_only_its_admitted_native_scope');
+                foreach($window['messages']as$item){
+                    $operatorRows[]=$item;$pageRows++;
+                    $canonicalItemsValid=$canonicalItemsValid&&$item['historical_first_available_at']===null
+                        &&!array_key_exists('record_json',$item)&&in_array($item['source_kind'],['desktop_import','business_message'],true);
+                }
+                $operatorWindows[]=$window;
+            }
+            $check($canonicalItemsValid,'operator_messages_use_canonical_projection_not_raw_json');
+            $check($op['returned_records']===$pageRows&&is_bool($op['has_more'])
+                &&($operatorPages===1?$op['expected']===['desktop_records'=>136,'account_chat_pairs'=>5]:$op['expected']===null),
+                'operator_expected_counts_are_initial_only_and_rows_are_returned_counts');
+            if($op['has_more']){
+                $p=$op['next_position'];
+                $check(is_array($p)&&count($p)===5&&!array_diff(array_keys($p),['f','a','c','n','scope_digest'])
+                    &&$p['scope_digest']===$op['scope_digest']&&$p['f']===$op['source_fence'],
+                    'operator_continuation_pins_source_fence_and_current_scope_digest');
+                $operatorPosition=$p;
+            }else $check($op['next_position']===null,'operator_eof_has_no_continuation');
+            if($operatorPages>8)throw new RuntimeException('operator_fixture_did_not_advance');
+        }while($op['has_more']);
+        ArchiveResearchTraceStatement::$duringExecute=null;
+        $check(count($operatorRows)===136&&count(array_unique(array_column($operatorRows,'source_ref')))===136
+            &&$operatorCalls===$operatorPages*2&&$operatorWriteDenied&&!$pdo->inTransaction()
+            &&$operatorBefore===$fingerprint(),
+            'keyless_operator_pages_cover_all_admitted_sources_once_with_fresh_authority_and_readonly_transactions');
+        $unknowns=[];foreach($operatorRows as$item)$unknowns[$item['source_ref']]=$item;
+        $check(($unknowns['archive_message:33001']['read_status']??null)==='permission_unverified'
+            &&($unknowns['archive_message:33002']['read_status']??null)==='deleted'
+            &&$unknowns['archive_message:33001']['text']===null&&$unknowns['archive_message:33002']['text']===null
+            &&!str_contains(json_encode($operatorRows,JSON_THROW_ON_ERROR),'PRIVATE_OPERATOR_'),
+            'operator_counts_unavailable_metadata_without_reading_or_leaking_denied_payloads');
+        $canonical=$service->history(1,$connection,['chat_ref'=>$resumeMetaFirst['chats'][0]['chat_ref'],'limit'=>100]);
+        $check($operatorWindows[0]['messages']===$canonical['messages'],
+            'internal_operator_and_authenticated_history_share_the_exact_canonical_message_projection');
+        foreach([0,51]as$badLimit)$reject(fn()=>$operator->operatorStudyPage($operatorAuthority,[],$badLimit),'invalid_arguments');
+        foreach([
+            ['unexpected'=>'x'],array_diff_key($operatorPosition,['f'=>true]),
+            array_replace($operatorPosition,['a'=>120]),array_replace($operatorPosition,['a'=>'0120']),
+            array_replace($operatorPosition,['a'=>'0']),array_replace($operatorPosition,['scope_digest'=>'invalid'])
+        ]as$badPosition)$reject(fn()=>$operator->operatorStudyPage($operatorAuthority,$badPosition,2),'invalid_arguments');
+        $badFence=$operatorPosition;$badFence['f']='999999999';
+        $reject(fn()=>$operator->operatorStudyPage($operatorAuthority,$badFence,2),'source_changed');
+        $badScope=$operatorPosition;$badScope['scope_digest']=str_repeat('0',64);
+        $reject(fn()=>$operator->operatorStudyPage($operatorAuthority,$badScope,2),'permission_changed');
+        $pinned=$operatorFirst['next_position'];
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=120");
+        $reject(fn()=>$operator->operatorStudyPage($operatorAuthority,$pinned,2),'forbidden');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=120");
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=121");
+        $reject(fn()=>$operator->operatorStudyPage($operatorAuthority,$pinned,2),'permission_changed');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=121");
+        $guardCalls=0;$revokedPage=null;
+        $revokedAuthority=static function()use($pdo,&$guardCalls):void{
+            if($pdo->inTransaction())throw new RuntimeException('authority_in_snapshot');
+            if(++$guardCalls===2)throw new RuntimeException('private_authority_failure');
+        };
+        $reject(static function()use($operator,$revokedAuthority,&$revokedPage):void{
+            $revokedPage=$operator->operatorStudyPage($revokedAuthority,[],1);
+        },'forbidden');
+        $check($guardCalls===2&&$revokedPage===null&&!$pdo->inTransaction(),
+            'operator_authority_revocation_after_snapshot_withholds_the_page');
+        $permissionCalls=0;
+        $reject(fn()=>$operator->operatorStudyPage(static function()use($pdo,&$permissionCalls):void{
+            if($pdo->inTransaction())throw new RuntimeException('authority_in_snapshot');
+            if(++$permissionCalls===2)$pdo->exec("UPDATE telegram_archive_accounts SET approved=0 WHERE account_id=121");
+        },[],1),'permission_changed');
+        $pdo->exec("UPDATE telegram_archive_accounts SET approved=1 WHERE account_id=121");
+        $check(!$pdo->inTransaction(),'operator_current_account_policy_is_rechecked_outside_the_snapshot');
+        $pdo->beginTransaction();$reject(fn()=>$operator->operatorStudyPage($operatorAuthority,[],1),'transaction_active');
+        $check($pdo->inTransaction(),'operator_does_not_close_a_callers_transaction');$pdo->rollBack();
+        ArchiveResearchTraceStatement::$failureNeedle='m.id,m.record_json FROM telegram_dialogue_messages';
+        ArchiveResearchTraceStatement::$failure=new PDOException('PrivateOperatorFixtureMessage');
+        $reject(fn()=>$operator->operatorStudyPage($operatorAuthority,[],1),'unavailable');
+        ArchiveResearchTraceStatement::$failure=null;ArchiveResearchTraceStatement::$failureNeedle=null;
+        $check(!$pdo->inTransaction()&&$operatorBefore===$fingerprint(),
+            'operator_source_failure_is_closed_and_preserves_source_records');
+
+        // Canonical redaction can expand source text; private output still advances only a bounded prefix.
+        $pdo->exec("UPDATE telegram_archive_accounts SET provider_enabled=0");
+        $pdo->exec("INSERT INTO telegram_archive_accounts VALUES('anytour','OperatorLarge',140,'operator-large',1,1,NULL)");
+        $pdo->exec("INSERT INTO telegram_dialogue_connections VALUES('anytour','OperatorLarge','operator-large',140,1)");
+        $seed(40001,140,60000,1,str_repeat('@abcd ',45000));
+        $seed(40002,140,60000,2,str_repeat('@abcd ',45000));
+        $seed(40003,140,60001,1,str_repeat('@abcd ',90000));
+        $largeBefore=$fingerprint();$position=[];$largeRows=[];$largePages=0;$firstLarge=null;
+        do{
+            $large=$operator->operatorStudyPage($operatorAuthority,$position,2);$largePages++;
+            if($firstLarge===null)$firstLarge=$large;
+            $bytes=strlen(json_encode($large,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+            $check($bytes<=2097152&&$large['source_json_bytes']<=1048576,
+                'operator_private_output_remains_bounded_after_real_canonical_redaction');
+            foreach($large['windows']as$window)foreach($window['messages']as$item)$largeRows[]=$item;
+            $position=$large['next_position'];
+            if($largePages>8)throw new RuntimeException('operator_large_fixture_did_not_advance');
+        }while($large['has_more']);
+        $check($firstLarge['returned_records']===1&&$firstLarge['next_position']['n']==='1'
+            &&$firstLarge['windows'][0]['chat_window_complete']===false
+            &&strlen(json_encode($firstLarge,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))>65536,
+            'operator_output_trim_rewinds_to_returned_prefix_without_widening_MCP_wire_limit');
+        $check(count($largeRows)===3&&count(array_unique(array_column($largeRows,'source_ref')))===3
+            &&$largeRows[0]['read_status']==='available'&&$largeRows[1]['read_status']==='available'
+            &&$largeRows[2]['read_status']==='response_record_limit'&&$largeRows[2]['text']===null
+            &&$largeBefore===$fingerprint()&&!$pdo->inTransaction(),
+            'one_overlarge_projected_record_remains_an_explicit_unknown_and_does_not_hide_its_tail');
+        $largeMeta=$service->inventory(1,$connection,['limit'=>1]);
+        $publicHistory=$service->history(1,$connection,['chat_ref'=>$largeMeta['chats'][0]['chat_ref'],'limit'=>1]);
+        $check(strlen(json_encode($publicHistory,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=65536
+            &&$publicHistory['messages'][0]['read_status']==='record_exceeds_page_budget'&&$publicHistory['messages'][0]['text']===null,
+            'existing_OAuth_history_keeps_its_original_wire_and_source_byte_caps');
+
+        $checks+=archivePredictiveStudyStoreRegression();
         echo 'Archive research read checks: '.$checks." passed.\n";
         return$checks;
     }finally{
         if($pdo->inTransaction())$pdo->rollBack();
         if(!$mysql)$pdo->exec('PRAGMA query_only=OFF');
-        ArchiveResearchTraceStatement::$failure=null;ArchiveResearchTraceStatement::$failureNeedle=null;
+        ArchiveResearchTraceStatement::$failure=null;ArchiveResearchTraceStatement::$failureNeedle=null;ArchiveResearchTraceStatement::$duringExecute=null;
         $pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);
         $drop();
     }

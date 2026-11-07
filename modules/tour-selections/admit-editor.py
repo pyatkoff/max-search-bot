@@ -87,17 +87,20 @@ REQUIRED_WORKFLOWS = frozenset({
 })
 
 
-def verify_ci(pr_number, source_sha, backend_sha, changed_paths, read):
+def verify_ci(pr_number, source_sha, backend_sha, changed_paths, read, *, repository_sha=None):
+    # The accepted repository can be ahead of the unchanged installed backend.
+    # Its join is authenticated by the shared release resolver before credentials.
+    repository_sha = repository_sha or backend_sha
     required = REQUIRED_WORKFLOWS | ({'.github/workflows/workspace-sound.yml', '.github/workflows/channel-post-context.yml'} if any(p.startswith('manager/') for p in changed_paths) else set())
     if not isinstance(pr_number, int) or pr_number < 1:
         raise ValueError('invalid_editor_pr')
     pr = read('pulls/' + str(pr_number))
     if (pr.get('state') != 'open' or pr.get('draft') is not False
-            or pr.get('head', {}).get('sha') != source_sha or pr.get('base', {}).get('sha') != backend_sha
+            or pr.get('head', {}).get('sha') != source_sha or pr.get('base', {}).get('sha') != repository_sha
             or pr.get('head', {}).get('repo', {}).get('full_name') != 'pyatkoff/max-search-bot'
             or pr.get('base', {}).get('ref') != 'main'):
         raise ValueError('editor_pr_not_current')
-    if read('commits/main').get('sha') != backend_sha:
+    if read('commits/main').get('sha') != repository_sha:
         raise ValueError('editor_main_changed')
     runs = read('actions/runs?head_sha=' + source_sha + '&event=pull_request&per_page=100')
     if runs.get('total_count', 101) > 100 or len(runs.get('workflow_runs', [])) > 100:
@@ -116,7 +119,7 @@ def verify_ci(pr_number, source_sha, backend_sha, changed_paths, read):
         if (run.get('status') != 'completed' or run.get('conclusion') != 'success'
                 or run.get('head_sha') != source_sha or run.get('event') != 'pull_request'
                 or run.get('head_repository', {}).get('full_name') != 'pyatkoff/max-search-bot'
-                or len(binding) != 1 or binding[0].get('base', {}).get('sha') != backend_sha
+                or len(binding) != 1 or binding[0].get('base', {}).get('sha') != repository_sha
                 or binding[0].get('head', {}).get('sha') != source_sha):
             raise ValueError('editor_required_ci_not_current_success')
     return {path: latest[path]['id'] for path in sorted(latest)}
@@ -138,27 +141,47 @@ def github_read(path):
     return strict_json(data)
 
 
-def admit(backend, candidate, output, backend_sha, source_sha, current_package, operation):
+def admit(backend, candidate, output, backend_sha, source_sha, current_package, operation, repository_sha=None):
     if not re.fullmatch(r"[a-f0-9]{64}", current_package):
         raise ValueError("invalid_editor_current_package")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{7,95}", operation):
         raise ValueError("invalid_editor_operation")
     backend = repository(backend, backend_sha, runtime=True)
     candidate = repository(candidate, source_sha)
+    repository_sha = repository_sha or backend_sha
+    if not re.fullmatch(r"[a-f0-9]{40}", repository_sha):
+        raise ValueError("invalid_editor_repository_commit")
     # Objects must exist in the candidate repository. No network fetch, moving
     # branch lookup, candidate scripts, shell interpolation or credentials here.
     if git(candidate, "rev-parse", backend_sha + "^{tree}") != git(backend, "rev-parse", backend_sha + "^{tree}"):
         raise ValueError("editor_backend_tree_mismatch")
     if subprocess.run(git_command(candidate, "merge-base", "--is-ancestor", backend_sha, source_sha), env=git_environment(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
         raise ValueError("editor_backend_not_ancestor")
-    changes = git(candidate, "diff", "--no-ext-diff", "--no-textconv", "--ignore-submodules=all", "--name-status", "--no-renames", backend_sha, source_sha, "--").splitlines()
+    if repository_sha != backend_sha:
+        # Reuse the installed policy, never import a candidate helper or widen
+        # EDITABLE. The caller supplies the accepted repository identity, and
+        # this local check proves its complete interval contains no runtime work.
+        loader = importlib.util.spec_from_file_location("trusted_deployment_content", backend / "tools/deployment_content_plan.py")
+        policy = importlib.util.module_from_spec(loader)
+        old_bytecode = sys.dont_write_bytecode
+        try:
+            sys.dont_write_bytecode = True
+            loader.loader.exec_module(policy)
+        finally:
+            sys.dont_write_bytecode = old_bytecode
+        interval = policy.compare_range(candidate, backend_sha, repository_sha)
+        if interval.get("release_path") != "content_candidate" or interval.get("runtime_contents_unchanged") is not True:
+            raise ValueError("editor_repository_interval_not_development_only")
+    if subprocess.run(git_command(candidate, "merge-base", "--is-ancestor", repository_sha, source_sha), env=git_environment(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
+        raise ValueError("editor_repository_not_ancestor")
+    changes = git(candidate, "diff", "--no-ext-diff", "--no-textconv", "--ignore-submodules=all", "--name-status", "--no-renames", repository_sha, source_sha, "--").splitlines()
     if not changes:
         raise ValueError("editor_component_unchanged")
     for row in changes:
         status, path = row.split("\t", 1)
         if status != "M" or path not in EDITABLE:
             raise ValueError("editor_shared_change")
-        for commit in (backend_sha, source_sha):
+        for commit in (repository_sha, source_sha):
             if not git(candidate, "ls-tree", commit, "--", path).startswith("100644 blob "):
                 raise ValueError("editor_component_mode")
     old = strict_json((backend / "modules/tour-selections/editor.json").read_bytes())
@@ -182,6 +205,7 @@ def admit(backend, candidate, output, backend_sha, source_sha, current_package, 
     if receipt["backend_fingerprint"] != expected_fingerprint:
         raise ValueError("editor_installed_backend_changed")
     return {"schema": 1, "kind": "selection-editor-source-admission-v1", "backend_sha": backend_sha,
+            "repository_sha": repository_sha,
             "backend_fingerprint": expected_fingerprint, "source_sha": source_sha, "source_tree": receipt["source_tree"],
             "package_id": receipt["package_id"], "archive_sha256": receipt["archive_sha256"],
             "expected_current_package": current_package, "operation": operation,
@@ -228,16 +252,27 @@ if __name__ == "__main__":
         p.add_argument("--" + name, required=True)
     p.add_argument("--pull-request", type=int)
     p.add_argument("--common-release", action="store_true")
+    p.add_argument("--repository-sha", help="Accepted current repository revision; defaults to the installed backend")
     a = p.parse_args()
     try:
         if a.common_release:
-            if a.candidate.resolve() != a.backend.resolve() or a.source_sha != a.backend_sha or a.pull_request is not None:
+            if a.candidate.resolve() != a.backend.resolve() or a.source_sha != a.backend_sha or a.pull_request is not None or a.repository_sha not in (None, a.backend_sha):
                 raise ValueError("invalid_editor_common_source")
             result = admit_common(a.backend, a.output, a.backend_sha, a.current_package, a.operation)
         else:
-            result = admit(a.backend, a.candidate, a.output, a.backend_sha, a.source_sha, a.current_package, a.operation)
+            result = admit(a.backend, a.candidate, a.output, a.backend_sha, a.source_sha, a.current_package, a.operation, a.repository_sha)
         if a.pull_request is not None:
-            result['required_ci'] = verify_ci(a.pull_request, a.source_sha, a.backend_sha, result['changed_paths'], github_read)
+            repository_sha = a.repository_sha or a.backend_sha
+            if repository_sha != a.backend_sha:
+                # Authority comes from the existing repository result and its
+                # original producers, not from an uploaded admission JSON.
+                mapping = strict_json(subprocess.check_output([
+                    'node', str(a.backend / 'tools/deployment_release.js'), 'resolve-editor',
+                    '--repository-sha', repository_sha, '--application-sha', a.backend_sha,
+                ], stderr=subprocess.PIPE, timeout=90))
+                if mapping.get('repository_sha') != repository_sha or mapping.get('application_sha') != a.backend_sha:
+                    raise ValueError('editor_release_mapping_mismatch')
+            result['required_ci'] = verify_ci(a.pull_request, a.source_sha, a.backend_sha, result['changed_paths'], github_read, repository_sha=repository_sha)
         print(json.dumps(result, sort_keys=True))
     except (ValueError, OSError, KeyError, TypeError, subprocess.CalledProcessError) as error:
         p.exit(1, "editor_admission_error: " + str(error) + "\n")

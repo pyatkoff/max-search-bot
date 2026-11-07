@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_request_profiles','manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
+$pdo=null;$safe=false;$tables=['lead_outcome_trip_bindings','manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_request_profiles','manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -113,6 +113,8 @@ try{
     $pdo->exec('DELETE FROM conversations WHERE id=99');
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_request_profiles WHERE conversation_id=99')->fetchColumn()!==0)throw new RuntimeException('native_profile_conversation_retention_failed');
     echo "PASS native MySQL080 append-only versions, exact Unicode digest, operation uniqueness, migration retry and conversation retention\n";
+    require __DIR__.'/sales-outcome-trip.php';
+    nativeOutcomeTripMigrationChecks($pdo);
     $inputDuplicateRejected=false;
     try{$inputInsert->execute([str_repeat('a',32),$inputEvidence->json(),$inputEvidence->hash()]);}
     catch(PDOException $error){$inputDuplicateRejected=$error->getCode()==='23000';}
@@ -315,6 +317,53 @@ try{
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$family,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php','queue:read prepared:write',time(),time()+3600]);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_codes VALUES(?,?,?,?,?,NULL)')->execute([str_repeat('d',64),$family,'https://chatgpt.com/connector_platform_oauth_redirect',str_repeat('e',43),time()+300]);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_tokens VALUES(?,?,?,?,NULL)')->execute([str_repeat('f',64),$family,'access',time()+3600]);
+    // The live-dialogue scope is explicit; widening storage must not rewrite
+    // any existing authorization, code, token or revocation state.
+    $oauthTables=['manager_preparation_oauth_grants'=>'grant_id','manager_preparation_oauth_codes'=>'code_hash','manager_preparation_oauth_tokens'=>'token_hash'];
+    $oauthBefore=[];
+    foreach($oauthTables as $table=>$key)$oauthBefore[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY '.$key)->fetchAll();
+    $dialogueScopeMigration=file_get_contents(dirname(__DIR__,2).'/migrations/091_manager_dialogue_review_scope.sql');
+    foreach([1,2]as $attempt){
+        $pdo->exec($dialogueScopeMigration);
+        foreach($oauthTables as $table=>$key){
+            if($pdo->query('SELECT * FROM '.$table.' ORDER BY '.$key)->fetchAll()!==$oauthBefore[$table])throw new RuntimeException('dialogue_scope_migration_changed_authority');
+        }
+    }
+    $scopeColumn=$pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH,CHARACTER_SET_NAME,COLLATION_NAME,IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='manager_preparation_oauth_grants' AND COLUMN_NAME='scopes'")->fetch();
+    if((int)($scopeColumn['CHARACTER_MAXIMUM_LENGTH']??0)!==128||($scopeColumn['CHARACTER_SET_NAME']??null)!=='ascii'
+        ||($scopeColumn['COLLATION_NAME']??null)!=='ascii_bin'||($scopeColumn['IS_NULLABLE']??null)!=='NO')throw new RuntimeException('dialogue_scope_column_contract_failed');
+    echo "PASS native MySQL091 apply and retry preserve exact grants codes and tokens with ascii_bin128 scope capacity\n";
+    require_once dirname(__DIR__,2).'/services/ManagerPreparationOAuth.php';
+    $allScopes=implode(' ',array_values(array_filter(ManagerPreparationOAuth::SUPPORTED_SCOPES,static fn(string $scope):bool=>$scope!==ManagerPreparationOAuth::QUALITY_SCOPE)));$allScopeFamily=str_repeat('c',32);
+    if(strlen($allScopes)!==125)throw new RuntimeException('dialogue_scope_full_fixture_invalid');
+    $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$allScopeFamily,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php',$allScopes,time(),time()+3600]);
+    $fullScopeRead=$pdo->prepare('SELECT scopes,OCTET_LENGTH(scopes) AS bytes,HEX(scopes) AS hex_value FROM manager_preparation_oauth_grants WHERE grant_id=?');
+    $fullScopeRead->execute([$allScopeFamily]);$fullScopeRow=$fullScopeRead->fetch();
+    if(($fullScopeRow['scopes']??null)!==$allScopes||(int)($fullScopeRow['bytes']??0)!==125
+        ||strtolower((string)($fullScopeRow['hex_value']??''))!==bin2hex($allScopes))throw new RuntimeException('dialogue_scope_native_roundtrip_failed');
+    $pdo->prepare('INSERT INTO manager_preparation_oauth_codes VALUES(?,?,?,?,?,NULL)')->execute([str_repeat('1',64),$allScopeFamily,'https://chatgpt.com/connector_platform_oauth_redirect',str_repeat('2',43),time()+300]);
+    $pdo->prepare('INSERT INTO manager_preparation_oauth_tokens VALUES(?,?,?,?,NULL)')->execute([str_repeat('3',64),$allScopeFamily,'access',time()+3600]);
+    echo "PASS native MySQL complete125-byte explicit scope set round-trips without truncation\n";
+    $historyBefore=[];
+    foreach($oauthTables as $table=>$key)$historyBefore[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY '.$key)->fetchAll();
+    $historyMigration=file_get_contents(dirname(__DIR__,2).'/migrations/092_monthly_reply_quality_scope.sql');
+    foreach([1,2]as $attempt){
+        $pdo->exec($historyMigration);
+        foreach($oauthTables as $table=>$key)
+            if($pdo->query('SELECT * FROM '.$table.' ORDER BY '.$key)->fetchAll()!==$historyBefore[$table])throw new RuntimeException('history_scope_changed_existing_authority');
+    }
+    $historyColumn=$pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH,CHARACTER_SET_NAME,COLLATION_NAME,IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='manager_preparation_oauth_grants' AND COLUMN_NAME='scopes'")->fetch();
+    if((int)$historyColumn['CHARACTER_MAXIMUM_LENGTH']!==160||$historyColumn['CHARACTER_SET_NAME']!=='ascii'||$historyColumn['COLLATION_NAME']!=='ascii_bin'||$historyColumn['IS_NULLABLE']!=='NO')
+        throw new RuntimeException('history_scope_column_contract_failed');
+    $historyScopes=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
+    if(strlen($historyScopes)!==138)throw new RuntimeException('history_scope_full_fixture_invalid');
+    $historyFamily=str_repeat('4',32);
+    $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$historyFamily,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php',$historyScopes,time(),time()+3600]);
+    $fullScopeRead->execute([$historyFamily]);$historyRow=$fullScopeRead->fetch();
+    if($historyRow['scopes']!==$historyScopes||(int)$historyRow['bytes']!==138||strtolower($historyRow['hex_value'])!==bin2hex($historyScopes))
+        throw new RuntimeException('history_scope_roundtrip_failed');
+    echo "PASS native MySQL092 retry preserves old authority; explicitly consented138-byte scope round-trips exactly\n";
+
     $jobs=json_encode(array_fill(0,200,str_repeat('1',64)),JSON_THROW_ON_ERROR);
     $q=$pdo->prepare('INSERT INTO manager_preparation_events (subscription_id,admin_id,oauth_connection_id,project_key,event_name,arguments_json,callback_url,signing_secret,verified_at,expires_at,observed_jobs_json,pending_jobs_json,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
     $now=gmdate('Y-m-d H:i:s');
@@ -322,6 +371,8 @@ try{
     if($pdo->query('SELECT LENGTH(observed_jobs_json)=LENGTH(pending_jobs_json) FROM manager_preparation_events')->fetchColumn()!=1)throw new RuntimeException('binary_roundtrip_failed');
     $pdo->exec('DELETE FROM managers WHERE id=1');
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_tokens')->fetchColumn()!==0)throw new RuntimeException('grant_cascade_failed');
+    if((int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_codes')->fetchColumn()!==0
+        ||(int)$pdo->query('SELECT COUNT(*) FROM manager_preparation_oauth_grants')->fetchColumn()!==0)throw new RuntimeException('dialogue_scope_family_cascade_failed');
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_assistant_decisions')->fetchColumn()!==0)throw new RuntimeException('assistant_manager_cascade_failed');
     echo "PASS native OAuth family cascade and bounded event BLOB roundtrip\n";
 }catch(Throwable $error){
@@ -347,3 +398,8 @@ require __DIR__.'/modeled-conversion-status-auth.php';
 
 // Isolated read-only acquisition statistics on a new disposable database.
 require __DIR__.'/modeled-conversion-acquisition.php';
+
+// The current-dialogue reader owns an isolated fixture lifecycle and class scope.
+$dialogueReadCommand=escapeshellarg(PHP_BINARY).' '.escapeshellarg(dirname(__DIR__).'/run_dialogue_review_read_regression.php').' --mysql';
+passthru($dialogueReadCommand,$dialogueReadStatus);
+if($dialogueReadStatus!==0)throw new RuntimeException('native_dialogue_review_read_failed');

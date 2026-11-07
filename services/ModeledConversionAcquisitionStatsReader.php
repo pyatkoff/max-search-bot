@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
+require_once __DIR__.'/AdvertisingVisitRepository.php';
 
 /** A bounded, text-free read of first OBSERVED substantive inquiries, never lifetime first contact. */
 final class ModeledConversionAcquisitionReadFailure extends RuntimeException {}
@@ -188,7 +189,8 @@ final class ModeledConversionAcquisitionStatsReader
                             $key=$p['platform'].':'.$p['customer_key'];
                             if(!isset($people[$key])||$candidate['at']<$people[$key]['at']
                                 ||($candidate['at']===$people[$key]['at']&&self::decimalCompare($candidate['journal'],$people[$key]['journal'])<0))
-                                $people[$key]=['platform'=>$p['platform'],'customer'=>(string)$p['customer_key'],...$candidate];
+                                $people[$key]=['platform'=>$p['platform'],'customer'=>(string)$p['customer_key'],
+                                    'conversation'=>(string)$p['conversation_id'],...$candidate];
                         }
                     }
                 }while(count($page)===128);
@@ -247,6 +249,8 @@ final class ModeledConversionAcquisitionStatsReader
             }
             $platforms['max']=$this->complete($platforms['max'],$delays);
             $platforms['telegram']=$this->complete($platforms['telegram'],[]);
+            $platforms['max']['entry_context']=['status'=>'not_supported','basis'=>'max_identity_mapping_not_visit','counts'=>null];
+            $platforms['telegram']['entry_context']=$this->entryContext($cohort,$now);
             $this->guard();
             $result['available']=true;$result['platforms']=$platforms;
         }catch(ModeledConversionAcquisitionReadFailure $e){$result['reason']=$e->getMessage();}
@@ -257,6 +261,71 @@ final class ModeledConversionAcquisitionStatsReader
         $result['sources']=$this->sources;$result['query_count']=$this->queries;
         $this->auth();
         return$result;
+    }
+    /** Observed Mini App entry context only; no website/session or human/bot proof. */
+    private function entryContext(array $cohort,int $now):array
+    {
+        $counts=['prior_observed'=>0,'ambiguous'=>0,'late_only'=>0,'no_data'=>0];$people=[];$identities=[];
+        foreach($cohort as$key=>$person)if($person['platform']==='telegram')$people[$key]=$person;
+        foreach(array_chunk($people,100,true)as$group){
+            $ids=array_column($group,'conversation');$marks=implode(',',array_fill(0,count($ids),'?'));
+            $rows=$this->rows('SELECT c.id,c.customer_id,c.external_chat_id,cc.external_user_id,cc.external_chat_id AS bound_chat'
+                .' FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id'
+                .' AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel)'
+                ." WHERE c.id IN ($marks) AND c.project_key='anytour' AND HEX(c.project_key)=HEX('anytour')"
+                ." AND c.channel='telegram' AND HEX(c.channel)=HEX('telegram') AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c'),$ids);
+            $bound=[];foreach($rows as$row)$bound[(string)$row['id']][]=$row;
+            foreach($group as$key=>$person){
+                $matches=$bound[$person['conversation']]??[];$b=$matches[0]??[];
+                if(count($matches)!==1||(string)($b['customer_id']??'')!==$person['customer'])
+                    throw new ModeledConversionAcquisitionReadFailure('source_changed');
+                $external=$b['external_user_id'];
+                if(!is_string($external)||preg_match('/\A[1-9][0-9]{0,31}\z/D',$external)!==1
+                    ||$external!==(string)$b['external_chat_id']||$external!==(string)$b['bound_chat']){
+                    $counts['ambiguous']++;continue;
+                }
+                $identities[$external][$key]=$person;
+            }
+        }
+        $repository=new AdvertisingVisitRepository($this->pdo);
+        foreach(array_chunk(array_keys($identities),100)as$ids){
+            // Numeric PHP array keys are restored to decimal strings, never floats.
+            $ids=array_map('strval',$ids);$history=[];
+            // The count itself consumes one row. The remaining number is the
+            // sentinel, so an exact fit leaves capacity for that count receipt.
+            $remaining=self::MAX_RECORDS-$this->records;
+            if($remaining<1)throw new ModeledConversionAcquisitionReadFailure('record_limit');
+            $candidates=$repository->entryContextCandidates(
+                ['project_key'=>'anytour','source_key'=>'tgmini','platform'=>'telegram','counter_id'=>'98615635'],
+                $ids,$remaining,fn(string $sql,array $args):array=>$this->rows($sql,$args));
+            if(!$candidates['complete'])throw new ModeledConversionAcquisitionReadFailure('record_limit');
+            foreach($candidates['rows']as$row){
+                $external=(string)$row['external_user_id'];
+                if(!in_array($external,$ids,true))throw new ModeledConversionAcquisitionReadFailure('source_changed');
+                $visit=self::unix($row['visit_at_unix']);$observed=self::unix($row['observed_at_unix']);$received=self::unix($row['received_at_unix']);
+                if($visit===null||$observed===null||$received===null||$visit>$observed||$observed>$now||$received>$now||$observed>$received+300
+                    ||!is_string($row['client_id'])||($row['client_id']!==''&&preg_match('/\A[1-9][0-9]{0,39}\z/D',$row['client_id'])!==1))
+                    throw new ModeledConversionAcquisitionReadFailure('entry_context_invalid');
+                $history[$external][]=$row;
+            }
+            foreach($ids as$external){
+                $persons=$identities[$external];
+                if(count($persons)!==1){$counts['ambiguous']+=count($persons);continue;}
+                $person=reset($persons);$prior=[];$late=false;$conflict=false;
+                foreach($history[$external]??[]as$row){
+                    if((string)$row['identity_conflict']==='1'){$conflict=true;continue;}
+                    if($row['client_id']==='')continue;
+                    // Both original journal message and entry use whole seconds.
+                    // Equality is admitted as "not later", never strict causality.
+                    if((int)$row['visit_at_unix']<=$person['at'])$prior[$row['client_id']]=true;
+                    else$late=true;
+                }
+                $reason=$conflict||count($prior)>1?'ambiguous':($prior?'prior_observed':($late?'late_only':'no_data'));
+                $counts[$reason]++;
+            }
+        }
+        if(array_sum($counts)!==count($people))throw new ModeledConversionAcquisitionReadFailure('source_changed');
+        return ['status'=>'available','basis'=>'verified_tgmini_identity_observation','counts'=>$counts];
     }
     private function candidateRows(array $targets):array
     {
@@ -539,21 +608,21 @@ final class ModeledConversionAcquisitionStatsReader
     private function filters(array $input,int $now):array
     {
         if($now<946684800||array_diff(array_keys($input),['date','period','platform']))throw new InvalidArgumentException('acquisition_filters');
-        $today=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Kaliningrad'))->format('Y-m-d');
+        $today=(new DateTimeImmutable('@'.$now))->setTimezone(new DateTimeZone('Europe/Moscow'))->format('Y-m-d');
         $date=$input['date']??$today;$period=$input['period']??30;$platform=$input['platform']??'all';
         if(!is_string($date)||!is_int($period)||!in_array($period,[7,30,90],true)||!in_array($platform,['all','max','telegram'],true))
             throw new InvalidArgumentException('acquisition_filters');
-        $d=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Kaliningrad'));
+        $d=DateTimeImmutable::createFromFormat('!Y-m-d',$date,new DateTimeZone('Europe/Moscow'));
         if(!$d||$d->format('Y-m-d')!==$date||$date>$today)throw new InvalidArgumentException('acquisition_filters');
         return ['date'=>$date,'period'=>$period,'platform'=>$platform];
     }
     private function window(array $f,int $now):array
     {
-        $end=new DateTimeImmutable($f['date'].' 00:00:00',new DateTimeZone('Europe/Kaliningrad'));
+        $end=new DateTimeImmutable($f['date'].' 00:00:00',new DateTimeZone('Europe/Moscow'));
         return ['from'=>self::iso($end->modify('-'.($f['period']-1).' days')->getTimestamp()),
-            'until'=>self::iso(min($end->modify('+1 day')->getTimestamp(),$now)),'timezone'=>'Europe/Kaliningrad'];
+            'until'=>self::iso(min($end->modify('+1 day')->getTimestamp(),$now)),'timezone'=>'Europe/Moscow'];
     }
-    private function endExclusive(string $date):int{return(new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Kaliningrad')))->modify('+1 day')->getTimestamp();}
+    private function endExclusive(string $date):int{return(new DateTimeImmutable($date.' 00:00:00',new DateTimeZone('Europe/Moscow')))->modify('+1 day')->getTimestamp();}
     private function emptyPlatform(string $membership):array
     {
         return ['inquiries'=>0,'valid_pairs'=>0,'coverage_pct'=>null,'median_seconds'=>null,'p90_seconds'=>null,

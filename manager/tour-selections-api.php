@@ -29,8 +29,8 @@ $id=$data['conversation_id']??null; $action=$data['action']??null;
 if (!is_int($id) || $id<=0) ManagerHttp::respond(['ok'=>false,'error'=>'invalid_conversation_id'],422);
 try {
     $result=match($action) {
-        'onetouch_search'=>ManagerTourSelectionOneTouchIntake::search((int)$manager['id'],$id,$oneTouchSigningKey,$data),
-        'onetouch_review'=>ManagerTourSelectionOneTouchIntake::review((int)$manager['id'],$id,$oneTouchSigningKey,$data),
+        'onetouch_search'=>ManagerTourSelectionOneTouchIntake::search((int)$manager['id'],$id,$oneTouchSigningKey,$data,[ManagerTourSelectionOneTouchIntake::class,'transport']),
+        'onetouch_review'=>ManagerTourSelectionOneTouchIntake::review((int)$manager['id'],$id,$oneTouchSigningKey,$data,[ManagerTourSelectionOneTouchIntake::class,'fetchGallery']),
         'onetouch_add'=>ManagerTourSelectionService::importOneTouch((int)$manager['id'],$id,$oneTouchSigningKey,$data),
         'onetouch_operation'=>ManagerTourSelectionService::importOneTouch((int)$manager['id'],$id,$oneTouchSigningKey,$data,true),
         'biblio_search'=>ManagerTourSelectionBiblioSource::search((int)$manager['id'],$id,$biblioSigningKey,$data),

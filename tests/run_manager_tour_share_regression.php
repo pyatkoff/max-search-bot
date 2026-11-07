@@ -113,6 +113,21 @@ CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version
         deliveryCheck('personal contact actions only use constructed telephone and email links',str_contains($html,'href="tel:+70000000000"')&&str_contains($html,'href="mailto:manager%40example.invalid"'));
         $personalInput['appearance']['manager']['name']='Later private edit';$personalInput['offers'][0]['amount']='999999';deliverySave($personalInput,4);
         deliveryCheck('later private edit preserves exact personal public version and price',ManagerTourSelectionShareService::read($token)===$frozenPersonal&&ManagerTourSelectionDeliveryService::get(7,1,$personalPub['id'])['publication']['appearance']['manager']['name']==='Synthetic <script>manager</script>');
+        $oldPhotoHashes=[];foreach($frozenPersonal['offers'] as $index=>$offer)foreach($offer['photos'] as $photoIndex=>$_){$image=ManagerTourSelectionShareService::photo($token,3,$index,$photoIndex);$oldPhotoHashes[$index][$photoIndex]=hash_file('sha256',$image['path']);}
+        $brandInput=$personalInput;$brandInput['offers']=$draft['offers'];$brandInput['appearance']=$frozenPersonal['appearance'];$brandInput['appearance']['palette']='anytour';
+        $oldPersonal=ManagerTourSelectionDeliveryService::get(7,1,$personalPub['id'])['publication'];
+        deliverySave($brandInput,5);$brandPub=ManagerTourSelectionDeliveryService::prepare(7,1,6)['publication'];cachePublication($brandPub['id']);
+        deliveryCheck('preparing brand correction alone does not change current published page',ManagerTourSelectionShareService::read($token)===$frozenPersonal);
+        $brandShare=shareCommand(7,1,3,$brandPub['id'],true);$selection=ManagerTourSelectionShareService::read($token);
+        $exactOffers=static fn(array $offers):array=>array_map(static function(array $offer):array{unset($offer['photos'],$offer['bot_links']);return $offer;},$offers);
+        deliveryCheck('appearance-only brand publish retains URL and every exact offer field',$brandShare['ok']&&$brandShare['share']['path']===$share['path']&&$brandShare['share']['version']===4&&$selection['appearance']===$brandInput['appearance']&&$exactOffers($selection['offers'])===$exactOffers($frozenPersonal['offers']));
+        foreach($selection['offers'] as $index=>$offer)foreach($offer['photos'] as $photoIndex=>$_){
+            $image=ManagerTourSelectionShareService::photo($token,4,$index,$photoIndex);
+            deliveryCheck('brand correction retains frozen original photo bytes',$image!==null&&hash_file('sha256',$image['path'])===$oldPhotoHashes[$index][$photoIndex]);
+        }
+        deliveryCheck('old personal immutable publication survives brand update',ManagerTourSelectionDeliveryService::get(7,1,$personalPub['id'])['publication']===$oldPersonal);
+        ob_start();require dirname(__DIR__).'/selection/view.php';$html=ob_get_clean();
+        deliveryCheck('brand renders fixed original inline SVG without dynamic markup or external logo fetch',str_contains($html,'selectionPalette-anytour')&&str_contains($html,'class="anytourLogo"')&&str_contains($html,'viewBox="0 0 224 61"')&&str_contains($html,'fill="#2743CB"')&&str_contains($html,'fill="#FF510C"')&&!str_contains($html,'<script>manager')&&!str_contains($html,'style=')&&!str_contains($html,'images/logo.svg'));
     } finally {DiagnosticLogger::setFile($originalLog);$pdo=$original;(new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$original);}
 }
 try {

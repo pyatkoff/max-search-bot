@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/restore-route-cache.yml'
       - 'services/RouteCacheRestorer.php'
       - 'tools/restore_route_cache.php'
 

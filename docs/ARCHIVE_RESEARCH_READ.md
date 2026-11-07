@@ -210,3 +210,97 @@ consumer's processed prefix, the historically discussed 16000 membership, or
 completion of the whole archive. Source versions may still change between reads.
 Use this continuation only when the consumer has separately retained its last
 completed-chat checkpoint; it does not restore a stale cursor's trusted context.
+
+
+## Finite retrospective prefix study
+
+A separate server-only operator command, `tools/archive_predictive_study.php`,
+can build a bounded, resumable study in the fixed private directory outside the
+web root. It requires the installed AnyTour checkout, application UID, reviewed
+source commit, current authorized archive scope and a private lock. It reads
+through the same canonical projection and read-only transaction admission as
+the ordinary archive reader. Its compact HMAC-grouped atoms contain no message
+text, payment links or native identities. Source-kind and chat totals must
+reconcile before analysis. Private chunks, checkpoint, analysis files and
+completion marker are durably saved in that order. Source failures and unknown
+analysis execution do not become successful completion or automatic replays.
+
+`build RUN_ID EXPECTED_INSTALLED_SHA` only prepares private results.
+`status RUN_ID EXPECTED_INSTALLED_SHA` only checks the receipt.
+Neither activates a model. `activate RUN_ID EXPECTED_INSTALLED_SHA
+REVIEWED_CANDIDATE_SHA256` separately verifies the completed run and exact
+privately reviewed eligible candidate before atomically replacing the fixed
+private active-weight file. Public output is limited to technical boolean
+receipts and fixed failure categories. No private data or result artifact is
+uploaded to Actions.
+
+The ordinary authenticated inventory may include `historical_prefix_study`,
+a bounded aggregate summary of the last completed study. Release requires the
+current scope fingerprint to match, with the existing authorization checks
+before and after reading. Missing, revoked or incomplete study storage is
+explicitly unavailable. Reading this block does not start learning, activate
+weights, create files or change archive scope. Existing tool and OAuth schemas
+are unchanged.
+
+The offline target is explicitly
+`observed_retained_payment_evidence_30d_v1`: payment evidence retained in
+the archive, not a verified bank purchase. All payment-candidate chats remain in
+the audit; uncertain clocks, cross-trip outcomes and outcome-known prefixes are
+excluded from fitting as appropriate. Unknown true purchase outcomes remain
+unknown. Comparable full-scope mature controls represent only absence of
+retained evidence in that observation window, never proof of a lost sale.
+
+Prefixes are fixed at the first meaningful customer message, the third
+nonempty customer message within a day, and the fixed 24-hour mark. No feature
+may use a later message, a later edit or a different trip. One HMAC peer group
+stays on one side of the fixed development/control split across archive
+accounts; repeated prefixes share that group's total weight. The control split
+is newly excluded from this fit, not a historically pristine test set.
+The protocol compares stage-only, previous heuristic and capped, shrunk relative
+weights, with group-level uncertainty estimates. Sparse unsupported features
+remain neutral. Stage priors, refusal guard, money scale and export remain
+unchanged. This is not calibrated purchase probability.
+
+Only operational stream/profile entry points load an eligible activated
+package. Pure prediction defaults retain their previous behavior. Each new
+weighted forecast freezes the exact package, issuance clock and feature
+multipliers; a later package cannot rewrite it. Validation accepts preserved
+historical packages without requiring their old source hashes to equal today's
+files, while activation and new loading require current source hashes.
+Existing forecasts and profile cursors are not replayed.
+
+Regression fixtures are synthetic. They exercise source conservation,
+read-only admission, temporal and trip barriers, repeated-person splitting,
+durable private storage, package validation, immutable older forecasts and
+saved weighted-result readback. They do not establish actual corpus findings.
+
+
+### Corrective derivation from completed atoms
+
+The prefix learner admits a meaningful early request with unresolved product as
+`unknown`, matching the live predictor. It does not require an early literal
+package-tour declaration. Explicit flight-only, hotel-only, add-on or mixed
+products and other-payment-product flags remain excluded. A canonical direct
+payment statement in that same provisional episode can retain unresolved
+product; it is still evidence of a statement, not verified tour or bank truth.
+Later messages never fill earlier product/features.
+
+For an observed positive, the first trustworthy payment statement ends the
+required source-continuity interval. A non-outcome gap after that statement
+cannot erase its existence. Earlier uncertainty, product/trip binding, edited
+payment and contrary outcomes retain their guards. A retained-evidence-absent
+control still requires the full clean mature observation window.
+
+The corrected protocol records prior control exposure and preserves the
+original peer-group assignment seed. Neither coefficients nor admission
+thresholds are tuned to the already viewed control. An eligible candidate
+still requires the unchanged support and model-comparison gates; publication
+of a completed study does not imply admission.
+
+`derive NEW_RUN_ID EXPECTED_INSTALLED_SHA PARENT_RUN_ID` creates a separately
+bound private study from a completed, verified parent. It requires current scope
+and unchanged source-producing code, retains original atoms, salt, capture
+clock and source fence, and records lineage to the parent manifest. It never
+rereads archive payloads or alters the parent, and never resets an unknown
+analysis attempt. New analysis uses one new intent and an actual new issuance
+time. Activation remains separate and requires review of the exact candidate.

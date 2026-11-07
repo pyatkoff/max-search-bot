@@ -2,12 +2,18 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once dirname(__DIR__).'/services/ModeledConversionAcquisitionStatsReader.php';
+require_once __DIR__.'/run_advertising_visits_regression.php';
 
 /** Shared SQLite/native-MySQL assertions. Call only with a fresh disposable fixture database. */
 function modeledAcquisitionAssertions(PDO $pdo):int
 {
     $mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
     $pdo->setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+    advertisingVisitFixtureSchema($pdo);
+    if(!$mysql){
+        $pdo->exec('CREATE INDEX acquisition_entry_identity_fixture ON advertising_visit_observations(project_key,source_key,platform,counter_id,external_user_id,identity_status,observed_at_unix)');
+        $pdo->exec('CREATE INDEX acquisition_entry_visit_fixture ON advertising_visit_observations(project_key,source_key,platform,counter_id,visit_id)');
+    }
     $int=$mysql?'BIGINT UNSIGNED':'INTEGER';$text=$mysql?'VARCHAR(64)':'TEXT';
     foreach([
         "customers(id $int PRIMARY KEY)",
@@ -35,7 +41,7 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     $iso=static fn(int $at):string=>gmdate('Y-m-d\TH:i:s\Z',$at);
     $exec=static function(string $sql,array $args=[])use($pdo):void{$q=$pdo->prepare($sql);$q->execute($args);};
     $reset=static function()use($pdo,&$profileId,&$journalId,&$messageId,&$eventId):void{
-        foreach(['modeled_conversion_profile_versions','modeled_conversion_stream_versions','conversation_events','messages','conversations','customer_channels','customers']as$table)$pdo->exec('DELETE FROM '.$table);
+        foreach(['advertising_visit_observations','advertising_visit_cursors','modeled_conversion_profile_versions','modeled_conversion_stream_versions','conversation_events','messages','conversations','customer_channels','customers']as$table)$pdo->exec('DELETE FROM '.$table);
         $profileId=100;$journalId=1000;$messageId=10000;$eventId=100;
     };
     $person=static function(int $customer,string $platform,?int $conversation=null,int $test=0,string $status='closed')use($pdo,$exec):int{
@@ -92,6 +98,15 @@ function modeledAcquisitionAssertions(PDO $pdo):int
             [$id,$conversation,$type,'system',$actor??'max-membership:'.$id,$json($payload),gmdate('Y-m-d H:i:s',$recorded)]);
     };
     $read=static fn(array $input=[]) :array=>(new ModeledConversionAcquisitionStatsReader($pdo,static function():void{}))->read($input,$now);
+    $visit=static function(int $id,int $at,array $changes=[])use($exec,$now):void{
+        $row=array_replace(['project_key'=>'anytour','source_key'=>'tgmini','platform'=>'telegram','counter_id'=>'98615635',
+            'source_cursor'=>(string)$id,'visit_id'=>'entry-'.$id,'visit_at_unix'=>$at,'observed_at_unix'=>$at+1,
+            'external_user_id'=>'90071992547411','identity_status'=>'verified','client_id'=>'17929400001234567890',
+            'yclid'=>'18446744073709551614','campaign_id'=>'12','region_id'=>'213','payload_sha256'=>str_repeat('a',64),'received_at_unix'=>$now-5],$changes);
+        $exec('INSERT INTO advertising_visit_observations('.implode(',',array_keys($row)).') VALUES('.implode(',',array_fill(0,count($row),'?')).')',array_values($row));
+    };
+    $tg=static function()use($reset,$person,$packet,$now):void{$reset();$person(11,'telegram');$packet(11,'telegram',11,[['at'=>$now-3600]],$now-60);};
+    $entry=static fn(array $r):array=>$r['platforms']['telegram']['entry_context']['counts'];
     $m=static fn(array $r):array=>$r['platforms']['max'];
     $normal=static function()use($reset,$person,$packet,$join,$now):void{
         $reset();$person(10,'max');$packet(10,'max',10,[['at'=>$now-3600]],$now-60);$join(10,$now-7200,$now-30);
@@ -105,6 +120,83 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     $t=$r['platforms']['telegram'];
     $check($r['available']&&$t['inquiries']===1&&$t['valid_pairs']===0&&$t['coverage_pct']===null&&$t['median_seconds']===null
         &&$t['p90_seconds']===null&&$t['excluded']['membership_unavailable']===1&&$t['membership_status']==='unavailable_pending_bitrix','Telegram inquiries real while membership timing remains unavailable');
+    $check($entry($r)===['prior_observed'=>0,'ambiguous'=>0,'late_only'=>0,'no_data'=>1]
+        &&$m($r)['entry_context']===['status'=>'not_supported','basis'=>'max_identity_mapping_not_visit','counts'=>null],
+        'no Telegram observations stay no data while MAX mapping is not promoted to a visit');
+    foreach([-1=>'prior_observed',0=>'prior_observed',1=>'late_only']as$offset=>$category){
+        $tg();$visit(1,$now-3600+$offset);$r=$read();
+        $check($r['available']&&$entry($r)[$category]===1&&array_sum($entry($r))===1,
+            'entry offset '.$offset.' uses original journal message second, not later profile freeze');
+    }
+    $tg();$visit(1,$now-7200);$visit(2,$now-3601);$r=$read();
+    $check($entry($r)['prior_observed']===1,'repeated entries for one ClientID remain observed context, not a unique-visit claim');
+    $visit(3,$now-3601,['client_id'=>'17929400001234567891']);$r=$read();
+    $check($entry($r)['ambiguous']===1&&$entry($r)['prior_observed']===0,'two prior ClientIDs are ambiguous rather than nearest or latest selection');
+    $tg();$visit(1,$now-7200);$visit(2,$now-3000,['client_id'=>'17929400001234567891']);$r=$read();
+    $check($entry($r)['prior_observed']===1,'later different ClientID does not rewrite earlier available entry context');
+    $tg();$visit(1,$now-7200,['observed_at_unix'=>$now-10]);$r=$read();
+    $check($entry($r)['prior_observed']===1,'late received history is descriptive as-of context using retained original entry time');
+    $tg();$visit(1,$now-7200);for($i=2;$i<=130;$i++)$visit($i,$now-3000+$i);$r=$read();
+    $check($entry($r)['prior_observed']===1&&$entry($r)['late_only']===0,'older prior entry is not hidden behind more than one page of later entries');
+    $tg();$visit(1,$now-7200,['identity_status'=>'unverified']);
+    $visit(2,$now-7200,['client_id'=>'']);$r=$read();
+    $check($entry($r)['no_data']===1,'unverified raw IDs and a click ID without ClientID never substitute for admitted entry identity');
+    $packet(11,'telegram',11,[['at'=>$now-3500]],$now-30,static function(array &$p):void{
+        $p['client_id']='17929400001234567890';$p['yclid']='18446744073709551614';$p['visit_at_unix']=1790000000;
+    });$r=$read();
+    $check($entry($r)['no_data']===1&&!str_contains(json_encode($r),'17929400001234567890')
+        &&!str_contains(json_encode($r),'18446744073709551614')&&!str_contains(json_encode($r),'90071992547411'),
+        'raw supplied profile IDs neither manufacture context nor leave aggregate response');
+    foreach(['project_key'=>'ANYTOUR','source_key'=>'TGMINI','platform'=>'Telegram','counter_id'=>'986156350','identity_status'=>'Verified','external_user_id'=>'90071992547412']as$field=>$value){
+        $tg();$visit(1,$now-7200,[$field=>$value]);$r=$read();
+        $check($r['available']&&$entry($r)['no_data']===1,'entry scope and verified identity are exact: '.$field);
+    }
+    $tg();$visit(1,$now-7200);$visit(2,$now-7200,['visit_id'=>'entry-1','external_user_id'=>'90071992547412']);$r=$read();
+    $check($entry($r)['ambiguous']===1,'conflicting verified owners of the same entry cannot produce positive context');
+    $tg();$exec("UPDATE customer_channels SET external_chat_id='different' WHERE id=11");$visit(1,$now-7200);$r=$read();
+    $check($entry($r)['ambiguous']===1,'native chat identity conflict stays ambiguous rather than no data or prior entry');
+    $tg();$person(11,'telegram',12);$packet(11,'telegram',12,[['at'=>$now-1800]],$now-30);
+    $exec("UPDATE customer_channels SET external_user_id='90071992547412',external_chat_id='90071992547412' WHERE id=12");
+    $exec("UPDATE conversations SET external_chat_id='90071992547412' WHERE id=12");
+    $visit(1,$now-7200,['external_user_id'=>'90071992547412']);$r=$read();
+    $check($entry($r)['no_data']===1,'later conversation identity is not substituted for earliest substantive message identity');
+    $visit(2,$now-7200);$r=$read();$check($entry($r)['prior_observed']===1,'entry joins exact earliest conversation even when same customer has another native identity');
+    foreach([
+        ['visit_at_unix'=>1],['observed_at_unix'=>$now-7201],['observed_at_unix'=>$now+1],
+        ['received_at_unix'=>$now+1],['received_at_unix'=>$now-8000],['client_id'=>'not-a-client-id'],
+    ]as$bad){
+        $tg();$visit(1,$now-7200,$bad);$r=$read();
+        $check(!$r['available']&&$r['reason']==='entry_context_invalid'&&$r['platforms']===null,
+            'invalid entry metadata fails visibly without false no-data totals: '.key($bad));
+    }
+    $tg();$pdo->exec('ALTER TABLE advertising_visit_observations RENAME TO acquisition_unavailable_visits');$r=$read();
+    $check(!$r['available']&&$r['reason']==='storage_unavailable'&&$r['platforms']===null,'missing observation storage is unavailable, never zero observed entries');
+    $pdo->exec('ALTER TABLE acquisition_unavailable_visits RENAME TO advertising_visit_observations');
+    foreach([[0,false,false],[1,false,true],[1,true,false],[2,true,true]]as[$capacity,$hasEntry,$accepted]){
+        $tg();if($hasEntry)$visit(1,$now-7200);
+        $bounded=new ModeledConversionAcquisitionStatsReader($pdo,static function():void{});
+        $reflection=new ReflectionClass($bounded);
+        // The one native binding row precedes the repository's count receipt.
+        $reflection->getProperty('records')->setValue($bounded,ModeledConversionAcquisitionStatsReader::MAX_RECORDS-$capacity-1);
+        $reflection->getProperty('deadline')->setValue($bounded,microtime(true)+15);
+        $pdo->beginTransaction();$acceptedResult=null;$reason=null;
+        try{$acceptedResult=$reflection->getMethod('entryContext')->invoke($bounded,
+            ['telegram:11'=>['platform'=>'telegram','customer'=>'11','conversation'=>'11','at'=>$now-3600]],$now);}
+        catch(ModeledConversionAcquisitionReadFailure $e){$reason=$e->getMessage();}
+        finally{$pdo->rollBack();}
+        $check($accepted?($reason===null&&$acceptedResult['counts'][$hasEntry?'prior_observed':'no_data']===1):($reason==='record_limit'&&$acceptedResult===null),
+            'count sentinel preserves exact remaining row budget '.$capacity.' with '.($hasEntry?'one entry':'empty history'));
+    }
+    $reset();for($id=1000;$id<=1100;$id++){
+        $person($id,'telegram');$packet($id,'telegram',$id,[['at'=>$now-3600]],$now-60);
+        $visit($id,$now-7200,['external_user_id'=>'900719925474'.$id]);
+    }
+    $beforeVisits=$pdo->query('SELECT * FROM advertising_visit_observations ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$r=$read();
+    $check($r['available']&&$entry($r)['prior_observed']===101&&array_sum($entry($r))===101&&$r['query_count']<35,
+        'entry metadata queries batch more than one hundred native identities without N plus one requests');
+    $check($beforeVisits===$pdo->query('SELECT * FROM advertising_visit_observations ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)
+        &&!$pdo->inTransaction(),'entry context projection changes no observation rows');
+    $tg();$r=$read();
     $r=$read(['platform'=>'max']);$check($r['available']&&$m($r)['inquiries']===0&&$r['platforms']['telegram']['inquiries']===0,'platform filtering preserves both closed aggregate shapes');
     $reset();$person(10,'max');$packet(10,'max',10,[],$now-60);$r=$read();
     $check($r['available']&&$m($r)['inquiries']===0&&$m($r)['coverage_pct']===null&&$m($r)['median_seconds']===null,'empty or greeting-only saved profile is not a substantive inquiry');
@@ -182,10 +274,35 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     $check($m($r)['inquiries']===0,'string source revision does not coerce into canonical integer version one');
     $reset();$person(10,'max');$packet(10,'max',10,[['at'=>$now-3600,'version'=>true]],$now-60);$r=$read();
     $check($m($r)['inquiries']===0,'boolean source revision does not coerce into canonical integer version one');
-    $reset();$person(10,'max');$packet(10,'max',10,[['at'=>strtotime('2026-11-03 21:59:59 UTC')]],$now-60);
-    $person(11,'max');$packet(11,'max',11,[['at'=>strtotime('2026-11-03 22:00:00 UTC')]],$now-60);
+    $reset();$person(10,'max');$packet(10,'max',10,[['at'=>strtotime('2026-11-03T20:59:59Z')]],$now-60);
+    $person(11,'max');$packet(11,'max',11,[['at'=>strtotime('2026-11-03T21:00:00Z')]],$now-60);
+    $person(12,'max');$packet(12,'max',12,[['at'=>strtotime('2026-11-03T21:59:59Z')]],$now-60);
     $oldDay=$read(['date'=>'2026-11-03','period'=>7]);$newDay=$read(['date'=>'2026-11-04','period'=>7]);
-    $check($m($oldDay)['inquiries']===1&&$m($newDay)['inquiries']===2,'Kaliningrad inclusive end day uses occurrence rather than profile or availability date');
+    $check($m($oldDay)['inquiries']===1&&$m($newDay)['inquiries']===3,'Moscow inclusive end day uses occurrence rather than profile or availability date');
+    $reset();$calendarReader=new ModeledConversionAcquisitionStatsReader($pdo,static function():void{});
+    foreach([
+        ['2026-11-03T20:59:59Z','2026-11-03'],['2026-11-03T21:00:00Z','2026-11-04'],['2026-11-03T21:30:00Z','2026-11-04'],
+        ['2026-12-31T20:59:59Z','2026-12-31'],['2026-12-31T21:00:00Z','2027-01-01'],['2026-12-31T21:00:01Z','2027-01-01'],
+    ]as[$instant,$date]){
+        $at=strtotime($instant);$automatic=$calendarReader->read([],$at);$explicit=$calendarReader->read(['date'=>$date],$at);
+        $check($automatic['available']&&$automatic['filters']['date']===$date&&$automatic['window']['timezone']==='Europe/Moscow'
+            &&$explicit['available']&&$automatic['window']===$explicit['window'],'default and explicit date agree at Moscow midnight '.$instant);
+    }
+    $future=false;try{$calendarReader->read(['date'=>'2027-01-01'],strtotime('2026-12-31T20:59:59Z'));}catch(InvalidArgumentException $e){$future=true;}
+    $check($future,'next Moscow day remains a future filter until midnight');
+    foreach([7=>'2026-12-25T21:00:00Z',30=>'2026-12-02T21:00:00Z',90=>'2026-10-03T21:00:00Z']as$period=>$start){
+        $reset();$end='2027-01-01T21:00:00Z';$calendarNow=strtotime('2027-01-02T12:00:00Z');
+        foreach([strtotime($start)-1,strtotime($start),strtotime($end)-1,strtotime($end)]as$i=>$at){
+            $id=20+$i;$person($id,'max');$packet($id,'max',$id,[['at'=>$at]],$calendarNow-60);
+        }
+        $saved=[];foreach(['customers','customer_channels','conversations','messages','conversation_events','modeled_conversion_stream_versions','modeled_conversion_profile_versions']as$table)
+            $saved[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $r=$calendarReader->read(['date'=>'2027-01-01','period'=>$period],$calendarNow);
+        $check($r['available']&&$r['window']===['from'=>$start,'until'=>$end,'timezone'=>'Europe/Moscow']&&$m($r)['inquiries']===2,
+            'Moscow '.$period.' day window includes its first instant and excludes its next midnight');
+        $unchanged=true;foreach($saved as$table=>$rows)$unchanged=$unchanged&&$rows===$pdo->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+        $check($unchanged&&!$pdo->inTransaction(),'calendar projection preserves original UTC records and identities for '.$period.' days');
+    }
     $normal();$calls=0;$countAuth=static function()use(&$calls):void{$calls++;};
     (new ModeledConversionAcquisitionStatsReader($pdo,$countAuth))->read([],$now);$last=$calls;
     $calls=0;$revoked=false;
@@ -441,6 +558,14 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     $r=$reuseReader->read(['period'=>7],$now);
     $check($r['available']&&$r['sources']['profiles_examined']===64&&$m($r)['inquiries']===1&&$m($r)['valid_pairs']===0
         &&$m($r)['excluded']['identity_ambiguous']===1&&!$pdo->inTransaction(),'reused reader rebuilds latest access admission without resurrecting denied cross-batch history');
+
+    $tg();$pdo->beginTransaction();
+    for($id=1;$id<=50001;$id++)$visit($id,$now-7200);
+    $pdo->commit();$capStarted=microtime(true);$r=$read();
+    echo 'ACQUISITION_ENTRY_CAP_FIXTURE_TECHNICAL '.json_encode(['reason'=>$r['reason'],
+        'query_count'=>$r['query_count'],'elapsed_ms'=>(int)round((microtime(true)-$capStarted)*1000)],JSON_THROW_ON_ERROR).PHP_EOL;
+    $check(!$r['available']&&in_array($r['reason'],['record_limit','byte_limit','time_limit'],true)&&$r['platforms']===null,
+        'capped observation history cannot publish a partial prior-entry or zero-data partition');
 
     $normal();$pdo->beginTransaction();
     for($batch=0;$batch<251;$batch++){

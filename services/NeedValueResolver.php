@@ -39,7 +39,10 @@ class NeedValueResolver
 
         if ($field === 'children') {
             $value = ChildrenParser::parse($text);
-            return self::result($value !== null, $value, 'deterministic:children_parser');
+            $result = self::result($value !== null, $value, 'deterministic:children_parser');
+            $unsupported = $value === null ? ChildrenParser::unsupportedCount($text) : null;
+            if ($unsupported !== null) $result['unsupported_count'] = $unsupported;
+            return $result;
         }
 
         if ($field === 'child_ages') {

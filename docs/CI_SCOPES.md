@@ -44,10 +44,24 @@ no mode outputs, so the required aggregate fails and dependent expensive scopes
 do not start. This prevents a full green synthetic-merge run followed by a strict
 merge rejection. Integrate the accepted base first, then run the ordinary checks.
 
-This is an early rejection, never a passing/skipped replacement for required
-evidence. Manual runs retain full coverage; malformed/unavailable comparisons keep
-the existing conservative behavior. The check uses the event base and cannot
-predict a later main change, so the existing fresh publication check still applies.
+The existing full-history checkout also fetches `refs/remotes/origin/main`.
+For an event explicitly targeting `main`, the selector rejects
+`event_base_superseded` when that fetched commit is a different descendant of
+the saved event base. This catches an already obsolete event even when its old
+base is an ancestor of the PR head, or the head already contains the newer main.
+It uses the existing fetched snapshot, with no extra fetch, API call, permission
+or workflow. A missing/non-commit, older or divergent snapshot uses conservative
+full coverage; an explicitly unknown base branch also stays full.
+Those fallbacks preserve component commissioning for changed CI rules and do not
+apply a styling-only backend shortcut.
+
+Both rejections fail without publishing scope outputs. Dependent PHP/MySQL and
+browser groups therefore do not start; independent inventory and syntax jobs may
+still run. This is never passing/skipped evidence or merge permission. Manual
+runs retain full coverage. The snapshot cannot predict a main change after
+checkout, so the existing fresh final priority/publication check still applies.
+The existing release order remains necessary before pushing a prepared candidate
+to an open PR; this early guard does not reserve the next release window.
 
 ## Tour-selection component
 
@@ -196,6 +210,38 @@ matrix exclusions, wiring and the actual aggregate truth table. Policy edits
 still receive full regression plus the existing component commissioning. Actual
 runner savings and duration must come from a subsequent ordinary styling PR,
 not an artificial release or a claimed percentage from these local fixtures.
+
+
+## Booking stylesheet backend subprofile
+
+A modification of exactly `manager/assets/workspace-v2-tour-choices.css` may
+select `mode=full, backend=workspace-style`. This stylesheet contains the
+selected-tour and booking form layout. It does not change PHP, SQL, request
+payloads, authorization or module manifests. Only an existing regular 100644
+file modification qualifies; additions, deletion, rename/copy, mode changes
+and **any companion path** keep ordinary full server coverage.
+
+This independently selects server work without changing browser coverage.
+The existing required matrix keeps architecture, inventory and PHP syntax;
+the four other server groups and the prepared MySQL matrix are declared skips.
+The source aggregate requires those exact current-run results. A missing,
+failed or foreign profile never passes, and the existing release admission
+remains mandatory.
+
+All full native Chromium/WebKit parts, Firefox checks, screenshots, sound,
+post-context and their existing MySQL checks keep their current mode/full
+conditions. This profile cannot substitute component screenshots for full
+panel evidence. No browser case, invocation, assertion, timeout or screenshot
+is removed. Mixed CSS/JS, PHP, API, fixture, test, documentation, migration,
+manifest or CI changes run full server coverage. The existing selection-style
+profile is unchanged.
+
+The canonical selector/output Git-history tests and workflow aggregate truth
+tables exercise the positive scope and conservative fallbacks. The CI-rule
+package itself receives full regression and existing browser commissioning;
+it cannot self-select its new shortcut. Manual and production PHP8.3
+verification remain full. Any duration or runner savings require a subsequent
+ordinary qualifying stylesheet change; no benchmark-only PR is needed.
 
 ## Prepared native browser environment
 

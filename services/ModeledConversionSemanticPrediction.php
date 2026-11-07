@@ -1,15 +1,21 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__.'/ModeledConversionTextSignals.php';
+require_once __DIR__.'/ArchivePredictiveRelativeWeights.php';
+
 /**
  * Pure, bounded first useful prediction over already admitted and redacted messages.
  * The caller owns authorization, chronological ordering and the canonical extractor.
- * These illustrative rules are neither trained nor calibrated; no text is retained.
+ * Stage priors are neither trained nor calibrated. Extra signals are recorded for research; no text is retained.
  */
 final class ModeledConversionSemanticPrediction
 {
     public const VERSION='semantic_purchase_heuristic_v1';
     public const ASSUMPTIONS_VERSION='illustrative_funnel_2026_11_02_v1';
+    public const STAGE_BASELINE_ASSUMPTIONS='stage_baseline_2026_11_06_v1';
+    public const ADVERTISING_ASSUMPTIONS='early_dialogue_ads_2026_11_06_v1';
+    public const ADVERTISING_WEIGHTS=['continued_meaningful_engagement'=>1.10,'continued_offer_search'=>1.10,'office_question'=>1.10,'payment_terms_question'=>1.15];
     public const HORIZON_SECONDS=2592000;
     public const MAX_BYTES=16384;
     /** Continuity policy is part of this model's source digest, never customer evidence. */
@@ -50,10 +56,16 @@ final class ModeledConversionSemanticPrediction
     private bool $modification=false;
     private bool $priceAlternative=false;
     private int $barriers=0;
+    private bool $officeQuestion=false;
+    private bool $paymentTermsQuestion=false;
+    private ?array $relativeWeights;
 
     public function __construct(array $subject,private string $profilePredictionAt,
-        private string $inputCutoffAt,private string $frozenAt,private string $cursor,private string $fence)
+        private string $inputCutoffAt,private string $frozenAt,private string $cursor,private string $fence,?array $relativeWeights=null,private bool $advertisingV1=false)
     {
+        if($relativeWeights!==null&&!ArchivePredictiveRelativeWeights::validCapsule($relativeWeights))self::fail('relative_weights');
+        if($advertisingV1&&$relativeWeights!==null)self::fail('conflicting_policy');
+        $this->relativeWeights=$relativeWeights;
         if(($subject['project_key']??null)!=='anytour'||!in_array($subject['platform']??null,['max','telegram'],true)
             ||!self::decimal($subject['customer_key']??null,false)||!self::decimal($subject['conversation_id']??null,false))
             self::fail('subject');
@@ -63,6 +75,7 @@ final class ModeledConversionSemanticPrediction
         if($profile===null||$cutoff===null||$freeze===null||$cutoff>$profile||$profile>$freeze
             ||$freeze>253402300799-self::HORIZON_SECONDS||!self::decimal($cursor)||!self::decimal($fence)
             ||self::greater($cursor,$fence))self::fail('clock_or_cursor');
+        if($relativeWeights!==null&&$relativeWeights['issued_at_unix']>$freeze)self::fail('weights_after_forecast');
         $this->cutoff=$cutoff;$this->freeze=$freeze;
     }
 
@@ -113,11 +126,11 @@ final class ModeledConversionSemanticPrediction
                 $this->deferred=true;$this->evidence('deferral',$meta);
             }
         }
-        $families=$directCustomer?self::criteriaFamilies($redactedText):[];
-        $comp=$directCustomer&&self::hit('сравн\pL*|чем\s+отлича\pL*|какой\s+лучше|другие\s+вариант\pL*|ещ[её]\s+вариант\pL*',$redactedText);
-        $modify=$directCustomer&&self::hit('поменя\pL*|замен\pL*|измен\pL*|давайте\s+(?:другой|другую|другие)|подберите\s+(?:нам\s+)?друг',$redactedText);
-        $cheaper=$directCustomer&&self::hit('дорого\pL*|дороже|дорог(?:ой|ая|ие|ие|оват\pL*)',$redactedText)
-            &&self::hit('(?:найдите|подберите|поищите|давайте)(?s:.{0,80})(?:дешевле|бюджетн\pL*)',$redactedText);
+        $textSignals=ModeledConversionTextSignals::scan($redactedText);
+        $families=$directCustomer?$textSignals['criteria_families']:[];
+        $comp=$directCustomer&&$textSignals['explicit_comparison'];
+        $modify=$directCustomer&&$textSignals['explicit_modification'];
+        $cheaper=$directCustomer&&$textSignals['price_alternative_continued_search'];
         $this->messages[$ref]['price_alternative']=$cheaper;
         // Bare logistics and greetings do not establish a trip or seller choice.
         $meaningful=$role==='customer'&&($goals!==[]||($directCustomer&&(count($families)>=2
@@ -136,15 +149,26 @@ final class ModeledConversionSemanticPrediction
             if(isset($goals['general_purchase_intent'])||isset($goals['agency_purchase_intent'])){
                 $this->deferred=false;$this->declined=false;
             }
-            $near=$directCustomer&&self::hit('срочно|как\s+можно\s+скорее|в\s+ближайшие\s+дни|на\s+этой\s+неделе|(?:вылет|улететь|решить|купить|бронировать)(?s:.{0,35})(?:сегодня|завтра)',$redactedText);
-            $far=$directCustomer&&self::hit('на\s+следующ\pL*\s+год|в\s+следующ\pL*\s+году|через\s+(?:полгода|год|[3-9]\s+месяц\pL*|1[0-2]\s+месяц\pL*)|за\s+год\s+заранее',$redactedText);
+            $near=$directCustomer&&$textSignals['near_term_urgency'];
+            $far=$directCustomer&&$textSignals['long_range_planning'];
             if($near||$far){$this->urgency=$near&&!$far;$this->longRange=$far;
                 $this->evidence($far?'long_range_planning':'near_term_urgency',$meta);}
+        }
+        if($role==='customer'&&$this->anchor!==null
+            &&($flags['quoted_or_relayed']??false)!==true&&($flags['past_trip']??false)!==true
+            &&($flags['conditional']??false)!==true){
+            foreach(['office_question'=>'officeQuestion','payment_terms_question'=>'paymentTermsQuestion']as$goal=>$property){
+                foreach($r['events']as$event)if(($event['source_ref']??null)===$ref&&($event['goal']??null)===$goal){
+                    $this->$property=true;
+                    $this->evidence($goal,$meta);
+                    break;
+                }
+            }
         }
         // A direct refusal reduces the hypothesis; a price objection alone does not.
         if($role==='customer'&&($flags['quoted_or_relayed']??false)!==true
             &&($flags['past_trip']??false)!==true&&($flags['conditional']??false)!==true
-            &&($flags['question']??false)!==true&&self::hit('не\s+будем\s+(?:покупать|бронировать|ехать)|отказываемся\s+от\s+(?:тура|поездки)|поездка\s+отменяется|тур\s+(?:нам\s+)?не\s+нужен',$redactedText)){
+            &&($flags['question']??false)!==true&&$textSignals['explicit_decline']){
             $this->declined=true;$this->evidence('explicit_decline',$meta);
         }
     }
@@ -157,6 +181,7 @@ final class ModeledConversionSemanticPrediction
         $this->evidence=[];$this->messages=[];$this->currentOutcome=false;
         $this->urgency=false;$this->longRange=false;$this->deferred=false;$this->declined=false;
         $this->comparison=false;$this->modification=false;$this->priceAlternative=false;
+        $this->officeQuestion=false;$this->paymentTermsQuestion=false;
         $this->barriers=min(1000000,$this->barriers+1);
         // Known operational outcomes are a conservative global exclusion, never bank truth.
     }
@@ -196,11 +221,26 @@ final class ModeledConversionSemanticPrediction
         if($stage!==null)$reasons[]='illustrative_prior_'.$stage;
         if($discussion!==null)$reasons[]='exact_current_offer_price_alternative';
         if($this->priceAlternative)$reasons[]='price_alternative_is_continued_search';
-        if($this->urgency){$odds*=1.2;$reasons[]='hypothesis_near_term_urgency';}
-        if($this->meaningfulTurns>=2){$odds*=1.1;$reasons[]='hypothesis_continued_meaningful_engagement';}
-        if($this->longRange){$odds*=0.65;$reasons[]='hypothesis_long_range_planning';}
-        if($this->deferred){$odds*=0.5;$reasons[]='hypothesis_deferral';}
-        if($this->declined){$odds*=0.25;$reasons[]='hypothesis_explicit_decline';}
+        $weights=$legacyStatus==='access_denied'?null:$this->relativeWeights;
+        if($weights!==null){
+            $active=['continued_meaningful_engagement'=>$this->meaningfulTurns>=2,
+                'near_term_urgency'=>$this->urgency,'long_range_planning'=>$this->longRange,
+                'deferral'=>$this->deferred,'continued_offer_search'=>$this->comparison||$this->modification||$this->priceAlternative,
+                'office_question'=>$this->officeQuestion,'payment_terms_question'=>$this->paymentTermsQuestion];
+            foreach($active as$feature=>$present)if($present){
+                $odds*=$weights['multipliers'][$feature];$reasons[]='archive_weight_'.$feature;
+            }
+        }
+        // Owner-authorized early advertising hypotheses; timing and deferral have no penalty.
+        if($this->advertisingV1&&$weights===null&&!$this->declined){
+            $active=['continued_meaningful_engagement'=>$this->meaningfulTurns>=2,
+                'continued_offer_search'=>$this->comparison||$this->modification||$this->priceAlternative,
+                'office_question'=>$this->officeQuestion,'payment_terms_question'=>$this->paymentTermsQuestion];
+            foreach(self::ADVERTISING_WEIGHTS as$feature=>$multiplier)if($active[$feature]){
+                $odds*=$multiplier;$reasons[]='expert_dialogue_'.$feature;
+            }
+        }
+        if($this->declined){$odds*=0.25;$reasons[]=$weights!==null?'hypothesis_explicit_decline':'explicit_decline_guard';}
         $odds=max(0.25,min(1.3,$odds));
         $probability=$status==='predicted'?round(($base*$odds)/(1-$base+$base*$odds),6):null;
         if($status!=='predicted')$reasons[]=$status;
@@ -209,7 +249,7 @@ final class ModeledConversionSemanticPrediction
         if($discussion!==null)$evidence[]=$discussion;
         foreach($this->evidence as$item){if(count($evidence)>=16)break;$evidence[]=$item;}
         $p=[
-            'version'=>self::VERSION,'model_sha256'=>hash_file('sha256',__FILE__),'mode'=>'contextual_rules_untrained','target'=>'payment_with_current_agency_30d',
+            'version'=>self::VERSION,'model_sha256'=>hash_file('sha256',__FILE__),'mode'=>'contextual_stage_baseline','target'=>'payment_with_current_agency_30d',
             'subject'=>$this->subject,'current_request_anchor'=>$this->anchor,
             'anchor_source_version_no'=>$this->anchorVersion,'current_customer_turn_count'=>$this->customerTurns,
             'journal_cursor'=>$this->cursor,'source_fence_journal_id'=>$this->fence,
@@ -225,16 +265,30 @@ final class ModeledConversionSemanticPrediction
                 'explicit_comparison'=>$this->comparison,'explicit_modification'=>$this->modification,
                 'price_alternative_continued_search'=>$this->priceAlternative,'near_term_urgency'=>$this->urgency,
                 'long_range_planning'=>$this->longRange,'deferral'=>$this->deferred,'explicit_decline'=>$this->declined,
-                'context_barriers'=>$this->barriers],
-            'assumptions_version'=>self::ASSUMPTIONS_VERSION,'training_status'=>'not_trained',
-            'calibration_status'=>'not_calibrated','probability_meaning'=>'illustrative_semantic_hypothesis_not_observed_payment',
+                'context_barriers'=>$this->barriers,'office_question'=>$this->officeQuestion,'payment_terms_question'=>$this->paymentTermsQuestion],
+            'assumptions_version'=>self::STAGE_BASELINE_ASSUMPTIONS,'training_status'=>'not_trained',
+            'calibration_status'=>'not_calibrated','probability_meaning'=>'illustrative_stage_prior_with_explicit_decline_guard',
             'newness_status'=>'first_v1_observation_not_new_person_or_trip',
             'trip_identity'=>'unverified','source_history_complete'=>false,
             'known_operational_outcome_meaning'=>'crm_state_not_verified_payment',
             'evaluation_eligible'=>false,'export_allowed'=>false,'expected_value_rub'=>null,
             'provider_calls'=>0,'model_calls'=>0,'conversion_uploads'=>0,
         ];
+        if($this->advertisingV1){
+            $p['mode']='contextual_advertising_v1';
+            $p['assumptions_version']=self::ADVERTISING_ASSUMPTIONS;
+            $p['probability_meaning']='expert_stage_and_dialogue_estimate_for_advertising';
+        }
         // Denied callers receive no private message provenance or contextual features.
+        if($weights!==null){
+            $p['mode']='contextual_rules_with_archive_relative_weights';
+            $p['assumptions_version']=ArchivePredictiveRelativeWeights::VERSION;
+            $p['training_status']='archive_relative_weights';
+            $p['probability_meaning']='illustrative_purchase_prior_with_retrospective_evidence_weights';
+            $p['relative_weights']=$weights;
+            $p['features']['office_question']=$this->officeQuestion;
+            $p['features']['payment_terms_question']=$this->paymentTermsQuestion;
+        }
         if($status==='access_denied'){
             $p['current_request_anchor']=null;$p['anchor_source_version_no']=null;$p['current_customer_turn_count']=0;
             $p['stage']=null;$p['base_probability']=null;$p['reasons']=['access_denied'];$p['evidence']=[];
@@ -335,17 +389,6 @@ final class ModeledConversionSemanticPrediction
                     &&$observation['kind']!=='known_operational_outcome'){$remove=$oldKey;break;}
             if($remove===null)array_shift($this->outcomes);else unset($this->outcomes[$remove]);
         }
-    }
-    private static function criteriaFamilies(string $text):array
-    {
-        $rules=[
-            'destination'=>'Турци\pL*|Египет\pL*|Таиланд\pL*|Мальдив\pL*|ОАЭ|Дуба[йи]\pL*|Тунис\pL*|Кипр\pL*|Греци\pL*|Испани\pL*|Итали\pL*|Вьетнам\pL*|Индонези\pL*|Бали|Куб[ауе]|Шри[- ]Ланк\pL*|Гоа|Сочи|Абхази\pL*',
-            'dates'=>'январ\pL*|феврал\pL*|март\pL*|апрел\pL*|(?<!\pL)ма[йяе](?!\pL)|июн\pL*|июл\pL*|август\pL*|сентябр\pL*|октябр\pL*|ноябр\pL*|декабр\pL*|[0-3]?[0-9][./][01]?[0-9](?:[./][0-9]{2,4})?|\d+\s*(?:ноч(?:ь|и|ей)|дн(?:я|ей))|сегодня|завтра|на\s+этой\s+неделе|следующ\pL*\s+год|через\s+(?:полгода|год)',
-            'party'=>'\d+\s*(?:взросл\pL*|дет\pL*|реб[её]н\pL*|чел\pL*|турист\pL*)|двое|трое|семь[её]й|с\s+(?:реб[её]нком|детьми)',
-            'budget'=>'бюджет\pL*|\d[\d ,.]*\s*(?:тыс(?:яч\pL*)?|руб\pL*|₽|доллар\pL*|евро)|до\s+\d+\s*[$€]',
-            'requirements'=>'вс[её]\s+включено|ультра\s+вс[её]|первая\s+лини\pL*|первой\s+лини\pL*|песчан\pL*\s+пляж|подогрева\pL*\s+бассейн|аквапарк|детск\pL*\s+(?:клуб|меню)|[345]\s*(?:зв[её]зд\pL*|\*)|без\s+пересад\pL*',
-        ];
-        $out=[];foreach($rules as$family=>$pattern)if(self::hit($pattern,$text))$out[]=$family;return$out;
     }
     private static function ordered(array $value):array
     {

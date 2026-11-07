@@ -31,7 +31,7 @@ $pdo=new ModeledDeliveryRouteFixturePDO('sqlite::memory:',null,null,[PDO::ATTR_E
 deliveryRegistrySchema($pdo);
 if($view==='forecast-payments')forecastPaymentFixtureSchema($pdo);
 $now=time();
-$zone=new DateTimeZone('Europe/Kaliningrad');
+$zone=new DateTimeZone('Europe/Moscow');
 $eventAt=$case==='admin_previous_day'
     ?(new DateTimeImmutable('@'.$now))->setTimezone($zone)->setTime(0,0)->getTimestamp()-60
     :$now-60;

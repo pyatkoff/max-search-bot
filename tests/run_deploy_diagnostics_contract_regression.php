@@ -1,6 +1,7 @@
 <?php
 $workflow = (string)file_get_contents(__DIR__ . '/../.github/workflows/deploy.yml');
 $exporter = (string)file_get_contents(__DIR__ . '/../export_debug_logs.php');
+$publisher = (string)file_get_contents(__DIR__ . '/../tools/release_slot_close.js');
 $syncStart=strpos($workflow,'      - name: Sync canonical production checkout');
 $migrationStart=strpos($workflow,'      - name: Apply database migrations');
 $smokeStart=strpos($workflow,'      - name: Verify installed production checks');
@@ -45,11 +46,19 @@ $checks = [
     'diagnostics outcome and accepted original are captured' =>
         str_contains($workflow, 'DOWNLOAD_OUTCOME: ${{ steps.download.outcome }}')
         && str_contains($workflow, 'DOWNLOAD_ACCEPTED: ${{ steps.admission.outputs.download_result }}'),
-    'deploy telemetry uses the finite canonical renderer before branch checkout' =>
+    'deploy telemetry uses the finite canonical renderer before its bounded metadata publisher' =>
         str_contains($workflow, 'node tools/release_slot_close.js --stage-status')
-        && strpos($workflow, '--stage-status') < strpos($workflow, 'git checkout -B diagnostics'),
+        && str_contains($workflow, 'node tools/deployment_release.js wrap-installed')
+        && strpos($workflow, '--stage-status') < strpos($workflow, 'wrap-installed')
+        && str_contains($workflow, '--publish-pending --record "$RUNNER_TEMP/deploy-status.json"')
+        && !str_contains($workflow, 'git checkout -B diagnostics')
+        && !str_contains($workflow, 'git add -A')
+        && str_contains($publisher, "endpoint+'/git/refs/heads/diagnostics'")
+        && str_contains($publisher, 'force:false'),
     'failed transfer cannot pass the final verification aggregate' =>
-        str_contains($workflow, 'test "$DOWNLOAD" = success || test "$DOWNLOAD_ACCEPTED" = success'),
+        str_contains($workflow, 'accepted_step "$DOWNLOAD" "$DOWNLOAD_ACCEPTED"')
+        && str_contains($workflow, 'success:skipped|skipped:success) return 0 ;;')
+        && str_contains($workflow, '*) return 1 ;;'),
     'all structured log consumers use the same explicit private logger owner' => $privateReaders,
     'structured history containment runs in exact checkout sync before migrations' =>
         $reset!==false&&$contain!==false&&$reset<$contain

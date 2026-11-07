@@ -69,7 +69,10 @@ class MaxSearchBase
 			$children = (int)($savedData[static::$statusChild] ?? 0);
 			if($children>0) {
 				$t .= " + ".$children." реб.";
-				if(!empty($savedData[static::$statusAge])) $t .= " (".$savedData[static::$statusAge]." лет)";
+				$ages = $savedData[static::$statusAge] ?? null;
+				if ($ages !== null && $ages !== '') {
+					$t .= " (" . ((string)$ages === '0' ? "до 1 года" : $ages . " лет") . ")";
+				}
 			} else {
 				$t .= ", без детей";
 			}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionEarlyForecast.php';
 require_once __DIR__.'/ModeledConversionAssignedValue.php';
 require_once __DIR__.'/ModeledConversionPredictionFollowup.php';
+require_once __DIR__.'/ModeledConversionDealValue.php';
 
 /** Derived private profiles from the admitted journal; never queries native sources. */
 final class ModeledConversionProfiles
@@ -16,7 +17,7 @@ final class ModeledConversionProfiles
     private array $sourceCache=[];
     private int $rowsRead=0;
     private int $bytesRead=0;
-    public function __construct(PDO $pdo){$this->pdo=$pdo;$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';}
+    public function __construct(PDO $pdo,private ?array $relativeWeights=null){$this->pdo=$pdo;$this->mysql=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';}
     public function start(): array
     {
         return $this->transaction(function(){
@@ -105,10 +106,11 @@ final class ModeledConversionProfiles
                     // Read only the prior scalar marker; private profile text is not loaded again.
                     $firstExpression=$this->mysql?"JSON_UNQUOTE(JSON_EXTRACT(profile_json,'$.early_forecast.first_snapshot_journal_cursor'))":"json_extract(profile_json,'$.early_forecast.first_snapshot_journal_cursor')";
                     $first=$this->q('SELECT '.$firstExpression.' AS first_cursor FROM modeled_conversion_profile_versions WHERE project_key=? AND platform=? AND customer_key=? AND conversation_id=? ORDER BY id DESC LIMIT 1',array_values($scope))->fetchColumn();
-                    $packet=ModeledConversionEarlyForecast::freeze($case,$profile,$document,$first===false||$first===null?null:(string)$first);
+                    $packet=ModeledConversionEarlyForecast::freeze($case,$profile,$document,$first===false||$first===null?null:(string)$first,null,$this->relativeWeights,$this->relativeWeights===null);
                     $profile['contextual_signals']=$packet['contextual_signals'];$profile['early_forecast']=$packet['early_forecast'];
                     $profile['assigned_value']=ModeledConversionAssignedValue::profile($profile,$case);
                     $profile['semantic_prediction']=$packet['semantic_prediction'];
+                    $profile['deal_value_prediction']=ModeledConversionDealValue::freeze($profile,$case);
                     $priorPrediction=$this->priorSemanticPrediction($scope,$profile['semantic_prediction']);
                     $profile['prediction_followup']=ModeledConversionPredictionFollowup::compare($profile['semantic_prediction'],$priorPrediction);
                     $forecastReceipt=ModeledConversionEarlyForecast::accumulate($forecastReceipt,$packet);

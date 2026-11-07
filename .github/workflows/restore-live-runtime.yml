@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - '.github/workflows/restore-live-runtime.yml'
       - 'tools/standby_enable_standalone.php'
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: max-search-runtime-recovery
@@ -19,7 +19,32 @@ jobs:
   restore:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout exact repository source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify exact repository source is current main
+        id: provenance
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          bash tools/verify_deploy_main_provenance.sh
+
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Prepare SSH keys
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           PROD_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           NEW_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -42,10 +67,11 @@ jobs:
           write_key "$NEW_KEY" "$RUNNER_TEMP/new_key"
 
       - name: Wait for exact new-server SHA
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           NEW_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           NEW_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -63,6 +89,7 @@ jobs:
           exit 1
 
       - name: Verify new endpoint is sole MAX owner
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           NEW_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           NEW_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -79,6 +106,7 @@ jobs:
           '
 
       - name: Restore MAX live processing state
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           NEW_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           NEW_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -101,6 +129,7 @@ jobs:
           '
 
       - name: Install single followup cron owner on new server
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           LEGACY_HOST: ${{ secrets.DEPLOY_HOST }}
           LEGACY_USER: ${{ secrets.DEPLOY_USER }}
@@ -139,6 +168,7 @@ jobs:
           echo "BOT_CRON_OWNERSHIP=NEW_ONLY"
 
       - name: Final runtime verification
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           NEW_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           NEW_USER: ${{ secrets.STANDBY_DEPLOY_USER }}

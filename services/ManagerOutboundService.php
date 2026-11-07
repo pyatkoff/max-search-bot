@@ -103,9 +103,9 @@ class ManagerOutboundService
     public static function sendMedia(int $conversationId,int $managerId,string $filePath,string $fileName,string $mimeType,string $caption='',string $previewUrl=''): bool
     {
         self::$lastFailure=null;
-        if(!is_file($filePath))return false;
-        $c=ManagerConversationService::visibleConversation($conversationId,$managerId);if(!$c)return false;
-        if((string)$c['status']!=='manager'||(int)$c['manager_id']!==$managerId)return false;
+        if(!is_file($filePath))return self::mediaNotDispatched('file_unavailable');
+        $c=ManagerConversationService::visibleConversation($conversationId,$managerId);if(!$c)return self::mediaNotDispatched('context_changed');
+        if((string)$c['status']!=='manager'||(int)$c['manager_id']!==$managerId)return self::mediaNotDispatched('context_changed');
         $channel=strtolower((string)$c['channel']);
         $projectKey=(string)$c['project_key'];
         if($channel!=='max'&&$channel!=='telegram'){
@@ -130,6 +130,13 @@ class ManagerOutboundService
             return true;
         }
         return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key'],['media_type'=>$type]);
+    }
+
+    private static function mediaNotDispatched(string $reason): bool
+    {
+        // These returns precede adapter dispatch; expose no conversation or file data.
+        self::$lastFailure=['category'=>'not_dispatched','reason'=>$reason,'http_code'=>0];
+        return false;
     }
 
     private static function recordFailure(int $conversationId,int $managerId,string $channel,string $projectKey,array $extra=[]): bool
@@ -164,6 +171,9 @@ class ManagerOutboundService
     public static function failureNotice(array $failure): string
     {
         switch((string)($failure['category']??'unknown')){
+            case 'not_dispatched': return ($failure['reason']??'')==='file_unavailable'
+                ? 'Отправка файла не началась: не удалось прочитать вложение.'
+                : 'Отправка файла не началась: диалог изменился или недоступен. Проверьте диалог перед новой отправкой.';
             case 'suspended': return '🔴 Сообщение не доставлено: пользователь остановил или заблокировал бота MAX. Написать снова можно только после запуска/разблокировки бота пользователем.';
             case 'blocked': return '🔴 Сообщение не доставлено: пользователь заблокировал бота';
             case 'unavailable': return '🔴 Сообщение не доставлено: пользователь недоступен в MAX';

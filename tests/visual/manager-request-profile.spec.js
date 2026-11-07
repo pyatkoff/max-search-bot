@@ -229,13 +229,13 @@ test('new-trip choice never imports a proposal from the previous trip',async({pa
 
 // Exercise the shipped panel in a native DOM with synthetic authorized reads.
 // Provider calls and all other network destinations are deliberately excluded.
-for(const width of [390,1440])test(`current request stays independent of the optional AI host at ${width}px`,async({page})=>{
+for(const width of [390,1440])test(`current request stays independent of the optional AI host at ${width}px`,async({page,browserName})=>{
   const errors=[],unexpected=[];
   const onError=error=>errors.push(error.message);page.on('pageerror',onError);
   await page.setViewportSize({width,height:700});
   await page.route('**/*',route=>{
     const url=new URL(route.request().url());
-    if(url.origin==='https://request-profile.invalid'&&['/','/manager2/request-profile.php'].includes(url.pathname))return route.fulfill({contentType:'text/html',body:url.pathname==='/'?
+    if(url.origin==='https://request-profile.invalid'&&['/','/manager2/request-profile.php'].includes(url.pathname))return route.fulfill({contentType:'text/html; charset=utf-8',body:url.pathname==='/'?
       '<!doctype html><body class="manager2"><section id="conversationZone"><header class="conversationHead">Клиент</header><div id="optionalAiHost" hidden></div><div id="handoffContext">Исходные условия</div><div id="messages" style="height:80px;overflow:auto"><div style="height:600px">История</div></div><textarea id="replyText"></textarea><input id="replyFile" type="file"><div id="profileTools"></div></section></body>':'<!doctype html><title>Protected profile fixture</title>'});
     unexpected.push(route.request().url());return route.abort();
   });
@@ -243,10 +243,10 @@ for(const width of [390,1440])test(`current request stays independent of the opt
     await page.goto('https://request-profile.invalid/');
     await page.evaluate(({width})=>{
       const S={current:11,manager:{id:7,role:'manager'},authExpired:false,authGeneration:1,detail:{conversation:{id:11,project_key:'anytour',manager_id:7,status:'manager',channel:'telegram',customer_id:101,customer_channel_id:'fixture'},messages:[]}};
-      const p=window.profileHostProbe={calls:[],hostReads:0,mayRead:true};
+      const p=window.profileHostProbe={calls:[],hostReads:0,mayRead:true,profile:{label:'Текущая поездка',status:'fresh',fields:{dates:{value:'20 декабря'},party:{value:{adults:2,children:0}},budget:{value:'200 000 ₽ за всех'}}}};
       window.WorkspaceV2={S,$:id=>document.getElementById(id),showAuthRecovery:()=>{throw new Error('unexpected_auth_recovery')},request:async(endpoint,action,args)=>{
         p.calls.push({endpoint,action,conversation:args.conversation_id});
-        return {ok:true,viewer_id:7,conversation_id:args.conversation_id,profile:{label:'Текущая поездка',status:'fresh',fields:{dates:{value:'20 декабря'},party:{value:{adults:2,children:0}},budget:{value:'200 000 ₽ за всех'}}}};
+        return {ok:true,viewer_id:7,conversation_id:args.conversation_id,profile:p.profile};
       }};
       window.WorkspaceV2Conversation={hasReadAccess:()=>p.mayRead,getOpenGeneration:()=>1};
       window.Manager2Presentation={registerConversationTool:button=>{document.getElementById('profileTools').appendChild(button);return true},focusConversationTool:id=>document.getElementById(id).focus()};
@@ -263,6 +263,25 @@ for(const width of [390,1440])test(`current request stays independent of the opt
     await page.evaluate(()=>{document.getElementById('optionalAiHost').remove();delete window.WorkspaceV2AiDraft;WorkspaceV2RequestProfile.sync()});
     await expect(trip).toBeVisible();await expect(trip.locator('small')).toContainText('200 000 ₽ за всех');
     expect(await page.evaluate(()=>profileHostProbe.calls.length)).toBe(1);
+    await trip.locator('summary').click();const status=page.locator('#m2RequestStatus');
+    await expect(status).toHaveText('Запрос сверен с перепиской');
+    const savedCriteria='20 декабря · 2 взр. · 200 000 ₽ за всех';await expect(trip.locator('small')).toHaveText(savedCriteria);
+    await page.evaluate(()=>{profileHostProbe.profile.status='needs_review';WorkspaceV2.S.detail.messages.push({id:501,direction:'in',sender_type:'customer',text:'Уточнение к поездке',created_at:'2026-11-07 10:00:00'});WorkspaceV2RequestProfile.sync()});
+    await expect(status).toHaveText('Есть новые сообщения. Сверьте запрос.');await trip.locator('summary').click();await expect(status).toBeVisible();
+    await expect(trip).toHaveAttribute('data-state','review');await expect(trip.locator('small')).toHaveText(savedCriteria);
+    expect(await page.evaluate(()=>profileHostProbe.calls.length)).toBe(2);
+    const screenshotWidth=width===390?430:1280;
+    await page.setViewportSize({width:screenshotWidth,height:700});const style=await page.addStyleTag({path:path.join(root,'manager2/assets/manager2.css')});
+    const directory=path.join(root,'manager2-artifacts');fs.mkdirSync(directory,{recursive:true});
+    await expect(status).toBeVisible();await trip.screenshot({path:path.join(directory,`request-profile-needs-review-${browserName}-${screenshotWidth}.png`),animations:'disabled'});
+    await style.evaluate(node=>node.remove());await page.setViewportSize({width,height:700});
+    await page.evaluate(()=>{profileHostProbe.profile.status='fresh';WorkspaceV2RequestProfile.refresh()});
+    await expect(status).toHaveText('Запрос сверен с перепиской');await expect(trip).toHaveAttribute('data-state','fresh');
+    await trip.locator('summary').click();await expect(status).toBeVisible();
+    await expect(trip.locator('small')).toHaveText(savedCriteria);await expect(status).not.toContainText('Есть новые сообщения');
+    await page.evaluate(()=>{profileHostProbe.profile={label:'Текущая поездка',status:'empty',fields:{}};WorkspaceV2RequestProfile.refresh()});
+    await expect(status).toHaveText('Сохранённого запроса пока нет. Уточните его по переписке.');await expect(status).toBeVisible();
+    await expect(trip).toBeHidden();await expect(trip.locator('small')).toBeEmpty();
     await page.locator('#m2RequestProfileOpen').click();await expect(page.locator('#m2RequestProfilePanel')).toBeVisible();
     await page.locator('#m2RequestProfilePanel button').click();await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
     expect(await page.evaluate(()=>({text:document.getElementById('replyText').value,file:document.getElementById('replyFile').files[0]===profileHostProbe.file,scroll:document.getElementById('messages').scrollTop}))).toEqual({text:'Несохранённый ответ',file:true,scroll:75});

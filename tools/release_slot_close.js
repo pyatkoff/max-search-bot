@@ -2,7 +2,9 @@
 'use strict';
 
 // Metadata-only terminal step of the existing post-deploy workflow.
-// Never deploys, dispatches checks, creates records, or retries a write.
+// Never deploys, dispatches checks, creates release slots, or retries a write.
+// Its only content write extends the existing diagnostics installation receipt.
+const release = require('./deployment_release');
 const REPOSITORY = 'pyatkoff/max-search-bot';
 const PREFIX = '.github/workflows/';
 const CLOSER = PREFIX + 'modeled-conversion-value-export.yml';
@@ -162,7 +164,7 @@ function verifyActivation(jobs, run, c, monitorId = null) {
     && job.status === 'completed' && job.conclusion === (c.activation ? 'success' : 'skipped'),
     'activation_unconfirmed');
 }
-async function closeRelease({ env, event, api, sleep, now = Date.now }) {
+async function closeRelease({ env, event, api, sleep, now = Date.now, prepare = false, proofFile = null }) {
   const c = context(env, event);
   const endpoint = path => '/repos/' + REPOSITORY + path;
   const get = path => api('GET', endpoint(path));
@@ -177,10 +179,25 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
   const merged = pulls.filter(p => p.merge_commit_sha === c.sha && p.state === 'closed');
   requireValue(merged.length === 1, 'ambiguous_pull');
   const pr = await get('/pulls/' + merged[0].number);
-  const b = binding(pr, c.sha);
-  if (!b) return 'not_opted_in';
+  const before = await api('GET', endpoint('/contents/deploy_status.json?ref=diagnostics'), undefined, true);
+  if(!prepare&&env.PREPARED_RECORD_DIGEST!==undefined){
+    requireValue(/^[0-9a-f]{64}$/.test(env.PREPARED_RECORD_DIGEST)
+      &&before?.repository_release?.phase==='pending_terminal'
+      &&before.repository_release.closure?.run_id===String(c.run)
+      &&release.digest(before)===env.PREPARED_RECORD_DIGEST,'prepared_result_changed');
+  }
+  const terminalPrepared=before?.repository_release?.repository_sha===c.sha
+    &&before.repository_release.phase==='pending_terminal';
+  let b = binding(pr, c.sha);
+  if (!b) {requireValue(!terminalPrepared,'prepared_binding_removed');return 'not_opted_in';}
   const recordPath = '/issues/comments/' + b.comment_id;
-  if (recordState(await get(recordPath), b) === 'released') return 'already_released';
+  // An unchanged terminal has its own honest text. Read the typed result before
+  // interpreting a pre-existing terminal, never translate it into an installation.
+  if(before?.repository_release?.repository_sha===c.sha&&before.repository_release.kind==='application_unchanged')
+    b={...b,released:release.terminalBody('application_unchanged',b.pr)};
+  if (recordState(await get(recordPath), b) === 'released') {
+    requireValue(!terminalPrepared,'prepared_terminal_already_released');return 'already_released';
+  }
   const deadline = now() + 18 * 60 * 1000;
   while (true) {
     await main();
@@ -193,9 +210,32 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
   // Read the existing exact installation evidence; do not execute any probes.
   const deploy = await api('GET', endpoint('/contents/deploy_status.json?ref=diagnostics'), undefined, true);
   const ops = await api('GET', endpoint('/contents/ops_status.json?ref=diagnostics'), undefined, true);
-  verifyTelemetry(deploy, ops, c);
+  if(!prepare&&env.PREPARED_RECORD_DIGEST!==undefined)
+    requireValue(release.digest(deploy)===env.PREPARED_RECORD_DIGEST&&deploy?.repository_release?.phase==='pending_terminal',
+      'prepared_result_changed');
+  let typed=null;
+  if(deploy?.repository_release){
+    requireValue(prepare||(/^[0-9a-f]{64}$/.test(env.PREPARED_RECORD_DIGEST||'')
+      &&release.digest(deploy)===env.PREPARED_RECORD_DIGEST),'prepared_result_changed');
+    typed=await release.readRecord(api);
+    requireValue(release.same(typed.record,deploy),'deployment_result_changed');
+    const r=release.validateRelease(deploy).release;
+    requireValue(r.repository_sha===c.sha&&r.release.run_id===String(c.deploy)
+      &&(r.kind==='installed'||(!c.recovery&&c.deployAttempt!==2)),'deployment_result_mismatch');
+    if(r.kind==='application_unchanged'){
+      requireValue(c.configure==='skipped'&&!c.activation,'unchanged_intent_executed');
+      await release.verifyUnchanged(api,typed);
+    }else{
+      verifyTelemetry(deploy,ops,c);
+      await release.authenticatePublication(api,typed);
+    }
+  }else{
+    requireValue(!prepare,'typed_release_result_missing');verifyTelemetry(deploy, ops, c);
+  }
   // Fresh admission to update this one record, never another owner's slot.
-  const current = binding(await get('/pulls/' + b.pr), c.sha);
+  let current = binding(await get('/pulls/' + b.pr), c.sha);
+  if(current&&typed?.record.repository_release.kind==='application_unchanged')
+    current={...current,released:release.terminalBody('application_unchanged',current.pr)};
   requireValue(JSON.stringify(current) === JSON.stringify(b), 'binding_changed');
   await main();
   if(c.recovery)c.recovery=await readRecovery(get,c);
@@ -205,7 +245,38 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
     && r.event === 'workflow_run');
   verifyActivation(await get('/actions/runs/' + activation.id + '/attempts/1/jobs?per_page=100'), activation, c,
     finalRuns.workflow_runs.find(r => r.path === PREFIX + 'modeled-conversion-monitor.yml' && r.event === 'workflow_run')?.id);
-  if (recordState(await get(recordPath), b) === 'released') return 'already_released';
+  if (recordState(await get(recordPath), b) === 'released') {
+    requireValue(!typed,'prepared_terminal_already_released');return 'already_released';
+  }
+  if(typed){
+    if(typed.record.repository_release.kind==='application_unchanged')await verifyUnchangedJobs(api,finalRuns,c);
+    if(prepare){
+      requireValue(typed.record.repository_release.phase==='pending_closure','terminal_already_prepared');
+      const prepared=await prepareRecord(api,typed,c,b,finalRuns);
+      // Every fail-capable publication is before the only terminal mutation.
+      // A competing diagnostics writer is a conflict, not a blind rebase/retry.
+      const location=await publishDiagnostics(api,prepared,typed);
+      const proof=release.publicationProof(prepared,location,String(c.run),1);
+      if(proofFile)release.saveJson(proofFile,proof);
+      return {publication_artifact:release.publicationName('pending_terminal',c.run,1),
+        publication_file:proofFile||'',record_digest:release.digest(prepared)};
+    }
+    const r=typed.record.repository_release;
+    requireValue(r.phase==='pending_terminal'&&r.closure.run_id===String(c.run)
+      &&release.same(r.closure.binding,bindingSnapshot(b))
+      &&release.same(r.closure.gates,gateReferences(finalRuns)),'terminal_proposal_changed');
+    const fresh=await release.readRecord(api);
+    requireValue(fresh.blob===typed.blob&&fresh.record_digest===typed.record_digest,'deployment_result_changed');
+    await release.authenticatePublication(api,fresh);
+    // No slow artifact/job verification after the last publisher admission.
+    // Re-read main, the binding and the owned record immediately before PATCH.
+    requireValue(gateState(await snapshot(),c)==='ready','gates_changed');
+    let lastBinding=binding(await get('/pulls/'+b.pr),c.sha);
+    if(lastBinding&&r.kind==='application_unchanged')lastBinding={...lastBinding,released:release.terminalBody(r.kind,b.pr)};
+    requireValue(release.same(lastBinding,b),'binding_changed');
+    await main();
+    requireValue(recordState(await get(recordPath),b)==='active','prepared_terminal_already_released');
+  }
   // GitHub comments have no atomic compare-and-swap. This relies on the existing
   // single-publisher contract and this workflow's existing serialized execution.
   // One PATCH only. A transport/write/readback failure is UNKNOWN, never retried.
@@ -221,10 +292,14 @@ async function closeRelease({ env, event, api, sleep, now = Date.now }) {
 
 const INSTALL_JOBS = ['verify-inventory','verify-syntax','verify / application','verify / diagnostics','deploy'];
 const VERIFY_STEPS = {check:'Verify installed production checks',download:'Download exact installed diagnostic snapshot',
-  status:'Publish verification stage status',cleanup:'Remove acknowledged diagnostic snapshot'};
+  status:'Publish verification stage status',publication:release.PENDING_BINDING_STEP,
+  cleanup:'Remove acknowledged diagnostic snapshot'};
 function stepResult(job,name) {
   requireValue(job && Array.isArray(job.steps),'incomplete_job_steps');
-  const rows=job.steps.filter(s=>s?.name===name);
+  const rows=job.steps.filter(s=>name===release.PENDING_BINDING_STEP
+    ?typeof s?.name==='string'&&s.name.startsWith(name)&&(/^[0-9a-f]{64}$/.test(s.name.slice(name.length))
+      ||(s.name===name&&s.conclusion==='skipped'))
+    :s?.name===name);
   requireValue(rows.length===1&&rows[0].status==='completed'&&['success','failure','skipped'].includes(rows[0].conclusion),'incomplete_job_steps');
   return rows[0].conclusion;
 }
@@ -278,13 +353,17 @@ function deploymentHistory(history,first,current,c,admitting=false) {
   const plan={};
   for(const key of Object.keys(VERIFY_STEPS)) {
     // A successful status publisher may have recorded a failed check/copy.
-    const needed=results[key]!=='success'||(key==='status'&&(results.check!=='success'||results.download!=='success'));
+    const needed=results[key]!=='success'||(['status','publication'].includes(key)&&(results.check!=='success'||results.download!=='success'))
+      ||(key==='publication'&&results.status!=='success');
     plan['run_'+key]=needed;
     plan[key+'_result']=needed?'skipped':'success';
     if(!admitting)requireValue(stepResult(latest,VERIFY_STEPS[key])===(needed?'success':'skipped'),'accepted_step_replayed_or_unconfirmed');
   }
+  const published=old.steps.filter(s=>typeof s.name==='string'&&s.name.startsWith(release.PENDING_BINDING_STEP)
+    &&/^[0-9a-f]{64}$/.test(s.name.slice(release.PENDING_BINDING_STEP.length)));
   return {plan,smokeAttempt:results.check==='success'?1:2,
-    diagnosticsAttempt:results.download==='success'?1:2};
+    diagnosticsAttempt:results.download==='success'?1:2,
+    publicationDigest:published.length===1?published[0].name.slice(release.PENDING_BINDING_STEP.length):null};
 }
 async function readRecovery(get,c,admitting=false) {
   const first=await get('/actions/runs/'+c.deploy+'/attempts/1');
@@ -310,8 +389,8 @@ async function admitVerification({env,api}) {
       requireValue(rows.length===1&&rows[0].run_id===c.deploy&&rows[0].head_sha===c.sha&&
         rows[0].status==='completed'&&rows[0].conclusion==='success','installation_unconfirmed');
     }
-    return {run_check:true,run_download:true,run_status:true,run_cleanup:true,
-      check_result:'skipped',download_result:'skipped',status_result:'skipped',cleanup_result:'skipped',
+    return {run_check:true,run_download:true,run_status:true,run_publication:true,run_cleanup:true,
+      check_result:'skipped',download_result:'skipped',status_result:'skipped',publication_result:'skipped',cleanup_result:'skipped',
       smoke_attempt:1,diagnostics_attempt:1};
   }
   const pulls=await get('/commits/'+c.sha+'/pulls?per_page=100');
@@ -324,7 +403,8 @@ async function admitVerification({env,api}) {
   const proof=await readRecovery(get,c,true);
   requireValue((await get('/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
   requireValue(recordState(await get('/issues/comments/'+b.comment_id),b)==='active','record_not_active');
-  return {...proof.plan,smoke_attempt:proof.smokeAttempt,diagnostics_attempt:proof.diagnosticsAttempt};
+  return {...proof.plan,smoke_attempt:proof.smokeAttempt,diagnostics_attempt:proof.diagnosticsAttempt,
+    publication_digest:proof.publicationDigest||''};
 }
 async function selectRecoveryRuns(snapshot,c,get) {
   if(!c.recovery)return snapshot;
@@ -369,13 +449,204 @@ function stageStatus(env) {
     smoke:outcome('CHECK'),diagnostics:outcome('DOWNLOAD')};
 }
 
+function bindingSnapshot(b) {
+  return {pr:b.pr,head_sha:b.head_sha,comment_id:b.comment_id,owner_id:b.owner_id,updated_at:b.updated_at};
+}
+function gateReferences(snapshot) {
+  return REQUIRED.map(([file,event])=>{
+    const rows=snapshot.workflow_runs.filter(r=>r.path===PREFIX+file&&r.event===event);
+    requireValue(rows.length===1,'ambiguous_run');const r=rows[0];
+    return {path:r.path,run_id:String(r.id),run_attempt:r.run_attempt,head_sha:r.head_sha,conclusion:r.conclusion};
+  });
+}
+const NOOP_JOBS = new Map([
+  ['live-session-diagnostics.yml','publish'],['max-production-health.yml','inspect'],
+  ['max-tls-preflight.yml','strict-tls-preflight'],['modeled-conversion-monitor.yml','monitor'],
+  ['publish-conversation-diagnostics.yml','publish'],['telegram-production-health.yml','inspect'],
+  ['tour-selection-host.yml','host'],
+]);
+const NOOP_PREPARATION = new Set(['Resolve exact production source','Checkout exact production source',
+  'Verify exact source is current main','Checkout','Verify current main before private capture',
+  'Run actions/checkout@v4','Require current authoritative main before loading deployment credentials',
+  release.RESOLVER_STEP,'Set up job','Complete job','Post Checkout exact production source','Post Checkout',
+  'Post Run actions/checkout@v4']);
+// These exact workflow/job pairs also remove local runner files. Cleanup is
+// unconditional, including when no production action was admitted.
+const NOOP_LOCAL_CLEANUP = new Map([
+  ['publish-conversation-diagnostics.yml','Remove private capture files'],
+  ['modeled-conversion-monitor.yml','Remove private ephemeral monitor data'],
+]);
+function onlyMetadataSteps(job,allowed,required) {
+  requireValue(Array.isArray(job.steps)&&job.steps.length>0&&job.steps.length<100
+    &&new Set(job.steps.map(s=>s.number)).size===job.steps.length,'incomplete_noop_steps');
+  for(const name of required)requireValue(job.steps.filter(s=>s.name===name&&s.status==='completed'&&s.conclusion==='success').length===1,
+    'noop_resolution_unconfirmed');
+  for(const step of job.steps)requireValue(step.status==='completed'
+    &&(allowed.has(step.name)?['success','skipped'].includes(step.conclusion):step.conclusion==='skipped'),
+    'unchanged_operation_executed');
+}
+async function verifyUnchangedJobs(api,snapshot,c) {
+  const get=path=>api('GET','/repos/'+REPOSITORY+path);
+  for(const [file,name]of NOOP_JOBS){
+    const run=snapshot.workflow_runs.find(r=>r.path===PREFIX+file&&r.event==='workflow_run');
+    requireValue(run,'noop_workflow_missing');
+    const jobs=release.boundedList(await get('/actions/runs/'+run.id+'/attempts/1/jobs?per_page=100'),'jobs','incomplete_noop_jobs');
+    requireValue(jobs.length===(file==='tour-selection-host.yml'?2:1),'unknown_noop_job');
+    const job=jobs.find(j=>j.name===name);
+    requireValue(job&&job.run_id===run.id&&job.head_sha===c.sha&&job.status==='completed'
+      &&job.conclusion==='success','noop_job_unconfirmed');
+    const cleanup=NOOP_LOCAL_CLEANUP.get(file);
+    const allowed=new Set(NOOP_PREPARATION),required=[release.RESOLVER_STEP];
+    if(cleanup){allowed.add(cleanup);required.push(cleanup);}
+    onlyMetadataSteps(job,allowed,required);
+    if(file==='tour-selection-host.yml'){
+      const editor=jobs.find(j=>j.name==='independent-editor');
+      requireValue(editor&&editor.run_id===run.id&&editor.head_sha===c.sha&&editor.status==='completed'
+        &&editor.conclusion==='skipped'&&Array.isArray(editor.steps)&&editor.steps.length===0,'independent_editor_executed');
+    }
+  }
+  const jobs=release.boundedList(await get('/actions/runs/'+c.deploy+'/attempts/1/jobs?per_page=100'),'jobs','incomplete_noop_jobs');
+  requireValue(jobs.length===INSTALL_JOBS.length+1&&jobs.every(j=>[...INSTALL_JOBS,'verify'].includes(j.name)),'unknown_noop_job');
+  const deployment=jobs.find(j=>j.name==='deploy'),verification=jobs.find(j=>j.name==='verify');
+  for(const j of [deployment,verification])requireValue(j?.run_id===c.deploy&&j.head_sha===c.sha
+    &&j.status==='completed'&&j.conclusion==='success','noop_job_unconfirmed');
+  const deployAllowed=new Set(['Set up job','Complete job','Post Checkout exact deployment SHA',
+    'Require the complete deployment verification','Checkout exact deployment SHA','Verify deployment SHA is current main',
+    'Resolve original accepted installation and complete release intent','Prepare canonical SSH private key',
+    'Select installation or prove the unchanged application without mutation','Fail failed installation']);
+  onlyMetadataSteps(deployment,deployAllowed,['Select installation or prove the unchanged application without mutation']);
+  const verificationAllowed=new Set(['Set up job','Complete job','Post Checkout exact installed verification SHA',
+    'Checkout exact installed verification SHA','Publish the proven unchanged result without installed stages',
+    'Require complete installed verification']);
+  const publications=verification.steps.filter(s=>typeof s.name==='string'&&s.name.startsWith(release.PENDING_BINDING_STEP)
+    &&/^[0-9a-f]{64}$/.test(s.name.slice(release.PENDING_BINDING_STEP.length)));
+  requireValue(publications.length===1,'publication_step_unconfirmed');verificationAllowed.add(publications[0].name);
+  onlyMetadataSteps(verification,verificationAllowed,['Publish the proven unchanged result without installed stages',publications[0].name]);
+}
+async function prepareRecord(api,location,c,b,snapshot) {
+  const record=release.clone(location.record),r=record.repository_release;
+  r.phase='pending_terminal';r.release.run_attempt=c.deployAttempt||1;
+  r.closure={run_id:String(c.run),run_attempt:1,job:'release-slot',terminal_step:release.TERMINAL_STEP,
+    binding:bindingSnapshot(b),expected_terminal:release.terminalBody(r.kind,b.pr),gates:gateReferences(snapshot)};
+  if(r.kind==='installed'){
+    const host=snapshot.workflow_runs.find(x=>x.path===release.HOST&&x.event==='workflow_run');
+    const observed=await release.hostObservation(api,host,c.sha);
+    requireValue(observed.observation.status!=='blocked','installed_runtime_contradiction');
+    r.observation=observed.observation;r.observation_producer=observed.producer;
+    r.baseline_eligible=r.release.event==='push'&&r.intent_scan.status==='no_registered_intent'
+      &&r.observation.status==='known'&&c.configure==='skipped'&&!c.activation;
+  }
+  release.validateRelease(record);return record;
+}
+const PUBLIC_DIAGNOSTIC_JSON = new Set(['deploy_status.json','ops_status.json','autopilot_snapshot.json',
+  'architecture_inventory.json','public_live_status.json','public_daily_status.json']);
+function diagnosticsTree(entries,record) {
+  requireValue(Array.isArray(entries)&&entries.length<10000&&new Set(entries.map(e=>e.path)).size===entries.length,
+    'invalid_diagnostics_tree');
+  const edits=[];let existing=false;
+  for(const e of entries){
+    requireValue(e&&typeof e.path==='string'&&e.path.length>0&&!e.path.includes('/')&&!/[\r\n\\]/.test(e.path)
+      &&['blob','tree','commit'].includes(e.type)&&sha(e.sha),'invalid_diagnostics_tree');
+    if(e.path==='deploy_status.json'){
+      requireValue(e.type==='blob'&&e.mode==='100644','unsafe_status_entry');existing=true;continue;
+    }
+    // Preserve the exact old privacy allowlist: no copied raw capture, root
+    // unknown JSON, production-diagnostics directory or legacy migration log.
+    if(e.path==='production-diagnostics'||e.path==='migration.log'
+      ||(e.type==='blob'&&e.path.endsWith('.json')&&!PUBLIC_DIAGNOSTIC_JSON.has(e.path)))
+      edits.push({path:e.path,mode:e.mode,type:e.type,sha:null});
+  }
+  requireValue(existing,'installation_record_missing');
+  edits.push({path:'deploy_status.json',mode:'100644',type:'blob',content:release.wire(record)});return edits;
+}
+async function publishDiagnostics(api,record,expected=null) {
+  release.validateRelease(record,false);
+  const endpoint='/repos/'+REPOSITORY;
+  const previous=await release.readRecord(api);
+  if(expected)requireValue(previous.blob===expected.blob&&previous.record_digest===expected.record_digest,
+    'diagnostics_compare_conflict');
+  const commit=await api('GET',endpoint+'/git/commits/'+previous.commit);
+  requireValue(commit?.sha===previous.commit&&sha(commit.tree?.sha),'untrusted_diagnostics_commit');
+  const root=await api('GET',endpoint+'/git/trees/'+commit.tree.sha);
+  requireValue(root?.sha===commit.tree.sha&&root.truncated===false,'incomplete_diagnostics_tree');
+  const edits=diagnosticsTree(root.tree,record);
+  const tree=await api('POST',endpoint+'/git/trees',{base_tree:commit.tree.sha,tree:edits});
+  requireValue(sha(tree?.sha),'diagnostics_tree_write_unknown');
+  const written=await api('POST',endpoint+'/git/commits',{message:'Record the exact production release result',
+    tree:tree.sha,parents:[previous.commit]});
+  requireValue(sha(written?.sha),'diagnostics_commit_write_unknown');
+  // One non-force ref update. A concurrent publisher holds the slot; no retry,
+  // rebase or user-content overwrite is silently performed.
+  let updated;
+  try{updated=await api('PATCH',endpoint+'/git/refs/heads/diagnostics',{sha:written.sha,force:false});}
+  catch{throw new Refusal('diagnostics_write_unknown');}
+  requireValue(updated?.object?.sha===written.sha,'diagnostics_write_unknown');
+  const exact=await release.readRecord(api,written.sha);
+  requireValue(release.same(exact.record,record),'diagnostics_write_unknown');
+  const fresh=await release.readRecord(api);
+  requireValue(fresh.blob===exact.blob&&fresh.record_digest===exact.record_digest,'diagnostics_write_unknown');
+  await release.requireAncestry(api,written.sha,fresh.commit);
+  return exact;
+}
+async function publishPending({env,event,api,record,proofFile,repository=process.cwd()}) {
+  const c=await release.sourceContext(env,event,api,release.DEPLOY);
+  requireValue(c.job==='verify'&&['push','workflow_dispatch'].includes(c.event),'untrusted_publisher_context');
+  const {release:r,installation}=release.validateRelease(record,false);
+  requireValue(r.phase==='pending_closure'&&r.repository_sha===c.sha&&r.release.run_id===c.id
+    &&r.release.run_attempt===c.attempt&&r.release.event===c.event,'publisher_result_mismatch');
+  const previous=await release.readRecord(api);
+  if(r.kind==='application_unchanged'){
+    requireValue(c.attempt===1&&c.event==='push'&&event.forced===false,'untrusted_unchanged_publisher');
+    await release.requireCurrentBinding(api,c.sha);
+    const baseline=await release.readBaseline(api,r.baseline,previous.commit);
+    requireValue(release.same(baseline.installation,installation)
+      &&release.same(release.installationReceipt(previous.record),installation),'installation_receipt_changed');
+    requireValue(release.compareObservations(baseline.release.observation,r.observation).kind==='application_unchanged',
+      'runtime_observation_changed');
+    const preview=release.v2(repository,installation,c,event);
+    requireValue(preview.decision==='no_install_candidate'
+      &&release.same(release.contentSummary(preview.comparison,installation.sha,c.sha),r.content)
+      &&release.same(release.intentScan(repository,installation.sha,c.sha),r.intent_scan),'content_plan_changed');
+    requireValue(String(r.observation_producer.run_id)===c.id&&r.observation_producer.run_attempt===1,
+      'runtime_observer_mismatch');
+  }else{
+    // This admission preserves the original negative schema-2 status as well.
+    // Success of the writer is never success of its failed check/download.
+    await admitVerification({env,api});
+  }
+  const location=await publishDiagnostics(api,record,previous);
+  const proof=release.publicationProof(record,location,c.id,c.attempt);
+  if(proofFile)release.saveJson(proofFile,proof);
+  return {publication_artifact:release.publicationName('pending_closure',c.id,c.attempt),
+    publication_file:proofFile||'',record_digest:release.digest(record)};
+}
+async function resumePublication({env,event,api,proofFile}) {
+  const c=await release.sourceContext(env,event,api,release.DEPLOY);
+  requireValue(c.job==='verify'&&c.attempt===2&&c.event==='push','untrusted_publication_recovery');
+  const plan=await admitVerification({env,api});
+  requireValue(plan.run_status===false&&plan.run_publication===true,'publication_recovery_not_needed');
+  const location=await release.readRecord(api),r=release.validateRelease(location.record).release;
+  requireValue(r.kind==='installed'&&r.phase==='pending_closure'&&r.repository_sha===c.sha
+    &&r.release.run_id===c.id&&r.release.run_attempt===1&&/^[0-9a-f]{64}$/.test(plan.publication_digest||'')
+    &&location.record_digest===plan.publication_digest,'publication_recovery_source_changed');
+  const proof=release.publicationProof(location.record,location,c.id,2);
+  if(proofFile)release.saveJson(proofFile,proof);
+  return {publication_artifact:release.publicationName('pending_closure',c.id,2),
+    publication_file:proofFile||'',record_digest:location.record_digest};
+}
+
 function makeApi(token, fetchImpl = globalThis.fetch) {
   requireValue(typeof token === 'string' && token.length > 0 && typeof fetchImpl === 'function', 'missing_capability');
-  return async (method, path, body, raw = false) => {
-    requireValue(['GET', 'PATCH'].includes(method) && path.startsWith('/repos/' + REPOSITORY + '/')
+  const read=release.makeReadApi(token,fetchImpl);
+  const api=async (method, path, body, raw = false) => {
+    if(method==='GET')return read(method,path,body,raw);
+    requireValue(['POST', 'PATCH'].includes(method) && path.startsWith('/repos/' + REPOSITORY + '/')
       && !/[\r\n\\]/.test(path), 'invalid_request');
-    requireValue(method !== 'PATCH' || /^\/repos\/pyatkoff\/max-search-bot\/issues\/comments\/[1-9][0-9]*$/.test(path),
-      'invalid_write_target');
+    const comment=/^\/repos\/pyatkoff\/max-search-bot\/issues\/comments\/[1-9][0-9]*$/.test(path);
+    const reference=path==='/repos/'+REPOSITORY+'/git/refs/heads/diagnostics';
+    requireValue((method==='PATCH'&&((comment&&release.keys(body,['body']))
+      ||(reference&&release.keys(body,['sha','force'])&&sha(body.sha)&&body.force===false)))
+      ||(method==='POST'&&['/git/trees','/git/commits'].some(p=>path==='/repos/'+REPOSITORY+p)), 'invalid_write_target');
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     try {
@@ -386,20 +657,34 @@ function makeApi(token, fetchImpl = globalThis.fetch) {
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
       requireValue(response.ok, 'api_http_' + (Number.isInteger(response.status) ? response.status : 'unknown'));
-      try { return await response.json(); } catch { throw new Refusal('invalid_response'); }
+      try { return release.parseJson(await release.responseBytes(response,release.MAX_API),release.MAX_API); }
+      catch(error) { if(error instanceof release.Refusal)throw error;throw new Refusal('invalid_response'); }
     } catch (error) {
       if (error instanceof Refusal) throw error;
       throw new Refusal('transport_failed');
     } finally { clearTimeout(timer); }
   };
+  api.artifact=read.artifact;return api;
 }
 module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
   verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_STEPS, stepResult, copiedExecution,
-  deploymentHistory, admitVerification, selectRecoveryRuns, stageStatus };
+  deploymentHistory, admitVerification, selectRecoveryRuns, stageStatus, bindingSnapshot, gateReferences,
+  onlyMetadataSteps,verifyUnchangedJobs,prepareRecord,PUBLIC_DIAGNOSTIC_JSON,diagnosticsTree,publishDiagnostics,
+  publishPending,resumePublication };
 if (typeof require === 'function' && require.main === module) {
   (async () => {
     const mode=process.argv.slice(2);
     if(mode.length) {
+      if(['--publish-pending','--resume-publication','--prepare-closure'].includes(mode[0])){
+        const args=release.argumentsOf(mode,[mode[0]]),env=process.env,event=release.readJson(env.GITHUB_EVENT_PATH),
+          api=makeApi(env.GITHUB_TOKEN);
+        requireValue(release.keys(args,mode[0]==='--publish-pending'?['command','record','proof']:['command','proof']),'invalid_arguments');
+        const result=mode[0]==='--publish-pending'
+          ?await publishPending({env,event,api,record:release.readJson(args.record),proofFile:args.proof})
+          :mode[0]==='--resume-publication'?await resumePublication({env,event,api,proofFile:args.proof})
+          :await closeRelease({env,event,api,sleep:ms=>new Promise(resolve=>setTimeout(resolve,ms)),prepare:true,proofFile:args.proof});
+        release.outputs(typeof result==='string'?{release_slot:result,publication_artifact:'',publication_file:'',record_digest:''}:result);return;
+      }
       requireValue(mode.length===1&&['--admit-verification','--stage-status'].includes(mode[0]),'invalid_mode');
       const result=mode[0]==='--stage-status'?stageStatus(process.env):await admitVerification({env:process.env,api:makeApi(process.env.GITHUB_TOKEN)});
       if(mode[0]==='--stage-status')process.stdout.write(JSON.stringify(result)+'\n');
@@ -407,6 +692,7 @@ if (typeof require === 'function' && require.main === module) {
       return;
     }
     const api=makeApi(process.env.GITHUB_TOKEN);
+    requireValue(/^[0-9a-f]{64}$/.test(process.env.PREPARED_RECORD_DIGEST||''),'prepared_result_missing');
     let event;
     try { event = JSON.parse(require('node:fs').readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')); }
     catch { throw new Refusal('invalid_event'); }
@@ -414,7 +700,7 @@ if (typeof require === 'function' && require.main === module) {
       sleep: ms => new Promise(resolve => setTimeout(resolve, ms)) });
     process.stdout.write('release_slot=' + result + '\n');
   })().catch(error => {
-    process.stderr.write('release_slot=held reason=' + (error instanceof Refusal ? error.code : 'internal_failure') + '\n');
+    process.stderr.write('release_slot=held reason=' + (error instanceof Refusal||error instanceof release.Refusal ? error.code : 'internal_failure') + '\n');
     process.exitCode = 1;
   });
 }

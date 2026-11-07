@@ -55,7 +55,7 @@
   }
   function render(profile){
     if(!row)return;
-    const states={fresh:'Запрос сверен с перепиской',stale:'Есть новые сообщения. Сверьте запрос.',source_changed:'Исходные данные изменились. Сверьте запрос.'};
+    const states={fresh:'Запрос сверен с перепиской',needs_review:'Есть новые сообщения. Сверьте запрос.',source_changed:'Исходные данные изменились. Сверьте запрос.'};
     const name=typeof profile?.label==='string'?profile.label.trim():'';label.textContent=name==='Текущая поездка'?'':name;label.hidden=!label.textContent;
     const party=profile?.fields?.party?.value,parts=[];
     const dates=profile?.fields?.dates?.value,budget=profile?.fields?.budget?.value;

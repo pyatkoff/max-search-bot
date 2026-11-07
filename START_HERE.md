@@ -26,11 +26,40 @@ Live evidence can confirm and reprioritize a defect, but it cannot authorize a h
 
 1. Fetch current `main`, issue #55 and its newest comments.
 2. Read `AGENTS.md`, `docs/AUTOPILOT.md`, `docs/OPERATIONS.md`, `docs/ARCHITECTURE.md`, `docs/ARCHITECTURE_MAP.md` and the relevant roadmap section.
-3. Confirm `main`, deploy status, ops status and production snapshot resolve to the same full SHA.
+3. Confirm current repository and actual application provenance. For an ordinary installation, `main`, deploy status, ops status and production snapshot resolve to the same full SHA. When the accepted `repository_release` says `application_unchanged`, authenticate it with `tools/deployment_release.js resolve-consumer`: current main is the repository SHA, while deployment/ops/snapshot continue to identify the original actual application SHA. Pending or unauthenticated metadata is not release acceptance.
 4. Confirm migrations have zero pending/checksum failures.
 5. Confirm required production workflows: deploy, diagnostics, strict MAX TLS, MAX webhook and Telegram webhook.
 6. Review fresh live evidence and operational warnings before selecting roadmap work.
 7. Create a fresh branch from current `main`; never revive a historical branch merely because an old handoff names it.
+
+## Releases that retain an accepted application
+
+The integrated release path is described in `docs/OPERATIONS.md` and
+`docs/RELEASE_PRIORITY.md`. Its first normal installation must establish an
+accepted baseline. Do not claim reduced installations until a later eligible
+release has actually used it, and do not create a demonstration release solely
+to obtain that evidence.
+
+The current content policy permits only regular-file modifications of
+`tests/run_purchase_study_runtime.py`, across the complete installed-to-candidate
+history. Runtime, configuration, deployment intent, mixed or unknown changes use
+the normal route. All pre-install source checks remain required, including the
+existing PHP 8.3 checks; PR PHP 8.2 results are not interchangeable with them.
+
+For an authenticated unchanged release, the existing installer reads actual
+runtime/configuration/component state, records the repository/application mapping
+in `deploy_status.json`, and omits installation, migrations, cron reconciliation,
+new diagnostic exports and duplicate downstream operations. The original accepted
+installation and its technical evidence remain explicit. The same existing
+closer publishes and authenticates that result before releasing the admitted
+publisher. Independent editor versions retain their own verified identity.
+Scheduled/manual work resolves current repository provenance to the actual
+application; it does not pretend the application was updated.
+
+This is one coherent extension of the existing workflows. There is no new queue,
+coordinator, automatic priority renewal or customer-facing operation. Recovery
+reuses successful original work and never replays the installer. Unknown proof,
+confirmed drift, a changed owner or an uncertain write must not free a publisher.
 
 ## Confirmed completed position
 
@@ -704,11 +733,11 @@ For a runtime change, also require an exact caller inventory and a behavior regr
 
 After every merge, before starting another PR:
 
-- `main = deploy_status = ops_status = autopilot production SHA`;
-- deploy verify/bundle/sync/migrations/webhook/smoke/diagnostics stages all succeed;
+- ordinary installation: `main = deploy_status = ops_status = autopilot production SHA`; an accepted `application_unchanged` release instead proves repository R and actual application A through the versioned mapping described above;
+- ordinary installation: deploy verify/bundle/sync/migrations/webhook/smoke/diagnostics stages all succeed; unchanged application: source checks and the fresh read-only observation succeed, original installation gates are authenticated and omitted actions remain explicit;
 - migrations: pending 0, checksum failures 0;
-- strict MAX TLS on the exact SHA: API and upload HTTP 200, curl errno 0, SSL verify 0;
-- MAX and Telegram webhook checks succeed;
+- strict MAX TLS on the exact SHA: API and upload HTTP 200, curl errno 0, SSL verify 0; an unchanged release inherits the original accepted A evidence without claiming a fresh probe;
+- MAX and Telegram webhook checks succeed for the ordinary installation; an unchanged release authenticates those original checks and the metadata-only downstream route;
 - manager visibility, lead detail, handoff integrity, admin project access and website attribution do not regress;
 - no new operational failure or count regression outside the owner's documented human-response-backlog exception; keep its raw counts/flags and do not present them as green;
 - natural live confirmation is stated only after a real post-deploy case.

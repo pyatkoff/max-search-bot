@@ -6,11 +6,11 @@ on:
     paths:
       - 'services/LeadReceiverConfigEditor.php'
       - 'tools/repair_lead_receiver_config.php'
-      - '.github/workflows/repair-lead-receiver-config.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: production-lead-receiver-repair
@@ -21,7 +21,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Checkout exact repository source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify exact repository source is current main
+        id: provenance
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          bash tools/verify_deploy_main_provenance.sh
+
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Prepare legacy and canonical SSH keys
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           LEGACY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           CANONICAL_KEY: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -44,10 +69,11 @@ jobs:
           write_key "$CANONICAL_KEY" "$RUNNER_TEMP/canonical_key"
 
       - name: Wait for exact canonical production SHA
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -61,6 +87,7 @@ jobs:
           exit 1
 
       - name: Discover the retained Bitrix lead receiver
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         id: legacy_receiver
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
@@ -92,6 +119,7 @@ jobs:
           echo "LEGACY_LEAD_RECEIVER_DISCOVERY=OK"
 
       - name: Repair canonical receiver target and verify bridge auth
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -116,6 +144,7 @@ jobs:
           echo "LEAD_RECEIVER_REPAIR=VERIFIED"
 
       - name: Wait for pending Telegram retry to clear
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER: ${{ secrets.STANDBY_DEPLOY_USER }}

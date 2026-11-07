@@ -35,8 +35,39 @@ function modeledStreamMessage(PDO $p,int $id,int $conversation=10,string $text='
     $p->prepare('INSERT INTO messages VALUES (?,?,?,?,?,?,?,?)')->execute([$id,$conversation,$channel,$role==='customer'?'inbound':'outbound',$role,$text,'{"type":"message"}','2026-10-26 08:00:00']);
 }
 
+
+function modeledPriceContextAssertions(PDO $p,callable $check):void
+{
+    $p->exec('CREATE TABLE projects(id BIGINT PRIMARY KEY,project_key VARCHAR(40))');
+    $p->exec('CREATE TABLE post_channels(id BIGINT PRIMARY KEY,project_id BIGINT,platform VARCHAR(16))');
+    $p->exec('CREATE TABLE post_publications(id BIGINT PRIMARY KEY,post_channel_id BIGINT)');
+    $p->exec('CREATE TABLE post_versions(id BIGINT PRIMARY KEY,publication_id BIGINT,content_hash VARCHAR(64),snapshot_json TEXT)');
+    $p->exec('CREATE TABLE post_entries(id BIGINT PRIMARY KEY,conversation_id BIGINT,publication_id BIGINT,version_id BIGINT)');
+    try{
+        $p->exec("INSERT INTO projects VALUES(1,'anytour');");$p->exec("INSERT INTO post_channels VALUES(1,1,'max')");
+        $p->exec('INSERT INTO post_publications VALUES(1,1)');$p->exec('INSERT INTO post_entries VALUES(1,11,1,1)');
+        $now=1793002500;$snapshot=json_encode(['text'=>'Тур от 150–200 тыс руб за 2 взрослых','published_at'=>gmdate('c',$now-60)],JSON_THROW_ON_ERROR);
+        $p->prepare('INSERT INTO post_versions VALUES(1,1,?,?)')->execute([str_repeat('a',64),$snapshot]);
+        $meta=['conversation_id'=>'11','platform'=>'max'];$payload=['event_type'=>'channel_post_entry','actor_type'=>'customer',
+            'payload_json'=>json_encode(['entry_id'=>1,'publication_id'=>1,'version_id'=>1],JSON_THROW_ON_ERROR)];
+        $r=ModeledConversionPriceContext::capture($p,$meta,$payload,$now);
+        $check('pinned native publication price is read without changing the original snapshot',
+            ($r['context']['range']['point']??null)===175000&&$r['rows']===1&&$r['bytes']>0
+            &&$p->query('SELECT snapshot_json FROM post_versions WHERE id=1')->fetchColumn()===$snapshot);
+        $bad=$meta;$bad['platform']='telegram';
+        $check('a foreign platform cannot borrow a publication price',ModeledConversionPriceContext::capture($p,$bad,$payload,$now)['context']===null);
+        $bad=$payload;$bad['payload_json']=json_encode(['entry_id'=>1,'publication_id'=>1,'version_id'=>2]);
+        $check('a changed version pointer cannot select another publication price',ModeledConversionPriceContext::capture($p,$meta,$bad,$now)['context']===null);
+        $p->exec("UPDATE projects SET project_key='anex'");
+        $check('another project never supplies an AnyTour price',ModeledConversionPriceContext::capture($p,$meta,$payload,$now)['context']===null);
+    }finally{
+        foreach(['post_entries','post_versions','post_publications','post_channels','projects']as$table)$p->exec('DROP TABLE '.$table);
+    }
+}
+
 function modeledStreamAssertions(PDO $p,callable $check): void
 {
+    modeledPriceContextAssertions($p,$check);
     $now=1793002000;$s=new ModeledConversionStream($p);
     $check('uninitialized tick is off and does not create state',$s->tick($now)['status']==='off'&&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_stream_state')->fetchColumn()===0);
     modeledStreamMessage($p,10);
@@ -185,6 +216,11 @@ function modeledProfileAssertions(PDO $p,callable $check): void
         &&!isset($r['early_forecast'])&&($r['early_forecast_version']??null)===ModeledConversionEarlyForecast::VERSION);
     $firstForecastCursor=$v['early_forecast']['first_snapshot_journal_cursor'];
     $initialPrediction=$v['semantic_prediction']??[];
+    $check('actual live interpreter stores expert dialogue policy and seven percent monetary forecast together',
+        ($initialPrediction['mode']??null)==='contextual_advertising_v1'
+        &&($v['deal_value_prediction']['commission_rate']??null)===0.07
+        &&ModeledConversionDealValue::saved($v)!==null
+        &&($v['deal_value_prediction']['deal_amount_rub']['point']??null)===200000);
     $initialFollowup=$v['prediction_followup']??[];
     $initialProfileId=(int)$p->query('SELECT id FROM modeled_conversion_profile_versions ORDER BY id LIMIT 1')->fetchColumn();
     $initialProfileSql='SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$initialProfileId;
@@ -302,8 +338,114 @@ function modeledProfileAssertions(PDO $p,callable $check): void
     $p->beginTransaction();try{$profiles->tick($now+52);$ok=false;}catch(Throwable $e){$ok=$e->getMessage()==='modeled_profiles_outer_transaction';}finally{$p->rollBack();}
     $check('profile processor cannot commit a caller-owned transaction',$ok);
 }
+/** Exercise the scheduler's bounded continuation with the real atomic PHP/Python writer. */
+function modeledProfileCatchUpAssertions(PDO $p,callable $check):void
+{
+    modeledStreamSchema($p);modeledProfileSchema($p);$now=1793002000;
+    $source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);
+    $source->start($now);
+    modeledStreamMessage($p,11,11,'Подберите тур в Турцию на 7 ночей, 2 взрослых. Бюджет до 200 тыс на всех');
+    $source->tick($now+1);$profiles->start();
+    $snap=json_decode($p->query("SELECT snapshot_json FROM modeled_conversion_stream_versions WHERE source_kind='message' AND source_id=11 ORDER BY id DESC LIMIT 1")->fetchColumn(),true,64,JSON_THROW_ON_ERROR);
+    $append=static function(int $count,int $base)use($p,$snap,$now):void{
+        for($i=0;$i<$count;$i++){
+            $x=$snap;$x['source_id']=(string)(100000+$base+$i);$x['customer_key']=$x['conversation_id']=(string)($base+$i);
+            modeledProfileAppend($p,$x,$now+1);
+        }
+    };
+    $versions=static fn():int=>(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_versions')->fetchColumn();
+    $rows=static fn():array=>$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $clockCalls=0;$clock=static function()use(&$clockCalls,$now):int{$clockCalls++;return $now+2;};
+    $monotonic=static fn():int=>0;
+    $append(39,7000);
+    $journal=$p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $receipts=[];$remember=static function(array $receipt)use(&$receipts):void{$receipts[]=$receipt;};
+    $tables=['messages','conversation_events','conversations','customer_channels','advertising_visit_observations'];
+    foreach($tables as$table)$p->exec('ALTER TABLE '.$table.' RENAME TO unavailable_'.$table);
+    try{$r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,$remember);}
+    finally{foreach(array_reverse($tables)as$table)$p->exec('ALTER TABLE unavailable_'.$table.' RENAME TO '.$table);}
+    $check('one scheduled profile phase commits thirty two of forty scopes without rereading native sources',
+        $versions()===32&&$clockCalls===4&&$r['profiles_written']===8&&$r['pending_revisions']===8);
+    $bounded=count($receipts)===4;
+    foreach($receipts as$receipt)$bounded=$bounded&&$receipt['profiles_written']===8
+        &&$receipt['processed_revisions']<=40&&$receipt['journal_rows_read']<=500&&$receipt['payload_bytes']<=1048576;
+    $check('each continued profile batch retains the original scope row and byte budgets',$bounded);
+    $first=$rows();$clockCalls=0;
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('the next scheduled phase resumes at the saved cursor and stops as soon as the tail is empty',
+        $versions()===40&&$clockCalls===1&&$r['profiles_written']===8&&$r['pending_revisions']===0
+        &&$first===array_slice($rows(),0,32));
+    $complete=$rows();$clockCalls=0;
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('an empty scheduled continuation performs one idle check and never rewrites frozen versions',
+        $r['status']==='idle'&&$clockCalls===1&&$rows()===$complete
+        &&$journal===$p->query('SELECT id,revision_hash,snapshot_json FROM modeled_conversion_stream_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC)
+        &&$source->status()['ticks']===1);
+    $profiles->stop();$clockCalls=0;$ticks=$profiles->status()['ticks'];
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('disabled profile processing is not retried or reenabled by catch up',
+        $r['status']==='off'&&$clockCalls===1&&$profiles->status()['ticks']===$ticks&&$rows()===$complete);
+    $profiles->start();
 
+    $append(24,8000);$attempts=0;$clockCalls=0;
+    try{
+        ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,static function()use(&$attempts):void{
+            if(++$attempts===2)throw new RuntimeException('catch_up_second_batch_rollback');
+        });
+        $failed=false;
+    }catch(Throwable $e){$failed=$e->getMessage()==='catch_up_second_batch_rollback';}
+    $check('failure in a later profile batch preserves the first commit and does not retry or start a third batch',
+        $failed&&$attempts===2&&$clockCalls===2&&$versions()===48
+        &&(int)$p->query('SELECT COUNT(*) FROM modeled_conversion_profile_sources')->fetchColumn()===48
+        &&$profiles->status()['last_receipt']['pending_revisions']===16
+        &&$complete===array_slice($rows(),0,40));
+    $committed=$rows();$clockCalls=0;
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('a subsequent scheduled phase resumes the rolled back batch once without replaying the earlier commit',
+        $versions()===64&&$clockCalls===2&&$r['pending_revisions']===0&&$committed===array_slice($rows(),0,48));
 
+    $append(24,9000);$clockCalls=0;$monotonicCalls=0;
+    $deadlineClock=static function()use(&$monotonicCalls):int{
+        return [0,4000000000,5000000000][min($monotonicCalls++,2)];
+    };
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$deadlineClock);
+    $check('the five second soft start deadline is shared by the whole phase and stops before another transaction',
+        $versions()===80&&$clockCalls===2&&$monotonicCalls===3&&$r['pending_revisions']===8);
+    $clockCalls=0;ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('a deadline leaves the remaining journal work for the next ordinary phase',$versions()===88&&$clockCalls===1);
+
+    $append(16,10000);$clockCalls=0;$commits=0;
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic,static function()use($p,&$commits):void{
+        $commits++;$p->exec("UPDATE modeled_conversion_profiles_state SET enabled=0 WHERE project_key='anytour'");
+    });
+    $check('a stop committed between batches is honored without repeating the first batch',
+        $r['status']==='off'&&$versions()===96&&$clockCalls===2&&$commits===1&&!$profiles->status()['enabled']);
+    $profiles->start();$clockCalls=0;
+    $r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('resuming after an intervening stop retains chronological progress',$versions()===104&&$clockCalls===1&&$r['pending_revisions']===0);
+
+    $large=$snap;$large['source_id']='200001';$large['customer_key']=$large['conversation_id']='11000';
+    $large['payload']['text']=str_repeat('x',1048577);modeledProfileAppend($p,$large,$now+1);
+    $cursor=$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn();
+    $clockCalls=0;$r=ModeledConversionStream::profileCatchUp($profiles,$clock,$monotonic);
+    $check('pending work with zero progress cannot cause an immediate catch up retry loop',
+        $r['processed_revisions']===0&&$r['pending_revisions']===1&&$clockCalls===1&&$versions()===104
+        &&$cursor===$p->query("SELECT journal_cursor FROM modeled_conversion_profiles_state WHERE project_key='anytour'")->fetchColumn());
+
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+        $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
+        if(!preg_match('/\Amysql:host=127\.0\.0\.1;port=[0-9]+;dbname=maxbot_prepared_test;charset=utf8mb4\z/D',$dsn)
+            ||$p->query('SELECT DATABASE()')->fetchColumn()!=='maxbot_modeled_stream_test')throw new RuntimeException('unsafe_catch_up_fixture_database');
+        $other=new PDO(str_replace('dbname=maxbot_prepared_test;','dbname=maxbot_modeled_stream_test;',$dsn),
+            getenv('PREPARED_REPLY_MYSQL_USER')?:null,getenv('PREPARED_REPLY_MYSQL_PASS')?:null,
+            [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false]);
+        $competing=new ModeledConversionProfiles($other);$busyCalls=0;
+        $profiles->tick($now+2,static function()use($competing,$now,$monotonic,$check,&$busyCalls):void{
+            $r=ModeledConversionStream::profileCatchUp($competing,static function()use(&$busyCalls,$now):int{$busyCalls++;return $now+2;},$monotonic);
+            $check('a competing real MySQL writer returns busy once without waiting or retrying',$r['status']==='busy'&&$busyCalls===1);
+        });
+    }
+}
 
 /** Dense synthetic admitted context verifies useful throughput, not only the raised counter. */
 function modeledDenseProfileAssertions(PDO $p,callable $check):void
@@ -366,6 +508,8 @@ function modeledDenseProfileAssertions(PDO $p,callable $check):void
     $check('latest-reference SQL never copies an oversized raw snapshot on either database',
         $guarded['profiles_written']===1&&$guarded['payload_bytes']<1048576
         &&$limited['coverage']['window_limited']===true&&count($limited['source_references'])===1);
+    // This existing entry point is executed by both the SQLite suite and native MySQL runner.
+    modeledProfileCatchUpAssertions($p,$check);
 }
 
 /** The actual admitted PHP/Python writer must retain a genuine request across canonical AI output. */

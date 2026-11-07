@@ -34,6 +34,7 @@ This is the current incremental refactoring map. It is intentionally conservativ
 - `manager/pipeline-api.php` — thin authorized Sales Pipeline interface; ordinary lead mutations and role-gated catalog administration delegate to their application owners.
 - `manager/pipeline-admin.php` + `manager/assets/pipeline-admin.css` + `manager/assets/pipeline-admin.js` — focused role-gated business-funnel catalog UI; kept separate from Workspace V2 and general admin page to avoid another monolith.
 - `manager/assets/workspace-v2-pipeline.js` — Workspace V2 browser owner for sales-stage/tag/outcome mutations plus pipeline filters; lead-card rendering delegates mutation wiring here instead of issuing sales writes directly. Disabled inactive assigned tags are presentation facts and must not enter mutation payloads.
+- `services/SalesPipelineService.php` owns atomic CRM outcome/stage changes and explicit trip links. `SalesOutcomeTripBinding.php` supplies bounded immutable-profile choices, revision/operation receipts and binding storage only; it never writes CRM fields or emits model events. `workspace-v2-outcome.js` owns the explicit choice and uncertain-save recovery through the existing pipeline API.
 - `manager/assets/workspace-v2-notifications.js` — Workspace V2 browser owner for push setup/repair and notification-health presentation. It may recreate a backend-confirmed unhealthy browser subscription but must never mutate or infer manager shift/routing state.
 - `manager/index.php` plus focused `manager/assets/workspace-v2-*` modules — canonical forward Manager UI entrypoint, kept thin and progressively modular; do not duplicate the Workspace PHP shell. Owner-authorized `manager2/index.php` includes this same shell with scoped presentation assets.
 - `manager/admin.php` + `manager/assets/admin.css` + `manager/assets/admin.js` — current role-gated admin interface; PHP remains a thin shell and presentation/behavior stay in owned assets.
@@ -89,3 +90,8 @@ This is the current incremental refactoring map. It is intentionally conservativ
 ## Audit rule
 
 Run `php tools/architecture_inventory.php` during periodic full-repository audits. Treat its output as triage evidence, not an automatic refactor order: production/lead safety and the roadmap priority order still decide what is changed next. `runtime_ddl` should be empty unless a real request/business runtime schema owner remains; `schema_infrastructure_ddl` may contain only the migration execution boundary. The next control-plane step is to publish this inventory as a stable diagnostics artifact after deploy so technical drift is visible without repeating a manual tree reread.
+
+- `services/ModeledConversionPriceContinuity.php` — conservative derived monetary caps and append-only price-loss reconciliation inside the existing modeled-value tick; no source-profile/customer mutation or provider reversal.
+
+- `services/ModeledConversionVisitProof.php` — finite read-only Metrika receipt/unique-visit reconciliation and an owner-only external cache; private status and administrator ledger read the cache without provider requests.
+- `tools/modeled_conversion_visit_proof.php` — bounded CLI entry for that finite verification; writes only its private receipt, never the outbox, source profiles, schedules or customer messages.

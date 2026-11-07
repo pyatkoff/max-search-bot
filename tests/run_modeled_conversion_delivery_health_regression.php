@@ -28,7 +28,9 @@ function deliveryObservationInsert(PDO $p,array $v):void
 }
 function deliveryDailyAssertions(PDO $p,callable $check):void
 {
-    $now=1793700000;$from=1793656800;$until=$from+86400;deliveryObservationFixture($p,$now);
+    deliveryMoscowMidnightAssertions($p,$check);
+    deliveryDailyValueCapAssertions($p,$check);
+    $now=1793700000;$from=strtotime('2026-11-02T21:00:00Z');$until=$from+86400;deliveryObservationFixture($p,$now);
     deliveryObservationInsert($p,['id'=>1,'claimed_at_unix'=>$from,'value_api_accepted_at_unix'=>$from,'value_receipt_basis'=>'post_response']);
     deliveryObservationInsert($p,['id'=>2,'conversation_id'=>101,'value_rub'=>833,'value_stage'=>'specific_request','claimed_at_unix'=>$from+1,
         'value_api_accepted_at_unix'=>$from+2,'value_receipt_basis'=>'post_response','value_origin'=>'owner_day_review_v1']);
@@ -44,7 +46,8 @@ function deliveryDailyAssertions(PDO $p,callable $check):void
     deliveryObservationInsert($p,['id'=>9,'conversation_id'=>108,'transport_target'=>'foreign','claimed_at_unix'=>$from+1]);
     $read=static fn():array=>(new ModeledConversionDailyDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
     $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$r=$read();
-    $check('daily boundary is Kaliningrad midnight in UTC',$r['available']&&$r['date']==='2026-11-03'&&$r['window']['from']==='2026-11-02T22:00:00Z');
+    $check('daily boundary is Moscow midnight in UTC',$r['available']&&$r['date']==='2026-11-03'&&$r['timezone']==='Europe/Moscow'
+        &&$r['window']['from']==='2026-11-02T21:00:00Z'&&$r['window']['until_exclusive']==='2026-11-03T21:00:00Z');
     $check('two increments have one exact distinct dialogue',$r['upload_claims_today']['events']===3&&$r['upload_claims_today']['conversations']===2&&$r['upload_claims_today']['value_rub']===3333);
     $check('new receipt observation day differs from prior claim day',$r['api_receipts_observed_today']['events']===3&&$r['api_receipts_observed_today']['conversations']===2&&$r['api_receipts_observed_today']['value_rub']===4166);
     $check('platform distinct and sums are independently counted',$r['api_receipts_observed_today']['by_platform']['telegram']['conversations']===1&&$r['api_receipts_observed_today']['by_platform']['telegram']['value_rub']===2083);
@@ -59,8 +62,53 @@ function deliveryDailyAssertions(PDO $p,callable $check):void
     deliveryObservationInsert($p,['id'=>300,'conversation_id'=>1300,'platform'=>'foreign','claimed_at_unix'=>$from+1]);
     $check('invalid platform fails closed rather than vanishing from totals',($read()['reason']??null)==='invalid_aggregate');
 }
+function deliveryDailyValueCapAssertions(PDO $p,callable $check):void
+{
+    $anchor=strtotime('2026-11-03T12:00:00Z');$now=$anchor+3600;deliveryObservationFixture($p,$now);
+    foreach([[1,101,'max',25000],[2,101,'max',45000],[3,101,'max',30000],[4,102,'telegram',100000]]as[$id,$conversation,$platform,$value])
+        deliveryObservationInsert($p,['id'=>$id,'conversation_id'=>$conversation,'platform'=>$platform,'value_rub'=>$value,
+            'event_unix'=>$id===1?$anchor-86400:$anchor+$id,
+            'state'=>'processed','upload_id'=>(string)(6000+$id),'upload_status'=>'PROCESSED',
+            'claimed_at_unix'=>$anchor+$id,'value_api_accepted_at_unix'=>$anchor+$id,'value_processed_at_unix'=>$anchor+$id,
+            'value_receipt_basis'=>'post_response']);
+    $read=static fn():array=>(new ModeledConversionDailyDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($now);
+    $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);$r=$read();
+    foreach(['upload_claims_today','api_receipts_observed_today','processed_observed_today']as$key)
+        $check($key.' counts mixed increments and the 100000 boundary with independent dialogue and platform totals',
+            ($r['available']??false)&&$r[$key]['events']===4&&$r[$key]['conversations']===2&&$r[$key]['value_rub']===200000
+            &&$r[$key]['by_platform']['max']===['events'=>3,'conversations'=>1,'value_rub'=>100000]
+            &&$r[$key]['by_platform']['telegram']===['events'=>1,'conversations'=>1,'value_rub'=>100000]);
+    $check('large-value daily reads preserve the recorded ledger',
+        $before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+    $p->exec('UPDATE max_channel_conversion_outbox SET value_rub=100001 WHERE id=4');
+    $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    $check('one event above 100000 withholds every daily cohort without changing any stored row',
+        $read()===['available'=>false,'reason'=>'invalid_aggregate']
+        &&$before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+}
+function deliveryMoscowMidnightAssertions(PDO $p,callable $check):void
+{
+    $midnight=strtotime('2026-12-31T21:00:00Z');
+    deliveryObservationFixture($p,$midnight+1);
+    foreach([-1,0,1]as$i=>$offset)deliveryObservationInsert($p,['id'=>$i+1,'conversation_id'=>101+$i,
+        'event_unix'=>$midnight+$offset,'claimed_at_unix'=>$midnight+$offset,
+        'value_api_accepted_at_unix'=>$midnight+$offset,'value_receipt_basis'=>'post_response']);
+    $before=$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+    foreach([[-1,'2026-12-31',1,'2026-12-30T21:00:00Z','2026-12-31T21:00:00Z'],
+        [0,'2027-01-01',1,'2026-12-31T21:00:00Z','2027-01-01T21:00:00Z'],
+        [1,'2027-01-01',2,'2026-12-31T21:00:00Z','2027-01-01T21:00:00Z']]as[$offset,$date,$count,$from,$until]){
+        $r=(new ModeledConversionDailyDeliveryReader($p,static function():void{},new ModeledConversionStatusBudget()))->read($midnight+$offset);
+        $check('Moscow year boundary selects exact current-day claims and receipts at offset '.$offset,
+            ($r['available']??false)&&$r['date']===$date&&$r['timezone']==='Europe/Moscow'
+            &&$r['window']['from']===$from&&$r['window']['until_exclusive']===$until
+            &&$r['upload_claims_today']['events']===$count&&$r['api_receipts_observed_today']['events']===$count);
+    }
+    $check('calendar projection preserves original UTC clocks values receipts and identifiers',
+        $before===$p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC));
+}
 function deliveryHealthAssertions(PDO $p,callable $check):void
 {
+    deliveryHealthPriceCorrectionAssertions($p,$check);
     $now=1793700000;deliveryObservationFixture($p,$now);
     $h=static fn():array=>ModeledConversionDeliveryHealth::collect($p,$now);
     $check('idle healthy pipeline with no new conversions stays healthy',$h()['status']==='ok');
@@ -85,6 +133,87 @@ function deliveryHealthAssertions(PDO $p,callable $check):void
     $check('material future clock fails health closed',$h()['flags']===['invalid_clock']);
     $p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
     $check('explicit disabled mode does not report stopped cron',$h()['status']==='off'&&$h()['flags']===[]);
+}
+function deliveryHealthPriceCorrectionAssertions(PDO $p,callable $check):void
+{
+    $now=1793700000;deliveryObservationFixture($p,$now);$scope=modeledValueBinding($p,1201);
+    $priced=modeledExpertWrapper($scope,$now-2,70000);modeledValueSave($p,$priced);$profile=(string)$p->lastInsertId();
+    $reserved=$priced['deal_value_prediction']['value_rub'];
+    deliveryObservationInsert($p,['id'=>1,'conversation_id'=>1201,'external_user_id'=>'71201','event_unix'=>$now-2,
+        'target'=>ModeledConversionValueContract::predictionKey($profile),'value_profile_id'=>$profile,'value_rub'=>$reserved]);
+    $fallback=modeledUnknownPriceWrapper(modeledExpertWrapper($scope,$now-1,70000),true);modeledValueSave($p,$fallback);$profile=(string)$p->lastInsertId();
+    $candidate=ModeledConversionValueContract::candidate($fallback,$scope,$now-3600,$now);
+    if(!$candidate||$candidate['value']<=$reserved)throw new RuntimeException('fixture_price_correction_missing');
+    deliveryObservationInsert($p,['id'=>2,'conversation_id'=>1201,'external_user_id'=>'71201','event_unix'=>$now-1,
+        'target'=>ModeledConversionValueContract::predictionKey($profile),'value_profile_id'=>$profile,
+        'value_rub'=>$candidate['value']-$reserved,'value_stage'=>$candidate['stage'],'state'=>'pending','upload_id'=>null,'upload_status'=>null]);
+    (new ModeledConversionPriceContinuity($p))->reconcile($now,static fn(array $row):bool=>true);
+    $void=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=2')->fetch(PDO::FETCH_ASSOC);
+    $audit=$p->query('SELECT * FROM modeled_conversion_price_audit WHERE outbox_id=2')->fetch(PDO::FETCH_ASSOC);
+    $check('canonical price correction retains a zero unattempted failed row and its void audit',
+        $void&&$audit&&$void['state']==='failed'&&$void['last_error']==='price_loss_reconciled'
+        &&(int)$void['value_rub']===0&&(int)$void['attempts']===0&&$audit['action']==='voided'
+        &&(int)$audit['original_value_rub']===$candidate['value']-$reserved&&(int)$audit['applied_value_rub']===0);
+    $snapshot=static function()use($p):array{
+        $rows=[];foreach(['max_channel_conversion_outbox','modeled_conversion_price_audit','modeled_conversion_profile_versions',
+            'modeled_conversion_value_export_settings','modeled_conversion_profiles_state']as$table)
+            $rows[$table]=$p->query('SELECT * FROM '.$table.' ORDER BY 1')->fetchAll(PDO::FETCH_ASSOC);
+        return$rows;
+    };
+    $preserved=true;$h=static function()use($p,$now,$snapshot,&$preserved):array{
+        $before=$snapshot();$result=ModeledConversionDeliveryHealth::collect($p,$now);
+        $preserved=$preserved&&$before===$snapshot();return$result;
+    };
+    $check('audited never-uploaded cancellation is healthy without removing its ledger row',$h()['status']==='ok');
+    $fields=['last_error','value_rub','attempts','claim_token','claimed_at_unix','upload_id','upload_status',
+        'value_api_accepted_at_unix','value_processed_at_unix','value_receipt_basis'];
+    $setRow=static function(array $changes=[])use($p,$void,$fields):void{
+        $values=array_replace($void,$changes);
+        $p->prepare('UPDATE max_channel_conversion_outbox SET '.implode(',',array_map(static fn(string $key):string=>$key.'=?',$fields)).' WHERE id=2')
+            ->execute(array_map(static fn(string $key):mixed=>$values[$key],$fields));
+    };
+    $setRow(['claim_token'=>'','upload_status'=>'']);
+    $check('producer-supported empty claim and upload status are still unattempted',$h()['status']==='ok');$setRow();
+    $rowCases=[
+        'a positive remaining amount'=>['value_rub'=>1], 'an unknown amount'=>['value_rub'=>null],
+        'an ordinary API row rejection'=>['last_error'=>'api_row_rejected'], 'an absent reason'=>['last_error'=>''],
+        'a differently cased reason'=>['last_error'=>'PRICE_LOSS_RECONCILED'], 'a padded reason'=>['last_error'=>'price_loss_reconciled '],
+        'an upload attempt'=>['attempts'=>1], 'an outstanding claim'=>['claim_token'=>str_repeat('a',32)],
+        'a padded claim'=>['claim_token'=>' '.str_repeat('a',31)], 'a recorded claim time'=>['claimed_at_unix'=>$now-1],
+        'a provider upload ID'=>['upload_id'=>'9001'], 'an empty non-null upload ID'=>['upload_id'=>''],
+        'a provider upload status'=>['upload_status'=>'PROCESSED'], 'a padded upload status'=>['upload_status'=>' '],
+        'an accepted receipt time'=>['value_api_accepted_at_unix'=>$now-1], 'a processed receipt time'=>['value_processed_at_unix'=>$now-1],
+        'a receipt provenance marker'=>['value_receipt_basis'=>'post_response']];
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite')$rowCases['a null reason']=['last_error'=>null];
+    foreach($rowCases as$name=>$changes){
+        $setRow($changes);$r=$h();$check('price cancellation with '.$name.' still alerts',
+            $r['status']==='degraded'&&in_array('api_row_rejected',$r['flags'],true));$setRow();
+    }
+    $setAudit=static function(?array $changes=[])use($p,$audit):void{
+        $p->exec('DELETE FROM modeled_conversion_price_audit WHERE outbox_id IN (2,9999)');if($changes===null)return;
+        $values=array_replace($audit,$changes);$keys=array_keys($values);
+        $p->prepare('INSERT INTO modeled_conversion_price_audit('.implode(',',$keys).') VALUES('.implode(',',array_fill(0,count($keys),'?')).')')
+            ->execute(array_values($values));
+    };
+    foreach(['missing audit'=>null,'another row audit'=>['outbox_id'=>9999],'review-only audit'=>['action'=>'review_required'],
+        'differently cased action'=>['action'=>'VOIDED'],'padded action'=>['action'=>'voided '],
+        'nonzero applied value'=>['applied_value_rub'=>1],'zero original value'=>['original_value_rub'=>0]]as$name=>$changes){
+        $setAudit($changes);$r=$h();$check('price cancellation with '.$name.' still alerts',
+            $r['status']==='degraded'&&in_array('api_row_rejected',$r['flags'],true));$setAudit();
+    }
+    $receipt=static function(int $errors)use($p):void{
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")
+            ->execute([json_encode(['errors'=>$errors],JSON_THROW_ON_ERROR)]);
+    };
+    $receipt(1);$r=$h();$check('an independent tick error still alerts alongside a valid cancellation',
+        $r['status']==='degraded'&&$r['flags']===['delivery_tick_errors']);
+    $receipt(0);$check('a successful later tick clears its transient flag while the cancellation stays recorded',$h()['status']==='ok');
+    deliveryObservationInsert($p,['id'=>3,'state'=>'failed','last_error'=>'api_row_rejected','attempts'=>1]);
+    $receipt(1);$r=$h();$check('a separate genuine failed upload remains visible beside the audited cancellation',
+        $r['status']==='degraded'&&in_array('api_row_rejected',$r['flags'],true)&&in_array('delivery_tick_errors',$r['flags'],true));
+    $receipt(0);$r=$h();$check('a successful tick cannot erase the genuine failed upload',
+        $r['status']==='degraded'&&$r['flags']===['api_row_rejected']);
+    $check('health reads preserve ledger audit immutable profiles and both worker receipts',$preserved);
 }
 function deliveryClockWriterAssertions(PDO $p,callable $check):void
 {

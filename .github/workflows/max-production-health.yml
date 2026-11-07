@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   inspect:
@@ -71,7 +72,14 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           bash tools/verify_deploy_main_provenance.sh
 
+      - name: Resolve accepted repository and application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
       - name: Prepare SSH private key
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         shell: bash
@@ -91,11 +99,12 @@ jobs:
           ssh-keygen -y -f "$key_file" >/dev/null
 
       - name: Wait for exact active-server SHA and collect MAX health
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
         id: health
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-          EXPECTED_SHA: ${{ steps.source.outputs.sha }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
         run: |
           set -euo pipefail
@@ -144,27 +153,27 @@ jobs:
           echo "diagnostic_rc=$rc" >> "$GITHUB_OUTPUT"
 
       - name: MAX webhook healthy
-        if: steps.health.outputs.ok == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.health.outputs.ok == 'true')
         run: echo "MAX webhook ownership is healthy on the active server."
 
       - name: MAX webhook missing expected owner
-        if: steps.health.outputs.reason == 'expected_subscription_missing'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.health.outputs.reason == 'expected_subscription_missing')
         run: echo "Expected MAX webhook subscription is missing."
 
       - name: MAX webhook has dual ownership
-        if: steps.health.outputs.reason == 'extra_subscriptions'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.health.outputs.reason == 'extra_subscriptions')
         run: echo "More than one MAX webhook subscription is active."
 
       - name: MAX webhook transport or API failure
-        if: steps.health.outputs.reason == 'transport_error' || steps.health.outputs.reason == 'invalid_api_response' || steps.health.outputs.reason == 'request_exception'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.health.outputs.reason == 'transport_error' || steps.health.outputs.reason == 'invalid_api_response' || steps.health.outputs.reason == 'request_exception')
         run: echo "MAX API health request failed before ownership could be verified."
 
       - name: MAX health diagnostic unavailable
-        if: steps.health.outputs.reason == 'sha_not_deployed' || steps.health.outputs.reason == 'invalid_diagnostic_output' || steps.health.outputs.reason == 'missing_token' || steps.health.outputs.reason == 'unknown'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.health.outputs.reason == 'sha_not_deployed' || steps.health.outputs.reason == 'invalid_diagnostic_output' || steps.health.outputs.reason == 'missing_token' || steps.health.outputs.reason == 'unknown')
         run: echo "MAX webhook ownership could not be verified because the diagnostic itself is unavailable or incomplete."
 
       - name: Fail unhealthy MAX webhook state
-        if: steps.health.outputs.ok != 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.health.outputs.ok != 'true')
         env:
           REASON: ${{ steps.health.outputs.reason }}
         run: |
