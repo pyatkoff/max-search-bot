@@ -302,6 +302,8 @@ return [
         'node tests/run_manager_media_context_behavior_regression.js',
         'node tests/run_manager_visible_conversation_behavior_regression.js',
         'php tests/run_manager_workspace_v2_outcome_regression.php',
+        'php tests/run_outcome_trip_binding_regression.php',
+        'php tests/run_sales_outcome_trip_http_regression.php',
         'php tests/run_lead_task_regression.php',
         'php tests/run_manager_closed_lead_task_creation_regression.php',
         'php tests/run_lead_task_reminder_regression.php',

@@ -108,6 +108,7 @@ function deliveryMoscowMidnightAssertions(PDO $p,callable $check):void
 }
 function deliveryHealthAssertions(PDO $p,callable $check):void
 {
+    deliveryHealthPriceCorrectionAssertions($p,$check);
     $now=1793700000;deliveryObservationFixture($p,$now);
     $h=static fn():array=>ModeledConversionDeliveryHealth::collect($p,$now);
     $check('idle healthy pipeline with no new conversions stays healthy',$h()['status']==='ok');
@@ -132,6 +133,87 @@ function deliveryHealthAssertions(PDO $p,callable $check):void
     $check('material future clock fails health closed',$h()['flags']===['invalid_clock']);
     $p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off'");
     $check('explicit disabled mode does not report stopped cron',$h()['status']==='off'&&$h()['flags']===[]);
+}
+function deliveryHealthPriceCorrectionAssertions(PDO $p,callable $check):void
+{
+    $now=1793700000;deliveryObservationFixture($p,$now);$scope=modeledValueBinding($p,1201);
+    $priced=modeledExpertWrapper($scope,$now-2,70000);modeledValueSave($p,$priced);$profile=(string)$p->lastInsertId();
+    $reserved=$priced['deal_value_prediction']['value_rub'];
+    deliveryObservationInsert($p,['id'=>1,'conversation_id'=>1201,'external_user_id'=>'71201','event_unix'=>$now-2,
+        'target'=>ModeledConversionValueContract::predictionKey($profile),'value_profile_id'=>$profile,'value_rub'=>$reserved]);
+    $fallback=modeledUnknownPriceWrapper(modeledExpertWrapper($scope,$now-1,70000),true);modeledValueSave($p,$fallback);$profile=(string)$p->lastInsertId();
+    $candidate=ModeledConversionValueContract::candidate($fallback,$scope,$now-3600,$now);
+    if(!$candidate||$candidate['value']<=$reserved)throw new RuntimeException('fixture_price_correction_missing');
+    deliveryObservationInsert($p,['id'=>2,'conversation_id'=>1201,'external_user_id'=>'71201','event_unix'=>$now-1,
+        'target'=>ModeledConversionValueContract::predictionKey($profile),'value_profile_id'=>$profile,
+        'value_rub'=>$candidate['value']-$reserved,'value_stage'=>$candidate['stage'],'state'=>'pending','upload_id'=>null,'upload_status'=>null]);
+    (new ModeledConversionPriceContinuity($p))->reconcile($now,static fn(array $row):bool=>true);
+    $void=$p->query('SELECT * FROM max_channel_conversion_outbox WHERE id=2')->fetch(PDO::FETCH_ASSOC);
+    $audit=$p->query('SELECT * FROM modeled_conversion_price_audit WHERE outbox_id=2')->fetch(PDO::FETCH_ASSOC);
+    $check('canonical price correction retains a zero unattempted failed row and its void audit',
+        $void&&$audit&&$void['state']==='failed'&&$void['last_error']==='price_loss_reconciled'
+        &&(int)$void['value_rub']===0&&(int)$void['attempts']===0&&$audit['action']==='voided'
+        &&(int)$audit['original_value_rub']===$candidate['value']-$reserved&&(int)$audit['applied_value_rub']===0);
+    $snapshot=static function()use($p):array{
+        $rows=[];foreach(['max_channel_conversion_outbox','modeled_conversion_price_audit','modeled_conversion_profile_versions',
+            'modeled_conversion_value_export_settings','modeled_conversion_profiles_state']as$table)
+            $rows[$table]=$p->query('SELECT * FROM '.$table.' ORDER BY 1')->fetchAll(PDO::FETCH_ASSOC);
+        return$rows;
+    };
+    $preserved=true;$h=static function()use($p,$now,$snapshot,&$preserved):array{
+        $before=$snapshot();$result=ModeledConversionDeliveryHealth::collect($p,$now);
+        $preserved=$preserved&&$before===$snapshot();return$result;
+    };
+    $check('audited never-uploaded cancellation is healthy without removing its ledger row',$h()['status']==='ok');
+    $fields=['last_error','value_rub','attempts','claim_token','claimed_at_unix','upload_id','upload_status',
+        'value_api_accepted_at_unix','value_processed_at_unix','value_receipt_basis'];
+    $setRow=static function(array $changes=[])use($p,$void,$fields):void{
+        $values=array_replace($void,$changes);
+        $p->prepare('UPDATE max_channel_conversion_outbox SET '.implode(',',array_map(static fn(string $key):string=>$key.'=?',$fields)).' WHERE id=2')
+            ->execute(array_map(static fn(string $key):mixed=>$values[$key],$fields));
+    };
+    $setRow(['claim_token'=>'','upload_status'=>'']);
+    $check('producer-supported empty claim and upload status are still unattempted',$h()['status']==='ok');$setRow();
+    $rowCases=[
+        'a positive remaining amount'=>['value_rub'=>1], 'an unknown amount'=>['value_rub'=>null],
+        'an ordinary API row rejection'=>['last_error'=>'api_row_rejected'], 'an absent reason'=>['last_error'=>''],
+        'a differently cased reason'=>['last_error'=>'PRICE_LOSS_RECONCILED'], 'a padded reason'=>['last_error'=>'price_loss_reconciled '],
+        'an upload attempt'=>['attempts'=>1], 'an outstanding claim'=>['claim_token'=>str_repeat('a',32)],
+        'a padded claim'=>['claim_token'=>' '.str_repeat('a',31)], 'a recorded claim time'=>['claimed_at_unix'=>$now-1],
+        'a provider upload ID'=>['upload_id'=>'9001'], 'an empty non-null upload ID'=>['upload_id'=>''],
+        'a provider upload status'=>['upload_status'=>'PROCESSED'], 'a padded upload status'=>['upload_status'=>' '],
+        'an accepted receipt time'=>['value_api_accepted_at_unix'=>$now-1], 'a processed receipt time'=>['value_processed_at_unix'=>$now-1],
+        'a receipt provenance marker'=>['value_receipt_basis'=>'post_response']];
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite')$rowCases['a null reason']=['last_error'=>null];
+    foreach($rowCases as$name=>$changes){
+        $setRow($changes);$r=$h();$check('price cancellation with '.$name.' still alerts',
+            $r['status']==='degraded'&&in_array('api_row_rejected',$r['flags'],true));$setRow();
+    }
+    $setAudit=static function(?array $changes=[])use($p,$audit):void{
+        $p->exec('DELETE FROM modeled_conversion_price_audit WHERE outbox_id IN (2,9999)');if($changes===null)return;
+        $values=array_replace($audit,$changes);$keys=array_keys($values);
+        $p->prepare('INSERT INTO modeled_conversion_price_audit('.implode(',',$keys).') VALUES('.implode(',',array_fill(0,count($keys),'?')).')')
+            ->execute(array_values($values));
+    };
+    foreach(['missing audit'=>null,'another row audit'=>['outbox_id'=>9999],'review-only audit'=>['action'=>'review_required'],
+        'differently cased action'=>['action'=>'VOIDED'],'padded action'=>['action'=>'voided '],
+        'nonzero applied value'=>['applied_value_rub'=>1],'zero original value'=>['original_value_rub'=>0]]as$name=>$changes){
+        $setAudit($changes);$r=$h();$check('price cancellation with '.$name.' still alerts',
+            $r['status']==='degraded'&&in_array('api_row_rejected',$r['flags'],true));$setAudit();
+    }
+    $receipt=static function(int $errors)use($p):void{
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")
+            ->execute([json_encode(['errors'=>$errors],JSON_THROW_ON_ERROR)]);
+    };
+    $receipt(1);$r=$h();$check('an independent tick error still alerts alongside a valid cancellation',
+        $r['status']==='degraded'&&$r['flags']===['delivery_tick_errors']);
+    $receipt(0);$check('a successful later tick clears its transient flag while the cancellation stays recorded',$h()['status']==='ok');
+    deliveryObservationInsert($p,['id'=>3,'state'=>'failed','last_error'=>'api_row_rejected','attempts'=>1]);
+    $receipt(1);$r=$h();$check('a separate genuine failed upload remains visible beside the audited cancellation',
+        $r['status']==='degraded'&&in_array('api_row_rejected',$r['flags'],true)&&in_array('delivery_tick_errors',$r['flags'],true));
+    $receipt(0);$r=$h();$check('a successful tick cannot erase the genuine failed upload',
+        $r['status']==='degraded'&&$r['flags']===['api_row_rejected']);
+    $check('health reads preserve ledger audit immutable profiles and both worker receipts',$preserved);
 }
 function deliveryClockWriterAssertions(PDO $p,callable $check):void
 {

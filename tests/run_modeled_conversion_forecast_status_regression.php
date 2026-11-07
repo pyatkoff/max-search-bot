@@ -119,6 +119,55 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $check('value read returns no identities upload IDs arbitrary cached text or source markers',!str_contains($json,'PRIVATE_REPORT_MUST_NOT_LEAVE')&&!str_contains($json,'PRIVATE_LEDGER_CLIENT_ID')&&!str_contains($json,'"501"')&&!str_contains($json,'"502"')&&!str_contains($json,'8800000123'));
     $r=forecastV1Read($p);
     $check('repeated private read causes no queue or saved-profile mutation',$before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $check('legacy successful tick has an explicit null recorded failure',array_key_exists('last_recorded_failure',$d)&&$d['last_recorded_failure']===null);
+    $saveFailureReceipt=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?,last_tick_unix=?");
+    $failureSnapshot=static fn():array=>[
+        $p->query('SELECT * FROM modeled_conversion_value_export_settings ORDER BY project_key')->fetchAll(PDO::FETCH_ASSOC),
+        $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),forecastV1Rows($p)];
+    $failureReadOnly=true;
+    $readFailure=static function(array $savedReceipt,mixed $lastTick)use($p,$saveFailureReceipt,$failureSnapshot,&$failureReadOnly):array{
+        $saveFailureReceipt->execute([json_encode($savedReceipt,JSON_THROW_ON_ERROR),$lastTick]);
+        $saved=$failureSnapshot();$read=forecastV1Read($p);$failureReadOnly=$failureReadOnly&&$saved===$failureSnapshot();return $read;
+    };
+    $failure=['tick_at_unix'=>$now-120,'phase'=>'upload','category'=>'transport_not_sent'];
+    $withFailure=$receipt;$withFailure['last_recorded_failure']=$failure+[
+        'message'=>'PRIVATE_TICK_MESSAGE_MUST_NOT_LEAVE','client_id'=>'PRIVATE_TICK_ID_MUST_NOT_LEAVE',
+        'response'=>['body'=>'PRIVATE_TICK_RESPONSE_MUST_NOT_LEAVE']];
+    $r=$readFailure($withFailure,$now-60);$d=$r['value_delivery'];
+    $check('healthy current tick retains an older sanitized failure without becoming a current error',
+        $d['available']&&$d['last_tick_errors']===0&&$d['last_tick_at']===gmdate('Y-m-d\TH:i:s\Z',$now-60)
+        &&$d['last_recorded_failure']===['tick_at'=>gmdate('Y-m-d\TH:i:s\Z',$now-120),'phase'=>'upload','category'=>'transport_not_sent']
+        &&$d['reserved_value_rub']===8333.0);
+    $check('recorded failure is explicitly historical',$d['interpretation']['last_recorded_failure_is_historical']===true);
+    $check('failure projection drops all arbitrary private exception and provider fields',!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_TICK_'));
+    $legacyFailure=$receipt;$legacyFailure['errors']=1;$d=$readFailure($legacyFailure,$now-60)['value_delivery'];
+    $check('legacy tick error count cannot fabricate a failure category',$d['last_tick_errors']===1&&$d['last_recorded_failure']===null);
+    foreach(['activation'=>$act,'last_tick'=>$now-60]as$boundary=>$at){
+        $withFailure['last_recorded_failure']=array_replace($failure,['tick_at_unix'=>$at]);
+        $d=$readFailure($withFailure,$now-60)['value_delivery'];
+        $check('recorded failure accepts inclusive '.$boundary.' boundary',
+            $d['last_recorded_failure']===['tick_at'=>gmdate('Y-m-d\TH:i:s\Z',$at),'phase'=>'upload','category'=>'transport_not_sent']);
+    }
+    $invalidFailures=['null_record'=>null,'scalar_record'=>'PRIVATE_TICK_INVALID_RECORD','missing_time'=>['phase'=>'upload','category'=>'transport_not_sent']];
+    foreach(['numeric_string'=>(string)($now-120),'fractional'=>$now-120.5,'boolean'=>true,'null_time'=>null,
+        'pre_activation'=>$act-1,'future'=>$now+3600,'after_last_tick'=>$now-30]as$reason=>$at)
+        $invalidFailures[$reason]=array_replace($failure,['tick_at_unix'=>$at]);
+    foreach(['phase'=>'UPLOAD','category'=>'PRIVATE_TICK_UNKNOWN_CATEGORY']as$field=>$value)
+        $invalidFailures['unknown_'.$field]=array_replace($failure,[$field=>$value]);
+    foreach($invalidFailures as$reason=>$invalid){
+        $withFailure['last_recorded_failure']=$invalid;$read=$readFailure($withFailure,$now-60);$d=$read['value_delivery'];
+        $check('invalid recorded failure '.$reason.' stays null without hiding the ledger',
+            $d['available']&&$d['last_recorded_failure']===null&&$d['last_tick_errors']===0&&$d['reserved_value_rub']===8333.0
+            &&!str_contains(json_encode($read,JSON_THROW_ON_ERROR),'PRIVATE_TICK_'));
+    }
+    $withFailure['last_recorded_failure']=$failure;
+    foreach(['missing'=>null,'pre_activation'=>$act-1,'future'=>$now+3600]as$reason=>$lastTick){
+        $d=$readFailure($withFailure,$lastTick)['value_delivery'];
+        $check('invalid last tick '.$reason.' cannot validate a historical failure',
+            $d['available']&&$d['last_tick_at']===null&&$d['last_recorded_failure']===null);
+    }
+    $check('failure status reads never mutate saved settings ledger or profiles',$failureReadOnly);
+    $saveFailureReceipt->execute([json_encode($receipt,JSON_THROW_ON_ERROR),$now]);
     $audit=['version'=>'retained_priced_base_v1','checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
         'goal_rows_scanned'=>1001,'complete'=>false,'unprocessed_candidates'=>0,
         'actions'=>['voided'=>['events'=>1001,'removed_rub'=>100100000]],
@@ -190,6 +239,8 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $projection=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
     $method=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
     $large=['value_delivery'=>['predictive_v1'=>['events'=>91,'value_rub'=>1234,'calculation_unavailable_rows'=>8,
+        'calculation_basis_counts'=>['probability_prediction'=>80,'stage_fraction'=>3,'unavailable'=>8],
+        'stage_comparison_counts'=>['above_stage'=>50,'equal_stage'=>20,'below_stage'=>10,'stage_only'=>3,'unavailable'=>8],
         'calculation_unavailable_reason_counts'=>['profile_binding_unverified'=>0,'probability_prediction_unavailable'=>8,
             'monetary_policy_unavailable'=>0,'scalar_contract_unverified'=>0,'price_base_unverified'=>0,'frozen_value_unverified'=>0,'increment_not_explained'=>0],
         'examples'=>array_fill(0,16,['synthetic'=>str_repeat('x',2000)])]],
@@ -202,6 +253,9 @@ function forecastV1Assertions(PDO $p,callable $check):void
     $check('private response preserves exact totals and visit cohort while explicitly trimming oversized optional examples',
         strlen(json_encode($boundedOutput,JSON_THROW_ON_ERROR))<=28000&&$boundedOutput['value_delivery']['predictive_v1']['events']===91
         &&$boundedOutput['value_delivery']['predictive_v1']['value_rub']===1234
+        &&$boundedOutput['value_delivery']['predictive_v1']['calculation_basis_counts']===$large['value_delivery']['predictive_v1']['calculation_basis_counts']
+        &&$boundedOutput['value_delivery']['predictive_v1']['stage_comparison_counts']===$large['value_delivery']['predictive_v1']['stage_comparison_counts']
+        &&array_sum($boundedOutput['value_delivery']['predictive_v1']['stage_comparison_counts'])===$boundedOutput['value_delivery']['predictive_v1']['events']
         &&$boundedOutput['value_delivery']['predictive_v1']['calculation_unavailable_reason_counts']===$large['value_delivery']['predictive_v1']['calculation_unavailable_reason_counts']
         &&$boundedOutput['value_delivery']['predictive_v1']['examples_omitted_due_to_response_budget']===true
         &&$boundedOutput['visit_delivery_check']===$large['visit_delivery_check']
@@ -663,6 +717,18 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         &&$r['delays']['capture_to_profile']['maximum_seconds']===1140.0
         &&$r['profile_sample']['waiting_for_profile']===1&&$r['by_platform']['max']['conversations']===2
         &&$r['profile_sample']['recorded_prediction_status']['predicted']===1&&$r['profile_sample']['scopes_inspected']===3);
+    $at=static fn(int $offset):string=>gmdate('Y-m-d\\TH:i:s\\Z',$day+$offset);
+    $check('timing examples retain each selected scope clock status and stage after bounded projection',
+        $r['examples']===[
+            ['platform'=>'max','persisted_at'=>$at(400),'captured_at'=>$at(450),'profile_saved_at'=>null,
+                'capture_delay_seconds'=>50,'profile_queue_delay_seconds'=>null,'total_profile_delay_seconds'=>null,
+                'recorded_prediction_status'=>'unknown','recorded_prediction_stage'=>null],
+            ['platform'=>'telegram','persisted_at'=>$at(600),'captured_at'=>$at(660),'profile_saved_at'=>$at(1800),
+                'capture_delay_seconds'=>60,'profile_queue_delay_seconds'=>1140,'total_profile_delay_seconds'=>1200,
+                'recorded_prediction_status'=>'known_outcome','recorded_prediction_stage'=>null],
+            ['platform'=>'max','persisted_at'=>$at(200),'captured_at'=>$at(300),'profile_saved_at'=>$at(900),
+                'capture_delay_seconds'=>100,'profile_queue_delay_seconds'=>600,'total_profile_delay_seconds'=>700,
+                'recorded_prediction_status'=>'predicted','recorded_prediction_stage'=>'general_purchase_intent']]);
     $check('today live value latency excludes historical review and keeps receipt distinct from processing',
         $r['live_value']['events']===3&&$r['live_value']['value_rub']===33333
         &&$r['live_value']['api_accepted_events']===2&&$r['live_value']['api_accepted_value_rub']===8333
@@ -704,6 +770,23 @@ function forecastLatencyAssertions(PDO $p,callable $check):void
         &&$r['delays']['capture_to_profile']['maximum_seconds']===50.0
         &&count($r['examples'])===6&&$r['example_selection']==='up_to_three_slow_or_pending_then_recent_distinct_scopes'
         &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_'));
+    // The preceding composed views share this same ceiling. Leave 13KiB for the
+    // real 32-scope read, including repeated authorization, without fabricating rows.
+    $snapshot=static function()use($p):array{
+        $out=[];
+        foreach(['modeled_conversion_stream_versions','modeled_conversion_profile_versions','max_channel_conversion_outbox']as$table)
+            $out[$table]=hash('sha256',json_encode($p->query('SELECT * FROM '.$table.' ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+        return$out;
+    };
+    $beforeCompact=$snapshot();$compactBudget=new ModeledConversionStatusBudget();$compactBudget->consumeBytes(52224);$compactAuthorizations=0;
+    $compact=(new ModeledConversionLatencyReader($p,static function()use($compactBudget,&$compactAuthorizations):void{
+        if($compactBudget->remainingBytes()<4096)throw new ModeledConversionStatusLimit('byte_limit');
+        $compactBudget->consumeBytes(128);$compactAuthorizations++;
+    },$compactBudget))->read($now);
+    $check('complete 32-scope timing fits the remaining shared budget with unchanged output and authorization floor',
+        $compact===$r&&$compactAuthorizations>4&&$compactAuthorizations<=16
+        &&$compactBudget->remainingBytes()>=4096&&$compactBudget->remainingBytes()<13312);
+    $check('bounded timing projection leaves captured source profiles and value reservations unchanged',$snapshot()===$beforeCompact);
     if($mysql)$p->exec('SET time_zone='.$p->quote((string)$oldTimeZone));
 }
 
@@ -775,7 +858,7 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $now=time();
     $profile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,'770001',?,?,?)");
     $row=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-    $put=static function(int $id,string $platform,int $scope,float $prob,?int $price,int $full,int $delta,string $state,string $status,array $money=[])use($profile,$row,$now):void{
+    $put=static function(int $id,string $platform,int $scope,?float $prob,?int $price,?int $full,int $delta,string $state,string $status,array $money=[],array $semantic=[])use($profile,$row,$now):void{
         $commission=$price===null?null:(int)round($price*0.07);$base=$price===null?25000:min(25000,$commission);
         $packet=['access_status'=>'allowed','subject'=>['project_key'=>'anytour','platform'=>$platform,'customer_key'=>'770001','conversation_id'=>(string)$scope],
             'semantic_prediction'=>['mode'=>'contextual_advertising_v1','status'=>'predicted','stage'=>'substantive_dialogue','estimated_probability'=>$prob,
@@ -786,6 +869,7 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
                 'commission_estimate_rub'=>$commission,'full_value_base_rub'=>$base,'value_rub'=>$full],
             'private_marker'=>'PRIVATE_PROFILE_NEVER_RETURN'];
         $packet['deal_value_prediction']=array_replace($packet['deal_value_prediction'],$money);
+        $packet['semantic_prediction']=array_replace($packet['semantic_prediction'],$semantic);
         $profile->execute([$id,$platform,$scope,$now-10,json_encode($packet,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]);
         $upload=$state==='pending'?null:(string)(800000+$id);
         $row->execute([$id,ModeledConversionValueContract::predictionKey((string)$id),$platform,$scope,$id,'interest',$delta,$state,$status,$now-20,
@@ -818,13 +902,33 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         $a['monetary_policy']==='early_deal_commission_7pct_v1'&&$a['value_cap_rub']===25000
         &&$b['monetary_policy']==='early_deal_commission_7pct_v1'&&$b['value_cap_rub']===25000
         &&$c['monetary_policy']==='early_deal_commission_7pct_v1'&&$c['value_cap_rub']===25000);
+    foreach([150=>[14000,1400,700,700],1100=>[25000,2500,1250,1250],5000=>[25000,5000,1250,3750]]as$delta=>[$base,$context,$baseline,$difference]){
+        $comparison=$byDelta[$delta]['stage_comparison']??[];
+        $check('legacy same-base comparison uses cumulative values rather than the sent increment '.$delta,
+            $comparison===['version'=>'frozen_context_vs_stage_v1','status'=>'available',
+                'basis'=>'same_frozen_base_existing_stage_fraction_not_export_history','reason'=>null,
+                'monetary_policy'=>'early_deal_commission_7pct_v1','stage_contract'=>'semantic_stage_value_25000_v1',
+                'frozen_base_rub'=>$base,'stage_fraction'=>['numerator'=>1250,'denominator'=>25000],
+                'contextual_cumulative_value_rub'=>$context,'stage_cumulative_value_rub'=>$baseline,
+                'contextual_minus_stage_rub'=>$difference]);
+    }
     $check('inconsistent saved arithmetic cannot acquire a made up calculation',
         $r['calculation_unavailable_rows']===1&&$byDelta[25000]['calculation']===null
         &&$byDelta[25000]['calculation_unavailable_reason']==='frozen_value_unverified'
         &&array_sum($r['calculation_unavailable_reason_counts'])===1&&$r['calculation_unavailable_reason_counts']['frozen_value_unverified']===1);
+    $comparison=$byDelta[25000]['stage_comparison']??[];
+    $check('inconsistent arithmetic cannot become a zero comparison',
+        ($comparison['status']??null)==='unavailable'&&($comparison['reason']??null)==='frozen_value_unverified'
+        &&array_key_exists('contextual_minus_stage_rub',$comparison)&&$comparison['contextual_minus_stage_rub']===null
+        &&$comparison['contextual_cumulative_value_rub']===null&&$comparison['stage_cumulative_value_rub']===null
+        &&$comparison['monetary_policy']===null&&$comparison['frozen_base_rub']===null);
     $check('valid frozen V1 calculations have no unavailability reason',
         $byDelta[150]['calculation_unavailable_reason']===null&&$byDelta[1100]['calculation_unavailable_reason']===null
         &&$byDelta[5000]['calculation_unavailable_reason']===null);
+    $check('probability calculations retain their original basis and exclude stage-only fields',
+        $a['basis']==='frozen_scalar_arithmetic_checked_not_new_model_validation'
+        &&!array_key_exists('stage_fraction',$a)&&!array_key_exists('stage_cumulative_value_rub',$a)
+        &&$r['calculation_basis_counts']===['probability_prediction'=>4,'stage_fraction'=>0,'unavailable'=>1]);
     $check('upload receipt processing and visitor matching never assert per event visit attribution',
         $byDelta[1400]['state']==='unmatched'&&$byDelta[5000]['upload_status']==='MATCHED'
         &&$byDelta[1100]['state']==='processed'&&array_unique(array_column($r['examples'],'visit_linkage'))===['unverified']);
@@ -859,9 +963,20 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         &&$unknown['full_value_base_rub']===10000&&$unknown['estimated_cumulative_value_rub']===1000);
     foreach([$known,$capped,$unknown]as$calculation)$check('a valid V2 calculation names its frozen monetary policy and cap',
         $calculation['monetary_policy']==='early_deal_commission_7pct_v2'&&$calculation['value_cap_rub']===100000);
+    foreach([35000=>[70000,35000,3500,31500],100000=>[100000,100000,5000,95000],1000=>[10000,1000,500,500]]as$delta=>[$base,$context,$baseline,$difference]){
+        $comparison=$byDelta[$delta]['stage_comparison']??[];
+        $check('V2 comparison retains the saved known provisional or capped base '.$base,
+            ($comparison['status']??null)==='available'&&$comparison['reason']===null
+            &&$comparison['monetary_policy']==='early_deal_commission_7pct_v2'
+            &&$comparison['frozen_base_rub']===$base&&$comparison['contextual_cumulative_value_rub']===$context
+            &&$comparison['stage_cumulative_value_rub']===$baseline&&$comparison['contextual_minus_stage_rub']===$difference);
+    }
     $check('valid frozen V2 calculations have no unavailability reason',
         $byDelta[35000]['calculation_unavailable_reason']===null&&$byDelta[100000]['calculation_unavailable_reason']===null
-        &&$byDelta[1000]['calculation_unavailable_reason']===null);
+        &&$byDelta[1000]['calculation_unavailable_reason']===null
+        &&$known['basis']==='frozen_scalar_arithmetic_checked_not_new_model_validation'
+        &&!array_key_exists('stage_fraction',$known)&&!array_key_exists('stage_cumulative_value_rub',$known)
+        &&$r['calculation_basis_counts']===['probability_prediction'=>7,'stage_fraction'=>0,'unavailable'=>1]);
     $check('mixed monetary-policy inspection leaves all stored profiles and reservations unchanged',$newBefore===$snapshot());
 
     $put(33,'max',133,0.2,null,2000,2000,'pending','PREPARED',['full_value_base_rub'=>10000]);
@@ -873,7 +988,10 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         $r['events']===12&&$r['value_rub']===205850&&$r['calculation_unavailable_rows']===5);
     foreach([2000=>'price_base_unverified',3000=>'price_base_unverified',28000=>'scalar_contract_unverified',4200=>'monetary_policy_unavailable']as$delta=>$reason)
         $check('incompatible scalar monetary policy remains unexplained for '.$delta,
-            isset($byDelta[$delta])&&$byDelta[$delta]['calculation']===null&&$byDelta[$delta]['calculation_unavailable_reason']===$reason);
+            isset($byDelta[$delta])&&$byDelta[$delta]['calculation']===null&&$byDelta[$delta]['calculation_unavailable_reason']===$reason
+            &&$byDelta[$delta]['stage_comparison']['status']==='unavailable'&&$byDelta[$delta]['stage_comparison']['reason']===$reason
+            &&$byDelta[$delta]['stage_comparison']['contextual_minus_stage_rub']===null
+            &&$byDelta[$delta]['stage_comparison']['stage_cumulative_value_rub']===null);
     $put(37,'max',137,1.0,2000000,100001,100001,'pending','PREPARED',$v2+['full_value_base_rub'=>100000]);
     $r=$read();$check('a predictive increment above 100000 is rejected before it contributes to returned totals',
         $r['available']&&$r['invalid_binding_rows']===1&&$r['events']===12&&$r['value_rub']===205850);
@@ -882,8 +1000,7 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $p->exec('DELETE FROM modeled_conversion_profile_versions WHERE id=37');
 
     // The existing writer can reserve a stage fraction while the saved probability remains null.
-    $put(38,'max',138,0.05,null,500,500,'accepted','UPLOADED',$v2+['full_value_base_rub'=>10000]);
-    $p->exec("UPDATE modeled_conversion_profile_versions SET profile_json=JSON_SET(profile_json,'$.semantic_prediction.status','insufficient_context','$.semantic_prediction.estimated_probability',NULL,'$.deal_value_prediction.value_rub',NULL) WHERE id=38");
+    $put(38,'max',138,null,null,null,500,'accepted','UPLOADED',$v2+['full_value_base_rub'=>10000],['status'=>'insufficient_context']);
     // Price continuity may retain a 7000 base: at 20%, target 1400 minus the prior 700 leaves a 700 increment.
     $put(39,'max',139,0.1,100000,700,700,'accepted','UPLOADED',$v2);
     $put(40,'max',139,0.2,null,2000,700,'accepted','UPLOADED',$v2+['full_value_base_rub'=>10000]);
@@ -891,29 +1008,240 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $p->exec("UPDATE modeled_conversion_profile_versions SET profile_json=JSON_SET(profile_json,'$.subject.customer_key','770099') WHERE id=41");
     $classifiedBefore=$snapshot();$r=$read();
     $byReason=[];foreach($r['examples']as$e)if($e['calculation_unavailable_reason']!==null)$byReason[$e['calculation_unavailable_reason']][]=$e;
-    $check('a V2 stage-fraction row remains accounted without manufacturing a probability',
-        count($byReason['probability_prediction_unavailable'])===1&&$byReason['probability_prediction_unavailable'][0]['increment_rub']===500
-        &&$byReason['probability_prediction_unavailable'][0]['calculation']===null);
+    $byDelta=[];foreach($r['examples']as$e)$byDelta[$e['increment_rub']]=$e;
+    $stageCalculation=$byDelta[500]['calculation'];
+    $check('a V2 stage-fraction row explains its amount while probability and frozen estimate remain null',
+        $stageCalculation!==null&&$stageCalculation['basis']==='stage_fraction_arithmetic_checked_not_probability_prediction'
+        &&$stageCalculation['estimated_probability']===null&&$stageCalculation['estimated_cumulative_value_rub']===null
+        &&$stageCalculation['stage_cumulative_value_rub']===500&&$stageCalculation['stage_fraction']===['numerator'=>1250,'denominator'=>25000]
+        &&$byDelta[500]['calculation_unavailable_reason']===null);
     $check('a retained priced-base increment stays accounted without a fabricated frozen-value explanation',
         count($byReason['increment_not_explained'])===1&&$byReason['increment_not_explained'][0]['increment_rub']===700
         &&$byReason['increment_not_explained'][0]['calculation']===null);
     $check('a mismatched saved-profile binding has a fixed reason without discarding a valid ledger row',
         count($byReason['profile_binding_unverified'])===1&&$byReason['profile_binding_unverified'][0]['calculation']===null
         &&$r['invalid_binding_rows']===0&&$r['events']===16&&$r['value_rub']===208750);
+    $bindingComparison=$byReason['profile_binding_unverified'][0]['stage_comparison']??[];
+    $check('a mismatched profile cannot provide either side of the stage comparison',
+        ($bindingComparison['status']??null)==='unavailable'&&($bindingComparison['reason']??null)==='profile_binding_unverified'
+        &&$bindingComparison['contextual_cumulative_value_rub']===null&&$bindingComparison['stage_cumulative_value_rub']===null
+        &&$bindingComparison['contextual_minus_stage_rub']===null);
+    $continuityComparison=$byReason['increment_not_explained'][0]['stage_comparison']??[];
+    $check('unexplained price continuity cannot turn into an alternate export calculation',
+        ($continuityComparison['status']??null)==='unavailable'&&($continuityComparison['reason']??null)==='increment_not_explained'
+        &&$continuityComparison['contextual_cumulative_value_rub']===null&&$continuityComparison['stage_cumulative_value_rub']===null
+        &&$continuityComparison['contextual_minus_stage_rub']===null);
     $check('fixed first-failure counts explain every unavailable calculation exactly once',
-        $r['calculation_unavailable_reason_counts']===['profile_binding_unverified'=>1,'probability_prediction_unavailable'=>1,
+        $r['calculation_unavailable_reason_counts']===['profile_binding_unverified'=>1,'probability_prediction_unavailable'=>0,
             'monetary_policy_unavailable'=>1,'scalar_contract_unverified'=>1,'price_base_unverified'=>2,'frozen_value_unverified'=>1,'increment_not_explained'=>1]
-        &&array_sum($r['calculation_unavailable_reason_counts'])===$r['calculation_unavailable_rows']&&$r['calculation_unavailable_rows']===8);
+        &&array_sum($r['calculation_unavailable_reason_counts'])===$r['calculation_unavailable_rows']&&$r['calculation_unavailable_rows']===7
+        &&$r['calculation_basis_counts']===['probability_prediction'=>8,'stage_fraction'=>1,'unavailable'=>7]
+        &&array_sum($r['calculation_basis_counts'])===$r['events']);
+    $check('comparison categories partition every eligible event including stage-only and unavailable rows',
+        $r['stage_comparison_counts']===['above_stage'=>8,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>1,'unavailable'=>7]
+        &&array_sum($r['stage_comparison_counts'])===$r['events']);
     $read();$check('reason inspection leaves stored profiles and reservations byte identical and omits private binding values',
         $classifiedBefore===$snapshot()&&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'770099'));
     for($i=10;$i<25;$i++)$put($i,'max',100+$i,0.1,null,2500,2500,'accepted','UPLOADED');
     $r=$read();$check('predictive examples and suffix completeness remain explicitly bounded',
         $r['window']['inspected_predictive_rows']===17&&!$r['window']['complete_within_goal_suffix']&&count($r['examples'])===16);
+    $check('comparison totals cover the inspected eligible suffix beyond the displayed examples',
+        $r['stage_comparison_counts']===['above_stage'=>10,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>1,'unavailable'=>6]
+        &&array_sum($r['stage_comparison_counts'])===$r['events']&&$r['events']>count($r['examples']));
     $p->prepare("UPDATE modeled_conversion_profile_versions SET profile_json=JSON_SET(profile_json,'$.semantic_prediction.reasons',JSON_ARRAY(?))")->execute([str_repeat('я',600)]);
     $tight=new ModeledConversionStatusBudget();$tight->consumeBytes(40000);
     $bounded=(new ModeledConversionValueDeliveryReader($p,static function():void{},$tight))->predictiveV1($now);
     $check('oversized multibyte scalar detail is preflighted before copying and retains authorization bytes',
         $bounded===['available'=>false,'reason'=>'budget_headroom']&&$tight->remainingBytes()>=8192);
+
+    // Each synthetic stage case starts after the unchanged suffix/budget fixtures above.
+    $stageReadOnly=true;
+    $stageRead=static function(array $fixture=[])use($p,$put,$row,$now,$read,$snapshot,&$stageReadOnly):array{
+        $p->exec('DELETE FROM max_channel_conversion_outbox');
+        $p->exec('DELETE FROM modeled_conversion_profile_versions');
+        if(array_key_exists('prior',$fixture))$row->execute([1,'anytour_value_1_v1','max',150,null,'interest',$fixture['prior'],
+            'accepted','UPLOADED',$now-100,$now-99,$now-98,null,'800001','PRIVATE_PRIOR_CLIENT']);
+        $money=array_replace(['version'=>'early_deal_commission_7pct_v2','full_value_base_rub'=>10000],$fixture['money']??[]);
+        $semantic=array_replace(['status'=>'insufficient_context','stage'=>null],$fixture['semantic']??[]);
+        $put(50,'max',150,null,$fixture['price']??null,null,(int)($fixture['delta']??500),'accepted','UPLOADED',$money,$semantic);
+        $p->prepare('UPDATE max_channel_conversion_outbox SET value_stage=?,value_rub=? WHERE id=50')
+            ->execute([$fixture['stage']??'interest',$fixture['delta']??500]);
+        $before=$snapshot();$result=$read();$stageReadOnly=$stageReadOnly&&$before===$snapshot();return $result;
+    };
+    $validStages=[
+        'V1 unknown interest'=>[['money'=>['version'=>'early_deal_commission_7pct_v1','full_value_base_rub'=>25000],'delta'=>1250],25000,1250,1250,25000,null],
+        'V2 unknown interest'=>[[],10000,500,1250,100000,null],
+        'V2 known price below provisional base'=>[['price'=>100000,'money'=>['full_value_base_rub'=>7000],'delta'=>350],7000,350,1250,100000,7000.0],
+        'V2 known commission capped at 100000'=>[['price'=>2000000,'money'=>['full_value_base_rub'=>100000],'delta'=>5000],100000,5000,1250,100000,140000.0],
+        'V2 prior reservation'=>[['prior'=>200,'delta'=>300],10000,500,1250,100000,null],
+        'V2 purchase intent rounding'=>[['stage'=>'purchase_intent','delta'=>3333],10000,3333,8333,100000,null],
+        'V2 agency choice'=>[['stage'=>'agency_choice','delta'=>5000],10000,5000,12500,100000,null],
+    ];
+    foreach($validStages as$name=>[$fixture,$base,$cumulative,$numerator,$cap,$commission]){
+        $r=$stageRead($fixture);$e=$r['examples'][0]??[];$c=$e['calculation']??null;
+        $check('stage arithmetic explains '.$name.' without inventing a probability or model estimate',
+            $r['available']&&$r['events']===1&&$r['value_rub']===($fixture['delta']??500)
+            &&$r['calculation_basis_counts']===['probability_prediction'=>0,'stage_fraction'=>1,'unavailable'=>0]
+            &&$r['calculation_unavailable_rows']===0&&array_sum($r['calculation_unavailable_reason_counts'])===0
+            &&$c!==null&&$c['basis']==='stage_fraction_arithmetic_checked_not_probability_prediction'
+            &&$c['estimated_probability']===null&&$c['estimated_cumulative_value_rub']===null
+            &&$c['stage_fraction']===['numerator'=>$numerator,'denominator'=>25000]&&$c['stage_cumulative_value_rub']===$cumulative
+            &&$c['full_value_base_rub']===$base&&$c['value_cap_rub']===$cap
+            &&$c['monetary_policy']===($fixture['money']['version']??'early_deal_commission_7pct_v2')
+            &&$c['estimated_deal_rub']===($fixture['price']??null)&&$c['estimated_commission_rub']===$commission
+            &&$c['prior_reserved_rub']===($fixture['prior']??0)&&$e['calculation_unavailable_reason']===null
+            &&!array_key_exists('odds_multiplier',$c)&&!array_key_exists('expert_factors',$c)
+            &&$e['visit_linkage']==='unverified'&&$r['provider_requests']===0
+            &&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_'));
+        $comparison=$e['stage_comparison']??[];
+        $check('stage-only '.$name.' exposes its baseline without inventing a contextual estimate or zero difference',
+            ($comparison['status']??null)==='stage_only'&&($comparison['reason']??null)==='contextual_prediction_unavailable'
+            &&$comparison['version']==='frozen_context_vs_stage_v1'
+            &&$comparison['basis']==='same_frozen_base_existing_stage_fraction_not_export_history'
+            &&$comparison['monetary_policy']===$c['monetary_policy']&&$comparison['frozen_base_rub']===$base
+            &&$comparison['stage_fraction']===$c['stage_fraction']&&$comparison['stage_cumulative_value_rub']===$cumulative
+            &&$comparison['contextual_cumulative_value_rub']===null&&$comparison['contextual_minus_stage_rub']===null
+            &&$r['stage_comparison_counts']===['above_stage'=>0,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>1,'unavailable'=>0]);
+    }
+    // Equal values are a real zero difference only when both frozen sides exist.
+    // These literal cases also preserve a negative difference and the existing stage-fraction rounding.
+    foreach([
+        'interest without an uplift'=>[[],0.05,500,500,0],
+        'context below its stage fraction'=>[[],0.04,400,500,-100],
+        'specific request without an uplift'=>[['stage'=>'specific_request','semantic'=>['stage'=>'concrete_request']],0.083333,833,833,0],
+        'specific request differs only by formula precision'=>[['stage'=>'specific_request','semantic'=>['stage'=>'concrete_request'],
+            'price'=>2000000,'money'=>['full_value_base_rub'=>100000]],0.083333,8333,8332,1],
+        'known base without an uplift'=>[['price'=>222429,'money'=>['full_value_base_rub'=>15570]],0.05,779,779,0],
+    ]as$name=>[$fixture,$probability,$context,$baseline,$difference]){
+        $fixture['semantic']=array_replace(['status'=>'predicted','stage'=>'substantive_dialogue','estimated_probability'=>$probability],$fixture['semantic']??[]);
+        $fixture['money']=array_replace($fixture['money']??[],['value_rub'=>$context]);$fixture['delta']=$context;
+        $r=$stageRead($fixture);$e=$r['examples'][0]??[];$comparison=$e['stage_comparison']??[];
+        $check('same frozen base comparison preserves '.$name,
+            $r['available']&&$r['events']===1&&$r['provider_requests']===0
+            &&$e['calculation_unavailable_reason']===null&&($comparison['status']??null)==='available'
+            &&$comparison['reason']===null&&$comparison['monetary_policy']==='early_deal_commission_7pct_v2'
+            &&$comparison['contextual_cumulative_value_rub']===$context&&$comparison['stage_cumulative_value_rub']===$baseline
+            &&$comparison['contextual_minus_stage_rub']===$difference&&$e['visit_linkage']==='unverified'
+            &&$r['stage_comparison_counts']===['above_stage'=>$difference>0?1:0,'equal_stage'=>$difference===0?1:0,
+                'below_stage'=>$difference<0?1:0,'stage_only'=>0,'unavailable'=>0]);
+    }
+    foreach(['different stage'=>'concrete_request','missing stage'=>null,'unknown stage'=>'unrecognised']as$name=>$savedStage){
+        $r=$stageRead(['semantic'=>['status'=>'predicted','stage'=>$savedStage,'estimated_probability'=>0.05],
+            'money'=>['value_rub'=>500]]);$e=$r['examples'][0]??[];$comparison=$e['stage_comparison']??[];
+        $check('an unverified saved stage prevents only the new comparison '.$name,
+            $r['available']&&$r['events']===1&&$e['calculation']!==null&&$e['calculation_unavailable_reason']===null
+            &&($comparison['status']??null)==='unavailable'&&($comparison['reason']??null)==='prediction_stage_unverified'
+            &&$comparison['contextual_cumulative_value_rub']===null&&$comparison['stage_cumulative_value_rub']===null
+            &&$comparison['contextual_minus_stage_rub']===null
+            &&$r['stage_comparison_counts']===['above_stage'=>0,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>0,'unavailable'=>1]);
+    }
+    $invalidStages=[
+        'wrong mode'=>['semantic'=>['mode'=>'another_mode']],
+        'wrong status'=>['semantic'=>['status'=>'unavailable']],
+        'present probability'=>['semantic'=>['estimated_probability'=>0.05]],
+        'present frozen estimate'=>['money'=>['value_rub'=>500]],
+        'wrong unknown base'=>['money'=>['full_value_base_rub'=>25000]],
+        'unsupported monetary policy'=>['money'=>['version'=>'early_deal_commission_7pct_v3']],
+        'wrong commission rate'=>['money'=>['commission_rate'=>0.08]],
+        'mismatched increment'=>['delta'=>499],
+        'fractional stored increment'=>['delta'=>500.50],
+        'negative prior'=>['prior'=>-1],
+        'fractional prior'=>['prior'=>200.5,'delta'=>300],
+        'prior exceeding stage value'=>['prior'=>600],
+        'fractional known price'=>['price'=>100000,'delta'=>350,'money'=>['full_value_base_rub'=>7000,
+            'deal_amount_rub'=>['point'=>100000.5,'low'=>100000.5,'high'=>100000.5,'basis'=>'customer_budget_ceiling_proxy','source_kind'=>'customer_budget']]],
+        'unsupported specific request stage'=>['stage'=>'specific_request','delta'=>833],
+        'unsupported offer discussion stage'=>['stage'=>'offer_discussion','delta'=>1667],
+        'payment stage belongs to another path'=>['stage'=>'payment_report','delta'=>10000],
+    ];
+    // Preserve JSON types via json_encode, including literal "null" versus a true JSON null on both PDO drivers.
+    foreach(['null','garbage',false,0]as$bad){
+        $label=json_encode($bad,JSON_THROW_ON_ERROR);
+        $invalidStages['probability '.$label]=['semantic'=>['estimated_probability'=>$bad]];
+        $invalidStages['frozen estimate '.$label]=['money'=>['value_rub'=>$bad]];
+        $invalidStages['unknown price '.$label]=['money'=>['deal_amount_rub'=>[
+            'point'=>$bad,'low'=>null,'high'=>null,'basis'=>'unknown','source_kind'=>'unknown']]];
+        $invalidStages['unknown commission '.$label]=['money'=>['commission_estimate_rub'=>$bad]];
+    }
+    foreach($invalidStages as$name=>$fixture){
+        $r=$stageRead($fixture);$e=$r['examples'][0]??[];
+        $check('stage formula remains unavailable for '.$name,
+            $r['available']&&$r['events']===1&&$r['calculation_basis_counts']===['probability_prediction'=>0,'stage_fraction'=>0,'unavailable'=>1]
+            &&$r['calculation_unavailable_rows']===1&&array_sum($r['calculation_unavailable_reason_counts'])===1
+            &&$r['calculation_unavailable_reason_counts']['probability_prediction_unavailable']===1
+            &&$e['calculation']===null&&$e['calculation_unavailable_reason']==='probability_prediction_unavailable'
+            &&$e['stage_comparison']['status']==='unavailable'&&$e['stage_comparison']['reason']==='probability_prediction_unavailable'
+            &&$e['stage_comparison']['contextual_cumulative_value_rub']===null
+            &&$e['stage_comparison']['stage_cumulative_value_rub']===null&&$e['stage_comparison']['contextual_minus_stage_rub']===null);
+    }
+    $r=$stageRead(['semantic'=>['status'=>'predicted']]);
+    $check('a predicted status with null probability cannot enter the stage fallback',
+        $r['available']&&$r['calculation_basis_counts']===['probability_prediction'=>0,'stage_fraction'=>0,'unavailable'=>1]
+        &&$r['examples'][0]['calculation']===null&&$r['examples'][0]['calculation_unavailable_reason']==='scalar_contract_unverified');
+    $r=$stageRead(['delta'=>-1]);
+    $check('a negative ledger increment is rejected without a stage explanation',
+        $r===['available'=>false,'reason'=>'invalid_saved_projection']);
+    $check('all stage inspections leave the synthetic profiles and reservation rows byte identical',$stageReadOnly);
+
+    // Seventeen already-inspected events exercise selection before the existing sixteen-example cap.
+    $selectionReadOnly=true;
+    $selectionRead=static function(array $overrides=[])use($p,$put,$read,$snapshot,&$selectionReadOnly):array{
+        $p->exec('DELETE FROM max_channel_conversion_outbox');$p->exec('DELETE FROM modeled_conversion_profile_versions');
+        for($id=100;$id<=116;$id++){
+            [$probability,$full,$delta,$semantic]=$overrides[$id]??[0.05,500,500,[]];
+            $put($id,'max',1000+$id,$probability,null,$full,$delta,'accepted','UPLOADED',
+                ['version'=>'early_deal_commission_7pct_v2','full_value_base_rub'=>10000],$semantic);
+        }
+        $before=$snapshot();$result=$read();$selectionReadOnly=$selectionReadOnly&&$before===$snapshot();return $result;
+    };
+    $nonComparisons=[115=>[null,null,500,['status'=>'insufficient_context']],114=>[0.05,600,600,[]]];
+    $r=$selectionRead($nonComparisons+[100=>[0.06,600,600,[]]]);
+    $newestCases=array_map(static fn(int $n):string=>'dialogue_'.$n,range(1,16));
+    $check('a difference in the seventeenth inspected row precedes the newest ordinary examples before the sixteen-example cap',
+        $r['examples_selection']==='comparison_differences_first_then_newest'
+        &&array_column($r['examples'],'case')===array_merge(['dialogue_17'],array_slice($newestCases,0,15))
+        &&$r['examples'][0]['stage_comparison']['contextual_minus_stage_rub']===100
+        &&$r['events']===17&&$r['conversations']===17&&$r['value_rub']===8700
+        &&$r['stage_comparison_counts']===['above_stage'=>1,'equal_stage'=>14,'below_stage'=>0,'stage_only'=>1,'unavailable'=>1]
+        &&array_sum($r['stage_comparison_counts'])===$r['events']
+        &&$r['window']===['max_goal_rows'=>201,'max_predictive_rows'=>17,'inspected_predictive_rows'=>17,
+            'complete_within_goal_suffix'=>false,'global_coverage_known'=>false]);
+
+    // Exercise the real response trimmer with enough space for four actual reader examples.
+    $projection=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
+    $method=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
+    $large=['value_delivery'=>['predictive_v1'=>$r],'synthetic_padding'=>''];$four=$large;
+    $four['value_delivery']['predictive_v1']['examples']=array_slice($r['examples'],0,4);
+    $four['value_delivery']['predictive_v1']['examples_omitted_due_to_response_budget']=true;
+    $jsonFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $large['synthetic_padding']=str_repeat('x',28000-strlen(json_encode($four,$jsonFlags))-1);
+    $bounded=$method->invoke($projection,$large);$kept=$bounded['value_delivery']['predictive_v1'];
+    $summary=$r;unset($summary['examples']);$boundedSummary=$kept;
+    unset($boundedSummary['examples'],$boundedSummary['examples_omitted_due_to_response_budget']);
+    $check('the actual response budget retains the late difference and exact aggregates while trimming to four examples',
+        strlen(json_encode($bounded,$jsonFlags))<=28000&&count($kept['examples'])===4
+        &&$kept['examples']===array_slice($r['examples'],0,4)&&$kept['examples_omitted_due_to_response_budget']===true
+        &&$boundedSummary===$summary&&$kept['examples'][0]['stage_comparison']['contextual_minus_stage_rub']===100);
+
+    $mixed=$selectionRead($nonComparisons+[111=>[0.04,400,400,[]],108=>[0.09,900,900,[]],
+        103=>[0.03,300,300,[]],100=>[0.06,600,600,[]]]);
+    $check('both signs have equal priority and preserve newest order rather than sorting by sign or magnitude',
+        array_column($mixed['examples'],'case')===['dialogue_6','dialogue_9','dialogue_14','dialogue_17',
+            'dialogue_1','dialogue_2','dialogue_3','dialogue_4','dialogue_5','dialogue_7','dialogue_8','dialogue_10',
+            'dialogue_11','dialogue_12','dialogue_13','dialogue_15']
+        &&array_column(array_column(array_slice($mixed['examples'],0,4),'stage_comparison'),'contextual_minus_stage_rub')===[-100,400,-200,100]
+        &&$mixed['stage_comparison_counts']===['above_stage'=>2,'equal_stage'=>11,'below_stage'=>2,'stage_only'=>1,'unavailable'=>1]);
+    $equal=$selectionRead($nonComparisons);
+    $check('without differences the newest order is unchanged and null comparisons are not promoted as nonzero',
+        array_column($equal['examples'],'case')===$newestCases
+        &&array_column(array_column(array_slice($equal['examples'],0,3),'stage_comparison'),'status')===['available','stage_only','unavailable']
+        &&array_column(array_column(array_slice($equal['examples'],0,3),'stage_comparison'),'contextual_minus_stage_rub')===[0,null,null]
+        &&$equal['stage_comparison_counts']===['above_stage'=>0,'equal_stage'=>15,'below_stage'=>0,'stage_only'=>1,'unavailable'=>1]);
+    $json=json_encode([$r,$kept,$mixed,$equal],JSON_THROW_ON_ERROR);
+    $check('prioritized examples retain the existing privacy provider and immutable-row boundaries',
+        $selectionReadOnly&&$r['provider_requests']===0&&$mixed['provider_requests']===0&&$equal['provider_requests']===0
+        &&!str_contains($json,'PRIVATE_')&&!str_contains($json,'770001')&&!str_contains($json,'990001')
+        &&!str_contains($json,'value_profile_id')&&!str_contains($json,'conversation_id'));
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){

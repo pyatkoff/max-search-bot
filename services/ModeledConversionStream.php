@@ -153,7 +153,7 @@ final class ModeledConversionStream
         ProjectAccessService::initializeReadOnly();
                 $pdo=ConversationDb::connection();$result=(new self($pdo))->tick(time());
         if(($result['status']??'off')!=='off'){
-            try {require_once __DIR__.'/ModeledConversionProfiles.php';$result['profiles']=(new ModeledConversionProfiles($pdo))->tick(time());}
+            try {require_once __DIR__.'/ModeledConversionProfiles.php';$result['profiles']=self::profileCatchUp(new ModeledConversionProfiles($pdo));}
             catch(Throwable $ignored){$result['profiles']=['status'=>'failed','model_calls'=>0,'conversion_uploads'=>0];}
             if(in_array($result['profiles']['status']??'off',['profiled','idle'],true)){
                 try {require_once __DIR__.'/ModeledConversionPurchaseStudy.php';$studyResult=(new ModeledConversionPurchaseStudy($pdo))->tick(time());$result['purchase_study_runtime']=($studyResult['status']??'failed')==='failed'?'failed':'checked';unset($studyResult);}
@@ -161,6 +161,23 @@ final class ModeledConversionStream
             }
         }
         return $result;
+    }
+
+    /** Continue committed FIFO work; never retry a failed/busy batch or restart intake. */
+    public static function profileCatchUp(ModeledConversionProfiles $profiles,?callable $clock=null,?callable $monotonicClock=null,?callable $beforeCommit=null):array
+    {
+        $clock??=static fn():int=>time();
+        $monotonicClock??=static fn():int=>hrtime(true);
+        $deadline=$monotonicClock()+5000000000;
+        for($batch=0;$batch<4;$batch++){
+            // This is a soft start deadline, not an interruption of an active transaction.
+            if($batch>0&&$monotonicClock()>=$deadline)break;
+            $receipt=$profiles->tick($clock(),$beforeCommit);
+            if(($receipt['status']??null)!=='profiled'||($receipt['processed_revisions']??0)<=0
+                ||($receipt['pending_revisions']??0)<=0)break;
+        }
+        // Keep the existing last-batch receipt shape and private forecast suppression.
+        return $receipt;
     }
 
     private function observe(string $kind,array $meta,int $now,int &$used,array &$receipt): bool

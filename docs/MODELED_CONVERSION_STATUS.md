@@ -320,6 +320,40 @@ Statuses sampled/forbidden/unavailable/not_recorded and age>900sec remain explic
 missing or stale reporting data is never fabricated as zero or exact linkage.
 Counters/values are private results, never published into Git/Actions/diagnostics.
 
+#### Retained conversion-cycle failure
+
+The same bounded settings receipt now retains `last_recorded_failure`: the start
+time of the latest recorded failed tick, its first failing phase and a fixed
+category. This is distinct from `last_tick_at` and `last_tick_errors`; a healthy
+tick keeps the historical failure without keeping the current tick degraded.
+An absent or invalid record is `null`, not proof that no previous failure occurred.
+The reader validates an integer time between activation and the current saved
+tick (itself no later than the read), and reconstructs only `tick_at`, `phase` and
+`category`. `last_recorded_failure_is_historical` makes this distinction explicit.
+
+Phases are `recover`, `price_continuity`, `collect_profiles`, `collect_history`,
+`resolve_identity`, `goal_check`, `upload` and `reconcile_receipts`. Categories are
+`storage_failed`, `configuration_unavailable`, `goal_verification_failed`,
+`goal_read_failed`, `processing_failed`, `transport_not_sent`, `rate_limited`,
+`api_rejected` and `upload_failed`. Arbitrary exception messages, SQL, provider
+responses, identifiers and customer text are never copied into this record.
+Only the existing two paths that increment conversion `errors` create it.
+An uncertain upload acknowledgement and an independent Reporting API failure
+retain their existing separate meanings and do not create a conversion failure.
+
+After all network work, a short transaction locks and merges the current settings
+receipt. A late older failed tick can add its failure to a newer healthy receipt
+without replacing that receipt's counts, tick or report clocks. A newer failure
+wins; equal-second failures retain the first saved record. No lock is held during
+network work. The same 8192-byte receipt bound and existing read queries, response
+budgets, authorization and alert rules remain. No new table or schedule is added.
+This preserves future failures only when their bounded metadata can be committed; it
+cannot recover already overwritten details or record a database-write failure in
+an unavailable database. A malformed or oversized newer receipt is not overwritten
+by the stale-tick merge. Failure enrichment that would exceed the existing receipt
+cap is omitted, preserving the current statistics and report metadata. On MySQL,
+the writer checks native JSON byte length, including its normalization whitespace.
+
 ### V1.5: diverse saved-input diagnosis
 
 The same private route additionally projects fixed scalar counters from at most
@@ -367,6 +401,28 @@ Current-day latency keeps all32 recent scope lookups in one UNION ALL SELECT. Ev
 The composed view retains100 scalar diagnosis versions and the existing20metadata/four-packet/48KiB maxima. No coverage or limit is raised or lowered. A native migrated-OAuth/dispatcher fixture composes100 saved packets,32 timing scopes and value delivery, then checks the shared budget,30,000-byte result,64KiB RPC envelope and byte-identical source/OAuth rows. The existing large timing fixture additionally bounds authorization invocations while retaining all32 exact later-profile results.
 
 The combined fixture also checks that reserved final-authorization headroom cannot consume the entire useful packet window: the per-packet guard retains8KiB after the doubled projected-copy allowance plus2KiB framing, rather than a separate16KiB holdback. The total64KiB, two-copy guard, actual copy charging, real final authorization and4KiB OAuth lookup floor remain enforced. Exhaustion still fails closed; no limit or grant rule is raised.
+
+### Compact selected timing fields (v1_18)
+
+The same two timing selections use short private SQL result aliases for the six
+message-scope fields and four indexed-profile fields. Immediately after each
+budgeted query, the reader restores the original named internal row before any
+validation, parameter binding, delay calculation or example selection. Result
+names, values, types and nulls are unchanged; aliases never appear in the private
+API response. The same predicates, order,32-scope limit and query count remain.
+
+Repeated field names are part of the selected-row byte accounting. The compact
+selection saves48 bytes per sampled scope and46 bytes per returned profile,
+or3008 bytes with32 rows in each selection. This leaves more of the existing
+shared budget for the following daily delivery and Telegram views. It does not
+change any authorization reservation, admission floor, read order or response
+limit. Daily and Telegram coverage is checked together with the monetary core
+through the existing real-OAuth/native composed regression.
+
+The saving depends on the number of selected rows; it is not a guarantee that
+every optional view fits for every input. Existing explicit budget omissions
+remain unavailable data, not zero totals. No raw source, new query, provider
+request, forecast calculation, delivery operation or stored-row mutation is added.
 
 
 ### Telegram identity diagnosis (v1_10)
@@ -545,6 +601,32 @@ Telegram inquiry counts use the same saved semantic rule. Membership dates are
 unavailable pending the owner's later Bitrix access. This is a missing source,
 not zero subscribers, zero conversion or zero elapsed time. A verified tgmini
 visit and bot start remain different facts and never become a join proxy.
+
+The same aggregate page separately describes Telegram Mini App entry context for
+that inquiry cohort. It reads only imported `tgmini` observations from counter
+`98615635`, with verified native identity matching the exact conversation of the
+earliest admitted journal message. The four exclusive categories are: an entry
+observed no later than that message with one distinct ClientID; ambiguous prior
+ClientIDs or identity; only later entries; and no qualifying data. Repeated entries
+with the same ClientID do not prove a unique visit. Original entry time is compared
+with the journal message time, never profile freeze or conversion export time.
+Both clocks have whole-second precision: equality means “not later”, not strict
+causal order. Imported observations available at report time may describe an older
+entry; this is a retrospective as-of view, not the information known to the model
+when the customer wrote. No lower-bound attribution window or ad-click claim is
+introduced.
+
+Unverified or out-of-scope captures and raw IDs supplied in profiles/start hints
+cannot manufacture entry context. A saved Mini App observation is not proof of an
+earlier external website session, subscription, human identity or advertising
+causality. No data does not mean bot traffic or no visits. MAX receives no entry
+counts: user-to-ClientID mapping alone cannot establish a preceding website entry,
+and this report does not perform tracker lookups. No raw message, customer, visit,
+ClientID or YCLID is added to the response. Existing administrator access is unchanged.
+Entry queries share the same read transaction and authorization/time/row/byte budget,
+in batches of at most 100 identities. They do not sample the newest entries: missing
+storage, invalid accepted clocks or an incomplete bounded history make the report
+visibly unavailable rather than yielding misleading counts.
 
 Coverage is valid unambiguous join/inquiry pairs divided by all eligible inquiry
 people in that platform's cohort. It is NOT the fraction of all subscribers who
@@ -748,43 +830,119 @@ are rejected; refresh the selected report to start a new consistent snapshot.
 
 ## Saved monetary-policy visibility and calculation availability
 
-Reader `saved_semantic_prediction_status_v1_16` exposes
+Reader `saved_semantic_prediction_status_v1_18` exposes
 `saved.deal_value.by_monetary_policy` from the monetary capsules already validated
 in the ordinary core-packet read. Each supported saved version reports its count,
-policy cap and unknown-price base, unknown-price and numeric-value counts, and the
-range of actual saved commission bases. V1 retains its25000/25000 policy; V2 uses
-100000/10000. A valid V2 packet without a purchase probability can therefore show
-its10000 base and100000 cap while its probability/value remain null and it adds no
-prospective estimate. Known-price bases can be below10000. Invalid monetary
-capsules do not enter this aggregate; the semantic-profile count remains separate.
+policy cap and unknown-price base, unknown-price/numeric-value counts, and the
+range of actual saved commission bases. V1 retains its 25000/25000 policy; V2 uses
+100000/10000. A valid V2 packet without a purchase probability can show its 10000
+base and 100000 cap while probability/value remain null and it adds no prospective
+estimate. Known-price bases can be below 10000. Invalid monetary capsules do not
+enter this aggregate; the semantic-profile count remains separate.
 
-The predictive delivery view keeps its existing scalar-calculation admission and
-adds `calculation_unavailable_reason` to each example (null when available) and
-`calculation_unavailable_reason_counts` over the inspected eligible rows. These
-fixed categories identify the first blocking check, not the validity of all later
-checks or an error in the stored award:
+The predictive delivery view now distinguishes two scalar arithmetic explanations.
+The existing probability-based admission and its calculation fields are unchanged.
+A separately named `stage_fraction_arithmetic_checked_not_probability_prediction`
+basis can explain an existing stage award without inventing a purchase probability.
+It requires verified profile binding, the expected contextual mode,
+`insufficient_context`, null probability and frozen monetary value, a supported
+monetary policy, checked price/commission/base arithmetic, an allowed fallback
+stage and the exact positive integer difference after prior reservations.
 
-| Reason | Existing check that prevents a scalar explanation |
+Only the producer's fallback ranks 1, 4 and 5 are admitted: `interest`,
+`purchase_intent` and `agency_choice`. The `stage_fraction` object names the
+literal numerator (1250, 8333 or 12500) and denominator (25000).
+`stage_cumulative_value_rub` is the rounded fraction times the saved base;
+`prior_reserved_rub` and the example's existing `increment_rub` explain the
+positive difference. Both `estimated_probability` and
+`estimated_cumulative_value_rub` remain null. Probability multipliers and expert
+factors are not attached to this stage calculation.
+
+For example, an unknown-price V2 interest row has a 10000 base and a stage target
+of `round(1250 / 25000 * 10000) = 500` RUB. With 200 RUB already reserved, only a
+stored 300 RUB increment matches that explanation. A known tour price of 100000
+RUB yields a 7000 commission base and a 350 RUB interest target. A high known
+commission capped at 100000 yields a 5000 RUB interest target. These fractions
+are not saved 5% purchase predictions, and no new award is produced by reading.
+
+The fixed `calculation_basis_counts` keys `probability_prediction`,
+`stage_fraction` and `unavailable` partition the inspected eligible events.
+Their sum equals `events`; the unavailable count equals
+`calculation_unavailable_rows`. Counts survive optional example compaction.
+Invalid-bound and voided zero-value rows remain separate from those events.
+
+Examples still carry `calculation_unavailable_reason` (null when either
+explanation is available), with `calculation_unavailable_reason_counts` for
+the remaining unexplained rows. The existing first-failure categories are retained:
+
+| Reason | Existing numeric check that prevents an explanation |
 | --- | --- |
 | `profile_binding_unverified` | Saved access or profile/subject binding |
-| `probability_prediction_unavailable` | Expected prediction mode/status absent |
+| `probability_prediction_unavailable` | Expected prediction mode/status absent and no admitted stage explanation |
 | `monetary_policy_unavailable` | Missing or unsupported monetary version |
 | `scalar_contract_unverified` | Scalar bounds, types or source/basis allowlist |
 | `price_base_unverified` | Price, commission and base do not explain one another |
 | `frozen_value_unverified` | Frozen value differs from probability times base |
 | `increment_not_explained` | Frozen value minus earlier reservations differs from the stored increment |
 
-The existing producer may use a stage fraction when no numeric prediction exists;
-its predictive key does not prove a probability was estimated. For example, V2
-unknown-price interest uses1250/25000 of the10000 base, or500 RUB before earlier
-reservations. The fraction is not relabeled as a saved5% purchase probability.
-The existing price-continuity adjustment can also make the applied increment
-differ from the current frozen value; `increment_not_explained` does not declare
-that adjustment wrong. This read neither loads a new audit nor recomputes it.
+These are the first blocking numeric check, not validation of all later fields.
+A failed optional stage check leaves that existing reason unchanged. In particular,
+a predictive key alone does not establish either calculation basis.
 
-No query, selected column, row limit, read order, authorization rule or monetary
-decision changes. The one-core-packet priority and explicit omissions remain;
-20 metadata/four packets/48KiB packet-copy,64KiB shared,30,000-byte result and
-five-second limits are unchanged. Additional fields are fixed aggregates and
-whitelisted reasons; optional examples may still be omitted by the existing
-response bound. Nothing is captured, recalculated, reserved, uploaded or replayed.
+The scalar readback is an arithmetic consistency check, not a new validation of
+the full capsule, digest, input evidence or producer decision. Four existing
+nullable scalar expressions preserve JSON types (probability, price point,
+commission and frozen value), so JSON null is distinct from the string "null",
+false, zero or malformed text. A missing path remains indistinguishable from JSON
+null in this projection; full structural validity is not claimed.
+
+### Frozen contextual value compared with the stage baseline
+
+Each predictive example also reports `stage_comparison` version
+`frozen_context_vs_stage_v1`. For an already explained probability-based row,
+it compares the saved cumulative contextual value with
+`round(VALUES[stage_rank] / BASE * frozen_full_value_base_rub)`. The saved
+semantic stage must agree with the ledger stage. Both sides use the same
+validated monetary policy and frozen base, including the original V1/V2 cap or
+unknown-price base. The signed difference is contextual minus stage value.
+
+A valid fallback row has status `stage_only`: its stage baseline is available,
+but contextual value and difference stay null. Unexplained arithmetic or an
+unverified stage yields `unavailable`, a fixed reason and null comparison
+amounts. Unavailable is never interpreted as zero effect.
+
+`stage_comparison_counts` partitions all eligible events in the bounded reader
+window into `above_stage`, `equal_stage`, `below_stage`, `stage_only` and
+`unavailable`. Counts remain when optional examples are removed to fit the
+response budget. They describe saved event rows, not unique people or trips.
+`examples_selection` is `comparison_differences_first_then_newest`: explained
+nonzero comparisons, positive and negative alike, precede the other examples.
+Each group retains the original newest-first order. Selection considers only
+the same at-most-17 inspected rows, then applies the unchanged 16-example cap;
+response compaction still removes examples from the tail. This is a diagnostic
+selection, not a representative sample or a ranking of business value. Under a
+tighter response budget even prioritized examples may be omitted; the fixed
+counts and explicit omission flag remain authoritative for the inspected window.
+
+The difference is between two formulas, not an isolated effect of contextual
+factors. For example, the semantic prior 0.083333 and the stage fraction
+2083/25000 produce 8333 and 8332 RUB on a 100000 RUB base even without a context
+multiplier. Inspect the existing factor and probability fields before attributing
+a difference to the conversation.
+
+This is a read-only diagnostic for the existing value policy, not a comparison
+with an independently verified PRAETOR sender. It does not reconstruct an
+alternative reservation/export history, predict additional sales or establish
+model calibration. Recorded increments, profile values, policy versions, source
+queries, authorization and delivery behavior are unchanged. No model call,
+customer message, collector, schedule or advertising event is added.
+
+Price-continuity adjustments may use another saved reference base. Their omitted
+audit evidence is not reconstructed from totals or the stage name; an unmatched
+increment remains unexplained. This does not declare the saved award erroneous.
+
+The same queries, 38 selected scalar positions, row selection, read order and
+authorization rules remain. The one-core-packet priority and explicit omissions,
+20 metadata/four packets/48KiB packet-copy, 64KiB shared, 30000-byte result and
+five-second limits are unchanged. There is no new query, model call, provider
+request, capture, reservation, upload, replay or mutation of saved values.

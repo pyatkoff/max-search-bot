@@ -227,6 +227,11 @@ for(const width of[390,430,768,1440])test.describe('Private modeled acquisition 
   await expect(page.locator('#channel-telegram')).toContainText('Даты вступления подключим из Bitrix');
   await expect(page.locator('#channel-telegram')).not.toContainText('Медиана');
   await expect(page.locator('#channel-telegram')).not.toContainText('0%');
+  await expect(page.locator('#channel-max .entry-context')).toContainText('сама по себе не подтверждает предшествующий визит');
+  await expect(page.locator('#channel-telegram .entry-counts>div')).toHaveText([
+   'Вход не позже обращения4','Неоднозначная связь2','Только более поздний вход1','Нет подходящего наблюдения2']);
+  await expect(page.locator('#channel-telegram .entry-context')).toContainText('порядок событий внутри секунды неизвестен');
+  await expect(page.locator('#channel-telegram .entry-context')).toContainText('не значит, что человек бот или визита не было');
   await expect(page.locator('select[name="period"]')).toHaveValue('30');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   const dir=path.join(root,'manager2-artifacts');fs.mkdirSync(dir,{recursive:true});

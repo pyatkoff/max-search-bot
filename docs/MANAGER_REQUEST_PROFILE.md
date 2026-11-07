@@ -21,6 +21,16 @@ Migration080 adds append-only versions and a per-manager operation key. Conversa
 
 Saving rechecks canonical project and conversation access, current actor, source integrity, expected version and context basis. A conversation lock serializes profile saves; stale editors cannot overwrite another version. Another trip has a new trip id, explicit boundary and empty fields; older citations cannot cross that boundary. The form keeps private unsaved edits in sessionStorage per actor/conversation for up to24hours. No private data is embedded in presentation HTML. Account/access mismatch clears the visible profile. Unknown write results are reconciled by operation id before an explicit retry of the same command; there is no background retry.
 
+## Explicit sales-outcome links
+
+The existing Manager2 outcome form can explicitly link a sale, refusal or reopened outcome to a saved trip and its exact manager-profile version. The latest profile is never selected automatically. An unknown trip remains valid; a later trip in the same conversation does not move an earlier link. The bounded choice list contains the latest version of each retained trip and the current historical pin, and indicates incomplete coverage.
+
+`SalesPipelineService` remains the CRM writer. Migration094 adds private append-only binding history; it does not backfill historical outcomes. The CRM fields, optional completion stage and binding commit together. A revision includes the current outcome, stage, conversation scope, latest binding and profile-catalog revision. A stale card or revoked access cannot overwrite current data. The same manager operation can be reconciled after a lost response and explicitly retried with its original payload; replay and binding-only corrections do not emit another sale goal or outcome receipt. Older clients explicitly clear the link on their next successful save.
+
+The form retains an uncertain command and later local edits separately in bounded per-actor/per-conversation sessionStorage. Reload never resends a command. An explicit receipt check precedes an explicit retry of the identical command; unavailable or corrupt recovery storage blocks a new write until reconciled. Readback of an old successful operation does not replace a newer CRM outcome.
+
+These links identify manager assertions, not payment or commission. The existing modeled-conversion receipt v1 and its consumers remain unchanged. The binding is not yet used to change PRAETOR or advertising optimization.
+
 ## Existing AI context
 
 The optional profile enters the existing canonical AI reference snapshot and draft revision. Profile changes invalidate cached context. Conditional instructions distinguish literal customer words, manager interpretations, supplier/company facts and stale profiles. A missing table or absent profile contributes no new key, preserving old reference hashes. Known corrupt stored profiles are represented as unavailable. Existing reference budgets and coverage flags still apply; an omitted/truncated reference is not full evidence. External prepared replies do not acquire a new host/model receipt or worker integration from this change.

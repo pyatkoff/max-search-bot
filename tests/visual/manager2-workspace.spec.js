@@ -1323,3 +1323,218 @@ test('late original booking response cannot clear a newer save fence',async({pag
  secondRelease();await expect(page.locator('[data-booking-panel]')).toContainText('Исход сохранения неизвестен');
  expect(s.calls.filter(c=>c.action==='booking_save')).toHaveLength(2);expect(s.sends).toEqual([]);
 });
+
+// Native outcome UI: actual shipped owners, bounded synthetic CRM reads only.
+// The transport fixture never opens production or sends a customer/provider request.
+async function setupOutcomeTripNative(page,{width=430,binding=null,available=true,canEdit=true,absent=false,actor=7,reload=false}={}){
+ const errors=[],unexpected=[];
+ page.on('pageerror',error=>errors.push(error.message));
+ await page.setViewportSize({width,height:900});
+ await page.route('**/*',route=>{
+  if(route.request().url()==='https://outcome-trip.invalid/')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><head><meta charset="utf-8"></head><body class="manager2"><main id="leadCard" class="leadCard"></main><textarea id="replyText">Несохранённый ответ туристу</textarea></body>'});
+  unexpected.push(route.request().url());return route.abort();
+ });
+ if(reload)await page.reload();else await page.goto('https://outcome-trip.invalid/');
+ await page.evaluate(({binding,available,canEdit,absent,actor})=>{
+  const clone=value=>JSON.parse(JSON.stringify(value));
+  const stages=[{stage_key:'working',display_name:'В работе',is_terminal:0,is_won:0},{stage_key:'won',display_name:'Продано',is_terminal:1,is_won:1},{stage_key:'lost',display_name:'Отказ',is_terminal:1,is_won:0}];
+  const choices=[{trip_id:'a'.repeat(32),version:2,label:'Зимняя поездка',summary:'27 декабря · 2 взрослых'},
+   {trip_id:'b'.repeat(32),version:1,label:'Весенняя поездка',summary:'12 марта · 2 взрослых и ребёнок'},
+   {trip_id:'a'.repeat(32),version:1,label:'Зимняя поездка',summary:'20 декабря · 2 взрослых'}];
+  const pipeline={stage:stages[0],stage_history:[],tags:[],outcome:{outcome:'open',note:''}};
+  if(!absent)pipeline.outcome_trip={available,revision:available?'1'.repeat(64):null,binding:binding===null?null:clone(choices[binding]),choices:available?clone(choices):[],choices_truncated:false};
+  const p=window.outcomeTripProbe={calls:[],refreshes:0,errors:[],writePlans:[],lookupPlans:[],held:[],operations:{},pipelines:{11:clone(pipeline),12:clone(pipeline)},canEdit,nav:1,revision:1};
+  const conversation=id=>({id,project_key:'anytour',manager_id:actor,status:'manager',channel:'max',customer_id:100+id,customer_channel_id:'synthetic-'+id,display_name:'Синтетический клиент '+id});
+  const S={current:11,manager:{id:actor,role:'manager'},authGeneration:1,authExpired:false,pipeline:{stages,tags:[],outcomes:{open:'В работе',won:'Продажа',lost:'Отказ'},closeReasons:{price:'Цена'}},detail:{conversation:conversation(11)}};
+  const lead=id=>({ok:true,viewer_id:actor,conversation_id:id,can_edit_pipeline:p.canEdit,pipeline:clone(p.pipelines[id]),trip:{},contact:{},source:{},handoff:{},tasks:[]});
+  p.render=(id=S.current)=>{S.current=id;S.detail={conversation:conversation(id),lead:lead(id)};window.WorkspaceV2LeadCard.render(S.detail.lead,S.detail.conversation)};
+  p.move=id=>{p.nav++;p.render(id)};
+  p.release=(extra={})=>p.held.shift()?.(extra);
+  p.success=data=>{
+   const target=p.pipelines[data.conversation_id];target.outcome={outcome:data.outcome,close_reason:data.close_reason,note:data.note,sale_amount:data.sale_amount,sale_date:data.sale_date};
+   if(data.stage_key)target.stage=clone(stages.find(stage=>stage.stage_key===data.stage_key));
+   if(data.outcome_trip){const t=data.outcome_trip;target.outcome_trip.binding=t.trip_id===null?null:clone(target.outcome_trip.choices.find(choice=>choice.trip_id===t.trip_id&&choice.version===t.profile_version));target.outcome_trip.revision=String(++p.revision).padStart(64,'0');p.operations[t.operation_id]={operation_id:t.operation_id,trip_id:t.trip_id,profile_version:t.profile_version}}
+   return {ok:true,replayed:false,viewer_id:actor,conversation_id:data.conversation_id,pipeline:clone(target)};
+  };
+  const pipe=async(action,data={},options={})=>{
+   p.calls.push({action,...clone(data)});
+   if(action==='detail')return lead(Number(data.conversation_id));
+   if(action==='outcome_operation'){
+    const plan=p.lookupPlans.shift()||{},operation=p.operations[data.operation_id]||null;
+    if(plan.kind==='unknown')throw new Error('synthetic lookup transport failure');
+    return {ok:true,viewer_id:actor,conversation_id:data.conversation_id,found:plan.found??!!operation,operation:plan.found===false?null:clone(operation),pipeline:clone(p.pipelines[data.conversation_id]),...plan.response};
+   }
+   if(action!=='set_outcome'){p.errors.push(action);return {ok:false,error:'unexpected_action'}}
+   const plan=p.writePlans.shift()||{};
+   if(plan.kind==='conflict')return {ok:false,http_status:409,error:plan.error||'context_changed'};
+   const response=plan.commit===false?{ok:true,viewer_id:actor,conversation_id:data.conversation_id,pipeline:clone(p.pipelines[data.conversation_id])}:p.success(data);
+   if(plan.kind==='unknown')throw new Error('synthetic lost response');
+   if(plan.kind==='hold')return await new Promise(resolve=>p.held.push(extra=>resolve(options.isCurrent&&!options.isCurrent()?{ok:false,error:'stale_context'}:{...response,...extra})));
+   return {...response,...plan.response};
+  };
+  window.WorkspaceV2={S,$:id=>document.getElementById(id),pipe,api:async()=>({ok:true}),esc:value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),statusText:()=>'',tripField:()=>'',showAuthRecovery:()=>{S.authExpired=true;S.authGeneration++}};
+  window.WorkspaceV2Conversation={hasReadAccess:()=>!S.authExpired,getOpenGeneration:()=>p.nav,refreshLeadData:async({conversationId=S.current}={})=>{p.refreshes++;const target=Number(conversationId),actor=S.manager.id,generation=S.authGeneration,nav=p.nav;const result=await pipe('detail',{conversation_id:target});if(S.current!==target||S.manager.id!==actor||S.authGeneration!==generation||p.nav!==nav)return false;S.detail.lead=result;window.WorkspaceV2LeadCard.render(result,S.detail.conversation);return true}};
+  window.WorkspaceV2Inbox={load:async()=>true};window.ManagerTime={format:value=>String(value)};
+ },{binding,available,canEdit,absent,actor});
+ for(const asset of ['workspace-v2-outcome.js','workspace-v2-pipeline.js','workspace-v2-lead-card.js'])await page.addScriptTag({path:path.join(root,'manager/assets',asset)});
+ await page.evaluate(()=>outcomeTripProbe.render());
+ return {errors,unexpected,calls:()=>page.evaluate(()=>outcomeTripProbe.calls),writes:()=>page.evaluate(()=>outcomeTripProbe.calls.filter(call=>call.action==='set_outcome')),clean:async()=>{expect(errors).toEqual([]);expect(unexpected).toEqual([]);expect(await page.evaluate(()=>outcomeTripProbe.errors)).toEqual([]);await expect(page.locator('#replyText')).toHaveValue('Несохранённый ответ туристу')}};
+}
+async function chooseOutcomeTrip(page,text){const value=await page.locator('#leadOutcomeTrip option').evaluateAll((options,text)=>options.find(option=>option.textContent.includes(text))?.value,text);expect(value).toBeTruthy();await page.locator('#leadOutcomeTrip').selectOption(value)}
+async function outcomeTripReadyForSale(page){await page.locator('#leadOutcome').selectOption('won');await page.locator('#leadSaleAmount').fill('250000');await page.locator('#leadSaleDate').fill('2026-11-07')}
+
+for(const width of [430,1280])test('outcome trip explicit choice keeps completion atomic at '+width,async({page,browserName})=>{
+ const s=await setupOutcomeTripNative(page,{width});
+ await expect(page.locator('#leadOutcomeTrip option:checked')).toHaveText('Поездка не определена');
+ await outcomeTripReadyForSale(page);await chooseOutcomeTrip(page,'12 марта');
+ await page.locator('#leadOutcomeNote').fill('Продажа относится к мартовской поездке');
+ for(const asset of ['manager/assets/workspace-v2.css','manager/assets/workspace-v2-lead-card.css','manager2/assets/manager2.css'])await page.addStyleTag({path:path.join(root,asset)});
+ const form=page.locator('.leadOutcomeCompactForm');await form.scrollIntoViewIfNeeded();
+ const geometry=await form.boundingBox();expect(geometry.x).toBeGreaterThanOrEqual(0);expect(geometry.x+geometry.width).toBeLessThanOrEqual(width+1);
+ fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await form.screenshot({path:path.join(root,'manager2-artifacts',`outcome-trip-${browserName}-${width}.png`),animations:'disabled'});
+ await page.locator('#saveOutcome').click();await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');
+ const writes=await s.writes();expect(writes).toHaveLength(1);expect(writes[0]).toMatchObject({conversation_id:11,outcome:'won',stage_key:'won',expected_stage_key:'working',sale_amount:'250000',sale_date:'2026-11-07',outcome_trip:{expected_revision:'1'.repeat(64),trip_id:'b'.repeat(32),profile_version:1}});expect(writes[0].outcome_trip.operation_id).toMatch(/^[a-f0-9]{32}$/);
+ expect((await s.calls()).filter(call=>call.action==='set_stage')).toEqual([]);await s.clean();
+});
+
+test('outcome trip explicit unbound is saved instead of automatically choosing the latest trip',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.locator('#leadOutcomeNote').fill('Поездка ещё уточняется');await page.locator('#saveOutcome').click();
+ await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');expect((await s.writes())[0].outcome_trip).toMatchObject({trip_id:null,profile_version:null,expected_revision:'1'.repeat(64)});await s.clean();
+});
+
+test('outcome trip readonly preserves the pinned historical version and unavailable never pretends unbound',async({page})=>{
+ const s=await setupOutcomeTripNative(page,{binding:2,canEdit:false});
+ await expect(page.locator('#leadOutcomeTrip')).toBeDisabled();await expect(page.locator('#leadOutcomeTrip option:checked')).toContainText('20 декабря');await expect(page.locator('#leadOutcomeTripSummary')).toContainText('20 декабря');
+ await page.evaluate(()=>{outcomeTripProbe.canEdit=true;outcomeTripProbe.pipelines[11].outcome_trip={available:false,revision:null,binding:null,choices:[],choices_truncated:false};outcomeTripProbe.render()});
+ await expect(page.locator('#leadCard')).toContainText('Привязка поездки сейчас недоступна');await page.locator('#leadOutcomeNote').fill('Локальная правка');await expect(page.locator('#saveOutcome')).toBeDisabled();expect(await s.writes()).toEqual([]);
+ await page.evaluate(()=>{delete outcomeTripProbe.pipelines[11].outcome_trip;outcomeTripProbe.render()});await expect(page.locator('#leadOutcomeTrip')).toHaveCount(0);await s.clean();
+});
+
+test('outcome trip unknown save is reconciled without a second write and preserves later edits',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>outcomeTripProbe.writePlans.push({kind:'unknown'}));
+ await chooseOutcomeTrip(page,'20 декабря');await page.locator('#leadOutcomeNote').fill('Первый комментарий');await page.locator('#saveOutcome').click();
+ await expect(page.locator('#outcomeTripCheck')).toBeVisible();await expect(page.locator('#saveOutcome')).toBeDisabled();
+ await page.locator('#leadOutcomeNote').fill('Поздняя правка ещё не отправлена');await page.locator('#outcomeTripCheck').click();
+ await expect(page.locator('#outcomeSaveStatus')).toContainText('подтверждена');await expect(page.locator('#leadOutcomeNote')).toHaveValue('Поздняя правка ещё не отправлена');
+ const writes=await s.writes();expect(writes).toHaveLength(1);expect((await s.calls()).find(call=>call.action==='outcome_operation')).toMatchObject({operation_id:writes[0].outcome_trip.operation_id,conversation_id:11});await s.clean();
+});
+
+test('outcome trip not found permits only an explicit retry of the frozen command',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>outcomeTripProbe.writePlans.push({kind:'unknown',commit:false}));
+ await chooseOutcomeTrip(page,'20 декабря');await page.locator('#leadOutcomeNote').fill('Исходная запись');await page.locator('#saveOutcome').click();await expect(page.locator('#outcomeTripCheck')).toBeVisible();
+ await page.locator('#leadOutcomeNote').fill('Новый текст после отправки');await chooseOutcomeTrip(page,'12 марта');
+ await expect(page.locator('#saveOutcome')).toBeDisabled();await page.locator('#outcomeTripCheck').click();await expect(page.locator('#outcomeTripRetry')).toBeVisible();expect(await s.writes()).toHaveLength(1);
+ await page.locator('#outcomeTripRetry').click();await expect.poll(async()=>(await s.writes()).length).toBe(2);
+ const writes=await s.writes();expect(writes[1]).toEqual(writes[0]);await expect(page.locator('#leadOutcomeNote')).toHaveValue('Новый текст после отправки');await expect(page.locator('#leadOutcomeTrip option:checked')).toContainText('12 марта');await s.clean();
+});
+
+test('outcome trip a late successful save preserves edits typed during the request',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>outcomeTripProbe.writePlans.push({kind:'hold'}));
+ await page.locator('#leadOutcomeNote').fill('Отправленный текст');await page.locator('#saveOutcome').click();await expect.poll(()=>page.evaluate(()=>outcomeTripProbe.held.length)).toBe(1);
+ await page.locator('#leadOutcomeNote').fill('Текст, набранный позже');await chooseOutcomeTrip(page,'12 марта');await page.evaluate(()=>outcomeTripProbe.release());
+ await expect(page.locator('#leadOutcomeNote')).toHaveValue('Текст, набранный позже');await expect(page.locator('#leadOutcomeTrip option:checked')).toContainText('12 марта');await expect(page.locator('#saveOutcome')).toBeEnabled();expect(await s.writes()).toHaveLength(1);await s.clean();
+});
+
+for(const change of ['navigation','actor','generation'])test('outcome trip late response cannot commit UI after '+change,async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>outcomeTripProbe.writePlans.push({kind:'hold'}));await page.locator('#leadOutcomeNote').fill('Запись первого клиента');await page.locator('#saveOutcome').click();await expect.poll(()=>page.evaluate(()=>outcomeTripProbe.held.length)).toBe(1);
+ await page.evaluate(change=>{if(change==='navigation')outcomeTripProbe.move(12);else{if(change==='actor')WorkspaceV2.S.manager.id=8;else WorkspaceV2.S.authGeneration++;outcomeTripProbe.render()}},change);
+ const before=await page.locator('#leadCard').innerHTML();await page.evaluate(()=>outcomeTripProbe.release());await page.waitForTimeout(50);expect(await page.locator('#leadCard').innerHTML()).toBe(before);expect(await s.writes()).toHaveLength(1);await s.clean();
+});
+
+test('outcome trip a changed profile requires explicit refresh and a new operation without overwriting local edits',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>outcomeTripProbe.writePlans.push({kind:'conflict'}));
+ await chooseOutcomeTrip(page,'12 марта');await page.locator('#leadOutcomeNote').fill('Сохранить мой комментарий');await page.locator('#saveOutcome').click();
+ await expect(page.locator('#outcomeTripRefresh')).toBeVisible();await expect(page.locator('#saveOutcome')).toBeDisabled();expect(await s.writes()).toHaveLength(1);
+ await page.evaluate(()=>{outcomeTripProbe.pipelines[11].outcome_trip.revision='9'.repeat(64);outcomeTripProbe.pipelines[11].outcome.note='Чужая свежая запись'});
+ await page.locator('#outcomeTripRefresh').click();await expect(page.locator('#leadOutcomeNote')).toHaveValue('Сохранить мой комментарий');await expect(page.locator('#leadOutcomeTrip option:checked')).toContainText('12 марта');await expect(page.locator('#saveOutcome')).toBeEnabled();
+ await page.locator('#saveOutcome').click();await expect.poll(async()=>(await s.writes()).length).toBe(2);const writes=await s.writes();expect(writes[1].outcome_trip.expected_revision).toBe('9'.repeat(64));expect(writes[1].outcome_trip.operation_id).not.toBe(writes[0].outcome_trip.operation_id);await s.clean();
+});
+
+test('outcome trip labels are inert text and a malformed available contract cannot authorize a save',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>{const t=outcomeTripProbe.pipelines[11].outcome_trip;t.choices[1].label='<img src=x onerror="window.outcomeTripInjected=true">';t.choices[1].summary='<script>window.outcomeTripInjected=true</script>';outcomeTripProbe.render()});
+ await expect(page.locator('#leadOutcomeTrip')).toContainText('<img');await page.locator('#leadOutcomeTrip').selectOption(await page.locator('#leadOutcomeTrip option').evaluateAll(options=>options.find(option=>option.textContent.includes('<img')).value));
+ expect(await page.evaluate(()=>window.outcomeTripInjected)).toBeUndefined();await expect(page.locator('#leadOutcomeTripSummary img,#leadOutcomeTripSummary script')).toHaveCount(0);
+ await page.evaluate(()=>{outcomeTripProbe.pipelines[11].outcome_trip.revision='broken';outcomeTripProbe.render()});await page.locator('#leadOutcomeNote').fill('Не отправлять при некорректной ревизии');await expect(page.locator('#saveOutcome')).toBeDisabled();expect(await s.writes()).toEqual([]);await s.clean();
+});
+
+for(const mismatch of ['viewer','conversation'])test('outcome trip rejects a receipt for another '+mismatch,async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(mismatch=>outcomeTripProbe.writePlans.push({response:mismatch==='viewer'?{viewer_id:8}:{conversation_id:12}}),mismatch);
+ await page.locator('#leadOutcomeNote').fill('Не заменять чужим подтверждением');await page.locator('#saveOutcome').click();
+ if(mismatch==='viewer')await expect.poll(()=>page.evaluate(()=>WorkspaceV2.S.authExpired)).toBe(true);else await expect(page.locator('#outcomeTripCheck')).toBeVisible();
+ await expect(page.locator('#outcomeSaveStatus')).not.toContainText('Результат сохранён');await expect(page.locator('#leadOutcomeNote')).toHaveValue('Не заменять чужим подтверждением');
+ expect(await page.evaluate(()=>outcomeTripProbe.refreshes)).toBe(0);expect(await s.writes()).toHaveLength(1);await s.clean();
+});
+
+test('outcome trip a refreshed catalog never substitutes its latest version for the chosen saved version',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>outcomeTripProbe.writePlans.push({kind:'conflict'}));
+ await chooseOutcomeTrip(page,'12 марта');await page.locator('#leadOutcomeNote').fill('Выбранная поездка должна быть явной');await page.locator('#saveOutcome').click();await expect(page.locator('#outcomeTripRefresh')).toBeVisible();
+ await page.evaluate(()=>{const t=outcomeTripProbe.pipelines[11].outcome_trip;t.revision='9'.repeat(64);t.choices=t.choices.map(choice=>choice.trip_id==='b'.repeat(32)?{...choice,version:2,summary:'19 марта · новый состав'}:choice)});
+ await page.locator('#outcomeTripRefresh').click();await expect(page.locator('#leadOutcomeTrip option:checked')).not.toContainText('19 марта');await expect(page.locator('#leadOutcomeNote')).toHaveValue('Выбранная поездка должна быть явной');
+ await page.locator('#saveOutcome').click();expect(await s.writes()).toHaveLength(1);await expect(page.locator('#outcomeSaveStatus')).toContainText('Выберите актуальную поездку');
+ await chooseOutcomeTrip(page,'19 марта');await page.locator('#saveOutcome').click();await expect.poll(async()=>(await s.writes()).length).toBe(2);
+ const writes=await s.writes();expect(writes[1].outcome_trip).toMatchObject({expected_revision:'9'.repeat(64),trip_id:'b'.repeat(32),profile_version:2});expect(writes[1].outcome_trip.operation_id).not.toBe(writes[0].outcome_trip.operation_id);await s.clean();
+});
+
+const outcomeTripStorageKey='anytour-outcome-trip-v1:7:11';
+async function unknownOutcomeTripRecord(page){
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>outcomeTripProbe.writePlans.push({kind:'unknown',commit:false}));
+ await chooseOutcomeTrip(page,'20 декабря');await page.locator('#leadOutcomeNote').fill('Точный черновик прежней операции');await page.locator('#saveOutcome').click();await expect(page.locator('#outcomeTripCheck')).toBeVisible();
+ return {s,command:(await s.writes())[0],stored:await page.evaluate(key=>sessionStorage.getItem(key),outcomeTripStorageKey)};
+}
+test('outcome trip same actor reload retains the exact command and requires another explicit receipt check',async({page})=>{
+ const first=await unknownOutcomeTripRecord(page);expect(first.stored).toBeTruthy();expect(Buffer.byteLength(first.stored,'utf8')).toBeLessThanOrEqual(8192);expect(first.stored).not.toContain('"csrf"');
+ await page.locator('#outcomeTripCheck').click();await expect(page.locator('#outcomeTripRetry')).toBeVisible();
+ const reloaded=await setupOutcomeTripNative(page,{reload:true});await expect(page.locator('#outcomeTripCheck')).toBeVisible();await expect(page.locator('#outcomeTripRetry')).toBeHidden();await expect(page.locator('#saveOutcome')).toBeDisabled();
+ await expect(page.locator('#leadOutcomeNote')).toHaveValue('Точный черновик прежней операции');await expect(page.locator('#leadOutcomeTrip option:checked')).toContainText('20 декабря');expect(await reloaded.writes()).toEqual([]);
+ await page.locator('#outcomeTripCheck').click();await expect(page.locator('#outcomeTripRetry')).toBeVisible();expect(await reloaded.writes()).toEqual([]);
+ await page.locator('#outcomeTripRetry').click();await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');expect(await reloaded.writes()).toEqual([first.command]);
+ expect(await page.evaluate(key=>sessionStorage.getItem(key),outcomeTripStorageKey)).toBeNull();await reloaded.clean();
+});
+for(const corrupt of ['invalid JSON','oversized record','multibyte oversized record','wrong command conversation','invalid operation id'])test('outcome trip fences '+corrupt+' in saved recovery without an automatic write',async({page})=>{
+ const first=await unknownOutcomeTripRecord(page);expect(first.stored).toBeTruthy();
+ await page.evaluate(({key,corrupt})=>{const source=JSON.parse(sessionStorage.getItem(key));let saved;if(corrupt==='invalid JSON')saved='{broken';else if(corrupt==='oversized record')saved=' '.repeat(8193);else if(corrupt==='multibyte oversized record'){source.padding='я'.repeat(4200);saved=JSON.stringify(source);if(saved.length>=8192||new TextEncoder().encode(saved).byteLength<=8192)throw new Error('Invalid multibyte size fixture')}else{if(corrupt==='wrong command conversation')source.pending.command.conversation_id=12;else source.pending.command.outcome_trip.operation_id='not-an-operation';saved=JSON.stringify(source)}sessionStorage.setItem(key,saved)}, {key:outcomeTripStorageKey,corrupt});
+ const reloaded=await setupOutcomeTripNative(page,{reload:true});await expect(page.locator('#outcomeTripCheck')).toBeHidden();await expect(page.locator('#outcomeTripRetry')).toBeHidden();await expect(page.locator('#leadOutcomeNote')).toHaveValue('');await expect(page.locator('#leadOutcomeTrip option:checked')).toHaveText('Поездка не определена');await expect(page.locator('#saveOutcome')).toBeDisabled();await expect(page.locator('#outcomeSaveStatus')).toContainText('Не удалось проверить незавершённую запись');expect(await reloaded.writes()).toEqual([]);await reloaded.clean();
+});
+test('outcome trip another actor cannot restore the earlier actors saved command or draft',async({page})=>{
+ const first=await unknownOutcomeTripRecord(page);expect(first.stored).toBeTruthy();
+ const other=await setupOutcomeTripNative(page,{actor:8,reload:true});await expect(page.locator('#outcomeTripCheck')).toBeHidden();await expect(page.locator('#leadOutcomeNote')).toHaveValue('');await expect(page.locator('#leadOutcomeTrip option:checked')).toHaveText('Поездка не определена');expect(await other.writes()).toEqual([]);
+ expect(await page.evaluate(key=>sessionStorage.getItem(key),outcomeTripStorageKey)).toBe(first.stored);await page.locator('#leadOutcomeNote').fill('Правка другого сотрудника');await expect(page.locator('#saveOutcome')).toBeEnabled();await other.clean();
+});
+
+test('outcome trip storage quota failure blocks the first write before any command reaches the server',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key.startsWith('anytour-outcome-trip-v1:'))throw new DOMException('Synthetic quota','QuotaExceededError');return original.call(this,key,value)}});
+ await page.locator('#leadOutcomeNote').fill('Не отправлять без сохранения незавершённой записи');await page.locator('#saveOutcome').click();await expect(page.locator('#saveOutcome')).toBeDisabled();await expect(page.locator('#outcomeSaveStatus')).toContainText('Не удалось');expect(await s.writes()).toEqual([]);await s.clean();
+});
+test('outcome trip inaccessible recovery storage blocks writes after a fresh admitted read',async({page})=>{
+ const first=await unknownOutcomeTripRecord(page);expect(first.stored).toBeTruthy();
+ await page.addInitScript(()=>{const original=Storage.prototype.getItem;Storage.prototype.getItem=function(key){if(key.startsWith('anytour-outcome-trip-v1:'))throw new DOMException('Synthetic unavailable storage','SecurityError');return original.call(this,key)}});
+ const reloaded=await setupOutcomeTripNative(page,{reload:true});await expect(page.locator('#saveOutcome')).toBeDisabled();await expect(page.locator('#outcomeSaveStatus')).toContainText('Не удалось проверить незавершённую запись');expect(await reloaded.writes()).toEqual([]);await reloaded.clean();
+});
+
+test('outcome trip an explicitly unsupported project retains the legacy outcome save without a fabricated binding',async({page})=>{
+ const s=await setupOutcomeTripNative(page,{available:false});await page.evaluate(()=>{const S=WorkspaceV2.S;outcomeTripProbe.pipelines[11].outcome_trip.reason='unsupported_project';S.detail.conversation.project_key='another_project';S.detail.lead.pipeline=outcomeTripProbe.pipelines[11];WorkspaceV2LeadCard.render(S.detail.lead,S.detail.conversation)});
+ await expect(page.locator('#leadOutcomeTrip')).toHaveCount(0);await page.locator('#leadOutcomeNote').fill('Существующий результат другого проекта');await page.locator('#saveOutcome').click();await expect(page.locator('#outcomeSaveStatus')).toContainText('Результат сохранён');const writes=await s.writes();expect(writes).toHaveLength(1);expect(writes[0]).not.toHaveProperty('outcome_trip');expect(writes[0]).not.toHaveProperty('operation_id');await s.clean();
+});
+
+test('outcome trip recovered storage restores every later draft field while keeping the original sale command frozen',async({page})=>{
+ const s=await setupOutcomeTripNative(page);await page.evaluate(()=>outcomeTripProbe.writePlans.push({kind:'unknown',commit:false}));
+ await outcomeTripReadyForSale(page);await chooseOutcomeTrip(page,'20 декабря');await page.locator('#leadOutcomeNote').fill('Исходная продажа');await page.locator('#saveOutcome').click();await expect(page.locator('#outcomeTripCheck')).toBeVisible();const original=(await s.writes())[0];
+ await page.locator('#leadSaleAmount').fill('275000');await page.locator('#leadSaleDate').fill('2026-11-12');await page.locator('#leadOutcomeNote').fill('Поздний черновик продажи');await chooseOutcomeTrip(page,'12 марта');
+ await page.addInitScript(()=>{window.outcomeStorageBlocked=true;const original=Storage.prototype.getItem;Storage.prototype.getItem=function(key){if(window.outcomeStorageBlocked&&key.startsWith('anytour-outcome-trip-v1:'))throw new DOMException('Temporary fixture storage failure','SecurityError');return original.call(this,key)}});
+ const restored=await setupOutcomeTripNative(page,{reload:true});await expect(page.locator('#outcomeSaveStatus')).toContainText('Не удалось проверить незавершённую запись');await expect(page.locator('#saveOutcome')).toBeDisabled();await expect(page.locator('#leadOutcome')).toHaveValue('open');await expect(page.locator('#leadSaleAmount')).toHaveValue('');await expect(page.locator('#leadSaleDate')).toHaveValue('');await expect(page.locator('#leadOutcomeNote')).toHaveValue('');
+ await page.evaluate(()=>window.outcomeStorageBlocked=false);await page.locator('#outcomeTripRefresh').click();
+ await expect(page.locator('#leadOutcome')).toHaveValue('won');await expect(page.locator('#leadSaleAmount')).toBeVisible();await expect(page.locator('#leadSaleAmount')).toHaveValue('275000');await expect(page.locator('#leadSaleDate')).toHaveValue('2026-11-12');await expect(page.locator('#leadOutcomeNote')).toHaveValue('Поздний черновик продажи');await expect(page.locator('#leadOutcomeTrip option:checked')).toContainText('12 марта');await expect(page.locator('#leadOutcomeStage')).toHaveValue('won');
+ await expect(page.locator('#outcomeTripCheck')).toBeVisible();await expect(page.locator('#outcomeTripRetry')).toBeHidden();await expect(page.locator('#saveOutcome')).toBeDisabled();expect(await restored.writes()).toEqual([]);
+ await page.locator('#outcomeTripCheck').click();await expect(page.locator('#outcomeTripRetry')).toBeVisible();await page.locator('#outcomeTripRetry').click();await expect(page.locator('#saveOutcome')).toBeEnabled();expect(await restored.writes()).toEqual([original]);
+ await expect(page.locator('#leadSaleAmount')).toHaveValue('275000');await expect(page.locator('#leadSaleDate')).toHaveValue('2026-11-12');await expect(page.locator('#leadOutcomeNote')).toHaveValue('Поздний черновик продажи');await expect(page.locator('#leadOutcomeTrip option:checked')).toContainText('12 марта');await restored.clean();
+});
+
+test('outcome trip a late draft cannot overwrite a different stored command even with the same operation id',async({page})=>{
+ const first=await unknownOutcomeTripRecord(page);expect(first.stored).toBeTruthy();
+ const changed=await page.evaluate(key=>{const saved=JSON.parse(sessionStorage.getItem(key));saved.pending.command.note='Другая сохранённая команда с тем же номером операции';saved.draft.note='Не перезаписывать этот черновик';const raw=JSON.stringify(saved);sessionStorage.setItem(key,raw);return raw},outcomeTripStorageKey);
+ await page.locator('#leadOutcomeNote').fill('Поздняя правка исходной формы');await expect(page.locator('#saveOutcome')).toBeDisabled();await expect(page.locator('#outcomeSaveStatus')).toContainText('Не удалось проверить незавершённую запись');
+ expect(await page.evaluate(key=>sessionStorage.getItem(key),outcomeTripStorageKey)).toBe(changed);expect(await first.s.writes()).toEqual([first.command]);await expect(page.locator('#leadOutcomeNote')).toHaveValue('Поздняя правка исходной формы');
+ await page.evaluate(command=>outcomeTripProbe.success(command),first.command);await page.locator('#outcomeTripCheck').click();
+ await expect.poll(async()=>(await first.s.calls()).filter(call=>call.action==='outcome_operation').length).toBe(1);await expect(page.locator('#outcomeSaveStatus')).toContainText('Не удалось проверить незавершённую запись');await expect(page.locator('#saveOutcome')).toBeDisabled();
+ expect(await page.evaluate(key=>sessionStorage.getItem(key),outcomeTripStorageKey)).toBe(changed);expect(await first.s.writes()).toEqual([first.command]);await first.s.clean();
+});

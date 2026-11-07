@@ -6,6 +6,7 @@ require_once __DIR__.'/MaxTrackerLookupClient.php';
 require_once __DIR__.'/MetrikaOfflineClient.php';
 require_once __DIR__.'/InternalOwnerDialogueScope.php';
 require_once __DIR__.'/ModeledConversionPriceContinuity.php';
+require_once __DIR__.'/ModeledConversionTickFailure.php';
 
 /** One bounded addition to the existing cron process and durable conversion outbox. */
 final class ModeledConversionValueExport
@@ -101,7 +102,7 @@ final class ModeledConversionValueExport
             'mode'=>$s['mode'],'contract'=>ModeledConversionValueContract::VERSION,'delivery'=>$last['state']??'waiting_for_signal','upload_status'=>$last['upload_status']??null];
     }
 
-    public static function tick(?PDO $pdo=null,mixed $lookup=null,mixed $api=null,?int $now=null,?callable $gate=null,?callable $observationClock=null):array
+    public static function tick(?PDO $pdo=null,mixed $lookup=null,mixed $api=null,?int $now=null,?callable $gate=null,?callable $observationClock=null,?callable $localClock=null):array
     {
         if($pdo===null&&ProjectConfig::projectId()!=='anytour')return ['status'=>'off'];
         $s=self::settings($pdo);if(!$s||$s['mode']!=='send')return ['status'=>'off'];
@@ -112,12 +113,31 @@ final class ModeledConversionValueExport
             return MaxSearchApi::metrikaGoalAllowed($chat);
         };
         $stats=['collected'=>0,'resolved'=>0,'accepted'=>0,'processed'=>0,'unknown'=>0,'errors'=>0];
+        $failure=null;$phase='recover';
         try{
             $repo=new MaxChannelConversionOutbox($p);$repo->recover($now);
+            $phase='price_continuity';
             $priceGuard=new ModeledConversionPriceContinuity($p);
             $stats['price_continuity_audit']=$priceGuard->reconcile($now,fn(array $r):bool=>$self->eligible($r,$gate));
-            $stats['collected']=$self->collect($s,$now,$gate);
+            // Drain only local saved-profile pages. The original network phases run once below.
+            $phase='collect_profiles';
+            $profileFence=(string)$p->query("SELECT COALESCE(MAX(id),0) FROM modeled_conversion_profile_versions WHERE project_key='anytour'")->fetchColumn();
+            $localClock??=static fn():float=>hrtime(true)/1e9;
+            $localStarted=$localClock();
+            for($batch=0;$batch<4;$batch++){
+                // Soft admission deadline: never interrupt an in-flight transaction.
+                if($batch>0&&$localClock()-$localStarted>=5.0)break;
+                $pendingSettings=self::settings($p);
+                if(!$pendingSettings||$pendingSettings['mode']!=='send'||(string)$pendingSettings['profile_cursor']===$profileFence)break;
+                $before=(string)$pendingSettings['profile_cursor'];
+                // Preserve committed-page counts if a later page fails and the outer catch stops delivery.
+                $stats['collected']+=$self->collect($pendingSettings,$now,$gate,$profileFence);
+                $after=self::settings($p);
+                if(!$after||$after['mode']!=='send'||(string)$after['profile_cursor']===$before)break;
+            }
+            $phase='collect_history';
             $stats['historical_collected']=$self->collectHistory($now,$gate);
+            $phase='resolve_identity';
             $pending=$self->rows('pending',$now,5);
             $users=[];foreach($pending as$r)if($r['platform']==='max'&&$self->eligible($r,$gate))$users[]=$r['external_user_id'];
             $identities=[];
@@ -126,12 +146,14 @@ final class ModeledConversionValueExport
             $ready=$self->rows('ready',$now,3);
             $receipts=array_merge($self->rows('accepted',$now,2),$self->rows('unknown',$now,2));
             if($ready||$receipts){
+                $phase='goal_check';
                 if(!$api){
                     if(!defined('METRIKA_COUNTER_ID')||(string)METRIKA_COUNTER_ID!=='98615635'||!defined('METRIKA_OAUTH_TOKEN'))throw new RuntimeException('value_api_unavailable');
                     $api=new MetrikaOfflineClient('98615635',(string)METRIKA_OAUTH_TOKEN);
                 }
                 $goal=$api->modeledValueGoalStatus();
                 if(($goal['id']??null)!==$s['goal_id'])throw new RuntimeException('value_goal_changed');
+                $phase='upload';
                 foreach($ready as$r){
                     if((self::settings($p)['mode']??'off')!=='send')break;
                     if(!$self->eligible($r,$gate)){self::failRow($p,$r,'scope_unavailable');continue;}
@@ -144,14 +166,16 @@ final class ModeledConversionValueExport
                     $self->finishObserved($repo,(string)$r['id'],$token,$response,$now,self::observedAt($clock,$now));
                     if(($response['outcome']??null)==='accepted')$repo->defer((string)$r['id'],'accepted',$now+300);
                     $key=($response['outcome']??'')==='accepted'?'accepted':(($response['outcome']??'')==='unknown'?'unknown':'errors');$stats[$key]++;
+                    if($key==='errors')$failure??=ModeledConversionTickFailure::fromUpload($now,$response);
                 }
+                $phase='reconcile_receipts';
                 foreach($receipts as$r){
                     $status=$r['state']==='accepted'?$api->poll((string)$r['upload_id']):$api->findUnknown($r);
                     if($status){$self->statusObserved($repo,$r,$status,$now,self::observedAt($clock,$now));if(($status['status']??'')==='PROCESSED')$stats['processed']++;}
                     else $repo->defer((string)$r['id'],$r['state'],$now+300);
                 }
             }
-        }catch(Throwable $ignored){$stats['errors']++;}
+        }catch(Throwable $error){$stats['errors']++;$failure??=ModeledConversionTickFailure::fromException($now,$phase,$error);}
         // Independent GET-only observation. A report failure never changes delivery/retry decisions.
         $stats['metrika_report']=['status'=>'unavailable','goal_id'=>'678187097','currency'=>'RUB',
             'fetched_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$now),'reason'=>'report_unavailable'];
@@ -163,15 +187,64 @@ final class ModeledConversionValueExport
             }
             if(method_exists($api,'modeledValueReport'))$stats['metrika_report']=$api->modeledValueReport((int)$s['activated_at_unix'],$now);
         }catch(Throwable $ignoredReport){ /* Keep fixed unavailable, never a fabricated zero. */ }
-        $report=$stats['metrika_report'];$reportOk=in_array($report['status']??null,['ok','sampled'],true);
-        $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=?,"
-            ."last_report_success_unix=CASE WHEN ?=1 THEN ? ELSE last_report_success_unix END,"
-            ."last_report_success_json=CASE WHEN ?=1 THEN ? ELSE last_report_success_json END,"
-            ."report_failure_since_unix=CASE WHEN ?=1 THEN NULL ELSE COALESCE(report_failure_since_unix,?) END WHERE project_key='anytour' AND (last_tick_unix IS NULL OR last_tick_unix<=?)");
-        $q->execute([$now,json_encode($stats,JSON_THROW_ON_ERROR),$reportOk?1:0,$now,$reportOk?1:0,
-            $reportOk?json_encode($report,JSON_THROW_ON_ERROR):null,$reportOk?1:0,$now,$now]);
+        $self->persistTickReceipt($stats,$failure,$now);
         // Private counts stay in the DB; ordinary diagnostic logs get technical state only.
         return ['status'=>$stats['errors']?'degraded':'running','contract'=>ModeledConversionValueContract::VERSION];
+    }
+
+    /** Merge after all network work, so overlapping healthy ticks cannot erase failure evidence. */
+    private function persistTickReceipt(array $stats,?array $failure,int $now):void
+    {
+        $p=$this->pdo;
+        if($p->inTransaction())throw new RuntimeException('value_tick_receipt_outer_transaction');
+        $p->beginTransaction();
+        try{
+            $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+            $s=$p->query("SELECT activated_at_unix,last_tick_unix,last_receipt_json FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".($mysql?' FOR UPDATE':''))->fetch(PDO::FETCH_ASSOC);
+            if(!$s){$p->commit();return;}
+            $receipt=null;
+            if(is_string($s['last_receipt_json'])&&strlen($s['last_receipt_json'])<=8192){
+                try{$receipt=json_decode($s['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){}
+            }
+            $lastTick=(int)($s['last_tick_unix']??0);
+            $previous=ModeledConversionTickFailure::normalize(is_array($receipt)?($receipt['last_recorded_failure']??null):null,(int)$s['activated_at_unix'],$lastTick);
+            $incoming=ModeledConversionTickFailure::normalize($failure,(int)$s['activated_at_unix'],$now);
+            // Equal-second failures retain the first saved record; a healthy tick never clears it.
+            $retained=$incoming!==null&&($previous===null||$incoming['tick_at_unix']>$previous['tick_at_unix'])?$incoming:$previous;
+            if($lastTick>$now){
+                // A delayed failed tick may enrich a newer receipt, never replace its counts or report clocks.
+                if(is_array($receipt)&&$retained!==null&&$retained!==$previous){
+                    $receipt['last_recorded_failure']=$retained;
+                    $encoded=json_encode($receipt,JSON_THROW_ON_ERROR);
+                    if($this->receiptFits($encoded,$mysql)){
+                        $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'");
+                        $q->execute([$encoded]);
+                    }
+                }
+            }else{
+                $stats['last_recorded_failure']=$retained;
+                $encoded=json_encode($stats,JSON_THROW_ON_ERROR);
+                // Historical detail must not make otherwise readable current stats exceed the reader's cap.
+                if(!$this->receiptFits($encoded,$mysql)){unset($stats['last_recorded_failure']);$encoded=json_encode($stats,JSON_THROW_ON_ERROR);}
+                $report=$stats['metrika_report'];$reportOk=in_array($report['status']??null,['ok','sampled'],true);
+                $q=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=?,"
+                    ."last_report_success_unix=CASE WHEN ?=1 THEN ? ELSE last_report_success_unix END,"
+                    ."last_report_success_json=CASE WHEN ?=1 THEN ? ELSE last_report_success_json END,"
+                    ."report_failure_since_unix=CASE WHEN ?=1 THEN NULL ELSE COALESCE(report_failure_since_unix,?) END WHERE project_key='anytour' AND (last_tick_unix IS NULL OR last_tick_unix<=?)");
+                $q->execute([$now,$encoded,$reportOk?1:0,$now,$reportOk?1:0,
+                    $reportOk?json_encode($report,JSON_THROW_ON_ERROR):null,$reportOk?1:0,$now,$now]);
+            }
+            $p->commit();
+        }catch(Throwable $error){if($p->inTransaction())$p->rollBack();throw $error;}
+    }
+
+    private function receiptFits(string $encoded,bool $mysql):bool
+    {
+        if(strlen($encoded)>8192)return false;
+        if(!$mysql)return true;
+        // Native JSON adds structural whitespace; use the same byte measure as the reader.
+        $q=$this->pdo->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$encoded]);
+        return (int)$q->fetchColumn()<=8192;
     }
 
     private static function observedAt(callable $clock,int $notBefore):int
@@ -236,15 +309,16 @@ final class ModeledConversionValueExport
         }catch(Throwable $error){if($this->pdo->inTransaction())$this->pdo->rollBack();throw $error;}
     }
 
-    public function collect(array $s,int $now,callable $gate):int
+    public function collect(array $s,int $now,callable $gate,?string $profileFence=null):int
     {
         if($this->pdo->inTransaction())throw new RuntimeException('value_outer_transaction');
+        if($profileFence!==null&&!preg_match('/\A(?:0|[1-9][0-9]{0,19})\z/D',$profileFence))throw new RuntimeException('value_profile_fence');
         $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';$this->pdo->beginTransaction();
         try{
             $q=$this->pdo->query("SELECT * FROM modeled_conversion_value_export_settings WHERE project_key='anytour'".($mysql?' FOR UPDATE':''));
             $s=$q->fetch(PDO::FETCH_ASSOC);if(!$s||$s['mode']!=='send'){$this->pdo->rollBack();return 0;}
-            $q=$this->pdo->prepare("SELECT id,project_key,platform,customer_key,conversation_id,CASE WHEN ".($mysql?'OCTET_LENGTH(profile_json)':'LENGTH(CAST(profile_json AS BLOB))')."<=131072 THEN profile_json ELSE NULL END AS profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id>? ORDER BY id LIMIT 8");
-            $q->execute([$s['profile_cursor']]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$after=(string)$s['profile_cursor'];$written=0;
+            $q=$this->pdo->prepare("SELECT id,project_key,platform,customer_key,conversation_id,CASE WHEN ".($mysql?'OCTET_LENGTH(profile_json)':'LENGTH(CAST(profile_json AS BLOB))')."<=131072 THEN profile_json ELSE NULL END AS profile_json FROM modeled_conversion_profile_versions WHERE project_key='anytour' AND id>?".($profileFence===null?'':' AND id<=?')." ORDER BY id LIMIT 8");
+            $q->execute($profileFence===null?[$s['profile_cursor']]:[$s['profile_cursor'],$profileFence]);$rows=$q->fetchAll(PDO::FETCH_ASSOC);$after=(string)$s['profile_cursor'];$written=0;
             foreach($rows as$r){
                 $after=(string)$r['id'];if(!is_string($r['profile_json']))continue;
                 try{$w=json_decode($r['profile_json'],true,64,JSON_THROW_ON_ERROR);}catch(Throwable $ignored){continue;}

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionValueContract.php';
+require_once __DIR__.'/ModeledConversionTickFailure.php';
 
 /** Fixed derived-value aggregates only. No source tables, network, processing or mutation. */
 final class ModeledConversionValueDeliveryReader
@@ -54,7 +55,7 @@ final class ModeledConversionValueDeliveryReader
             if($seen>self::ROW_LIMIT)return $this->unavailable('invalid_ledger');
             $out=['available'=>true,'goal_id'=>self::GOAL,'counter_id'=>'98615635','target'=>ModeledConversionValueContract::TARGET,
                 'contract'=>ModeledConversionValueContract::VERSION,'currency'=>'RUB','mode'=>$s['mode'],
-                'activated_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$activation),'last_tick_at'=>null,'last_tick_errors'=>null,
+                'activated_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$activation),'last_tick_at'=>null,'last_tick_errors'=>null,'last_recorded_failure'=>null,
                 'window'=>['basis'=>'latest_live_and_owner_authorized_historical_goal_rows','max_rows'=>self::ROW_LIMIT,'inspected_rows'=>$seen,
                     'complete_within_bound'=>$seen<self::ROW_LIMIT],
                 'reserved_value_rub'=>$this->number($r['reserved_rub'],true),
@@ -75,6 +76,11 @@ final class ModeledConversionValueDeliveryReader
             if(is_string($s['receipt_json']??null)){try{$receipt=json_decode($s['receipt_json'],true,32,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){}}
             if(is_array($receipt)&&is_int($receipt['errors']??null)&&$receipt['errors']>=0&&$receipt['errors']<=100)$out['last_tick_errors']=$receipt['errors'];
             $tick=(int)($s['last_tick_unix']??0);if($tick>=$activation&&$tick<=$now)$out['last_tick_at']=gmdate('Y-m-d\\TH:i:s\\Z',$tick);
+            if($out['last_tick_at']!==null){
+                $failure=ModeledConversionTickFailure::normalize($receipt['last_recorded_failure']??null,$activation,$tick);
+                if($failure!==null)$out['last_recorded_failure']=['tick_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$failure['tick_at_unix']),
+                    'phase'=>$failure['phase'],'category'=>$failure['category']];
+            }
             $out['metrika_goal_report']=$this->report($receipt['metrika_report']??null,$activation,$now);
             if(!in_array($out['metrika_goal_report']['status']??null,['ok','sampled'],true)){
                 $lastGood=is_string($s['last_success_json']??null)?json_decode($s['last_success_json'],true):null;
@@ -103,6 +109,7 @@ final class ModeledConversionValueDeliveryReader
                         'profiles_scanned'=>$this->number($first['history_scanned'],false),'events_collected'=>$this->number($first['history_collected'],false)];
             }
             $out['interpretation']=['values'=>'owner_assigned_advertising_estimates_not_actual_income',
+                'last_recorded_failure_is_historical'=>true,
                 'states_are_disjoint'=>true,'accepted_receipts_include_later_rejected_or_unmatched_rows'=>true,
                 'processed_means_validated_upload_rows_not_verified_visit_linkage'=>true,
                 'matched_upload_status_means_user_ids_matched_not_per_upload_visit_proof'=>true,
@@ -152,7 +159,11 @@ final class ModeledConversionValueDeliveryReader
             $mysql=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
             $safe="CASE WHEN JSON_VALID(p.profile_json) THEN p.profile_json ELSE '{}' END";
             $scalar=static function(string $path)use($safe,$mysql):string{
-                $v="JSON_EXTRACT(".$safe.",'$.".$path."')";return $mysql?'JSON_UNQUOTE('.$v.')':$v;
+                $v="JSON_EXTRACT(".$safe.",'$.".$path."')";
+                // Preserve JSON null versus the string "null" in the four nullable numeric fields.
+                $typed=in_array($path,['semantic_prediction.estimated_probability','deal_value_prediction.deal_amount_rub.point',
+                    'deal_value_prediction.commission_estimate_rub','deal_value_prediction.value_rub'],true);
+                return $mysql&&!$typed?'JSON_UNQUOTE('.$v.')':$v;
             };
             $columns=['o.id','o.conversation_id','o.value_profile_id','o.target','o.platform','o.value_stage','o.value_rub',
                 'o.state','o.upload_status','o.event_unix','o.claimed_at_unix','o.value_api_accepted_at_unix','o.value_processed_at_unix',
@@ -188,11 +199,14 @@ final class ModeledConversionValueDeliveryReader
                 'events'=>0,'conversations'=>0,'value_rub'=>0,'api_accepted_events'=>0,'api_accepted_value_rub'=>0,
                 'processed_events'=>0,'processed_value_rub'=>0,'by_state'=>[],'by_platform'=>[],
                 'invalid_binding_rows'=>0,'voided_zero_value_rows'=>0,'calculation_unavailable_rows'=>0,'examples'=>[],
+                'examples_selection'=>'comparison_differences_first_then_newest',
+                'calculation_basis_counts'=>['probability_prediction'=>0,'stage_fraction'=>0,'unavailable'=>0],
+                'stage_comparison_counts'=>['above_stage'=>0,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>0,'unavailable'=>0],
                 'calculation_unavailable_reason_counts'=>['profile_binding_unverified'=>0,'probability_prediction_unavailable'=>0,
                     'monetary_policy_unavailable'=>0,'scalar_contract_unverified'=>0,'price_base_unverified'=>0,
                     'frozen_value_unverified'=>0,'increment_not_explained'=>0],
                 'per_event_visit_linkage'=>'not_observed_by_this_cached_upload_reader','provider_requests'=>0];
-            $cases=[];
+            $cases=[];$differenceExamples=[];$otherExamples=[];
             foreach($rows as$row){
                 $v=json_decode($row['packet'],true,16,JSON_THROW_ON_ERROR);
                 if(!is_array($v)||count($v)!==38)throw new UnexpectedValueException();
@@ -240,7 +254,21 @@ final class ModeledConversionValueDeliveryReader
                     $calculationReason='price_base_unverified';
                 elseif($full!==round($prob*$base))$calculationReason='frozen_value_unverified';
                 elseif($full-$prior!==(float)$delta)$calculationReason='increment_not_explained';
+                // Only verify the existing non-payment stage formula; never infer a probability or a price-continuity adjustment.
+                $stageValue=null;$stageRank=array_search($v[5],ModeledConversionValueContract::STAGES,true);
+                if($calculationReason==='probability_prediction_unavailable'&&$v[21]==='contextual_advertising_v1'
+                    &&$v[22]==='insufficient_context'&&in_array($stageRank,[1,4,5],true)&&$v[24]===null&&$v[34]===null
+                    &&$policy!==null&&$rate===0.07&&$base!==null&&$base>0&&$base<=$policy['cap_rub']
+                    &&$prior!==null&&$prior>=0&&$prior===floor($prior)&&$n($v[6])===(float)$delta
+                    &&in_array($kind,$sources,true)&&in_array($v[30],$bases,true)
+                    &&($v[27]===null?$v[32]===null&&$base===(float)$policy['unknown_base_rub']:
+                        $point!==null&&$point>=10000&&$point<=10000000&&$point===floor($point)
+                        &&$commission===round($point*0.07)&&$base===min((float)$policy['cap_rub'],$commission))){
+                    $target=(int)round(ModeledConversionValueContract::VALUES[$stageRank]/ModeledConversionValueContract::BASE*$base);
+                    if($target-$prior===(float)$delta)$stageValue=$target;
+                }
                 if($calculationReason===null){
+                    $out['calculation_basis_counts']['probability_prediction']++;
                     $reasons=$v[36];if(is_string($reasons))$reasons=json_decode($reasons,true,8);
                     $allowed=['expert_dialogue_continued_meaningful_engagement','expert_dialogue_continued_offer_search',
                         'expert_dialogue_office_question','expert_dialogue_payment_terms_question','explicit_decline_guard'];
@@ -252,13 +280,55 @@ final class ModeledConversionValueDeliveryReader
                         'deal_source'=>$kind,'deal_basis'=>$v[30],'commission_rate'=>0.07,'estimated_commission_rub'=>$commission,
                         'full_value_base_rub'=>(int)$base,'estimated_cumulative_value_rub'=>(int)$full,
                         'prior_reserved_rub'=>(int)$prior];
+                }elseif($stageValue!==null){
+                    $out['calculation_basis_counts']['stage_fraction']++;
+                    $e['calculation']=['basis'=>'stage_fraction_arithmetic_checked_not_probability_prediction',
+                        'monetary_policy'=>$v[25],'value_cap_rub'=>$policy['cap_rub'],'estimated_probability'=>null,
+                        'stage_fraction'=>['numerator'=>ModeledConversionValueContract::VALUES[$stageRank],'denominator'=>ModeledConversionValueContract::BASE],
+                        'estimated_deal_rub'=>$point===null?null:(int)$point,'deal_low_rub'=>$n($v[28]),'deal_high_rub'=>$n($v[29]),
+                        'deal_source'=>$kind,'deal_basis'=>$v[30],'commission_rate'=>0.07,'estimated_commission_rub'=>$commission,
+                        'full_value_base_rub'=>(int)$base,'estimated_cumulative_value_rub'=>null,
+                        'stage_cumulative_value_rub'=>$stageValue,'prior_reserved_rub'=>(int)$prior];
                 }else{
+                    $out['calculation_basis_counts']['unavailable']++;
                     $out['calculation_unavailable_rows']++;
                     $out['calculation_unavailable_reason_counts'][$calculationReason]++;
                     $e['calculation_unavailable_reason']=$calculationReason;
                 }
-                if(count($out['examples'])<16)$out['examples'][]=$e;
+                // Compare cumulative values at this frozen profile only. Neither value is a new
+                // reservation, an alternative export history, or evidence of calibrated accuracy.
+                $comparison=['version'=>'frozen_context_vs_stage_v1','status'=>'unavailable',
+                    'basis'=>'same_frozen_base_existing_stage_fraction_not_export_history',
+                    'reason'=>$calculationReason,'monetary_policy'=>null,'stage_contract'=>ModeledConversionValueContract::VERSION,
+                    'frozen_base_rub'=>null,'stage_fraction'=>null,'contextual_cumulative_value_rub'=>null,
+                    'stage_cumulative_value_rub'=>null,'contextual_minus_stage_rub'=>null];
+                $predictionStages=[1=>'substantive_dialogue',2=>'concrete_request',3=>'exact_offer_discussion',
+                    4=>'general_purchase_intent',5=>'agency_purchase_intent'];
+                if($calculationReason===null&&(!isset($predictionStages[$stageRank])||$predictionStages[$stageRank]!==$v[23])){
+                    $comparison['reason']='prediction_stage_unverified';
+                }elseif($calculationReason===null||$stageValue!==null){
+                    $baseline=$stageValue??(int)round(ModeledConversionValueContract::VALUES[$stageRank]/ModeledConversionValueContract::BASE*$base);
+                    $comparison['status']=$calculationReason===null?'available':'stage_only';
+                    $comparison['reason']=$calculationReason===null?null:'contextual_prediction_unavailable';
+                    $comparison['monetary_policy']=$v[25];$comparison['frozen_base_rub']=(int)$base;
+                    $comparison['stage_fraction']=['numerator'=>ModeledConversionValueContract::VALUES[$stageRank],
+                        'denominator'=>ModeledConversionValueContract::BASE];
+                    $comparison['stage_cumulative_value_rub']=$baseline;
+                    if($calculationReason===null){
+                        $comparison['contextual_cumulative_value_rub']=(int)$full;
+                        $comparison['contextual_minus_stage_rub']=(int)$full-$baseline;
+                    }
+                }
+                $e['stage_comparison']=$comparison;
+                $comparisonBucket=$comparison['status'];
+                if($comparisonBucket==='available')$comparisonBucket=$comparison['contextual_minus_stage_rub']>0?'above_stage':
+                    ($comparison['contextual_minus_stage_rub']<0?'below_stage':'equal_stage');
+                $out['stage_comparison_counts'][$comparisonBucket]++;
+                if($comparison['status']==='available'&&$comparison['contextual_minus_stage_rub']!==0)$differenceExamples[]=$e;
+                else $otherExamples[]=$e;
             }
+            // Stable selection within the same inspected suffix, before the existing example/response caps.
+            $out['examples']=array_slice(array_merge($differenceExamples,$otherExamples),0,16);
             $out['conversations']=count($cases);
             $this->budget->check();($this->authorize)();$this->budget->check();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}

@@ -99,9 +99,10 @@ final class ModeledValueTestWire
 }
 final class ModeledValueTestLookup
 {
-    public bool $missing=false;
+    public bool $missing=false;public int $calls=0;
     public function lookup(string $counter,array $users):array
     {
+        $this->calls++;
         $out=[];if(!$this->missing)foreach($users as$user)$out[$user]=['external_user_id'=>$user,'client_id'=>'880000'.$user,'record_id'=>'77'];
         return $out;
     }
@@ -111,6 +112,8 @@ function modeledValueAssertions(PDO $p,callable $check):void
     modeledValuePredictionAssertions($p,$check);
     modeledValuePolicyTransitionAssertions($p,$check);
     modeledPriceLossAssertions($p,$check);
+    modeledValueCatchUpAssertions($p,$check);
+    modeledValueFailureRetentionAssertions($p,$check);
     $now=1793650000;$gate=static fn(string $chat):bool=>true;
     modeledValueSchema($p);$wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
     $check('actual forward migration is default OFF',ModeledConversionValueExport::settings($p)['mode']==='off');
@@ -266,6 +269,170 @@ function modeledValueAssertions(PDO $p,callable $check):void
     $check('report API failure never blocks or retries an otherwise valid upload',$wire->posts===1&&$saved['errors']===0&&$saved['metrika_report']['status']==='forbidden');
 }
 
+function modeledValueFailureJsonEqual(mixed $actual,mixed $expected):bool
+{
+    $sort=static function(mixed $value)use(&$sort):mixed{
+        if(!is_array($value))return $value;
+        foreach($value as$key=>$item)$value[$key]=$sort($item);
+        if($value!==[]&&array_keys($value)!==range(0,count($value)-1))ksort($value);
+        return $value;
+    };
+    return $sort($actual)===$sort($expected);
+}
+
+function modeledValueFailureRetentionAssertions(PDO $p,callable $check):void
+{
+    $now=1793660000;$gate=static fn(string $chat):bool=>true;$steady=static fn():float=>0.0;
+    $setup=static function(int $count=1)use($p,$now):array{
+        modeledValueSchema($p);$wire=new ModeledValueTestWire();
+        $wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
+            'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?")->execute([$now-10]);
+        for($i=1;$i<=$count;$i++)modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,1800+$i),$now));
+        return [$wire,new ModeledValueTestLookup()];
+    };
+    $receipt=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $storage=static function(string $chat):bool{throw new PDOException('PRIVATE_TICK_SQL /private/source.php Bearer fixture-secret');};
+    $processing=static function(string $chat):bool{throw new RuntimeException('value_api_unavailable');};
+
+    [$wire,$lookup]=$setup();
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$storage,null,$steady);
+    $first=['tick_at_unix'=>$now,'phase'=>'collect_profiles','category'=>'storage_failed'];
+    $check('storage failure metadata is bounded and excludes private exception details',
+        modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,$first)&&$receipt()['errors']===1
+        &&!str_contains(json_encode($receipt()),'PRIVATE_TICK_SQL')&&!str_contains(json_encode($receipt()),'fixture-secret'));
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$processing,null,$steady);
+    $check('equal-second failures preserve the first saved failure',modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,$first)&&$receipt()['errors']===1);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+1,$processing,null,$steady);
+    $newer=['tick_at_unix'=>$now+1,'phase'=>'collect_profiles','category'=>'processing_failed'];
+    $check('a newer failure replaces the older one and config-like errors outside goal checking stay generic',modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,$newer)&&$receipt()['errors']===1);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+2,$gate,null,$steady);
+    $check('a healthy tick keeps failure history while recording its own successful work',
+        modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,$newer)&&$receipt()['errors']===0&&$receipt()['accepted']===1&&$wire->posts===1);
+
+    foreach(['value_api_unavailable'=>'configuration_unavailable','value_api_unavailable PRIVATE_GOAL_BODY'=>'processing_failed']as$message=>$category){
+        [$wire,$lookup]=$setup();
+        $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($wire,$message):array{
+            if(str_ends_with((string)parse_url($url,PHP_URL_PATH),'/goals'))throw new RuntimeException($message);
+            return $wire->request($method,$url,$body);
+        });
+        ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate,null,$steady);
+        $check('goal configuration classification requires an exact message: '.$category,
+            modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,['tick_at_unix'=>$now,'phase'=>'goal_check','category'=>$category])
+            &&$receipt()['errors']===1&&$wire->posts===0&&!str_contains(json_encode($receipt()),'PRIVATE_GOAL_BODY'));
+    }
+    [$wire,$lookup]=$setup();
+    $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($wire):array{
+        if(str_ends_with((string)parse_url($url,PHP_URL_PATH),'/goals'))return ['http'=>403,'error'=>0,'body'=>'PRIVATE_GOAL_BODY'];
+        return $wire->request($method,$url,$body);
+    });
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate,null,$steady);
+    $check('actual goal-read rejection records its fixed phase without storing the provider body',
+        modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,['tick_at_unix'=>$now,'phase'=>'goal_check','category'=>'goal_read_failed'])
+        &&$receipt()['errors']===1&&$wire->posts===0&&!str_contains(json_encode($receipt()),'PRIVATE_GOAL_BODY'));
+
+    [$wire,$lookup]=$setup(3);$responses=[['error'=>6,'http'=>0],['error'=>0,'http'=>429],['error'=>0,'http'=>403]];
+    $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($wire,&$responses):array{
+        $actual=$wire->request($method,$url,$body);
+        return $method==='POST'?array_shift($responses)+['body'=>'PRIVATE_UPLOAD_BODY']:$actual;
+    });
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate,null,$steady);
+    $check('multiple upload failures retain the first reason while counting every existing error',
+        modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,['tick_at_unix'=>$now,'phase'=>'upload','category'=>'transport_not_sent'])
+        &&$receipt()['errors']===3&&$wire->posts===3&&$responses===[]&&!str_contains(json_encode($receipt()),'PRIVATE_UPLOAD_BODY'));
+
+    [$wire,$lookup]=$setup();$wire->reportHttp=403;
+    $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($wire):array{
+        $actual=$wire->request($method,$url,$body);
+        if($method==='POST')throw new PDOException('PRIVATE_UPLOAD_OUTCOME /private/file.php');
+        return $actual;
+    });
+    $result=ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate,null,$steady);
+    $check('an unknown upload and forbidden report create no conversion error or retained failure',
+        $result['status']==='running'&&$receipt()['errors']===0&&$receipt()['unknown']===1&&($receipt()['last_recorded_failure']??null)===null
+        &&$receipt()['metrika_report']['status']==='forbidden'&&$wire->posts===1&&!str_contains(json_encode($receipt()),'PRIVATE_'));
+
+    [$wire,$lookup]=$setup();
+    $api=new class($wire->api()){
+        public function __construct(private MetrikaOfflineClient $actual){}
+        public function modeledValueGoalStatus():?array{return $this->actual->modeledValueGoalStatus();}
+        public function uploadModeledValue(array $row,int $at):array{return ['outcome'=>'rejected','reason'=>'PRIVATE_UPLOAD_REASON /private/file.php'];}
+        public function modeledValueReport(int $activated,int $at):array{return $this->actual->modeledValueReport($activated,$at);}
+    };
+    ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate,null,$steady);
+    $check('unrecognized upload reasons retain only the fixed upload failure category',
+        modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,['tick_at_unix'=>$now,'phase'=>'upload','category'=>'upload_failed'])
+        &&$receipt()['errors']===1&&!str_contains(json_encode($receipt()),'PRIVATE_UPLOAD_REASON'));
+
+    foreach([false,true]as$pressure){
+        [$wire,$lookup]=$setup();
+        if(!$pressure)ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$processing,null,$steady);
+        $newWire=new ModeledValueTestWire();$newWire->goals=$wire->goals;$wire->reportHttp=403;
+        $winning=null;$outsideTransaction=true;$entered=false;
+        $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($p,$wire,$newWire,$lookup,$now,$gate,$steady,$pressure,&$winning,&$outsideTransaction,&$entered):array{
+            $outsideTransaction=$outsideTransaction&&!$p->inTransaction();
+            if((string)parse_url($url,PHP_URL_PATH)==='/stat/v1/data'&&!$entered){
+                $entered=true;ModeledConversionValueExport::tick($p,$lookup,$newWire->api(),$now+200,$gate,null,$steady);
+                if($pressure){
+                    $current=json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+                    unset($current['last_recorded_failure']);$current['padding']='';
+                    $expanded=$current;$expanded['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'collect_profiles','category'=>'storage_failed'];
+                    $limit=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?8190:8193;
+                    $current['padding']=str_repeat('x',$limit-strlen(json_encode($expanded,JSON_THROW_ON_ERROR)));
+                    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=? WHERE project_key='anytour'")->execute([json_encode($current,JSON_THROW_ON_ERROR)]);
+                }
+                $winning=ModeledConversionValueExport::settings($p);
+            }
+            return $wire->request($method,$url,$body);
+        });
+        ModeledConversionValueExport::tick($p,$lookup,$api,$now+100,$storage,null,$steady);
+        $after=ModeledConversionValueExport::settings($p);
+        if($pressure){
+            $expanded=json_decode($winning['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+            $expanded['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'collect_profiles','category'=>'storage_failed'];
+            $encoded=json_encode($expanded,JSON_THROW_ON_ERROR);$nativeLength=strlen($encoded);
+            if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+                $q=$p->prepare('SELECT OCTET_LENGTH(CAST(? AS JSON))');$q->execute([$encoded]);$nativeLength=(int)$q->fetchColumn();
+                $check('the native JSON boundary fixture fits compact JSON but exceeds stored bytes',strlen($encoded)<=8192&&$nativeLength>8192);
+            }
+            $check('stale failure enrichment never enlarges the existing receipt beyond its read limit',
+                $entered&&$outsideTransaction&&strlen($winning['last_receipt_json'])<=8192&&$nativeLength>8192&&$after===$winning);
+        }else{
+            $expected=json_decode($winning['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+            $expected['last_recorded_failure']=['tick_at_unix'=>$now+100,'phase'=>'collect_profiles','category'=>'storage_failed'];
+            $actual=json_decode($after['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+            unset($after['last_receipt_json'],$winning['last_receipt_json']);
+            $check('a delayed failed tick enriches a newer healthy receipt without changing its counts or report clocks',
+                $entered&&$outsideTransaction&&modeledValueFailureJsonEqual($actual,$expected)&&$after===$winning&&$actual['errors']===0&&$actual['accepted']===1);
+        }
+    }
+
+    foreach([false,true]as$olderHealthy){
+        [$wire,$lookup]=$setup(0);$nestedWire=new ModeledValueTestWire();$nestedWire->goals=$wire->goals;$entered=false;$outsideTransaction=true;
+        $failedAt=$now+($olderHealthy?200:100);$healthyAt=$now+($olderHealthy?100:200);
+        $api=new MetrikaOfflineClient('98615635','fixture-only',static function(string $method,string $url,mixed $body)use($p,$wire,$nestedWire,$lookup,$now,$failedAt,$storage,$steady,&$entered,&$outsideTransaction):array{
+            $outsideTransaction=$outsideTransaction&&!$p->inTransaction();
+            if((string)parse_url($url,PHP_URL_PATH)==='/stat/v1/data'&&!$entered){
+                $entered=true;modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,1801),$now));
+                ModeledConversionValueExport::tick($p,$lookup,$nestedWire->api(),$failedAt,$storage,null,$steady);
+            }
+            return $wire->request($method,$url,$body);
+        });
+        ModeledConversionValueExport::tick($p,$lookup,$api,$healthyAt,$gate,null,$steady);
+        $check($olderHealthy?'a stale healthy tick preserves the newer failure and its current error count':
+            'a healthy tick merges failure committed during its report instead of its stale starting settings',
+            $entered&&$outsideTransaction&&modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,['tick_at_unix'=>$failedAt,'phase'=>'collect_profiles','category'=>'storage_failed'])
+            &&$receipt()['errors']===($olderHealthy?1:0)&&$receipt()['collected']===0&&(int)ModeledConversionValueExport::settings($p)['last_tick_unix']===$now+200);
+    }
+
+    [$wire,$lookup]=$setup(0);
+    $future=['errors'=>0,'last_recorded_failure'=>['tick_at_unix'=>$now+10,'phase'=>'upload','category'=>'api_rejected']];
+    $p->prepare("UPDATE modeled_conversion_value_export_settings SET last_tick_unix=?,last_receipt_json=? WHERE project_key='anytour'")->execute([$now,json_encode($future,JSON_THROW_ON_ERROR)]);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+20,$gate,null,$steady);
+    $check('a failure ahead of its saved tick never becomes valid just because a later healthy tick runs',
+        ($receipt()['last_recorded_failure']??null)===null&&$receipt()['errors']===0&&(int)ModeledConversionValueExport::settings($p)['last_tick_unix']===$now+20);
+}
+
 function modeledValueHistoryAssertions(PDO $p,callable $check):void
 {
     modeledValueSchema($p);$now=1793659000;$from=1793570400;$until=1793656800;$at=$from+3600;
@@ -376,6 +543,102 @@ function modeledValueFortnightAssertions(PDO $p,callable $check):void
         &&ModeledConversionValueContract::historicalCandidate($old,$a,$from,$until,$until-1)===null);
 }
 
+
+/** Real local transactions under one ordinary exporter tick; every provider is a disposable stub. */
+function modeledValueCatchUpAssertions(PDO $p,callable $check):void
+{
+    $now=1793658000;$gate=static fn(string $chat):bool=>true;$steady=static fn():float=>0.0;
+    $setup=static function(int $count,int $empty=0)use($p,$now):array{
+        modeledValueSchema($p);$wire=new ModeledValueTestWire();
+        $wire->goals[]=['id'=>'678187097','name'=>ModeledConversionValueContract::NAME,
+            'type'=>'action','conditions'=>[['type'=>'exact','url'=>ModeledConversionValueContract::TARGET]]];
+        $lookup=new ModeledValueTestLookup();$lookup->missing=true;
+        $p->prepare("UPDATE modeled_conversion_value_export_settings SET mode='send',goal_id='678187097',goal_intent='verified',activated_at_unix=?")->execute([$now-10]);
+        for($i=1;$i<=$count;$i++){
+            $w=modeledValueWrapper(modeledValueBinding($p,1500+$i),$now);
+            if($i<=$empty)$w['contextual_signals']['events']=[];
+            modeledValueSave($p,$w);
+        }
+        return [$wire,$lookup];
+    };
+    $cursor=static fn():int=>(int)ModeledConversionValueExport::settings($p)['profile_cursor'];
+    $rows=static fn():int=>(int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn();
+    $receipt=static fn():array=>json_decode(ModeledConversionValueExport::settings($p)['last_receipt_json'],true,32,JSON_THROW_ON_ERROR);
+    $profiles=static fn():array=>$p->query('SELECT id,profile_json FROM modeled_conversion_profile_versions ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
+
+    [$wire,$lookup]=$setup(40,8);$before=$profiles();
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,null,$steady);
+    $check('local collection advances past a zero-award page and stops at four committed pages',
+        $cursor()===32&&$rows()===24&&$receipt()['collected']===24&&$receipt()['errors']===0);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate,null,$steady);
+    $check('the next ordinary tick collects the remaining saved profiles exactly once',$cursor()===40&&$rows()===32&&$receipt()['collected']===8);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+600,$gate,null,$steady);
+    $check('empty local catch-up preserves all profile bytes and does not recreate reserved rows',
+        $cursor()===40&&$rows()===32&&$receipt()['collected']===0&&$before===$profiles()&&$wire->posts===0);
+
+    [$wire,$lookup]=$setup(9);$appended=false;
+    $append=static function(string $chat)use($p,$now,&$appended):bool{
+        if(!$appended){$appended=true;modeledValueSave($p,modeledValueWrapper(modeledValueBinding($p,1600),$now));}
+        return true;
+    };
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$append,null,$steady);
+    $check('all local pages retain one frozen profile ceiling despite an in-flight append',
+        $cursor()===9&&$rows()===9&&(int)$p->query('SELECT MAX(id) FROM modeled_conversion_profile_versions')->fetchColumn()===10);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate,null,$steady);
+    $check('a profile beyond the original ceiling waits for the next ordinary tick',$cursor()===10&&$rows()===10&&$receipt()['collected']===1);
+
+    [$wire,$lookup]=$setup(24);$attempts=0;
+    $failSecond=static function(string $chat)use(&$attempts):bool{
+        $attempts++;if($chat==='-71509')throw new RuntimeException('synthetic_second_page_failure');return true;
+    };
+    $result=ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$failSecond,null,$steady);
+    $check('a later collection failure preserves committed progress and its exact receipt without retry',
+        $result['status']==='degraded'&&$cursor()===8&&$rows()===8&&$receipt()['collected']===8
+        &&$receipt()['errors']===1&&$attempts===9&&$lookup->calls===0&&$wire->posts===0&&$wire->gets===1);
+    $failedPage=['tick_at_unix'=>$now,'phase'=>'collect_profiles','category'=>'processing_failed'];
+    $check('a later-page error retains only its fixed phase category and original tick',
+        modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,$failedPage)&&!str_contains(json_encode($receipt()),'synthetic_second_page_failure'));
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+300,$gate,null,$steady);
+    $check('the next normal tick resumes a failed page without duplicating earlier reservations',
+        $cursor()===24&&$rows()===24&&$receipt()['collected']===16&&$receipt()['errors']===0);
+    $check('successful page recovery preserves the earlier failure without changing current errors',
+        modeledValueFailureJsonEqual($receipt()['last_recorded_failure']??null,$failedPage)&&(int)ModeledConversionValueExport::settings($p)['last_tick_unix']===$now+300);
+
+    [$wire,$lookup]=$setup(24);$clocks=0;
+    $deadline=static function()use(&$clocks):float{return $clocks++===0?0.0:5.0;};
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,null,$deadline);
+    $check('the monotonic start deadline admits no second page and does not change business time',
+        $cursor()===8&&$rows()===8&&$receipt()['collected']===8&&$receipt()['errors']===0
+        &&(int)ModeledConversionValueExport::settings($p)['last_tick_unix']===$now);
+
+    [$wire,$lookup]=$setup(16);
+    $disable=static function(string $chat)use($p):bool{
+        if($chat==='-71508')$p->exec("UPDATE modeled_conversion_value_export_settings SET mode='off' WHERE project_key='anytour'");
+        return true;
+    };
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$disable,null,$steady);
+    $check('an operator stop between committed pages prevents further local collection',
+        $cursor()===8&&$rows()===8&&ModeledConversionValueExport::settings($p)['mode']==='off'&&$wire->posts===0);
+
+    [$wire,$lookup]=$setup(0);$scope=modeledValueBinding($p,1501);
+    for($i=0;$i<8;$i++)modeledValueSave($p,modeledValueWrapper($scope,$now));
+    for($i=0;$i<8;$i++)modeledValueSave($p,modeledValueWrapper($scope,$now+1,'concrete_request'));
+    modeledValueSave($p,modeledValueWrapper($scope,$now+2));
+    $p->prepare("INSERT INTO max_channel_conversion_outbox(project_key,conversation_id,external_user_id,counter_id,target,transport_target,event_unix,platform,state,next_attempt_unix,value_rub,value_contract,claim_token) VALUES('anytour',1501,'71501','98615635','prior_unknown',?,?, 'max','unknown',?,1000,?,'preserved_claim')")
+        ->execute([ModeledConversionValueContract::TARGET,$now-1,$now+86400,ModeledConversionValueContract::VERSION]);
+    $unknown=$p->query("SELECT * FROM max_channel_conversion_outbox WHERE target='prior_unknown'")->fetch(PDO::FETCH_ASSOC);
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now+2,$gate,null,$steady);
+    $check('cross-page growth lower estimates and repeats include an existing unknown reservation once',
+        $cursor()===17&&$rows()===3&&$receipt()['collected']===2
+        &&(int)$p->query('SELECT SUM(value_rub) FROM max_channel_conversion_outbox')->fetchColumn()===2083
+        &&$unknown===$p->query("SELECT * FROM max_channel_conversion_outbox WHERE target='prior_unknown'")->fetch(PDO::FETCH_ASSOC));
+
+    [$wire,$lookup]=$setup(40);$lookup->missing=false;
+    ModeledConversionValueExport::tick($p,$lookup,$wire->api(),$now,$gate,null,$steady);
+    $check('four local pages retain one lookup one report and the original three-upload limit',
+        $cursor()===32&&$rows()===32&&$receipt()['collected']===32&&$receipt()['resolved']===5
+        &&$lookup->calls===1&&$wire->posts===3&&$wire->gets===2&&$receipt()['accepted']===3&&$receipt()['errors']===0);
+}
 
 function modeledValueFairProgressAssertions(PDO $p,callable $check):void
 {
