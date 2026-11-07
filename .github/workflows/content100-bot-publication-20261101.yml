@@ -1,4 +1,4 @@
-name: Correct the headings of the existing Rubi Platinum and Side Star posts
+name: Correct the headings of 21 recently published hotel pairs
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,21 +38,27 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42385982068 > "$evidence/rox.json"
-          python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert (r["status"],r["conclusion"],r["head_sha"]) == ("completed","success","83512b4eb59f890841230db4333114624e140003")' "$evidence/rox.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42386237981 > "$evidence/captions2.json"
+          python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert (r["status"],r["conclusion"],r["head_sha"]) == ("completed","success","093c4e2dab747faae4212a081a89540141bb4637")' "$evidence/captions2.json"
       - uses: actions/download-artifact@v4
         with:
-          run-id: 42357448787
-          name: commercial-hotel-caption-cta-dedup-20261107-1-result
+          run-id: 42382925355
+          name: commercial-batch-20261107-15-publication
           github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/prior-caption-correction
+          path: ${{ runner.temp }}/prior-batch-15
       - uses: actions/download-artifact@v4
         with:
-          run-id: 42364064916
-          name: commercial-side-star-media-20261107-1-finish1-result
+          run-id: 42383195558
+          name: commercial-batch-20261107-16-publication
           github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/prior-side-star
-      - name: Bind the heading edits to four existing messages and their latest verified receipts
+          path: ${{ runner.temp }}/prior-batch-16
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42385170595
+          name: commercial-batch-20261107-17-publication
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-batch-17
+      - name: Bind 42 caption edits to exact previous publication receipts
         shell: bash
         run: |
           set -euo pipefail
@@ -62,51 +68,50 @@ jobs:
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(base/'commercial-existing-headings-20261107-2-inputs.json').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='55f13045aee6404c4b77f39758d963b640a229cb1d26eb81e99fb7379f388276'
+          raw=(base/'commercial-existing-headings-20261107-3-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='e6ba7165112f50031bd56faf39c064281484e4eb2e3a17f094ab49ae6c936e43'
           inp=json.loads(raw)
-          assert inp['operation']=='commercial-existing-headings-20261107-2-v1'
+          assert inp['operation']=='commercial-existing-headings-20261107-3-v1'
           rows=inp['rows']
-          assert [r['hotel_id'] for r in rows]==[27426,1095]
-          expected={27426:{('max',456,927),('telegram',453,930)},1095:{('max',458,933),('telegram',455,934)}}
-          prior=[
-              ('prior-caption-correction','commercial-hotel-caption-cta-dedup-20261107-1-v1'),
-              ('prior-side-star','commercial-side-star-media-20261107-1-v1'),
-          ]
+          assert len(rows)==21 and len({r['hotel_id'] for r in rows})==21
+          old={}
+          for number,count in ((15,18),(16,6),(17,18)):
+              receipt=json.loads((tmp/f'prior-batch-{number}'/'channel-preflight.json').read_text().splitlines()[-1])
+              assert receipt['ok'] and receipt['operation']==f'commercial-hotel-batch-20261107-{number}-v1'
+              assert len(receipt['posts'])==receipt['post_write_attempts']==count
+              old[number]={(p['logical_id'],p['platform']):p for p in receipt['posts']}
+              assert len(old[number])==count
           confirmed=[]
-          for r,(directory,operation) in zip(rows,prior):
-              heading,tail=r['old_text'].split('\n',1)
-              assert heading==r['previous_heading']
-              if not tail.startswith('\n'):
-                  location,tail=tail.split('\n',1)
-                  assert location.startswith('Турция · ')
-              assert tail.startswith('\n')
-              assert r['new_text']==r['new_heading']+'\n'+r['new_location']+'\n'+tail
+          for r in rows:
+              heading,body=r['old_text'].split('\n',1)
+              assert heading==r['previous_heading'] and body.startswith('\n')
+              assert r['new_text']==r['new_heading']+'\n'+r['new_location']+'\n'+body
               for kind in ('old','new'):
                   assert hashlib.sha256(r[kind+'_text'].encode()).hexdigest()==r[kind+'_text_sha256']
               assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
-              receipt=json.loads((tmp/directory/'channel-preflight.json').read_text().splitlines()[-1])
-              assert receipt['ok'] and receipt['operation']==operation and receipt['new_posts_created']==0
-              posts=[p for p in receipt['posts'] if p['logical_id']==r['logical_id']]
-              assert {(p['platform'],p['publication_id'],p['version_id']) for p in posts}==expected[r['hotel_id']]
-              assert all(p['text_sha256']==r['old_text_sha256'] and p['body_photo_button_verified'] and p['photo_signature'] and p['existing_message_reused'] for p in posts)
-              confirmed.extend(posts)
+              for platform in ('max','telegram'):
+                  p=old[r['prior_batch']].pop((r['logical_id'],platform))
+                  assert [p['publication_id'],p['version_id']]==inp['exact_ids'][str(r['hotel_id'])][platform]
+                  assert p['hotel_id']==r['hotel_id'] and p['text_sha256']==r['old_text_sha256']
+                  assert p['state']=='sent' and p['body_photo_button_verified'] and not p['reused'] and p['photo_sha256']
+                  confirmed.append(p)
+          assert len(confirmed)==42 and all(not by_key for by_key in old.values())
           bound={'operation':'bound_verified_caption_receipts','ok':True,'new_posts_created':0,'posts':confirmed}
-          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':bound}
+          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':bound,'exact_ids':inp['exact_ids']}
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
           (tmp/'caption-correction-input.json').write_bytes(raw)
-          source=(base/'update-existing-headings-20261107-2-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='f8372ebcc3c99e91ea522aaafce9e771ea9bcbf6369b210852f318710e8cd580'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-existing-headings-20261107-2-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          source=(base/'update-existing-headings-20261107-3-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='aa23aecdd03b400c167b41756566fd1db69c539a572e7bf74f37ed4763b6a666'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-existing-headings-20261107-3-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':4,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
+          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':42,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
           PYCODE
           php -l "$RUNNER_TEMP/channel-preflight.php"
       - name: Retain exact caption edit intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-existing-headings-20261107-2-inputs
+          name: commercial-existing-headings-20261107-3-inputs
           path: ${{ runner.temp }}/caption-correction-input.json
           retention-days: 14
           if-no-files-found: error
@@ -148,7 +153,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Correct the four existing captions and verify retained context
+      - name: Correct the 42 existing captions and verify retained context
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -162,27 +167,27 @@ jobs:
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-existing-headings-20261107-2-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
-          assert d['ok'] is True and len(d['posts'])==4 and d['post_write_attempts']==4 and d['new_posts_created']==0
+          assert d['operation']=='commercial-existing-headings-20261107-3-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          assert d['ok'] is True and len(d['posts'])==42 and d['post_write_attempts']==42 and d['new_posts_created']==0
           assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
-          assert d['commercial_text_updates']==4 and d['configuration_write_attempts']==0
+          assert d['commercial_text_updates']==42 and d['configuration_write_attempts']==0
           source=json.loads((tmp/'caption-correction-input.json').read_text())
           prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
           rows={r['logical_id']:r for r in source['rows']}
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==4
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==42
           for p in d['posts']:
               old=prior[(p['platform'],p['logical_id'])]
               assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','source_key'))
-              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==old['photo_signature']
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
               assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
-          print('EXISTING_TWO_MORE_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          print('EXISTING_TWENTY_ONE_RECENT_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-existing-headings-20261107-2-result
+          name: commercial-existing-headings-20261107-3-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
