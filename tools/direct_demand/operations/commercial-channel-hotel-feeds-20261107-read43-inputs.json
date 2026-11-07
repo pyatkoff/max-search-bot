@@ -1,0 +1,135 @@
+[
+  {
+    "hotel_id": 1380,
+    "name": "Mirada Del Mar",
+    "accepted_first_line": "✈️ Туры в Mirada Del Mar с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1380.png",
+    "image_sha256": "8e53659ac40fb7f778aff892a5a85d994c0a8dcd823a7ffdb29b89683ee52891"
+  },
+  {
+    "hotel_id": 949,
+    "name": "Adam & Eve",
+    "accepted_first_line": "✈️ Туры в Adam & Eve с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/949.png",
+    "image_sha256": "65622a3bad2277b6918d84f1c9a76d3782d6f0b5ada084f5c399cfdb8ea4859d"
+  },
+  {
+    "hotel_id": 1483,
+    "name": "Seher Resort & Spa",
+    "accepted_first_line": "✈️ Туры в Seher Resort & Spa с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1483.png",
+    "image_sha256": "a5eddf4b6eced7ed1bddc0c3df22e19ee1087b867b00383c61b69bdc47d7a943"
+  },
+  {
+    "hotel_id": 1196,
+    "name": "Viking Garden Hotel & Spa",
+    "accepted_first_line": "✈️ Туры в Viking Garden Hotel & Spa с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1196.png",
+    "image_sha256": "8fd1500db4baefc0b76a3c975c5daf691c7078ebc25b101bda98e4df6c583775"
+  },
+  {
+    "hotel_id": 1051,
+    "name": "Blue Fish Hotel",
+    "accepted_first_line": "✈️ Туры в Blue Fish Hotel с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1051.png",
+    "image_sha256": "e4f9a8b52d53009280a3f3f8b1f2f63203049f895f9a56aea3b952c24e5ff997"
+  },
+  {
+    "hotel_id": 53514,
+    "name": "Royal Seginus",
+    "accepted_first_line": "✈️ Туры в Royal Seginus с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/53514.png",
+    "image_sha256": "86daaea223a3d0cd67096f326985064a39bacbd7997446eb13f62bc2963cdd7b"
+  },
+  {
+    "hotel_id": 15873,
+    "name": "White City Resort",
+    "accepted_first_line": "✈️ Туры в White City Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/15873.png",
+    "image_sha256": "a5f5d5e82ed892ae710452ee5cc7a17a95adabe2efce346ae98f628ad9506605"
+  },
+  {
+    "hotel_id": 28754,
+    "name": "Kleopatra Atlas",
+    "accepted_first_line": "✈️ Туры в Kleopatra Atlas с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/28754.png",
+    "image_sha256": "f3d73249848d53f59cdaeea9168398392c21789f82bddf503289e1ff4b205090"
+  },
+  {
+    "hotel_id": 1189,
+    "name": "Flora Garden Beach",
+    "accepted_first_line": "✈️ Туры в Flora Garden Beach с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1189.png",
+    "image_sha256": "1b00c039edcd00fbb4dbc01adc64b0112018d8b7accbec41957a95dc949e851a"
+  },
+  {
+    "hotel_id": 1410,
+    "name": "Ozkaymak Marina",
+    "accepted_first_line": "✈️ Туры в Ozkaymak Marina с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1410.png",
+    "image_sha256": "a247b8e89cbac03e667bd3bc549b525b21003a1202561051204ded761d6233f7"
+  },
+  {
+    "hotel_id": 1339,
+    "name": "Limak Limra",
+    "accepted_first_line": "✈️ Туры в Limak Limra с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1339.png",
+    "image_sha256": "bacc37f206c52ed0a51a248be99c52b751ceff3a274ae4521d7fbefafc955153"
+  },
+  {
+    "hotel_id": 1586,
+    "name": "White City Beach",
+    "accepted_first_line": "✈️ Туры в White City Beach с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1586.png",
+    "image_sha256": "9d4603c1e39a029b292ecd3fc0ae00c70c96d2329edbdb2e7ffdf1941581edfd"
+  },
+  {
+    "hotel_id": 55925,
+    "name": "Villa Sunflower",
+    "accepted_first_line": "✈️ Туры в Villa Sunflower с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/55925.png",
+    "image_sha256": "9942d1cc6efed69e3c7247124cce58de85bd722732129820b975d4044982574d"
+  },
+  {
+    "hotel_id": 113292,
+    "name": "Granada Luxury Red",
+    "accepted_first_line": "✈️ Туры в Granada Luxury Red с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/113292.png",
+    "image_sha256": "fb64c7eb8e2a4a714bb4ddfdddf71682a1185c14ddd1dc89a3a212a5a1545ba9"
+  },
+  {
+    "hotel_id": 1436,
+    "name": "Porto Bello Hotel Resort & Spa",
+    "accepted_first_line": "✈️ Туры в Porto Bello Hotel Resort & Spa с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1436.png",
+    "image_sha256": "ee63767d38ef5987a0a66e3d1b0c74df58fa47a386ccca7420de9b81de94b048"
+  },
+  {
+    "hotel_id": 53578,
+    "name": "Kahya Hotel",
+    "accepted_first_line": "✈️ Туры в Kahya Hotel с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/53578.png",
+    "image_sha256": "4f1a760d7205d102dec53c117ab9c4329f1922eb6a7307f6400822a9414bb36d"
+  },
+  {
+    "hotel_id": 1336,
+    "name": "Limak Arcadia Sport Resort",
+    "accepted_first_line": "✈️ Туры в Limak Arcadia Sport Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1336.png",
+    "image_sha256": "dedd1fab4c8e10ee663bb8ace51d31ed49285279a9165b74e4103f338f38a180"
+  },
+  {
+    "hotel_id": 1004,
+    "name": "Sealife Buket Resort & Beach",
+    "accepted_first_line": "✈️ Туры в Sealife Buket Resort & Beach с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1004.png",
+    "image_sha256": "d45df2d44bebd1810bc51b33bcfbe2e3f96e0d364af34eae388a9e46b96791f5"
+  },
+  {
+    "hotel_id": 17595,
+    "name": "Ramada Resort Lara",
+    "accepted_first_line": "✈️ Туры в Ramada Resort Lara с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/17595.png",
+    "image_sha256": "e75f07f72630321ab5eeac4c8f8eff594fd4409a84d1274ad8c4c68e95f73042"
+  }
+]

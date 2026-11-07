@@ -1,0 +1,203 @@
+[
+  {
+    "hotel_id": 70033,
+    "logical_id": null,
+    "aliases": [
+      "Nalicas Nha Trang Hotel",
+      "NALICAS HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 57652,
+    "logical_id": null,
+    "aliases": [
+      "Queen Ann Nha Trang Hotel",
+      "QUEEN ANN NHA TRANG"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 57650,
+    "logical_id": null,
+    "aliases": [
+      "Red Sun Nha Trang Hotel",
+      "RED SUN NHA TRANG"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 23766,
+    "logical_id": null,
+    "aliases": [
+      "Sea Light Hotel",
+      "SEA LIGHT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 4078,
+    "logical_id": null,
+    "aliases": [
+      "Starlet Hotel",
+      "STARLET"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 24778,
+    "logical_id": null,
+    "aliases": [
+      "Aroma Beach Resort & Spa Muine",
+      "AROMA BEACH RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 4054,
+    "logical_id": null,
+    "aliases": [
+      "Muine Century Beach Resort & Spa (Ex. Muine De Century Beach)",
+      "MUINE DE CENTURY BEACH RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 14133,
+    "logical_id": null,
+    "aliases": [
+      "Oriental Pearl Resort (Hoang Ngoc)",
+      "HOANG NGOC BEACH RESORT (ORIENTAL PEARL)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 4074,
+    "logical_id": null,
+    "aliases": [
+      "Seahorse Resort",
+      "SEAHORSE RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 4079,
+    "logical_id": null,
+    "aliases": [
+      "Sunny Beach Resort",
+      "SUNNY BEACH RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 80915,
+    "logical_id": null,
+    "aliases": [
+      "Ana Mandara Cam Ranh Resort",
+      "ANA MANDARA CAM RANH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 65254,
+    "logical_id": null,
+    "aliases": [
+      "Premier Residences Phu Quoc Emerald Bay Managed By Accorhotels",
+      "PREMIER RESIDENCES PHU QUOC EMERALD BAY"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 22791,
+    "logical_id": null,
+    "aliases": [
+      "Thien Thanh Phu Quoc Resort",
+      "THIEN THANH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 57064,
+    "logical_id": null,
+    "aliases": [
+      "Muong Thanh Luxury Phu Quoc Hotel",
+      "MUONG THANH LUXURY PHU QUOC"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 57039,
+    "logical_id": null,
+    "aliases": [
+      "Amarin Resort & Spa",
+      "AMARIN RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 65266,
+    "logical_id": null,
+    "aliases": [
+      "Palma Phu Quoc Resort",
+      "PALMA RESORT",
+      "PALMA RESORT PHU QUOC TRADEMARK COLLECTION BY WYNDHAM"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 116934,
+    "logical_id": null,
+    "aliases": [
+      "Courtyard By Marriott Phuket, Patong Beach",
+      "COURTYARD BY MARRIOTT PHUKET PATONG BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 681,
+    "logical_id": null,
+    "aliases": [
+      "Kata Sea Breeze Resort",
+      "KATA SEA BREEZE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 8008,
+    "logical_id": null,
+    "aliases": [
+      "La Flora Khao Lak",
+      "LA FLORA RESORT & SPA KHAO LAK"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 119046,
+    "logical_id": null,
+    "aliases": [
+      "Sugar Marina Resort Pop Kata Beach",
+      "SUGAR MARINA HOTEL POP KATA BEACH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  }
+]
