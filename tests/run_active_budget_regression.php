@@ -79,7 +79,7 @@ if (!in_array($driver,PDO::getAvailableDrivers(),true)) {fwrite(STDERR,"Required
 // config is loaded, no network sender is used and no repository file is changed.
 $root=dirname(__DIR__);$tmp=sys_get_temp_dir().'/active-budget-'.bin2hex(random_bytes(6));
 mkdir($tmp,0700);
-file_put_contents($tmp.'/config.php',"<?php\ndefine('MAX_SEARCH_RUNTIME_STORAGE','mysql');\n");
+file_put_contents($tmp.'/config.php',"<?php\ndefine('MAX_SEARCH_RUNTIME_STORAGE','mysql');\ndefine('MAX_SEARCH_TOKEN','');\n");
 copy($root.'/maxsearchclass.php',$tmp.'/maxsearchclass.php');
 symlink($root.'/maxsearchbaseclass.php',$tmp.'/maxsearchbaseclass.php');
 symlink($root.'/services',$tmp.'/services');
@@ -271,5 +271,234 @@ abCheck('explicit reset clears current budget',ConversationStateRepository::budg
 abCheck('no start does not silently insert one',abApply($chat,'до 250 тысяч'),[]);
 $all=(int)$pdo->query('SELECT COUNT(*) FROM runtime_dialogue_state WHERE chat_id="-42001"')->fetchColumn();
 abCheck('missing start has no side effects',$all,0);
+
+// Specialized hotel entries use the REAL source, view and state owners. The
+// preceding no-start budget guard remains unchanged: lifecycle must create the
+// boundary before collecting needs, not manufacture one inside a budget write.
+foreach (['CONVERSATION_DB_HOST','CONVERSATION_DB_NAME','CONVERSATION_DB_USER','CONVERSATION_DB_PASS'] as $constant) {
+    if (!defined($constant)) define($constant,'isolated-source-fixture');
+}
+require_once $root.'/services/SourceHandlingService.php';
+require_once $root.'/services/ConversationControlService.php';
+require_once $root.'/actions/callbacks/WizardCallbackAction.php';
+$eventId=$useMysql?'BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY':'INTEGER PRIMARY KEY AUTOINCREMENT';
+$pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key VARCHAR(64),is_active INTEGER);
+    CREATE TABLE conversation_sources(id INTEGER PRIMARY KEY,project_id INTEGER,source_key VARCHAR(96),display_name VARCHAR(100),channel VARCHAR(20),is_active INTEGER,handling_mode VARCHAR(20));
+    CREATE TABLE conversations(id INTEGER PRIMARY KEY,project_key VARCHAR(64),source_id INTEGER,channel VARCHAR(20),external_chat_id VARCHAR(64),status VARCHAR(32),manager_id INTEGER);
+    CREATE TABLE conversation_events(id $eventId,conversation_id INTEGER,event_type VARCHAR(64),actor_type VARCHAR(32),actor_id VARCHAR(64),payload_json TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+    CREATE TABLE post_channels(id INTEGER PRIMARY KEY,project_id INTEGER,source_id INTEGER,platform VARCHAR(20),bot_key VARCHAR(191),canonical_bot_username VARCHAR(191),channel_id VARCHAR(64),display_name VARCHAR(100),is_enabled INTEGER);
+    CREATE TABLE post_publications(id INTEGER PRIMARY KEY,post_channel_id INTEGER,source_id INTEGER,external_message_id VARCHAR(191));
+    CREATE TABLE post_versions(id INTEGER PRIMARY KEY,publication_id INTEGER,version_number INTEGER,snapshot_json TEXT);
+    CREATE TABLE post_entries(id INTEGER PRIMARY KEY,conversation_id INTEGER,publication_id INTEGER,version_id INTEGER,availability_reason VARCHAR(32),created_at DATETIME);
+    CREATE TABLE catalog_departures(id INTEGER PRIMARY KEY,name VARCHAR(100),name_genitive VARCHAR(100),is_active INTEGER);
+    CREATE TABLE catalog_countries(id INTEGER PRIMARY KEY,name VARCHAR(100),is_active INTEGER);
+    INSERT INTO projects VALUES(1,'anytour',1);
+    INSERT INTO catalog_departures VALUES(15,'Самара','Самары',1);
+    INSERT INTO catalog_countries VALUES(1,'Египет',1);");
+ProjectConfig::resetForTests([
+    'id'=>'anytour',
+    'channel_posts'=>[
+        'max'=>['bot_key'=>'id9704048781_1_bot','bot_url'=>'https://max.ru/id9704048781_1_bot'],
+        'telegram'=>['bot_key'=>'Any_tour_bot','bot_url'=>'https://t.me/Any_tour_bot'],
+    ],
+]);
+$sourceDefinitions=[
+    ['max',11,'fixture_max_hotel','id9704048781_1_bot','-80095447388179','https://max.ru/c/-80095447388179/fixture'],
+    ['telegram',12,'fixture_tg_hotel','Any_tour_bot','-1001234567890','https://t.me/c/1234567890/31'],
+];
+foreach($sourceDefinitions as [$platform,$id,$sourceKey,$botKey,$channelId,$postUrl]) {
+    $sourceChat=-43000-$id;
+    $pdo->prepare('INSERT INTO conversation_sources VALUES(?,1,?,?,?,1,?)')->execute([$id,$sourceKey,'Fixture hotel',$platform,'manager']);
+    $pdo->prepare('INSERT INTO conversations VALUES(?,?,?,?,?,?,NULL)')->execute([$id,'anytour',$id,$platform,(string)$sourceChat,'ai']);
+    $pdo->prepare('INSERT INTO post_channels VALUES(?,1,?,?,?,?,?,?,1)')->execute([$id,$id,$platform,$botKey,$botKey,$channelId,'Fixture hotel channel']);
+    $pdo->prepare('INSERT INTO post_publications VALUES(?,?,?,?)')->execute([$id,$id,$id,'fixture-post']);
+    $snapshot=['title'=>'Siva Grand Beach','text'=>'Siva Grand Beach. Египет.','format'=>'native','post_url'=>$postUrl,'published_at'=>'2026-11-06 12:00:00'];
+    $pdo->prepare('INSERT INTO post_versions VALUES(?,?,1,?)')->execute([$id,$id,json_encode($snapshot,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)]);
+    $pdo->prepare('INSERT INTO post_entries VALUES(?,?,?,?,?,?)')->execute([$id,$id,$id,$id,'','2026-11-07 10:00:00']);
+    $sourceStart=['platform'=>$platform,'type'=>$platform==='max'?'bot_started':'message',
+        'source_key'=>$sourceKey,'entry_kind'=>'channel_post','text'=>'/start p_fixture',
+        'user'=>['chat_id'=>$sourceChat,'external_user_id'=>abs($sourceChat)]];
+    abCheck('hotel entry begins without a hidden fixture start: '.$platform,MaxSearchApi::getCurentStatus($sourceChat),false);
+    abCheck('real source owner handles hotel entry: '.$platform,SourceHandlingService::handle($sourceStart),true);
+    $startSnapshot=ConversationStateRepository::budgetSnapshot($sourceChat);
+    abCheck('hotel entry creates the canonical budget boundary: '.$platform,!empty($startSnapshot['start_id']),true);
+    abCheck('hotel entry remains in AI collection: '.$platform,MaxSearchApi::getCurentStatus($sourceChat),MaxSearchApi::$statusAi);
+    NeedApplicationService::applyParameters($sourceChat,['city'=>'Самара','country'=>'Египет','adults'=>2,'children'=>0,'nights'=>'6','date'=>'27.12.2030']);
+    MaxSearchApi::setStatus($sourceChat,MaxSearchApi::$statusCheck);
+    abCheck('hotel source check accepts the real budget handler: '.$platform,$controller->handleIncomingMessage(
+        IncomingMessage::text($platform,abs($sourceChat),$sourceChat,'source-budget-'.$platform,'До 200 тысяч')),true);
+    abCheck('hotel source budget is saved: '.$platform,MaxSearchApi::getAiSearchContext($sourceChat)['budget']['max']??null,200000);
+    $savedSource=MaxSearchApi::getSavedData($sourceChat);
+    $rowCount=(int)$pdo->query("SELECT COUNT(*) FROM runtime_dialogue_state WHERE project_key='anytour' AND chat_id='".(int)$sourceChat."'")->fetchColumn();
+    $sentCount=count($messenger->sent);
+    abCheck('same source reentry is handled: '.$platform,SourceHandlingService::handle($sourceStart),true);
+    abCheck('same source reentry remains silent: '.$platform,count($messenger->sent),$sentCount);
+    abCheck('same source reentry preserves every saved value: '.$platform,MaxSearchApi::getSavedData($sourceChat),$savedSource);
+    abCheck('same source reentry appends no start or mode: '.$platform,
+        (int)$pdo->query("SELECT COUNT(*) FROM runtime_dialogue_state WHERE project_key='anytour' AND chat_id='".(int)$sourceChat."'")->fetchColumn(),$rowCount);
+    abCheck('same source reentry retains the original start: '.$platform,ConversationStateRepository::budgetSnapshot($sourceChat)['start_id']??null,$startSnapshot['start_id']??null);
+
+    // The existing cancellation owner resumes AI. Source handling only records
+    // the explicit choice, and the real callback renders the preserved trip.
+    $pdo->prepare("UPDATE conversations SET status='waiting_manager' WHERE id=?")->execute([$id]);
+    $back=['platform'=>$platform,'type'=>'callback','callback_data'=>'back_check','user'=>$sourceStart['user']];
+    abCheck('source back delegates cancellation: '.$platform,SourceHandlingService::handle($back),false);
+    abCheck('source back does not take manager ownership itself: '.$platform,ConversationControlService::statusByChat($platform,$sourceChat)['status']??null,'waiting_manager');
+    abCheck('canonical cancellation resumes AI: '.$platform,ConversationControlService::resumeAiByChat($platform,$sourceChat,'handoff_cancelled'),true);
+    abCheck('real back callback renders current conditions: '.$platform,WizardCallbackAction::handle($sourceChat,'back_check'),true);
+    abCheck('back summary retains departure: '.$platform,str_contains(end($messenger->sent)[1],'Самара'),true);
+    abCheck('back summary retains destination: '.$platform,str_contains(end($messenger->sent)[1],'Египет'),true);
+    abCheck('back retains the budget: '.$platform,MaxSearchApi::getAiSearchContext($sourceChat)['budget']['max']??null,200000);
+    abCheck('back retains explicit zero children: '.$platform,MaxSearchApi::getAiSearchContext($sourceChat)['children']??null,0);
+    $reply=['platform'=>$platform,'type'=>'message','text'=>'Есть ли бассейн?','user'=>$sourceStart['user']];
+    abCheck('self-service reply reaches the ordinary collector: '.$platform,SourceHandlingService::handle($reply),false);
+    $post=SourceHandlingService::sourcePostContext($sourceChat);
+    abCheck('self-service back retains the immutable hotel text: '.$platform,$post['text']??null,$snapshot['text']);
+    abCheck('self-service back retains the exact publication: '.$platform,$post['publication_id']??null,$id);
+    abCheck('self-service context is not qualifying: '.$platform,SourceHandlingService::qualifyingTurn($sourceChat),false);
+    abCheck('self-service completion cannot hand off automatically: '.$platform,SourceHandlingService::completeQualification($sourceChat,['source_need_applied'=>true]),null);
+    abCheck('post context cannot cross chat IDs: '.$platform,SourceHandlingService::sourcePostContext($sourceChat-1000),[]);
+    $pdo->prepare("UPDATE conversations SET status='manager',manager_id=9 WHERE id=?")->execute([$id]);
+    abCheck('assignment also fences an already cached post: '.$platform,SourceHandlingService::sourcePostContext($sourceChat),[]);
+    $sentCount=count($messenger->sent);
+    abCheck('assigned source reentry stays owned: '.$platform,SourceHandlingService::handle($sourceStart),true);
+    abCheck('assigned source reentry stays silent: '.$platform,count($messenger->sent),$sentCount);
+    abCheck('assigned source reentry retains current needs: '.$platform,MaxSearchApi::getAiSearchContext($sourceChat)['budget']['max']??null,200000);
+    $pdo->prepare("UPDATE conversations SET status='ai',manager_id=NULL,source_id=999 WHERE id=?")->execute([$id]);
+    SourceHandlingService::handle($reply);
+    abCheck('changed source cannot inherit the previous hotel: '.$platform,SourceHandlingService::sourcePostContext($sourceChat),[]);
+}
+abCheck('source lifecycle never queued another manager request',
+    (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type IN ('manager_request','waiting_manager')")->fetchColumn(),0);
+
+// A genuine first message can reach the specialized collector without bot_started.
+$firstChat=-43999;
+$pdo->prepare('INSERT INTO conversations VALUES(?,?,?,?,?,?,NULL)')->execute([99,'anytour',11,'max',(string)$firstChat,'ai']);
+$first=['platform'=>'max','type'=>'message','text'=>'Самара','user'=>['chat_id'=>$firstChat,'external_user_id'=>abs($firstChat)]];
+abCheck('first source message delegates to the collector',SourceHandlingService::handle($first),false);
+abCheck('first source message receives the same canonical start',!empty(ConversationStateRepository::budgetSnapshot($firstChat)['start_id']),true);
+abCheck('first source message still qualifies normally',SourceHandlingService::qualifyingTurn($firstChat),true);
+
+// Recover a real pre-fix origin on the next self-service message. Its historical
+// back receipt deliberately has no source_id; it can repair its own boundary,
+// while publication context remains unavailable without a confirmed binding.
+function abSourceStateRows(PDO $pdo,int $chatId,string $project='anytour'):array {
+    $q=$pdo->prepare('SELECT id,status_id,value_text,message_id FROM runtime_dialogue_state WHERE project_key=? AND chat_id=? ORDER BY id');
+    $q->execute([$project,(string)$chatId]);
+    return $q->fetchAll(PDO::FETCH_ASSOC);
+}
+function abRestoreSource(int $chatId):bool {
+    return ConversationStateRepository::restoreSourceStartBoundary(
+        $chatId,(int)MaxSearchApi::$statusStart,(int)MaxSearchApi::$statusAi,(int)MaxSearchApi::$statusCheck,
+        [(int)MaxSearchApi::$statusCityChoose,(int)MaxSearchApi::$statusContryChoose,
+            (int)MaxSearchApi::$statusAdults,(int)MaxSearchApi::$statusChild,(int)MaxSearchApi::$statusAge,
+            (int)MaxSearchApi::$statusStars,(int)MaxSearchApi::$statusMeal,(int)MaxSearchApi::$statusNights,
+            (int)MaxSearchApi::$statusDate,(int)MaxSearchApi::$statusPhone]
+    );
+}
+$orphanChat=-44001;
+$pdo->prepare('INSERT INTO conversations VALUES(?,?,?,?,?,?,NULL)')->execute([101,'anytour',11,'max',(string)$orphanChat,'ai']);
+MaxSearchApi::setStatus($orphanChat,MaxSearchApi::$statusAi);
+NeedApplicationService::applyParameters($orphanChat,['city'=>'Самара','country'=>'Египет','adults'=>2,'children'=>2,'child_ages'=>[6,12],'nights'=>'7','date'=>'25.08.2030']);
+MaxSearchApi::setStatus($orphanChat,MaxSearchApi::$statusCheck);
+ConversationRecorder::eventByChat('max',$orphanChat,'source_handling_choice',['choice'=>'ai','reason'=>'handoff_back'],'system');
+$orphanRows=abSourceStateRows($pdo,$orphanChat);
+$orphanContext=MaxSearchApi::getAiSearchContext($orphanChat);
+$oldCityId=0;
+foreach($orphanRows as $row) if((int)$row['status_id']===(int)MaxSearchApi::$statusCityChoose) $oldCityId=(int)$row['id'];
+abCheck('pre-fix source origin has no budget boundary',ConversationStateRepository::budgetSnapshot($orphanChat),[]);
+$naturalBudget=IncomingMessage::text('max',abs($orphanChat),$orphanChat,'orphan-budget','До 200 тысяч');
+abCheck('historical back message reaches self-service',SourceHandlingService::handle($naturalBudget),false);
+$recoveredRows=abSourceStateRows($pdo,$orphanChat);
+abCheck('recovery promotes the original first row ID',
+    ConversationStateRepository::budgetSnapshot($orphanChat)['start_id']??null,(int)$orphanRows[0]['id']);
+abCheck('recovery neither copies nor deletes any existing value row',array_slice($recoveredRows,1),array_slice($orphanRows,1));
+abCheck('recovery preserves all canonical needs',MaxSearchApi::getAiSearchContext($orphanChat),$orphanContext);
+abCheck('recovery retains the completed check mode',MaxSearchApi::getCurentStatus($orphanChat),MaxSearchApi::$statusCheck);
+abCheck('historical back without source binding does not guess a post',SourceHandlingService::sourcePostContext($orphanChat),[]);
+abCheck('historical back remains ordinary self-service',SourceHandlingService::qualifyingTurn($orphanChat),false);
+abCheck('recovered source accepts the real budget handler',$controller->handleIncomingMessage($naturalBudget),true);
+abCheck('recovered budget is persisted',MaxSearchApi::getAiSearchContext($orphanChat)['budget']['max']??null,200000);
+$afterRecovery=abSourceStateRows($pdo,$orphanChat);
+abCheck('existing start makes recovery idempotent',abRestoreSource($orphanChat),false);
+abCheck('idempotent recovery changes no row',abSourceStateRows($pdo,$orphanChat),$afterRecovery);
+
+// Reproduce a competing ordinary writer that had already selected the old need
+// row before recovery. A native second connection writes that same ID afterward;
+// retaining the earliest start ID must keep this new answer visible.
+$writer->prepare('UPDATE runtime_dialogue_state SET value_text=? WHERE project_key=? AND chat_id=? AND id=?')
+    ->execute(['19','anytour',(string)$orphanChat,$oldCityId]);
+abCheck('a previously selected need row remains visible after recovery',
+    MaxSearchApi::getSavedData($orphanChat)[MaxSearchApi::$statusCityChoose]??null,'19');
+abCheck('concurrent need update retains the recovered start',
+    ConversationStateRepository::budgetSnapshot($orphanChat)['start_id']??null,(int)$orphanRows[0]['id']);
+
+$singleChat=-44002;
+MaxSearchApi::setStatus($singleChat,MaxSearchApi::$statusAi);
+$singleFirst=abSourceStateRows($pdo,$singleChat)[0];
+abCheck('single empty source AI row is repairable',abRestoreSource($singleChat),true);
+abCheck('single-row repair keeps the original boundary ID',
+    ConversationStateRepository::budgetSnapshot($singleChat)['start_id']??null,(int)$singleFirst['id']);
+abCheck('single-row repair restores AI mode',MaxSearchApi::getCurentStatus($singleChat),MaxSearchApi::$statusAi);
+abCheck('single-row repair only appends its lost mode',count(abSourceStateRows($pdo,$singleChat)),2);
+
+$zeroChat=-44003;
+MaxSearchApi::setStatus($zeroChat,MaxSearchApi::$statusAi);
+NeedApplicationService::applyParameters($zeroChat,['children'=>0,'nights'=>'6','date'=>'27.12.2030']);
+$zeroBefore=MaxSearchApi::getAiSearchContext($zeroChat);
+abCheck('source recovery accepts explicit zero children',abRestoreSource($zeroChat),true);
+abCheck('source recovery preserves zero and date/night values',MaxSearchApi::getAiSearchContext($zeroChat),$zeroBefore);
+abCheck('zero children is still present after recovery',MaxSearchApi::getAiSearchContext($zeroChat)['children']??null,0);
+
+$rejectedOrigins=[
+    -44101=>['first_value'=>'unowned AI metadata'],
+    -44102=>['first_message'=>'owned-message'],
+    -44103=>['unknown_status'=>999],
+    -44104=>['existing_start'=>true],
+    -44105=>['wrong_first'=>true],
+    -44106=>['too_many'=>true],
+];
+foreach($rejectedOrigins as $rejectedChat=>$case) {
+    MaxSearchApi::setStatus($rejectedChat,!empty($case['wrong_first'])?MaxSearchApi::$statusAdults:MaxSearchApi::$statusAi);
+    $first=abSourceStateRows($pdo,$rejectedChat)[0];
+    if(isset($case['first_value'])) $pdo->prepare('UPDATE runtime_dialogue_state SET value_text=? WHERE id=?')->execute([$case['first_value'],$first['id']]);
+    if(isset($case['first_message'])) $pdo->prepare('UPDATE runtime_dialogue_state SET message_id=? WHERE id=?')->execute([$case['first_message'],$first['id']]);
+    if(isset($case['unknown_status'])) MaxSearchApi::setStatus($rejectedChat,$case['unknown_status']);
+    if(!empty($case['existing_start'])) MaxSearchApi::setStatus($rejectedChat,MaxSearchApi::$statusStart);
+    if(!empty($case['too_many'])) for($i=0;$i<256;$i++) MaxSearchApi::setStatus($rejectedChat,MaxSearchApi::$statusAi);
+    $beforeRejected=abSourceStateRows($pdo,$rejectedChat);
+    abCheck('unknown source origin is rejected: '.$rejectedChat,abRestoreSource($rejectedChat),false);
+    abCheck('rejected source origin is unchanged: '.$rejectedChat,abSourceStateRows($pdo,$rejectedChat),$beforeRejected);
+}
+$nestedChat=-44107;
+MaxSearchApi::setStatus($nestedChat,MaxSearchApi::$statusAi);
+$nestedBefore=abSourceStateRows($pdo,$nestedChat);
+$pdo->beginTransaction();
+abCheck('source recovery does not join a caller transaction',abRestoreSource($nestedChat),false);
+abCheck('source recovery does not commit the caller transaction',$pdo->inTransaction(),true);
+abCheck('nested transaction retains exact rows',abSourceStateRows($pdo,$nestedChat),$nestedBefore);
+$pdo->rollBack();
+abCheck('missing other chat is not initialized by recovery',abRestoreSource(-44999),false);
+ProjectConfig::resetForTests(['id'=>'other-project']);
+abCheck('source recovery cannot cross project scope',abRestoreSource($nestedChat),false);
+abCheck('other project has no inserted start',abSourceStateRows($pdo,$nestedChat,'other-project'),[]);
+ProjectConfig::resetForTests(['id'=>'anytour']);
+abCheck('cross-project rejection retains original rows',abSourceStateRows($pdo,$nestedChat),$nestedBefore);
+
+// Actual persistence for the multi-month guard: no model invocation is needed
+// to retain the other explicit conditions while asking for one departure date.
+$compoundChat=-44998;
+DialogueView::prepareSourceTrip($compoundChat);
+NeedApplicationService::applyParameters($compoundChat,['city'=>'Самара','country'=>'Египет']);
+$sentBefore=count($messenger->sent);
+AiMessageHandler::handle(['text'=>'24 июля по 2 августа 2030, 2 взрослых 2 ребёнка 6,12 лет'],$compoundChat);
+$compound=MaxSearchApi::getAiSearchContext($compoundChat);
+abCheck('multi-month guard durably saves explicit adults',$compound['adults']??null,2);
+abCheck('multi-month guard durably saves explicit children',$compound['children']??null,2);
+abCheck('multi-month guard durably saves both child ages',$compound['child_ages']??null,'6, 12');
+abCheck('multi-month guard leaves only the date unresolved',isset($compound['date']),false);
+abCheck('multi-month guard sends exactly one clarification',count($messenger->sent)-$sentBefore,1);
+abCheck('multi-month guard asks the canonical date question',end($messenger->sent)[1],
+    MissingFieldQuestionService::question('date',['ambiguous_months'=>true]));
 
 echo "TOTAL $n | PASS ".($n-$failed)." | FAIL $failed\n";exit($failed?1:0);

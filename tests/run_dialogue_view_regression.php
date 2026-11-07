@@ -20,7 +20,7 @@ class ViewTestMessenger implements MessengerInterface {
     }
 }
 class MaxSearchApi {
-    public static $statusStart=64,$statusCityChoose=65,$statusContryChoose=66,$statusAdults=67,$statusChild=68,$statusAge=69,$statusStars=70,$statusNights=72,$statusDate=73,$statusCheck=74,$statusPhone=75,$statusAi=76;
+    public static $statusStart=64,$statusCityChoose=65,$statusContryChoose=66,$statusAdults=67,$statusChild=68,$statusAge=69,$statusStars=70,$statusMeal=71,$statusNights=72,$statusDate=73,$statusCheck=74,$statusPhone=75,$statusAi=76;
     public static array $statuses=[];
     public static array $statusValues=[];
     public static int $deletes=0;

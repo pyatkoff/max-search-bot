@@ -18,12 +18,14 @@ class SourceHandlingService
     private const CHOICE_AI='source_choice_ai';
     private const QUALIFICATION_REASON='source_needs_first';
     private static ?array $qualificationTurn=null;
+    private static ?array $postContextTurn=null;
 
     public static function handle(array $incoming): bool
     {
         // Only the current authenticated input may finish its own qualification.
         // This is request-local context; the existing choice event owns persistence.
         self::$qualificationTurn=null;
+        self::$postContextTurn=null;
         try {
             if(!ConversationDb::isConfigured())return false;
             $platform=strtolower(trim((string)($incoming['platform']??'')));
@@ -43,7 +45,7 @@ class SourceHandlingService
 
             $callback=$type==='callback'?(string)($incoming['callback_data']??''):'';
             if(in_array($callback,['back_check','tours_checked'],true)){
-                self::recordChoice($platform,$chatId,self::AI,'handoff_back');
+                self::recordChoice($platform,$chatId,self::AI,'handoff_back',['source_id'=>(int)($row['source_id']??0)]);
                 return false;
             }
 
@@ -64,6 +66,22 @@ class SourceHandlingService
                     &&(string)($incoming['source_key']??'')===(string)$row['source_key']
                     &&preg_match('~\A/start(?:@[A-Za-z0-9_]+)?(?:\s+\S+)?\s*\z~u',trim((string)($incoming['text']??''))));
                 $qualifying=self::isQualificationChoice($savedChoice,$row);
+                // Old handoff-back receipts have no source_id. They may restore
+                // their own runtime boundary, but cannot import historical posts.
+                if(!$sourceStart&&$type==='message'&&(string)$row['status']==='ai'
+                    &&$choice===self::AI&&($savedChoice['reason']??'')==='handoff_back'){
+                    require_once __DIR__.'/DialogueView.php';
+                    DialogueView::prepareSourceTrip($chatId);
+                }
+                // Returning to self-service keeps the same publication available
+                // as context without qualifying for another automatic handoff.
+                if(!$sourceStart&&(string)$row['status']==='ai'&&$choice===self::AI&&($savedChoice['reason']??'')==='handoff_back'
+                    &&(int)($savedChoice['source_id']??0)===(int)$row['source_id']){
+                    self::$postContextTurn=[
+                        'incoming'=>$incoming,'conversation_id'=>(int)$row['id'],
+                        'project_key'=>ProjectConfig::projectId(),'source_id'=>(int)$row['source_id'],
+                    ];
+                }
                 // Free-text manager intent keeps its canonical V2 interpretation;
                 // this exact button is an explicit choice and needs no questions.
                 if($callback===self::CHOICE_MANAGER){
@@ -96,11 +114,16 @@ class SourceHandlingService
                         }
                         return true;
                     }
+                    if($type==='message'&&(string)$row['status']==='ai'){
+                        require_once __DIR__.'/DialogueView.php';
+                        DialogueView::prepareSourceTrip($chatId);
+                    }
                     self::$qualificationTurn=[
                         'incoming'=>$incoming,'conversation_id'=>(int)$row['id'],
                         'project_key'=>ProjectConfig::projectId(),'source_id'=>(int)$row['source_id'],
                         'before'=>self::needContext($chatId),
                     ];
+                    self::$postContextTurn=self::$qualificationTurn;
                     // A first real message may arrive without a separate start.
                     // It must reach the canonical collector rather than be lost
                     // behind an introductory question or an old check surface.
@@ -226,16 +249,19 @@ class SourceHandlingService
     /** Bounded immutable post text for this current source, never a live offer. */
     public static function sourcePostContext($chatId): array
     {
-        if(!self::qualifyingTurn($chatId))return [];
-        if(array_key_exists('post_context',self::$qualificationTurn))return self::$qualificationTurn['post_context'];
-        self::$qualificationTurn['post_context']=[];
+        if(self::$postContextTurn===null
+            ||(string)(self::$postContextTurn['incoming']['user']['chat_id']??'')!==(string)$chatId
+            ||self::$postContextTurn['project_key']!==ProjectConfig::projectId())return [];
         try{
             require_once __DIR__.'/ChannelPostEntryService.php';
-            $platform=(string)self::$qualificationTurn['incoming']['platform'];
+            $platform=(string)self::$postContextTurn['incoming']['platform'];
             $row=self::conversation($platform,$chatId);
             $identity=ChannelPostRuntime::identity($platform);
-            if(!$identity||!$row||(int)$row['id']!==self::$qualificationTurn['conversation_id']
-                ||(int)$row['source_id']!==self::$qualificationTurn['source_id'])return [];
+            if(!$identity||!$row||(int)$row['id']!==self::$postContextTurn['conversation_id']
+                ||(int)$row['source_id']!==self::$postContextTurn['source_id']
+                ||(int)($row['manager_id']??0)>0||in_array((string)$row['status'],['manager','waiting_manager'],true))return [];
+            if(array_key_exists('post_context',self::$postContextTurn))return self::$postContextTurn['post_context'];
+            self::$postContextTurn['post_context']=[];
             $registry=new ChannelPostRegistryService();
             $post=$registry->managerContext((int)$row['id'],ProjectConfig::projectId(),1)['current']??null;
             if(!$post||!empty($post['unavailable'])||($post['source_key']??'')!==$row['source_key'])return [];
@@ -249,7 +275,7 @@ class SourceHandlingService
                 else{$matched=[];preg_match('/\A.{0,'.$limit.'}/us',$value,$matched);$out[$key]=(string)($matched[0]??'');}
             }
             $out['historical_publication']=true;
-            return self::$qualificationTurn['post_context']=$out;
+            return self::$postContextTurn['post_context']=$out;
         }catch(Throwable $ignored){return [];}
     }
 

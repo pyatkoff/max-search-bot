@@ -5,20 +5,32 @@ require_once __DIR__ . '/NeedApplicationService.php';
 
 class DepartureCityResolver
 {
-    public static function resolveAndStore($chatId, $text)
+    public static function resolveAndStore($chatId, $text, bool $allowFieldAnswer = false)
     {
         $text = trim((string)$text);
         if ($text === '') return false;
 
         $lower = function_exists('mb_strtolower') ? mb_strtolower($text, 'UTF-8') : strtolower($text);
-        if (!preg_match('/(?:^|\s)(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+/ui', $text)) return false;
+        $hasDepartureMarker = (bool)preg_match('/(?:^|\s)(?:с\s+вылетом\s+из|вылет(?:ом)?\s+из|из)\s+/ui', $text);
+        if (!$hasDepartureMarker && (!$allowFieldAnswer || preg_match('/[?？]/u', $text))) return false;
 
         try {
-            $best = self::bestMatch($lower, TravelDirectoryRepository::activeDepartures());
+            $departures = TravelDirectoryRepository::activeDepartures();
+            $best = $hasDepartureMarker
+                ? self::bestMatch($lower, $departures)
+                : self::bestFieldMatch($text, $departures);
             if (!$best) return false;
 
             $applied = NeedApplicationService::applyParameters($chatId, ['city' => $best['city']]);
             if (empty($applied['city'])) return false;
+
+            // Only a confirmed answer to the current departure question may
+            // consume the turn before destination inference and AI processing.
+            if (!$hasDepartureMarker) {
+                $readback = MaxSearchApi::getAiSearchContext($chatId);
+                if (trim((string)($readback['city'] ?? '')) !== $best['city']) return false;
+                $best['field_answer'] = true;
+            }
 
             MaxSearchApi::funnelLog($chatId, 'departure_city_resolved', [
                 'city_id' => $best['city_id'],
