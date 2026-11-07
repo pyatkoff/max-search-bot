@@ -117,7 +117,7 @@
     "combined": 322
   },
   "current_max_native_route_count": 161,
-  "new_route_and_feed_append_started": false,
+  "new_route_and_feed_append_started": true,
   "new_route_and_feed_writes": 0,
   "pending_new_route_native_ids": [
     27426,
@@ -125,14 +125,14 @@
     1095
   ],
   "content_correction_required": false,
-  "new_publishing_paused": true,
+  "new_publishing_paused": false,
   "sender_operation_closed": true,
   "unknown_operations": 0,
   "repeat_policy": "Keep the 164 confirmed pairs and current 161/161/322 feed. Do not rerun either closed operation or resume mass publication/feed expansion until the revised commercial format is accepted. Any approved media change must be separately bound to the same existing post IDs.",
   "prices_and_search_links_replayed": false,
   "mac_touched": false,
   "initial_quality_rejection": "User rejected the current Side Star post as unsuitable as an advertising landing; pause further posts and feed append in this format. Correct the existing three after the revised advertising package is prepared.",
-  "commercial_quality_user_accepted": false,
+  "commercial_quality_user_accepted": true,
   "caption_correction": {
     "operation": "commercial-hotel-caption-correction-20261107-1-v1",
     "state": "CLOSED_SIX_EXISTING_CAPTIONS_EDITED_AND_READBACK_VERIFIED",
@@ -210,14 +210,15 @@
     "button_copy_rule": "Действие «Узнать стоимость тура» пишем на кнопке; в тексте не повторяем «Нажмите…»."
   },
   "side_star_cover_draft": {
-    "status": "NOT_APPLIED_DRAFT_PREVIEW_NOT_COMMITTED_NOT_PUBLISHED",
+    "status": "COMMITTED_AND_APPLIED_TO_EXISTING_TWO_POSTS",
     "design_id": "DAHaKG2_z0k",
     "transaction_id": "4820498910682623885",
     "preview_file": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/Side_Star_Resort_Commercial_Cover_Draft_v2.png",
     "library_file_id": "libfile_fde3_f-dc2dca959cec81919804a68ef7293192_839482358a3c8191a38d8cf811d28df4",
     "source_state_file": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/side-star-cover-draft-state.json",
     "user_approved": false,
-    "channel_media_changed": false
+    "channel_media_changed": false,
+    "committed_transaction_id": "220071900505793444"
   },
   "caption_correction_operation_closed": true,
   "known_next_package": {
@@ -291,5 +292,55 @@
     "private_registry_contexts_in_result_artifact": true,
     "repeat_policy": "Closed confirmed new action; do not replay this edit or the prior consumed correction for reporting."
   },
-  "cta_repeat_removal_operation_closed": true
+  "cta_repeat_removal_operation_closed": true,
+  "side_star_media_correction": {
+    "operation": "commercial-side-star-media-20261107-1-v1",
+    "state": "COMPLETE_TWO_EXISTING_POSTS_VERIFIED",
+    "source_commit": "3121b27be57e7791a76370adad2361d442aaf27e",
+    "run_id": 42364064916,
+    "job_id": 128378312060,
+    "result_artifact_id": 13571111569,
+    "photo_sha256": "0a117604ce61e6f0d30e6cc16fe90da418ff674298ceec04ee6ce736eff78733",
+    "new_posts_created": 0,
+    "caption_edits": 0,
+    "total_media_edits": 2,
+    "max_write_repeated": false,
+    "prior_stop_run": 42363467896,
+    "readback_run": 42363843492,
+    "versions": {
+      "max": 933,
+      "telegram": 934
+    },
+    "same_post_ids_urls_buttons_tokens": true
+  },
+  "commercial_quality_user_accepted_scope": "Only these three corrected hotel materials and the shown Side Star cover; user said давай дальше.",
+  "continuation_condition": "Only a concretely prepared unique hotel with accepted commercial copy and genuine prepared images may be sent. Historical164 are not globally claimed editorially reaccepted.",
+  "next_candidate_registry_clearance": {
+    "state": "CURRENT_BOUNDED_REGISTRY_READ",
+    "read_at_utc": "2026-11-07T10:25:08+00:00",
+    "rows": [
+      {
+        "native_hotel_id": 24462,
+        "matches": [],
+        "clear": true
+      },
+      {
+        "native_hotel_id": 43236,
+        "matches": [],
+        "clear": true
+      },
+      {
+        "native_hotel_id": 101694,
+        "matches": [],
+        "clear": true
+      },
+      {
+        "native_hotel_id": 2469,
+        "matches": [],
+        "clear": true
+      }
+    ],
+    "provider_calls": 0,
+    "writes": 0
+  }
 }

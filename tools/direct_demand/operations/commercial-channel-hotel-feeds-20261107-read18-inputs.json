@@ -1,0 +1,23 @@
+[
+  {
+    "hotel_id": 27426,
+    "name": "Rubi Platinum Spa Resort & Suites",
+    "accepted_first_line": "🌴 Rubi Platinum Spa Resort & Suites 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15b82fe07291dd7eae0f6902d7b1ee4eb3436626/.github/traffic-publish/commercial-batch-20261107-1/27426.png",
+    "image_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00"
+  },
+  {
+    "hotel_id": 1216,
+    "name": "Rox Resort Hotel",
+    "accepted_first_line": "🏖 Rox Resort Hotel 5★ · Кемер",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15b82fe07291dd7eae0f6902d7b1ee4eb3436626/.github/traffic-publish/commercial-batch-20261107-1/1216.png",
+    "image_sha256": "6b719c1dc25fe7905d7b310c7b30d637f3a0a342a89eacebe4d647dd81fd76f6"
+  },
+  {
+    "hotel_id": 1095,
+    "name": "Side Star Resort",
+    "accepted_first_line": "🏖 Side Star Resort 5★ · Сиде",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/1cc100a9817085458305aedc90db5fb950e947f0/.github/traffic-publish/commercial-side-star-media-20261107-1/1095.png",
+    "image_sha256": "0a117604ce61e6f0d30e6cc16fe90da418ff674298ceec04ee6ce736eff78733"
+  }
+]

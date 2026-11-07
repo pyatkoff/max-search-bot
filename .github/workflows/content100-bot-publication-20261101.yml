@@ -1,4 +1,4 @@
-name: Complete the confirmed MAX cover and first Telegram media edit
+name: Read only the three new confirmed hotel feed bindings
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,19 +38,7 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 42357448787
-          name: commercial-hotel-caption-cta-dedup-20261107-1-result
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/prior-cta-dedup
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 42363843492
-          name: commercial-side-star-media-20261107-1-read1-result
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/side-star-readback
-      - name: Bind the committed cover to the two exact current Side Star contexts
+      - name: Bind only the three confirmed hotel pairs and their current approved images
         shell: bash
         run: |
           set -euo pipefail
@@ -59,29 +47,22 @@ jobs:
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(base/'commercial-side-star-media-20261107-1-inputs.json').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='8a2c35513bb5f77071496afede8c9758842aa5fc6237185d698c025e47b862b4'
-          media=json.loads(raw);assert media['hotel_id']==1095 and media['canva_committed_transaction_id']=='220071900505793444'
-          receipt=json.loads((tmp/'prior-cta-dedup'/'channel-preflight.json').read_text().splitlines()[-1])
-          assert receipt['ok'] and receipt['operation']=='commercial-hotel-caption-cta-dedup-20261107-1-v1' and receipt['commercial_text_updates']==6 and receipt['new_posts_created']==0
-          selected=[r for r in receipt['posts'] if r['logical_id']=='commercial-side-star-resort-1095-v1']
-          assert len(selected)==2 and {r['version_id'] for r in selected}=={929,932} and all(r['text_sha256']==media['text_sha256'] for r in selected)
-          readback=json.loads((tmp/'side-star-readback'/'channel-preflight.json').read_text().splitlines()[-1]);assert readback['ok'] and readback['operation']=='commercial-side-star-media-20261107-1-read1'
-          payload={'operation':media['operation'],'media':media,'prior_result':receipt,'readback':readback}
-          raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode();(tmp/'side-star-media-input.json').write_bytes(raw)
-          source=(base/'finish-side-star-media-original-operation-20261107-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='47d1354487d96a5ba65b9cf3864aedaeada81fac565bbf2be3b61258a474d4a7'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_MEDIA_OPERATION='commercial-side-star-media-20261107-1-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
-          assert source.count('declare(strict_types=1);')==1
+          raw=(base/'commercial-channel-hotel-feeds-20261107-read18-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='ff63b65e0019af17ead73340d25ecf8a1a0e5c3ef54c5ddbb812cde1f9e1bf0b'
+          rows=json.loads(raw);assert [r['hotel_id'] for r in rows]==[27426,1216,1095]
+          (tmp/'feed-read18-inputs.json').write_bytes(raw)
+          source=(base/'read-commercial-channel-hotel-feeds-20261107-18.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='825da24b9924a2a26961bcb00690662c26c2a69056a3b83e57e8f373bc272f9d'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst FEED_EXPORT_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst FEED_EXPORT_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-          print(json.dumps({'operation':payload['operation'],'exact_existing_posts':2,'new_sends':0,'caption_changes':0,'server_calls':0}))
+          print(json.dumps({'operation':'commercial-channel-hotel-feeds-20261107-read18','new_hotels':3,'old161_read':0,'provider_calls':0,'writes':0}))
           PYCODE
           php -l "$RUNNER_TEMP/channel-preflight.php"
-      - name: Retain exact approved media intent before provider access
+      - name: Retain exact new feed binding scope
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-side-star-media-20261107-1-finish1-inputs
-          path: ${{ runner.temp }}/side-star-media-input.json
+          name: commercial-channel-hotel-feeds-20261107-read18-inputs
+          path: ${{ runner.temp }}/feed-read18-inputs.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -122,7 +103,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Confirm saved MAX success and execute the first Telegram media edit
+      - name: Read only the three new current pair bindings
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -135,25 +116,19 @@ jobs:
           import pathlib,json,os
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
-          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-side-star-media-20261107-1-v1' and d['mode']=='complete_confirmed_max_registry_and_first_telegram_media_edit'
-          assert d['ok'] is True and d['media_updates']==2 and len(d['posts'])==2 and d['new_posts_created']==0 and d['media_edit_attempts']==2
-          assert d['caption_edits']==d['tour_search_calls']==d['price_queries']==d['max_provider_writes_this_action']==d['max_uploads_this_action']==0
-          source=json.loads((tmp/'side-star-media-input.json').read_text());prior={p['platform']:p for p in source['prior_result']['posts'] if p['logical_id']=='commercial-side-star-resort-1095-v1'}
-          for p in d['posts']:
-              old=prior[p['platform']]
-              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','source_key','text_sha256'))
-              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id']
-              assert p['previous_photo_signature']==old['photo_signature'] and p['photo_signature']!=old['photo_signature']
-              assert p['photo_sha256']==source['media']['photo_sha256'] and p['caption_unchanged'] and p['body_photo_button_verified'] and p['existing_message_reused']
-          print('SIDE_STAR_TWO_EXISTING_MEDIA_UPDATED caption_button_token_url=preserved new_posts=0 other_hotels_changed=0')
+          print(json.dumps({k:v for k,v in d.items() if k not in ('private_max_bindings',)},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-channel-hotel-feeds-20261107-read18' and d['ok'] is True
+          assert d['scope_hotels']==d['feed_rows']==d['private_binding_count']==3 and d['deferred_count']==0
+          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
+          assert [r['hotel_id'] for r in d['rows']]==[27426,1216,1095]
+          print('NEW_THREE_CURRENT_FEED_BINDINGS_READ older161_unchanged provider_calls=0 writes=0')
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-side-star-media-20261107-1-finish1-result
+          name: commercial-channel-hotel-feeds-20261107-read18-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
