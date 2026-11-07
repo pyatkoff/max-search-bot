@@ -1,0 +1,65 @@
+[
+  {
+    "hotel_id": 129161,
+    "name": "Rewaya Majestic Resort",
+    "accepted_first_line": "🌊 Rewaya Majestic Resort 5★ · Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/129161.png",
+    "image_sha256": "05b39d6eae858271a403f3b7381a2c18012d8d5a1990399127af5a56610d172d"
+  },
+  {
+    "hotel_id": 65877,
+    "name": "Vesna Hotel",
+    "accepted_first_line": "🌊 Vesna Hotel 5★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/65877.png",
+    "image_sha256": "18211dcfb679b1e0576833e09aaf3d4e633eff2e872c3a05b30fe36c14d3b53f"
+  },
+  {
+    "hotel_id": 20971,
+    "name": "Sugar Marina Resort Nautical Kata Beach",
+    "accepted_first_line": "⛵ Sugar Marina Resort Nautical Kata Beach 4★ · Пхукет",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/20971.png",
+    "image_sha256": "17bca7c177323ec9f023636732c5f78d34d54b80014ae299662e3bbe923939e8"
+  },
+  {
+    "hotel_id": 1653,
+    "name": "Hilton Dalaman Sarigerme Resort & Spa",
+    "accepted_first_line": "🌿 Hilton Dalaman Sarigerme Resort & Spa 5★ · Сарыгерме",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/1653.png",
+    "image_sha256": "bddda172e2949f05dce133e77c2ab18e05377d2f96269639259ecfaeffe52e31"
+  },
+  {
+    "hotel_id": 501,
+    "name": "Empire Beach Aqua Park",
+    "accepted_first_line": "🏖 Empire Beach Aqua Park 3★ · Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/501.png",
+    "image_sha256": "1c8a9f824910740f683d8c93ebe0453086a8d53af188e7c557be07106db27e18"
+  },
+  {
+    "hotel_id": 502,
+    "name": "Empire Hotel Aqua Park",
+    "accepted_first_line": "💦 Empire Hotel Aqua Park 3★ · Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/502.png",
+    "image_sha256": "1db02e76e6e7e7e0cf076b6269686f54aa1dfd663e298af2524016f363ce692c"
+  },
+  {
+    "hotel_id": 95165,
+    "name": "Annova Nha Trang Hotel",
+    "accepted_first_line": "🌇 Annova Nha Trang Hotel 5★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/95165.png",
+    "image_sha256": "7a4e754f1794f8ca6573c056fcfb8c66e70f0b558e39fc2cac2e76fb0af89f1a"
+  },
+  {
+    "hotel_id": 50659,
+    "name": "Sheraton Phu Quoc Long Beach Resort",
+    "accepted_first_line": "🌴 Sheraton Phu Quoc Long Beach Resort 5★ · Фукуок",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/50659.png",
+    "image_sha256": "10af863f5ed781f4a307b4588d2e5712ba620689bbc8c4ce58540831bc594069"
+  },
+  {
+    "hotel_id": 79071,
+    "name": "Wyndham Garden Grandworld Phu Quoc",
+    "accepted_first_line": "🌴 Wyndham Garden Grandworld Phu Quoc 4★ · Фукуок",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/79071.png",
+    "image_sha256": "184d9d20d7d8ed63440c24aa0af8c8856d6c7ae1924505c8d32ff966fc5bac19"
+  }
+]
