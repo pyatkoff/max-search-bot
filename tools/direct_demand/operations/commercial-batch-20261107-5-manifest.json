@@ -1,0 +1,188 @@
+{
+  "operation": "commercial-hotel-batch-20261107-5-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 183,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "read_at_utc": "2026-11-07T11:07:50+00:00",
+    "run_id": 42366839876,
+    "ids": [
+      128087,
+      969,
+      55647,
+      120117
+    ],
+    "all_clear": true,
+    "same_clearance_not_replayed": true
+  },
+  "media_approval_basis": "Existing mass-release mandate in accepted style and latest user instruction давай дальше. All selected final covers shown in chat.",
+  "rows": [
+    {
+      "hotel_id": 128087,
+      "logical_id": "commercial-wyndham-garden-phuket-kamala-128087-v1",
+      "aliases": [
+        "Wyndham Garden Phuket Kamala",
+        "WYNDHAM GARDEN PHUKET KAMALA"
+      ],
+      "text": "🌴 Wyndham Garden Phuket Kamala 4★\n\nОтпуск на Пхукете с выбором номера у бассейна.\n\n🛏 Superior King 28 м² с балконом или Deluxe King with Bathtub 38 м² с ванной.\n💧 У категорий Superior King with Pool Access и Deluxe King with Pool Access есть прямой выход к бассейну.\n🌅 99 Bar расположен на крыше лобби.\n🏖 До пляжа Камала предусмотрен бесплатный шаттл.\n\n✈️ Подберём категорию в Wyndham Garden Phuket Kamala. Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "3d9733e00f73b37c9e04df922968d31fca6d5f13d898bcca48f991695ff11301",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f/.github/traffic-publish/commercial-batch-20261107-5/128087.png",
+      "photo_sha256": "22c260cebc10aa2d2daafa190947e93851a532b03bff1171a10db912242a6396",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/thailand/phuket/wyndham_garden_phuket_kamala/",
+        "https://wyndhamgardenphuketkamala.com/accommodation/",
+        "https://wyndhamgardenphuketkamala.com/dining/",
+        "https://wyndhamgardenphuketkamala.com/room/superior-king-room/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117",
+        "https://wyndhamgardenphuketkamala.com/room/deluxe-king-room-with-bathtub/"
+      ],
+      "identity_binding": {
+        "anex_id": 42328,
+        "anytour_id": 3955,
+        "legacy_native_id": 128087,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaO3N0C2o",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_20ab2b9b5400fb67_run07_c03",
+        "top500_20ab2b9b5400fb67_run07_c04",
+        "country61_TH_20261025T191759Z_mass_c01",
+        "country61_TH_20261025T191759Z_mass_c02",
+        "country61_TH_20261025T204503Z_mass_c13",
+        "country61_TH_20261025T220230Z_mass_c07"
+      ]
+    },
+    {
+      "hotel_id": 969,
+      "logical_id": "commercial-gural-premier-tekirova-969-v1",
+      "aliases": [
+        "Gural Premier Tekirova",
+        "GURAL PREMIER TEKIROVA"
+      ],
+      "text": "🌿 Gural Premier Tekirova 5★ · Кемер\n\nПервая линия и семейные номера, где можно отдыхать в разных комнатах.\n\n🛏 Deluxe Family 80 м² с учётом балкона: две комнаты с разделительной дверью, ванная с джакузи и отдельным душем.\n👨‍👩‍👧 Happyland с детскими пространствами; для малышей есть комнаты кормления и переодевания.\n🎾 Теннисный центр с 13 кортами, в том числе детскими.\n\n✈️ Подберём подходящий номер в Gural Premier Tekirova и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "581b3b6191e7c186efaefd03a508ee9c9dc7a75b582a8ed45a5bb02eaccad782",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f/.github/traffic-publish/commercial-batch-20261107-5/969.png",
+      "photo_sha256": "3ab98f840559567ba4d806b72706298dcfbdc6f67291834718d47e410cd055e8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/kemer/gural_premier_tekirova/",
+        "https://www.guralpremier.com/en/tekirova/deluxe-rooms/deluxe-family-room",
+        "https://www.guralpremier.com/en/tekirova/happyland",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 8642,
+        "anytour_id": 416,
+        "legacy_native_id": 969,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO1YBS7I",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_281e7a864d63c0b1_run04_c04",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c18",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c19",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c21",
+        "HOTEL-TR-CONTINUOUS-20261028-50D34965332F-08_c03"
+      ]
+    },
+    {
+      "hotel_id": 55647,
+      "logical_id": "commercial-barut-b-suites-55647-v1",
+      "aliases": [
+        "Barut B Suites",
+        "BARUT B SUITES (EX. FAMILY LIFE SIDE, SUNWING)"
+      ],
+      "text": "🏖 Barut B Suites 4★ · Сиде\n\nСемейный отпуск с собственной кухней в номере.\n\n🛏 Suite 45 м²: спальня и гостиная с кухонной зоной. Grand Suite 53 м²: две спальни и гостиная с кухней.\n🌊 Песчаный пляж в 250 м, через дорогу и променад. Вход в море песчаный.\n🍽 Можно выбрать подходящий план питания: от проживания без питания до «всё включено».\n\n✈️ Подберём номер и питание в Barut B Suites. Рассчитаем тур с перелётом на ваш состав и даты.",
+      "text_sha256": "61d4433e6666750dbbadfaf35f689b83237c2a862316deed049a7196d82dd654",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f/.github/traffic-publish/commercial-batch-20261107-5/55647.png",
+      "photo_sha256": "2cea9da74028aae0a59cea92efa2f0f299dee16380b016b9aa72ed77481ecdfb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/side/barut_b_suites/",
+        "https://barutbsuites.com/en/accommodation/grand-suite",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 26347,
+        "anytour_id": 2580,
+        "legacy_native_id": 55647,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaOyjS9P4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_ae1b8b7450b1f323_run06_c03",
+        "top500_ae1b8b7450b1f323_run06_c04",
+        "top500_ae1b8b7450b1f323_run06_c02",
+        "HOTEL-TR-MANUAL-20261025T212153Z-BASE10_c44"
+      ]
+    },
+    {
+      "hotel_id": 120117,
+      "logical_id": "commercial-khao-lak-marriott-beach-resort-spa-120117-v1",
+      "aliases": [
+        "Khao Lak Marriott Beach Resort & Spa",
+        "KHAO LAK MARRIOTT BEACH RESORT & SPA"
+      ],
+      "text": "🌴 Khao Lak Marriott Beach Resort & Spa 5★\n\nОтдых на побережье Као Лака с выбором размещения для семьи или пары.\n\n🏖 Песчаный пляж Банг Лут.\n💧 Основной бассейн у пляжа, отдельные бассейны для взрослых и детей.\n🛏 Family Suite с детской двухъярусной кроватью.\n🌊 Private Pool Villa: личный бассейн и прямой выход к пляжу.\n\n✈️ Подберём подходящий номер или виллу в Khao Lak Marriott. Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "9f42223c0f83c971550e0b7c391b82521f1ea7c190f0d1300c76e176dc27ad53",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f/.github/traffic-publish/commercial-batch-20261107-5/120117.png",
+      "photo_sha256": "4db420c763e0277afa74c98f8acd2940a62df158883270d724bdbcde2dc47f1d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/khao_lak/khao_lak_marriott_beach_resort_spa/",
+        "https://www.marriott.com/en-us/hotels/hktmk-khao-lak-marriott-beach-resort-and-spa/overview/",
+        "https://www.marriott.com/en-us/hotels/hktmk-khao-lak-marriott-beach-resort-and-spa/rooms/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 39288,
+        "anytour_id": 3849,
+        "legacy_native_id": 120117,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO9xjTVM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_642748e9bd1df9a7_run07_c04",
+        "top500_642748e9bd1df9a7_run07r_c01",
+        "country61_TH_20261025T183609Z_manual_c01",
+        "country61_TH_20261025T183609Z_manual_c07",
+        "country61_TH_20261025T183609Z_manual_c08"
+      ]
+    }
+  ]
+}

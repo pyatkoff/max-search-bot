@@ -1,0 +1,34 @@
+{
+  "commit": "26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f",
+  "images": [
+    {
+      "native": 128087,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/wyndham-commercial-cover.png",
+      "bytes": 812895,
+      "b64_length": 1083860,
+      "sha256": "22c260cebc10aa2d2daafa190947e93851a532b03bff1171a10db912242a6396"
+    },
+    {
+      "native": 969,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/gural-tekirova-commercial-cover.png",
+      "bytes": 698835,
+      "b64_length": 931780,
+      "sha256": "3ab98f840559567ba4d806b72706298dcfbdc6f67291834718d47e410cd055e8"
+    },
+    {
+      "native": 55647,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/barut-b-commercial-cover.png",
+      "bytes": 714945,
+      "b64_length": 953260,
+      "sha256": "2cea9da74028aae0a59cea92efa2f0f299dee16380b016b9aa72ed77481ecdfb"
+    },
+    {
+      "native": 120117,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/khaolak-marriott-commercial-cover.png",
+      "bytes": 762623,
+      "b64_length": 1016832,
+      "sha256": "4db420c763e0277afa74c98f8acd2940a62df158883270d724bdbcde2dc47f1d"
+    }
+  ],
+  "approval_basis": "Last four of thirteen final manifest; Canva committed and real photographs visually accepted by parent. Existing mass-release authorization."
+}
