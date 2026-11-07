@@ -1,0 +1,336 @@
+{
+  "status": "READY_REVIEWED_CAPTIONS",
+  "hotels": [
+    {
+      "hotel_key": "top500_261f298805a2fc51",
+      "name": "Asteria Family Resort Side (Ex. Euphoria Palm)",
+      "native_hotel_id": 1353,
+      "anex_hotel_id": 39873,
+      "anytour_hotel_id": 633,
+      "current_catalog_name": "ASTERIA FAMILY RESORT SIDE (EX. EUPHORIA PALM BEACH RESORT)",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_261f298805a2fc51_run12_c01",
+        "top500_261f298805a2fc51_c02",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c10",
+        "top500_261f298805a2fc51_run10_c03"
+      ],
+      "source_urls": [
+        "https://www.tui.com/hotels/asteria-family-side-18521/hotelinformation/",
+        "https://www.fibula.rs/hotel/turska/antalijska-regija/side/asteria-family-resort-side--384179",
+        "https://www.coral.ge/en/hotels/turkey/asteria-family-resort-side-side/"
+      ],
+      "text": "🌴 Asteria Family Resort Side 5★ · Кызылагач\n\nДля семейного отпуска с пляжными днями и занятиями на территории.\n\n🛏 Standard Club 23 м² с двумя отдельными кроватями.\n🏖 Собственный пляж на первой линии.\n🎾 Шесть теннисных кортов. Тренажёрный зал доступен с 13 лет.\n💧 Отдельный Relax Pool для гостей от 16 лет.\n\nНа пляже песок и галька.\n\n✈️ Подберём номер и питание под состав семьи, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a29720e48ab02079377188421d28fc37a0829ed922b951f820ee66d3b7c52889",
+      "utf16_units": 424,
+      "notes": [
+        "Exact FamilyResortSide, not FamilyBelek/Collection/Bloom. StandardClub23 has two separate main beds; child age not inferred from2+1. Gym13+ and RelaxPool16+ apply only to those facilities. Tennis lessons/lighting and different AI bar/minibar inclusions not advertised as universally free.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "asteria-family-side",
+      "label": "ASTERIA FAMILY SIDE 5★",
+      "source_ids": [
+        "top500_261f298805a2fc51_run12_s01",
+        "top500_261f298805a2fc51_s01",
+        "top500_261f298805a2fc51_run10_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_bca1849e7f32fb9e",
+      "name": "Catamaran Quality Times",
+      "native_hotel_id": 1067,
+      "anex_hotel_id": 8280,
+      "anytour_hotel_id": 4423,
+      "current_catalog_name": "CATAMARAN QUALITY TIMES (EX. CATAMARAN)",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_bca1849e7f32fb9e_demand30_c01",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c04",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c05",
+        "top500_bca1849e7f32fb9e_run04_c03"
+      ],
+      "source_urls": [
+        "https://cdn-prd.sonnenklar.tv/beschreibung/T%C3%BCrkei/T%C3%BCrkische_Riviera/Beldibi/Catamaran_Quality_Times.html",
+        "https://www.catamaranqualitytimes.com/room/"
+      ],
+      "text": "🌿 Catamaran Quality Times 5★ · Бельдиби\n\nДля отпуска с активными занятиями и отдыхом в хаммаме.\n\n🛏 Comfort 24 м² с балконом.\n🧘 Йога, пилатес и танцевальные занятия.\n🏐 Волейбол и настольный теннис.\n🧖 Хаммам, сауна и парная на территории.\n\n✈️ Подберём номер и питание, рассчитаем тур в Catamaran с перелётом на ваши даты.",
+      "text_sha256": "bc6c35f9b39bb700390a4dc9b7d90988359efc57b761800ccd7e009bf36a2566",
+      "utf16_units": 324,
+      "notes": [
+        "Comfort24 balcony proved; conflicting bed-count/occupancy wording not merged. Exact beach route unknown, no first-line/direct-path promise. No full free lessons/SPA or seasonal calendar promise. EU-residency hotel-only condition belongs to that operator product, not a hotel-wide nationality restriction.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "catamaran",
+      "label": "CATAMARAN QUALITY TIMES 5★",
+      "source_ids": [
+        "top500_bca1849e7f32fb9e_demand30_s01",
+        "top500_bca1849e7f32fb9e_run04_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_7552b61b2fc33276",
+      "name": "Hawaii Resort Phu Quoc",
+      "native_hotel_id": 14135,
+      "anex_hotel_id": 6699,
+      "anytour_hotel_id": 1715,
+      "current_catalog_name": "HAWAII RESORT PHU QUOC (EX. THIEN HAI SON RESORT)",
+      "category": 3,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T195135Z-C46",
+        "HOTEL-VN-MASS-20261025T195135Z-C43",
+        "HOTEL-VN-MASS-20261025T195135Z-C47",
+        "HOTEL-VN-MASS-20261025T195135Z-C44"
+      ],
+      "source_urls": [
+        "https://www.coral.ge/en/hotels/vietnam/hawaii-resort-phu-quoc-phu-quoc/",
+        "https://hawaiiresort.vn/"
+      ],
+      "text": "🌴 Hawaii Resort Phu Quoc 3★ · Фукуок\n\nДля отдыха среди зелени рядом с морем.\n\n🌿 Почти 3 га зелёной территории.\n💧 Открытый бассейн 200 м² и отдельный детский бассейн.\n🍽 Садовый ресторан с вьетнамскими блюдами и морепродуктами.\n🏖 Своя пляжная зона рядом с отелем.\n\nПо пути к пляжу нужно перейти дорогу.\n\n✈️ Подберём корпус, номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "9960380f69ed390007f835b9b38a18f08cb8d4052b8dddeaa564518fb8d91996",
+      "utf16_units": 384,
+      "notes": [
+        "Road qualifier retained despite first-line language elsewhere. Main/annex/bungalows not identical routes. No private pool for every room; conflicting room headings/photos/areas not matched by guess. PublicAreas2025 renovation not a renovated-room promise; old2019events not regular programme.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "hawaii",
+      "label": "HAWAII RESORT PHU QUOC 3★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T195135Z-S14",
+        "HOTEL-VN-MASS-20261025T195135Z-S13"
+      ]
+    },
+    {
+      "hotel_key": "top500_529a6c6b3b4a8a76",
+      "name": "The V Luxury Resort",
+      "native_hotel_id": 90236,
+      "anex_hotel_id": 36510,
+      "anytour_hotel_id": 3609,
+      "current_catalog_name": "THE V LUXURY RESORT",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_529a6c6b3b4a8a76_c03",
+        "top500_529a6c6b3b4a8a76_c04",
+        "top500_529a6c6b3b4a8a76_c05",
+        "top500_529a6c6b3b4a8a76_c06"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/egypt/hurgada_sahl-hasheesh/the_v_luxury_resort/"
+      ],
+      "text": "🌊 The V Luxury Resort 5★ · Сахль Хашиш\n\nДля отдыха у моря с просторным номером и вечерней музыкой.\n\n🛏 Superior 40 м² для двух или трёх гостей.\n🏖 Собственный песчаный пляж на первой линии.\n🎶 Живая музыка и вечерние мероприятия.\n🧖 SPA для гостей от 16 лет.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты и состав гостей.",
+      "text_sha256": "32c0a00c48d5b56b9b4b4e4137acdab3f5e5651096f9b1820dff70628e63a136",
+      "utf16_units": 350,
+      "notes": [
+        "OperatorSuperior40 retained; contradictory officialDeluxe44/35 and queen/king not merged.16+ is onlySPA and specific SwimUp/Jacuzzi/Panoramic categories, not hotel-wide. Sand beach does not establish shallow entry. No future free minibar/all brands/a-la-carte entitlement from expiredOct2026concept.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "the-v-luxury",
+      "label": "THE V LUXURY RESORT 5★",
+      "source_ids": [
+        "top500_529a6c6b3b4a8a76_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_2e7007314c41fbd4",
+      "name": "The Sol Hotel (Ex. Anvista Hotel)",
+      "native_hotel_id": 47470,
+      "anex_hotel_id": 12134,
+      "anytour_hotel_id": 2449,
+      "current_catalog_name": "THE SOL HOTEL (EX. AN VISTA)",
+      "category": 3,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-C12",
+        "HOTEL-VN-MASS-20261025T201851Z-C15",
+        "HOTEL-VN-MASS-20261025T201851Z-C14",
+        "HOTEL-VN-MASS-20261025T201851Z-C16",
+        "top500_2e7007314c41fbd4_run07_c04"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/an_vista_hotel/",
+        "https://www.coral.ge/en/hotels/vietnam/the-sol-hotel-ex-an-vista-hotel-nha-trang/"
+      ],
+      "text": "🌆 The Sol Hotel 3★ · Нячанг\n\nДля городских прогулок и пляжных дней.\n\n🛏 Deluxe City View With Balcony от 21 до 23 м² с балконом и видом на город.\n💧 Открытый бассейн 70 м².\n🏋️ Тренажёрный зал на территории.\n🍽 Ресторан завтраков.\n\nПляж муниципальный, к нему нужно перейти дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур в The Sol с перелётом на ваши даты.",
+      "text_sha256": "01e65203ef7b78450bca220dbcfca54ae801a4c6e3cd3d06716ad0c856bd49fc",
+      "utf16_units": 362,
+      "notes": [
+        "RetainedCoral explicitly namesTHE SOL(EX.AN VISTA) and new canonical catalog proves exact native link. Only new current-name room record used; oldAnVistaSuperior22without balcony/Honeymoon occupancy not transferred. Beach150/200/300 distances conflict, so omitted. PublicAreas2025 does not imply renewed rooms, no defaultAdults2 capacity inference.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "the-sol",
+      "label": "THE SOL HOTEL 3★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-S04",
+        "top500_2e7007314c41fbd4_run07_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_757fc70cff583280",
+      "name": "Asteria Bloom Side (ex. Selectum For two)",
+      "native_hotel_id": 27647,
+      "anex_hotel_id": 35320,
+      "anytour_hotel_id": 2008,
+      "current_catalog_name": "ASTERIA BLOOM SIDE (EX. SELECTUM FOR TWO SIDE)",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_757fc70cff583280_c03",
+        "top500_757fc70cff583280_c04",
+        "top500_757fc70cff583280_c05",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c16",
+        "top500_757fc70cff583280_run03_c01"
+      ],
+      "source_urls": [
+        "https://bloomside.asteriahotels.com/en",
+        "https://kompastour.com/kz/rus/country/turkey/side/asteria_bloom_side/"
+      ],
+      "text": "🎶 Asteria Bloom Side 5★ · Кызылагач\n\nДля пляжного отпуска вдвоём с музыкой и активными занятиями.\n\n🛏 Deluxe Room 35 м² для двух гостей.\n🏖 Собственный пляж на первой линии.\n🎵 Живая музыка, DJ и тематические вечеринки.\n🧘 Йога, зумба и тренажёрный зал на территории.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "8e00810b399d03903be66d3640db89faee010b704c5d1c875e78291ddde6959d",
+      "utf16_units": 339,
+      "notes": [
+        "Current hotel accepts all ages; formerSelectumForTwo does not imply AdultsOnly. Deluxe35 max2 retained. Suite31–48 two rooms vs operator two bedrooms conflict avoided. No nightclub hours/all activities free or seasonal performance guarantee.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "asteria-bloom",
+      "label": "ASTERIA BLOOM SIDE 5★",
+      "source_ids": [
+        "top500_757fc70cff583280_s01",
+        "top500_757fc70cff583280_run03_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_ad78da98e48d1e96",
+      "name": "Spice Hotel & Spa",
+      "native_hotel_id": 1512,
+      "anex_hotel_id": 8491,
+      "anytour_hotel_id": 716,
+      "current_catalog_name": "SPICE HOTEL & SPA",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_ad78da98e48d1e96_c03",
+        "top500_ad78da98e48d1e96_c04",
+        "top500_ad78da98e48d1e96_enrich20261020_c01",
+        "top500_ad78da98e48d1e96_c05"
+      ],
+      "source_urls": [
+        "https://spice.com.tr/en/events-and-meeting/childrens/",
+        "https://kompastour.com/ua/rus/country/turkey/belek/spice_hotel_spa/"
+      ],
+      "text": "🌴 Spice Hotel & Spa 5★ · Белек\n\nДля семьи, которой нужны две отдельные спальни и занятия для детей разного возраста.\n\n🛏 Family 72 м²: две спальни с дверью.\n🏖 Пляж на первой линии с песчаным входом.\n🎨 Программы для детей от 4 до 12 лет и подростков от 13 до 16 лет.\n🎶 Живая музыка и крытая дискотека.\n\nНа самом пляже встречается галька.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a0747d8b108cbac2ca644ca813516a3254435431b790f9c8949a55861eeddbbb",
+      "utf16_units": 419,
+      "notes": [
+        "Family72 exact door retained without guessed child tariff. Old20Mar–10May2026 aquapark heating not transferred to winter2026/27. Paid a-la-carte/seasonalSumac not advertised as universal UAI rights;2024practical-list wording does not overrideMay2026facts.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "spice",
+      "label": "SPICE HOTEL & SPA 5★",
+      "source_ids": [
+        "top500_ad78da98e48d1e96_s01",
+        "top500_ad78da98e48d1e96_enrich20261020_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_e9d71c696fca57b0",
+      "name": "Rubi Platinum Sign",
+      "native_hotel_id": 75041,
+      "anex_hotel_id": 27446,
+      "anytour_hotel_id": 6173,
+      "current_catalog_name": "RUBI PLATINUM SIGN",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_e9d71c696fca57b0_c03",
+        "top500_e9d71c696fca57b0_c04",
+        "top500_e9d71c696fca57b0_enrich20261020_c01",
+        "top500_e9d71c696fca57b0_c05",
+        "top500_e9d71c696fca57b0_demand17_c01"
+      ],
+      "source_urls": [
+        "https://www.alltours.de/hotels/rubi-platinum-sign-antalya-ayt704.html",
+        "https://rubiplatinum.com/en/hotel/rubiplatinumsign/kids-club",
+        "https://kompastour.com/ua/rus/country/turkey/alanya/rubi_platinum_sign_hotel/"
+      ],
+      "text": "🌴 Rubi Platinum Sign 5★ · Тюрклер\n\nДля семейного отпуска с отдельными спальнями и совместными занятиями.\n\n🛏 Family 42 м² с двумя спальнями и балконом.\n🏖 Пляж рядом с отелем, первая линия.\n🎨 Ma&Me&Pa: мастерские и игры детей вместе с родителями.\n🎶 Живая музыка на территории.\n\nНа пляже встречаются песок и галька.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "688740f2af9e72bb9827e23a368326656bc72a428cd848b056f0d1ca0fb825f9",
+      "utf16_units": 400,
+      "notes": [
+        "MEDIA_PENDING: current canonical catalog images=[] and retained direct mediarefs0. Exact Sign, not already-published RubiPlatinumSpaResort&Suites. Family42 has two bedrooms, no invented door or adult/child formula. MaMePa means parent-child activities, not independent childcare. Sand/pebble retained; no shallow seabed, winter heating or all-age slide admission.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "media_status": "MEDIA_PENDING_CURRENT_CATALOG_EMPTY_NO_RETAINED_DIRECT_IMAGES",
+      "slug": "rubi-sign",
+      "label": "RUBI PLATINUM SIGN 5★",
+      "source_ids": [
+        "top500_e9d71c696fca57b0_s01",
+        "top500_e9d71c696fca57b0_enrich20261020_s01",
+        "top500_e9d71c696fca57b0_demand17_s02"
+      ]
+    },
+    {
+      "hotel_key": "top500_bb4a2641df42f48f",
+      "name": "Ic Hotels Green Palace",
+      "native_hotel_id": 1258,
+      "anex_hotel_id": 8674,
+      "anytour_hotel_id": 574,
+      "current_catalog_name": "IC HOTELS GREEN PALACE",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_bb4a2641df42f48f_run04_c03",
+        "top500_bb4a2641df42f48f_run04_c04",
+        "top500_bb4a2641df42f48f_demand22_c01",
+        "top500_bb4a2641df42f48f_demand22_c02",
+        "HOTEL-TR-CONTINUOUS-20261028-34158791DFBD-08_c07"
+      ],
+      "source_urls": [
+        "https://www.ichotels.com.tr/en/our-hotels/green-palace-villas/nico-kids-club/",
+        "https://kompastour.com/ge/eng/country/turkey/antaliya/ic_green_palace/"
+      ],
+      "text": "🌿 IC Hotels Green Palace 5★ · Кунду\n\nДля семейного отпуска с двумя спальнями и занятиями для детей и подростков.\n\n🛏 Family 52 м²: две спальни и два санузла.\n🏖 Расположение на первой линии.\n🎨 NICO: Mini Club от 4 до 12 лет и Teenage от 12 до 16 лет.\n🎾 Четыре теннисных корта и тренажёрный зал.\n\n✈️ Подберём корпус и номер под возраст детей, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "2663992b8da235a081373ae3f04e41ead05925e5e64256cbddd2d17b42de359d",
+      "utf16_units": 385,
+      "notes": [
+        "OfficialNICO4–12 used, retainedKOMPAS5–12 differs for age4; exact programme/admission must be checked without assumed free supervision. Family52 beds/4+2Guests not converted to4AD+2CH. No Villa dining privileges or old2022–24 winter pool heat generalized to2026/27. Tennis lighting/equipment/lessons not included by presence.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "ic-green-palace",
+      "label": "IC HOTELS GREEN PALACE 5★",
+      "source_ids": [
+        "top500_bb4a2641df42f48f_run04_s01",
+        "top500_bb4a2641df42f48f_demand22_s02"
+      ]
+    }
+  ]
+}

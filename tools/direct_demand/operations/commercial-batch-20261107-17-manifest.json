@@ -1,0 +1,439 @@
+{
+  "operation": "commercial-hotel-batch-20261107-17-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 257,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read30",
+        "run_id": 42379881031,
+        "job_id": 128425055414,
+        "read_at_utc": "2026-11-07T14:05:11Z",
+        "private_receipt_sha256": "f9500ae391ab7d12102a9bf4a5584081c9328bc58ae40db6acab8c96e3a96bd4",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nine-after-257-commercial-release-manifest.json",
+    "sha256": "c498799f5852074a46c274c53fbd8ca1df9e3eee72207700f077dce96659ac44",
+    "full_parent_manifest_sha256": "c498799f5852074a46c274c53fbd8ca1df9e3eee72207700f077dce96659ac44",
+    "full_parent_caption_sha256": "398459c4344341d04c31cd1f6bff62ba0e20d98c02b9ac96f9ca895f77efc2fb",
+    "within_sender_max10": true
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1353,
+      "logical_id": "commercial-asteria-family-side-1353-v1",
+      "aliases": [
+        "Asteria Family Resort Side (Ex. Euphoria Palm)",
+        "ASTERIA FAMILY RESORT SIDE (EX. EUPHORIA PALM BEACH RESORT)",
+        "Asteria Family Resort Side",
+        "Euphoria Palm",
+        "EUPHORIA PALM BEACH RESORT"
+      ],
+      "text": "🌴 Asteria Family Resort Side 5★ · Кызылагач\n\nДля семейного отпуска с пляжными днями и занятиями на территории.\n\n🛏 Standard Club 23 м² с двумя отдельными кроватями.\n🏖 Собственный пляж на первой линии.\n🎾 Шесть теннисных кортов. Тренажёрный зал доступен с 13 лет.\n💧 Отдельный Relax Pool для гостей от 16 лет.\n\nНа пляже песок и галька.\n\n✈️ Подберём номер и питание под состав семьи, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a29720e48ab02079377188421d28fc37a0829ed922b951f820ee66d3b7c52889",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1353.png",
+      "photo_sha256": "0c79905b4c8f8d32f6d34e1972aaab011f7b2a721acafba574ad9b4ce3941e72",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.com/hotels/asteria-family-side-18521/hotelinformation/",
+        "https://www.fibula.rs/hotel/turska/antalijska-regija/side/asteria-family-resort-side--384179",
+        "https://www.coral.ge/en/hotels/turkey/asteria-family-resort-side-side/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-palm-beach-73873316.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-palm-beach-73886832.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/majesty-club-palm-beach-73873326.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 39873,
+        "anytour_id": 633,
+        "legacy_native_id": 1353,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPr8LvVM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_261f298805a2fc51_run12_c01",
+        "top500_261f298805a2fc51_c02",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c10",
+        "top500_261f298805a2fc51_run10_c03"
+      ]
+    },
+    {
+      "hotel_id": 1067,
+      "logical_id": "commercial-catamaran-1067-v1",
+      "aliases": [
+        "Catamaran Quality Times",
+        "CATAMARAN QUALITY TIMES (EX. CATAMARAN)",
+        "CATAMARAN"
+      ],
+      "text": "🌿 Catamaran Quality Times 5★ · Бельдиби\n\nДля отпуска с активными занятиями и отдыхом в хаммаме.\n\n🛏 Comfort 24 м² с балконом.\n🧘 Йога, пилатес и танцевальные занятия.\n🏐 Волейбол и настольный теннис.\n🧖 Хаммам, сауна и парная на территории.\n\n✈️ Подберём номер и питание, рассчитаем тур в Catamaran с перелётом на ваши даты.",
+      "text_sha256": "bc6c35f9b39bb700390a4dc9b7d90988359efc57b761800ccd7e009bf36a2566",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1067.png",
+      "photo_sha256": "78ccaa52464739cc68564f24a9412994f0a08846d92138aa69558620732b3a38",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://cdn-prd.sonnenklar.tv/beschreibung/T%C3%BCrkei/T%C3%BCrkische_Riviera/Beldibi/Catamaran_Quality_Times.html",
+        "https://www.catamaranqualitytimes.com/room/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1067-84611640.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1067-84611533.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1067-84611325.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8280,
+        "anytour_id": 4423,
+        "legacy_native_id": 1067,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPiZVnUI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_bca1849e7f32fb9e_demand30_c01",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c04",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c05",
+        "top500_bca1849e7f32fb9e_run04_c03"
+      ]
+    },
+    {
+      "hotel_id": 14135,
+      "logical_id": "commercial-hawaii-14135-v1",
+      "aliases": [
+        "Hawaii Resort Phu Quoc",
+        "HAWAII RESORT PHU QUOC (EX. THIEN HAI SON RESORT)",
+        "THIEN HAI SON RESORT"
+      ],
+      "text": "🌴 Hawaii Resort Phu Quoc 3★ · Фукуок\n\nДля отдыха среди зелени рядом с морем.\n\n🌿 Почти 3 га зелёной территории.\n💧 Открытый бассейн 200 м² и отдельный детский бассейн.\n🍽 Садовый ресторан с вьетнамскими блюдами и морепродуктами.\n🏖 Своя пляжная зона рядом с отелем.\n\nПо пути к пляжу нужно перейти дорогу.\n\n✈️ Подберём корпус, номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "9960380f69ed390007f835b9b38a18f08cb8d4052b8dddeaa564518fb8d91996",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/14135.png",
+      "photo_sha256": "e5561596f3d3557aa9044c631d8c8ab0caebd2ace31c50d94d10677b56b7db22",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.ge/en/hotels/vietnam/hawaii-resort-phu-quoc-phu-quoc/",
+        "https://hawaiiresort.vn/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-hai-son-81312009.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-hai-son-81312001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-hai-son-81312010.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 6699,
+        "anytour_id": 1715,
+        "legacy_native_id": 14135,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaPt73cIE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T195135Z-C46",
+        "HOTEL-VN-MASS-20261025T195135Z-C43",
+        "HOTEL-VN-MASS-20261025T195135Z-C47",
+        "HOTEL-VN-MASS-20261025T195135Z-C44"
+      ]
+    },
+    {
+      "hotel_id": 90236,
+      "logical_id": "commercial-the-v-luxury-90236-v1",
+      "aliases": [
+        "The V Luxury Resort"
+      ],
+      "text": "🌊 The V Luxury Resort 5★ · Сахль Хашиш\n\nДля отдыха у моря с просторным номером и вечерней музыкой.\n\n🛏 Superior 40 м² для двух или трёх гостей.\n🏖 Собственный песчаный пляж на первой линии.\n🎶 Живая музыка и вечерние мероприятия.\n🧖 SPA для гостей от 16 лет.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты и состав гостей.",
+      "text_sha256": "32c0a00c48d5b56b9b4b4e4137acdab3f5e5651096f9b1820dff70628e63a136",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/90236.png",
+      "photo_sha256": "a0904ca81c62b48063ea30b2a7af21b614aea94da88e6506b6c01a30936aed1c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/hurgada_sahl-hasheesh/the_v_luxury_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/the-v-luxury-resort-102308381.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/the-v-luxury-resort-1023084024.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/the-v-luxury-resort-1023083918.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 36510,
+        "anytour_id": 3609,
+        "legacy_native_id": 90236,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPs4YqFs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_529a6c6b3b4a8a76_c03",
+        "top500_529a6c6b3b4a8a76_c04",
+        "top500_529a6c6b3b4a8a76_c05",
+        "top500_529a6c6b3b4a8a76_c06"
+      ]
+    },
+    {
+      "hotel_id": 47470,
+      "logical_id": "commercial-the-sol-47470-v1",
+      "aliases": [
+        "The Sol Hotel (Ex. Anvista Hotel)",
+        "THE SOL HOTEL (EX. AN VISTA)",
+        "The Sol Hotel",
+        "Anvista Hotel",
+        "AN VISTA"
+      ],
+      "text": "🌆 The Sol Hotel 3★ · Нячанг\n\nДля городских прогулок и пляжных дней.\n\n🛏 Deluxe City View With Balcony от 21 до 23 м² с балконом и видом на город.\n💧 Открытый бассейн 70 м².\n🏋️ Тренажёрный зал на территории.\n🍽 Ресторан завтраков.\n\nПляж муниципальный, к нему нужно перейти дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур в The Sol с перелётом на ваши даты.",
+      "text_sha256": "01e65203ef7b78450bca220dbcfca54ae801a4c6e3cd3d06716ad0c856bd49fc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/47470.png",
+      "photo_sha256": "a5a58f1202bb3287341a760b6b8a27cfaedfa9a9f1c839e7953b524b655aa9b7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/an_vista_hotel/",
+        "https://www.coral.ge/en/hotels/vietnam/the-sol-hotel-ex-an-vista-hotel-nha-trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/an-vista-hotel-38757600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/an-vista-hotel-38757618.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/an-vista-hotel-38757612.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 12134,
+        "anytour_id": 2449,
+        "legacy_native_id": 47470,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaPnHW4eQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-C12",
+        "HOTEL-VN-MASS-20261025T201851Z-C15",
+        "HOTEL-VN-MASS-20261025T201851Z-C14",
+        "HOTEL-VN-MASS-20261025T201851Z-C16",
+        "top500_2e7007314c41fbd4_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 27647,
+      "logical_id": "commercial-asteria-bloom-27647-v1",
+      "aliases": [
+        "Asteria Bloom Side (ex. Selectum For two)",
+        "ASTERIA BLOOM SIDE (EX. SELECTUM FOR TWO SIDE)",
+        "Asteria Bloom Side",
+        "Selectum For two",
+        "SELECTUM FOR TWO SIDE"
+      ],
+      "text": "🎶 Asteria Bloom Side 5★ · Кызылагач\n\nДля пляжного отпуска вдвоём с музыкой и активными занятиями.\n\n🛏 Deluxe Room 35 м² для двух гостей.\n🏖 Собственный пляж на первой линии.\n🎵 Живая музыка, DJ и тематические вечеринки.\n🧘 Йога, зумба и тренажёрный зал на территории.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "8e00810b399d03903be66d3640db89faee010b704c5d1c875e78291ddde6959d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/27647.png",
+      "photo_sha256": "91045973f5f82ccc0216098a255549b7bdd9dd2eaceea97b623a97977f5afadc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://bloomside.asteriahotels.com/en",
+        "https://kompastour.com/kz/rus/country/turkey/side/asteria_bloom_side/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/heaven-beach-resort-spa-708300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/heaven-beach-resort-spa-708337.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/heaven-beach-resort-spa-708331.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 35320,
+        "anytour_id": 2008,
+        "legacy_native_id": 27647,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPoJrDZI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_757fc70cff583280_c03",
+        "top500_757fc70cff583280_c04",
+        "top500_757fc70cff583280_c05",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c16",
+        "top500_757fc70cff583280_run03_c01"
+      ]
+    },
+    {
+      "hotel_id": 1512,
+      "logical_id": "commercial-spice-1512-v1",
+      "aliases": [
+        "Spice Hotel & Spa"
+      ],
+      "text": "🌴 Spice Hotel & Spa 5★ · Белек\n\nДля семьи, которой нужны две отдельные спальни и занятия для детей разного возраста.\n\n🛏 Family 72 м²: две спальни с дверью.\n🏖 Пляж на первой линии с песчаным входом.\n🎨 Программы для детей от 4 до 12 лет и подростков от 13 до 16 лет.\n🎶 Живая музыка и крытая дискотека.\n\nНа самом пляже встречается галька.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a0747d8b108cbac2ca644ca813516a3254435431b790f9c8949a55861eeddbbb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1512.png",
+      "photo_sha256": "528e9efa4460d4e6e18f214c55d4e4dd8bb59bf1c50dd0f2778d0db2b873314c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://spice.com.tr/en/events-and-meeting/childrens/",
+        "https://kompastour.com/ua/rus/country/turkey/belek/spice_hotel_spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/spice-hotel-spa-73743823.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/spice-hotel-spa-73743801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/spice-hotel-spa-73743841.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8491,
+        "anytour_id": 716,
+        "legacy_native_id": 1512,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPiFQtb8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_ad78da98e48d1e96_c03",
+        "top500_ad78da98e48d1e96_c04",
+        "top500_ad78da98e48d1e96_enrich20261020_c01",
+        "top500_ad78da98e48d1e96_c05"
+      ]
+    },
+    {
+      "hotel_id": 75041,
+      "logical_id": "commercial-rubi-sign-75041-v1",
+      "aliases": [
+        "Rubi Platinum Sign"
+      ],
+      "text": "🌴 Rubi Platinum Sign 5★ · Тюрклер\n\nДля семейного отпуска с отдельными спальнями и совместными занятиями.\n\n🛏 Family 42 м² с двумя спальнями и балконом.\n🏖 Пляж рядом с отелем, первая линия.\n🎨 Ma&Me&Pa: мастерские и игры детей вместе с родителями.\n🎶 Живая музыка на территории.\n\nНа пляже встречаются песок и галька.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "688740f2af9e72bb9827e23a368326656bc72a428cd848b056f0d1ca0fb825f9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/75041.png",
+      "photo_sha256": "90537a97484043daf6490f2728ba38bc00ce0ff151fa97462594fcd6a36fd504",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.alltours.de/hotels/rubi-platinum-sign-antalya-ayt704.html",
+        "https://rubiplatinum.com/en/hotel/rubiplatinumsign/kids-club",
+        "https://kompastour.com/ua/rus/country/turkey/alanya/rubi_platinum_sign_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://cdn.rubiplatinum.com/assets/images/pages/13091551-lg.jpg",
+        "https://cdn.rubiplatinum.com/assets/images/pages/familyroomaltkapak-lg.jpg",
+        "https://cdn.rubiplatinum.com/assets/images/pages/konsepthavuzsign-lg.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 27446,
+        "anytour_id": 6173,
+        "legacy_native_id": 75041,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPv7HSWQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e9d71c696fca57b0_c03",
+        "top500_e9d71c696fca57b0_c04",
+        "top500_e9d71c696fca57b0_enrich20261020_c01",
+        "top500_e9d71c696fca57b0_c05",
+        "top500_e9d71c696fca57b0_demand17_c01"
+      ]
+    },
+    {
+      "hotel_id": 1258,
+      "logical_id": "commercial-ic-green-palace-1258-v1",
+      "aliases": [
+        "Ic Hotels Green Palace"
+      ],
+      "text": "🌿 IC Hotels Green Palace 5★ · Кунду\n\nДля семейного отпуска с двумя спальнями и занятиями для детей и подростков.\n\n🛏 Family 52 м²: две спальни и два санузла.\n🏖 Расположение на первой линии.\n🎨 NICO: Mini Club от 4 до 12 лет и Teenage от 12 до 16 лет.\n🎾 Четыре теннисных корта и тренажёрный зал.\n\n✈️ Подберём корпус и номер под возраст детей, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "2663992b8da235a081373ae3f04e41ead05925e5e64256cbddd2d17b42de359d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1258.png",
+      "photo_sha256": "1c025af75db01cafc11969737e48313de4d68943fe4571135b9fa9a267ebbe6a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.ichotels.com.tr/en/our-hotels/green-palace-villas/nico-kids-club/",
+        "https://kompastour.com/ge/eng/country/turkey/antaliya/ic_green_palace/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ic-hotels-green-palace-24784800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ic-hotels-green-palace-24829202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ic-hotels-green-palace-24784822.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8674,
+        "anytour_id": 574,
+        "legacy_native_id": 1258,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPsqrhYo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_bb4a2641df42f48f_run04_c03",
+        "top500_bb4a2641df42f48f_run04_c04",
+        "top500_bb4a2641df42f48f_demand22_c01",
+        "top500_bb4a2641df42f48f_demand22_c02",
+        "HOTEL-TR-CONTINUOUS-20261028-34158791DFBD-08_c07"
+      ]
+    }
+  ]
+}
