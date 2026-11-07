@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 13:04">
+<yml_catalog date="2026-11-07 13:17">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -3710,6 +3710,96 @@
         <description>Тур с перелётом. Фетхие. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Фетхие</custom_label_1>
+      </offer>
+      <offer id="tg_21847">
+        <url>https://t.me/any_toour/221</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/21847.png</picture>
+        <name>Путевки в Vogue Hotel Supreme Bodrum</name>
+        <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Бодрум</custom_label_1>
+      </offer>
+      <offer id="tg_302">
+        <url>https://t.me/any_toour/222</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/302.png</picture>
+        <name>Путевки в Lotus Bay Beach Resort</name>
+        <description>Тур с перелётом. Сафага. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сафага</custom_label_1>
+      </offer>
+      <offer id="tg_512">
+        <url>https://t.me/any_toour/223</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/512.png</picture>
+        <name>Путевки в Tropitel Dahab Oasis</name>
+        <description>Тур с перелётом. Дахаб. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дахаб</custom_label_1>
+      </offer>
+      <offer id="tg_107938">
+        <url>https://t.me/any_toour/224</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/107938.png</picture>
+        <name>Путевки в The Marin Phuket</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="tg_15871">
+        <url>https://t.me/any_toour/225</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/15871.png</picture>
+        <name>Путевки в Crystal Sunset Pearl Collection</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_21847">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMmNlYjZmNDA3MTJmYmU1MjJiM2JmYTk3Zjk0ZDdiYzYiLCJvZmZlcl9pZCI6Im1heF8yMTg0NyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/21847.png</picture>
+        <name>Туры в Vogue Hotel Supreme Bodrum</name>
+        <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Бодрум</custom_label_1>
+      </offer>
+      <offer id="max_302">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjAyMzI1ZTY3ZWQ4MjkyM2VmN2Q2MWJiNjI0YWMyYTUiLCJvZmZlcl9pZCI6Im1heF8zMDIifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/302.png</picture>
+        <name>Туры в Lotus Bay Beach Resort</name>
+        <description>Тур с перелётом. Сафага. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сафага</custom_label_1>
+      </offer>
+      <offer id="max_512">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYjZjYTA0ZDJlYTg2MDllNDQ1NjQ0MjJlYjA4OWZhYWQiLCJvZmZlcl9pZCI6Im1heF81MTIifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/512.png</picture>
+        <name>Туры в Tropitel Dahab Oasis</name>
+        <description>Тур с перелётом. Дахаб. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дахаб</custom_label_1>
+      </offer>
+      <offer id="max_107938">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWQ5ZWMzZDQ3N2FkNThiNzJiNDQ5ODU2MTQzYmNiMjMiLCJvZmZlcl9pZCI6Im1heF8xMDc5MzgifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/107938.png</picture>
+        <name>Туры в The Marin Phuket</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="max_15871">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYjY4NTg1ZTE0MGNkYzk4M2I5YzFiNmQ3NTA2NzVkMzIiLCJvZmZlcl9pZCI6Im1heF8xNTg3MSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/15871.png</picture>
+        <name>Туры в Crystal Sunset Pearl Collection</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
       </offer>
     </offers>
   </shop>

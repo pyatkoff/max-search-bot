@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-10-v1",
-  "state": "POSTS_CONFIRMED_ROUTES_PENDING",
+  "state": "POSTS_AND_MAX_ROUTES_CONFIRMED_FEEDS_PENDING",
   "native_hotel_ids": [
     21847,
     302,
@@ -88,6 +88,15 @@
       "verified": true
     }
   ],
-  "routes": "PENDING",
-  "feeds": "PENDING_ADD_ONLY_206_TO_211"
+  "routes": {
+    "logical_hotels": 211,
+    "new_routes_verified": 5,
+    "previous206_rows_identical": true,
+    "run_id": 42376154223,
+    "commit": "eabb9d45bf76f5c937c11e3424d03bba6371acbd",
+    "result_artifact_id": 13575463879
+  },
+  "feeds": "PENDING_ADD_ONLY_206_TO_211",
+  "feed_binding_read_run": 42375960417,
+  "feed_binding_read_artifact": 13575028115
 }

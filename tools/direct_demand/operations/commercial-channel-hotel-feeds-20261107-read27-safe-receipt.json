@@ -1,0 +1,174 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read27",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 21847,
+      "name": "Vogue Hotel Supreme Bodrum",
+      "country_id": 4,
+      "region_id": 24,
+      "destination": "Бодрум",
+      "telegram_post_url": "https://t.me/any_toour/221",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Il-5O-o",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/21847.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 302,
+      "name": "Lotus Bay Beach Resort",
+      "country_id": 1,
+      "region_id": 13,
+      "destination": "Сафага",
+      "telegram_post_url": "https://t.me/any_toour/222",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2ImjgQGM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/302.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 512,
+      "name": "Tropitel Dahab Oasis",
+      "country_id": 1,
+      "region_id": 10,
+      "destination": "Дахаб",
+      "telegram_post_url": "https://t.me/any_toour/223",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2InKkR7c",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/512.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 107938,
+      "name": "The Marin Phuket",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/224",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Inu8czM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/107938.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 15871,
+      "name": "Crystal Sunset Pearl Collection",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/225",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2IoR8C5g",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/15871.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 5,
+  "candidate_count": 19,
+  "read_at_utc": "2026-11-07T13:13:39+00:00",
+  "scope_hotels": 5,
+  "feed_rows": 5,
+  "deferred_count": 0,
+  "installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083",
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 1294,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 975,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 26530,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 57066,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 69116,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 2015,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1588,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 21817,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 3415,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 964,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1026,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 4091,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1350,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1140,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1203,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 55828,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 108167,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 63674,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 47025,
+      "clear": true,
+      "matches": []
+    }
+  ],
+  "run_id": 42375960417,
+  "artifact_id": 13575028115,
+  "artifact_zip_sha256": "a58b6a1b7eb62e9236a0c6f5b7994a8e630e49a03d29fcad094433406e2bdb32"
+}
