@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-11-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     129161,
     65877,
@@ -18,5 +18,176 @@
   "manifest_sha256": "349ab7db5abbfccf03c5f23cc858f647c91ce0915fd514507d17f424872f12ba",
   "asset_commit": "f9a9d706621cc950a1004abbe8fd8c9923120d96",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "full_pairs_after": 220,
+  "sender_run_id": 42377245953,
+  "sender_job_id": 128417272520,
+  "sender_commit": "d88229708e6786eb74c5f0e805f11b0a4771e868",
+  "new_posts": 18,
+  "post_write_attempts": 18,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13575817783,
+  "result_zip_sha256": "842775b837e5228581941ff81b9efee7f700c911e5c55f9631a8060184251f30",
+  "private_receipt_sha256": "722c520bc5acf528ea88fc512f6407a9370ccefd829c571f224ba44cb90c912c",
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-rewaya-129161-v1",
+      "post_url": "https://t.me/any_toour/226",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-vesna-65877-v1",
+      "post_url": "https://t.me/any_toour/227",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sugar-nautical-20971-v1",
+      "post_url": "https://t.me/any_toour/228",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-hilton-dalaman-1653-v1",
+      "post_url": "https://t.me/any_toour/229",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-empire-beach-501-v1",
+      "post_url": "https://t.me/any_toour/230",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-empire-hotel-502-v1",
+      "post_url": "https://t.me/any_toour/231",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-annova-95165-v1",
+      "post_url": "https://t.me/any_toour/232",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sheraton-phu-quoc-50659-v1",
+      "post_url": "https://t.me/any_toour/233",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-wyndham-grandworld-79071-v1",
+      "post_url": "https://t.me/any_toour/234",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-rewaya-129161-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NOx8OsU",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-vesna-65877-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NPXdL0M",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sugar-nautical-20971-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NP8EKh8",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-hilton-dalaman-1653-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NQglLYU",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-empire-beach-501-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NREhRiI",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-empire-hotel-502-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NRo2PGw",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-annova-95165-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NSMTA2o",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sheraton-phu-quoc-50659-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NSvqN7Q",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-wyndham-grandworld-79071-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2NTS1FAE",
+      "verified": true
+    }
+  ],
+  "routes": {
+    "logical_hotels": 220,
+    "new_routes_verified": 9,
+    "previous211_rows_identical": true,
+    "run_id": 42377706070,
+    "commit": "dbf2b2e346dcbe99d39c8c3fc5c746dce48e94cf",
+    "result_artifact_id": 13576007813
+  },
+  "feeds": {
+    "run_id": 42377802871,
+    "job_id": 128418886621,
+    "commit": "376094cd539e15864eaac6d1518a2ff658c56af9",
+    "result_artifact_id": 13576486771,
+    "receipt_sha256": "1aec3171807a1654a982b96515e9762438fe0cdb500817cc2f18701a74886f67",
+    "rows": [
+      220,
+      220,
+      440
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous211_offer_blocks_identical": true
+  },
+  "feed_binding_read_run": 42377547729,
+  "feed_binding_read_artifact": 13576546232,
+  "goal_remaining_to_500": 280,
+  "own_active_workflow": 0,
+  "completed_at_utc": "2026-11-07T13:37:45Z",
+  "pending_groups": {
+    "matches60to80": {
+      "root_copy_reviewed": 18,
+      "final_release_manifest_required": true,
+      "first_clearance_read": 26,
+      "first_clearance_run": 42375078643,
+      "clearance_not_replayed": true
+    },
+    "matches80to100": {
+      "drafts": 19,
+      "parent_review_pending": true,
+      "raw_png": 171,
+      "first_clearance_read": 27,
+      "first_clearance_run": 42375960417,
+      "held_native_id": 32339,
+      "final_release_manifest_required": true
+    }
+  }
 }
