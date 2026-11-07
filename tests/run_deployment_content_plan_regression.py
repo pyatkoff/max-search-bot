@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 from unittest.mock import patch
 
@@ -226,6 +227,145 @@ class ContentPlanTests(unittest.TestCase):
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         result = module.plan(shallow, self.receipt(), self.base)
         self.assertEqual(result["reason"], "shallow_history")
+
+    def workflow_block(self, lines, marker):
+        # Read only this workflow's explicit indentation; no runner dependency
+        # or second copy of the Bash implementation is needed by the fixture.
+        matches = [i for i, line in enumerate(lines) if line == marker]
+        self.assertEqual(len(matches), 1, "expected one scoped marker: " + marker)
+        start = matches[0] + 1
+        indent = len(marker) - len(marker.lstrip())
+        end = next((i for i in range(start, len(lines)) if lines[i].strip()
+                    and len(lines[i]) - len(lines[i].lstrip()) <= indent), len(lines))
+        return lines[start:end]
+
+    def workflow_steps(self, job):
+        lines = (ROOT / ".github/workflows/deploy.yml").read_text().splitlines()
+        jobs = self.workflow_block(lines, "jobs:")
+        scoped = self.workflow_block(jobs, "  " + job + ":")
+        steps = self.workflow_block(scoped, "    steps:")
+        starts = [i for i, line in enumerate(steps) if line.startswith("      - ")]
+        self.assertTrue(starts, "expected steps in " + job)
+        return [steps[start:end] for start, end in zip(starts, starts[1:] + [len(steps)])]
+
+    def workflow_step(self, steps, marker):
+        matches = [step for step in steps if marker in step]
+        self.assertEqual(len(matches), 1, "expected one scoped step: " + marker)
+        return matches[0]
+
+    def verification_step(self):
+        step = self.workflow_step(self.workflow_steps("verify"), "        id: verification_history")
+        self.assertEqual(step[0], "      - name: Fetch complete verification ancestry for the exact SHA")
+        return step
+
+    @staticmethod
+    def history_environment():
+        environment = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        environment.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull,
+                           GIT_TERMINAL_PROMPT="0")
+        return environment
+
+    def history_git(self, repository, *args):
+        return subprocess.check_output(["git", *args], cwd=repository,
+                                       env=self.history_environment(), stderr=subprocess.PIPE,
+                                       text=True, timeout=20).strip()
+
+    def verification_clone(self, target):
+        self.git("update-ref", "refs/heads/verification-source", target)
+        self.git("update-ref", "refs/heads/verification-unrelated", self.runtime)
+        self.git("tag", "-f", "verification-unrelated-tag", self.runtime)
+        temporary = tempfile.TemporaryDirectory(prefix="anytour-verification-history-")
+        self.addCleanup(temporary.cleanup)
+        checkout = Path(temporary.name) / "checkout"
+        subprocess.run(["git", "clone", "-q", "--depth=1", "--single-branch", "--no-tags",
+                        "--branch", "verification-source", self.repo.as_uri(), str(checkout)],
+                       env=self.history_environment(), check=True, capture_output=True, timeout=20)
+        self.history_git(checkout, "checkout", "-q", "--detach", target)
+        self.assertEqual(self.history_git(checkout, "rev-parse", "--is-shallow-repository"), "true")
+        return checkout
+
+    def run_verification_history(self, checkout, expected):
+        environment = self.history_environment()
+        environment["EXPECTED_SHA"] = expected
+        lines = self.workflow_block(self.verification_step(), "        run: |")
+        self.assertTrue(lines and any(line.strip() for line in lines))
+        self.assertTrue(all(not line.strip() or line.startswith("          ") for line in lines))
+        script = textwrap.dedent("\n".join(lines)) + "\n"
+        return subprocess.run(["bash", "-e", "-o", "pipefail", "-c", script],
+                              cwd=checkout, env=environment, text=True, capture_output=True, timeout=20)
+
+    def test_verification_history_is_common_preparation_without_changing_bundle_checkout(self):
+        installer = self.workflow_step(self.workflow_steps("deploy"), "      - name: Checkout exact deployment SHA")
+        self.assertEqual([line.strip() for line in self.workflow_block(installer, "        with:") if line.strip()],
+                         ["ref: ${{ github.sha }}", "fetch-depth: 0"])
+        steps = self.workflow_steps("verify")
+        checkout = self.workflow_step(steps, "        uses: actions/checkout@v4")
+        self.assertEqual(checkout[0], "      - name: Checkout exact installed verification SHA")
+        self.assertEqual([line.strip() for line in self.workflow_block(checkout, "        with:") if line.strip()],
+                         ["ref: ${{ github.sha }}", "fetch-depth: 1"])
+        history = self.verification_step()
+        self.assertEqual([line.strip() for line in self.workflow_block(history, "        env:") if line.strip()],
+                         ["EXPECTED_SHA: ${{ github.sha }}"])
+        self.assertEqual(history.count("        shell: bash"), 1)
+        self.assertFalse(any(line.startswith(("        if:", "        continue-on-error:")) for line in history))
+        admission = self.workflow_step(steps, "        id: admission")
+        unchanged = self.workflow_step(steps, "        id: unchanged")
+        self.assertLess(steps.index(checkout), steps.index(history))
+        self.assertLess(steps.index(history), min(steps.index(admission), steps.index(unchanged)))
+
+    def test_exact_verification_fetch_keeps_full_dag_and_excludes_unrelated_refs_and_objects(self):
+        tree = self.git("rev-parse", self.leaf + "^{tree}").strip()
+        merged = self.git("commit-tree", tree, "-p", self.leaf, "-p", self.same_tree_intent,
+                          "-m", "merge a second-parent deployment intent").strip()
+        for target in (self.consecutive_test, merged):
+            with self.subTest(target=target):
+                checkout = self.verification_clone(target)
+                before_refs = self.history_git(checkout, "for-each-ref", "--format=%(refname)")
+                result = self.run_verification_history(checkout, target)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(self.history_git(checkout, "rev-parse", "HEAD"), target)
+                self.assertEqual(self.history_git(checkout, "rev-parse", "--is-shallow-repository"), "false")
+                self.assertEqual(self.history_git(checkout, "for-each-ref", "--format=%(refname)"), before_refs)
+                self.assertEqual(self.history_git(checkout, "tag", "--list"), "")
+                actual = set(self.history_git(checkout, "rev-list", "--parents", target).splitlines())
+                expected = set(self.git("rev-list", "--parents", target).splitlines())
+                self.assertEqual(actual, expected)
+                objects = set(self.history_git(checkout, "cat-file", "--batch-all-objects",
+                                               "--batch-check=%(objectname)").splitlines())
+                self.assertNotIn(self.runtime, objects)
+                self.assertEqual(module.plan(checkout, self.receipt(), target), self.classify(target))
+                if target == merged:
+                    observed = module.scan_release_intents(module.GitObjects(checkout), self.base, target)
+                    self.assertEqual(observed["status"], "deployment_intent_present")
+                    self.assertIn(self.same_tree_intent, [m["commit_sha"] for m in observed["matched_commits"]])
+
+    def test_verification_history_rejects_wrong_source_before_fetch(self):
+        checkout = self.verification_clone(self.consecutive_test)
+        self.history_git(checkout, "remote", "remove", "origin")
+        for expected in ("main", "--help", self.base):
+            with self.subTest(expected=expected):
+                result = self.run_verification_history(checkout, expected)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn("origin", result.stderr)
+                self.assertEqual(self.history_git(checkout, "rev-parse", "HEAD"), self.consecutive_test)
+                self.assertEqual(self.history_git(checkout, "rev-parse", "--is-shallow-repository"), "true")
+
+    def test_failed_verification_fetch_cannot_be_reported_as_complete_history(self):
+        checkout = self.verification_clone(self.consecutive_test)
+        self.history_git(checkout, "remote", "set-url", "origin", str(checkout.parent / "missing.git"))
+        result = self.run_verification_history(checkout, self.consecutive_test)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.history_git(checkout, "rev-parse", "HEAD"), self.consecutive_test)
+        self.assertEqual(self.history_git(checkout, "rev-parse", "--is-shallow-repository"), "true")
+
+    def test_complete_verification_history_needs_no_second_fetch(self):
+        checkout = self.verification_clone(self.consecutive_test)
+        result = self.run_verification_history(checkout, self.consecutive_test)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.history_git(checkout, "remote", "remove", "origin")
+        result = self.run_verification_history(checkout, self.consecutive_test)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.history_git(checkout, "rev-parse", "HEAD"), self.consecutive_test)
 
     def test_tree_parser_preserves_regular_executable_runtime_entries(self):
         result = module.parse_tree(b"100755 blob " + b"a" * 40 + b"\ttools/run.sh\0")

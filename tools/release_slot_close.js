@@ -291,6 +291,7 @@ async function closeRelease({ env, event, api, sleep, now = Date.now, prepare = 
 }
 
 const INSTALL_JOBS = ['verify-inventory','verify-syntax','verify / application','verify / diagnostics','deploy'];
+const VERIFY_HISTORY_STEP = 'Fetch complete verification ancestry for the exact SHA';
 const VERIFY_STEPS = {check:'Verify installed production checks',download:'Download exact installed diagnostic snapshot',
   status:'Publish verification stage status',publication:release.PENDING_BINDING_STEP,
   cleanup:'Remove acknowledged diagnostic snapshot'};
@@ -516,12 +517,12 @@ async function verifyUnchangedJobs(api,snapshot,c) {
     'Select installation or prove the unchanged application without mutation','Fail failed installation']);
   onlyMetadataSteps(deployment,deployAllowed,['Select installation or prove the unchanged application without mutation']);
   const verificationAllowed=new Set(['Set up job','Complete job','Post Checkout exact installed verification SHA',
-    'Checkout exact installed verification SHA','Publish the proven unchanged result without installed stages',
+    'Checkout exact installed verification SHA',VERIFY_HISTORY_STEP,'Publish the proven unchanged result without installed stages',
     'Require complete installed verification']);
   const publications=verification.steps.filter(s=>typeof s.name==='string'&&s.name.startsWith(release.PENDING_BINDING_STEP)
     &&/^[0-9a-f]{64}$/.test(s.name.slice(release.PENDING_BINDING_STEP.length)));
   requireValue(publications.length===1,'publication_step_unconfirmed');verificationAllowed.add(publications[0].name);
-  onlyMetadataSteps(verification,verificationAllowed,['Publish the proven unchanged result without installed stages',publications[0].name]);
+  onlyMetadataSteps(verification,verificationAllowed,[VERIFY_HISTORY_STEP,'Publish the proven unchanged result without installed stages',publications[0].name]);
 }
 async function prepareRecord(api,location,c,b,snapshot) {
   const record=release.clone(location.record),r=record.repository_release;
@@ -667,7 +668,7 @@ function makeApi(token, fetchImpl = globalThis.fetch) {
   api.artifact=read.artifact;return api;
 }
 module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
-  verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_STEPS, stepResult, copiedExecution,
+  verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_HISTORY_STEP, VERIFY_STEPS, stepResult, copiedExecution,
   deploymentHistory, admitVerification, selectRecoveryRuns, stageStatus, bindingSnapshot, gateReferences,
   onlyMetadataSteps,verifyUnchangedJobs,prepareRecord,PUBLIC_DIAGNOSTIC_JSON,diagnosticsTree,publishDiagnostics,
   publishPending,resumePublication };

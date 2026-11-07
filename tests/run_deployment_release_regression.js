@@ -264,7 +264,9 @@ async function gitBridge(){
     const prepared=await C.closeRelease({...f.options(),prepare:true});
     f.bindTerminal(prepared.record_digest);equal(await C.closeRelease(f.options()),'released','normal full release closes');
     f.complete();const baseline=await R.acceptedBaseline(f.api,await R.readRecord(f.api));
-    equal(baseline.release.baseline_eligible,true,'first full real release becomes the accepted baseline');
+    equal(f.jobs.get(f.wave.parent.id).find(j=>j.name==='verify').steps.some(s=>s.name===C.VERIFY_HISTORY_STEP),false,
+      'legacy installed evidence predates the new ancestry step');
+    equal(baseline.release.baseline_eligible,true,'legacy full installation remains an accepted baseline');
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
       content:R.contentSummary(proposal.comparison,a,r),intent:proposal.comparison.intent_scan,observation:observation(a)});
@@ -280,6 +282,22 @@ async function gitBridge(){
       'all eight installation actions remain unperformed and inherited');
     equal(next.repository_release.stages.sync,{execution:'not_performed',assurance:'inherited'},'no fictional new sync PASS');
     await consumerCases(f,a,r);
+    const verification=f.jobs.get(f.wave.parent.id).find(j=>j.name==='verify');
+    const history=verification.steps.find(s=>s.name===C.VERIFY_HISTORY_STEP);
+    for(const conclusion of ['failure','skipped']){
+      history.conclusion=conclusion;
+      await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'noop_resolution_unconfirmed',
+        'unchanged closure requires successful exact-source ancestry preparation');
+    }
+    history.conclusion='success';
+    verification.steps=verification.steps.filter(s=>s!==history);
+    await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'noop_resolution_unconfirmed',
+      'missing ancestry evidence cannot close an unchanged release');
+    verification.steps.unshift(history);
+    verification.steps.push(step('Fetch unrelated release history'));
+    await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'unchanged_operation_executed',
+      'one permitted ancestry step does not authorize other metadata operations');
+    verification.steps.pop();
     for(const [file,cleanupName]of [
       ['publish-conversation-diagnostics.yml','Remove private capture files'],
       ['modeled-conversion-monitor.yml','Remove private ephemeral monitor data'],
@@ -311,9 +329,14 @@ async function gitBridge(){
     equal(await C.closeRelease(f.options()),'released','unchanged path closes through the same single publisher');
     equal(f.comment.body,'PR56: приложение без изменений, выпуск свободен','terminal never calls no-install an installation');
     f.complete();
+    // Already closed releases keep their exact original proof contract. The
+    // new current-release requirement must not invalidate older receipts.
+    verification.steps=verification.steps.filter(s=>s.name!==C.VERIFY_HISTORY_STEP);
     const result=await resolveSchedule(f);
     equal([result.repository_sha,result.application_sha,result.perform_actions,result.ready],[r,a,true,true],
-      'scheduled monitoring resumes against original application after terminal acceptance');
+      'closed legacy unchanged evidence remains readable without the new ancestry step');
+    equal((await R.acceptedBaseline(f.api,await R.readRecord(f.api))).reference,baseline.reference,
+      'closed legacy unchanged result still resolves the original installed baseline');
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
     equal(f.calls.filter(c=>c.path.includes('/actions/artifacts/')).length,0,
@@ -361,7 +384,7 @@ function installNoopJobs(f){
   const parent=f.wave.parent,record=f.record;
   const rows=C.INSTALL_JOBS.map(name=>job(name,parent,name==='deploy'?
     [step('Select installation or prove the unchanged application without mutation'),...INSTALL_EXECUTION.map(n=>step(n,'skipped'))]:[step('Required source checks')]));
-  rows.push(job('verify',parent,[step('Publish the proven unchanged result without installed stages'),
+  rows.push(job('verify',parent,[step(C.VERIFY_HISTORY_STEP),step('Publish the proven unchanged result without installed stages'),
     step(R.PENDING_BINDING_STEP+R.digest(record)),...['check','download','status','cleanup'].map(k=>step(C.VERIFY_STEPS[k],'skipped'))]));
   f.jobs.set(parent.id,rows);
   const names={'live-session-diagnostics.yml':'publish','max-production-health.yml':'inspect','max-tls-preflight.yml':'strict-tls-preflight',

@@ -456,7 +456,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
+      - name: Fetch complete verification ancestry for the exact SHA
+        id: verification_history
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse --verify HEAD)" = "$EXPECTED_SHA"
+          # Both installed intent and unchanged publication need the full DAG.
+          # Fetch its exact tip without importing unrelated branches or tags.
+          if test "$(git rev-parse --is-shallow-repository)" = true; then
+            git -c protocol.version=2 fetch --no-tags --no-recurse-submodules --unshallow origin "$EXPECTED_SHA"
+          fi
+          test "$(git rev-parse --is-shallow-repository)" = false
+          test "$(git rev-parse --verify HEAD)" = "$EXPECTED_SHA"
       - name: Admit only unfinished verification without installation
         id: admission
         if: needs.deploy.outputs.kind == 'installed'
