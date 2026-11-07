@@ -1,0 +1,770 @@
+{
+  "operation": "commercial-hotel-batch-20261107-40-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 468,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read42",
+        "run_id": 42408760749,
+        "original_read_sha256": "9a0c08c1a25744d487b35fc0aa379d105b1c8299d854b0c6576eca0b47589b7d",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed16 commercial captions in cutover39 short-title format,48 real source photos and16 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before39/40 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-sixteen-after-458-commercial-release-manifest.json",
+    "sha256": "414e288104ff09e8c4a73e67c44ad77cbbf7a319a44a7460e462ec9a0bb3eb7c",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-fifth20-commercial-captions.json",
+    "caption_sha256": "40d0c80c4ee34a3507753feb83614d19a839e9a9579528e70fd8db984aee3100",
+    "subset_native_ids": [
+      36453,
+      70032,
+      28509,
+      57082,
+      64672,
+      80605
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "63a932bdf56b9e958369911fe522a77ddb1d141bcde5ce10ade4f59ee8a9093b",
+  "source_held_native_ids": [
+    206,
+    14140,
+    32356
+  ],
+  "media_held_native_ids": [],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    },
+    {
+      "native_hotel_id": 319,
+      "public_url": "https://max.ru/channel_anytour/AaF1Ae28ZNw"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 36453,
+      "logical_id": "commercial-gm-doc-let-36453-v1",
+      "aliases": [
+        "GM Doc Let Beach Resort",
+        "GM DOC LET BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в GM Doc Let Beach Resort\n📍 Доклет, Вьетнам.\n\nОтпуск в Доклете вдали от центра Нячанга.\n\n🛏 Deluxe Garden View 28 м²: балкон и вид на сад.\n🍽 Подберём вариант тура с завтраками.\n🏡 Малоэтажные корпуса Deluxe.\n\n✈️ Подберём размещение под ваш состав и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "70373c62d5ee711530f02798bc695931669e19a366a2023bcda284ae06cb8035",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/36453.png",
+      "photo_sha256": "4b3a5620eb266bcfec95e52c7fd41ec0068a8ab29852f750a9eda98c89cf503b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/vietnam/nhatrang/gm_doclet_beach_resort_spa/",
+        "https://www.icstrvl.ru/VETNAM/NYACHANG/GM-DOC-LET-BEACH-RESORT__/index.html",
+        "https://www.coral.ge/en/hotels/vietnam/gm-doc-let-beach-resort-spa-ninh-hoa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/gm-doc-let-beach-resort-spa-41943802.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/gm-doc-let-beach-resort-spa-41943823.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/gm-doc-let-beach-resort-spa-41943819.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 10278,
+        "anytour_id": 2212,
+        "legacy_native_id": 36453,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ_Cn2Cs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_a09ecccb0aa4b3a8_run07_c01",
+        "top500_a09ecccb0aa4b3a8_run07_c06",
+        "top500_a09ecccb0aa4b3a8_crit51_c01",
+        "HOTEL-VN-MASS-20261025T201851Z-C50",
+        "HOTEL-VN-MASS-20261025T201851Z-C53"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/gm-doc-let-beach-resort-spa-41943802.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e18b7a986ed094427de76e875074ae4dee01189902c8a9a49cedec35abccf531",
+          "source_png_sha256": "39b66478f334ed970da177d8bd784a90cdd32ed42ef1955e913b76bf234bd9f1",
+          "source_png_bytes": 1093580,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Бассейн GM Doc Let Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRMmHawo",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "gm-doc-let-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g21",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/gm-doc-let-beach-resort-spa-41943823.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "de991ecf07d71d1d42024880b2eff796302495ee29e7e5d778633f55b84814fa",
+          "source_png_sha256": "69c8cd3b3ec134f84dfc61f4a735699cca686effd1680ae867ad19226aef9721",
+          "source_png_bytes": 1210246,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Малоэтажный корпус GM Doc Let",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRBcHXkQ",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "gm-doc-let-g21.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g17",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/gm-doc-let-beach-resort-spa-41943819.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0dfdbd2743fcc2bbdbcf524ce9b167be317394a49dd1726deb366a7eefdbeca5",
+          "source_png_sha256": "3c583ff44d14fb1ff2a36c891c670eb4d00767d360c542aecc30bba6725d0cea",
+          "source_png_bytes": 1552267,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Сад GM Doc Let Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRJ1S0lY",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "gm-doc-let-g17.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 70032,
+      "logical_id": "commercial-gonsala-nha-trang-70032-v1",
+      "aliases": [
+        "Gonsala Nha Trang Hotel",
+        "GONSALA HOTEL NHA TRANG"
+      ],
+      "text": "✈️ Туры в Gonsala Nha Trang Hotel\n📍 Нячанг, Вьетнам.\n\nНячанг для двоих: городские прогулки и отдых у моря.\n\n🛏 Deluxe City View с видом на город.\n🍽 Подберём вариант тура с завтраками.\n🏖 Общественный песчаный пляж примерно в 300 м. Путь через дорогу.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "c05bba464d5f4dac4ac4f047bfde6e1653bb51c6e49e1031afc7ae5b208c8d81",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/70032.png",
+      "photo_sha256": "ebea1d43596110b21947462ec7fc9411fdd4fa9b511ac3348d40ec4fc052a310",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.by/hotels/vietnam/gonsala-hotel-nha-trang-nha-trang/",
+        "https://new.kompastour.com/kz/rus/country/vietnam/nhatrang/gonsala_hotel_nha_trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/gonsala-hotel-nha-trang-1025094025.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/gonsala-hotel-nha-trang-1025094132.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/gonsala-hotel-nha-trang-1025094016.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 40682,
+        "anytour_id": 3138,
+        "legacy_native_id": 70032,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRFO2uL4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_168437be491a01d6_run07_c01",
+        "top500_168437be491a01d6_run07_c03",
+        "top500_168437be491a01d6_run07_c04",
+        "top500_168437be491a01d6_run07_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g21",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/gonsala-hotel-nha-trang-1025094025.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fa1a81dfa5806045f149c6a42a8096ecdf47da2b723b216ba060134bc8827c29",
+          "source_png_sha256": "af7c7299a2175b2d4f877348300642f197983052fbd311d16ee9469692b218cf",
+          "source_png_bytes": 1037494,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан Gonsala Hotel Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRLAHMH0",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "gonsala-nha-trang-g21.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g26",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/gonsala-hotel-nha-trang-1025094132.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8fd7428c7ae5f930b27b3bb8d0a05a1862ab7fa96c89034a5b59fc4b458cf953",
+          "source_png_sha256": "319e773d9fe3d344a530427e044bef1640c7a29d059fa22017cfb0a0309056f5",
+          "source_png_bytes": 1200812,
+          "dimensions": [
+            1011,
+            855
+          ],
+          "alt": "Детская игровая зона Gonsala Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRIIu9TE",
+          "canva_asset_dimensions": [
+            1011,
+            855
+          ],
+          "source_png_filename": "gonsala-nha-trang-g26.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/gonsala-hotel-nha-trang-1025094016.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "269e2d6957a62dd53cbe1ca8632aeed6a72f9b0a38d6828dc9ba5e2e4bd6b9db",
+          "source_png_sha256": "d874b66f43ca6af915823cec483e15a931a538f8c35a5d90a75c8a5f6499dbe3",
+          "source_png_bytes": 725678,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ванная комната Gonsala Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRN6CYPI",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "gonsala-nha-trang-g15.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 28509,
+      "logical_id": "commercial-green-world-28509-v1",
+      "aliases": [
+        "Green World Hotel Nha Trang",
+        "GREEN WORLD NHA TRANG"
+      ],
+      "text": "✈️ Туры в Green World Hotel Nha Trang\n📍 Нячанг, Вьетнам.\n\nГородской отпуск в Нячанге с выходами к морю.\n\n🛏 Cozy City View 28 м²: вид на город, без балкона.\n🍽 Подберём вариант тура с завтраками.\n🏖 До общественного пляжа около 400 м.\n\n✈️ Подберём номер под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "783eabeeade5b63f5be818de6b08538ca1291afc2227a910107d7f6d378b29cb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/28509.png",
+      "photo_sha256": "356590a4e5a9213dced89b6127674fa864eabf564be887b785d6936041d83aea",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/vietnam/nhatrang/green_world_hotel_nha_trang/",
+        "https://hotel.crystalbay.com/en/green-world-hotel-nha-trang-h49897.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/green-world-nha-trang-20639901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/green-world-nha-trang-20639917.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/green-world-nha-trang-20653601.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5907,
+        "anytour_id": 2047,
+        "legacy_native_id": 28509,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRPr21qg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_0d0533a3cb824df7_run07_c01",
+        "top500_0d0533a3cb824df7_run07_c02",
+        "top500_0d0533a3cb824df7_run07_c03",
+        "top500_0d0533a3cb824df7_run07_c04",
+        "top500_0d0533a3cb824df7_run07_c06",
+        "top500_0d0533a3cb824df7_crit51_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/green-world-nha-trang-20639901.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "df329bc427c29085e6632162d43ccbbb84748f8b277f62090034b040aaa89060",
+          "source_png_sha256": "6299089f8b312aaeebf3dce88b3caa73cf250d9eed3857a0ee7ce1b7404d3db6",
+          "source_png_bytes": 526860,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн Green World Hotel Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRCsbA7Q",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "green-world-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/green-world-nha-trang-20639917.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e8179cd5d09215df1ef57c808c19477e9a91225856a34d802c2f325d9e0ecd3b",
+          "source_png_sha256": "bcec40a828fb871164e7699aedb0dde4ec4f4a6e5c8e5b0f6e7d27a652dad0c1",
+          "source_png_bytes": 366266,
+          "dimensions": [
+            1024,
+            631
+          ],
+          "alt": "Лобби Green World Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRP067yQ",
+          "canva_asset_dimensions": [
+            1024,
+            631
+          ],
+          "source_png_filename": "green-world-g19.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/green-world-nha-trang-20653601.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3d1174c80294f0ae1a3185fc5d7d744368090d061ae351078c06b53f775d27d6",
+          "source_png_sha256": "f7185817ad5b6796a834b23f1c866c9bd6500ee03afa07c4b75f73f18f79e58e",
+          "source_png_bytes": 724306,
+          "dimensions": [
+            1033,
+            900
+          ],
+          "alt": "Вход в Green World Hotel Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRA8n82w",
+          "canva_asset_dimensions": [
+            1033,
+            900
+          ],
+          "source_png_filename": "green-world-g02.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 57082,
+      "logical_id": "commercial-ibis-styles-nha-trang-57082-v1",
+      "aliases": [
+        "Ibis Styles Nha Trang Hotel",
+        "IBIS STYLES NHA TRANG"
+      ],
+      "text": "✈️ Туры в ibis Styles Nha Trang\n📍 Нячанг, Вьетнам.\n\nДля отдыха в городе рядом с пляжем.\n\n🛏 Superior 23 м².\n🍽 Подберём тариф с завтраками.\n🏖 До общественного пляжа около 200 м, нужно перейти дорогу.\n\n✈️ Подберём подходящий номер и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "b7758fad796f05fa24139691ab539f7c561500e9f54cb94a3662eca888bc1e79",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/57082.png",
+      "photo_sha256": "28a79c7ef38a93d1af5ed9945586077e4bf2c9f26a0a59c33ff38a1ce8fd5159",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/ibis_styles_nha_trang/",
+        "https://all.accor.com/hotel/9578/index.en.shtml",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ibis-styles135-102309545.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ibis-styles135-1023095411.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ibis-styles135-1023095524.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 17332,
+        "anytour_id": 2643,
+        "legacy_native_id": 57082,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRPr_GaQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d2fade169655cf82_run07_c01",
+        "top500_d2fade169655cf82_run07_c02",
+        "top500_d2fade169655cf82_run07_c03",
+        "top500_d2fade169655cf82_run07_c04",
+        "HOTEL-VN-MASS-20261025T192804Z-C61"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/ibis-styles135-102309545.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "317e6445482458a96dc3729bd4d8902916fdba3a58731125999660e04fd11517",
+          "source_png_sha256": "ebb157c1d0dc9318ae5049ae9315ef32ff5eb2c9eb86428e3d1ab8c1c24b98a7",
+          "source_png_bytes": 1109196,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Здание ibis Styles Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRFeFOnw",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "ibis-styles-nha-trang-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g13",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/ibis-styles135-1023095411.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "07502ac2c3f8dc4943808438e128f6f16e7378cec962af6522245b6ef7eeb20e",
+          "source_png_sha256": "9bbb15355875206bcb416b75cb298a3179ebe5ffd8f20df7bf8dbaaa13d0d36b",
+          "source_png_bytes": 1523287,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан ibis Styles Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHBwRzs",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "ibis-styles-nha-trang-g13.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g26",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/ibis-styles135-1023095524.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "85a6aa51990120ed611235a9aa1ee7757d8e867922a4cb5731d1608c088d31e5",
+          "source_png_sha256": "44162361269679020ac600167af4a436a5f26214b237469a7e6b02c40e1507b9",
+          "source_png_bytes": 783557,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ванная комната ibis Styles Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRFOV6Y8",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "ibis-styles-nha-trang-g26.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 64672,
+      "logical_id": "commercial-maple-nha-trang-64672-v1",
+      "aliases": [
+        "Maple Hotel & Apartment",
+        "MAPLE HOTEL & APARTMENT NHA TRANG"
+      ],
+      "text": "✈️ Туры в Maple Hotel & Apartment\n📍 Нячанг, Вьетнам.\n\nГородской отдых с пляжем рядом и бассейном на крыше.\n\n🛏 Senior 28 м² с двумя кроватями.\n🍽 Подберём вариант тура с завтраками.\n🏖 Пляжная зона отеля в 150 м через дорогу.\n🏊 Бассейн на крыше.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером на ваши даты.",
+      "text_sha256": "ba3180adc46dde51d4ef662c7662f24dd297cf91c5990a284a4c1db66a2f050a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/64672.png",
+      "photo_sha256": "a67e6ee54a6299de5c120132e51fe03f3d6c72e83f1e8207f3bb4cf00aa0463a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/maple_hotel_apartment/",
+        "https://maplenhatrang.vn/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/maple-leaf-hotel-nha-trang-2612000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/maple-leaf-hotel-nha-trang-2612044.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/maple-leaf-hotel-nha-trang-2612037.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21679,
+        "anytour_id": 2914,
+        "legacy_native_id": 64672,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRH-hxJI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4f2aa4f2a02c1aea_run07_c01",
+        "top500_4f2aa4f2a02c1aea_run07_c02",
+        "top500_4f2aa4f2a02c1aea_run07_c03",
+        "top500_4f2aa4f2a02c1aea_run07_c04",
+        "HOTEL-VN-MASS-20261025T192804Z-C26"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/maple-leaf-hotel-nha-trang-2612000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c7eecc0980ecc5733f94aecfd959ade0ace4c7a2d6235800d31af40815e23895",
+          "source_png_sha256": "a45315702ab8fa3a16b85d251b95483265e4cc33e1ec9b53db021ca3b20895da",
+          "source_png_bytes": 1117932,
+          "dimensions": [
+            1024,
+            720
+          ],
+          "alt": "Бассейн на крыше Maple Hotel Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRNUKbBw",
+          "canva_asset_dimensions": [
+            1024,
+            720
+          ],
+          "source_png_filename": "maple-nha-trang-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g42",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/maple-leaf-hotel-nha-trang-2612044.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5d70e80577e8731c3e2b5a9c12113e538131f111b6137833365fd6d345fdf82a",
+          "source_png_sha256": "27ade0e03e18d08ad18f7d8650dbc08f3245a527f5a89abd6d03ca6ee63c4590",
+          "source_png_bytes": 383428,
+          "dimensions": [
+            1024,
+            665
+          ],
+          "alt": "Номер с двумя отдельными кроватями в Maple Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRA1trSg",
+          "canva_asset_dimensions": [
+            1024,
+            665
+          ],
+          "source_png_filename": "maple-nha-trang-g42.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g36",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/maple-leaf-hotel-nha-trang-2612037.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ef5bcdbfa5080796dafac5ba8608f7c85059c33c7aa3a7339efcfaf814060c32",
+          "source_png_sha256": "a03c85de7d4570567cde41d28b6cdb6da939b46b24a03a4fa834d2f14943a68a",
+          "source_png_bytes": 925096,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Ресторан Maple Hotel Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRC_HxTs",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "maple-nha-trang-g36.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 80605,
+      "logical_id": "commercial-miracle-luxury-80605-v1",
+      "aliases": [
+        "Miracle Luxury Hotel",
+        "MIRACLE LUXURY"
+      ],
+      "text": "✈️ Туры в Miracle Luxury Hotel\n📍 Нячанг, Вьетнам.\n\nДля отпуска вдвоём в Нячанге.\n\n🛏 Deluxe City View 26 м² с видом на город.\n🍽 Подберём вариант тура с завтраками.\n🏖 До общественного пляжа около 450 м.\n\n✈️ Рассчитаем полную стоимость тура с перелётом для вашей пары.",
+      "text_sha256": "731e9eca7dfe539f68a884580ea355cc8d8961dee0320ca28950917b56ab46cc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/80605.png",
+      "photo_sha256": "9fbdc8b4ead1cfda40a97374d87c79dbfc988d6a93ceadb605f00500fabeb14a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/miracle_luxury_nha_trang/",
+        "https://www.coral.ge/en/hotels/vietnam/miracle-luxury-hotel-nha-trang-nha-trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/miracle-luxury-10456011.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/miracle-luxury-10456044.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/miracle-luxury-10456031.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 34923,
+        "anytour_id": 3462,
+        "legacy_native_id": 80605,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRJX8EzU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_43eedb05634afb3e_run07_c01",
+        "top500_43eedb05634afb3e_run07_c02",
+        "top500_43eedb05634afb3e_run07_c03",
+        "top500_43eedb05634afb3e_run07_c04",
+        "top500_43eedb05634afb3e_run07_c06",
+        "HOTEL-VN-MASS-20261025T201851Z-C26"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g12",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/miracle-luxury-10456011.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "89c0a8bcde17954d21c85c605bdf1e61cc25f7ba58bdb27e3f6a6c59a73e1af8",
+          "source_png_sha256": "2a8bbe17dcc1fc6040273d891169029c5f7dc807e2381b69f16b11bb765df2f2",
+          "source_png_bytes": 997721,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн на крыше Miracle Luxury Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRLAFNLY",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "miracle-luxury-g12.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g45",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/miracle-luxury-10456044.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ee938668ded8c454be3953811f704e20e94521c0e8422fe13e1a19130e2c9a83",
+          "source_png_sha256": "ae6eaee65dd48f5a36983265528b3ada13f6777b331200df3ef61ade4eeb2f2f",
+          "source_png_bytes": 594656,
+          "dimensions": [
+            836,
+            768
+          ],
+          "alt": "Номер Miracle Luxury Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHA3vGo",
+          "canva_asset_dimensions": [
+            836,
+            768
+          ],
+          "source_png_filename": "miracle-luxury-g45.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g32",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/miracle-luxury-10456031.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b0909118a21519e507364dcf2dc614319afb0fd61311dc47fd1b74ef665fca6a",
+          "source_png_sha256": "62e43b15c4ba8f93be59b41a1e7f2a8bfb1a46850e88454349d642a8752b7643",
+          "source_png_bytes": 434414,
+          "dimensions": [
+            1024,
+            542
+          ],
+          "alt": "Ванная комната Miracle Luxury Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRD7BpHM",
+          "canva_asset_dimensions": [
+            1024,
+            542
+          ],
+          "source_png_filename": "miracle-luxury-g32.png"
+        }
+      ]
+    }
+  ]
+}
