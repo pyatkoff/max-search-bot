@@ -129,6 +129,7 @@ jobs:
               php tests/mysql/virtual-reply-sampling.php
               php tests/mysql/virtual-reply-controls.php
               php tests/mysql/manager-tour-delivery.php
+              php tests/run_active_budget_regression.php --prepared-mysql
               ;;
             queues)
               php tests/mysql/hotel-work-queue.php

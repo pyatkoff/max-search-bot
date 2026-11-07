@@ -71,7 +71,10 @@ foreach ($reviewCases as [$text, $expected]) {
 }
 
 if (in_array('--parser-only',$argv,true)) {echo "TOTAL $n | PASS ".($n-$failed)." | FAIL $failed\n";exit($failed?1:0);}
-$useMysql=in_array('--mysql',$argv,true);
+$usePreparedMysql=in_array('--prepared-mysql',$argv,true);
+$useSocketMysql=in_array('--mysql',$argv,true);
+if ($usePreparedMysql && $useSocketMysql) throw new RuntimeException('ambiguous_mysql_fixture_mode');
+$useMysql=$usePreparedMysql || $useSocketMysql;
 $driver=$useMysql?'mysql':'sqlite';
 if (!in_array($driver,PDO::getAvailableDrivers(),true)) {fwrite(STDERR,"Required active-budget database tests need pdo_{$driver}; not skipped.\n");exit(1);}
 
@@ -93,14 +96,29 @@ require_once $root.'/services/DialogueController.php';
 require_once $root.'/services/IncomingMessage.php';
 $options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,PDO::ATTR_EMULATE_PREPARES=>false];
 if ($useMysql) {
-    // Explicit isolated local fixture only: no host/production credentials or fallback.
-    $socket=(string)getenv('MAX_BUDGET_TEST_MYSQL_SOCKET');
-    if ($socket==='' || strpos($socket,';')!==false || !is_file(dirname($socket).'/QUALIFICATION_TEST_ONLY')) throw new RuntimeException('isolated_mysql_fixture_required');
+    // Both explicit modes create their own disposable database. No production
+    // config or credentials are accepted, and neither mode falls back to another.
     $testDb='qualification_budget_'.bin2hex(random_bytes(6));
-    $admin=new PDO('mysql:unix_socket='.$socket.';charset=utf8mb4','root','',$options);
+    if ($usePreparedMysql) {
+        $adminDsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
+        $testUser=(string)getenv('PREPARED_REPLY_MYSQL_USER');
+        $testPass=(string)getenv('PREPARED_REPLY_MYSQL_PASS');
+        if ($adminDsn!=='mysql:host=127.0.0.1;port=3306;dbname=maxbot_prepared_test;charset=utf8mb4'
+            || $testUser!=='root' || $testPass!=='prepared-fixture-only') {
+            throw new RuntimeException('isolated_prepared_mysql_fixture_required');
+        }
+        $testDsn=str_replace('dbname=maxbot_prepared_test;','dbname='.$testDb.';',$adminDsn);
+    } else {
+        $socket=(string)getenv('MAX_BUDGET_TEST_MYSQL_SOCKET');
+        if ($socket==='' || strpos($socket,';')!==false || !is_file(dirname($socket).'/QUALIFICATION_TEST_ONLY')) throw new RuntimeException('isolated_mysql_fixture_required');
+        $adminDsn='mysql:unix_socket='.$socket.';charset=utf8mb4';
+        $testDsn='mysql:unix_socket='.$socket.';dbname='.$testDb.';charset=utf8mb4';
+        $testUser='root';$testPass='';
+    }
+    $admin=new PDO($adminDsn,$testUser,$testPass,$options);
     $admin->exec('CREATE DATABASE `'.$testDb.'` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
     register_shutdown_function(static function()use($admin,$testDb):void{$admin->exec('DROP DATABASE `'.$testDb.'`');});
-    $pdo=new PDO('mysql:unix_socket='.$socket.';dbname='.$testDb.';charset=utf8mb4','root','',$options);
+    $pdo=new PDO($testDsn,$testUser,$testPass,$options);
     $migration=(string)file_get_contents($root.'/migrations/022_standalone_dialogue_state.sql');
     foreach(explode(';',$migration) as $statement) if(trim($statement)!=='') $pdo->exec($statement);
     echo 'Native MySQL fixture version: '.$pdo->getAttribute(PDO::ATTR_SERVER_VERSION)."\n";
@@ -255,7 +273,7 @@ ProjectConfig::resetForTests(['id'=>'budget-test']);
 $start=ConversationStateRepository::budgetSnapshot($chat);
 // Deliberate two-connection interleaving in MySQL: current start was read,
 // then another connection altered its raw envelope before the guarded UPDATE.
-$writer=$useMysql?new PDO('mysql:unix_socket='.$socket.';dbname='.$testDb.';charset=utf8mb4','root','',$options):$pdo;
+$writer=$useMysql?new PDO($testDsn,$testUser,$testPass,$options):$pdo;
 foreach ([str_replace('trip_budget_v1','TRIP_BUDGET_V1',$start['raw']),$start['raw'].' '] as $changedRaw) {
     $writer->prepare('UPDATE runtime_dialogue_state SET value_text=? WHERE id=?')->execute([$changedRaw,$start['start_id']]);
     abCheck('CAS rejects raw change even under case-insensitive or space-padding collation',MysqlDialogueStateRepository::compareStartValue($chat,64,$start['start_id'],$start['raw'],TripBudgetPolicy::toStartValue(['max'=>1,'currency'=>'RUB'])),false);
@@ -295,6 +313,9 @@ $pdo->exec("CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key VARCHAR(64)
     INSERT INTO projects VALUES(1,'anytour',1);
     INSERT INTO catalog_departures VALUES(15,'Самара','Самары',1);
     INSERT INTO catalog_countries VALUES(1,'Египет',1);");
+$catalogConnection=new ReflectionProperty(HotelDatabase::class,'pdo');
+$catalogConnection->setAccessible(true);
+$catalogConnection->setValue(null,$pdo);
 ProjectConfig::resetForTests([
     'id'=>'anytour',
     'channel_posts'=>[
