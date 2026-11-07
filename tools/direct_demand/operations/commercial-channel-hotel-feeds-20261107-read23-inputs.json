@@ -1,0 +1,51 @@
+[
+  {
+    "hotel_id": 1065,
+    "name": "Calista Luxury Resort",
+    "accepted_first_line": "🌿 Calista Luxury Resort 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/1065.png",
+    "image_sha256": "a2e7a7ac3bef8158f0b5152407a6fd7e2260b77e07fd874abf147740b9bf10e1"
+  },
+  {
+    "hotel_id": 1960,
+    "name": "Amwaj Beach Club Abu Soma",
+    "accepted_first_line": "💦 Amwaj Beach Club Abu Soma 4★ · Сома Бей",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/1960.png",
+    "image_sha256": "ea7d7658850e95962220bd2e2adbfd931aeb68f345745e1479ed4facb9645ecf"
+  },
+  {
+    "hotel_id": 116932,
+    "name": "Chateau Du Village",
+    "accepted_first_line": "🌇 Chateau Du Village 4★ · Патонг, Пхукет",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/116932.png",
+    "image_sha256": "99534de3a437467a2aafc54b39ff150b203e460db5805bb26103f993cfa31688"
+  },
+  {
+    "hotel_id": 748,
+    "name": "Phuket Graceland Resort & Spa",
+    "accepted_first_line": "🌊 Phuket Graceland Resort & Spa 4★ · Патонг, Пхукет",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/748.png",
+    "image_sha256": "804520834903646b4eb94a6ec716f90d0569867a834b760ea933113074173e4f"
+  },
+  {
+    "hotel_id": 247,
+    "name": "Long Beach Resort Hurghada",
+    "accepted_first_line": "🐠 Long Beach Resort Hurghada 4★ · Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/247.png",
+    "image_sha256": "3e1695850021c0a57f3f9c3bce00be7287291042a405172a49c322640de345a4"
+  },
+  {
+    "hotel_id": 73974,
+    "name": "Alma Resort Cam Ranh",
+    "accepted_first_line": "🌴 Alma Resort Cam Ranh 5★ · Камрань",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/73974.png",
+    "image_sha256": "e0a4766271afd5ee8ac524705de410e1ecbf1196117e9d5e41de280ebdb94308"
+  },
+  {
+    "hotel_id": 54193,
+    "name": "SOL by Melia Phu Quoc",
+    "accepted_first_line": "🌴 SOL by Meliá Phu Quoc · Фукуок",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/54193.png",
+    "image_sha256": "20efe57c7b13267a2eeada982b631d0b9ce5f93182ff32704b2c5fb6eb0405d3"
+  }
+]

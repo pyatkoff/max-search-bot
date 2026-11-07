@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261107-6-v1",
+  "state": "SENDER_COMPLETE_SEVEN_NEW_PAIRS_FEED_APPEND_PENDING",
+  "run_id": 42370876958,
+  "job_id": 128398556078,
+  "source_commit": "703fd8a022fee1e0d81aaff6a6ac1fa10c31e440",
+  "installed_source": "a9b03a52bb4c4505640eae79541b7d48aa391083",
+  "intent_artifact_id": 13572873818,
+  "result_artifact_id": 13573875707,
+  "result_artifact_zip_sha256": "8271acf58d2860dcbbb380bcf28b0e1f20aa6f7ce60ab82a12e3a62ca08687cc",
+  "previous_accepted_pairs": 187,
+  "new_full_pairs": 7,
+  "confirmed_full_pairs_total": 194,
+  "goal_pairs": 500,
+  "remaining_to_500": 306,
+  "new_posts": 14,
+  "post_write_attempts": 14,
+  "reused_posts": 0,
+  "all_new_posts_body_photo_button_verified": true,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-calista-luxury-resort-1065-v1",
+      "post_url": "https://t.me/any_toour/202",
+      "text_sha256": "bb79dcae8949bc03c9ab7a76d6d058b07b26008d8784348c5bea720887739606",
+      "photo_sha256": "a2e7a7ac3bef8158f0b5152407a6fd7e2260b77e07fd874abf147740b9bf10e1",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-amwaj-beach-club-abu-soma-1960-v1",
+      "post_url": "https://t.me/any_toour/203",
+      "text_sha256": "f7dae70dc298d608ecb1c4d336c52c8bdd7aa8322eaec353673f5608052321e4",
+      "photo_sha256": "ea7d7658850e95962220bd2e2adbfd931aeb68f345745e1479ed4facb9645ecf",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-chateau-du-village-116932-v1",
+      "post_url": "https://t.me/any_toour/204",
+      "text_sha256": "571175ef7920f83054edb626dac9b398526e651cfd1693996bd2d779c1d0130e",
+      "photo_sha256": "99534de3a437467a2aafc54b39ff150b203e460db5805bb26103f993cfa31688",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-phuket-graceland-resort-spa-748-v1",
+      "post_url": "https://t.me/any_toour/205",
+      "text_sha256": "4cbb88875d46f7350286ead620b9adba47bd093d96d3880c747719b415b1b61b",
+      "photo_sha256": "804520834903646b4eb94a6ec716f90d0569867a834b760ea933113074173e4f",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-long-beach-resort-hurghada-ex-hilton-long-beach-resort-247-v1",
+      "post_url": "https://t.me/any_toour/206",
+      "text_sha256": "b748e4a1bfa79b2248e911c69c35e297c2e3ba30976fda836c25298e55d96248",
+      "photo_sha256": "3e1695850021c0a57f3f9c3bce00be7287291042a405172a49c322640de345a4",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-alma-resort-cam-ranh-73974-v1",
+      "post_url": "https://t.me/any_toour/207",
+      "text_sha256": "669abc4e5b20684daff9d2eb89d82612164618514ebab2f8353a1e7740f2556c",
+      "photo_sha256": "e0a4766271afd5ee8ac524705de410e1ecbf1196117e9d5e41de280ebdb94308",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sol-by-melia-phu-quoc-54193-v1",
+      "post_url": "https://t.me/any_toour/208",
+      "text_sha256": "8f9fdcf1d16d07e54ba2709a70ffbe79489e06a762ff1792c80a3f3345af9bf8",
+      "photo_sha256": "20efe57c7b13267a2eeada982b631d0b9ce5f93182ff32704b2c5fb6eb0405d3",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-calista-luxury-resort-1065-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG15pBCV-0",
+      "text_sha256": "bb79dcae8949bc03c9ab7a76d6d058b07b26008d8784348c5bea720887739606",
+      "photo_sha256": "a2e7a7ac3bef8158f0b5152407a6fd7e2260b77e07fd874abf147740b9bf10e1",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-amwaj-beach-club-abu-soma-1960-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG15pkYUZs",
+      "text_sha256": "f7dae70dc298d608ecb1c4d336c52c8bdd7aa8322eaec353673f5608052321e4",
+      "photo_sha256": "ea7d7658850e95962220bd2e2adbfd931aeb68f345745e1479ed4facb9645ecf",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-chateau-du-village-116932-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG15qI5McY",
+      "text_sha256": "571175ef7920f83054edb626dac9b398526e651cfd1693996bd2d779c1d0130e",
+      "photo_sha256": "99534de3a437467a2aafc54b39ff150b203e460db5805bb26103f993cfa31688",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-phuket-graceland-resort-spa-748-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG15qstL0Y",
+      "text_sha256": "4cbb88875d46f7350286ead620b9adba47bd093d96d3880c747719b415b1b61b",
+      "photo_sha256": "804520834903646b4eb94a6ec716f90d0569867a834b760ea933113074173e4f",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-long-beach-resort-hurghada-ex-hilton-long-beach-resort-247-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG15rQbQH0",
+      "text_sha256": "b748e4a1bfa79b2248e911c69c35e297c2e3ba30976fda836c25298e55d96248",
+      "photo_sha256": "3e1695850021c0a57f3f9c3bce00be7287291042a405172a49c322640de345a4",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-alma-resort-cam-ranh-73974-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG15r05E18",
+      "text_sha256": "669abc4e5b20684daff9d2eb89d82612164618514ebab2f8353a1e7740f2556c",
+      "photo_sha256": "e0a4766271afd5ee8ac524705de410e1ecbf1196117e9d5e41de280ebdb94308",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sol-by-melia-phu-quoc-54193-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG15sYgRhQ",
+      "text_sha256": "8f9fdcf1d16d07e54ba2709a70ffbe79489e06a762ff1792c80a3f3345af9bf8",
+      "photo_sha256": "20efe57c7b13267a2eeada982b631d0b9ce5f93182ff32704b2c5fb6eb0405d3",
+      "body_photo_button_verified": true
+    }
+  ],
+  "current_feed_counts": {
+    "telegram": 187,
+    "max": 187,
+    "all": 374
+  },
+  "current_max_native_route_count": 187,
+  "pending_new_route_native_ids": [
+    1065,
+    1960,
+    116932,
+    748,
+    247,
+    73974,
+    54193
+  ],
+  "sender_operation_closed": true,
+  "unknown_operations": 0,
+  "next_candidate_clearance": {
+    "state": "PENDING_READ23",
+    "native_ids": [
+      140,
+      8053,
+      58987,
+      1033,
+      386,
+      496,
+      66555,
+      33313
+    ]
+  },
+  "next_media_held_native_ids": [
+    132002
+  ],
+  "renovation_held_native_ids": [
+    7938,
+    20288,
+    818,
+    1112,
+    443
+  ],
+  "repeat_policy": "Sender batch6 CLOSED. Finish only new7 routes and additive feeds. Next8 are draft captions and raw-photo candidates pending final commercial release manifests and current registry clearance.",
+  "mac_touched": false,
+  "prices_and_search_links_replayed": false
+}
