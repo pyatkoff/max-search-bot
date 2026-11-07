@@ -1,0 +1,471 @@
+{
+  "operation": "commercial-hotel-batch-20261107-19-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 275,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read32",
+        "run_id": 42383798277,
+        "job_id": 128436788870,
+        "read_at_utc": "2026-11-07T14:55:03Z",
+        "private_receipt_sha256": "5ffccf438c9364e1b5cb07c80e6e8664a94bf9c2693bfa60eb5547ec3654fa2f",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/operations/batch19-root-subset-manifest.json",
+    "sha256": "2295f9cbaa476473a90c89fe0297f189cd12102efa0c6682ad0eed553ccae45a",
+    "full_parent_manifest_sha256": "fc6f81be0484600879961c212e5dba79e54c137a8c6b1a74c01dd354e88298d2",
+    "full_parent_caption_sha256": "692ce3cc2437839b38d55abe3c9a1b4bb9c56c0765514e3b128784c16e970fb8",
+    "within_sender_max10": true
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 2219,
+      "logical_id": "commercial-my-home-2219-v1",
+      "aliases": [
+        "My Home Resort"
+      ],
+      "text": "🌴 My Home Resort 5★ · Авсаллар\n\nДля семейного отпуска с пляжем и занятиями на территории.\n\n🛏 Standard 25 м² или Family 45 м² со спальней и гостиной.\n🏖 Собственный песчаный пляж, отель на второй линии.\n🏐 Пляжный волейбол, настольный теннис и тренажёрный зал.\n💦 Аквааэробика на территории.\n\n✈️ Подберём номер и питание под состав семьи, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a79fafab842140b962a898bf14e3b348fc9e1884afd4c04e97515166c6c92295",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/2219.png",
+      "photo_sha256": "3bfe393ea574c7e2d3644cb7699af8ba43119298ceb9c48a5fece7efbccd9e4d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/alanya/my_home_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/my-home-resort-31193036.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/my-home-resort-31193053.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/my-home-resort-31190045.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 17309,
+        "anytour_id": 945,
+        "legacy_native_id": 2219,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPsxwRkg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_3fa89f22928703aa_run04_c02",
+        "top500_3fa89f22928703aa_run04_c03",
+        "HOTEL-TR-CONTINUOUS-20261028-C390C63BAD18-08_c04"
+      ]
+    },
+    {
+      "hotel_id": 1507,
+      "logical_id": "commercial-sirene-1507-v1",
+      "aliases": [
+        "Sirene Belek Hotel"
+      ],
+      "text": "🎾 Sirene Belek Hotel 5★ · Белек\n\nДля отдыха у моря с теннисом и вечерними развлечениями.\n\n🛏 Standard Junior Suite 47 м² с размещением до трёх взрослых.\n🏖 Песчаный пляж длиной 300 м и песчаный вход в море.\n🎾 Шесть грунтовых теннисных кортов.\n🎶 Вечерние шоу и музыка по программе отеля.\n\nОсвещение кортов, инвентарь и уроки оплачиваются отдельно.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "48fba47977640fa3b1142443aa99e0a06d97062849e3d1259735af821d929df1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/1507.png",
+      "photo_sha256": "cda1d9c4e191e459e9cad2d77e55f835a370dcf94b3b9b9d91843f15d5743ece",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://visitantalya.com/data/pdf/sirene-belek-hotel-9231.pdf",
+        "https://kompastour.com/kz/rus/country/turkey/belek/sirene_belek_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sirene-belek-golf-wellness-97773003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sirene-belek-golf-wellness-97996129.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sirene-belek-golf-wellness-97775200.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8487,
+        "anytour_id": 714,
+        "legacy_native_id": 1507,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP4xhj30",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_fbcbf9b8a2bbb8df_run05_c03",
+        "top500_fbcbf9b8a2bbb8df_run05_c04",
+        "top500_fbcbf9b8a2bbb8df_run05audit_c04",
+        "top500_fbcbf9b8a2bbb8df_run05audit_c05",
+        "HOTEL-TR-CONTINUOUS-20261028-34158791DFBD-08_c05"
+      ]
+    },
+    {
+      "hotel_id": 65020,
+      "logical_id": "commercial-costabella-65020-v1",
+      "aliases": [
+        "Costabella Resort Nha Trang",
+        "COSTABELLA RESORT NHA TRANG (EX. DIAMOND BAY CONDOTEL RESORT)",
+        "DIAMOND BAY CONDOTEL RESORT"
+      ],
+      "text": "🌴 Costabella Resort Nha Trang 5★ · Нячанг\n\nДля отдыха у моря с выбором просторной семейной категории.\n\n🛏 Bella 2 Bedroom Garden View от 60 до 65 м².\n🌿 Вид на сад или бассейн у этой категории.\n🏖 Собственный пляж Nhu Tien.\n🎭 Шоу по программе отеля.\n\nBella рассчитана максимум на четырёх гостей; кровати и состав размещения подбираются отдельно.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "60125884ac0057f56258aa6cc5004377fcdacecac721cebc44ff73711754fc73",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/65020.png",
+      "photo_sha256": "f27c9f76445aaa59b10b8ff0ac6db9dae741443e29821c6aa5338480f6044c1d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/costabella_resort_nha_trang/",
+        "https://costabellaresortnhatrang.com/en/",
+        "https://costabellaresortnhatrang.com/m/en/bella-2-bedroom-garden-view.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/diamond-bay-condotel-resort-nha-trang-36905719.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/diamond-bay-condotel-resort-nha-trang-36905759.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/diamond-bay-condotel-resort-nha-trang-36905741.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 42709,
+        "anytour_id": 2936,
+        "legacy_native_id": 65020,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP6owKTA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-C06",
+        "HOTEL-VN-MASS-20261025T201851Z-C07",
+        "top500_2cc4e7774f0c009b_run06_c04",
+        "top500_2cc4e7774f0c009b_run06_c05"
+      ]
+    },
+    {
+      "hotel_id": 83189,
+      "logical_id": "commercial-the-time-83189-v1",
+      "aliases": [
+        "The Time Hotel"
+      ],
+      "text": "🌆 The Time Hotel 3★ · Нячанг\n\nДля городских прогулок и пляжных дней с отдыхом у бассейна.\n\n🛏 Deluxe с двуспальной или двумя отдельными кроватями.\n💧 Крытый бассейн.\n🌿 Терраса и сауна на территории.\n🍽 Ресторан и бар в отеле.\n\nДо пляжа около 300 м, по пути нужно перейти дорогу.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты и состав гостей.",
+      "text_sha256": "4469f5abad3810fc4f5ea603b7306913bb531684623977f81f20462b37c688ec",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/83189.png",
+      "photo_sha256": "beab85a91a14bfbaab7ebd69b96860338892b4c69b8f06d9d559640adf2c4ed7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/the_time_hotel_nha_trang/",
+        "https://nhatrang-travel.com/diem-den/dich-vu/co-so-luu-tru/khach-san-the-time.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/the-time-hotel-102511230.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/the-time-hotel-1025112443.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/the-time-hotel-1025112317.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37895,
+        "anytour_id": 3573,
+        "legacy_native_id": 83189,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaP0cGOgQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7860e9fdfb2605f5_run08_c03",
+        "top500_7860e9fdfb2605f5_run08_c04",
+        "HOTEL-VN-MASS-20261025T201851Z-C40",
+        "HOTEL-VN-MASS-20261025T201851Z-C41"
+      ]
+    },
+    {
+      "hotel_id": 95159,
+      "logical_id": "commercial-phuket-kata-95159-v1",
+      "aliases": [
+        "Phuket Kata Resotel"
+      ],
+      "text": "🏖 Phuket Kata Resotel 4★ · Ката\n\nДля пляжных дней на Пхукете и отдыха у бассейна.\n\n🛏 Superior около 35 м² рядом с главным бассейном.\n💧 Отдельные взрослый и детский бассейны.\n🍹 Бар у бассейна и ресторан на территории.\n🌊 Общественный песчаный пляж Ката примерно в 300 м.\n\n✈️ Подберём категорию под состав гостей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "92f6c7777e4fd0af45cc5b8efb4e7a3551939f2c6a290355f580ef83402bcdf6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/95159.png",
+      "photo_sha256": "04498b6f393cc02dc5474ebf7d242ededf7f5275c631e6b652709a2d1e923af5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.phuketkataresotel.com/accommodation.php",
+        "https://www.coral.ge/en/hotels/thailand/phuket-kata-resotel-phuket/",
+        "https://www.phuketkataresotel.com/facilities.php",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-resortel-1309311.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-resortel-1309331.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-resortel-1309304.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7760,
+        "anytour_id": 3622,
+        "legacy_native_id": 95159,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaP7qdguk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d2c62539f8aa9865_run07_c02",
+        "top500_d2c62539f8aa9865_run07_c04",
+        "top500_d2c62539f8aa9865_crit51_c01",
+        "country61_TH_20261025T195546Z_mass_c17"
+      ]
+    },
+    {
+      "hotel_id": 55721,
+      "logical_id": "commercial-tnd-55721-v1",
+      "aliases": [
+        "TND Hotel (Ex. Cicilia Nha Trang Hotel)",
+        "TND HOTEL (EX. CICILIA)",
+        "TND Hotel",
+        "Cicilia Nha Trang Hotel",
+        "CICILIA"
+      ],
+      "text": "🌆 TND Hotel 4★ · Нячанг\n\nДля тех, кто хочет совместить пляж, прогулки по Нячангу и отдых у бассейна.\n\n🛏 Deluxe No View или Deluxe City View: двуспальная или две отдельные кровати.\n💧 Бассейн на 14 этаже с отдельными зонами для взрослых и детей.\n🏋️ Тренажёрный зал на том же этаже.\n🍽 Ресторан Luciana и D’Coffee.\n\nДо муниципального пляжа около 130 м через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "71b67c49b3836d273479f1a153fcaee5bfbd2ff47830571003aaec80d6284bcf",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/55721.png",
+      "photo_sha256": "e49b0c8da139951aa7f84389a1c11b2fe664ce767ed8bb8ca550cfc75085de12",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/tnd_hotel_nhatrang/",
+        "https://tndhotelnhatrang.com/en/ho-boi",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/cicilia-nha-trang-hotel-spa-91512309.jpg",
+        "https://kompastour.com/useruploads/hotels_room/room_00c171354f.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/cicilia-nha-trang-hotel-spa-91512337.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21545,
+        "anytour_id": 2583,
+        "legacy_native_id": 55721,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaP-IBCIc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c8356ee393714438_run08_c03",
+        "top500_c8356ee393714438_run08_c04",
+        "top500_c8356ee393714438_run08_c05",
+        "top500_c8356ee393714438_run08_c06",
+        "HOTEL-VN-MASS-20261025T201851Z-C58",
+        "HOTEL-VN-MASS-20261025T201851Z-C59"
+      ]
+    },
+    {
+      "hotel_id": 16750,
+      "logical_id": "commercial-dendro-16750-v1",
+      "aliases": [
+        "Dendro Hotel"
+      ],
+      "text": "🏖 Dendro Hotel 3★ · Нячанг\n\nГородской вариант для пляжных дней и прогулок по Нячангу.\n\n🛏 Superior Limited View 27 м² без окон, с двуспальной или двумя отдельными кроватями.\n🌊 Муниципальный пляж примерно в 50 м через дорогу.\n🍹 Бар в отеле.\n\nТрансфер высаживает у специальной парковки; до входа нужно пройти пешком.\n\n✈️ Подберём категорию под ваш запрос и рассчитаем тур с перелётом на нужные даты.",
+      "text_sha256": "f100cdc600ecf3dde1a68d6e0b4bee5d19f84be1ecb4b1f8e7f9cdfb0423078d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/16750.png",
+      "photo_sha256": "f15442f78907c234e805fec1539fa1da2e36a320c2dfcfe0a518fb8c133736f3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/vietnam/nhatrang/dendro_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/dendro-hotel-2817436.jpg",
+        "https://kompastour.com/useruploads/hotels_room/room_36afe60dc1.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/dendro-hotel-2817404.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5628,
+        "anytour_id": 1766,
+        "legacy_native_id": 16750,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaP0rv1Gc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_111d474fe8243903_run07_c03",
+        "top500_111d474fe8243903_run07_c04",
+        "top500_111d474fe8243903_run07_c05",
+        "top500_111d474fe8243903_run07_c06"
+      ]
+    },
+    {
+      "hotel_id": 713,
+      "logical_id": "commercial-naithonburi-713-v1",
+      "aliases": [
+        "Naithonburi Beach Resort"
+      ],
+      "text": "🏖 Naithonburi Beach Resort 4★ · Наитон\n\nДля тех, кто хочет жить рядом с пляжем Наитон и отдыхать у бассейнов.\n\n🛏 Superior ROH 40 м² с двуспальной или двумя отдельными кроватями.\n🌊 Пляж Наитон через дорогу от отеля.\n🍹 Два бара у бассейнов.\n\nПри выборе ROH конкретный корпус не гарантирован.\n\n✈️ Подберём категорию с учётом возраста детей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "dec08491cb4afa0a2475487129f2e2e0c959894301ff0515ac72507735bfc6e1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/713.png",
+      "photo_sha256": "281cde95acad8409b72167716960f781592c9a498632005ce8ea8847ec7787ae",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/naithonburi_beach_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/naithonburi-102102470.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/naithonburi-1021025218.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/naithonburi-20574804.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 4412,
+        "anytour_id": 325,
+        "legacy_native_id": 713,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPyKc-cY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_adf8a09cdda23402_run07_c03",
+        "top500_adf8a09cdda23402_run07_c04",
+        "top500_adf8a09cdda23402_run07_c05",
+        "top500_adf8a09cdda23402_run07_c06"
+      ]
+    },
+    {
+      "hotel_id": 341,
+      "logical_id": "commercial-nubian-village-341-v1",
+      "aliases": [
+        "Nubian Village"
+      ],
+      "text": "💦 Nubian Village 5★ · Набк Бей\n\nДля семейного отпуска с водными горками и отдельными комнатами.\n\n🛏 Family Suite 60 м²: две комнаты с дверью, двуспальная и отдельные кровати.\n💧 Три взрослые и три детские горки.\n🎨 Детский клуб от 4 до 12 лет.\n🏖 Собственный пляж и пирс.\n\nВторая спальня этой Family Suite без окна; у входа в море встречаются кораллы и камни.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "ff8f61b8d8dba59d0030c681a57e76dbe2ef1f5130f2d4a4af71400cb2047c37",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/341.png",
+      "photo_sha256": "3686135644d856853db76db871899a73e0fbccd423fb921a23b5dfd6d59a7b8a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.nubian-village.com/index.html",
+        "https://kompastour.com/kg/rus/country/egypt/sharm/nubian_village/",
+        "https://www.itaka.pl/wczasy/egipt/sharm-el-sheikh/hotel-nubian-village,AEGSSH11FA/",
+        "https://www.nubian-village.com/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/nubian-village-69308513.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/nubian-village-69374901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/nubian-village-69374910.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 525,
+        "anytour_id": 138,
+        "legacy_native_id": 341,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPzvT4Yw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-EG-MANUAL-20261025-NUBIAN-02_c24",
+        "top500_bd0943c34207b902_c03",
+        "top500_bd0943c34207b902_enrich20261020_c01",
+        "top500_bd0943c34207b902_mass31_c02",
+        "HOTEL-EG-MANUAL-20261025-NUBIAN-02_c26"
+      ]
+    },
+    {
+      "hotel_id": 340,
+      "logical_id": "commercial-nubian-island-340-v1",
+      "aliases": [
+        "Nubian Island"
+      ],
+      "text": "🌊 Nubian Island 5★ · Набк Бей\n\nДля семейного отдыха у рифа с размещением в бунгало.\n\n🛏 Family 37 м²: комнаты с дверью, двуспальная и отдельные кровати, терраса.\n🏖 Первая линия, риф и пирс длиной 100 м.\n🎨 Детский клуб от 4 до 12 лет.\n🎾 Два теннисных корта.\n\nВход в море песчаный, с кораллами и камнями. Для купания рекомендуем специальную обувь.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "61d4845124dff849208e35b628257aa1e7844a381f56de582852ece796f86f2c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-19/340.png",
+      "photo_sha256": "8370ac9dac37e621dee3087d469eb5ba8417263a861e82861187c97b2cd98221",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.nubian-island.com/",
+        "https://kompastour.com/kz/rus/country/egypt/sharm/nubian_island/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/nubian-island-2715009.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/nubian-island-2715030.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/nubian-island-2715042.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 801,
+        "anytour_id": 137,
+        "legacy_native_id": 340,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP5GXOKk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-EG-MANUAL-20261025-NUBIAN-02_c10",
+        "top500_b9037f1dfc3f84ad_c04",
+        "top500_b9037f1dfc3f84ad_enrich05_20261019_c01",
+        "HOTEL-EG-MANUAL-20261025-NUBIAN-02_c06",
+        "HOTEL-EG-MANUAL-20261025-NUBIAN-02_c13"
+      ]
+    }
+  ]
+}
