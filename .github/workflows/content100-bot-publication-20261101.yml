@@ -1,4 +1,4 @@
-name: Append the nineteen confirmed hotel pairs to the existing public feeds
+name: Correct 91 reviewed existing AnyTour hotel pairs
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -12,52 +12,101 @@ concurrency:
 env:
   EXPECTED_PRODUCTION_SHA: 6d193b7740dc212b92b1893041f0a1047b179635
 jobs:
-  inspect:
+  legacy_first:
+    name: Correct 30 older hotel headings and resort lines
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Bind the exact approved294 route receipt and additive feed bytes
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_RUN_ATTEMPT" = 1
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/current-main.json"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42387774695 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42387774695/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42388210320 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42391449634 > "$evidence/prior-resorts.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42391723318 > "$evidence/feed294.json"
+          python3 -c 'import json,sys; a,b=(json.load(open(v)) for v in sys.argv[1:]); assert [(r["status"],r["conclusion"],r["head_sha"]) for r in (a,b)] == [("completed","success","f5ddf31c38dd3e4367158a5a8fe7b1bc5a3cb3e0"),("completed","success","06fbf32e3cae2f0f078c187610b47a2452dae9f2")]' "$evidence/prior-resorts.json" "$evidence/feed294.json"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42387323343
+          name: commercial-read-existing-hotel-captions-20261107-result
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-registry
+      - name: Bind 60 heading and location edits to the exact read-only snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          umask 077
+          python3 -c 'import json,pathlib; root=pathlib.Path("tools/direct_demand/operations"); assert all(json.loads((root/f"commercial-batch-20261107-{n}-state.json").read_text())["state"] == "COMPLETE" for n in (15,16))'
           python3 - <<'PYCODE'
-          import base64,hashlib,json,os,pathlib,re,xml.etree.ElementTree as ET
-          p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP']);b=pathlib.Path('.github/traffic-publish')
-          assert json.loads((t/'current-main.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          evidence=(p/'commercial-max294-installed-safe-evidence-20261107.json').read_bytes();assert hashlib.sha256(evidence).hexdigest()=='cf9ca4c7a39992a62c94cb526f8a249942ebc2b9ca593ea391689737e7fe9eb8'
-          e=json.loads(evidence);r=e['result'];assert e['run_id']==42391419207 and e['job_id']==128459618105 and e['result_artifact_id']==13581168192 and r['ok'] and r['state']=='INSTALLED_AND_NATIVE_VERIFIED'
-          assert r['checks']['exact_total_routes']==294 and r['checks']['new_native_routes_verified']==19 and r['checks']['previous275_rows_identical'] and r['checks']['private_projection_http_status']==404 and r['checks']['save_calls']==0
-          plan=json.loads((p/'commercial-channel-hotel-feeds-20261107-update33-plan.json').read_text());baseline=json.loads((p/'commercial-channel-hotel-feeds-20261107-update33-baseline.json').read_text())
-          assert plan['new_hotel_ids']==[2219,1507,65020,83189,95159,55721,16750,713,341,340,1439,28325,1096,1486,37527,48863,15889,27642,76588] and plan['target_rows']==[294,294,588] and plan['previous275_offer_blocks_identical']
-          files=[]
-          for x in plan['files']:
-              raw=(b/x['name']).read_bytes();base=baseline[x['name']];assert len(raw)==x['bytes'] and hashlib.sha256(raw).hexdigest()==x['sha256']
-              blocks={m[1]:m[0] for m in re.finditer(r'<offer\b[^>]*\bid="([^"]+)"[^>]*>[\s\S]*?</offer>',raw.decode())};assert len(blocks)==x['rows']
-              assert set(blocks)==set(base['previous_offer_blocks_sha256'])|set(base['new_offer_blocks_sha256'])
-              for k,h in {**base['previous_offer_blocks_sha256'],**base['new_offer_blocks_sha256']}.items():assert hashlib.sha256(blocks[k].encode()).hexdigest()==h
-              outside=re.sub(r'<yml_catalog date="[^"]+">','<yml_catalog date="__DATE__">',re.sub(r'<offers>[\s\S]*?</offers>','<offers>__OFFERS__</offers>',raw.decode(),count=1)).encode();assert hashlib.sha256(outside).hexdigest()==base['outside_offers_sha256']
-              assert len(ET.fromstring(raw).findall('shop/offers/offer'))==x['rows']
-              files.append({'name':x['name'],'sha256':x['sha256'],'bytes':x['bytes'],'rows':x['rows'],'expected_previous_sha256':x['expected_previous_sha256'],'content_base64':base64.b64encode(raw).decode()})
-          payload={'schema_version':2,'operation':plan['operation'],'files':files};raw=json.dumps(payload,separators=(',',':')).encode();(t/'feed-update33-input.json').write_bytes(raw)
-          source=(p/'publish-commercial-channel-hotel-feeds-20261103-1.php').read_text();assert hashlib.sha256(source.encode()).hexdigest()=='2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst PUBLIC_STATIC_FEED_OPERATION='"+plan['operation']+"';\nconst PUBLIC_STATIC_FEED_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst PUBLIC_STATIC_FEED_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"
-          (t/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-          print('FEED294_ADD_ONLY_PREPARED existing275_offer_blocks_unchanged=1 aliases294_confirmed=1 provider_calls=0')
+          import base64,hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(base/'commercial-legacy-hotel-headings-20261107-8-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='5cb9d7dff5f58913a6a49480a4aa0365cc291ec7096275aa199ee8110a98b18b'
+          inp=json.loads(raw)
+          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-8-v1'
+          rows=inp['rows']
+          assert len(rows)==30 and len({r['hotel_id'] for r in rows})==30
+          audit=json.loads((tmp/'prior-registry'/'registry-audit.json').read_text())
+          assert audit['operation']=='commercial-read-existing-hotel-captions-20261107-v1' and audit['ok']
+          assert audit['provider_calls']==audit['post_write_attempts']==0
+          old={(p['hotel_id'],p['platform']):p for p in audit['posts']}
+          assert len(old)==532
+          confirmed=[]
+          for r in rows:
+              heading,location,body=r['old_text'].split('\n',2)
+              assert heading==r['previous_heading'] and location==r['previous_location']
+              if not location:
+                  body='\n'+body
+              assert r['new_text']==r['new_heading']+'\n'+r['new_location']+'\n'+body
+              for kind in ('old','new'):
+                  assert hashlib.sha256(r[kind+'_text'].encode()).hexdigest()==r[kind+'_text_sha256']
+              assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
+              for platform in ('max','telegram'):
+                  p=old.pop((r['hotel_id'],platform))
+                  assert [p['publication_id'],p['version_id']]==inp['exact_ids'][str(r['hotel_id'])][platform]
+                  assert p['caption_sha256']==r['old_text_sha256'] and p['caption']==r['old_text']
+                  assert p['status']=='sent' and p['media_types']==['image'] and p['button_observed_in_snapshot'] and p['button_resolves_to_current_post']
+                  p['logical_id']=r['logical_id']
+                  p['state']=p['status']
+                  p['text_sha256']=p['caption_sha256']
+                  p['source_key']={'max':'max_anytour_msk1','telegram':'tg_anytour_msk'}[platform]
+                  confirmed.append(p)
+          assert len(confirmed)==60
+          bound={'operation':'bound_verified_caption_receipts','ok':True,'new_posts_created':0,'posts':confirmed}
+          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':bound,'exact_ids':inp['exact_ids']}
+          raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
+          (tmp/'caption-correction-input.json').write_bytes(raw)
+          source=(base/'update-legacy-hotel-headings-20261107-8-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='5f199ad8a5f212ae309e52b0991ebfa1f7e3df8e73575d3cb8df40e5c87d2c05'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-8-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert source.count('declare(strict_types=1);')==1
+          (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':60,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
           PYCODE
           php -l "$RUNNER_TEMP/channel-preflight.php"
-      - uses: actions/upload-artifact@v4
+      - name: Retain exact caption edit intent before provider access
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261107-update33-intent
-          path: ${{ runner.temp }}/feed-update33-input.json
+          name: commercial-legacy-hotel-headings-20261107-8-inputs
+          path: ${{ runner.temp }}/caption-correction-input.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -98,7 +147,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Atomically replace only the three feeds with exact previous hash guards
+      - name: Correct the 60 existing headings and location lines and verify retained context
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -108,40 +157,575 @@ jobs:
           umask 077
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
-          import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1]);print(json.dumps(d,sort_keys=True))
-          assert d['operation']=='commercial-channel-hotel-feeds-20261107-update33' and d['ok'] and len(d['files'])==3 and [x['rows'] for x in d['files']]==[294,294,588]
-          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
+          import pathlib,json,os,hashlib
+          tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-legacy-hotel-headings-20261107-8-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          assert d['ok'] is True and len(d['posts'])==60 and d['post_write_attempts']==60 and d['new_posts_created']==0
+          assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
+          assert d['commercial_text_updates']==60 and d['configuration_write_attempts']==0
+          source=json.loads((tmp/'caption-correction-input.json').read_text())
+          prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
+          rows={r['logical_id']:r for r in source['rows']}
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==60
+          for p in d['posts']:
+              old=prior[(p['platform'],p['logical_id'])]
+              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','source_key'))
+              assert hashlib.sha256(p['button_url'].encode()).hexdigest()==old['button_url_sha256']
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
+              assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
+          print('EXISTING_30_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
           PY
           test "${probe_status:-0}" = 0
-      - name: Read back only the three new public feed files once
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          import concurrent.futures,hashlib,json,os,pathlib,urllib.request,xml.etree.ElementTree as ET
-          t=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((t/'channel-preflight.json').read_text().splitlines()[-1]);assert d['ok']
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-              def redirect_request(self,*a,**kw):return None
-          def get(row):
-              op=urllib.request.build_opener(NoRedirect);url=row['public_url']
-              with op.open(urllib.request.Request(url,headers={'User-Agent':'AnyTour new294 feed readback','Cache-Control':'no-cache'}),timeout=20) as response:
-                  status=response.status;raw=response.read(1000001)
-              assert status==200 and len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['sha256']
-              offers=ET.fromstring(raw).findall('shop/offers/offer');assert len(offers)==row['rows']
-              return {'name':row['name'],'public_url':url,'http':status,'bytes':len(raw),'sha256':row['sha256'],'rows':len(offers),'exact_published_bytes':True}
-          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:rows=list(pool.map(get,d['files']))
-          result={'operation':'commercial-channel-hotel-feeds-20261107-update33-public-readback','ok':True,'files':rows,'public_gets':3,'provider_calls':0,'message_sends':0,'db_writes':0};(t/'public-feed-readback.json').write_text(json.dumps(result,sort_keys=True));print(json.dumps(result,sort_keys=True))
-          PY
-      - uses: actions/upload-artifact@v4
+      - name: Retain bounded route evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261107-update33-result
-          path: |
-            ${{ runner.temp }}/channel-preflight.json
-            ${{ runner.temp }}/public-feed-readback.json
+          name: commercial-legacy-hotel-headings-20261107-8-result
+          path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
       - name: Remove ephemeral connection and script files
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+
+  legacy_second:
+    name: Correct 27 older hotel headings and resort lines
+    needs: legacy_first
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42387774695 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42387774695/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42388210320 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42387323343
+          name: commercial-read-existing-hotel-captions-20261107-result
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-registry
+      - name: Bind 54 heading and location edits to the exact read-only snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          umask 077
+          python3 -c 'import json,pathlib; root=pathlib.Path("tools/direct_demand/operations"); assert all(json.loads((root/f"commercial-batch-20261107-{n}-state.json").read_text())["state"] == "COMPLETE" for n in (15,16))'
+          python3 - <<'PYCODE'
+          import base64,hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(base/'commercial-legacy-hotel-headings-20261107-9-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='c672f50073a71cb4400e7aad8e034d248e376c21db65feade065fab5fb875fdd'
+          inp=json.loads(raw)
+          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-9-v1'
+          rows=inp['rows']
+          assert len(rows)==27 and len({r['hotel_id'] for r in rows})==27
+          audit=json.loads((tmp/'prior-registry'/'registry-audit.json').read_text())
+          assert audit['operation']=='commercial-read-existing-hotel-captions-20261107-v1' and audit['ok']
+          assert audit['provider_calls']==audit['post_write_attempts']==0
+          old={(p['hotel_id'],p['platform']):p for p in audit['posts']}
+          assert len(old)==532
+          confirmed=[]
+          for r in rows:
+              heading,location,body=r['old_text'].split('\n',2)
+              assert heading==r['previous_heading'] and location==r['previous_location']
+              if not location:
+                  body='\n'+body
+              assert r['new_text']==r['new_heading']+'\n'+r['new_location']+'\n'+body
+              for kind in ('old','new'):
+                  assert hashlib.sha256(r[kind+'_text'].encode()).hexdigest()==r[kind+'_text_sha256']
+              assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
+              for platform in ('max','telegram'):
+                  p=old.pop((r['hotel_id'],platform))
+                  assert [p['publication_id'],p['version_id']]==inp['exact_ids'][str(r['hotel_id'])][platform]
+                  assert p['caption_sha256']==r['old_text_sha256'] and p['caption']==r['old_text']
+                  assert p['status']=='sent' and p['media_types']==['image'] and p['button_observed_in_snapshot'] and p['button_resolves_to_current_post']
+                  p['logical_id']=r['logical_id']
+                  p['state']=p['status']
+                  p['text_sha256']=p['caption_sha256']
+                  p['source_key']={'max':'max_anytour_msk1','telegram':'tg_anytour_msk'}[platform]
+                  confirmed.append(p)
+          assert len(confirmed)==54
+          bound={'operation':'bound_verified_caption_receipts','ok':True,'new_posts_created':0,'posts':confirmed}
+          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':bound,'exact_ids':inp['exact_ids']}
+          raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
+          (tmp/'caption-correction-input.json').write_bytes(raw)
+          source=(base/'update-legacy-hotel-headings-20261107-9-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='4243030163a87fc65104a13ade35e439715efd82470b4bf3ea413a487a5a4748'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-9-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert source.count('declare(strict_types=1);')==1
+          (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':54,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
+          PYCODE
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain exact caption edit intent before provider access
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-legacy-hotel-headings-20261107-9-inputs
+          path: ${{ runner.temp }}/caption-correction-input.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Correct the 54 existing headings and location lines and verify retained context
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import pathlib,json,os,hashlib
+          tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-legacy-hotel-headings-20261107-9-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          assert d['ok'] is True and len(d['posts'])==54 and d['post_write_attempts']==54 and d['new_posts_created']==0
+          assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
+          assert d['commercial_text_updates']==54 and d['configuration_write_attempts']==0
+          source=json.loads((tmp/'caption-correction-input.json').read_text())
+          prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
+          rows={r['logical_id']:r for r in source['rows']}
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==54
+          for p in d['posts']:
+              old=prior[(p['platform'],p['logical_id'])]
+              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','source_key'))
+              assert hashlib.sha256(p['button_url'].encode()).hexdigest()==old['button_url_sha256']
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
+              assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
+          print('EXISTING_27_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Retain bounded route evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-legacy-hotel-headings-20261107-9-result
+          path: ${{ runner.temp }}/channel-preflight.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and script files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+
+  newer:
+    name: Correct 28 recently published hotel headings and resort lines
+    needs: legacy_second
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42387774695 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42387774695/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42388210320 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42388373910
+          name: commercial-batch-20261107-18-publication
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-batch-18
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42390271146
+          name: commercial-batch-20261107-19-publication
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-batch-19
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42390530227
+          name: commercial-batch-20261107-20-publication
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-batch-20
+      - name: Bind 56 caption edits to exact previous publication receipts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          umask 077
+          python3 -c 'import json,pathlib; root=pathlib.Path("tools/direct_demand/operations"); assert all(json.loads((root/f"commercial-batch-20261107-{n}-state.json").read_text())["state"] == "COMPLETE" for n in (15,16))'
+          python3 - <<'PYCODE'
+          import base64,hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(base/'commercial-existing-headings-20261107-10-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='28729d35fe301662983c36012cb79d2cf7a0a0554ecf444076bcd05beee132b1'
+          inp=json.loads(raw)
+          assert inp['operation']=='commercial-existing-headings-20261107-10-v1'
+          rows=inp['rows']
+          assert len(rows)==28 and len({r['hotel_id'] for r in rows})==28
+          old={}
+          for number,count in ((18,18),(19,20),(20,18)):
+              receipt=json.loads((tmp/f'prior-batch-{number}'/'channel-preflight.json').read_text().splitlines()[-1])
+              assert receipt['ok'] and receipt['operation']==f'commercial-hotel-batch-20261107-{number}-v1'
+              assert len(receipt['posts'])==receipt['post_write_attempts']==count
+              old[number]={(p['logical_id'],p['platform']):p for p in receipt['posts']}
+              assert len(old[number])==count
+          confirmed=[]
+          for r in rows:
+              heading,body=r['old_text'].split('\n',1)
+              assert heading==r['previous_heading'] and body.startswith('\n')
+              assert r['new_text']==r['new_heading']+'\n'+r['new_location']+'\n'+body
+              for kind in ('old','new'):
+                  assert hashlib.sha256(r[kind+'_text'].encode()).hexdigest()==r[kind+'_text_sha256']
+              assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
+              for platform in ('max','telegram'):
+                  p=old[r['prior_batch']].pop((r['logical_id'],platform))
+                  assert [p['publication_id'],p['version_id']]==inp['exact_ids'][str(r['hotel_id'])][platform]
+                  assert p['hotel_id']==r['hotel_id'] and p['text_sha256']==r['old_text_sha256']
+                  assert p['state']=='sent' and p['body_photo_button_verified'] and not p['reused'] and p['photo_sha256']
+                  confirmed.append(p)
+          assert len(confirmed)==56 and all(not by_key for by_key in old.values())
+          bound={'operation':'bound_verified_caption_receipts','ok':True,'new_posts_created':0,'posts':confirmed}
+          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':bound,'exact_ids':inp['exact_ids']}
+          raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
+          (tmp/'caption-correction-input.json').write_bytes(raw)
+          source=(base/'update-existing-headings-20261107-10-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='4ca139583e017db4ebd7a8bdbf94f0f68844045eb54d7fae70d4ab817aa2257e'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-existing-headings-20261107-10-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert source.count('declare(strict_types=1);')==1
+          (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':56,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
+          PYCODE
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain exact caption edit intent before provider access
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-existing-headings-20261107-10-inputs
+          path: ${{ runner.temp }}/caption-correction-input.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Correct the 56 existing captions and verify retained context
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import pathlib,json,os
+          tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-existing-headings-20261107-10-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          assert d['ok'] is True and len(d['posts'])==56 and d['post_write_attempts']==56 and d['new_posts_created']==0
+          assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
+          assert d['commercial_text_updates']==56 and d['configuration_write_attempts']==0
+          source=json.loads((tmp/'caption-correction-input.json').read_text())
+          prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
+          rows={r['logical_id']:r for r in source['rows']}
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==56
+          for p in d['posts']:
+              old=prior[(p['platform'],p['logical_id'])]
+              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','source_key'))
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
+              assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
+          print('EXISTING_TWENTY_EIGHT_RECENT_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Retain bounded route evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-existing-headings-20261107-10-result
+          path: ${{ runner.temp }}/channel-preflight.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and script files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+
+  live_buttons:
+    name: Check buttons and correct the six remaining hotel pairs
+    needs: newer
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42387774695 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42387774695/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42388210320 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42387323343
+          name: commercial-read-existing-hotel-captions-20261107-result
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-registry
+      - name: Bind 12 heading and location edits to the exact read-only snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          umask 077
+          python3 -c 'import json,pathlib; root=pathlib.Path("tools/direct_demand/operations"); assert all(json.loads((root/f"commercial-batch-20261107-{n}-state.json").read_text())["state"] == "COMPLETE" for n in (15,16))'
+          python3 - <<'PYCODE'
+          import base64,hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(base/'commercial-legacy-hotel-headings-20261107-11-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='b61477a11a047a214413342e67183782a6606c26a69a984206c15d5f0bdf8683'
+          inp=json.loads(raw)
+          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-11-v1'
+          rows=inp['rows']
+          assert len(rows)==6 and len({r['hotel_id'] for r in rows})==6
+          audit=json.loads((tmp/'prior-registry'/'registry-audit.json').read_text())
+          assert audit['operation']=='commercial-read-existing-hotel-captions-20261107-v1' and audit['ok']
+          assert audit['provider_calls']==audit['post_write_attempts']==0
+          old={(p['hotel_id'],p['platform']):p for p in audit['posts']}
+          assert len(old)==532
+          confirmed=[]
+          for r in rows:
+              heading,location,body=r['old_text'].split('\n',2)
+              assert heading==r['previous_heading'] and location==r['previous_location']
+              if not location:
+                  body='\n'+body
+              assert r['new_text']==r['new_heading']+'\n'+r['new_location']+'\n'+body
+              for kind in ('old','new'):
+                  assert hashlib.sha256(r[kind+'_text'].encode()).hexdigest()==r[kind+'_text_sha256']
+              assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
+              for platform in ('max','telegram'):
+                  p=old.pop((r['hotel_id'],platform))
+                  assert [p['publication_id'],p['version_id']]==inp['exact_ids'][str(r['hotel_id'])][platform]
+                  assert p['caption_sha256']==r['old_text_sha256'] and p['caption']==r['old_text']
+                  assert p['status']=='sent' and p['media_types']==['image'] and p['button_observed_in_snapshot'] is False and p['button_resolves_to_current_post']
+                  p['logical_id']=r['logical_id']
+                  p['state']=p['status']
+                  p['text_sha256']=p['caption_sha256']
+                  p['source_key']={'max':'max_anytour_msk1','telegram':'tg_anytour_msk'}[platform]
+                  confirmed.append(p)
+          assert len(confirmed)==12
+          bound={'operation':'bound_verified_caption_receipts','ok':True,'new_posts_created':0,'posts':confirmed}
+          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':bound,'exact_ids':inp['exact_ids']}
+          raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
+          (tmp/'caption-correction-input.json').write_bytes(raw)
+          source=(base/'update-legacy-hotel-headings-20261107-11-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='22278c8e378f79237b7f5677c68ccead0effa6a41e859420eaebe3bec91cd55c'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-11-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert source.count('declare(strict_types=1);')==1
+          (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':12,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
+          PYCODE
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain exact caption edit intent before provider access
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-legacy-hotel-headings-20261107-11-inputs
+          path: ${{ runner.temp }}/caption-correction-input.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Correct the 12 existing headings and location lines and verify retained context
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import pathlib,json,os,hashlib
+          tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-legacy-hotel-headings-20261107-11-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          assert d['ok'] is True and len(d['posts'])==12 and d['post_write_attempts']==12 and d['new_posts_created']==0
+          assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
+          assert d['commercial_text_updates']==12 and d['configuration_write_attempts']==0
+          source=json.loads((tmp/'caption-correction-input.json').read_text())
+          prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
+          rows={r['logical_id']:r for r in source['rows']}
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==12
+          for p in d['posts']:
+              old=prior[(p['platform'],p['logical_id'])]
+              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','source_key'))
+              assert hashlib.sha256(p['button_url'].encode()).hexdigest()==old['button_url_sha256']
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
+              assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
+          print('EXISTING_6_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Retain bounded route evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-legacy-hotel-headings-20261107-11-result
+          path: ${{ runner.temp }}/channel-preflight.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and script files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+
