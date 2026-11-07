@@ -1,0 +1,30 @@
+[
+  {
+    "hotel_id": 24462,
+    "name": "Uga Jungle Beach",
+    "accepted_first_line": "🌿 Uga Jungle Beach 5★ · Тринкомали",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/14765de8013d73ab868c02b806e085d2a53d30b5/.github/traffic-publish/commercial-batch-20261107-2/24462.png",
+    "image_sha256": "702f66c420cafc3bab11a3c4e6845b59935fcb0f016714ec098e05d32b4a99a4"
+  },
+  {
+    "hotel_id": 43236,
+    "name": "Sun Siyam Pasikudah",
+    "accepted_first_line": "🌴 Sun Siyam Pasikudah 5★ · Пасикуда",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/14765de8013d73ab868c02b806e085d2a53d30b5/.github/traffic-publish/commercial-batch-20261107-2/43236.png",
+    "image_sha256": "7600d9d8ad4391bc94903e5c7ace13b4fce7eb14adbb3edeb5839b11a54ef658"
+  },
+  {
+    "hotel_id": 101694,
+    "name": "NOOE Maldives Kunaavashi",
+    "accepted_first_line": "🏝 NOOE Maldives Kunaavashi 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/14765de8013d73ab868c02b806e085d2a53d30b5/.github/traffic-publish/commercial-batch-20261107-2/101694.png",
+    "image_sha256": "fa7bad1f35340310c96d5039f6caa2d91c7a3c00555bbfc824c33bcf5742d3ee"
+  },
+  {
+    "hotel_id": 2469,
+    "name": "Nika Island Resort & Spa",
+    "accepted_first_line": "🏝 Nika Island Resort & Spa 5★ · Мальдивы",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/14765de8013d73ab868c02b806e085d2a53d30b5/.github/traffic-publish/commercial-batch-20261107-2/2469.png",
+    "image_sha256": "22135358b6c44eaa4fd9f58830915c26bd27bbc782b75b7e895f02127c97c179"
+  }
+]

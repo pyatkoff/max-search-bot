@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261107-2-v1",
+  "state": "SENDER_COMPLETE_NEW_FOUR_PAIRS_FEED_APPEND_PENDING",
+  "run_id": 42365170429,
+  "job_id": 128381597803,
+  "source_commit": "5dd68ff5ffd8d3d0396fd029ce7e3da683efbf4f",
+  "installed_source": "b6006b5494a8f256d152f0482faf23a03bc85313",
+  "intent_artifact_id": 13571018811,
+  "result_artifact_id": 13571362946,
+  "previous_accepted_pairs": 164,
+  "new_full_pairs": 4,
+  "confirmed_full_pairs_total": 168,
+  "goal_pairs": 500,
+  "remaining_to_500": 332,
+  "new_posts": 8,
+  "post_write_attempts": 8,
+  "reused_posts": 0,
+  "all_new_posts_body_photo_button_verified": true,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-uga-jungle-beach-24462-v1",
+      "post_url": "https://t.me/any_toour/179",
+      "text_sha256": "5530cbc6e0d45fabfb6e038cf55b22b5b84455ca8ded91dd6b392f08112f7fdc",
+      "photo_sha256": "702f66c420cafc3bab11a3c4e6845b59935fcb0f016714ec098e05d32b4a99a4",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sun-siyam-pasikudah-43236-v1",
+      "post_url": "https://t.me/any_toour/180",
+      "text_sha256": "866fc05585f2ce820912b223dad77163dbee881947a8400b7a16eeb8456e26d5",
+      "photo_sha256": "7600d9d8ad4391bc94903e5c7ace13b4fce7eb14adbb3edeb5839b11a54ef658",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-nooe-kunaavashi-101694-v1",
+      "post_url": "https://t.me/any_toour/181",
+      "text_sha256": "3db2c0a169af55475b887c662fe149c08dd9b321eea0fa7f5900ea5c00a18770",
+      "photo_sha256": "fa7bad1f35340310c96d5039f6caa2d91c7a3c00555bbfc824c33bcf5742d3ee",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-nika-island-2469-v1",
+      "post_url": "https://t.me/any_toour/182",
+      "text_sha256": "1597c62345640297d2fed8a149498e447da16ac684ba683d6f5a5497771bf6f5",
+      "photo_sha256": "22135358b6c44eaa4fd9f58830915c26bd27bbc782b75b7e895f02127c97c179",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-uga-jungle-beach-24462-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1m_VxebE",
+      "text_sha256": "5530cbc6e0d45fabfb6e038cf55b22b5b84455ca8ded91dd6b392f08112f7fdc",
+      "photo_sha256": "702f66c420cafc3bab11a3c4e6845b59935fcb0f016714ec098e05d32b4a99a4",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sun-siyam-pasikudah-43236-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1m_6ZIkM",
+      "text_sha256": "866fc05585f2ce820912b223dad77163dbee881947a8400b7a16eeb8456e26d5",
+      "photo_sha256": "7600d9d8ad4391bc94903e5c7ace13b4fce7eb14adbb3edeb5839b11a54ef658",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-nooe-kunaavashi-101694-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1nAdWK9U",
+      "text_sha256": "3db2c0a169af55475b887c662fe149c08dd9b321eea0fa7f5900ea5c00a18770",
+      "photo_sha256": "fa7bad1f35340310c96d5039f6caa2d91c7a3c00555bbfc824c33bcf5742d3ee",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-nika-island-2469-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1nBBkPwY",
+      "text_sha256": "1597c62345640297d2fed8a149498e447da16ac684ba683d6f5a5497771bf6f5",
+      "photo_sha256": "22135358b6c44eaa4fd9f58830915c26bd27bbc782b75b7e895f02127c97c179",
+      "body_photo_button_verified": true
+    }
+  ],
+  "current_feed_counts": {
+    "telegram": 164,
+    "max": 164,
+    "all": 328
+  },
+  "current_max_native_route_count": 164,
+  "pending_new_route_native_ids": [
+    24462,
+    43236,
+    101694,
+    2469
+  ],
+  "sender_operation_closed": true,
+  "unknown_operations": 0,
+  "repeat_policy": "Do not replay this sender or the completed trio; finish only the new4 add-only routes/feed.",
+  "mac_touched": false,
+  "prices_and_search_links_replayed": false
+}

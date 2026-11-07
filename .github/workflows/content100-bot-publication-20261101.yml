@@ -1,4 +1,4 @@
-name: Publish four approved AnyTour hotels in both channels
+name: Read only the four new confirmed hotel feed bindings
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,29 +38,31 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Prepare this exact approved four-hotel batch
+      - name: Bind only the four confirmed hotel pairs and their current approved images
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
           umask 077
-          python3 - <<'PY'
-          import hashlib,json,os,pathlib
-          base=pathlib.Path('tools/direct_demand/operations')
-          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf'
-          approval=json.loads((base/'commercial-batch-20261107-2-approval.json').read_text())
-          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert approval['operation']=='commercial-hotel-batch-20261107-2-v1' and len(approval['hotel_ids'])==4
-          PY
-          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261107-2-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261107-2-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
+          python3 - <<'PYCODE'
+          import base64,hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(base/'commercial-channel-hotel-feeds-20261107-read19-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='a8728a62b293a1bfe5d0af362165df788f2256b33bec3d7775287a88fdd4eaf6'
+          rows=json.loads(raw);assert [r['hotel_id'] for r in rows]==[24462,43236,101694,2469]
+          (tmp/'feed-read19-inputs.json').write_bytes(raw)
+          source=(base/'read-commercial-channel-hotel-feeds-20261107-19.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='81750147461eb58595405d3ff90ce4e7505d3f97e448ff15498471b744083a8f'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst FEED_EXPORT_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst FEED_EXPORT_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"
+          (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+          print(json.dumps({'operation':'commercial-channel-hotel-feeds-20261107-read19','new_hotels':4,'old161_read':0,'provider_calls':0,'writes':0}))
+          PYCODE
           php -l "$RUNNER_TEMP/channel-preflight.php"
-      - name: Retain exact approved inputs before any channel write
+      - name: Retain exact new feed binding scope
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261107-2-inputs
-          path: |
-            tools/direct_demand/operations/commercial-batch-20261107-2-manifest.json
-            tools/direct_demand/operations/commercial-batch-20261107-2-approval.json
+          name: commercial-channel-hotel-feeds-20261107-read19-inputs
+          path: ${{ runner.temp }}/feed-read19-inputs.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -101,7 +103,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish the exact four approved hotel posts with canonical buttons and no duplicates
+      - name: Read only the four new current pair bindings
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -112,22 +114,21 @@ jobs:
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
           import pathlib,json,os
-          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
-          d=json.loads(lines[-1])
-          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']} for p in d.get('posts',[])]},ensure_ascii=False))
-          assert d['operation']=='commercial-hotel-batch-20261107-2-v1' and d['mode']=='publish_approved_commercial_batch'
-          assert d['ok'] is True and len(d['posts'])==8
-          assert d['post_write_attempts']<=8 and d['new_posts']<=8
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==8
-          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
+          tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
+          print(json.dumps({k:v for k,v in d.items() if k not in ('private_max_bindings',)},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-channel-hotel-feeds-20261107-read19' and d['ok'] is True
+          assert d['scope_hotels']==d['feed_rows']==d['private_binding_count']==4 and d['deferred_count']==0
+          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
+          assert [r['hotel_id'] for r in d['rows']]==[24462,43236,101694,2469]
+          print('NEW_FOUR_CURRENT_FEED_BINDINGS_READ older164_unchanged provider_calls=0 writes=0')
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261107-2-publication
+          name: commercial-channel-hotel-feeds-20261107-read19-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
