@@ -1,0 +1,1121 @@
+{
+  "operation": "commercial-hotel-batch-20261107-42-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 484,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read43",
+        "run_id": 42410067722,
+        "original_read_sha256": "4b1a22cbc32777208d59a93e91a05f22647096025ffdd483afbf3c415b125a13",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed19 commercial captions in cutover39 short-title format,57 real source photos and19 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before41/42 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nineteen-after-474-commercial-release-manifest.json",
+    "sha256": "07bdd6196a1b447d0e8df1253dd02628faeead617f23c423f4c4e401a8f84539",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-sixth20-commercial-captions.json",
+    "caption_sha256": "ae3db181efcfca3ca1ed41c00643967fae2561e63ff6095b458716845e9ae9f0",
+    "subset_native_ids": [
+      80915,
+      22791,
+      57064,
+      57039,
+      65266,
+      116934,
+      681,
+      8008,
+      119046
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "63a932bdf56b9e958369911fe522a77ddb1d141bcde5ce10ade4f59ee8a9093b",
+  "source_held_native_ids": [
+    65254
+  ],
+  "media_held_native_ids": [],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    },
+    {
+      "native_hotel_id": 319,
+      "public_url": "https://max.ru/channel_anytour/AaF1Ae28ZNw"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 80915,
+      "logical_id": "commercial-ana-mandara-camranh-80915-v1",
+      "aliases": [
+        "Ana Mandara Cam Ranh Resort",
+        "ANA MANDARA CAM RANH"
+      ],
+      "text": "✈️ Туры в Ana Mandara Cam Ranh Resort\n📍 Камрань, Вьетнам.\n\nПросторный семейный отдых у моря в Камрани.\n\n🛏 Gardenview Two Bedroom Suite 145 м²: две спальни, гостиная и две ванные.\n🌿 Балкон с видом на сад.\n🍽 Подберём вариант с завтраками.\n🏖 Собственный пляж рядом с отелем.\n\n✈️ Рассчитаем тур с перелётом под состав вашей семьи.",
+      "text_sha256": "a0f36ab35e60847b0429c9244bb838ed9e5cac41668778ad8553f5c11e41e620",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/80915.png",
+      "photo_sha256": "d056d5443e2c4b7dbd0e3caa1e24df16cbf91e81cf863bb1b152f3b6a3c17323",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/ana_mandara_resort_camranh/",
+        "https://anamandaracamranh.com/rooms-suites-villas/garden-view-two-bedroom-suite/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ana-mandara-cam-ranh-20963700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ana-mandara-cam-ranh-20963712.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ana-mandara-cam-ranh-20979810.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 35289,
+        "anytour_id": 3471,
+        "legacy_native_id": 80915,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaRByiCyQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7436c84c44e912d0_run07r_c01",
+        "top500_7436c84c44e912d0_run07r_c02",
+        "top500_7436c84c44e912d0_run07r_c04",
+        "HOTEL-VN-MASS-20261025T195135Z-C40"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/ana-mandara-cam-ranh-20963700.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9ebd62506af6695be3379cbe57a221994fdbab1e7e39f0aabc4fcebd28202433",
+          "source_png_sha256": "649ce0931b7656700b661848038ef2c6766cedebc0bf06853d1c7cb7547899f5",
+          "source_png_bytes": 1216135,
+          "dimensions": [
+            1024,
+            682
+          ],
+          "alt": "Бассейн Ana Mandara Cam Ranh",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRLASX8U",
+          "canva_asset_dimensions": [
+            1024,
+            682
+          ],
+          "source_png_filename": "ana-mandara-camranh-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/ana-mandara-cam-ranh-20963712.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3d8a481d6382615b25501ca3af911ff338bd53d09947c38e53f103fb2a1a9c60",
+          "source_png_sha256": "bb65595df39e612c196ea9aac7eee3685bba72069e65e5474e4ce05b8a85ca0e",
+          "source_png_bytes": 706373,
+          "dimensions": [
+            1024,
+            575
+          ],
+          "alt": "Ana Mandara Cam Ranh со стороны пляжа",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRMYzc4Q",
+          "canva_asset_dimensions": [
+            1024,
+            575
+          ],
+          "source_png_filename": "ana-mandara-camranh-g15.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g57",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/ana-mandara-cam-ranh-20979810.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "94f1a638692041fd199e5947404ccc37a726300b9787cb64728f452cd6f56042",
+          "source_png_sha256": "50aaf68a08c008f9afd4855a75c9662a3141b55d904e2d3b47bb018a328d292f",
+          "source_png_bytes": 1371270,
+          "dimensions": [
+            1024,
+            682
+          ],
+          "alt": "Вечерняя территория Ana Mandara Cam Ranh",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRF75YXY",
+          "canva_asset_dimensions": [
+            1024,
+            682
+          ],
+          "source_png_filename": "ana-mandara-camranh-g57.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 22791,
+      "logical_id": "commercial-thien-thanh-22791-v1",
+      "aliases": [
+        "Thien Thanh Phu Quoc Resort",
+        "THIEN THANH RESORT"
+      ],
+      "text": "✈️ Туры в Thien Thanh Phu Quoc Resort\n📍 Фукуок, Вьетнам.\n\nОтдых вдвоём на Фукуоке с размещением в бунгало.\n\n🛏 Bungalow 50 м² для двух взрослых.\n🍽 Подберём вариант тура с завтраками.\n🏖 Отель на первой линии рядом с пляжем.\n\n✈️ Подберём категорию с нужным видом и рассчитаем тур с перелётом.",
+      "text_sha256": "b9d80bd1c894176f7bae353d38b616ade6f095f3de772c76082ae64ea9f9f8cf",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/22791.png",
+      "photo_sha256": "588f4a65e466d035eebe2a699c519183b6efa3105093a2c39be89bc1af0b0948",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/thien_thanh_phuquoc_resort/",
+        "https://thienthanhphuquocresort.com.vn/en/room/bungalow-sea-view/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-thanh-resort-78407527.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-thanh-resort-78407523.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-thanh-resort-78407501.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21346,
+        "anytour_id": 1918,
+        "legacy_native_id": 22791,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaROI5Tq4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_318f9af9a6464bc3_run08_c01",
+        "top500_318f9af9a6464bc3_run08_c02",
+        "top500_318f9af9a6464bc3_run08_c04",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C13",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C14"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-thanh-resort-78407527.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b603b0cabc7bd229272bff39bd1cf5ace195355a45dc609c120c69d8cc7165e3",
+          "source_png_sha256": "c98187060c92a9a0d16dc89e00ef72bc0e335bd38ee94a25aa95fbe74bfaa208",
+          "source_png_bytes": 1322063,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Thien Thanh Resort Phu Quoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRIdjMYI",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "thien-thanh-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-thanh-resort-78407523.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "43a8498da9c894d49d9f5f6aac576aa492c29292e2c0956ae794927eb6408726",
+          "source_png_sha256": "b5afca73641ba9c93f93ea9368dfea091cc28ab485a4682253e2642a4d368f60",
+          "source_png_bytes": 1193367,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "Малоэтажная зона Thien Thanh Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHic5zc",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "thien-thanh-g25.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/thien-thanh-resort-78407501.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7bd641630f0d60cb8c6f95400d5f6aab0697511685475cd6d6c49c9e529ec30a",
+          "source_png_sha256": "9bcece6749022a7a2769e9bd4208fb8d1312085fdf80104aec098703b52eed77",
+          "source_png_bytes": 1106926,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн Thien Thanh Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRGFff0w",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "thien-thanh-g03.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 57064,
+      "logical_id": "commercial-muong-thanh-phuquoc-57064-v1",
+      "aliases": [
+        "Muong Thanh Luxury Phu Quoc Hotel",
+        "MUONG THANH LUXURY PHU QUOC"
+      ],
+      "text": "✈️ Туры в Muong Thanh Luxury Phu Quoc Hotel\n📍 Фукуок, Вьетнам.\n\nДля островного отпуска на Фукуоке.\n\n🛏 Deluxe 37 м².\n🍽 Подберём завтраки, полупансион или полный пансион.\n🏖 Общественный пляж в 250 м, путь через дорогу.\n\n✈️ Подберём размещение под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "2a6d8a743f558e1d9fee91a14aca86fcf35f21bca65f78d0aef48c3339ed48ba",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/57064.png",
+      "photo_sha256": "f38e2109c6e72076a28d1b99dbcb57429ed02323af81e82dcf9748aa22469954",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/muong_thanh_luxury_phuquoc/",
+        "https://booking.muongthanh.com/khach-san-muong-thanh-luxury-phu-quoc",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/muong-thanh-luxury-phu-quoc-2807502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/muong-thanh-luxury-phu-quoc-2807518.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/muong-thanh-luxury-phu-quoc-2807531.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 20768,
+        "anytour_id": 2640,
+        "legacy_native_id": 57064,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": false,
+      "canva_design_id": "DAHaREOmp58",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_16a482bab2469af5_run07_c02",
+        "top500_16a482bab2469af5_run07_c03",
+        "top500_16a482bab2469af5_run07_c04",
+        "top500_16a482bab2469af5_run07r_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/muong-thanh-luxury-phu-quoc-2807502.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "50976793c7e48aaad5f17b8fe24fa7e4ee60c20663b933aec176e230bcc868eb",
+          "source_png_sha256": "d1968d0c4978419b3f11adc2a7ced188aad98f4f8fc277b8f734b6dc7a1b170d",
+          "source_png_bytes": 1149044,
+          "dimensions": [
+            1024,
+            625
+          ],
+          "alt": "Muong Thanh Luxury Phu Quoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRD-Saeg",
+          "canva_asset_dimensions": [
+            1024,
+            625
+          ],
+          "source_png_filename": "muong-thanh-phuquoc-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g18",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/muong-thanh-luxury-phu-quoc-2807518.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a03dad2dfa93fc495672baf0d5107de5995987578627a1ec611229f446b50b49",
+          "source_png_sha256": "286ac081063fee5e4c7d4871a86eeddfb6faa8942b6fc5bfb158871150da1445",
+          "source_png_bytes": 521140,
+          "dimensions": [
+            1024,
+            592
+          ],
+          "alt": "Номер Muong Thanh Luxury Phu Quoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaREfKC5A",
+          "canva_asset_dimensions": [
+            1024,
+            592
+          ],
+          "source_png_filename": "muong-thanh-phuquoc-g18.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g31",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/muong-thanh-luxury-phu-quoc-2807531.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4acb768bbf5dc6d99fd4ed04ee9e65224bbf051362c877ac097475891a14e66a",
+          "source_png_sha256": "3a1493fc07743a982494d642a5443598ba069926efc28861be004080c1804c3a",
+          "source_png_bytes": 663466,
+          "dimensions": [
+            1024,
+            540
+          ],
+          "alt": "Ресторан Muong Thanh Luxury Phu Quoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaREFV1OI",
+          "canva_asset_dimensions": [
+            1024,
+            540
+          ],
+          "source_png_filename": "muong-thanh-phuquoc-g31.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 57039,
+      "logical_id": "commercial-amarin-phuquoc-57039-v1",
+      "aliases": [
+        "Amarin Resort & Spa",
+        "AMARIN RESORT"
+      ],
+      "text": "✈️ Туры в Amarin Resort & Spa\n📍 Фукуок, Вьетнам.\n\nОстровной отдых с собственным пляжем рядом.\n\n🛏 Standard Hill View с окном и видом на холмы.\n🍽 Подберём вариант тура с завтраками.\n🏖 Собственный пляж, лежаки, зонты и полотенца включены.\n\n✈️ Подберём номер под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "a36054117307412af801f4fdebfb63eabcf568827b64ca90cb740418b30806bb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/57039.png",
+      "photo_sha256": "978eabfeb972f56ae53cc93ef9715f34c58057634385853598cbf95ed07665b6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/amarin_resort_spa_phuquoc/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/57039-84863901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/57039-84864321.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/57039-84863902.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 20564,
+        "anytour_id": 5871,
+        "legacy_native_id": 57039,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRDtNyqs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_0f9d955640e4a5c7_run08_c01",
+        "top500_0f9d955640e4a5c7_run08_c02",
+        "top500_0f9d955640e4a5c7_run08_c03",
+        "top500_0f9d955640e4a5c7_run08_c04"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/57039-84863901.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0a6d37b0e188c4ff32a6eaa442958dec99bace4505277c519d8a9d49b30fc129",
+          "source_png_sha256": "f0830a9a98dd22e40910ba24223353f61127331a35ebcfd160233dfaf6bb49d5",
+          "source_png_bytes": 1697022,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Бассейн Amarin Resort Phu Quoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRD8sWiw",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "amarin-phuquoc-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g21",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/57039-84864321.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8eeabab7de9a48f51ae061d4ac833c56bc68550eeab8e905fed2cd7edff6018e",
+          "source_png_sha256": "7aadea619238f4d37c1811cd4f2c9719ca8caba4a7f9d45a50911369022c19c3",
+          "source_png_bytes": 1008852,
+          "dimensions": [
+            1200,
+            900
+          ],
+          "alt": "Номер Amarin Resort Phu Quoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaROnG3i8",
+          "canva_asset_dimensions": [
+            1200,
+            900
+          ],
+          "source_png_filename": "amarin-phuquoc-g21.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/57039-84863902.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "24457244bf031fa663be392df9a0f885464a49b0f6f2fb6cdf7d6e5a6bfb7899",
+          "source_png_sha256": "f6a7fbbded7c22a9ddfd232f90cf72644df4c2718a51c22bd8f3b25b66cac2ea",
+          "source_png_bytes": 1499519,
+          "dimensions": [
+            1114,
+            721
+          ],
+          "alt": "Бар у бассейна Amarin Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaREKDwQI",
+          "canva_asset_dimensions": [
+            1114,
+            721
+          ],
+          "source_png_filename": "amarin-phuquoc-g03.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 65266,
+      "logical_id": "commercial-palma-phuquoc-65266-v1",
+      "aliases": [
+        "Palma Phu Quoc Resort",
+        "PALMA RESORT",
+        "PALMA RESORT PHU QUOC TRADEMARK COLLECTION BY WYNDHAM"
+      ],
+      "text": "✈️ Туры в Palma Phu Quoc Resort\n📍 Фукуок, Вьетнам.\n\nСемейный отпуск на Фукуоке с двумя соединёнными номерами.\n\n🛏 Family 70 м²: два соединённых номера и две ванные.\n🍽 Подберём вариант тура с завтраками.\n🏖 Общественный пляж примерно в 550 м через дорогу.\n\n✈️ Рассчитаем полную стоимость тура с перелётом для вашей семьи.",
+      "text_sha256": "964196525718a082acd2fa7d26f15e608c214200edf1271298e99155b9c4f00f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/65266.png",
+      "photo_sha256": "c7506cc7ebe2fd9c0d2726e8b29acf556d3e9760968c1d442cf30c1e13152f6f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/palma_phuquoc_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/palma-resort-72373401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/palma-resort-72373402.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/palma-resort-72373426.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 22539,
+        "anytour_id": 2948,
+        "legacy_native_id": 65266,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaROLJmTw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c416df0c6965fba6_run08_c01",
+        "top500_c416df0c6965fba6_run08_c02",
+        "top500_c416df0c6965fba6_run08_c04",
+        "top500_c416df0c6965fba6_run08r_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/palma-resort-72373401.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e3f71d43e1b63f689e0b62ee86eb113ddfdd7533a7b512e475c545e87e17aa2d",
+          "source_png_sha256": "deed9f5156c972366e0c90a6ffe901abc5fbd7338995bfbe9cb87b045e21d43e",
+          "source_png_bytes": 943250,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн Palma Resort Phu Quoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRD4qcRE",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "palma-phuquoc-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/palma-resort-72373402.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "944521cb7b7f0ed8618c8c6a6ac5d0c7f563b1091f2a1f8175a54203ad5280b3",
+          "source_png_sha256": "df60ab349fce59575967101d1518f12066162cd7186c3ec01178dd8bed31d4fc",
+          "source_png_bytes": 798453,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Ресторан Palma Resort Phu Quoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaREwa1Ik",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "palma-phuquoc-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/palma-resort-72373426.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7909010fe078a60d07e92d0b17a4330d98fa19a6936cf6f509441f6faf7b9143",
+          "source_png_sha256": "cbfc774babdce69f79da18a1f9b558322bf50285615cf86118542b52a8d3b925",
+          "source_png_bytes": 797572,
+          "dimensions": [
+            576,
+            768
+          ],
+          "alt": "Садовая дорожка Palma Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRNyIYok",
+          "canva_asset_dimensions": [
+            576,
+            768
+          ],
+          "source_png_filename": "palma-phuquoc-g25.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 116934,
+      "logical_id": "commercial-courtyard-patong-116934-v1",
+      "aliases": [
+        "Courtyard By Marriott Phuket, Patong Beach",
+        "COURTYARD BY MARRIOTT PHUKET PATONG BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Courtyard by Marriott Phuket Patong Beach\n📍 Пхукет, Таиланд.\n\nДля отдыха на Патонге с пляжем через дорогу.\n\n🛏 Guest Room 32 м² в корпусах 1 или 7.\n🍽 Подберём вариант тура с завтраками.\n🏖 Общественный песчаный пляж через дорогу от отеля.\n\n✈️ Подберём номер под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "f8ea6eb82b65e3cb4bed0046ce7e9daf6760966e2e9ce1cbc0b51c37721d5677",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/116934.png",
+      "photo_sha256": "3fd2cdcf3d30fb0939c8a55c543bee8d7ac0996d09e8b481701c8f254628d86e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.marriott.com/en-us/hotels/hktcp-courtyard-phuket-patong-beach-resort/overview/",
+        "https://kompastour.com/kz/rus/country/thailand/phuket/patong_merlin_hotel/",
+        "https://www.marriott.com/en-us/hotels/hktcp-courtyard-phuket-patong-beach-resort/rooms/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/courtyard-by-marriott-phuket-patong-beach-resort-4361719.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/courtyard-by-marriott-phuket-patong-beach-resort-4361744.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/courtyard-by-marriott-phuket-patong-beach-resort-4361713.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 40292,
+        "anytour_id": 3817,
+        "legacy_native_id": 116934,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": false,
+      "canva_design_id": "DAHaRIqmlLw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_3db87e99bc72d11c_run07_c01",
+        "top500_3db87e99bc72d11c_run07_c02",
+        "top500_3db87e99bc72d11c_run07_c03",
+        "top500_3db87e99bc72d11c_run07_c04",
+        "top500_3db87e99bc72d11c_run07_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g17",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/courtyard-by-marriott-phuket-patong-beach-resort-4361719.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "cc7486447fc86358ae840f2aee7e8eceb05eb53d00215dcfc43574e0bc8d4bc9",
+          "source_png_sha256": "abe13c2a1e2dde6774c6960d5b79b28ecb4dddcb5a1adf53c37e81d94dcffde5",
+          "source_png_bytes": 761356,
+          "dimensions": [
+            1024,
+            692
+          ],
+          "alt": "Вход в Courtyard Phuket Patong Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHsR9pY",
+          "canva_asset_dimensions": [
+            1024,
+            692
+          ],
+          "source_png_filename": "courtyard-patong-g17.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g41",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/courtyard-by-marriott-phuket-patong-beach-resort-4361744.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4eb49c75f2ef2a58b01113ff9ddf153c0a1fb9200bbcd1da4f6d4ea3d3ab539d",
+          "source_png_sha256": "b59223fe2aca3fe70fb16fef9d66f3c44f32ec7569766cd0c7bb691bf4d426e7",
+          "source_png_bytes": 401752,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Номер Courtyard Patong",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRBBOeko",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "courtyard-patong-g41.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g11",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/courtyard-by-marriott-phuket-patong-beach-resort-4361713.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a28484eb9a71ad5ea06e59c2c691c56191cb6a0f95f88d7bc39c2573561dc9ea",
+          "source_png_sha256": "f8feae8449a4be1080b49e10510f22db774ed9cea18960b123a4db29c4f73c36",
+          "source_png_bytes": 580794,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бар Courtyard Patong",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRFrDVQc",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "courtyard-patong-g11.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 681,
+      "logical_id": "commercial-kata-sea-breeze-681-v1",
+      "aliases": [
+        "Kata Sea Breeze Resort",
+        "KATA SEA BREEZE"
+      ],
+      "text": "✈️ Туры в Kata Sea Breeze Resort\n📍 Пхукет, Таиланд.\n\nПляжные дни на Кате и кино в саду после заката.\n\n🛏 Sea Breeze Room 44 м² на верхних этажах.\n🍽 Подберём тариф с завтраками.\n🏖 Общественный пляж примерно в 200 м через дорогу.\n🎬 Показы в саду зависят от погоды.\n\n✈️ Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d2f12f10132eb10ec887ed06513f264906e1b0a50f3ca3c1f6162927c5c0ee2d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/681.png",
+      "photo_sha256": "7512a5c9fbe206334922e52f8e03a01bbf14abbcc898694b349f445b266c68c3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/kata_sea_breeze/",
+        "https://www.kataseabreeze.com/restaurant-bars/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-sea-breeze-94863609.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-sea-breeze-94863626.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-sea-breeze-94863614.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 4631,
+        "anytour_id": 313,
+        "legacy_native_id": 681,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 3,
+      "display_category": false,
+      "canva_design_id": "DAHaRN5vSdw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_9d17057747f2a28d_run07_c01",
+        "top500_9d17057747f2a28d_run07_c02",
+        "top500_9d17057747f2a28d_run07_c03",
+        "top500_9d17057747f2a28d_run07_c04",
+        "country61_TH_20261025T204503Z_mass_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g10",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-sea-breeze-94863609.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5001a9c6a04bae2c77bcd425d73b14f5e56f033653c1c7a2793f849aad0802f2",
+          "source_png_sha256": "5835fdd7766acb5e87558fafa15d185f70fe8e8add1e338f5a4dc6481e9e023d",
+          "source_png_bytes": 1132082,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Лобби Kata Sea Breeze Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaREzQ4KA",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "kata-sea-breeze-g10.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g26",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-sea-breeze-94863626.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3c3e58328b5df1976d2f66b14df87dbbcc9e342d76ef96e1977862842651b546",
+          "source_png_sha256": "06c1fd755215b5e26696b77586fff59a6ee8cbea5346e8c7b5071b65ca661941",
+          "source_png_bytes": 858450,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Номер Kata Sea Breeze Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRMLxJHo",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "kata-sea-breeze-g26.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/kata-sea-breeze-94863614.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a7f01f5ec999e9ac2643a65556fef8ccd5ee3637647e87f07624521dd68369d3",
+          "source_png_sha256": "0e2f098fe7f519612ea94999b7ace025acc4d50dadd51410eb143cb4a652c696",
+          "source_png_bytes": 1842183,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Садовый павильон Kata Sea Breeze",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRKhBBNw",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "kata-sea-breeze-g15.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 8008,
+      "logical_id": "commercial-la-flora-khaolak-8008-v1",
+      "aliases": [
+        "La Flora Khao Lak",
+        "LA FLORA RESORT & SPA KHAO LAK"
+      ],
+      "text": "✈️ Туры в La Flora Khao Lak\n📍 Као Лак, Таиланд.\n\nДля семейного отдыха с двумя спальнями и двумя ванными.\n\n🛏 Flora 2 Bedroom 76 м²: две спальни, две ванные с душем и балкон.\n🌿 Верхние этажи корпусов B и C, вид на бассейн или зелень.\n🍽 Подберём вариант тура с завтраками.\n\n✈️ Рассчитаем полную стоимость тура с перелётом для вашей семьи.",
+      "text_sha256": "915ac3991c64b38463ccd5b66764a2a8b110e593f518962fcbb146f1fdbc1d06",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/8008.png",
+      "photo_sha256": "6536ba5eeec32f02fa5d1bf1019d825dad9aad075cc62e754d3446db6e2adc07",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/thailand/khao_lak/la_flora_resort_khaolak/",
+        "https://www.lafloraresort.com/flora-2-bedroom/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/la-flora-resort-spa-khao-lak-63436202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/la-flora-resort-spa-khao-lak-63436210.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/la-flora-resort-spa-khao-lak-63436218.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 25909,
+        "anytour_id": 1418,
+        "legacy_native_id": 8008,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRN3drE0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_05b3d35d4dbd3f3c_run07_c01",
+        "top500_05b3d35d4dbd3f3c_run07_c02",
+        "top500_05b3d35d4dbd3f3c_run07_c04",
+        "country61_TH_20261025T193417Z_mass_c01",
+        "country61_TH_20261025T193417Z_mass_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/la-flora-resort-spa-khao-lak-63436202.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b10388d61b9174538d082dc4a7d76d16490b3acb068d97b1b02797e06794e19d",
+          "source_png_sha256": "a355a715b1f374de2d3cca8081e38244805392944ddb690b8fb5b00f5bc5b034",
+          "source_png_bytes": 1549987,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "Территория La Flora Khao Lak",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRGpQQAE",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "la-flora-khaolak-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g11",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/la-flora-resort-spa-khao-lak-63436210.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f37bd8a7e26b0def4adefbdb045abf7292add79b33c44729615471aacb170f9a",
+          "source_png_sha256": "c660335e808e6f00906de3ad99722157820e24f8a804fc3f85e9b521ae712761",
+          "source_png_bytes": 697436,
+          "dimensions": [
+            1024,
+            591
+          ],
+          "alt": "Лобби La Flora Khao Lak",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRPzKX_s",
+          "canva_asset_dimensions": [
+            1024,
+            591
+          ],
+          "source_png_filename": "la-flora-khaolak-g11.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g18",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/la-flora-resort-spa-khao-lak-63436218.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "735fddb6cbd2e53008b3dd94fee187509f41f4c3d1960e1dcc8f72db0258e4a6",
+          "source_png_sha256": "19a5d40d58b59a842e5e66ff10cdd5d2c464e6dd01a3e0f33cfaeec155d0d829",
+          "source_png_bytes": 856939,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Вечерний бассейн La Flora Khao Lak",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRDwZ-i0",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "la-flora-khaolak-g18.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 119046,
+      "logical_id": "commercial-sugar-pop-kata-119046-v1",
+      "aliases": [
+        "Sugar Marina Resort Pop Kata Beach",
+        "SUGAR MARINA HOTEL POP KATA BEACH"
+      ],
+      "text": "✈️ Туры в Sugar Marina Resort Pop Kata Beach\n📍 Пхукет, Таиланд.\n\nСемейный отпуск на Кате с игровой комнатой в отеле.\n\n🛏 Family Cozy 43 м²: двуспальная и двухъярусная кровати, балкон.\n🍽 Подберём вариант с завтраками.\n🏖 До пляжа Ката около 500 м.\n\n✈️ Подберём размещение с учётом возраста детей и рассчитаем тур с перелётом.",
+      "text_sha256": "e1d65ad8fbd964ced5a564b90236b3912059e3f5d50691853c5a301054f5db91",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/119046.png",
+      "photo_sha256": "41fff4595e50ee18c04cf072a031bdd428c4f5512d0deecfcc4d69655f6c4fb8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/sugar_marina_hotel_pop_kata_beach/",
+        "https://www.sugarmarinahotel.com/pop/",
+        "https://www.sugarmarinahotel.com/pop/space-and-facilities/",
+        "https://www.sugarmarinahotel.com/pop/rooms/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-hotel-pop-kata-beach-2410000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-hotel-pop-kata-beach-2410017.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-hotel-pop-kata-beach-2410037.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 39183,
+        "anytour_id": 3840,
+        "legacy_native_id": 119046,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRB7CUFE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8c2081ee8774fadd_run08_c01",
+        "top500_8c2081ee8774fadd_run08_c02",
+        "country61_TH_20261025T202149Z_mass_c27",
+        "country61_TH_20261025T191759Z_mass_c17",
+        "country61_TH_20261025T191759Z_mass_c18"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-hotel-pop-kata-beach-2410000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "345bab19c8fb959fd1de8cde39b0edf7ba8002de72e7b8a1f9ca0390eb4db8fa",
+          "source_png_sha256": "ba37ffae1883fc9e98b31d5571abc6e904dfbe3dd8fc550a856bc5d8f5363cc7",
+          "source_png_bytes": 1404058,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Территория Sugar Marina Hotel POP Kata",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRArhxCA",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "sugar-pop-kata-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-hotel-pop-kata-beach-2410017.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "500c266a99893613e8b4faeb1be9e0a68ec9ed73fe7970f1f93abc41642d7a86",
+          "source_png_sha256": "c6203236e6a5ea4d76f10af35477ff163a4953ed7bde29c7a5fa5634dec6c4b6",
+          "source_png_bytes": 999520,
+          "dimensions": [
+            1024,
+            606
+          ],
+          "alt": "Лаунж Sugar Marina POP Kata",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRIRRABI",
+          "canva_asset_dimensions": [
+            1024,
+            606
+          ],
+          "source_png_filename": "sugar-pop-kata-g19.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g39",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-hotel-pop-kata-beach-2410037.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c183286679bcb127c746f7c6dfd5981cd2ce15c1223fe21c91433a12fa6d1e4d",
+          "source_png_sha256": "2d9e793f6ac9efe23aadfdd9833980228fc9213eba339d26389730f1c311cca7",
+          "source_png_bytes": 552567,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Бар Sugar Marina POP Kata",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRIRu_us",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "sugar-pop-kata-g39.png"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "operation": "commercial-hotel-batch-20261107-42-v1",
+  "state": "PREPARED_NOT_SENT",
+  "native_hotel_ids": [
+    80915,
+    22791,
+    57064,
+    57039,
+    65266,
+    116934,
+    681,
+    8008,
+    119046
+  ],
+  "baseline_full_pairs": 484,
+  "expected_new_full_pairs": 9,
+  "target_full_pairs": 493,
+  "manifest_sha256": "6096809713ab0130bbc5f60f47783ee1020abd7e96546ee3a5fa70cf824927d9",
+  "asset_commit": "815ad5340bbef75452af6d8bec9525eb49e3a6d1",
+  "current_prepare_sha256": "63a932bdf56b9e958369911fe522a77ddb1d141bcde5ce10ade4f59ee8a9093b",
+  "sender_replay_allowed": false,
+  "unknown": 0,
+  "approved_source_revision": {
+    "expected_installed_sha": "840287a325da73df049a0dce8ee0b1f51aaacc10",
+    "deploy_run": 42415428080,
+    "verify_job": 128533637430,
+    "strict_tls_run": 42415937675,
+    "strict_tls_job": 128533921406,
+    "root_exact_source_review": "PASS",
+    "reviewed_state41_sha256": "cce36d10e322c92312bfc2e6c7326e8b3f01fab074a0b33b916f4cd47743af97",
+    "all_other_guards_unchanged": true
+  }
+}
