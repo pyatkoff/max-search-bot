@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261107-1-v1",
+  "state": "SENT_CONFIRMED_CONTENT_QUALITY_REJECTED_AWAITING_CORRECTION_NO_FURTHER_PUBLICATION",
+  "run_id": 42354637509,
+  "job_id": 128349918360,
+  "source_commit": "7859e13b013712008364a56f6d4d2375117b04a1",
+  "installed_source": "c21ee260e70b8f879e6f788405186ea9dab11543",
+  "intent_artifact": 13566628988,
+  "result_artifact": 13566708906,
+  "confirmed_at_utc": "2026-11-07T08:15:17Z",
+  "previous_accepted_pairs": 161,
+  "new_full_pairs": 3,
+  "confirmed_full_pairs_total": 164,
+  "goal_pairs": 500,
+  "remaining_to_500": 336,
+  "post_write_attempts": 6,
+  "new_posts": 6,
+  "reused_posts": 0,
+  "all_new_posts_body_photo_button_verified": true,
+  "posts": [
+    {
+      "hotel_id": 27426,
+      "logical_id": "commercial-rubi-platinum-27426-v1",
+      "platform": "telegram",
+      "message_id": "176",
+      "post_url": "https://t.me/any_toour/176",
+      "state": "sent",
+      "text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "photo_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
+      "body_photo_button_verified": true
+    },
+    {
+      "hotel_id": 1216,
+      "logical_id": "commercial-rox-resort-1216-v1",
+      "platform": "telegram",
+      "message_id": "177",
+      "post_url": "https://t.me/any_toour/177",
+      "state": "sent",
+      "text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
+      "photo_sha256": "6b719c1dc25fe7905d7b310c7b30d637f3a0a342a89eacebe4d647dd81fd76f6",
+      "body_photo_button_verified": true
+    },
+    {
+      "hotel_id": 1095,
+      "logical_id": "commercial-side-star-resort-1095-v1",
+      "platform": "telegram",
+      "message_id": "178",
+      "post_url": "https://t.me/any_toour/178",
+      "state": "sent",
+      "text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
+      "photo_sha256": "0eda6e380dc296edf411c5888d6002d32016c40cd99263ba815b261c7e8f4731",
+      "body_photo_button_verified": true
+    },
+    {
+      "hotel_id": 27426,
+      "logical_id": "commercial-rubi-platinum-27426-v1",
+      "platform": "max",
+      "message_id": "mid.ffffb6caf0606fed01a1b5136b30229e",
+      "post_url": "https://max.ru/channel_anytour/AaG1E2swIp4",
+      "state": "sent",
+      "text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "photo_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
+      "body_photo_button_verified": true
+    },
+    {
+      "hotel_id": 1216,
+      "logical_id": "commercial-rox-resort-1216-v1",
+      "platform": "max",
+      "message_id": "mid.ffffb6caf0606fed01a1b513740f4812",
+      "post_url": "https://max.ru/channel_anytour/AaG1E3QPSBI",
+      "state": "sent",
+      "text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
+      "photo_sha256": "6b719c1dc25fe7905d7b310c7b30d637f3a0a342a89eacebe4d647dd81fd76f6",
+      "body_photo_button_verified": true
+    },
+    {
+      "hotel_id": 1095,
+      "logical_id": "commercial-side-star-resort-1095-v1",
+      "platform": "max",
+      "message_id": "mid.ffffb6caf0606fed01a1b5137d007a23",
+      "post_url": "https://max.ru/channel_anytour/AaG1E30AeiM",
+      "state": "sent",
+      "text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
+      "photo_sha256": "0eda6e380dc296edf411c5888d6002d32016c40cd99263ba815b261c7e8f4731",
+      "body_photo_button_verified": true
+    }
+  ],
+  "private_registry_ids_and_versions_in_original_result_artifact": true,
+  "current_feed_counts": {
+    "telegram": 161,
+    "max": 161,
+    "combined": 322
+  },
+  "current_max_native_route_count": 161,
+  "new_route_and_feed_append_started": false,
+  "new_route_and_feed_writes": 0,
+  "pending_new_route_native_ids": [
+    27426,
+    1216,
+    1095
+  ],
+  "content_correction_required": true,
+  "quality_rejection": "User rejected the current Side Star post as unsuitable as an advertising landing; pause further posts and feed append in this format. Correct the existing three after the revised advertising package is prepared.",
+  "new_publishing_paused": true,
+  "sender_operation_closed": true,
+  "unknown_operations": 0,
+  "repeat_policy": "Do not rerun sender or recreate these hotels. New copy/media updates must target the existing confirmed posts using a separately bound edit intent. Do not expand advertising feed with the rejected package.",
+  "prices_and_search_links_replayed": false,
+  "mac_touched": false
+}
