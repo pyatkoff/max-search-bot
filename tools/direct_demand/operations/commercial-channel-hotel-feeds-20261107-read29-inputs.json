@@ -1,0 +1,65 @@
+[
+  {
+    "hotel_id": 1143,
+    "name": "Crystal Paraiso Aqua Collection",
+    "accepted_first_line": "💦 Crystal Paraiso Aqua Collection 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1143.png",
+    "image_sha256": "e2ce8c50b4f0d19a46e61ed85f77f3d81ff7223ec7fcbca2285037be089b5d5d"
+  },
+  {
+    "hotel_id": 41495,
+    "name": "Liberty Central Nha Trang",
+    "accepted_first_line": "🌆 Liberty Central Nha Trang 4★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/41495.png",
+    "image_sha256": "33263d8d3978ae5d130008f97864fd308e50ec21798e26b489171fb5737e62bd"
+  },
+  {
+    "hotel_id": 69261,
+    "name": "Virgo Hotel",
+    "accepted_first_line": "🌃 Virgo Hotel 5★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/69261.png",
+    "image_sha256": "f62d8c83092c21b979abc7edf374f8b651be056f9955c4896e5c5c4b026bd08d"
+  },
+  {
+    "hotel_id": 1221,
+    "name": "Megasaray Resort Side",
+    "accepted_first_line": "🌿 Megasaray Resort Side 5★ · Сиде",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1221.png",
+    "image_sha256": "fb085c1deda54e82828e48d77ee0440cff2ca2e22122a44909aa3f9ba0ad29da"
+  },
+  {
+    "hotel_id": 32342,
+    "name": "Vinpearl Resort & Spa Phu Quoc",
+    "accepted_first_line": "🏝 Vinpearl Resort & Spa Phu Quoc 5★ · Фукуок",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/32342.png",
+    "image_sha256": "9b9f4e5e38820f2a6e10267760d0636d07b0601cbdbea557a6d110b186663d94"
+  },
+  {
+    "hotel_id": 64670,
+    "name": "Orbit Resort & Spa",
+    "accepted_first_line": "🌴 Orbit Resort & Spa 4★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/64670.png",
+    "image_sha256": "a98f23e238dc2f7345af540a75a5c1a73ca99ffd1a998181be19ac2006a55a63"
+  },
+  {
+    "hotel_id": 4095,
+    "name": "Yasaka Saigon Nhatrang",
+    "accepted_first_line": "🌊 Yasaka Saigon Nhatrang 4★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4095.png",
+    "image_sha256": "6d84053c150d1ed5b8e4d4765b63c28a9c11e807158046f4493cd8561c9f1f9e"
+  },
+  {
+    "hotel_id": 13941,
+    "name": "Blue Pearl Hotel",
+    "accepted_first_line": "🌅 Blue Pearl Hotel 3★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/13941.png",
+    "image_sha256": "b1fc4ea23480be622f06d4c9c16b61159576b963c66305b22f0d2041e6886261"
+  },
+  {
+    "hotel_id": 4071,
+    "name": "Saigon Mui Ne Resort",
+    "accepted_first_line": "🏖 Saigon Mui Ne Resort 4★ · Муйне",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4071.png",
+    "image_sha256": "9a8f770682d68e1f7a8530dda350ed6090790f1a917989721fa519d8402982eb"
+  }
+]
