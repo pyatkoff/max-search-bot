@@ -1,0 +1,44 @@
+[
+  {
+    "hotel_id": 1352,
+    "name": "Sherwood Exclusive Kemer",
+    "accepted_first_line": "🌿 Sherwood Exclusive Kemer 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/1352.png",
+    "image_sha256": "3aa966029d0c4ff35b100e47a046f7d9e60ad728950d3b3e5f0ea99db1985db6"
+  },
+  {
+    "hotel_id": 37360,
+    "name": "Sueno Hotels Deluxe Belek",
+    "accepted_first_line": "🏖 Sueno Hotels Deluxe Belek 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/37360.png",
+    "image_sha256": "ae7fd28fcc3f0d2c5d88e84ea47a72439582439011f406a15eb04f4d2e7c6e0d"
+  },
+  {
+    "hotel_id": 1035,
+    "name": "Lara Barut Collection",
+    "accepted_first_line": "🌿 Lara Barut Collection 5★ · Анталья",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/1035.png",
+    "image_sha256": "d47b382ac55eea1210887120f14c06989fc2efba16f116e48d0a9389aec661cc"
+  },
+  {
+    "hotel_id": 45199,
+    "name": "Side Star Park",
+    "accepted_first_line": "🏖 Side Star Park 5★ · Сиде",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/45199.png",
+    "image_sha256": "fc1eb2e0e018033a6757b69f9ef684a1fbee5d63f5def58e47468f05e4b06fee"
+  },
+  {
+    "hotel_id": 613,
+    "name": "Andaman Embrace Patong",
+    "accepted_first_line": "🌴 Andaman Embrace Patong 4★ · Пхукет",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/613.png",
+    "image_sha256": "c573d69505e5c42d3c68f08a9d6f4b90338738fde29efcdc6d027044a637dd77"
+  },
+  {
+    "hotel_id": 24909,
+    "name": "Graceland Khao Lak Beach Resort",
+    "accepted_first_line": "🌴 Graceland Khao Lak Beach Resort 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/24909.png",
+    "image_sha256": "097f788c8f6891e4c012e7de8bc3f855a114ef3b061ed03621a9d25000eb403b"
+  }
+]
