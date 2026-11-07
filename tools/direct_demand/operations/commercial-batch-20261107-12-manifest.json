@@ -1,0 +1,430 @@
+{
+  "operation": "commercial-hotel-batch-20261107-12-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 220,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read26",
+        "run_id": 42375078643,
+        "read_at_utc": "2026-11-07T13:02:23Z",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nine-after-220-commercial-release-manifest.json",
+    "sha256": "86fe80282ebd355565e61914ab0b965877918724e2ac9adb001888d59ba5f37f"
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1143,
+      "logical_id": "commercial-crystal-paraiso-1143-v1",
+      "aliases": [
+        "Crystal Paraiso Aqua Collection",
+        "CRYSTAL PARAISO AQUA COLLECTION (EX. CRYSTAL PARAISO VERDE RESORT & SPA)",
+        "CRYSTAL PARAISO VERDE RESORT & SPA"
+      ],
+      "text": "💦 Crystal Paraiso Aqua Collection 5★ · Белек\n\nСемейный отдых с двумя спальнями и водными развлечениями.\n\n🛏 Family 42 м²: две спальни и одна ванная.\n🎨 Детский клуб для детей от 4 до 12 лет.\n💧 Отдельный Relax Pool для гостей от 16 лет.\n🎢 Водные горки работают по сезону и погоде.\n\nДо пляжа около 400 м, дорожка огибает озеро.\n\n✈️ Подберём семейный номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d65ff37e586c21c256166f02ae2877b77b51da486f48cda451d32e6ac2cf6a2b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1143.png",
+      "photo_sha256": "e2ce8c50b4f0d19a46e61ed85f77f3d81ff7223ec7fcbca2285037be089b5d5d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/belek/crystal_paraiso_verde_resort_spa/",
+        "https://b2ccdn.coraltravel.ee/content/CRYSTAL%20PARAISO%20-%20FACT%20SHEET%202026%20-%20EN.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-paraiso-verde-resort-69310000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-paraiso-verde-resort-69310001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-paraiso-verde-resort-69310018.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15132,
+        "anytour_id": 514,
+        "legacy_native_id": 1143,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPejewfk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c17",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c19",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c22",
+        "top500_b80d798382ed2ad4_context13_c01",
+        "top500_b80d798382ed2ad4_run04_c04"
+      ]
+    },
+    {
+      "hotel_id": 41495,
+      "logical_id": "commercial-liberty-central-41495-v1",
+      "aliases": [
+        "Liberty Central Nha Trang Hotel",
+        "Liberty Central Nha Trang"
+      ],
+      "text": "🌆 Liberty Central Nha Trang 4★ · Нячанг\n\nДля пляжных дней и вечеров над городом.\n\n🛏 Deluxe 27 м²: вид на город, двуспальная кровать или две отдельные.\n💧 Открытый и детский бассейны на 4 этаже.\n🍹 Above Sky Bar на 21 этаже.\n🍽 В Central Restaurant есть вьетнамская и западная кухня.\n\nДо пляжа около 200 м через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "bc6aafa5a334959bfba95c967da6c10224006407df0b4e2e4627681cf8c15edd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/41495.png",
+      "photo_sha256": "33263d8d3978ae5d130008f97864fd308e50ec21798e26b489171fb5737e62bd",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/liberty_central_nhatrang_hotel/",
+        "https://www.libertycentralnhatrang.com/en/accommodation/",
+        "https://www.libertycentralnhatrang.com/en/facilities/",
+        "https://www.libertycentralnhatrang.com/en/dining/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/liberty-central-nha-trang-hotel-79337100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/liberty-central-nha-trang-hotel-79352015.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/liberty-central-nha-trang-hotel-79337111.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 10338,
+        "anytour_id": 2312,
+        "legacy_native_id": 41495,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPcXq0Ls",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5bf345e96ed00975_run09a_c01",
+        "HOTEL-VN-MASS-20261025T192804Z-C36",
+        "HOTEL-VN-MASS-20261025T192804Z-C39",
+        "HOTEL-VN-MASS-20261025T192804Z-C41",
+        "top500_5bf345e96ed00975_run06_c04"
+      ]
+    },
+    {
+      "hotel_id": 69261,
+      "logical_id": "commercial-virgo-69261-v1",
+      "aliases": [
+        "Virgo Hotel"
+      ],
+      "text": "🌃 Virgo Hotel 5★ · Нячанг\n\nДля тех, кто хочет совместить городские прогулки и отдых у моря.\n\n🛏 Superior 38 м² с балконом в сторону города и рабочей зоной.\n💧 Бассейн с видом на город.\n🏋️ Тренажёрный зал для занятий в отпуске.\n\nПляж муниципальный. Вид на море зависит от выбранной категории номера.\n\n✈️ Подберём номер под ваши пожелания и рассчитаем тур с перелётом на даты поездки.",
+      "text_sha256": "2dcd675bb3e74748dba7b5382a104f521dca9134d8561017334822323d1c0663",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/69261.png",
+      "photo_sha256": "f62d8c83092c21b979abc7edf374f8b651be056f9955c4896e5c5c4b026bd08d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/vietnam/nhatrang/virgo_hotel/",
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/virgo_hotel/",
+        "https://virgohotel.com/the-rooms/",
+        "https://virgohotel.com/service/swimming-pool/",
+        "https://virgohotel.com/service/fitness-center/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/69261-52427100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/69261-52428034.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/69261-52427201.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 26739,
+        "anytour_id": 3111,
+        "legacy_native_id": 69261,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPSMEsGw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_6b15193bf4528e84_run08_c03",
+        "HOTEL-VN-MASS-20261025T192804Z-C42",
+        "HOTEL-VN-MASS-20261025T192804Z-C46",
+        "HOTEL-VN-20261027T134712Z-PILOT3-WELLNESS08_H03_C01",
+        "top500_6b15193bf4528e84_run08r_c01",
+        "HOTEL-VN-MASS-20261025T192804Z-C43"
+      ]
+    },
+    {
+      "hotel_id": 1221,
+      "logical_id": "commercial-megasaray-side-1221-v1",
+      "aliases": [
+        "Megasaray Resort Side",
+        "MEGASARAY RESORT SIDE (EX. ASKA SIDE HOTEL)",
+        "ASKA SIDE HOTEL"
+      ],
+      "text": "🌿 Megasaray Resort Side 5★ · Сиде\n\nДля семейного отпуска с отдельными спальнями и песчаным пляжем.\n\n🛏 Junior Family 37 м²: две спальни и балкон.\n🏖 Собственный песчаный Megabeach в пешей доступности.\n💦 Детский бассейн с двумя горками.\n\nОтель на второй линии. Работу детского клуба и горок уточним на ваши даты.\n\n✈️ Подберём категорию под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "dfd99ddd2c5d7c7165f5eb25be933e8dc1cd8bb3a613850da6fa588919458ac6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1221.png",
+      "photo_sha256": "fb085c1deda54e82828e48d77ee0440cff2ca2e22122a44909aa3f9ba0ad29da",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/turkey/side/megasaray_resort_side/",
+        "https://www.megasarayhotels.com/megasaray-resort-side/pools-beach",
+        "https://b2ccdn.coraltravel.lv/content/Megasaray%20Resort%20Side%20-%202026%20Summer%20Factsheet_EN.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-prestige-47189710.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-prestige-47208900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-prestige-47189715.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 35898,
+        "anytour_id": 551,
+        "legacy_native_id": 1221,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPfbbgZo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c31",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c35",
+        "top500_d2c97ecf7bbed744_material58_c01",
+        "top500_d2c97ecf7bbed744_run04_c04"
+      ]
+    },
+    {
+      "hotel_id": 32342,
+      "logical_id": "commercial-vinpearl-phu-quoc-32342-v1",
+      "aliases": [
+        "Vinpearl Resort & Spa Phu Quoc"
+      ],
+      "text": "🏝 Vinpearl Resort & Spa Phu Quoc 5★ · Фукуок\n\nДля семьи или компании, которой нужен выбор между номером и виллой.\n\n🛏 Deluxe 46 м² с двуспальной или двумя отдельными кроватями.\n💧 Открытый бассейн почти 5 000 м².\n🏡 Villa 3 Bedroom 340 м² с собственным бассейном.\n🏖 Пляж рядом с отелем.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "e7e4bc9acb809a384258745651dcf124a6dc7783d0254d582f41704e6cbfc666",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/32342.png",
+      "photo_sha256": "9b9f4e5e38820f2a6e10267760d0636d07b0601cbdbea557a6d110b186663d94",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/vinpearl_resort_spa_phuquoc/",
+        "https://vinpearl.com/en/hotels/vinpearl-resort-spa-phu-quoc",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-resort-phu-quoc-21412601.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-resort-phu-quoc-21412628.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-resort-phu-quoc-21412602.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 6842,
+        "anytour_id": 2150,
+        "legacy_native_id": 32342,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPUlM4G8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7914970d9fedcfd3_run08_c03",
+        "HOTEL-VN-MASS-20261025T195135Z-C52",
+        "HOTEL-VN-MASS-20261025T195135Z-C53",
+        "top500_7914970d9fedcfd3_run08_c04"
+      ]
+    },
+    {
+      "hotel_id": 64670,
+      "logical_id": "commercial-orbit-64670-v1",
+      "aliases": [
+        "Orbit Resort & Spa"
+      ],
+      "text": "🌴 Orbit Resort & Spa 4★ · Нячанг\n\nДля отдыха в районе Ан Вьен, вдали от городского центра.\n\n🛏 Superior with Balcony 32 м²: двуспальная или две отдельные кровати и собственный балкон.\n💧 Бассейн на территории.\n🏋️ Зал с тренажёрами и свободными весами.\n\nДо центра около 7 км. Муниципальный пляж примерно в 450 м через дорогу.\n\n✈️ Подберём номер и питание в Orbit, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "ced1fe0e9c77f367af72feac55e50e1e55bff7814b7a7cf220d2cdbfd550531d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/64670.png",
+      "photo_sha256": "a98f23e238dc2f7345af540a75a5c1a73ca99ffd1a998181be19ac2006a55a63",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/orbit_resort_spa/",
+        "https://orbitresort.vn/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/orbit-hotel-35748410.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/orbit-hotel-35748436.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/orbit-hotel-35748400.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21650,
+        "anytour_id": 2913,
+        "legacy_native_id": 64670,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPc16DZI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_46629b1bc88c8a73_run07_c03",
+        "HOTEL-VN-MASS-20261025T201851Z-C28",
+        "top500_46629b1bc88c8a73_run07_c06",
+        "top500_46629b1bc88c8a73_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 4095,
+      "logical_id": "commercial-yasaka-4095-v1",
+      "aliases": [
+        "Yasaka Saigon Nhatrang Hotel",
+        "Yasaka Saigon Nhatrang"
+      ],
+      "text": "🌊 Yasaka Saigon Nhatrang 4★ · Нячанг\n\nДля пляжных дней и знакомства с вьетнамской кухней.\n\n🛏 Deluxe 35 м² с двуспальной или двумя отдельными кроватями.\n🏖 Пляжная зона примерно в 30 м от отеля.\n🍽 Red Onion на 11 этаже: вьетнамские и международные блюда.\n🌿 Food Court в саду.\n\nК морю нужно перейти дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур в Yasaka с перелётом на ваши даты.",
+      "text_sha256": "3d58e5ffc35b2a35b21c62acec7d1519eeb1205183d66a568d0e03dd2a90ac79",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4095.png",
+      "photo_sha256": "6d84053c150d1ed5b8e4d4765b63c28a9c11e807158046f4493cd8561c9f1f9e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/yasaka_saigon_nhatrang/",
+        "https://yasakasaigonnhatrang.com/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/yasaka-saigon-1915139.jpg",
+        "https://yasakasaigonnhatrang.com/upload/images/anh-khach-san/IMG_9244.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/yasaka-saigon-1915108.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5560,
+        "anytour_id": 1255,
+        "legacy_native_id": 4095,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPauGnOM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_fc47ff01e66b899f_run08_c03",
+        "top500_fc47ff01e66b899f_run08_c04",
+        "HOTEL-VN-MASS-20261025T201851Z-C72"
+      ]
+    },
+    {
+      "hotel_id": 13941,
+      "logical_id": "commercial-blue-pearl-13941-v1",
+      "aliases": [
+        "Blue Pearl Hotel"
+      ],
+      "text": "🌅 Blue Pearl Hotel 3★ · Нячанг\n\nДля пары, которой хочется встречать утро на своём балконе у моря.\n\n🛏 Suite 35 м² с морским видом, балконом, двуспальной кроватью и диваном.\n💧 Бассейн с террасой на крыше, на 14 этаже.\n🏖 До пляжа около 50 м.\n\nМежду отелем и пляжем проходит дорога.\n\n✈️ Подберём категорию и питание в Blue Pearl, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "1d040aa069bc4cd1610e3e1057d5b738eaf89bd99a3b49e0d9a99739636fc464",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/13941.png",
+      "photo_sha256": "b1fc4ea23480be622f06d4c9c16b61159576b963c66305b22f0d2041e6886261",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/vietnam/nhatrang/blue_pearl_hotel/",
+        "https://bluepearlnhatranghotel.com/suite-room",
+        "https://bluepearlnhatranghotel.com/swimming-pool",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ruby-hotel-35301500.jpg",
+        "https://bluepearlnhatranghotel.com/uploads/8/suite-balcony-with-seaview1.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ruby-hotel-35301503.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 6624,
+        "anytour_id": 1700,
+        "legacy_native_id": 13941,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaPZN2kd8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-C43",
+        "HOTEL-VN-MASS-20261025T201851Z-C45",
+        "top500_7c92953696731ec8_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 4071,
+      "logical_id": "commercial-saigon-mui-ne-4071-v1",
+      "aliases": [
+        "Sai Gon Mui Ne Resort",
+        "SAIGON MUI NE RESORT"
+      ],
+      "text": "🏖 Saigon Mui Ne Resort 4★ · Муйне\n\nДля семьи, которой нужны отдельные спальни и пляжный отдых.\n\n🛏 Standard Family Across Street 45 м²: две спальни, двуспальная и две отдельные кровати.\n🌊 Основная территория выходит к собственному пляжу.\n🍹 Wind Charm Bar на территории.\n\nНомера этой категории находятся через дорогу, без балкона и вида на море.\n\n✈️ Подберём размещение с удобным расположением и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "1410bb28fbf8ba5c74fd99391f05f835a33e6bdb05784f862ceae72b382b0e3b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4071.png",
+      "photo_sha256": "9a8f770682d68e1f7a8530dda350ed6090790f1a917989721fa519d8402982eb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/vietnam/fantet/saigon_muine_resort/",
+        "https://saigonmuineresort.com/en/accommodation/phong-standard-gia-dinh-suon-doi/",
+        "https://saigonmuineresort.com/en/accommodation/phong-standard-family-across-the-street/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/saigon-mui-ne-resort-1715500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/saigon-mui-ne-resort-96918007.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/saigon-mui-ne-resort-1715503.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5592,
+        "anytour_id": 1241,
+        "legacy_native_id": 4071,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPSWYPyA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T204322Z-C16",
+        "top500_478e100578902132_run08_c04",
+        "top500_478e100578902132_run08_c05",
+        "top500_478e100578902132_crit51_c01"
+      ]
+    }
+  ]
+}

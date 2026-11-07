@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261107-12-v1",
+  "expected_installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083",
+  "hotel_ids": [
+    1143,
+    41495,
+    69261,
+    1221,
+    32342,
+    64670,
+    4095,
+    13941,
+    4071
+  ],
+  "manifest_sha256": "b9b465c9d202b0a82fdcce28ce250762200a130e1928464b982b969da50ec6e5"
+}
