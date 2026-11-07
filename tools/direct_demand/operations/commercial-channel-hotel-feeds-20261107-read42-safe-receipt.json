@@ -1,0 +1,426 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read42",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 63833,
+      "name": "Rixos Premium Saadiyat Island",
+      "country_id": 9,
+      "region_id": 43,
+      "destination": "Абу-Даби",
+      "telegram_post_url": "https://t.me/any_toour/422",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k7BdGwg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/63833.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 8964,
+      "name": "Rixos The Palm Dubai Hotel & Suites",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/423",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k7knacM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/8964.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2651,
+      "name": "Rose Rayhaan by Rotana",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/424",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k8JMapQ",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2651.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2673,
+      "name": "Sofitel Dubai Jumeirah Beach",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/425",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k8u4X9Q",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2673.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 64914,
+      "name": "Stella Di Mare Dubai Marina",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/426",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k9RoYJQ",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/64914.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2688,
+      "name": "Towers Rotana",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/427",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k91Ke-M",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2688.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 61159,
+      "name": "Aloft Palm Jumeirah",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/428",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k-ZDGFA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/61159.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2514,
+      "name": "Amwaj Rotana Jumeirah Beach",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/429",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k-8IWNo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2514.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 42662,
+      "name": "Fairmont Ajman",
+      "country_id": 9,
+      "region_id": 44,
+      "destination": "Аджман",
+      "telegram_post_url": "https://t.me/any_toour/430",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3k_hCevA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/42662.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 54605,
+      "name": "Fairmont Fujairah Beach Resort",
+      "country_id": 9,
+      "region_id": 47,
+      "destination": "Фуджейра",
+      "telegram_post_url": "https://t.me/any_toour/431",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3lAEbWSA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/54605.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 80713,
+      "name": "Wyndham Residences The Palm",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/432",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3llzeabw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/80713.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 82716,
+      "name": "NH Collection Dubai The Palm",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/433",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3lmXKcZQ",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/82716.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 4499,
+      "name": "Ramada by Wyndham Beach Hotel Ajman",
+      "country_id": 9,
+      "region_id": 44,
+      "destination": "Аджман",
+      "telegram_post_url": "https://t.me/any_toour/434",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3lm6-Dj0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/4499.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2791,
+      "name": "Citrus Hikkaduwa",
+      "country_id": 12,
+      "region_id": 594,
+      "destination": "Хиккадува",
+      "telegram_post_url": "https://t.me/any_toour/435",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3lneeRt4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/2791.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 24492,
+      "name": "Citrus Waskaduwa",
+      "country_id": 12,
+      "region_id": 54,
+      "destination": "Калутара",
+      "telegram_post_url": "https://t.me/any_toour/436",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3loCfZK8",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/24492.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 15,
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 206,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "White Valley Palace",
+        "PALACE BEACH HOTEL (EX. WHITE VALLEY)"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 466,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Stella Beach Resort & Spa Makadi Bay",
+        "STELLA MAKADI BEACH RESORT & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 14140,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Stella Gardens Resort & Spa Makadi Bay",
+        "STELLA MAKADI GARDENS RESORT & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 124,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Amwaj Oyoun Hotel & Resort Sharm El Sheikh",
+        "AMWAJ OYOUN RESORT & CASINO (EX. AA AMWAJ HOTEL & RESORT)"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 1962,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Baron Palms Resort (Adult Only +16)",
+        "BARON PALMS RESORT ADULTS ONLY 16+"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 91404,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Swissotel Sharm El Sheikh Managed By Rixos",
+        "SWISSOTEL SHARM EL SHEIKH"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 319,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Sunrise Remal Beach",
+        "SUNRISE REMAL BEACH RESORT"
+      ],
+      "clear": false,
+      "limit_reached": false,
+      "matched_entry_count": 1
+    },
+    {
+      "native_hotel_id": 134,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Albatros Sharm Resort Sharm El Sheikh (Ex. Beach Albatros)",
+        "ALBATROS SHARM (EX. BEACH ALBATROS SHARM)"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 71147,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Parrotel Lagoon Resort Sharm El Sheikh",
+        "PARROTEL LAGOON WATERPARK RESORT"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 71259,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Alibu Resort Nha Trang",
+        "ALIBU RESORT"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 117935,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Avari Boutique Hotel",
+        "AVARI HOTEL"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 81154,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "December Hotel",
+        "DECEMBER HOTEL NHA TRANG"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 36451,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Edele Hotel Nha Trang",
+        "EDELE HOTEL"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 32356,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Galina Hotel",
+        "GALINA HOTEL & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 36453,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "GM Doc Let Beach Resort",
+        "GM DOC LET BEACH RESORT & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 70032,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Gonsala Nha Trang Hotel",
+        "GONSALA HOTEL NHA TRANG"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 28509,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Green World Hotel Nha Trang",
+        "GREEN WORLD NHA TRANG"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 57082,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ibis Styles Nha Trang Hotel",
+        "IBIS STYLES NHA TRANG"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 64672,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Maple Hotel & Apartment",
+        "MAPLE HOTEL & APARTMENT NHA TRANG"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 80605,
+      "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Miracle Luxury Hotel",
+        "MIRACLE LUXURY"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    }
+  ],
+  "candidate_count": 20,
+  "read_at_utc": "2026-11-07T19:59:31+00:00",
+  "scope_hotels": 15,
+  "feed_rows": 15,
+  "deferred_count": 0,
+  "installed_sha": "6d193b7740dc212b92b1893041f0a1047b179635"
+}

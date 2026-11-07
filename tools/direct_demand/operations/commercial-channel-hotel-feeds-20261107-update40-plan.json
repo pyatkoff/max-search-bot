@@ -1,0 +1,80 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update40",
+  "state": "PREPARED_CONFIRMED_MAX422_INSTALL",
+  "new_hotel_ids": [
+    63833,
+    8964,
+    2651,
+    2673,
+    64914,
+    2688,
+    61159,
+    2514,
+    42662,
+    54605,
+    80713,
+    82716,
+    4499,
+    2791,
+    24492
+  ],
+  "previous_rows": [
+    407,
+    407,
+    814
+  ],
+  "target_rows": [
+    422,
+    422,
+    844
+  ],
+  "previous407_offer_blocks_identical": true,
+  "max_route_install_run": 42408928484,
+  "max_route_install_commit": "d212c36f121dda8c343bbe693542e2fc8e80086f",
+  "new15_binding_run": 42408760749,
+  "new15_binding_artifact": 13587953690,
+  "approved_destination_labels": {
+    "63833": "Абу-Даби",
+    "8964": "Дубай",
+    "2651": "Дубай",
+    "2673": "Дубай",
+    "64914": "Дубай",
+    "2688": "Дубай",
+    "61159": "Дубай",
+    "2514": "Дубай",
+    "42662": "Аджман",
+    "54605": "Фуджейра",
+    "80713": "Дубай",
+    "82716": "Дубай",
+    "4499": "Аджман",
+    "2791": "Хиккадува",
+    "24492": "Калутара"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 271440,
+      "sha256": "941cbe76738e99865fb6efc685536c86832731350e5311e757b5229f075fda3d",
+      "rows": 422,
+      "expected_previous_sha256": "c4f779e909e7ba05546ae675d9653b2d5d5658735b093e9b4be1d1743bf6dc86"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 339718,
+      "sha256": "4dbc75ee49f0e8f494a6e4a56d0267c05055152ac7a79efb454068d942fb93a9",
+      "rows": 422,
+      "expected_previous_sha256": "7c7b24205df332933fcc89e8c18e363127225cb3c51027bc0fd90771a969ae2c"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 610785,
+      "sha256": "15565149428bc3ea67bd0132c146c24f59c7e0ff3a5caa05e3648054908d21ba",
+      "rows": 844,
+      "expected_previous_sha256": "c63e38cc79930b086fa1abd59b01525593aff43204f9c32f1fec92ab06cc27c1"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

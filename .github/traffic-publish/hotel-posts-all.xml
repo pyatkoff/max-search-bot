@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 19:40">
+<yml_catalog date="2026-11-07 20:01">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -7328,6 +7328,276 @@
         <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_63833">
+        <url>https://t.me/any_toour/422</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/63833.png</picture>
+        <name>Путевки в Rixos Premium Saadiyat Island</name>
+        <description>Тур с перелётом. Абу-Даби. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Абу-Даби</custom_label_1>
+      </offer>
+      <offer id="tg_8964">
+        <url>https://t.me/any_toour/423</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/8964.png</picture>
+        <name>Путевки в Rixos The Palm Dubai Hotel &amp; Suites</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_2651">
+        <url>https://t.me/any_toour/424</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2651.png</picture>
+        <name>Путевки в Rose Rayhaan by Rotana</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_2673">
+        <url>https://t.me/any_toour/425</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2673.png</picture>
+        <name>Путевки в Sofitel Dubai Jumeirah Beach</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_64914">
+        <url>https://t.me/any_toour/426</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/64914.png</picture>
+        <name>Путевки в Stella Di Mare Dubai Marina</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_2688">
+        <url>https://t.me/any_toour/427</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2688.png</picture>
+        <name>Путевки в Towers Rotana</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_61159">
+        <url>https://t.me/any_toour/428</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/61159.png</picture>
+        <name>Путевки в Aloft Palm Jumeirah</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_2514">
+        <url>https://t.me/any_toour/429</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2514.png</picture>
+        <name>Путевки в Amwaj Rotana Jumeirah Beach</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_42662">
+        <url>https://t.me/any_toour/430</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/42662.png</picture>
+        <name>Путевки в Fairmont Ajman</name>
+        <description>Тур с перелётом. Аджман. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аджман</custom_label_1>
+      </offer>
+      <offer id="tg_54605">
+        <url>https://t.me/any_toour/431</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/54605.png</picture>
+        <name>Путевки в Fairmont Fujairah Beach Resort</name>
+        <description>Тур с перелётом. Фуджейра. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фуджейра</custom_label_1>
+      </offer>
+      <offer id="tg_80713">
+        <url>https://t.me/any_toour/432</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/80713.png</picture>
+        <name>Путевки в Wyndham Residences The Palm</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_82716">
+        <url>https://t.me/any_toour/433</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/82716.png</picture>
+        <name>Путевки в NH Collection Dubai The Palm</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_4499">
+        <url>https://t.me/any_toour/434</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/4499.png</picture>
+        <name>Путевки в Ramada by Wyndham Beach Hotel Ajman</name>
+        <description>Тур с перелётом. Аджман. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аджман</custom_label_1>
+      </offer>
+      <offer id="tg_2791">
+        <url>https://t.me/any_toour/435</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/2791.png</picture>
+        <name>Путевки в Citrus Hikkaduwa</name>
+        <description>Тур с перелётом. Хиккадува. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хиккадува</custom_label_1>
+      </offer>
+      <offer id="tg_24492">
+        <url>https://t.me/any_toour/436</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/24492.png</picture>
+        <name>Путевки в Citrus Waskaduwa</name>
+        <description>Тур с перелётом. Калутара. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Калутара</custom_label_1>
+      </offer>
+      <offer id="max_63833">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYmY1OGI1N2VhMTkzZmFiODEwODQyYWY2OTRiMWNmNWYiLCJvZmZlcl9pZCI6Im1heF82MzgzMyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/63833.png</picture>
+        <name>Туры в Rixos Premium Saadiyat Island</name>
+        <description>Тур с перелётом. Абу-Даби. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Абу-Даби</custom_label_1>
+      </offer>
+      <offer id="max_8964">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjcxYzE1NzliZDQwYTgyMTE0ZGJkOGQwODRlNTFlN2MiLCJvZmZlcl9pZCI6Im1heF84OTY0In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/8964.png</picture>
+        <name>Туры в Rixos The Palm Dubai Hotel &amp; Suites</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_2651">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMmU1YjkyNTE1YjFhZmEwMDI0ODMzMjE2NzZmYjI1ZDEiLCJvZmZlcl9pZCI6Im1heF8yNjUxIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2651.png</picture>
+        <name>Туры в Rose Rayhaan by Rotana</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_2673">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYjJiYmQ2ZWYzYjVhYzgzMzAzNWU2MTRjNDFjY2I1OWEiLCJvZmZlcl9pZCI6Im1heF8yNjczIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2673.png</picture>
+        <name>Туры в Sofitel Dubai Jumeirah Beach</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_64914">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGNiMjczNmQ2ZTc0MzJjNGFkM2UwNDJlZWQ3ZjI1MDAiLCJvZmZlcl9pZCI6Im1heF82NDkxNCJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/64914.png</picture>
+        <name>Туры в Stella Di Mare Dubai Marina</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_2688">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNjU0ZGI3OGFlYzhhNjljZmFmMGZiOTFjYzIzMDRlZjQiLCJvZmZlcl9pZCI6Im1heF8yNjg4In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2688.png</picture>
+        <name>Туры в Towers Rotana</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_61159">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOWZmMWM3ZjMwYmJiY2QxNWE3MjZiYWIyNGQzOGJhNjQiLCJvZmZlcl9pZCI6Im1heF82MTE1OSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/61159.png</picture>
+        <name>Туры в Aloft Palm Jumeirah</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_2514">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDJiYTgxNzFjNDU0NWFhODgyMjRkMTk5NzQxZGJhODUiLCJvZmZlcl9pZCI6Im1heF8yNTE0In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2514.png</picture>
+        <name>Туры в Amwaj Rotana Jumeirah Beach</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_42662">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTA5OTlmNTMyNWUzZTc2ZDIxYzRkODRlMWM4YzEzMzYiLCJvZmZlcl9pZCI6Im1heF80MjY2MiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/42662.png</picture>
+        <name>Туры в Fairmont Ajman</name>
+        <description>Тур с перелётом. Аджман. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Аджман</custom_label_1>
+      </offer>
+      <offer id="max_54605">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTcyYzQzZWEwY2I3YTM4OWQ0YTBhOGM5YzI4YTc1MTkiLCJvZmZlcl9pZCI6Im1heF81NDYwNSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/54605.png</picture>
+        <name>Туры в Fairmont Fujairah Beach Resort</name>
+        <description>Тур с перелётом. Фуджейра. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Фуджейра</custom_label_1>
+      </offer>
+      <offer id="max_80713">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMTE3ZjQ0ZDBlNWM1NThiYmJhNzQ5YjQ4NzU2Zjk3ZmIiLCJvZmZlcl9pZCI6Im1heF84MDcxMyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/80713.png</picture>
+        <name>Туры в Wyndham Residences The Palm</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_82716">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDE5NmZiNWU1MzA3ZGU3MzRjZTViNjdiN2IxMmFjZDkiLCJvZmZlcl9pZCI6Im1heF84MjcxNiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/82716.png</picture>
+        <name>Туры в NH Collection Dubai The Palm</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="max_4499">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTUxOThmZTI5ZWU5YTdmZTdjNjAzMTFmOWM1ZWIwNDYiLCJvZmZlcl9pZCI6Im1heF80NDk5In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/4499.png</picture>
+        <name>Туры в Ramada by Wyndham Beach Hotel Ajman</name>
+        <description>Тур с перелётом. Аджман. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Аджман</custom_label_1>
+      </offer>
+      <offer id="max_2791">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzkxYzczZjE5NmY0OWY2NzFlNzhhODMxYThlY2JjNzUiLCJvZmZlcl9pZCI6Im1heF8yNzkxIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/2791.png</picture>
+        <name>Туры в Citrus Hikkaduwa</name>
+        <description>Тур с перелётом. Хиккадува. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хиккадува</custom_label_1>
+      </offer>
+      <offer id="max_24492">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzY0N2ZlMDFlMTAzNWZkNzQyMzk2YTA5MTJhMDQ1ZTkiLCJvZmZlcl9pZCI6Im1heF8yNDQ5MiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/24492.png</picture>
+        <name>Туры в Citrus Waskaduwa</name>
+        <description>Тур с перелётом. Калутара. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Калутара</custom_label_1>
       </offer>
     </offers>
   </shop>
