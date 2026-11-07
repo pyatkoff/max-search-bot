@@ -104,7 +104,9 @@ try {
     $heading['snapshot']['text']="Тур с перелётом в Египет\nRixos Premium Seagate";
     cpeCheck('ordinary caption never guesses a hotel from a later line',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'');
     $copy=SourceQualificationPrompt::text(['date','adults','children'],'Rixos Premium Seagate');
-    cpeCheck('new hotel asks dates and explicit party',str_contains($copy,'Rixos Premium Seagate')&&str_contains($copy,'На какие даты')&&str_contains($copy,'Сколько взрослых и детей'),true);
+    cpeCheck('new hotel asks dates and explicit party',str_contains($copy,'Rixos Premium Seagate')&&str_contains($copy,'На какие даты')&&!str_contains($copy,'Сколько взрослых и детей'),true);
+    $copy=SourceQualificationPrompt::text(['country'],'Side Star Resort');
+    cpeCheck('hotel post does not ask destination again',!str_contains($copy,'Куда хотите')&&str_contains($copy,'Что хотите уточнить'),true);
     $copy=SourceQualificationPrompt::text(['date'],'Rixos Premium Seagate');
     cpeCheck('known party is not asked again',str_contains($copy,'взросл')||str_contains($copy,'дет'),false);
     $copy=SourceQualificationPrompt::text(['adults','children'],'Rixos Premium Seagate');
