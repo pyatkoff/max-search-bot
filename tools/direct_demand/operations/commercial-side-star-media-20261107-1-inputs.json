@@ -1,0 +1,16 @@
+{
+  "operation": "commercial-side-star-media-20261107-1-v1",
+  "canva_design_id": "DAHaKG2_z0k",
+  "canva_committed_transaction_id": "220071900505793444",
+  "hotel_id": 1095,
+  "logical_id": "commercial-side-star-resort-1095-v1",
+  "text": "🏖 Side Star Resort 5★ · Сиде\n\nМоре, горки и «всё включено» для семейного отпуска.\n\n🌊 Пляж с мелким песком и неглубокой прибрежной зоной.\n💦 Три водные горки и детский бассейн.\n🛏 Для большой семьи есть Suite с двумя спальнями и гостиной.\n\nЗимой предусмотрен подогрев крытого и детского уличного бассейнов. Режим работы на ваши даты уточним.\n\n✈️ Подберём тур в Side Star Resort с перелётом и подходящим номером. Рассчитаем полную стоимость на вашу семью.",
+  "text_sha256": "b9835538a3ac268c97257375988a96681242a5173d75e8b137dc18306a976e45",
+  "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/1cc100a9817085458305aedc90db5fb950e947f0/.github/traffic-publish/commercial-side-star-media-20261107-1/1095.png",
+  "photo_sha256": "0a117604ce61e6f0d30e6cc16fe90da418ff674298ceec04ee6ce736eff78733",
+  "photo_bytes": 698890,
+  "dimensions": [
+    600,
+    600
+  ]
+}
