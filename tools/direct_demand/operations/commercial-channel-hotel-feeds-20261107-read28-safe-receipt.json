@@ -1,0 +1,116 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read28",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 129161,
+      "name": "Rewaya Majestic Resort",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/226",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NOx8OsU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/129161.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 65877,
+      "name": "Vesna Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/227",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NPXdL0M",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/65877.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 20971,
+      "name": "Sugar Marina Resort Nautical Kata Beach",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/228",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NP8EKh8",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/20971.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1653,
+      "name": "Hilton Dalaman Sarigerme Resort & Spa",
+      "country_id": 4,
+      "region_id": 25,
+      "destination": "Даламан",
+      "telegram_post_url": "https://t.me/any_toour/229",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NQglLYU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/1653.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 501,
+      "name": "Empire Beach Aqua Park",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/230",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NREhRiI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/501.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 502,
+      "name": "Empire Hotel Aqua Park",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/231",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NRo2PGw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/502.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 95165,
+      "name": "Annova Nha Trang Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/232",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NSMTA2o",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/95165.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 50659,
+      "name": "Sheraton Phu Quoc Long Beach Resort",
+      "country_id": 16,
+      "region_id": 104,
+      "destination": "Фукуок",
+      "telegram_post_url": "https://t.me/any_toour/233",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NSvqN7Q",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/50659.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 79071,
+      "name": "Wyndham Garden Grandworld Phu Quoc",
+      "country_id": 16,
+      "region_id": 104,
+      "destination": "Фукуок",
+      "telegram_post_url": "https://t.me/any_toour/234",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2NTS1FAE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/79071.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 9,
+  "scope_hotels": 9,
+  "feed_rows": 9,
+  "deferred_count": 0,
+  "installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083"
+}
