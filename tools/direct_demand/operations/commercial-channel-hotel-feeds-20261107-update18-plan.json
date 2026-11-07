@@ -1,0 +1,59 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update18",
+  "state": "EXACT_ADDITIVE_FEEDS_READY_MAX168_INSTALLED",
+  "new_hotel_ids": [
+    24462,
+    43236,
+    101694,
+    2469
+  ],
+  "previous_rows": [
+    164,
+    164,
+    328
+  ],
+  "target_rows": [
+    168,
+    168,
+    336
+  ],
+  "previous164_offer_blocks_identical": true,
+  "max_route_install_run": 42366046299,
+  "max_route_install_commit": "cc7629fc34aa3aa85733ca8b544f5ab580ba842b",
+  "new4_binding_run": 42365443417,
+  "new4_binding_artifact": 13571209005,
+  "public_destination_overrides": {
+    "43236": {
+      "label": "Пасикуда",
+      "source": "accepted Sun Siyam commercial caption and official property identity",
+      "native_catalog_region_id_unchanged": 59
+    }
+  },
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 108727,
+      "sha256": "10cdcc4913b0bc3ef220d8fa5bc5ab0a0c3e5b52548c3b9b4352314ac518e42d",
+      "rows": 168,
+      "expected_previous_sha256": "f4beccd914facea9f15be050b0efa6d1f254418351ec1dc680cd0237d9f25bad"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 137010,
+      "sha256": "f2e487c4ed29e9764feb9f6bdb4518c7bf8543fdbd96dfc3f9873f4bea2b2a83",
+      "rows": 168,
+      "expected_previous_sha256": "13a0bf2f15731313f748c08cf626a7b4b281c979d216088972e33cff2fd7c1c6"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 245364,
+      "sha256": "758b49bdbdb72abefb1289984f64fade457597f863bd8992d439499e90c992ac",
+      "rows": 336,
+      "expected_previous_sha256": "8977dc648167e26a52901a36ca6dfe1259a68a4f0220c606c8520340e0ffb148"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "max_route_install_result_artifact": 13572115426
+}
