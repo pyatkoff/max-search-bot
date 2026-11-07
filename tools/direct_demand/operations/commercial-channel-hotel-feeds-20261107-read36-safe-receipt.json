@@ -1,0 +1,356 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read36",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 1145,
+      "name": "Miarosa Kemer Beach",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/309",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_BAhBYc",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/1145.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 37364,
+      "name": "Water Side Resort & Spa",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/310",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_BkRQ18",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/37364.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 17669,
+      "name": "Ramada Resort By Wyndham Side",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/311",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_CH5Xco",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/17669.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1402,
+      "name": "Orange County Kemer",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/312",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_Cr1JX4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/1402.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1346,
+      "name": "Selectum Family Comfort Side",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/313",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_DP7JLw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/1346.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 120209,
+      "name": "Lusso Sorgun",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/314",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_DzUH3s",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/120209.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 27652,
+      "name": "Lucida Beach Hotel",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/315",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_EWjE18",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/27652.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1183,
+      "name": "Fame Residence Kemer & Spa",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/316",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_E8DOuw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/1183.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 76515,
+      "name": "Side Amour Hotel",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/317",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_FgWDOA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/76515.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1684,
+      "name": "Marmaris Park Hotel",
+      "country_id": 4,
+      "region_id": 26,
+      "destination": "Мармарис",
+      "telegram_post_url": "https://t.me/any_toour/318",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2_GF4cLU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-21/1684.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1614,
+      "name": "Blue Bay Platinum",
+      "country_id": 4,
+      "region_id": 26,
+      "destination": "Мармарис",
+      "telegram_post_url": "https://t.me/any_toour/319",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3AAjVCWM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1614.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1228,
+      "name": "Senza Garden Holiday Club",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/320",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3ABHjXZU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1228.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1134,
+      "name": "Concordia Celes Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/321",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3ABsBOxg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1134.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 47027,
+      "name": "Sidemarin Kirman Premium",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/322",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3ACQcCZE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/47027.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1101,
+      "name": "Sidera Kirman Premium",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/323",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3ACzqDHE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1101.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 70233,
+      "name": "Crystal World Of Colours",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/324",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3ADXrVTM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/70233.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 996,
+      "name": "Corendon Playa Kemer",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/325",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3AD9iGv0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/996.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 28581,
+      "name": "Ma Biche Kemer By Werde Hotels",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/326",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3AEh9LSA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/28581.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1287,
+      "name": "Kemer Dream Hotel",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/327",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3AFF_e9Y",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1287.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 16794,
+      "name": "Senza The Inn Resort & Spa",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/328",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3AFp9Qkw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/16794.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 20,
+  "candidate_count": 20,
+  "read_at_utc": "2026-11-07T17:15:21+00:00",
+  "scope_hotels": 20,
+  "feed_rows": 20,
+  "deferred_count": 0,
+  "installed_sha": "6d193b7740dc212b92b1893041f0a1047b179635",
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 1465,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1015,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1649,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 28448,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1716,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 7985,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 81358,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 61760,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 30095,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 28327,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1236,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1029,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1331,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 81578,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1591,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 364,
+      "clear": false,
+      "matches": [
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+        }
+      ]
+    },
+    {
+      "native_hotel_id": 24898,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 77625,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 2810,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1585,
+      "clear": true,
+      "matches": []
+    }
+  ],
+  "original_artifact_evidence": {
+    "run_id": 42395346729,
+    "job_id": 128471410536,
+    "artifact_id": 13583580500,
+    "zip_sha256": "08e8273847e15cd1564d427360a790c551d629661ed59084d350334b6b466304",
+    "private_receipt_sha256": "0c0e578680c4e4ceb41d5385bbce12c8de230295b89e3a98a5be863ecbfaaee0",
+    "commit": "088257dcbfeb2b47845e160f1bc0217a5b2b3167",
+    "private_path": "retained in private repository only",
+    "original_archive_json_name": "channel-preflight.json"
+  }
+}

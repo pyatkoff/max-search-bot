@@ -1,0 +1,90 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update34",
+  "state": "PREPARED_CONFIRMED_MAX314_INSTALL",
+  "new_hotel_ids": [
+    1145,
+    37364,
+    17669,
+    1402,
+    1346,
+    120209,
+    27652,
+    1183,
+    76515,
+    1684,
+    1614,
+    1228,
+    1134,
+    47027,
+    1101,
+    70233,
+    996,
+    28581,
+    1287,
+    16794
+  ],
+  "previous_rows": [
+    294,
+    294,
+    588
+  ],
+  "target_rows": [
+    314,
+    314,
+    628
+  ],
+  "previous294_offer_blocks_identical": true,
+  "max_route_install_run": 42395673244,
+  "max_route_install_commit": "27dd86bc09430a75034e3339ae247e13952bbe07",
+  "new20_binding_run": 42395346729,
+  "new20_binding_artifact": 13583580500,
+  "approved_destination_labels": {
+    "1145": "Кириш",
+    "37364": "Сиде",
+    "17669": "Сиде",
+    "1402": "Кемер",
+    "1346": "Сиде",
+    "120209": "Соргун",
+    "27652": "Чамьюва",
+    "1183": "Кемер",
+    "76515": "Сиде",
+    "1684": "Мармарис",
+    "1614": "Мармарис",
+    "1228": "Аланья",
+    "1134": "Окурджалар",
+    "47027": "Сиде",
+    "1101": "Окурджалар",
+    "70233": "Белек",
+    "996": "Бельдиби",
+    "28581": "Гёйнюк",
+    "1287": "Кемер",
+    "16794": "Тюрклер"
+  },
+  "destination_basis": "Exact first line of accepted published captions; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 202240,
+      "sha256": "9c6eb76152ed4260090ab50f5670a75ec3678d6ccc92f4f3409072240f7471ae",
+      "rows": 314,
+      "expected_previous_sha256": "6a4f68c28d416f9aa63584ed859298547a638fa6198d98a5947218e29c28a161"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 253522,
+      "sha256": "1a6d24fd168dcac87c4bea61983dee195ddbb486a512c8bd00d3f78ede5817d6",
+      "rows": 314,
+      "expected_previous_sha256": "26ef48697f765d50826b8c1ae21c0ff21ddde9747c64831897d14de778d5d4cd"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 455389,
+      "sha256": "22e73e62d07fc5961111bbcc95a0dbe3e0e3f61596baad50d9334cde73711bd4",
+      "rows": 628,
+      "expected_previous_sha256": "39246929fead7ae2145c0225640b25fdbe82c9f66b11781d367bfe11e47a48c6"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}
