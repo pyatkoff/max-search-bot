@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-17-v1",
-  "state": "SENDER_CONFIRMED_PENDING_ROUTE_FEED",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     1353,
     1067,
@@ -139,5 +139,120 @@
       "post_url": "https://max.ru/channel_anytour/AaG2keteR4o",
       "verified": true
     }
-  ]
+  ],
+  "routes": {
+    "logical_hotels": 266,
+    "new_routes_verified": 9,
+    "previous257_rows_identical": true,
+    "run_id": 42385703884,
+    "commit": "618b5fab1e45c00854ebc388c6c7cabce48ebcd8",
+    "result_artifact_id": 13579975527
+  },
+  "feeds": {
+    "run_id": 42385908076,
+    "job_id": 128443103462,
+    "commit": "04d5f231b55e99903b4033d8bcde3880530dd379",
+    "result_artifact_id": 13579083308,
+    "receipt_sha256": "02651b65f54e0ee87ec1abdf15b424ddc5e2fb1a64417dc75545f1047a43c094",
+    "rows": [
+      266,
+      266,
+      532
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous257_offer_blocks_identical": true
+  },
+  "feed_binding_read_run": 42385438357,
+  "feed_binding_read_artifact": 13578859953,
+  "goal_remaining_to_500": 234,
+  "own_active_workflow": 0,
+  "completed_at_utc": "2026-11-07T15:20:58Z",
+  "publishing_source": {
+    "sha": "57e5ca2d4e14b2e130e728f5a7e99518f89b4f29",
+    "deploy_run": 42384529009,
+    "strict_tls_run": 42384971877,
+    "accepted_publishing_blobs_unchanged": 21
+  },
+  "pending_groups": {
+    "matches100to120": {
+      "published": 9,
+      "remaining_final_manifest_native_ids": [
+        66496,
+        981,
+        128508,
+        45516,
+        1429,
+        15905,
+        50624,
+        58473,
+        4060
+      ],
+      "final_manifest_sha256": "11468fda02e4279943db867d5cebb9c9e64dc15acd718c9d1ee72b5159352531",
+      "caption_sha256": "82c82f696f0e0a582ffde13553ee5ef9a4285a6e4d0ecbd5eaa23bd73f5add45",
+      "first_clearance_read": 30,
+      "clearance_not_replayed": true,
+      "held_native_ids": [
+        74036,
+        213
+      ]
+    },
+    "matches120to140": {
+      "root_reviewed_drafts": 19,
+      "first_registry_clearance_read": 32,
+      "clear_native_count": 19,
+      "held_native_ids": [
+        107940
+      ],
+      "dendro_superior_r01_root_accepted": true,
+      "tnd_combined_deluxe_r01_root_accepted": true,
+      "tnd_exact_view_not_assigned_and_caption_both_categories_required": true,
+      "final_release_manifest_required": true
+    },
+    "matches140to160": {
+      "retained_claims": 254,
+      "typed_identities": 20,
+      "drafts": 20,
+      "raw_png": 180,
+      "contact_sheets": 20,
+      "first_registry_clearance_read": 33,
+      "first_registry_clearance_run": 42385438357,
+      "clear_native_count": 20,
+      "root_editorial_approval_pending": false,
+      "no_stars_draft_native_ids": [
+        1684,
+        70233
+      ],
+      "final_release_manifest_required": true,
+      "root_reviewed_caption_file": "quality_revision/next-twenty-reviewed-after-140-commercial-captions.json"
+    },
+    "matches160to180": {
+      "state": "RETAINED_AND_CURRENT_TYPED_IDENTITIES_READY_DRAFTS_AND_MEDIA_PENDING",
+      "final_release_manifest_required": true,
+      "catalog_sha256": "42fedccf8a33ebbe9dc041958ab54c5a0be7004d3a7d2298a31901a6f7188657"
+    },
+    "additional147": {
+      "local_file": "quality_revision/additional147-retained-identity-candidates.json",
+      "sha256": "393082739a854aadc29f00fd52a3eec1daab7e134e3555cd72ff1b70a951ad96",
+      "typed_rows": 147,
+      "exact_retained_associations": 8,
+      "unresolved": 139,
+      "current_catalog_or_registry_reads": 0,
+      "send_ready": 0
+    }
+  },
+  "external_caption_edits_observed": {
+    "owner_not_attributed": true,
+    "counts_unchanged": true,
+    "latest_confirmed_run": 42386440627,
+    "confirmed_21_pair_edits": 42,
+    "new_posts": 0,
+    "body_photo_button_verified": 42,
+    "preserve_foreign_branch_files": true,
+    "heading_changes_not_new_pairs": true
+  }
 }
