@@ -42,6 +42,9 @@ final class SourceQualificationPrompt
         $missing = array_fill_keys(array_intersect(
             ['date','adults','children','child_ages','nights','city','country'], $missing
         ), true);
+        // The authenticated hotel post already identifies the destination for the greeting.
+        // Do not silently write it into the tourist's search parameters.
+        if ($hotelName !== '') unset($missing['country']);
         $questions = [];
         if (isset($missing['date'])) {
             $questions[] = isset($missing['adults'])
@@ -65,7 +68,7 @@ final class SourceQualificationPrompt
         $intro = $greet ? "Здравствуйте! 👋\n" : '';
         if ($hotel !== '') $intro .= 'Помогу подобрать тур в '.$hotel.".\n\n";
         $question = $questions
-            ? implode(' ', array_slice($questions, 0, 2))
+            ? $questions[0]
             : ($hotel !== '' ? 'Что хотите уточнить по этому отелю?' : 'Что хотите уточнить по этому варианту?');
         return $intro.$question;
     }
