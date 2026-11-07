@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-19-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "PUBLISHED_VERIFIED_PENDING_COMBINED_READ_ROUTES_FEEDS",
   "native_hotel_ids": [
     2219,
     1507,
@@ -29,5 +29,142 @@
     "sender_invoked": false,
     "replay_run": false,
     "source_verification_success": true
-  }
+  },
+  "sender_run_id": 42390271146,
+  "sender_job_id": 128456186891,
+  "sender_commit": "1243824ea06b4f6b47556d7fca3b875a4406a36b",
+  "sender_result_ok": true,
+  "workflow_conclusion": "failure",
+  "workflow_failure_reason": "Post-send local unique-post cardinality assertion expected18 instead of authorized20; original receipt establishes20 unique verified new posts. No sender replay.",
+  "new_posts": 20,
+  "post_write_attempts": 20,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13581456364,
+  "result_zip_sha256": "ab5781fb3acc55d493568ac90fb0440acac9dd85e259c02798fdd552d8deaaab",
+  "input_artifact_id": 13581106897,
+  "private_receipt_sha256": "b1f258fcdcc95b1ab351203ad753685a440b8342fff124c25730081f3b36bdb5",
+  "full_pairs_after": 285,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-my-home-2219-v1",
+      "post_url": "https://t.me/any_toour/290",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sirene-1507-v1",
+      "post_url": "https://t.me/any_toour/291",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-costabella-65020-v1",
+      "post_url": "https://t.me/any_toour/292",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-the-time-83189-v1",
+      "post_url": "https://t.me/any_toour/293",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-phuket-kata-95159-v1",
+      "post_url": "https://t.me/any_toour/294",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-tnd-55721-v1",
+      "post_url": "https://t.me/any_toour/295",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-dendro-16750-v1",
+      "post_url": "https://t.me/any_toour/296",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-naithonburi-713-v1",
+      "post_url": "https://t.me/any_toour/297",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-nubian-village-341-v1",
+      "post_url": "https://t.me/any_toour/298",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-nubian-island-340-v1",
+      "post_url": "https://t.me/any_toour/299",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-my-home-2219-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2yzaUO2c",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sirene-1507-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2yz_FAGA",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-costabella-65020-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2y0knJhI",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-the-time-83189-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2y1IYOTs",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-phuket-kata-95159-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2y1tAIgw",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-tnd-55721-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2y2Q6A8g",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-dendro-16750-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2y20GDJ0",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-naithonburi-713-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2y3YGbx0",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-nubian-village-341-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2y39LWpo",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-nubian-island-340-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2y4iJCps",
+      "verified": true
+    }
+  ]
 }

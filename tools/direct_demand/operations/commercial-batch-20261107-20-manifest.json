@@ -1,0 +1,450 @@
+{
+  "operation": "commercial-hotel-batch-20261107-20-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 285,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read32",
+        "run_id": 42383798277,
+        "job_id": 128436788870,
+        "read_at_utc": "2026-11-07T14:55:03Z",
+        "private_receipt_sha256": "5ffccf438c9364e1b5cb07c80e6e8664a94bf9c2693bfa60eb5547ec3654fa2f",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/operations/batch20-root-subset-manifest.json",
+    "sha256": "f195a3246bb10e5d70035afa250092804e7adcba3472f73a3fe9cc56b2c46ac4",
+    "full_parent_manifest_sha256": "fc6f81be0484600879961c212e5dba79e54c137a8c6b1a74c01dd354e88298d2",
+    "full_parent_caption_sha256": "692ce3cc2437839b38d55abe3c9a1b4bb9c56c0765514e3b128784c16e970fb8",
+    "within_sender_max10": true
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1439,
+      "logical_id": "commercial-rai-tekirova-1439-v1",
+      "aliases": [
+        "Rai Premium Tekirova( Ex. Queens Park Tekirova )",
+        "RAI PREMIUM TEKIROVA (EX. QUEENS PARK TEKIROVA)",
+        "Rai Premium Tekirova",
+        "QUEENS PARK TEKIROVA"
+      ],
+      "text": "🌴 Rai Premium Tekirova 5★ · Текирова\n\nДля семейного отпуска с соединёнными номерами у моря.\n\n🛏 Deluxe Connection от 48 до 58 м²: два Deluxe с внутренней дверью.\n🏖 Собственный пляж на первой линии.\n🎨 Детский клуб с мастерскими и отдельными возрастными зонами.\n🎶 Живая музыка и дискотека.\n\nНа пляже песок и галька. Возрастные условия детского клуба проверим при подборе.\n\n✈️ Подберём размещение под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "64c37d91b56f0187306d16ffe88113434c87c2440faf39cd064373ca36cc3880",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/1439.png",
+      "photo_sha256": "ad26590b96dd5f536048e9951200c46526af23287c2e88bccd1ebf9e50815d3e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/useruploads/tiny_MCE/turkey/Kemer/queens_park_tekirova/Russian_Factsheet_2025.pdf",
+        "https://www.raipremiumhotels.com/en/kidsclub",
+        "https://www.raipremiumhotels.com/en/deluxeconnectionroompartialview",
+        "https://kompastour.com/kz/rus/country/turkey/kemer/queens_park_tekirova/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/queens-park-78071500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/queens-park-78088605.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/queens-park-78071530.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 23128,
+        "anytour_id": 680,
+        "legacy_native_id": 1439,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP8Cie-k",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_b4ae613b19a7a670_enrich05_20261019_c02",
+        "top500_b4ae613b19a7a670_c04",
+        "top500_b4ae613b19a7a670_c05",
+        "top500_b4ae613b19a7a670_enrich05_20261019_c01",
+        "top500_b4ae613b19a7a670_demand21_c02"
+      ]
+    },
+    {
+      "hotel_id": 28325,
+      "logical_id": "commercial-quattro-28325-v1",
+      "aliases": [
+        "Quattro Beach Resort & Spa"
+      ],
+      "text": "🌊 Quattro Beach Resort & Spa 5★ · Конаклы\n\nДля отдыха у моря с выбором семейного номера или джакузи на балконе.\n\n🛏 Large Family 52 м² с двумя отдельными спальнями.\n💦 Side Sea View Jacuzzi 32 м²: боковой вид на море и джакузи на большом балконе.\n🏖 Собственный пляж и пирс на первой линии.\n🍔 В меню закусок: бургеры, пицца, салаты и донер.\n\nУ входа в море местами есть камни.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "e16d248c0d31b29d1191ec3ebc8d779160867e49973dac0cf246062a4eb9799e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/28325.png",
+      "photo_sha256": "2c6e8f86342b5194d5f7c24c14a5765d94d533571e00f6ee97296944fe00fdf4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.quattrobeachhotel.com/en/",
+        "https://www.dertour.ro/turcia/riviera-turceasca/konakli/quattro-beach-spa",
+        "https://www.coral.ge/en/hotels/turkey/quattro-beach-spa-resort-alanya/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://quattrobeach.farkbilisim.com/sayfa/resim/1-4b3a30b59a9da820e1ee72cfac71824a.webp",
+        "https://quattrobeach.farkbilisim.com/sayfa/resim/71-f0ac6015ebe9fb5c9e5e30d804420406.webp",
+        "https://quattrobeach.farkbilisim.com/sayfa/resim/1-0ce62660fb82bd6590464f78ae3c9810.webp"
+      ],
+      "identity_binding": {
+        "anex_id": 11172,
+        "anytour_id": 5549,
+        "legacy_native_id": 28325,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP5ZcIAE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_2194fb783ffef0ec_context13_c02",
+        "top500_2194fb783ffef0ec_context13_c01",
+        "top500_2194fb783ffef0ec_c03",
+        "top500_2194fb783ffef0ec_mass31_c03"
+      ]
+    },
+    {
+      "hotel_id": 1096,
+      "logical_id": "commercial-phaselis-rose-1096-v1",
+      "aliases": [
+        "Club Hotel Phaselis Rose"
+      ],
+      "text": "🌴 Club Hotel Phaselis Rose 5★ · Текирова\n\nДля семейного отпуска с двумя спальнями и детскими занятиями.\n\n🛏 Main Building Comfort Family Land View 51 м²: две спальни с дверью, одна ванная и балкон.\n🏖 Собственный пляж с песком и галькой прямо у отеля.\n🎨 Мини клуб от 4 до 12 лет.\n💦 Пять взрослых и четыре детские водные горки.\n\n✈️ Подберём размещение под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f84d522b9bd8e8582095cce2fc5f302a7da84461b4a68638411bb879c8714633",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/1096.png",
+      "photo_sha256": "0eba236bbc9ffdba09e5a84481c3e1b13937f3d7560d1ec6cd7f79963698a4ec",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.phaselisrose.com/en/rooms/main-building-comfort-family-land-view-room",
+        "https://www.coral.ge/en/hotels/turkey/club-hotel-phaselis-rose-kemer/",
+        "https://www.cedok.cz/dovolena/turecko/turecka-riviera-kemer/club-hotel-phaselis-rose,AYT2CPR/",
+        "https://www.itaka.pl/wczasy/turcja/kemer/club-hotel-phaselis-rose,AYTPHAS/",
+        "https://www.phaselisrose.com/en/rosy-club",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-phaselis-rose-90347826.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-phaselis-rose-90347801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-hotel-phaselis-rose-90347823.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8310,
+        "anytour_id": 485,
+        "legacy_native_id": 1096,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP2nEDQ8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "club_phaselis_rose_c05",
+        "club_phaselis_rose_c04",
+        "club_phaselis_rose_c07",
+        "club_phaselis_rose_c08"
+      ]
+    },
+    {
+      "hotel_id": 1486,
+      "logical_id": "commercial-selcukhan-1486-v1",
+      "aliases": [
+        "Selcukhan Hotel"
+      ],
+      "text": "🌴 Selcukhan Hotel 4★ · Бельдиби\n\nДля семейного отдыха с отдельными комнатами и бассейнами.\n\n🛏 Family: две комнаты с соединяющей дверью.\n💧 Взрослый и детский бассейны, две водные горки.\n🎨 Детский клуб от 4 до 11 лет.\n🧖 Хаммам и сауна на территории.\n\nДо пляжа около 100 м через дорогу. Работу детского клуба уточним на ваши даты.\n\n✈️ Подберём категорию и питание под состав семьи, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "c688579183e508b335e7cb67faa25961f3c0a7696000362c471848ab3eb3483f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/1486.png",
+      "photo_sha256": "d394d7a80eb7cdd192538cb0807ae19a4d67f001d384383194166008bd560fba",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/kemer/selcukhan_hotel/",
+        "https://www.selcukhan.com.tr/factsheet/factsheet-en.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/selcukhan-hotel-102206270.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/selcukhan-hotel-1022062713.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/selcukhan-hotel-102206272.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14990,
+        "anytour_id": 703,
+        "legacy_native_id": 1486,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPywfg2M",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_cb7814e047c3cde7_run04_c03",
+        "top500_cb7814e047c3cde7_run04_c04",
+        "HOTEL-TR-MANUAL-20261025T183648Z-BASE04_c15",
+        "HOTEL-TR-MANUAL-20261025T183648Z-BASE04_c16",
+        "HOTEL-TR-MANUAL-20261025T183648Z-BASE04_c11"
+      ]
+    },
+    {
+      "hotel_id": 37527,
+      "logical_id": "commercial-kimeros-37527-v1",
+      "aliases": [
+        "Kimeros Park Holiday Village"
+      ],
+      "text": "🌿 Kimeros Park Holiday Village 5★ · Гёйнюк\n\nДля семейного отдыха с отдельными спальнями и пляжными вечерами.\n\n🛏 Kimeros Family 33 м²: две спальни с дверями, одна ванная и балкон.\n🏖 Пляж с природным песком и мелкой галькой.\n🍽 Дневной Food Court с мясными, рыбными и итальянскими блюдами.\n🎶 Пляжный Disco Bar Lotus.\n\nFood Court работает сезонно; в корпусах есть открытые лестницы.\n\n✈️ Подберём номер и сезон отдыха, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "ff226ff931dde24e7e456cf37538e234cf948b21d29681f741b807e56232404e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/37527.png",
+      "photo_sha256": "19609aa88ecf0d100159d6243b505cbd72e6f299fa05b0251f0b01d4d53cde20",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.kimeroshotels.com/bar.html",
+        "https://www.kimeroshotels.com/food_court_en.html",
+        "https://www.tui.com/hotels/kimeros-park-holiday-village-4813/hotelinformation/",
+        "https://www.kimeroshotels.com/family_room_en.html",
+        "https://s.tez-tour.com/hotel/50001077/KIMEROS_PARK_HV_2026_ENG_5810.pdf",
+        "https://www.kimeroshotels.com/sahil_en.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kimeros-park-holiday-village-62981741.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kimeros-park-holiday-village-62981701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kimeros-park-holiday-village-62981700.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8928,
+        "anytour_id": 5661,
+        "legacy_native_id": 37527,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPwfRE7E",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "kimeros_park_mass37_c01",
+        "kimeros_park_c06",
+        "kimeros_park_demand24_c01",
+        "kimeros_park_demand24_c02",
+        "kimeros_park_context13_c01"
+      ]
+    },
+    {
+      "hotel_id": 48863,
+      "logical_id": "commercial-sensitive-48863-v1",
+      "aliases": [
+        "Sensitive Premium Resort & Spa"
+      ],
+      "text": "✨ Sensitive Premium Resort & Spa 5★ · Богазкент\n\nДля отдыха с просторным люксом или семейным размещением.\n\n🛋 Suite 80 м²: спальня и гостиная с джакузи, размещение для двух взрослых.\n👨‍👩‍👧 Family 48 м² с двумя спальнями и дверью.\n🎶 Живая музыка, шоу и ночной клуб.\n\nОтель на второй линии, до пляжа около 400 м. Вечернюю программу проверим на даты поездки.\n\n✈️ Подберём категорию и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "40782161974752572015c27d0abe278e83e6a36fad46e9b26c5c1de13de34952",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/48863.png",
+      "photo_sha256": "8ced7035896e21a302c1eef84dd721711f41d3eeff07d7373c1067ab16dfbb3d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://sensitivepremium.com/en/en-suite-room/",
+        "https://www.tui.com/hotels/sensitive-premium-resort-and-spa-530723/hotelinformation/",
+        "https://kompastour.com/ua/rus/country/turkey/belek/sensitive_premium_resort_spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensitive-premium-96049500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensitive-premium-96049536.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sensitive-premium-96049509.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 12832,
+        "anytour_id": 2467,
+        "legacy_native_id": 48863,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP-4lpoY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_0385111b2f208a7a_enrich20261020_c01",
+        "top500_0385111b2f208a7a_c03",
+        "top500_0385111b2f208a7a_c04",
+        "top500_0385111b2f208a7a_run12_c01",
+        "top500_0385111b2f208a7a_demand14_c01"
+      ]
+    },
+    {
+      "hotel_id": 15889,
+      "logical_id": "commercial-grand-park-lara-15889-v1",
+      "aliases": [
+        "Grand Park Lara"
+      ],
+      "text": "🌴 Grand Park Lara 5★ · Лара\n\nДля семейного отпуска с двумя спальнями и вечерней музыкой.\n\n🛏 Family Deluxe от 36 до 40 м²: две отдельные спальни и балкон.\n🛋 Family Elite от 46 до 50 м²: две спальни и отдельная гостиная.\n🎨 Клуб от 4 до 12 лет; младше четырёх только с родителями.\n🎶 Живые группы и DJ сеты.\n\nДо пляжа около 200 м через дорогу. Детская программа сезонная.\n\n✈️ Подберём корпус и номер, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "82c0e8551e3e8f385f46af629efcdf4ba72d06b594e85603a03714d994c1d66a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/15889.png",
+      "photo_sha256": "f98bcbfe4984dc9190bbc7a875b948284d8c9046f8bfec4583ff654e7ebe075f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.corendonhotels.com.tr/corendon-grand-park-lara/en/experiences/live-music-and-dj-sets",
+        "https://www.corendonhotels.com.tr/corendon-grand-park-lara/en/cory-and-friends",
+        "https://www.corendonhotels.com.tr/corendon-grand-park-lara/en/beach-and-pools",
+        "https://www.dertour.de/hotel/grand-park-lara-11EtBC",
+        "https://new.kompastour.com/uz/rus/country/turkey/antaliya/grand_park_lara/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-park-lara-73289300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-park-lara-73289337.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-park-lara-73289324.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8597,
+        "anytour_id": 1753,
+        "legacy_native_id": 15889,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPwGNRzI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c7a5d66a00170de6_mass31_c01",
+        "top500_c7a5d66a00170de6_demand14_c02",
+        "top500_c7a5d66a00170de6_enrich20261020_c01",
+        "top500_c7a5d66a00170de6_enrich20261020_c02",
+        "top500_c7a5d66a00170de6_c04",
+        "top500_c7a5d66a00170de6_enrich20261020_c03"
+      ]
+    },
+    {
+      "hotel_id": 27642,
+      "logical_id": "commercial-aska-lara-27642-v1",
+      "aliases": [
+        "Aska Lara Resort&spa",
+        "ASKA LARA RESORT & SPA"
+      ],
+      "text": "🎶 Aska Lara Resort & Spa 5★ · Лара\n\nДля отдыха с вечерней музыкой и выбором размещения.\n\n🛏 Номера в основном отеле и отдельном корпусе River Annex.\n🎵 Живые музыкальные выступления.\n🎬 Киновечера и танцевальные вечеринки.\n🏖 Собственный пляж отдельно от жилых корпусов.\n\nRiver Annex находится в другом корпусе; путь к пляжу зависит от размещения. Вечернюю программу проверим на ваши даты.\n\n✈️ Подберём корпус, категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "1064ac76b0e7439886196f430e58e7e71ac8f239f1acd67243bff0e1ce0339e9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/27642.png",
+      "photo_sha256": "0df2a765076cbc71cb991872a08a964a62d3a525117d5fdab980eca22e0b19b7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.askahotels.com/en/aska-lara-resort-spa/fun/",
+        "https://www.corendon.nl/turkije/turkse-riviera/antalya/lara/aska-lara-resort-spa",
+        "https://www.askahotels.com/en/aska-lara-resort-spa/",
+        "https://kompastour.com/kz/rus/country/turkey/antaliya/aska_lara_resort_spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-lara-resort-spa-8345100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-lara-resort-spa-8345101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-lara-resort-spa-8345122.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8233,
+        "anytour_id": 2006,
+        "legacy_native_id": 27642,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP6cAlSk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8b41647715d3962f_c03",
+        "top500_8b41647715d3962f_c04",
+        "top500_8b41647715d3962f_context13_c01",
+        "top500_8b41647715d3962f_run03_c01",
+        "top500_8b41647715d3962f_pending27_39_c01",
+        "top500_8b41647715d3962f_c06"
+      ]
+    },
+    {
+      "hotel_id": 76588,
+      "logical_id": "commercial-liu-76588-v1",
+      "aliases": [
+        "LIU Resorts"
+      ],
+      "text": "🌴 LIU Resorts 5★ · Сиде\n\nДля семейного отдыха у моря с двумя спальнями и вечерней музыкой.\n\n🛏 Family 55 м²: две спальни с дверью, балкон и вид на сад.\n🌊 Superior Corner для двух гостей с видом на море.\n🎶 Живые группы и DJ в Breeze.\n🏖 Собственный песчаный пляж примерно в 300 м.\n\nНа пути к пляжу есть дорога; отель предлагает трансфер на багги.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "891d030962cd1c183646e78f0aa451feee2705fbc643b0bd07fcaa2de3f2bb3a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/20e906e26214e7a17c7b089c307eecc8c3b928c9/.github/traffic-publish/commercial-batch-20261107-20/76588.png",
+      "photo_sha256": "15086dd75ff14bb840668629a24398dda14721fa57d4d3d3fa65bdb88cd0b29d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/turkey/side/liu_resorts/",
+        "https://www.coral.ge/en/hotels/turkey/liu-resorts-side/",
+        "https://www.liuresorts.com/rooms",
+        "https://www.bgoperator.ru/price.shtml?action=shw&code=102610182328&flt=100411293179&page=rooms&tid=26",
+        "https://www.liuresorts.com/hotel-info",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2219&legacyHotelIds%5B%5D=1507&legacyHotelIds%5B%5D=65020&legacyHotelIds%5B%5D=83189&legacyHotelIds%5B%5D=95159&legacyHotelIds%5B%5D=107940&legacyHotelIds%5B%5D=55721&legacyHotelIds%5B%5D=16750&legacyHotelIds%5B%5D=713&legacyHotelIds%5B%5D=341&legacyHotelIds%5B%5D=340&legacyHotelIds%5B%5D=1439&legacyHotelIds%5B%5D=28325&legacyHotelIds%5B%5D=1096&legacyHotelIds%5B%5D=1486&legacyHotelIds%5B%5D=37527&legacyHotelIds%5B%5D=48863&legacyHotelIds%5B%5D=15889&legacyHotelIds%5B%5D=27642&legacyHotelIds%5B%5D=76588",
+        "https://liuresorts.com/cdn-proxy/6d5e2bb1/dms3rep/multi/DJI_0050.jpg",
+        "https://liuresorts.com/cdn-proxy/6d5e2bb1/dms3rep/multi/opt/1.FAMILY+ROOM-1920w.jpg?jxl&v=jxl",
+        "https://liuresorts.com/cdn-proxy/6d5e2bb1/dms3rep/multi/DSC01963.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 30581,
+        "anytour_id": 6214,
+        "legacy_native_id": 76588,
+        "source_file": "next-twenty-after-120-current-catalog.json",
+        "source_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPyDetfU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "liu_resorts_mass35_c01",
+        "liu_resorts_core20_c01",
+        "liu_resorts_context13_c01",
+        "liu_resorts_c04",
+        "liu_resorts_demand24_c01"
+      ]
+    }
+  ]
+}
