@@ -1,0 +1,51 @@
+[
+  {
+    "hotel_id": 1294,
+    "name": "Nirvana Cosmopolitan",
+    "accepted_first_line": "🌴 Nirvana Cosmopolitan 5★ · Анталья",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1294.png",
+    "image_sha256": "47c3b77a6dc2b54ec5458da9b6cb4abf5c1d9fd4db406488e2c1cc3826a18fd0"
+  },
+  {
+    "hotel_id": 975,
+    "name": "Nirvana Dolce Vita",
+    "accepted_first_line": "🌿 Nirvana Dolce Vita 5★ · Текирова",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/975.png",
+    "image_sha256": "3112c32b192c29be71183d7f0fdf8c6668f097c6412e9f8cea07ae271533427e"
+  },
+  {
+    "hotel_id": 26530,
+    "name": "Royal Star Beach Resort",
+    "accepted_first_line": "🏖 Royal Star Beach Resort 4★ · Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/26530.png",
+    "image_sha256": "807a09bac2f7713d092d8a22958afa79fd0bedb515be37f4e8c749e1403a24ce"
+  },
+  {
+    "hotel_id": 69116,
+    "name": "Selectum Noa Resort Cam Ranh",
+    "accepted_first_line": "💦 Selectum Noa Resort Cam Ranh 5★ · Камрань",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/69116.png",
+    "image_sha256": "bd6ed8680cc8f594790a207e136562383e9fdf9bd9c7d923697bea8192bdb0fe"
+  },
+  {
+    "hotel_id": 1588,
+    "name": "Kremlin Palace",
+    "accepted_first_line": "🎶 Kremlin Palace 5★ · Анталья",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1588.png",
+    "image_sha256": "725f7a1eb43faaad60d19c33391ee077aaf1e10651a9d3afc1c5a7745dd78f98"
+  },
+  {
+    "hotel_id": 3415,
+    "name": "Royal Holiday Palace",
+    "accepted_first_line": "🌊 Royal Holiday Palace 5★ · Лара",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/3415.png",
+    "image_sha256": "e085e3dc129cd0e31672784d40324c8f74696ca10c1164f31f120bd8763b1026"
+  },
+  {
+    "hotel_id": 964,
+    "name": "Crystal Aura Aqua Collection",
+    "accepted_first_line": "💦 Crystal Aura Aqua Collection 5★ · Кемер",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/964.png",
+    "image_sha256": "cb11c29aeaa2147980ba22e43b38ebaa358f0fe80a4ab4d7716348ccaa5a3ec9"
+  }
+]
