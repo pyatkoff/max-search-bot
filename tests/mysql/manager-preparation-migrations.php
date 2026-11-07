@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
-$pdo=null;$safe=false;$tables=['manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_request_profiles','manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
+$pdo=null;$safe=false;$tables=['lead_outcome_trip_bindings','manager_prepared_reply_input_links','manager_prepared_reply_inputs','manager_request_profiles','manager_ai_sent_texts','messages','manager_preparation_cursors','virtual_reply_jobs','virtual_reply_cases','virtual_reply_cursors','virtual_reply_quotas','manager_assistant_decisions','manager_preparation_oauth_tokens','manager_preparation_oauth_codes','manager_preparation_oauth_grants','manager_preparation_oauth_clients','manager_preparation_events','manager_prepared_replies','manager_ai_draft_inputs','manager_ai_drafts','telegram_dialogue_messages','customer_channels','conversations','managers'];
 try{
     $dsn=(string)getenv('PREPARED_REPLY_MYSQL_DSN');
     if(preg_match('/\Amysql:.*(?:\Amysql:|;)dbname=(maxbot_prepared_test(?:_[a-zA-Z0-9_]+)?)(?:;|\z)/D',$dsn,$m)!==1)throw new RuntimeException('unsafe_fixture_database');
@@ -113,6 +113,8 @@ try{
     $pdo->exec('DELETE FROM conversations WHERE id=99');
     if((int)$pdo->query('SELECT COUNT(*) FROM manager_request_profiles WHERE conversation_id=99')->fetchColumn()!==0)throw new RuntimeException('native_profile_conversation_retention_failed');
     echo "PASS native MySQL080 append-only versions, exact Unicode digest, operation uniqueness, migration retry and conversation retention\n";
+    require __DIR__.'/sales-outcome-trip.php';
+    nativeOutcomeTripMigrationChecks($pdo);
     $inputDuplicateRejected=false;
     try{$inputInsert->execute([str_repeat('a',32),$inputEvidence->json(),$inputEvidence->hash()]);}
     catch(PDOException $error){$inputDuplicateRejected=$error->getCode()==='23000';}
