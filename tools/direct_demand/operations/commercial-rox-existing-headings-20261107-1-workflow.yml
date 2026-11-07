@@ -1,0 +1,176 @@
+name: Correct the headings of the two existing Rox Resort Hotel posts
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: [.github/workflows/content100-bot-publication-20261101.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: a9b03a52bb4c4505640eae79541b7d48aa391083
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -p "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42365607486 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42365607486/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42366018825 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42357448787
+          name: commercial-hotel-caption-cta-dedup-20261107-1-result
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-caption-correction
+      - name: Bind the exact heading edit to the prior receipts of the two messages
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          umask 077
+          python3 -c 'import json,pathlib; root=pathlib.Path("tools/direct_demand/operations"); assert all(json.loads((root/f"commercial-batch-20261107-{n}-state.json").read_text())["state"] == "COMPLETE" for n in (15,16))'
+          python3 - <<'PYCODE'
+          import base64,hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(base/'commercial-rox-existing-headings-20261107-1-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='c39acd18d959d721958f7129594fb65e77df6bf1f4b1b47ec2a174a4a20f3499'
+          inp=json.loads(raw)
+          assert inp['operation']=='commercial-rox-existing-headings-20261107-1-v1'
+          rows=inp['rows']
+          assert [r['hotel_id'] for r in rows]==[1216]
+          r=rows[0]
+          expected='✈️ Туры в Rox Resort Hotel с перелётом\n📍 Кемер, Турция.\n'
+          first,tail=r['old_text'].split('\n',1)
+          assert first=='🏖 Rox Resort Hotel 5★ · Кемер' and tail.startswith('\n')
+          assert r['new_text']==expected+tail
+          for kind in ('old','new'):
+              assert hashlib.sha256(r[kind+'_text'].encode()).hexdigest()==r[kind+'_text_sha256']
+          assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
+          receipt=json.loads((tmp/'prior-caption-correction'/'channel-preflight.json').read_text().splitlines()[-1])
+          assert receipt['ok'] and receipt['operation']=='commercial-hotel-caption-cta-dedup-20261107-1-v1'
+          assert receipt['commercial_text_updates']==6 and receipt['new_posts_created']==0
+          proof=[p for p in receipt['posts'] if p['logical_id']==r['logical_id']]
+          assert {(p['platform'],p['publication_id'],p['version_id']) for p in proof}=={('max',457,928),('telegram',454,931)}
+          assert all(p['text_sha256']==r['old_text_sha256'] and p['body_photo_button_verified'] for p in proof)
+          receipt['posts']=proof
+          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':receipt}
+          raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
+          (tmp/'caption-correction-input.json').write_bytes(raw)
+          source=(base/'update-existing-rox-headings-20261107-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='32bda9067785ae4187fbeea54adfcec7863660655e5601ff89edde5d2b67fa00'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-rox-existing-headings-20261107-1-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert source.count('declare(strict_types=1);')==1
+          (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':2,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
+          PYCODE
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain exact caption edit intent before provider access
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-rox-existing-headings-20261107-1-inputs
+          path: ${{ runner.temp }}/caption-correction-input.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Correct the two existing captions and verify retained context
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import pathlib,json,os
+          tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
+          d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-rox-existing-headings-20261107-1-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          assert d['ok'] is True and len(d['posts'])==2 and d['post_write_attempts']==2 and d['new_posts_created']==0
+          assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
+          assert d['commercial_text_updates']==2 and d['configuration_write_attempts']==0
+          source=json.loads((tmp/'caption-correction-input.json').read_text())
+          prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
+          rows={r['logical_id']:r for r in source['rows']}
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==2
+          for p in d['posts']:
+              old=prior[(p['platform'],p['logical_id'])]
+              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','source_key'))
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==old['photo_signature']
+              assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
+          print('EXISTING_ROX_PAIR_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Retain bounded route evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-rox-existing-headings-20261107-1-result
+          path: ${{ runner.temp }}/channel-preflight.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and script files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+
