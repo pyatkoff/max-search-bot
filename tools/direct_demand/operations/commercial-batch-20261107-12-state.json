@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-12-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     1143,
     41495,
@@ -18,5 +18,210 @@
   "manifest_sha256": "b9b465c9d202b0a82fdcce28ce250762200a130e1928464b982b969da50ec6e5",
   "asset_commit": "62e894356a8d4097c1621fdf692ac24088d7ea55",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "full_pairs_after": 229,
+  "sender_run_id": 42378397600,
+  "sender_job_id": 128420654229,
+  "sender_commit": "105eb81cb72a950746fd9b70d6e184ede280e9cb",
+  "new_posts": 18,
+  "post_write_attempts": 18,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13577065469,
+  "result_zip_sha256": "59cb5e4a03daa5d9ee240460438cff6eca79232e7aa536dfc7318307f944699e",
+  "private_receipt_sha256": "f9207efe2b4839a706c3699841096530d80ae71080b5a87b2c8ce03ff6611122",
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-crystal-paraiso-1143-v1",
+      "post_url": "https://t.me/any_toour/235",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-liberty-central-41495-v1",
+      "post_url": "https://t.me/any_toour/236",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-virgo-69261-v1",
+      "post_url": "https://t.me/any_toour/237",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-megasaray-side-1221-v1",
+      "post_url": "https://t.me/any_toour/238",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-vinpearl-phu-quoc-32342-v1",
+      "post_url": "https://t.me/any_toour/239",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-orbit-64670-v1",
+      "post_url": "https://t.me/any_toour/240",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-yasaka-4095-v1",
+      "post_url": "https://t.me/any_toour/241",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-blue-pearl-13941-v1",
+      "post_url": "https://t.me/any_toour/242",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-saigon-mui-ne-4071-v1",
+      "post_url": "https://t.me/any_toour/243",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-crystal-paraiso-1143-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Qr0HIZo",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-liberty-central-41495-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2QsYTfUM",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-virgo-69261-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Qs8kYsU",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-megasaray-side-1221-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Qtf1Fdo",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-vinpearl-phu-quoc-32342-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2QuDYdKE",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-orbit-64670-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2QunfNDE",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-yasaka-4095-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2QvL6f7U",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-blue-pearl-13941-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2QvvlA2g",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-saigon-mui-ne-4071-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2QwTTC2w",
+      "verified": true
+    }
+  ],
+  "routes": {
+    "logical_hotels": 229,
+    "new_routes_verified": 9,
+    "previous220_rows_identical": true,
+    "run_id": 42378809948,
+    "commit": "5c21008697c4c80678a150d2bab608e6f4bffe44",
+    "result_artifact_id": 13576901137
+  },
+  "feeds": {
+    "run_id": 42378922965,
+    "job_id": 128422210683,
+    "commit": "68eb6952e8679daf0c475f74e32150c87c0d5346",
+    "result_artifact_id": 13575824929,
+    "receipt_sha256": "0060dd19d82f755189557f35a97fb78496f750bac6a6133f3044dcbee52d80bf",
+    "rows": [
+      229,
+      229,
+      458
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous220_offer_blocks_identical": true
+  },
+  "feed_binding_read_run": 42378598390,
+  "feed_binding_read_artifact": 13576543159,
+  "goal_remaining_to_500": 271,
+  "own_active_workflow": 0,
+  "completed_at_utc": "2026-11-07T13:52:37Z",
+  "pending_groups": {
+    "matches60to80": {
+      "published": 9,
+      "remaining_native_ids": [
+        41149,
+        54592,
+        57217,
+        4432,
+        82606,
+        1337,
+        380,
+        1257,
+        82567
+      ],
+      "root_copy_reviewed": 18,
+      "all18_photo_selections_accepted_by_root": true,
+      "final_release_manifest_required": true,
+      "first_clearance_read": 26,
+      "first_clearance_run": 42375078643,
+      "clearance_not_replayed": true
+    },
+    "matches80to100": {
+      "drafts": 19,
+      "root_retained_claim_review_complete": true,
+      "raw_png": 171,
+      "room_specific_media_pending_native_ids": [
+        57066,
+        2015
+      ],
+      "first_clearance_read": 27,
+      "first_clearance_run": 42375960417,
+      "held_native_id": 32339,
+      "final_release_manifest_required": true
+    },
+    "matches100to120": {
+      "retained_claims": 228,
+      "typed_identities": 20,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "drafts": 18,
+      "raw_png": 153,
+      "contact_sheets": 17,
+      "held_native_ids": [
+        74036,
+        213
+      ],
+      "media_pending_native_ids": [
+        75041
+      ],
+      "registry_clearance": "NOT_RUN_NO_STANDALONE_CLEARANCE",
+      "final_release_manifest_required": true
+    }
+  }
 }
