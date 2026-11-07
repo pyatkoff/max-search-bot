@@ -1,0 +1,54 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update19",
+  "state": "EXACT_ADDITIVE_FEEDS_READY_MAX174_INSTALLED",
+  "new_hotel_ids": [
+    1352,
+    37360,
+    1035,
+    45199,
+    613,
+    24909
+  ],
+  "previous_rows": [
+    168,
+    168,
+    336
+  ],
+  "target_rows": [
+    174,
+    174,
+    348
+  ],
+  "previous168_offer_blocks_identical": true,
+  "max_route_install_run": 42367087522,
+  "max_route_install_commit": "558bc300c50b79761284c75cc97e7ea837c582f9",
+  "new6_binding_run": 42366839876,
+  "new6_binding_artifact": 13571902381,
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 112548,
+      "sha256": "3f78c3c8fdbc22e88f580ea03dd1ab9228a8a2375d2259ce4fdee606d07233e4",
+      "rows": 174,
+      "expected_previous_sha256": "10cdcc4913b0bc3ef220d8fa5bc5ab0a0c3e5b52548c3b9b4352314ac518e42d"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 141775,
+      "sha256": "936848c0c490571722669b7c5285cc46ffe6ac06081045e7a15f53ba5d368bf2",
+      "rows": 174,
+      "expected_previous_sha256": "f2e487c4ed29e9764feb9f6bdb4518c7bf8543fdbd96dfc3f9873f4bea2b2a83"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 253950,
+      "sha256": "542a9abe08abc78e9926421691924be5ecfa659687f96eba16f1df4ceb6e9cda",
+      "rows": 348,
+      "expected_previous_sha256": "758b49bdbdb72abefb1289984f64fade457597f863bd8992d439499e90c992ac"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "max_route_install_result_artifact": 13572152212
+}
