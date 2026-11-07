@@ -1,0 +1,202 @@
+[
+  {
+    "hotel_id": 1198,
+    "logical_id": null,
+    "aliases": [
+      "Gloria Golf Resort Hotel",
+      "GLORIA GOLF RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1201,
+    "logical_id": null,
+    "aliases": [
+      "Gloria Verde Resort Hotel",
+      "GLORIA VERDE RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1165,
+    "logical_id": null,
+    "aliases": [
+      "Ela Excellence",
+      "ELA EXCELLENCE RESORT BELEK (EX. ELA QUALITY RESORT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 109786,
+    "logical_id": null,
+    "aliases": [
+      "Ethno Hotels Belek",
+      "ETHNO HOTEL BELEK"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1452,
+    "logical_id": null,
+    "aliases": [
+      "Rixos Sungate",
+      "RIXOS SUNGATE THE LAND OF LEGENDS FREE ACCESS"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 46670,
+    "logical_id": null,
+    "aliases": [
+      "Trendy Lara Hotel",
+      "TRENDY LARA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 956,
+    "logical_id": null,
+    "aliases": [
+      "Akka Hotels Claros",
+      "AKKA CLAROS HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 64371,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Boutique Comfort Collection (Adults Only)",
+      "CRYSTAL BOUTIQUE COMFORT COLLECTION ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1344,
+    "logical_id": null,
+    "aliases": [
+      "Lonicera Resort & Spa",
+      "LONICERA RESORT & SPA HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 45496,
+    "logical_id": null,
+    "aliases": [
+      "Asia Beach Resort & Spa Hotel",
+      "ASIA BEACH RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2222,
+    "logical_id": null,
+    "aliases": [
+      "Narcia Resort Hotel",
+      "NARCIA RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1042,
+    "logical_id": null,
+    "aliases": [
+      "Belek Beach Resort Hotel",
+      "BELEK BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 15917,
+    "logical_id": null,
+    "aliases": [
+      "Tac Premier Hotel",
+      "TAC PREMIER HOTEL & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1493,
+    "logical_id": null,
+    "aliases": [
+      "Mc Beach Park Resort",
+      "MC BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1154,
+    "logical_id": null,
+    "aliases": [
+      "Side Aluna Hotel",
+      "SIDE ALUNA (EX. DIAMOND BEACH HOTEL)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 970,
+    "logical_id": null,
+    "aliases": [
+      "Ali Bey Resort",
+      "ALI BEY RESORT SORGUN"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1055,
+    "logical_id": null,
+    "aliases": [
+      "Blue Star Hotel",
+      "BLUE STAR"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 75040,
+    "logical_id": null,
+    "aliases": [
+      "Grand Kolibri Prestige Hotel",
+      "GRAND KOLIBRI PRESTIGE & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 983,
+    "logical_id": null,
+    "aliases": [
+      "Anitas Hotel",
+      "ANITAS"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1124,
+    "logical_id": null,
+    "aliases": [
+      "Club Hotel Sidelya",
+      "CLUB HOTEL SIDELYA HV-2"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  }
+]
