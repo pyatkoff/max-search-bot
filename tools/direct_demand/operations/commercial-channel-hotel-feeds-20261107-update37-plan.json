@@ -1,0 +1,86 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update37",
+  "state": "PREPARED_CONFIRMED_MAX370_INSTALL",
+  "new_hotel_ids": [
+    1465,
+    1015,
+    1649,
+    28448,
+    1716,
+    7985,
+    61760,
+    30095,
+    28327,
+    1236,
+    1029,
+    1331,
+    81578,
+    1591,
+    24898,
+    77625,
+    2810,
+    1585
+  ],
+  "previous_rows": [
+    352,
+    352,
+    704
+  ],
+  "target_rows": [
+    370,
+    370,
+    740
+  ],
+  "previous352_offer_blocks_identical": true,
+  "max_route_install_run": 42402053644,
+  "max_route_install_commit": "4ef21d526bcd43e682778cb8099ba476d37b100c",
+  "new18_binding_run": 42401865637,
+  "new18_binding_artifact": 13586000920,
+  "approved_destination_labels": {
+    "1465": "Авсаллар",
+    "1015": "Соргун",
+    "1649": "Мармарис",
+    "28448": "Бодрум",
+    "1716": "Бодрум",
+    "7985": "Ката, Пхукет",
+    "61760": "Абу-Даби",
+    "30095": "Сочи",
+    "28327": "Бельдиби",
+    "1236": "Махмутлар, Аланья",
+    "1029": "Белек",
+    "1331": "Гойнюк",
+    "81578": "Сиде",
+    "1591": "Сиде",
+    "24898": "Ката, Пхукет",
+    "77625": "Унаватуна",
+    "2810": "Хиккадува",
+    "1585": "Окурджалар"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 238244,
+      "sha256": "9ebf951579535789133f55abf5f67cc89c81dff5976dca6bdfa4814cf581ce34",
+      "rows": 370,
+      "expected_previous_sha256": "74cc79333f1a3051a56ef7b5be4502e3c6d606ca2524de6f2b6ad5e4441827fe"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 298337,
+      "sha256": "c31acc6967add6b9e25f8c50a4e773b72666229da3f9f73e103cf5116535b6ff",
+      "rows": 370,
+      "expected_previous_sha256": "f8bb3841e7eb09063de27b746487bc18a8c4c2c6a88b0800f4f18c7c244ebf2f"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 536208,
+      "sha256": "7d7eb7e67c368958438ce61162ee1e0b58300d5a5d947ac906452273b2f5d027",
+      "rows": 740,
+      "expected_previous_sha256": "e331016120c336634003ec5a1a08e67d8c43079c90078fc46659546b8a77de0c"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

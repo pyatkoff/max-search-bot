@@ -1,0 +1,452 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read39",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 1465,
+      "name": "Rubi Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/367",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RNKnIsM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/1465.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1015,
+      "name": "Arcanus Hotels Sorgun",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/368",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RNuNaLQ",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/1015.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1649,
+      "name": "Grand Yazici Club Marmaris Palace",
+      "country_id": 4,
+      "region_id": 26,
+      "destination": "Мармарис",
+      "telegram_post_url": "https://t.me/any_toour/369",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3ROSkFNU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/1649.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 28448,
+      "name": "La Blanche Island Bodrum",
+      "country_id": 4,
+      "region_id": 24,
+      "destination": "Бодрум",
+      "telegram_post_url": "https://t.me/any_toour/370",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RO4gWZs",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/28448.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1716,
+      "name": "Selectum Colours Bodrum",
+      "country_id": 4,
+      "region_id": 24,
+      "destination": "Бодрум",
+      "telegram_post_url": "https://t.me/any_toour/371",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RPgEd2Q",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/1716.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 7985,
+      "name": "Kata Silver Sand",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/372",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RQE8cRk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/7985.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 61760,
+      "name": "Saadiyat Rotana Resort & Villas",
+      "country_id": 9,
+      "region_id": 43,
+      "destination": "Абу-Даби",
+      "telegram_post_url": "https://t.me/any_toour/373",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RQnucso",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/61760.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 30095,
+      "name": "Сочи Парк Отель",
+      "country_id": 47,
+      "region_id": 426,
+      "destination": "Сочи",
+      "telegram_post_url": "https://t.me/any_toour/374",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RRLjZ7Q",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/30095.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 28327,
+      "name": "Nirvana Mediterranean Excellence",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/375",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RRvYJnc",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/28327.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1236,
+      "name": "Prestige Alanya",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/376",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3RSTSc94",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-27/1236.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1029,
+      "name": "Crystal Tat Beach Pearl Collection",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/377",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3R8y9MrE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/1029.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1331,
+      "name": "Crystal Prestige Pearl Collection",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/378",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3R9WhIGA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/1331.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 81578,
+      "name": "Arcanus Hotels Trendline Side",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/379",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3R969dm0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/81578.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1591,
+      "name": "TUI Blue Xanthe",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/380",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3R-frP8Y",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/1591.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 24898,
+      "name": "Melissa Kata Beach Resort",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/381",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3R_DtRcw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/24898.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 77625,
+      "name": "Araliya Beach Resort & Spa",
+      "country_id": 12,
+      "region_id": 593,
+      "destination": "Унаватуна",
+      "telegram_post_url": "https://t.me/any_toour/382",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3R_oiBOE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/77625.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2810,
+      "name": "Hikka Tranz by Cinnamon",
+      "country_id": 12,
+      "region_id": 594,
+      "destination": "Хиккадува",
+      "telegram_post_url": "https://t.me/any_toour/383",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3SAL0GWc",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/2810.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1585,
+      "name": "A Good Life Utopia Family Resort",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/384",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3SAvcEDI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/1585.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 18,
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 2575,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Rixos Al Mairid Ras Al Khaimah",
+        "RIXOS AL MAIRID RAS AL KHAIMAH (EX. HILTON RAS AL KHAIMAH BEACH RESORT)"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 63833,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Rixos Premium Saadiyat Island"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 8964,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Rixos The Palm Dubai Hotel & Suites"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 2651,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Rose Rayhaan By Rotana"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 2673,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Sofitel Dubai Jumeirah Beach"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 64914,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Stella Di Mare Dubai Marina"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 2688,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Towers Rotana"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 13844,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ja Ocean View Hotel"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 2569,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Al Habtoor Grand Resort, Autograph Collection",
+        "AL HABTOOR GRAND RESORT AUTOGRAPH COLLECTION"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 61159,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Aloft Palm Jumeirah"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 2514,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Amwaj Rotana Jumeirah Beach"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 42662,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Fairmont Ajman"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 54605,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Fairmont Fujairah Beach Resort"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 57684,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Wyndham Garden Ajman Corniche"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 80713,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Wyndham Residences The Palm"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 32232,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Waldorf Astoria Dubai Palm Jumeirah"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 82716,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Nh Collection Dubai The Palm"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 4499,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ramada by Wyndham Beach Hotel Ajman"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 2791,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Citrus Hikkaduwa",
+        "CITRUS HIKKADUWA (EX. AMAYA REEF)"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 24492,
+      "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Citrus Waskaduwa"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    }
+  ],
+  "candidate_count": 20,
+  "read_at_utc": "2026-11-07T18:34:00+00:00",
+  "scope_hotels": 18,
+  "feed_rows": 18,
+  "deferred_count": 0,
+  "installed_sha": "6d193b7740dc212b92b1893041f0a1047b179635",
+  "source_original_artifact": {
+    "run_id": 42401865637,
+    "job_id": 128491182868,
+    "commit": "2a1c05c89d26be8ce1be3364ef23fd57caa9309c",
+    "artifact_id": 13586000920,
+    "artifact_zip_sha256": "11e2a9dcee84d1dce184b64535edefc68cd32f84a558001f8a26a5e0b14a6fd4",
+    "input_artifact_id": 13586155006,
+    "input_artifact_zip_sha256": "ead229ebcdde0f503cc02f13fb5e890bb702a32da63cce9b077df0f46467f0da",
+    "private_receipt_sha256": "1e7791afbf7fe7ef33712edf38a7ec13d630515a0bb61f22473090300ffcd065"
+  }
+}
