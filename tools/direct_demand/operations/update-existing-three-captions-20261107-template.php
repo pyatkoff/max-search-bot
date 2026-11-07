@@ -67,7 +67,7 @@ try {
     }
     $original=$payload['original_publication_result']??null;
     need(is_array($original)&&($original['operation']??'')==='commercial-hotel-batch-20261107-1-v1'&&($original['ok']??null)===true&&($original['new_posts']??null)===6&&($original['post_write_attempts']??null)===6&&($original['reused']??null)===0&&count($original['posts']??[])===6,'original_six_posts_receipt_invalid');
-    $proofs=[];$expectedIds=[27426=>['telegram'=>[453,915],'max'=>[456,918]],1216=>['telegram'=>[454,916],'max'=>[457,919]],1095=>['telegram'=>[455,917],'max'=>[458,920]];
+    $proofs=[];$expectedIds=[27426=>['telegram'=>[453,915],'max'=>[456,918]],1216=>['telegram'=>[454,916],'max'=>[457,919]],1095=>['telegram'=>[455,917],'max'=>[458,920]]];
     foreach($original['posts'] as $proof){
         $id=$proof['hotel_id']??null;$platform=$proof['platform']??'';need(isset($expectedIds[$id][$platform])&&!isset($proofs[$id][$platform]),'original_receipt_identity_outside_scope');
         need([$proof['publication_id'],$proof['version_id']]===$expectedIds[$id][$platform]&&($proof['state']??'')==='sent'&&($proof['body_photo_button_verified']??null)===true&&($proof['reused']??null)===false,'original_receipt_confirmation_changed');

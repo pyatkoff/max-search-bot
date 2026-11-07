@@ -71,7 +71,7 @@ jobs:
           payload={'operation':'commercial-hotel-caption-correction-20261107-1-v1','button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':receipt}
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode();(tmp/'caption-correction-input.json').write_bytes(raw)
           source=(base/'update-existing-three-captions-20261107-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='ad184d2cb3d42c88f2e51fec3ad9da44dbc0f883a841f547821d5c139d39745c'
+          assert hashlib.sha256(source.encode()).hexdigest()=='ef6636881b3969da8041f07f69017bbaf54261224c13692d5ac9e316760deb32'
           constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-hotel-caption-correction-20261107-1-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
