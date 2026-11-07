@@ -1,0 +1,252 @@
+{
+  "operation": "commercial-hotel-batch-20261107-10-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 206,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read24",
+        "run_id": 42372696111,
+        "read_at_utc": "2026-11-07T12:29:43Z",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-five-after-206-commercial-release-manifest.json",
+    "sha256": "dc987db0c285f3571554b70ef5c3695f17064420b8387e01709bf69744904041"
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 21847,
+      "logical_id": "commercial-vogue-bodrum-21847-v1",
+      "aliases": [
+        "Vogue Hotel Supreme Bodrum"
+      ],
+      "text": "🎡 Vogue Hotel Supreme Bodrum 5★ · Бодрум\n\nСемейный отпуск с отдельными спальнями и развлечениями Candyland.\n\n🛏 Family Suite Sea View 75 м² в главном корпусе: две соединённые спальни и большой балкон с видом на море.\n🎢 Candyland: аттракционы, колесо обозрения и аквапарк.\n🏖 Собственный пляж с песком и галькой.\n\nРабота парков зависит от погоды.\n\n✈️ Подберём семейную категорию и уточним условия посещения парков. Рассчитаем тур с перелётом.",
+      "text_sha256": "5bddc7668a50be012aebcd1715d1d4026d3d0419c65b76205a51b287d3bdcd6d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/21847.png",
+      "photo_sha256": "e4f8d7681fcb56a6f17e772cfdb65cc2f6373a6179e10f8c1fc802b66723738c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.voguehotelsupreme.com/en/our-hotels/bodrum/rooms/family-suite-sea-view/",
+        "https://www.voguehotelsupreme.com/en/our-hotels/bodrum/candyland-theme-park/",
+        "https://kompastour.com/md/rus/country/turkey/bodrum/vogue_hotel_supreme_bodrum/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/vogue-bodrum-16732100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/vogue-bodrum-16907009.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/vogue-bodrum-16811003.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15246,
+        "anytour_id": 1893,
+        "legacy_native_id": 21847,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPJlnDho",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261026T052235Z-BASE04_c16",
+        "HOTEL-TR-MANUAL-20261026T052235Z-BASE04_c17",
+        "HOTEL-TR-MANUAL-20261026T052235Z-BASE04_c20",
+        "HOTEL-TR-MANUAL-20261026T052235Z-BASE04_c21",
+        "top500_df35adecb5f11529_run06audit_c04",
+        "top500_df35adecb5f11529_run06audit_c06"
+      ]
+    },
+    {
+      "hotel_id": 302,
+      "logical_id": "commercial-lotus-bay-302-v1",
+      "aliases": [
+        "Lotus Bay Beach Resort",
+        "Lotus Bay Beach Resort · Сафага"
+      ],
+      "text": "🏖 Lotus Bay Beach Resort · Сафага\n\nДля отпуска у песчаного пляжа в Сафаге.\n\n🌊 Первая линия и собственный песчаный пляж длиной 350 м.\n🛏 Двухместная категория с видом на море: от 30 до 35 м², балкон или терраса.\n💧 Два взрослых открытых бассейна.\n\n✈️ Подберём номер и питание в Lotus Bay, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "0091c9e923aa085eebd08cad2a2bfba5cc6d479935235c1ed6addad633756f85",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/302.png",
+      "photo_sha256": "f1ce34004a2556943bab8cba707ceccac3a7595247e8cd0b814d533073731386",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.ge/en/hotels/egypt/lotus-bay-beach-resort-hurghada/",
+        "https://holidays.eurowings.com/de-de/hotel/alle-regionen/aegypten/safaga/lotus-bay-86",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/lotus-bay-safaga-102101180.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/lotus-bay-safaga-1021012017.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/lotus-bay-safaga-102101198.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 4521,
+        "anytour_id": 4325,
+        "legacy_native_id": 302,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": false,
+      "canva_design_id": "DAHaPCGvkxA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_43341c596817c62e_c03",
+        "top500_43341c596817c62e_demand28_c01",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c30",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c32"
+      ]
+    },
+    {
+      "hotel_id": 512,
+      "logical_id": "commercial-tropitel-dahab-512-v1",
+      "aliases": [
+        "Tropitel Dahab Oasis"
+      ],
+      "text": "🐠 Tropitel Dahab Oasis 4★ · Дахаб\n\nДля отпуска у кораллового берега и моря.\n\n🌊 Каменистый коралловый пляж; вход в море только с понтона.\n🛏 Standard с двуспальной или двумя отдельными кроватями.\n📍 Отель на Blue Hole Road, в 8 км от центра Дахаба.\n\nДля купания пригодится специальная обувь.\n\n✈️ Подберём номер и подходящий план питания. Рассчитаем тур в Tropitel с перелётом на ваши даты.",
+      "text_sha256": "7d8996cc6790b9e3af1da1d19a54ee980ca50734eb2a666f6a3a145f6287b9e0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/512.png",
+      "photo_sha256": "4a4114ccf9e24153b423ad073d43b7c07533ef5d9ef553f2d8a326e1cda77395",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tropitelhotels.com/tropitel-dahab-oasis",
+        "https://www.tropitelhotels.com/tropitel-dahab-oasis/stay/standard-room",
+        "https://rasskazovka.tez-tour.com/hotelPrint.html?id=71698",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/tropitel-dahab-oasis-84938201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/tropitel-dahab-oasis-84938211.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/tropitel-dahab-oasis-84938202.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 3860,
+        "anytour_id": 234,
+        "legacy_native_id": 512,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPOhBQqc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "tropitel_dahab_oasis_c01",
+        "tropitel_dahab_oasis_c02",
+        "tropitel_dahab_oasis_c03",
+        "tropitel_dahab_oasis_core20_c01"
+      ]
+    },
+    {
+      "hotel_id": 107938,
+      "logical_id": "commercial-marin-phuket-107938-v1",
+      "aliases": [
+        "The Marin Phuket"
+      ],
+      "text": "🌴 The Marin Phuket 5★ · Камала\n\nДве спальни и собственная кухня для семейного отпуска на Пхукете.\n\n🛏 Two Bedroom Suite 70 м²: две спальни, два санузла, гостиная и балкон.\n🍳 У этой категории кухня с плитой, микроволновкой и холодильником.\n💧 Четыре бассейна, включая бассейн на крыше.\n🏖 До пляжа Камала от 400 до 500 м.\n\n✈️ Подберём категорию под вашу семью и рассчитаем тур в The Marin с перелётом на нужные даты.",
+      "text_sha256": "5f46410719014d70037350d73791ca16326e3224b7cd45f9ff1f5aca56f33ef4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/107938.png",
+      "photo_sha256": "97059f03fd79454011fa04fec09ea956c5072d7a804cdda1ba4dfbf88807ff8a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.themarinphuket.com/",
+        "https://www.themarinphuket.com/rooms-type/two-bedroom-suite",
+        "https://kompastour.com/kz/rus/country/thailand/phuket/the_marin_phuket_kamala_beach/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/the-marin-phuket-411503.jpg",
+        "https://www.themarinphuket.com/images/1262.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/the-marin-phuket-411527.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37021,
+        "anytour_id": 3695,
+        "legacy_native_id": 107938,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPLjmJjc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261025T191759Z_mass_c31",
+        "country61_TH_20261025T212744Z_mass_c21",
+        "country61_TH_20261025T191759Z_mass_c34",
+        "top500_c88d4c67787dad0e_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 15871,
+      "logical_id": "commercial-crystal-sunset-15871-v1",
+      "aliases": [
+        "Crystal Sunset Pearl Collection",
+        "CRYSTAL SUNSET PEARL COLLECTION (EX. CRYSTAL SUNSET LUXURY RESORT & SPA)",
+        "CRYSTAL SUNSET LUXURY RESORT & SPA"
+      ],
+      "text": "🌅 Crystal Sunset Pearl Collection 5★ · Сиде\n\nСемейный отпуск в Сиде с двумя спальнями и детским клубом.\n\n🛏 Family от 40 до 44 м²: две спальни с межкомнатной дверью.\n🏖 Пляж примерно в 400 м от отеля.\n🎨 Детский клуб для возраста от 4 до 12 лет.\n\n✈️ Подберём семейный номер с подходящим видом и рассчитаем тур в Crystal Sunset с перелётом на ваши даты.",
+      "text_sha256": "a54dda37a5ce0471dfee25b85b092c70d9808c2e2f17273b87982bea349845db",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/15871.png",
+      "photo_sha256": "7f0fa72d66b5ef4d69d570212ee8c08a3d5fed25c9ec7f28351aba492ab74dfe",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.icstrvl.ru/city/spb/data/2026/04/30/4803689959/crystal-sunset-pearl-collection-crystal-..L%20SUNSET%20-%20FACT%20SHEET%202026%20-%20RU.pdf",
+        "https://kompastour.com/by/rus/country/turkey/side/crystal_sunset_luxury_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-sunset-luxury-resort-spa-10578800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-sunset-luxury-resort-spa-10578801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-sunset-luxury-resort-spa-10581423.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15125,
+        "anytour_id": 1746,
+        "legacy_native_id": 15871,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPF47ib4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c01",
+        "top500_1e8c0df3b3280946_run04_c04",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c07"
+      ]
+    }
+  ]
+}
