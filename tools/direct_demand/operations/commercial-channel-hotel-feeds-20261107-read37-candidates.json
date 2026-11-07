@@ -1,0 +1,203 @@
+[
+  {
+    "hotel_id": 1551,
+    "logical_id": null,
+    "aliases": [
+      "Movenpick Resort Antalya Tekirova(Ex.Royal Diwa Tekirova Resort)",
+      "MOVENPICK HOTEL ANTALYA TEKIROVA (EX.ROYAL DIWA TEKIROVA RESORT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 70289,
+    "logical_id": null,
+    "aliases": [
+      "Alexia Resort & Spa (Adults Only 16+)",
+      "ALEXIA RESORT & SPA ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 123757,
+    "logical_id": null,
+    "aliases": [
+      "Seher Side Quality Resort & Spa (Adults Only 16+)",
+      "SEHER SIDE QUALITY RESORT & SPA ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1032,
+    "logical_id": null,
+    "aliases": [
+      "Acanthus & Cennet Barut Collection",
+      "ACANTHUS CENNET BARUT COLLECTION",
+      "BAYOU ACANTHUS (EX. ACANTHUS CENNET BARUT COLLECTION)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 21673,
+    "logical_id": null,
+    "aliases": [
+      "Tui Blue Barut Andiz (Adults Only 16+)",
+      "TUI BLUE BARUT ANDIZ ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1126,
+    "logical_id": null,
+    "aliases": [
+      "Club Sun Heaven Family & Spa",
+      "SUN HEAVEN HOTEL (EX. CLUB SUN HEAVEN FAMILY & SPA)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 212,
+    "logical_id": null,
+    "aliases": [
+      "Sunrise Aster Aqua Park Resort",
+      "SUNRISE AZALEA AQUA PARK RESORT (EX. SUNRISE ASTER AQUA PARK RESORT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 61591,
+    "logical_id": null,
+    "aliases": [
+      "Melia Vinpearl Nha Trang Empire(EX. Vinpearl Condotel Empire)",
+      "VINPEARL EMPIRE NHA TRANG AFFILIATED BY MELIA (EX. MELIA VINPEARL NHA TRANG EMPIRE)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1972,
+    "logical_id": null,
+    "aliases": [
+      "Moreno Horizon Spa & Resort Hurghada",
+      "MORENO HORIZON SPA & RESORT (EX. HOTELUX MARINA BEACH)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 955,
+    "logical_id": null,
+    "aliases": [
+      "Akka Hotels Antedon",
+      "AKKA ANTEDON HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 954,
+    "logical_id": null,
+    "aliases": [
+      "Akka Hotels Alinda",
+      "AKKA ALINDA HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1469,
+    "logical_id": null,
+    "aliases": [
+      "Senza Grand Santana",
+      "SENZA HOTELS GRAND SANTANA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1186,
+    "logical_id": null,
+    "aliases": [
+      "The Norm Oriental",
+      "THE NORM ORIENTAL KEMER (EX. ASTERIA KEMER RESORT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 9354,
+    "logical_id": null,
+    "aliases": [
+      "Vikingen Infinity Resort&spa",
+      "VIKINGEN INFINITY RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1440,
+    "logical_id": null,
+    "aliases": [
+      "Queens Park Goynuk",
+      "QUEENS PARK RESORT GOYNUK"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1459,
+    "logical_id": null,
+    "aliases": [
+      "Royal Dragon Hotel",
+      "ROYAL DRAGON"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1173,
+    "logical_id": null,
+    "aliases": [
+      "The Sense De Luxe Hotel",
+      "THE SENSE DELUXE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 65712,
+    "logical_id": null,
+    "aliases": [
+      "Granada Luxury Beach",
+      "GRANADA LUXURY BEACH HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 27349,
+    "logical_id": null,
+    "aliases": [
+      "Maxx Royal Kemer",
+      "MAXX ROYAL KEMER RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 15904,
+    "logical_id": null,
+    "aliases": [
+      "Kaya Palazzo Belek",
+      "KAYA PALAZZO GOLF RESORT (EX. RIU)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_first20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  }
+]

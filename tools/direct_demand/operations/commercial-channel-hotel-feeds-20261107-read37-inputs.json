@@ -1,0 +1,128 @@
+[
+  {
+    "hotel_id": 1313,
+    "name": "L'oceanica Beach Resort",
+    "accepted_first_line": "🌴 L'oceanica Beach Resort 5★ · Кемер",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1313.png",
+    "image_sha256": "de68c43869028dc9032f1ee0280ffd67f3f4cbc26fb050097eebf2e5035a54e1"
+  },
+  {
+    "hotel_id": 1293,
+    "name": "Crystal Centro Pearl Collection",
+    "accepted_first_line": "💦 Crystal Centro Pearl Collection 5★ · Лара",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1293.png",
+    "image_sha256": "919c041b8ddae4f7a6dbffbe1441ad781e3377a12d69ee6f11a460f105f090a4"
+  },
+  {
+    "hotel_id": 37168,
+    "name": "Litore Resort Hotel & Spa",
+    "accepted_first_line": "🌊 Litore Resort Hotel & Spa 5★ · Окурджалар",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/37168.png",
+    "image_sha256": "714aefd4348c235a30a4728c4dc5899a50e1ba5b005cc4a59778b4d2c548ea5f"
+  },
+  {
+    "hotel_id": 69184,
+    "name": "Lonicera Premium",
+    "accepted_first_line": "🌴 Lonicera Premium · Аланья",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/69184.png",
+    "image_sha256": "e1a7a2d9aea087fccf556873fbe8cf0477581cb4f2b1b2aa8f6c818a369f54b5"
+  },
+  {
+    "hotel_id": 9303,
+    "name": "Sundia By Liberty Oludeniz",
+    "accepted_first_line": "🌴 Sundia By Liberty Oludeniz 4★ · Олюдениз",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/9303.png",
+    "image_sha256": "4b22741b741baaf06d6707f579fcb28fbb53a8b2b3deda436a5d795a4a17183b"
+  },
+  {
+    "hotel_id": 59563,
+    "name": "Prestige Garden Hotel",
+    "accepted_first_line": "💦 Prestige Garden Hotel · Мармарис",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/59563.png",
+    "image_sha256": "b5218053afabd5adfda203eb9004baa2cc998c12ff0c4f9dd7b5c88c36389f6d"
+  },
+  {
+    "hotel_id": 74032,
+    "name": "Serano Club Resort",
+    "accepted_first_line": "💦 Serano Club Resort 4★ · Шарм эль Шейх",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/74032.png",
+    "image_sha256": "53e628b0868014a3afc99cbdadf65cf7af1810ae5d5262d3dc721d2104e2e6df"
+  },
+  {
+    "hotel_id": 1521,
+    "name": "Sultan Of Side",
+    "accepted_first_line": "🌴 Sultan Of Side 5★ · Сиде",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1521.png",
+    "image_sha256": "be34ff2bd89ec49d22c190af5ba6c2bdc3720ef3db447441268329c6ee415958"
+  },
+  {
+    "hotel_id": 123374,
+    "name": "Regnum The Crown",
+    "accepted_first_line": "✨ Regnum The Crown 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/123374.png",
+    "image_sha256": "ea981f3142572ac0e65d1c4d0557f36290cd70071321a503cf5976a943fa4b39"
+  },
+  {
+    "hotel_id": 15879,
+    "name": "Belazur Kirman Signature",
+    "accepted_first_line": "🌴 Belazur Kirman Signature 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/15879.png",
+    "image_sha256": "9711e93a5c630fc5a33d76c61feb9db18dc00ddb9c1c4f0115f66d48d3012b57"
+  },
+  {
+    "hotel_id": 1501,
+    "name": "Selectum Family Resort Side",
+    "accepted_first_line": "✈️ Туры в Selectum Family Resort Side с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1501.png",
+    "image_sha256": "35a3d3624f2350aaba04f00b80f3005d0b807e66e27eb888d011f071f28816c5"
+  },
+  {
+    "hotel_id": 1139,
+    "name": "Crystal Admiral",
+    "accepted_first_line": "✈️ Туры в Crystal Admiral с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1139.png",
+    "image_sha256": "96f21e6368c03fbc54b2ddd670da36efb404e8b17224c436c829433b2e71da53"
+  },
+  {
+    "hotel_id": 15872,
+    "name": "Crystal Waterworld Aqua Collection",
+    "accepted_first_line": "✈️ Туры в Crystal Waterworld Aqua Collection с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/15872.png",
+    "image_sha256": "205ee0bb30b26e983229396902890ced237b98bbc1f41368a1a2f33a83ad1535"
+  },
+  {
+    "hotel_id": 1141,
+    "name": "Crystal Family Resort & Spa",
+    "accepted_first_line": "✈️ Туры в Crystal Family Resort & Spa с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1141.png",
+    "image_sha256": "1e109765c3f797095ef69776136efac865dac44257ee3d1c9eed9cc748cfd9a8"
+  },
+  {
+    "hotel_id": 1142,
+    "name": "Crystal Flora Beach Resort",
+    "accepted_first_line": "✈️ Туры в Crystal Flora Beach Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1142.png",
+    "image_sha256": "ee03f78b6341175b790a8e092432c65562668b6e6e3a90d993042e59e65914bd"
+  },
+  {
+    "hotel_id": 28159,
+    "name": "VONRESORT Golden Beach",
+    "accepted_first_line": "✈️ Туры в VONRESORT Golden Beach с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/28159.png",
+    "image_sha256": "a5bb18f789cd21433e91567502b3b92be9eab448226e9d03169ef92dfd2aa105"
+  },
+  {
+    "hotel_id": 1014,
+    "name": "Side Star Elegance",
+    "accepted_first_line": "✈️ Туры в Side Star Elegance с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1014.png",
+    "image_sha256": "61f5c9665b1ef0933b49af9ba9eb810d534abd24acc3c7c096c5b8c5bcc46a12"
+  },
+  {
+    "hotel_id": 352,
+    "name": "Parrotel Aqua Park Resort",
+    "accepted_first_line": "✈️ Туры в Parrotel Aqua Park Resort с перелётом",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/352.png",
+    "image_sha256": "04167dd031a7fdb4fb7c963edb1fd56abbaf07acf67e1a238dd3b0fa326ed23d"
+  }
+]
