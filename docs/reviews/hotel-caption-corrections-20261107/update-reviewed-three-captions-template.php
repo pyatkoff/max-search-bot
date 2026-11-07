@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+// Historical receipt provenance stays fixed when the live runtime advances.
+const ORIGINAL_PUBLICATION_SOURCE_SHA = 'a9b03a52bb4c4505640eae79541b7d48aa391083';
 // Exact caption-only correction of the six existing confirmed posts; existing edit transport and receipt mechanism.
 ini_set('display_errors','0');ini_set('log_errors','0');
 $out=['operation'=>APPROVED_UPDATE_OPERATION,'mode'=>'update_existing_hotel_captions_no_price_or_search','ok'=>false,'post_write_attempts'=>0,'price_block_updates'=>0,'search_link_post_updates'=>0,'search_link_only_post_updates'=>0,'channels'=>[]];
@@ -57,6 +59,7 @@ try {
 
     $inputRaw=base64_decode(MANIFEST_BASE64,true);need(is_string($inputRaw)&&hash('sha256',$inputRaw)===APPROVED_MANIFEST_SHA256,'approved_manifest_bytes_changed');
     $payload=json_decode($inputRaw,true,128,JSON_THROW_ON_ERROR);
+    need(($payload['expected_installed_sha']??'')===ORIGINAL_PUBLICATION_SOURCE_SHA,'original_publication_source_changed');
     need(($payload['operation']??'')===APPROVED_UPDATE_OPERATION&&APPROVED_UPDATE_OPERATION==='commercial-hotel-caption-review6706115450-20261107-1-v1','exact_caption_operation_changed');
     need(($payload['button_text']??'')==='✈️ Узнать стоимость тура'&&($payload['update_kind']??'')==='caption_only'&&($payload['search_link_included']??null)===false,'caption_only_scope_changed');
     $rows=$payload['rows']??null;need(is_array($rows)&&array_column($rows,'hotel_id')===[1352,1074,462],'exact_caption_hotel_scope_changed');
@@ -77,7 +80,7 @@ try {
         $batch=$wrapped['batch'];$source=$sourceBindings[$batch];
         foreach(['run_id','artifact_id','zip_sha256','member_sha256'] as $field)need(($wrapped[$field]??null)===$source[$field],'original_artifact_binding_changed');
         $original=$wrapped['result']??null;
-        need(is_array($original)&&($original['operation']??'')===$source['operation']&&($original['mode']??'')==='publish_approved_commercial_batch'&&($original['installed_sha']??'')===EXPECTED_INSTALLED_SHA&&($original['ok']??null)===true&&($original['new_posts']??null)===$source['count']&&($original['post_write_attempts']??null)===$source['count']&&($original['reused']??null)===0&&count($original['posts']??[])===$source['count'],'original_full_batch_receipt_invalid');
+        need(is_array($original)&&($original['operation']??'')===$source['operation']&&($original['mode']??'')==='publish_approved_commercial_batch'&&($original['installed_sha']??'')===ORIGINAL_PUBLICATION_SOURCE_SHA&&($original['ok']??null)===true&&($original['new_posts']??null)===$source['count']&&($original['post_write_attempts']??null)===$source['count']&&($original['reused']??null)===0&&count($original['posts']??[])===$source['count'],'original_full_batch_receipt_invalid');
         $seen=[];
         foreach($original['posts'] as $proof){
             $id=$proof['hotel_id']??null;$platform=$proof['platform']??'';$proofKey=$id.':'.$platform;

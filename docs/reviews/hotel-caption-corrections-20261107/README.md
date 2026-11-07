@@ -61,11 +61,11 @@ Manifest paths: `tools/direct_demand/operations/commercial-batch-20261107-3-mani
 
 Изменены только точный operation ID, три hotel IDs, шесть publication/version IDs и active/UNKNOWN query для этих publication IDs; однопартийный proof block заменён на проверку двух настоящих исходных квитанций и отдельный выбор ровно шести целей. Добавлен явный **no-replay**: если каталог новой операции уже существует, выполнение прекращается до provider/configuration writes независимо от наличия, полноты или confirmed-статуса прежнего receipt. Историю не удалять, не затирать и не возобновлять.
 
-Остальной transport, установленный source SHA, 21 принятый publishing blob, схема, channel identities/config_version, порядок полного preflight и edit loop сохранены. Это не generic edit-интерфейс и не второй publisher.
+Transport, 21 принятый publishing blob, схема, channel identities/config_version, порядок полного preflight и edit loop сохранены. Источник исходных квитанций и текущий установленный source теперь проверяются раздельно; это не разрешение подменять старые квитанции или ослаблять live guard. Это не generic edit-интерфейс и не второй publisher.
 
 До первой provider mutation template:
 
-1. Проверяет установленный SHA `a9b03a52bb4c4505640eae79541b7d48aa391083`, принятые source blobs, manifest bytes, caption SHA/UTF16-size и полный исходный proof scope.
+1. Проверяет установленный SHA из обязательного `--runtime-source`, принятые source blobs, manifest bytes, caption SHA/UTF16-size и полный исходный proof scope. Исторический `expected_installed_sha` manifest и оба исходных receipt обязаны по-прежнему совпадать с неизменным `ORIGINAL_PUBLICATION_SOURCE_SHA=a9b03a52bb4c4505640eae79541b7d48aa391083`.
 2. Проверяет отсутствие claimed/write_started/unknown, claim_token и claimed_at для всех шести publication IDs, принятую схему и новую private operation directory; ведёт прежний durable journal.
 3. Разрешает обе channel identities/права и **все шесть** canonical publications: точные platform/bot/channel/message/source, sent state, историческую expected version, старый текст, URL кнопки и поста, стабильную media identity.
 4. Для всех трёх MAX сообщений делает provider GET и сравнивает его с canonical snapshot до входа в edit loop. Для Telegram используются canonical snapshot и последующая проверка тела ответа editMessageCaption; отдельный Telegram GET шаблон не обещает.
@@ -80,6 +80,7 @@ Manifest paths: `tools/direct_demand/operations/commercial-batch-20261107-3-mani
 
 ```sh
 python prepare-caption-correction.py \
+  --runtime-source "$CURRENT_VERIFIED_RUNTIME_SHA" \
   --batch3-zip /private/caption-review/batch3-original.zip \
   --batch4-zip /private/caption-review/batch4-original.zip \
   --output /private/caption-review/output/caption-correction.php
@@ -99,7 +100,7 @@ python prepare-caption-correction.py \
 
 Закрытие требует настоящего result: шесть подтверждённых edits существующих message IDs, правильные новые text SHA, сохранённые media/button/token, 0 новых сообщений, 0 tour-search/price queries, подтверждённые final registry/provider readbacks. Подготовленный пакет и успешная компиляция такой квитанцией не являются.
 
-## Выполненная локальная проверка
+## Исходная выполненная проверка пакета e219f90d
 
 - Подлинность двух ZIP и NDJSON members, полные 12/18 scopes и шесть выбранных bindings проверены.
 - Все old/new caption hashes и ограничение UTF16 проверены pure prepare на настоящих ZIP.
@@ -108,7 +109,15 @@ python prepare-caption-correction.py \
 - Fresh DB/provider preflight: NOT RUN. Свободная операция: NOT CONFIRMED. Изменения сообщений: NOT RUN.
 
 SHA256 public manifest: `605999f63f3c4600a7c880ab1897169344985938717f03e6e989d3528356db07`.
-SHA256 адаптированного template: `ce72f8f1e1731134552da61171c9573c1871db33ba0aee4c85cf39334c5ba70d`.
+SHA256 текущего template с раздельными source guards: `e40decfd74d47fca21550f7f8d600b31453b82ad821b7a7b8319e9ce943f17bc`.
 SHA256 приватного подготовленного payload: `bc42da11b7f4d806b4e7e2cff33ccbabf30333881df5c49581f7b59d8597b4e1`.
-SHA256 приватного подготовленного PHP: `11261737e86a9a2edc25fdc0c7f37fc0ce108e1719a93684537bbc3b97145bbc`.
+Исторический SHA256 PHP, подготовленного первоначальным e219f90d: `11261737e86a9a2edc25fdc0c7f37fc0ce108e1719a93684537bbc3b97145bbc`. После раздельной привязки runtime эти байты не являются текущим исполняемым пакетом.
 
+
+## Исправлена связь исторического и текущего source — подготовлено
+
+Первоначальный template использовал один `EXPECTED_INSTALLED_SHA` одновременно для live checkout и исходных batch3/batch4 receipt. После обновления приложения это блокировало готовую редакционную правку, а простая замена константы делала бы исторические квитанции недействительными.
+
+Теперь `ORIGINAL_PUBLICATION_SOURCE_SHA` неизменно закрепляет исходный a9b03a52; public manifest, оригинальные ZIP и все шесть pub/version/message bindings не изменены. Обязательный `--runtime-source` принимает только ровно40 строчных hex-символов и задаёт исключительно guard текущего checkout и installed_sha нового результата. Владелец перед исполнением обязан подтвердить этот текущий SHA через прежний main/health/live checkout путь, неизменные21 publishing blobs, права/схему и все прежние once/intent/receipt guards. Аргумент сам по себе не подтверждает здоровье, свободу операции или разрешение исполнения.
+
+Изменены только template, подготовщик и это пояснение в той же review branch. Активный audit workflow, операция издателя и продакшен не изменены. Статус остаётся PREPARED_NOT_EXECUTED_NOT_FRESH. Для этой изменённой связки native Python preparation, native `php -l` и встроенный fresh preflight ещё НЕ выполнены; прежняя pure prepare проверка относится к e219f90d. Не повторять старые фактические sender, reviews или закрытые бизнес-операции. Следующий доступный результат после освобождения прежнего publisher — однократная native подготовка с текущим source, lint и все шесть fresh targets до первой правки. При изменённой версии/контексте/ACTIVE/UNKNOWN/существующей операции — STOP по прежнему правилу, без другого operation ID.

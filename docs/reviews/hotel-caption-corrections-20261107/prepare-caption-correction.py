@@ -6,12 +6,13 @@ import hashlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import stat
 import zipfile
 
 MANIFEST_SHA256 = "605999f63f3c4600a7c880ab1897169344985938717f03e6e989d3528356db07"
-TEMPLATE_SHA256 = "ce72f8f1e1731134552da61171c9573c1871db33ba0aee4c85cf39334c5ba70d"
+TEMPLATE_SHA256 = "e40decfd74d47fca21550f7f8d600b31453b82ad821b7a7b8319e9ce943f17bc"
 OPERATION = "commercial-hotel-caption-review6706115450-20261107-1-v1"
 TARGET_IDS = [1352, 1074, 462]
 MAX_INPUT_BYTES = 262144
@@ -59,11 +60,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--input", type=Path, default=Path(__file__).with_name("caption-correction-input.json"))
     ap.add_argument("--template", type=Path, default=Path(__file__).with_name("update-reviewed-three-captions-template.php"))
+    ap.add_argument("--runtime-source", required=True, help="exact current runtime SHA; existing owner must verify current main/health and live checkout before execution")
     ap.add_argument("--batch3-zip", type=Path, required=True)
     ap.add_argument("--batch4-zip", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True, help="new PHP file in a private directory outside Git")
     args = ap.parse_args()
+    need(re.fullmatch(r"[0-9a-f]{40}", args.runtime_source) is not None, "exact_runtime_source_required")
     manifest = json.loads(pinned_file(args.input, MANIFEST_SHA256))
+    need(manifest["expected_installed_sha"] == "a9b03a52bb4c4505640eae79541b7d48aa391083", "original_publication_source_changed")
     template = pinned_file(args.template, TEMPLATE_SHA256).decode("utf-8")
     need(manifest["operation"] == OPERATION and [r["hotel_id"] for r in manifest["rows"]] == TARGET_IDS,
          "exact_scope_changed")
@@ -105,7 +109,7 @@ def main():
     payload_bytes = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     encoded = base64.b64encode(payload_bytes).decode("ascii")
     constants = (
-        "\nconst EXPECTED_INSTALLED_SHA = '" + manifest["expected_installed_sha"] + "';"
+        "\nconst EXPECTED_INSTALLED_SHA = '" + args.runtime_source + "';"
         "\nconst APPROVED_UPDATE_OPERATION = '" + OPERATION + "';"
         "\nconst APPROVED_MANIFEST_SHA256 = '" + sha(payload_bytes) + "';"
         "\nconst MANIFEST_BASE64 = '" + encoded + "';\n"
