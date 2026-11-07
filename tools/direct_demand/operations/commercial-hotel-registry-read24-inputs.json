@@ -1,0 +1,262 @@
+[
+  {
+    "hotel_id": 140,
+    "logical_id": "commercial-golden-beach-resort-ex-movie-gate-140-v1",
+    "aliases": [
+      "Golden Beach Resort (Ex. Movie Gate)",
+      "GOLDEN BEACH RESORT (EX. MOVIE GATE)"
+    ],
+    "expected_text_sha256": "6f7177b357f6aca7c58fe3db39cb2156f48fd3cc1cef3d6f9a765f92a068a9f8",
+    "scope": "batch7_preflight_conflict"
+  },
+  {
+    "hotel_id": 8053,
+    "logical_id": "commercial-novotel-phuket-vintage-park-8053-v1",
+    "aliases": [
+      "Novotel Phuket Vintage Park",
+      "NOVOTEL PHUKET VINTAGE PARK"
+    ],
+    "expected_text_sha256": "4c6b493dd24a5c09e2afa5e22e2635201922d62ae06b4b66149ba9720a7d1b83",
+    "scope": "batch7_preflight_conflict"
+  },
+  {
+    "hotel_id": 58987,
+    "logical_id": "commercial-seashells-phu-quoc-hotel-spa-58987-v1",
+    "aliases": [
+      "Seashells Phu Quoc Hotel & Spa",
+      "SEASHELLS PHU QUOC HOTEL & SPA"
+    ],
+    "expected_text_sha256": "f0a44e1c682c4fc96432487e1135aa6cfc4bd2580793afbf66f7cdba56bd7643",
+    "scope": "batch7_preflight_conflict"
+  },
+  {
+    "hotel_id": 1033,
+    "logical_id": "commercial-barut-hemera-1033-v1",
+    "aliases": [
+      "Barut Hemera",
+      "BARUT HEMERA"
+    ],
+    "expected_text_sha256": "3450d060c144f4e8c7c52df843e2ed62d313cb6d6897d8190abcc629a76bd2da",
+    "scope": "batch7_preflight_conflict"
+  },
+  {
+    "hotel_id": 386,
+    "logical_id": "commercial-monte-carlo-sharm-resort-spa-aqua-park-386-v1",
+    "aliases": [
+      "Monte Carlo Sharm Resort SPA & Aqua Park",
+      "MONTE CARLO SHARM RESORT SPA & AQUA PARK"
+    ],
+    "expected_text_sha256": "d94fbd0651150519f36836f137b4c9532f3dc0aac4995fc8826fe4e284b923b4",
+    "scope": "batch7_preflight_conflict"
+  },
+  {
+    "hotel_id": 496,
+    "logical_id": "commercial-sunrise-remal-resort-496-v1",
+    "aliases": [
+      "Sunrise Remal Resort",
+      "SUNRISE REMAL RESORT (EX. MELTON TIRAN RESORT)"
+    ],
+    "expected_text_sha256": "96d0bef54cd906e282006196593ef4a0fd2626380357cdeabc9d5e036106fe36",
+    "scope": "batch7_preflight_conflict"
+  },
+  {
+    "hotel_id": 33313,
+    "logical_id": "commercial-sugar-marina-resort-surf-kata-beach-33313-v1",
+    "aliases": [
+      "Sugar Marina Resort-Surf- Kata Beach",
+      "SUGAR MARINA RESORT SURF KATA BEACH"
+    ],
+    "expected_text_sha256": "22e71bb4d68f0fea5d8552f13bcf9b450bf6e9e1f0776a3c31b6f5ec0249cffd",
+    "scope": "batch7_preflight_conflict"
+  },
+  {
+    "hotel_id": 110289,
+    "logical_id": null,
+    "aliases": [
+      "Club Prive By Rixos Sharm EL Sheikh",
+      "CLUB PRIVE BY RIXOS SHARM EL SHEIKH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 513,
+    "logical_id": null,
+    "aliases": [
+      "Naama Bay Hotel & Resort",
+      "NAAMA BAY HOTEL & RESORT (EX. TROPITEL NAAMA BAY)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 103731,
+    "logical_id": null,
+    "aliases": [
+      "Comodo Nha Trang Hotel (Ex. Asteria Comodo Nha Trang Hotel)",
+      "COMODO NHA TRANG HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 800,
+    "logical_id": null,
+    "aliases": [
+      "Sugar Marina Resort-Art-Karon Beach",
+      "SUGAR MARINA RESORT ART KARON BEACH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 3452,
+    "logical_id": null,
+    "aliases": [
+      "Liberty Hotels Lykia",
+      "LIBERTY HOTELS LYKIA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 21847,
+    "logical_id": null,
+    "aliases": [
+      "Vogue Hotel Supreme Bodrum",
+      "VOGUE HOTEL SUPREME BODRUM"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 302,
+    "logical_id": null,
+    "aliases": [
+      "Lotus Bay Beach Resort",
+      "LOTUS BAY BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 512,
+    "logical_id": null,
+    "aliases": [
+      "Tropitel Dahab Oasis",
+      "TROPITEL DAHAB OASIS"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 107938,
+    "logical_id": null,
+    "aliases": [
+      "The Marin Phuket",
+      "THE MARIN PHUKET"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 15871,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Sunset Pearl Collection",
+      "CRYSTAL SUNSET PEARL COLLECTION (EX. CRYSTAL SUNSET LUXURY RESORT & SPA)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 129161,
+    "logical_id": null,
+    "aliases": [
+      "Rewaya Majestic Resort",
+      "REWAYA MAJESTIC RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 65877,
+    "logical_id": null,
+    "aliases": [
+      "Vesna Hotel",
+      "VESNA HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 20971,
+    "logical_id": null,
+    "aliases": [
+      "Sugar Marina Resort-Nautical-Kata Beach",
+      "SUGAR MARINA RESORT NAUTICAL KATA BEACH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 1653,
+    "logical_id": null,
+    "aliases": [
+      "Hilton Dalaman Sarigerme Resort & Spa",
+      "HILTON DALAMAN SARIGERME RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 501,
+    "logical_id": null,
+    "aliases": [
+      "Empire Beach Aqua Park (Ex. Triton Empire Beach Resort Hurghada)",
+      "EMPIRE BEACH AQUA PARK (EX.ROYAL STAR EMPIRE BEACH RESORT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 502,
+    "logical_id": null,
+    "aliases": [
+      "Empire Hotel Aqua Park (Ex. Triton Empire Hotel Hurghada)",
+      "EMPIRE HOTEL AQUA PARK (EX. THE THREE CORNERS TRITON EMPIRE)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 95165,
+    "logical_id": null,
+    "aliases": [
+      "Annova Nha Trang Hotel",
+      "ANNOVA NHA TRANG HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 50659,
+    "logical_id": null,
+    "aliases": [
+      "Sheraton Phu Quoc Long Beach Resort (Ex.Vinpearl Resort & Golf)",
+      "SHERATON PHU QUOC LONG BEACH RESORT (EX. VINPEARL RESORT & GOLF PHU QUOC)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  },
+  {
+    "hotel_id": 79071,
+    "logical_id": null,
+    "aliases": [
+      "Wyndham Garden Grandworld Phu Quoc",
+      "WYNDHAM GARDEN GRANDWORLD PHU QUOC (EX. VINHOLIDAYS INFINITY PHU QUOC)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_first_clearance"
+  }
+]
