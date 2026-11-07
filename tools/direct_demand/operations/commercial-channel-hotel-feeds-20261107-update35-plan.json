@@ -1,0 +1,86 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update35",
+  "state": "PREPARED_CONFIRMED_MAX332_INSTALL",
+  "new_hotel_ids": [
+    1313,
+    1293,
+    37168,
+    69184,
+    9303,
+    59563,
+    74032,
+    1521,
+    123374,
+    15879,
+    1501,
+    1139,
+    15872,
+    1141,
+    1142,
+    28159,
+    1014,
+    352
+  ],
+  "previous_rows": [
+    314,
+    314,
+    628
+  ],
+  "target_rows": [
+    332,
+    332,
+    664
+  ],
+  "previous314_offer_blocks_identical": true,
+  "max_route_install_run": 42397822399,
+  "max_route_install_commit": "bda41524b770de9045e24641535225c5df69ef87",
+  "new18_binding_run": 42397616407,
+  "new18_binding_artifact": 13583942719,
+  "approved_destination_labels": {
+    "1313": "Кемер",
+    "1293": "Лара",
+    "37168": "Окурджалар",
+    "69184": "Аланья",
+    "9303": "Олюдениз",
+    "59563": "Мармарис",
+    "74032": "Шарм эль Шейх",
+    "1521": "Сиде",
+    "123374": "Белек",
+    "15879": "Белек",
+    "1501": "Сиде",
+    "1139": "Сиде",
+    "15872": "Белек",
+    "1141": "Белек",
+    "1142": "Бельдиби",
+    "28159": "Сиде",
+    "1014": "Сиде",
+    "352": "Шарм эль Шейх"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 213780,
+      "sha256": "afb2f44b3035297c4edfb7bc1f9958f6d4e13f47d8bcc94d1413ee3f65d177b8",
+      "rows": 332,
+      "expected_previous_sha256": "9c6eb76152ed4260090ab50f5670a75ec3678d6ccc92f4f3409072240f7471ae"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 267897,
+      "sha256": "8a4f3f59cab6321f734dba6cfe7f8e31d3810c593956268cffe2de35f09527e0",
+      "rows": 332,
+      "expected_previous_sha256": "1a6d24fd168dcac87c4bea61983dee195ddbb486a512c8bd00d3f78ede5817d6"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 481304,
+      "sha256": "ad7a5891801d12aa6088516ba93cd0d216d832cfe1541250cc0dcfd394867a4c",
+      "rows": 664,
+      "expected_previous_sha256": "22e73e62d07fc5961111bbcc95a0dbe3e0e3f61596baad50d9334cde73711bd4"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

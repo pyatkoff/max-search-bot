@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 17:24">
+<yml_catalog date="2026-11-07 17:48">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -2830,6 +2830,168 @@
         <description>Тур с перелётом. Тюрклер. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Тюрклер</custom_label_1>
+      </offer>
+      <offer id="tg_1313">
+        <url>https://t.me/any_toour/329</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1313.png</picture>
+        <name>Путевки в L'oceanica Beach Resort</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="tg_1293">
+        <url>https://t.me/any_toour/330</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1293.png</picture>
+        <name>Путевки в Crystal Centro Pearl Collection</name>
+        <description>Тур с перелётом. Лара. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Лара</custom_label_1>
+      </offer>
+      <offer id="tg_37168">
+        <url>https://t.me/any_toour/331</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/37168.png</picture>
+        <name>Путевки в Litore Resort Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Окурджалар. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Окурджалар</custom_label_1>
+      </offer>
+      <offer id="tg_69184">
+        <url>https://t.me/any_toour/332</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/69184.png</picture>
+        <name>Путевки в Lonicera Premium</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_9303">
+        <url>https://t.me/any_toour/333</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/9303.png</picture>
+        <name>Путевки в Sundia By Liberty Oludeniz</name>
+        <description>Тур с перелётом. Олюдениз. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Олюдениз</custom_label_1>
+      </offer>
+      <offer id="tg_59563">
+        <url>https://t.me/any_toour/334</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/59563.png</picture>
+        <name>Путевки в Prestige Garden Hotel</name>
+        <description>Тур с перелётом. Мармарис. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Мармарис</custom_label_1>
+      </offer>
+      <offer id="tg_74032">
+        <url>https://t.me/any_toour/335</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/74032.png</picture>
+        <name>Путевки в Serano Club Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_1521">
+        <url>https://t.me/any_toour/336</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1521.png</picture>
+        <name>Путевки в Sultan Of Side</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_123374">
+        <url>https://t.me/any_toour/337</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/123374.png</picture>
+        <name>Путевки в Regnum The Crown</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_15879">
+        <url>https://t.me/any_toour/338</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/15879.png</picture>
+        <name>Путевки в Belazur Kirman Signature</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_1501">
+        <url>https://t.me/any_toour/339</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1501.png</picture>
+        <name>Путевки в Selectum Family Resort Side</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_1139">
+        <url>https://t.me/any_toour/340</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1139.png</picture>
+        <name>Путевки в Crystal Admiral</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_15872">
+        <url>https://t.me/any_toour/341</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/15872.png</picture>
+        <name>Путевки в Crystal Waterworld Aqua Collection</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_1141">
+        <url>https://t.me/any_toour/342</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1141.png</picture>
+        <name>Путевки в Crystal Family Resort &amp; Spa</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_1142">
+        <url>https://t.me/any_toour/343</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1142.png</picture>
+        <name>Путевки в Crystal Flora Beach Resort</name>
+        <description>Тур с перелётом. Бельдиби. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Бельдиби</custom_label_1>
+      </offer>
+      <offer id="tg_28159">
+        <url>https://t.me/any_toour/344</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/28159.png</picture>
+        <name>Путевки в VONRESORT Golden Beach</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_1014">
+        <url>https://t.me/any_toour/345</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1014.png</picture>
+        <name>Путевки в Side Star Elegance</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_352">
+        <url>https://t.me/any_toour/346</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/352.png</picture>
+        <name>Путевки в Parrotel Aqua Park Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
       </offer>
     </offers>
   </shop>
