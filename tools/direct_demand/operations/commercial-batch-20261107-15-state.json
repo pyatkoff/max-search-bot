@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-15-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "SENDER_CONFIRMED_PENDING_GROUP_ROUTE_FEED",
   "native_hotel_ids": [
     57066,
     2015,
@@ -18,5 +18,127 @@
   "manifest_sha256": "d695c8f27d000c60ea0370b38d2fd1599003a69e17aa602a421673ee451d03da",
   "asset_commit": "e7e41dfc528f9000aa589760675d18b7cbe816fb",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "sender_run_id": 42382925355,
+  "sender_job_id": 128434168379,
+  "sender_commit": "61bba24c12d5f9e65dfbed1f2307da4020dad4a1",
+  "new_posts": 18,
+  "post_write_attempts": 18,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13578601488,
+  "result_zip_sha256": "a8dfa876bed60b77cb3dba62dafc3bfe83753662fb637628b3b4cb792dae76db",
+  "private_receipt_sha256": "aa9e926dbf4605c395f653a77ee036069eeb68915abe747cb88bb1cdfeb8755a",
+  "full_pairs_after": 254,
+  "group_target_full_pairs": 257,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-duyen-ha-57066-v1",
+      "post_url": "https://t.me/any_toour/260",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-diamond-cottage-2015-v1",
+      "post_url": "https://t.me/any_toour/261",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-asteria-collection-21817-v1",
+      "post_url": "https://t.me/any_toour/262",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-baia-lara-1026-v1",
+      "post_url": "https://t.me/any_toour/263",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-vinpearl-nha-trang-4091-v1",
+      "post_url": "https://t.me/any_toour/264",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-asteria-family-belek-1350-v1",
+      "post_url": "https://t.me/any_toour/265",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-crystal-de-luxe-1140-v1",
+      "post_url": "https://t.me/any_toour/266",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-goldcity-1203-v1",
+      "post_url": "https://t.me/any_toour/267",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-selectum-luxury-55828-v1",
+      "post_url": "https://t.me/any_toour/268",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-duyen-ha-57066-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2d_XzI9M",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-diamond-cottage-2015-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2d_94R6M",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-asteria-collection-21817-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2eAiYDj0",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-baia-lara-1026-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2eBHEQpo",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-vinpearl-nha-trang-4091-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2eBrpNlk",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-asteria-family-belek-1350-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2eCRtcfE",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-crystal-de-luxe-1140-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2eC1wANs",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-goldcity-1203-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2eDarJWo",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-selectum-luxury-55828-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2eD-BQRg",
+      "verified": true
+    }
+  ]
 }

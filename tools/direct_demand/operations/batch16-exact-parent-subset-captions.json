@@ -1,0 +1,117 @@
+{
+  "status": "READY_REVIEWED_CAPTIONS",
+  "hotels": [
+    {
+      "hotel_key": "top500_d132441acc8465dc",
+      "name": "Asteria Mui Ne Resort",
+      "native_hotel_id": 108167,
+      "anex_hotel_id": 37068,
+      "anytour_hotel_id": 3706,
+      "current_catalog_name": "ASTERIA MUI NE RESORT",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_d132441acc8465dc_run06_c03",
+        "top500_d132441acc8465dc_run06_c04",
+        "HOTEL-VN-MASS-20261025T204322Z-C19",
+        "top500_d132441acc8465dc_run06_c06"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/vietnam/fantet/asteria_mui_ne_resort/",
+        "https://asteriamuineresort.com/"
+      ],
+      "text": "🌊 Asteria Mui Ne Resort 5★ · Муйне\n\nДля семейного отдыха на первой линии с просторным номером.\n\n🛏 Suite 1 Bedroom от 70 до 80 м² со спальней и гостиной.\n🏖 Собственный пляж протяжённостью 200 м.\n🎨 Buddies Kids Club с помещением и открытой игровой зоной.\n🎬 Кинотеатр и Fit Sphere Center на территории.\n\nЦентр Муйне примерно в 3 км.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "915ff21f0aab38fb672ef49d92f95f11610531d2385688f43eba0bdb3f54d834",
+      "utf16_units": 405,
+      "notes": [
+        "OneBedroomSuite is bedroom plus living, not two bedrooms. Club ages/supervision/payment and activity programme depend on actual conditions; no all-inclusive benefits assumed for BB. No Framissima-specific event calendar extended to every booking. RoyalSuite usually-three-bedroom wording omitted.",
+        "Root reviewed exact retained claims and limitations; natural commercial copy preserves category, access and seasonal scope."
+      ],
+      "slug": "asteria-mui-ne",
+      "label": "ASTERIA MUI NE RESORT 5★",
+      "source_ids": [
+        "top500_d132441acc8465dc_run06_s01",
+        "HOTEL-VN-MASS-20261025T204322Z-S10"
+      ]
+    },
+    {
+      "hotel_key": "top500_c49c3990be91949f",
+      "name": "Radisson Blu Resort Phu Quoc",
+      "native_hotel_id": 63674,
+      "anex_hotel_id": 21317,
+      "anytour_hotel_id": 2857,
+      "current_catalog_name": "RADISSON BLU RESORT PHU QUOC",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_c49c3990be91949f_run08a_c01",
+        "top500_c49c3990be91949f_demand17_c01",
+        "HOTEL-VN-MASS-20261025T211157Z-C17",
+        "HOTEL-VN-MASS-20261025T211157Z-C18",
+        "top500_c49c3990be91949f_run07r_c05"
+      ],
+      "source_urls": [
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-phu-quoc/services",
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/radisson_blu_resort_phuquoc/",
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-phu-quoc/rooms",
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-phu-quoc/dining"
+      ],
+      "text": "🏝 Radisson Blu Resort Phu Quoc 5★ · Фукуок\n\nДля пляжного отдыха с просторным номером и выбором блюд для семьи.\n\n🛏 Deluxe Pool View 45 м² с одной большой или двумя отдельными кроватями.\n🏖 Прямой выход к собственному пляжу.\n🍽 В Avenue есть детское меню и вегетарианские блюда.\n🍹 Annex Bar с тапас на территории.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a095be6283b638ff3ad7e8a470746d44952c727bd8d5760fafdd65998cf8f4ae",
+      "utf16_units": 385,
+      "notes": [
+        "DeluxePoolView45 specific room, not generic max3/adapted max2. Historical2022city shuttle not advertised. Avenue lunch/dinner seasonal schedule not treated as year-round hours. No all-inclusive privileges, therapeutic diet, resort-owned neighboring casino or flat calm seabed promise.",
+        "Deluxe has no ExecutiveLounge privilege claim; unrelated restriction removed from advertising copy."
+      ],
+      "slug": "radisson-phu-quoc",
+      "label": "RADISSON BLU PHU QUOC 5★",
+      "source_ids": [
+        "top500_c49c3990be91949f_run08a_s01",
+        "top500_c49c3990be91949f_demand17_s01",
+        "HOTEL-VN-MASS-20261025T211157Z-S08",
+        "top500_c49c3990be91949f_run07r_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_5d7ddf59e9acb1e3",
+      "name": "Adalya Elite Lara",
+      "native_hotel_id": 47025,
+      "anex_hotel_id": 11184,
+      "anytour_hotel_id": 2443,
+      "current_catalog_name": "ADALYA ELITE LARA",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_5d7ddf59e9acb1e3_run05_c03",
+        "top500_5d7ddf59e9acb1e3_run05_c04",
+        "top500_5d7ddf59e9acb1e3_run05audit_c06",
+        "HOTEL-TR-W164-20261027T101948Z-ROTATE08B_c10"
+      ],
+      "source_urls": [
+        "https://kompastour.com/by/rus/country/turkey/antaliya/adalya_elite_lara/"
+      ],
+      "text": "🌊 Adalya Elite Lara 5★ · Лара\n\nДля семьи, которой важны отдельные спальни и близость пляжа.\n\n🛏 Family 50 м²: две спальни с дверью.\n🏖 Собственный песчаный пляж на первой линии.\n💧 Отдельный Relax Pool для гостей от 18 лет.\n🏐 Теннисный корт, волейбол и зал для тренировок.\n\n✈️ Подберём номер под состав гостей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "7227d080a5efa5b5b49b880a9bd0bcaf2ca82a9a507ebde42a5dd0ddbf78c8df",
+      "utf16_units": 354,
+      "notes": [
+        "No hotel-wide AdultsOnly inference. Men-only party restriction remains operator-specific and requires admission check if relevant. No automatic free fish a-la-carte, every-sport inclusion, year-round fish/BBQ or SPA privileges.",
+        "18+ stays attached only to RelaxPool bullet."
+      ],
+      "slug": "adalya-elite-lara",
+      "label": "ADALYA ELITE LARA 5★",
+      "source_ids": [
+        "top500_5d7ddf59e9acb1e3_run05_s01",
+        "top500_5d7ddf59e9acb1e3_run05audit_s01"
+      ]
+    }
+  ]
+}

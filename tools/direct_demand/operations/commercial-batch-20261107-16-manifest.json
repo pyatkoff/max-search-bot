@@ -1,0 +1,168 @@
+{
+  "operation": "commercial-hotel-batch-20261107-16-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 254,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read27",
+        "run_id": 42375960417,
+        "job_id": 128413461226,
+        "read_at_utc": "2026-11-07T13:13:39Z",
+        "private_receipt_sha256": "c04345764643b1e3a5e5449f41a0a080e7246c3d031842973f77d9394be0a281",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/operations/batch16-exact-parent-subset-manifest.json",
+    "sha256": "53c7d43655f934b94b7c8d90c22f746f1e3fc85b0d54b9514765c5afc4ab92c9",
+    "full_parent_manifest_sha256": "26bfed0bcc5470b676e70a46135246bdb3ad9c2c671e1774c4006d7aa7e6adb7",
+    "full_parent_caption_sha256": "2c1b5434fcde6bf1aabaf037cb54a11bbd6a8e22424052bb2f959b8e733a6cce",
+    "split_max10_preserved": true
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 108167,
+      "logical_id": "commercial-asteria-mui-ne-108167-v1",
+      "aliases": [
+        "Asteria Mui Ne Resort"
+      ],
+      "text": "🌊 Asteria Mui Ne Resort 5★ · Муйне\n\nДля семейного отдыха на первой линии с просторным номером.\n\n🛏 Suite 1 Bedroom от 70 до 80 м² со спальней и гостиной.\n🏖 Собственный пляж протяжённостью 200 м.\n🎨 Buddies Kids Club с помещением и открытой игровой зоной.\n🎬 Кинотеатр и Fit Sphere Center на территории.\n\nЦентр Муйне примерно в 3 км.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "915ff21f0aab38fb672ef49d92f95f11610531d2385688f43eba0bdb3f54d834",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-16/108167.png",
+      "photo_sha256": "2a6da6072a40f03cafdfafb940ea5dd88f7da6e68e0017d0a8ed372ec9c36b0e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fantet/asteria_mui_ne_resort/",
+        "https://asteriamuineresort.com/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/asteria-mui-ne-resort-8384801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/asteria-mui-ne-resort-8384819.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/asteria-mui-ne-resort-8384814.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37068,
+        "anytour_id": 3706,
+        "legacy_native_id": 108167,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPuh1-uM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d132441acc8465dc_run06_c03",
+        "top500_d132441acc8465dc_run06_c04",
+        "HOTEL-VN-MASS-20261025T204322Z-C19",
+        "top500_d132441acc8465dc_run06_c06"
+      ]
+    },
+    {
+      "hotel_id": 63674,
+      "logical_id": "commercial-radisson-phu-quoc-63674-v1",
+      "aliases": [
+        "Radisson Blu Resort Phu Quoc"
+      ],
+      "text": "🏝 Radisson Blu Resort Phu Quoc 5★ · Фукуок\n\nДля пляжного отдыха с просторным номером и выбором блюд для семьи.\n\n🛏 Deluxe Pool View 45 м² с одной большой или двумя отдельными кроватями.\n🏖 Прямой выход к собственному пляжу.\n🍽 В Avenue есть детское меню и вегетарианские блюда.\n🍹 Annex Bar с тапас на территории.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a095be6283b638ff3ad7e8a470746d44952c727bd8d5760fafdd65998cf8f4ae",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-16/63674.png",
+      "photo_sha256": "3da1bcb58dbec27d7a13f77c574f2388d13abae43698dad053fd3709ada8aaa6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-phu-quoc/services",
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/radisson_blu_resort_phuquoc/",
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-phu-quoc/rooms",
+        "https://www.radissonhotels.com/en-us/hotels/radisson-blu-resort-phu-quoc/dining",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/radisson-blu-resort-phu-quoc-87019403.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/radisson-blu-resort-phu-quoc-87019424.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/radisson-blu-resort-phu-quoc-87019400.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21317,
+        "anytour_id": 2857,
+        "legacy_native_id": 63674,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPmqLBeA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c49c3990be91949f_run08a_c01",
+        "top500_c49c3990be91949f_demand17_c01",
+        "HOTEL-VN-MASS-20261025T211157Z-C17",
+        "HOTEL-VN-MASS-20261025T211157Z-C18",
+        "top500_c49c3990be91949f_run07r_c05"
+      ]
+    },
+    {
+      "hotel_id": 47025,
+      "logical_id": "commercial-adalya-elite-lara-47025-v1",
+      "aliases": [
+        "Adalya Elite Lara"
+      ],
+      "text": "🌊 Adalya Elite Lara 5★ · Лара\n\nДля семьи, которой важны отдельные спальни и близость пляжа.\n\n🛏 Family 50 м²: две спальни с дверью.\n🏖 Собственный песчаный пляж на первой линии.\n💧 Отдельный Relax Pool для гостей от 18 лет.\n🏐 Теннисный корт, волейбол и зал для тренировок.\n\n✈️ Подберём номер под состав гостей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "7227d080a5efa5b5b49b880a9bd0bcaf2ca82a9a507ebde42a5dd0ddbf78c8df",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-16/47025.png",
+      "photo_sha256": "af8bfc9e0049075478a67aa44ce2850bd9cb296cb559ae4f1fe8c9d8222ccd53",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/antaliya/adalya_elite_lara/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/adalya-elite-lara-84965201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/adalya-elite-lara-84973305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/adalya-elite-lara-84965230.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 11184,
+        "anytour_id": 2443,
+        "legacy_native_id": 47025,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPjZXp1s",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5d7ddf59e9acb1e3_run05_c03",
+        "top500_5d7ddf59e9acb1e3_run05_c04",
+        "top500_5d7ddf59e9acb1e3_run05audit_c06",
+        "HOTEL-TR-W164-20261027T101948Z-ROTATE08B_c10"
+      ]
+    }
+  ]
+}
