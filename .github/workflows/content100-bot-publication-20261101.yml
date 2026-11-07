@@ -1,4 +1,4 @@
-name: Publish ten approved AnyTour hotels in both channels
+name: Publish five approved AnyTour hotels in both channels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,7 +38,7 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Prepare this exact approved ten-hotel batch
+      - name: Prepare this exact approved five-hotel batch
         shell: bash
         run: |
           set -euo pipefail
@@ -48,19 +48,19 @@ jobs:
           import hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations')
           assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a'
-          approval=json.loads((base/'commercial-batch-20261107-33-approval.json').read_text())
+          approval=json.loads((base/'commercial-batch-20261107-34-approval.json').read_text())
           assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert approval['operation']=='commercial-hotel-batch-20261107-33-v1' and len(approval['hotel_ids'])==10
+          assert approval['operation']=='commercial-hotel-batch-20261107-34-v1' and len(approval['hotel_ids'])==5
           PY
-          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261107-33-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261107-33-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
+          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261107-34-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261107-34-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
           php -l "$RUNNER_TEMP/channel-preflight.php"
       - name: Retain exact approved inputs before any channel write
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261107-33-inputs
+          name: commercial-batch-20261107-34-inputs
           path: |
-            tools/direct_demand/operations/commercial-batch-20261107-33-manifest.json
-            tools/direct_demand/operations/commercial-batch-20261107-33-approval.json
+            tools/direct_demand/operations/commercial-batch-20261107-34-manifest.json
+            tools/direct_demand/operations/commercial-batch-20261107-34-approval.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -101,7 +101,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Publish the exact ten approved hotel posts with canonical buttons and no duplicates
+      - name: Publish the exact five approved hotel posts with canonical buttons and no duplicates
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -116,10 +116,10 @@ jobs:
           d=json.loads(lines[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
           print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']} for p in d.get('posts',[])]},ensure_ascii=False))
-          assert d['operation']=='commercial-hotel-batch-20261107-33-v1' and d['mode']=='publish_approved_commercial_batch'
-          assert d['ok'] is True and len(d['posts'])==20
-          assert d['post_write_attempts']<=20 and d['new_posts']<=20
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==20
+          assert d['operation']=='commercial-hotel-batch-20261107-34-v1' and d['mode']=='publish_approved_commercial_batch'
+          assert d['ok'] is True and len(d['posts'])==10
+          assert d['post_write_attempts']<=10 and d['new_posts']<=10
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==10
           assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
           PY
           test "${probe_status:-0}" = 0
@@ -127,7 +127,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261107-33-publication
+          name: commercial-batch-20261107-34-publication
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn

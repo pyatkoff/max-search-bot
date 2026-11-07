@@ -1,0 +1,645 @@
+{
+  "operation": "commercial-hotel-batch-20261107-34-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 417,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read39",
+        "run_id": 42401865637,
+        "original_read_sha256": "1e7791afbf7fe7ef33712edf38a7ec13d630515a0bb61f22473090300ffcd065",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed15 commercial captions in cutover24 format,45 real source photos and15 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before33/34 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-fifteen-after-407-commercial-release-manifest.json",
+    "sha256": "455fac5d9555bc42929e7356b27692c56d59121c2ce3be7c080257c231c931d8",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/remaining-original-twenty-commercial-captions.json",
+    "caption_sha256": "2e9deecb597952aa82388a8aa46b1044b061f78f46607f6f23141d6ba33796b0",
+    "subset_native_ids": [
+      80713,
+      82716,
+      4499,
+      2791,
+      24492
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "source_held_native_ids": [
+    2575,
+    2569,
+    57684,
+    32232
+  ],
+  "media_held_native_ids": [
+    13844
+  ],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 80713,
+      "logical_id": "commercial-wyndham-palm-80713-v1",
+      "aliases": [
+        "Wyndham Residences The Palm"
+      ],
+      "text": "✈️ Туры в Wyndham Residences The Palm с перелётом\n📍 Дубай, ОАЭ.\n\nДля отдыха с семьёй, когда нужна просторная студия с кухней.\n\n🛏 Deluxe Studio 68 м² с кухонной зоной, кроватью king и диваном.\n🏖 Собственный пляж.\n\n✈️ Подберём питание и рассчитаем тур с перелётом на ваш состав и даты.",
+      "text_sha256": "1e5a1e98c9d012ee211ddeb666535f3096c5f07e2b164f03e4db3e10546307c0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/80713.png",
+      "photo_sha256": "c7d925e5fbc9bb9b35c85618a25acab0838eb1f9228147790daea35889327e8f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/uae/dubai/wyndham_residences_the_palm/",
+        "https://www.wyndhamresidencespalm.com/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/80713-39946400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/80713-39946501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/80713-39947734.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 35432,
+        "anytour_id": 3466,
+        "legacy_native_id": 80713,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ5SzgB8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_bfe70a8a2ed7bc7f_run09_c01",
+        "top500_bfe70a8a2ed7bc7f_run09_c02",
+        "top500_bfe70a8a2ed7bc7f_run09_c03",
+        "top500_bfe70a8a2ed7bc7f_run09_c04",
+        "top500_bfe70a8a2ed7bc7f_run09_c05",
+        "top500_bfe70a8a2ed7bc7f_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/80713-39946400.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "df2320290a363f5fd4b20f0adea3b3a018c2c8c1cedd448b399970d8cd28af27",
+          "source_png_sha256": "3176d15f86236df68c196b3c1ec51141ee3e5ec28c35ba8eac1fa00b15a5ac64",
+          "source_png_bytes": 1606286,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Территория и бассейн Wyndham Residences The Palm",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8VSD5E",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "wyndham-palm-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/80713-39946501.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "072dce70e038a1be7b8272859da747a37957c3b84a3000d81774086d40319365",
+          "source_png_sha256": "061a765ac37d7fa1728392f34258bd5b991176bd3dfe286dd47b55eac3e22326",
+          "source_png_bytes": 1050655,
+          "dimensions": [
+            1000,
+            665
+          ],
+          "alt": "Вход в отель Wyndham Residences The Palm",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2QhOyA",
+          "canva_asset_dimensions": [
+            1000,
+            665
+          ],
+          "source_png_filename": "wyndham-palm-g02.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g35",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/80713-39947734.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8f8c2ec84253c40d09cc7979a7ff307acc39b20417d63766a3abdd26a2614715",
+          "source_png_sha256": "3b1a9d3e0a51d461bd5f938803118b2689b767ca24118f747ebd5c42bbfece0f",
+          "source_png_bytes": 927916,
+          "dimensions": [
+            1000,
+            665
+          ],
+          "alt": "Буфет ресторана Wyndham Residences The Palm",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ26JEX0",
+          "canva_asset_dimensions": [
+            1000,
+            665
+          ],
+          "source_png_filename": "wyndham-palm-g35.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 82716,
+      "logical_id": "commercial-nh-dubai-palm-82716-v1",
+      "aliases": [
+        "Nh Collection Dubai The Palm"
+      ],
+      "text": "✈️ Туры в NH Collection Dubai The Palm с перелётом\n📍 Дубай, ОАЭ.\n\nДля отдыха на Пальме с выбором питания под вашу поездку.\n\n🛏 Standard Room 30 м² с видом на соседние отели.\n🍽 Можно выбрать завтраки или All Inclusive.\n\n✈️ Подберём подходящий номер и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "d451b7d37694e454f7e0f5eb8b9386f0f9c50fc5e1d14f41d6545c21fe303f5d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/82716.png",
+      "photo_sha256": "7eb6315022cb94dd002023a1d780c50c06a0cd4fbf589ec8ae5fca385770d6e0",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/uae/dubai/nh_dubai_the_palm/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/nh-collection-dubai-the-palm-15170300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/nh-collection-dubai-the-palm-2408029.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/nh-collection-dubai-the-palm-15170302.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 30825,
+        "anytour_id": 3555,
+        "legacy_native_id": 82716,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQw9Bw4U",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_31c49a8851ed60f3_run09_c01",
+        "top500_31c49a8851ed60f3_run09_c02",
+        "top500_31c49a8851ed60f3_run09_c03",
+        "top500_31c49a8851ed60f3_run09_c04",
+        "top500_31c49a8851ed60f3_run09_c05",
+        "top500_31c49a8851ed60f3_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/nh-collection-dubai-the-palm-15170300.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "34aeffcf98e833afc867528ae437809fe5fcee03a36c8d4fdab0c7e027020e91",
+          "source_png_sha256": "0b6c7ea7fa06733b558d25a7c9eb677ece69341c8f71b08970d8cd9f31230175",
+          "source_png_bytes": 803648,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн на крыше NH Collection Dubai The Palm",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ1Obcxk",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "nh-dubai-palm-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g31",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/nh-collection-dubai-the-palm-2408029.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "bc5d95bf52d1c81c8160b9bd608015366d1aca8ebb083a0a7e1ed50f0b9d31ba",
+          "source_png_sha256": "cdb67315391578b7d88340a5360ee2e6a615afd7d95bd994c6376a4b090285e5",
+          "source_png_bytes": 379466,
+          "dimensions": [
+            800,
+            534
+          ],
+          "alt": "Один из номеров NH Collection Dubai The Palm",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6_upig",
+          "canva_asset_dimensions": [
+            800,
+            534
+          ],
+          "source_png_filename": "nh-dubai-palm-g31.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g48",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/nh-collection-dubai-the-palm-15170302.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5adeec87b47dfd17d3f12da04351d563fe9d24e5308d8c7411dda696c7c863d2",
+          "source_png_sha256": "fd6b34d3a27233f9b90d8123dc7e9eca2927d9d13d229a00a160faf79ee2f146",
+          "source_png_bytes": 752787,
+          "dimensions": [
+            1024,
+            674
+          ],
+          "alt": "Бар NH Collection Dubai The Palm",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ0YEZ2Q",
+          "canva_asset_dimensions": [
+            1024,
+            674
+          ],
+          "source_png_filename": "nh-dubai-palm-g48.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 4499,
+      "logical_id": "commercial-ramada-ajman-4499-v1",
+      "aliases": [
+        "Ramada by Wyndham Beach Hotel Ajman"
+      ],
+      "text": "✈️ Туры в Ramada by Wyndham Beach Hotel Ajman с перелётом\n📍 Аджман, ОАЭ.\n\nДля отдыха в Аджмане с пляжем через дорогу.\n\n🛏 Подберём подходящий номер, включая Standard City View.\n🏖 Собственный песчаный пляж через дорогу.\n🍽 Можно выбрать All Inclusive. Отель безалкогольный.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "c5c24ebd4545fcd52bc9673a9647d9e6a37b84b922cd72b58c31d960a4159495",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/4499.png",
+      "photo_sha256": "d480acf3c39c97fbf04cedb6aa1cead7cb56f7f9d17c3e13158318b281b22657",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/uae/ajman/ramada_beach_hotel_ajman/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/4499-74983800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/4499-74984523.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/4499-74984832.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7871,
+        "anytour_id": 1337,
+        "legacy_native_id": 4499,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQwAgXEc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7a5a8b904aec6ae7_run08_c01",
+        "top500_7a5a8b904aec6ae7_run08_c02",
+        "top500_7a5a8b904aec6ae7_run08_c03",
+        "top500_7a5a8b904aec6ae7_run08_c04",
+        "top500_7a5a8b904aec6ae7_run08_c05",
+        "top500_7a5a8b904aec6ae7_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/4499-74983800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ea10aae15d1e1412f6a050d605ade464fcc769d303cdedd21e9b1fb2a09d6962",
+          "source_png_sha256": "6393bae07b0170e9530d08bd6fdf1dd95c3a50ad4bb135a8f4d5eacb05d2d60b",
+          "source_png_bytes": 876484,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Здание отеля Ramada by Wyndham Beach Hotel Ajman",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQx7W67A",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "ramada-ajman-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/4499-74984523.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "63300462db891e833ba1a91dccc4a09dceb6a6d669026a63aeab999ec8c50d1b",
+          "source_png_sha256": "132f8dda9ef00446844b9cb5de93f40a6f042dc5de9942463e24081f08995649",
+          "source_png_bytes": 472966,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Один из номеров Ramada by Wyndham Beach Hotel Ajman",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ-rwHJ8",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "ramada-ajman-g25.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g34",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/4499-74984832.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "96429c1d5fa66a08dc3afcc18897b8c7ca265a3dc21646e3d62c046cde3b760a",
+          "source_png_sha256": "a178fc81d4392cbdf576a1c33ca03239947fe41cb53dffba5f2123aa3b6a9254",
+          "source_png_bytes": 604344,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Один из номеров Ramada by Wyndham Beach Hotel Ajman",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2zBk9g",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "ramada-ajman-g34.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2791,
+      "logical_id": "commercial-citrus-hikkaduwa-2791-v1",
+      "aliases": [
+        "Citrus Hikkaduwa",
+        "CITRUS HIKKADUWA (EX. AMAYA REEF)"
+      ],
+      "text": "✈️ Туры в Citrus Hikkaduwa с перелётом\n📍 Хиккадува, Шри-Ланка.\n\nОкеан рядом и номер с боковым видом на море.\n\n🛏 Superior Room 27 м².\n🏖 Муниципальный пляж примерно в 10 м. У входа есть каменистые участки; шезлонги и зонты на пляже не предоставляются.\n\n✈️ Подберём питание и рассчитаем тур с перелётом для вашего состава.",
+      "text_sha256": "1dd5247146583a84da4c2fa80be4eba9867a009f069e94233efb0767727fd79b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/2791.png",
+      "photo_sha256": "ceca17245849b6bbb61644e8eb0a898f5c7f6fae2fd375ebfc2136ae1230079f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/srilanka/hikkaduwa/citrus_hikkaduwa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/amaya-reef-1511400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/amaya-reef-1511418.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/amaya-reef-1511411.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 10888,
+        "anytour_id": 1113,
+        "legacy_native_id": 2791,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 3,
+      "display_category": false,
+      "canva_design_id": "DAHaQ7IcAB8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e72b3b91c4df3c32_run09_c01",
+        "top500_e72b3b91c4df3c32_run09_c02",
+        "top500_e72b3b91c4df3c32_run09_c03",
+        "top500_e72b3b91c4df3c32_run09_c04",
+        "top500_e72b3b91c4df3c32_run09_c05",
+        "top500_e72b3b91c4df3c32_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/amaya-reef-1511400.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c37634510754acdd03522bcbb3faa8d27116fcd480bd86b2230d41864995417b",
+          "source_png_sha256": "03a18433784a42918ba8d4ceec0c87fa1b934166d6a468900059ae29e601fee0",
+          "source_png_bytes": 656406,
+          "dimensions": [
+            800,
+            450
+          ],
+          "alt": "Территория Citrus Hikkaduwa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2gBCfA",
+          "canva_asset_dimensions": [
+            800,
+            450
+          ],
+          "source_png_filename": "citrus-hikkaduwa-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g17",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/amaya-reef-1511418.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "00384d42434e9258d817a550067d7a550c7ff4fb14597346b769b1d3ea122fe0",
+          "source_png_sha256": "5e9b0a033d31084708d362c62efcc1315d4f0c12f9f71d2a7a73aa7fc5a826ae",
+          "source_png_bytes": 687104,
+          "dimensions": [
+            800,
+            534
+          ],
+          "alt": "Буфет ресторана Citrus Hikkaduwa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ7vRw08",
+          "canva_asset_dimensions": [
+            800,
+            534
+          ],
+          "source_png_filename": "citrus-hikkaduwa-g17.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g11",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/amaya-reef-1511411.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2e38dbc15446c09df8ff96259c59b1a02bf948487b5616ee30613d6bcb918002",
+          "source_png_sha256": "45862b23ee03913135a2d413cda3f7542bc66c09d5c21c7619f5d24def8a6910",
+          "source_png_bytes": 699996,
+          "dimensions": [
+            800,
+            534
+          ],
+          "alt": "Бассейн Citrus Hikkaduwa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9GSbw8",
+          "canva_asset_dimensions": [
+            800,
+            534
+          ],
+          "source_png_filename": "citrus-hikkaduwa-g11.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 24492,
+      "logical_id": "commercial-citrus-waskaduwa-24492-v1",
+      "aliases": [
+        "Citrus Waskaduwa"
+      ],
+      "text": "✈️ Туры в Citrus Waskaduwa с перелётом\n📍 Калутара, Шри-Ланка.\n\nПросторный номер и отдых у океана.\n\n🛏 Superior Room 43 м².\n🏖 Муниципальный песчаный пляж примерно в 50 м. Шезлонги и зонты на пляже не предоставляются.\n🎭 Вечерние шоу.\n\n✈️ Подберём питание и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "54115212e836970f17aca63d34fdea81e1580d9188989484b9dcde202f787baa",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-34/24492.png",
+      "photo_sha256": "f2af9d51e97928bdfd3ab34ef85c77ced0f3f056668265258d885e6f3edd1368",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/srilanka/kalutara/citrus_waskaduwa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/citrus-waskaduwa-2814100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/citrus-waskaduwa-2814101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/citrus-waskaduwa-2814118.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 10890,
+        "anytour_id": 1959,
+        "legacy_native_id": 24492,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ5MbyFk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_203cb214dd7ef9c2_run09_c01",
+        "top500_203cb214dd7ef9c2_run09_c02",
+        "top500_203cb214dd7ef9c2_run09_c03",
+        "top500_203cb214dd7ef9c2_run09_c04",
+        "top500_203cb214dd7ef9c2_run09_c05",
+        "top500_203cb214dd7ef9c2_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/citrus-waskaduwa-2814100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ad39bd109739bfd736a04f54868f1b74ec231faeae2759e696719d8ff3019e51",
+          "source_png_sha256": "c968e4dd3f368d0674301d74cfb3b93016dbe6f6ea3a3dc5295bdc5fcde68901",
+          "source_png_bytes": 911765,
+          "dimensions": [
+            1024,
+            652
+          ],
+          "alt": "Территория и побережье Citrus Waskaduwa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQw79n_I",
+          "canva_asset_dimensions": [
+            1024,
+            652
+          ],
+          "source_png_filename": "citrus-waskaduwa-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/citrus-waskaduwa-2814101.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f3cbebffb32f483be4b07614e704260f8a8c7db6aec4f8be3e78758b043e3a3f",
+          "source_png_sha256": "92ae5d39d4620987677f7cfdde30cea420f94caf3ca784437617c507012278e6",
+          "source_png_bytes": 744393,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Citrus Waskaduwa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ0xucuY",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "citrus-waskaduwa-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/citrus-waskaduwa-2814118.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3e267a594f3942dc5c578de11af253574548d31e290e1bbe647b41af2104fcfb",
+          "source_png_sha256": "250d2cc4da969ea1bc8929586f2aaf9364b5a73246f136b463144a74ffdeaa0b",
+          "source_png_bytes": 1035773,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Сад Citrus Waskaduwa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ7Lk_kI",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "citrus-waskaduwa-g19.png"
+        }
+      ]
+    }
+  ]
+}
