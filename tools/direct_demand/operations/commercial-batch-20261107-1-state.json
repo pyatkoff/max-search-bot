@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation": "commercial-hotel-batch-20261107-1-v1",
-  "state": "SENT_CONFIRMED_CONTENT_QUALITY_REJECTED_AWAITING_CORRECTION_NO_FURTHER_PUBLICATION",
+  "state": "CLOSED_CAPTIONS_CORRECTED_TECHNICALLY_CONFIRMED_QUALITY_NOT_USER_ACCEPTED_MASS_PUBLICATION_PAUSED",
   "run_id": 42354637509,
   "job_id": 128349918360,
   "source_commit": "7859e13b013712008364a56f6d4d2375117b04a1",
@@ -26,9 +26,11 @@
       "message_id": "176",
       "post_url": "https://t.me/any_toour/176",
       "state": "sent",
-      "text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "text_sha256": "bd5f212b49f1c3a679d6a46e2f82a1cf0142a7cb969f0f80f35b00d1175a056f",
       "photo_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
-      "body_photo_button_verified": true
+      "body_photo_button_verified": true,
+      "original_text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "caption_corrected": true
     },
     {
       "hotel_id": 1216,
@@ -37,9 +39,11 @@
       "message_id": "177",
       "post_url": "https://t.me/any_toour/177",
       "state": "sent",
-      "text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
+      "text_sha256": "c3bedefb5f12c2c8485973ae88cb325dbb818504bf65fea2402867064adbfc20",
       "photo_sha256": "6b719c1dc25fe7905d7b310c7b30d637f3a0a342a89eacebe4d647dd81fd76f6",
-      "body_photo_button_verified": true
+      "body_photo_button_verified": true,
+      "original_text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
+      "caption_corrected": true
     },
     {
       "hotel_id": 1095,
@@ -48,9 +52,11 @@
       "message_id": "178",
       "post_url": "https://t.me/any_toour/178",
       "state": "sent",
-      "text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
+      "text_sha256": "3aa4a5dec4f07b227d1ddfda82cf39c925939e669bb0d2ef63fa5462dede1270",
       "photo_sha256": "0eda6e380dc296edf411c5888d6002d32016c40cd99263ba815b261c7e8f4731",
-      "body_photo_button_verified": true
+      "body_photo_button_verified": true,
+      "original_text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
+      "caption_corrected": true
     },
     {
       "hotel_id": 27426,
@@ -59,9 +65,11 @@
       "message_id": "mid.ffffb6caf0606fed01a1b5136b30229e",
       "post_url": "https://max.ru/channel_anytour/AaG1E2swIp4",
       "state": "sent",
-      "text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "text_sha256": "bd5f212b49f1c3a679d6a46e2f82a1cf0142a7cb969f0f80f35b00d1175a056f",
       "photo_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
-      "body_photo_button_verified": true
+      "body_photo_button_verified": true,
+      "original_text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "caption_corrected": true
     },
     {
       "hotel_id": 1216,
@@ -70,9 +78,11 @@
       "message_id": "mid.ffffb6caf0606fed01a1b513740f4812",
       "post_url": "https://max.ru/channel_anytour/AaG1E3QPSBI",
       "state": "sent",
-      "text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
+      "text_sha256": "c3bedefb5f12c2c8485973ae88cb325dbb818504bf65fea2402867064adbfc20",
       "photo_sha256": "6b719c1dc25fe7905d7b310c7b30d637f3a0a342a89eacebe4d647dd81fd76f6",
-      "body_photo_button_verified": true
+      "body_photo_button_verified": true,
+      "original_text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
+      "caption_corrected": true
     },
     {
       "hotel_id": 1095,
@@ -81,9 +91,11 @@
       "message_id": "mid.ffffb6caf0606fed01a1b5137d007a23",
       "post_url": "https://max.ru/channel_anytour/AaG1E30AeiM",
       "state": "sent",
-      "text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
+      "text_sha256": "3aa4a5dec4f07b227d1ddfda82cf39c925939e669bb0d2ef63fa5462dede1270",
       "photo_sha256": "0eda6e380dc296edf411c5888d6002d32016c40cd99263ba815b261c7e8f4731",
-      "body_photo_button_verified": true
+      "body_photo_button_verified": true,
+      "original_text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
+      "caption_corrected": true
     }
   ],
   "private_registry_ids_and_versions_in_original_result_artifact": true,
@@ -100,12 +112,106 @@
     1216,
     1095
   ],
-  "content_correction_required": true,
-  "quality_rejection": "User rejected the current Side Star post as unsuitable as an advertising landing; pause further posts and feed append in this format. Correct the existing three after the revised advertising package is prepared.",
+  "content_correction_required": false,
   "new_publishing_paused": true,
   "sender_operation_closed": true,
   "unknown_operations": 0,
-  "repeat_policy": "Do not rerun sender or recreate these hotels. New copy/media updates must target the existing confirmed posts using a separately bound edit intent. Do not expand advertising feed with the rejected package.",
+  "repeat_policy": "Keep the 164 confirmed pairs and current 161/161/322 feed. Do not rerun either closed operation or resume mass publication/feed expansion until the revised commercial format is accepted. Any approved media change must be separately bound to the same existing post IDs.",
   "prices_and_search_links_replayed": false,
-  "mac_touched": false
+  "mac_touched": false,
+  "initial_quality_rejection": "User rejected the current Side Star post as unsuitable as an advertising landing; pause further posts and feed append in this format. Correct the existing three after the revised advertising package is prepared.",
+  "commercial_quality_user_accepted": false,
+  "caption_correction": {
+    "operation": "commercial-hotel-caption-correction-20261107-1-v1",
+    "state": "CLOSED_SIX_EXISTING_CAPTIONS_EDITED_AND_READBACK_VERIFIED",
+    "run_id": 42356233002,
+    "job_id": 128354810052,
+    "source_commit": "c261486fdb8ff8f18a467ee51c228e29bcf6c5bd",
+    "installed_source": "42921afec01af4d88a931f548e3442db76248f87",
+    "completed_at_utc": "2026-11-07T08:37:30Z",
+    "intent_artifact": 13567477655,
+    "intent_created_at": "2026-11-07T08:37:02Z",
+    "result_artifact": 13567432899,
+    "result_created_at": "2026-11-07T08:37:31Z",
+    "intent_before_server_access": true,
+    "full_generated_php_lint_passed": true,
+    "commercial_text_updates": 6,
+    "post_write_attempts": 6,
+    "new_posts_created": 0,
+    "photos_changed": 0,
+    "button_urls_changed": 0,
+    "post_urls_changed": 0,
+    "start_tokens_changed": 0,
+    "price_queries": 0,
+    "tour_search_calls": 0,
+    "feed_writes": 0,
+    "max_route_writes": 0,
+    "all_six_existing_messages_readback_verified": true,
+    "private_registry_ids_and_versions_in_result_artifact": true,
+    "preparation_stops": [
+      {
+        "run_id": 42355695098,
+        "reason": "approved_source_not_current",
+        "server_connection": false,
+        "post_edits": 0
+      },
+      {
+        "run_id": 42356096270,
+        "reason": "php_lint_missing_array_bracket_corrected_before_server_connection",
+        "server_connection": false,
+        "post_edits": 0
+      }
+    ],
+    "new_text_hashes": [
+      {
+        "hotel_id": 27426,
+        "sha256": "bd5f212b49f1c3a679d6a46e2f82a1cf0142a7cb969f0f80f35b00d1175a056f"
+      },
+      {
+        "hotel_id": 1216,
+        "sha256": "c3bedefb5f12c2c8485973ae88cb325dbb818504bf65fea2402867064adbfc20"
+      },
+      {
+        "hotel_id": 1095,
+        "sha256": "3aa4a5dec4f07b227d1ddfda82cf39c925939e669bb0d2ef63fa5462dede1270"
+      }
+    ],
+    "editorial_status": "EDITORIAL_CORRECTION_APPLIED_NOT_USER_ACCEPTED",
+    "repeat_policy": "Closed confirmed edit. No repeat edit, old log reread, reconciliation or sender replay for reporting."
+  },
+  "mass_publication_continuation_criteria": {
+    "status": "USER_COMMERCIAL_REVIEW_PENDING_NO_MASS_RESUMPTION",
+    "named_hotel_ad_post_requires": [
+      "Hotel name and resort",
+      "Who the hotel suits and why to choose it",
+      "Three or four verified reasons to choose",
+      "Only material limitations",
+      "Concrete button outcome: calculate a tour with flight and suitable room for dates and party"
+    ],
+    "prohibited_customer_copy": [
+      "Research labels such as «по официальному описанию» or «заявлено»",
+      "Incidental paid-room-service conditions replacing the commercial offer"
+    ],
+    "rule": "Factual accuracy does not by itself establish commercial readiness.",
+    "technical_count_is_not_user_acceptance_of_164_ads": true
+  },
+  "side_star_cover_draft": {
+    "status": "DRAFT_PREVIEW_SHOWN_NOT_COMMITTED_NOT_PUBLISHED",
+    "design_id": "DAHaKG2_z0k",
+    "transaction_id": "4820498910682623885",
+    "preview_sha256": "5030e20388deac17eab023202d85cad5c469df993d783fe6ade6a566cac99208",
+    "user_approved": false,
+    "channel_media_changed": false
+  },
+  "caption_correction_operation_closed": true,
+  "known_next_package": {
+    "draft_caption_count": 5,
+    "sender_ready": false,
+    "blocked_by": [
+      "typed identity and accepted media not yet bound",
+      "current registry clearance not obtained",
+      "commercial format user review pending"
+    ],
+    "not_counted_as_new_pairs": true
+  }
 }
