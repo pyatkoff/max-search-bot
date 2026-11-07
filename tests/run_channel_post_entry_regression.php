@@ -166,7 +166,7 @@ try {
         if($platform==='max')cpeStartMax($user,$publications[$platform]['start_payload'],400+$index);
         else cpeStartTelegram($user,$publications[$platform]['start_payload'],$dispatcher,$messenger,400+$index);
         $before=cpeConversation($platform,$user);$id=(int)$before['id'];
-        cpeCheck('qualification asks the one missing date: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','дата вылета'),true);
+        cpeCheck('qualification asks the one missing date: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','Когда планируете отдых?'),true);
         cpeCheck('qualification does not promise a manager before needs: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','Менеджер'),false);
         cpeCheck('qualification preserves current collected needs: '.$platform,MaxSearchApi::$needContexts[$chat],$known);
         cpeCheck('qualification leaves canonical ownership unqueued: '.$platform,[$before['status'],cpeEventCount($id,'manager_request')],['ai',0]);
