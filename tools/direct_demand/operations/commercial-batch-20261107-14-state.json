@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-14-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     1294,
     975,
@@ -16,5 +16,201 @@
   "manifest_sha256": "7fc0afb4219de9cb836aec9bd228563838627d54271516f80645a82d48bf985f",
   "asset_commit": "7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "full_pairs_after": 245,
+  "sender_run_id": 42381194688,
+  "sender_job_id": 128428968799,
+  "sender_commit": "aa5924c06358cd3cf88487367f07d33c71183290",
+  "new_posts": 14,
+  "post_write_attempts": 14,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13577822543,
+  "result_zip_sha256": "840ae98a1e4dd9fefe0140e3bc6b59941d2370174a21d54404fa393ab285a8cc",
+  "private_receipt_sha256": "8f0b10232ea0a455855d9d320d9295f6d80cf0efc62c7c2fab088ff5678e51f2",
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-nirvana-cosmopolitan-1294-v1",
+      "post_url": "https://t.me/any_toour/253",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-nirvana-dolce-vita-975-v1",
+      "post_url": "https://t.me/any_toour/254",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-royal-star-beach-26530-v1",
+      "post_url": "https://t.me/any_toour/255",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-selectum-noa-69116-v1",
+      "post_url": "https://t.me/any_toour/256",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-kremlin-palace-1588-v1",
+      "post_url": "https://t.me/any_toour/257",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-royal-holiday-3415-v1",
+      "post_url": "https://t.me/any_toour/258",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-crystal-aura-964-v1",
+      "post_url": "https://t.me/any_toour/259",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-nirvana-cosmopolitan-1294-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Y20DabI",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-nirvana-dolce-vita-975-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Y3Z4EWo",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-royal-star-beach-26530-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Y3-TQtE",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-selectum-noa-69116-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Y4jjcAg",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-kremlin-palace-1588-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Y5HpQTQ",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-royal-holiday-3415-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Y5seTmY",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-crystal-aura-964-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Y6Q2dxg",
+      "verified": true
+    }
+  ],
+  "routes": {
+    "logical_hotels": 245,
+    "new_routes_verified": 7,
+    "previous238_rows_identical": true,
+    "run_id": 42381834670,
+    "commit": "5fefb2204b1177ef2d8dad98bbfc30304eab4357",
+    "result_artifact_id": 13577462956
+  },
+  "feeds": {
+    "run_id": 42382153022,
+    "job_id": 128431848250,
+    "commit": "3e8f8fea06797c970099ca8a65890314fe305c06",
+    "result_artifact_id": 13578051230,
+    "receipt_sha256": "11b8db0d269352dd9d3860a2c729af207b697ca3a984acc5b515ea7e029b697a",
+    "rows": [
+      245,
+      245,
+      490
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous238_offer_blocks_identical": true
+  },
+  "feed_binding_read_run": 42381592082,
+  "feed_binding_read_artifact": 13577986782,
+  "goal_remaining_to_500": 255,
+  "own_active_workflow": 0,
+  "completed_at_utc": "2026-11-07T14:33:55Z",
+  "pending_groups": {
+    "matches80to100": {
+      "published": 7,
+      "remaining_native_ids": [
+        21817,
+        57066,
+        2015,
+        1026,
+        4091,
+        1350,
+        1140,
+        1203,
+        55828,
+        108167,
+        63674,
+        47025
+      ],
+      "first_clearance_read": 27,
+      "first_clearance_run": 42375960417,
+      "clearance_not_replayed": true,
+      "held_native_id": 32339,
+      "final_release_manifest_required": true,
+      "exact_room_media_root_accepted_native_ids": [
+        57066,
+        2015
+      ],
+      "asteria_official_media_delivered": true,
+      "asteria_corrected_canva_commit_pending": true
+    },
+    "matches100to120": {
+      "drafts": 18,
+      "first_clearance_read": 30,
+      "first_clearance_run": 42379881031,
+      "clearance_not_replayed": true,
+      "held_native_ids": [
+        74036,
+        213
+      ],
+      "sign_official_media_delivered": true,
+      "room_media_pending_native_ids": [
+        1429,
+        15905
+      ],
+      "final_release_manifest_required": true
+    },
+    "matches120to140": {
+      "retained_claims": 263,
+      "typed_identities": 20,
+      "current_catalog_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+      "drafts": 19,
+      "raw_png": 153,
+      "contact_sheets": 17,
+      "held_native_ids": [
+        107940
+      ],
+      "empty_catalog_gallery_native_ids": [
+        28325,
+        76588
+      ],
+      "first_registry_clearance_pending": true,
+      "final_release_manifest_required": true
+    },
+    "matches140to160": {
+      "state": "READ_ONLY_PREPARATION_AUTHORIZED_NOT_STARTED",
+      "final_release_manifest_required": true
+    }
+  }
 }
