@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation": "commercial-hotel-batch-20261107-6-v1",
-  "state": "SENDER_COMPLETE_SEVEN_NEW_PAIRS_FEED_APPEND_PENDING",
+  "state": "COMPLETE_SEVEN_NEW_PAIRS_AND_ADDITIVE_FEEDS_CONFIRMED",
   "run_id": 42370876958,
   "job_id": 128398556078,
   "source_commit": "703fd8a022fee1e0d81aaff6a6ac1fa10c31e440",
@@ -133,25 +133,18 @@
     }
   ],
   "current_feed_counts": {
-    "telegram": 187,
-    "max": 187,
-    "all": 374
+    "telegram": 194,
+    "max": 194,
+    "all": 388
   },
-  "current_max_native_route_count": 187,
-  "pending_new_route_native_ids": [
-    1065,
-    1960,
-    116932,
-    748,
-    247,
-    73974,
-    54193
-  ],
+  "current_max_native_route_count": 194,
+  "pending_new_route_native_ids": [],
   "sender_operation_closed": true,
   "unknown_operations": 0,
   "next_candidate_clearance": {
-    "state": "PENDING_READ23",
-    "native_ids": [
+    "run_id": 42371107787,
+    "read_at_utc": "2026-11-07T12:08:12+00:00",
+    "clear_native_ids": [
       140,
       8053,
       58987,
@@ -160,7 +153,8 @@
       496,
       66555,
       33313
-    ]
+    ],
+    "do_not_repeat_read": true
   },
   "next_media_held_native_ids": [
     132002
@@ -172,7 +166,14 @@
     1112,
     443
   ],
-  "repeat_policy": "Sender batch6 CLOSED. Finish only new7 routes and additive feeds. Next8 are draft captions and raw-photo candidates pending final commercial release manifests and current registry clearance.",
+  "repeat_policy": "Sender batch6, MAX194 and feed194 CLOSED; no replay. Next8 have current targeted registry clearance but await exact final commercial release manifests; no sends until ready. Read-only matches[40:60] preparation authorized.",
   "mac_touched": false,
-  "prices_and_search_links_replayed": false
+  "prices_and_search_links_replayed": false,
+  "native_routes_operation_closed": true,
+  "feed_operation_closed": true,
+  "max_route_install_run": 42371274849,
+  "max_route_result_artifact_id": 13574375019,
+  "feed_run": 42371397330,
+  "feed_result_artifact_id": 13573966244,
+  "completed_at_utc": "2026-11-07T12:12:14Z"
 }
