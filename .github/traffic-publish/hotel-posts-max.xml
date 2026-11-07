@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 15:19">
+<yml_catalog date="2026-11-07 16:02">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -2398,6 +2398,87 @@
         <description>Тур с перелётом. Кунду. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Кунду</custom_label_1>
+      </offer>
+      <offer id="max_66496">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYmUyM2QyZjMzMjFhMmU1MWJlZTYwZjcwMTNhOWJlNDMiLCJvZmZlcl9pZCI6Im1heF82NjQ5NiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/66496.png</picture>
+        <name>Туры в The Art Nest Hotel Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_981">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjU5OGNhNjk2ZWRkZDQ3YmZmZGUwN2I5MjlkM2RhZjAiLCJvZmZlcl9pZCI6Im1heF85ODEifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/981.png</picture>
+        <name>Туры в Ananas Hotel</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="max_128508">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzNlNjEzZmFkNDRmMzgyMzc5YmVhN2RmY2Y1YTQyYjYiLCJvZmZlcl9pZCI6Im1heF8xMjg1MDgifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/128508.png</picture>
+        <name>Туры в Seaside Boutique Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_45516">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzY3NGI5NDlkNGQ1ZTJlMDliYTU3MzIxZDgzMTIxY2QiLCJvZmZlcl9pZCI6Im1heF80NTUxNiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/45516.png</picture>
+        <name>Туры в Praha Hotel</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="max_1429">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZGM1OGJlZGFjZjMxOGEwNmFjNjBmMGM4NWJjOTFmMDYiLCJvZmZlcl9pZCI6Im1heF8xNDI5In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/1429.png</picture>
+        <name>Туры в Dobedan World Palace</name>
+        <description>Тур с перелётом. Кириш. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Кириш</custom_label_1>
+      </offer>
+      <offer id="max_15905">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzdmZTUwMjA0NzE1NGRjOTQ2YjFjNjZhN2Q5M2RiMTQiLCJvZmZlcl9pZCI6Im1heF8xNTkwNSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/15905.png</picture>
+        <name>Туры в Royal Garden Beach Hotel</name>
+        <description>Тур с перелётом. Конаклы. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Конаклы</custom_label_1>
+      </offer>
+      <offer id="max_50624">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjMxYzQ2NjQyOWJhYzkxZTgyOTExMjg1NDgyYjM5YWMiLCJvZmZlcl9pZCI6Im1heF81MDYyNCJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/50624.png</picture>
+        <name>Туры в Diamond Bay Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_58473">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOGYxMmUyYmM2MTljZWVlYzZjZGZkNWEyMDk1ZjA3Y2IiLCJvZmZlcl9pZCI6Im1heF81ODQ3MyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/58473.png</picture>
+        <name>Туры в Ca Ty Muine Resort</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
+      </offer>
+      <offer id="max_4060">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDA2YjllNzM4MmVjYmY5MTk0MTk1M2MwMDg5ZDU5MmYiLCJvZmZlcl9pZCI6Im1heF80MDYwIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/4060.png</picture>
+        <name>Туры в Ocean Star Resort</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
       </offer>
     </offers>
   </shop>

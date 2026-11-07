@@ -1,0 +1,350 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read34",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 66496,
+      "name": "The Art Nest Hotel Nha Trang",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/281",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uPxHOv8",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/66496.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 981,
+      "name": "Ananas Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/282",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uQWeQJk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/981.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 128508,
+      "name": "Seaside Boutique Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/283",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uQ6rQzE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/128508.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 45516,
+      "name": "Praha Hotel",
+      "country_id": 16,
+      "region_id": 104,
+      "destination": "Фукуок",
+      "telegram_post_url": "https://t.me/any_toour/284",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uRe1Bk4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/45516.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1429,
+      "name": "Dobedan World Palace",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/285",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uSDVTtY",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/1429.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 15905,
+      "name": "Royal Garden Beach Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/286",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uSoXDfs",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/15905.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 50624,
+      "name": "Diamond Bay Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/287",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uTMTGXU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/50624.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 58473,
+      "name": "Ca Ty Muine Resort",
+      "country_id": 16,
+      "region_id": 88,
+      "destination": "Фантьет",
+      "telegram_post_url": "https://t.me/any_toour/288",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uTyWUmg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/58473.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 4060,
+      "name": "Ocean Star Resort",
+      "country_id": 16,
+      "region_id": 88,
+      "destination": "Фантьет",
+      "telegram_post_url": "https://t.me/any_toour/289",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2uUXhS08",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/4060.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 9,
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 1313,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "L'oceanica Beach Resort Hotel",
+        "LOCEANICA BEACH RESORT HOTEL"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1293,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Crystal Centro Pearl Collection"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 37168,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Litore Resort Hotel & Spa"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 69184,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Lonicera Premium"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 9303,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Sundia By Liberty Oludeniz",
+        "SUNDIA BY LIBERTY OLUDENIZ (EX. LIBERTY HOTEL OLUDENIZ)",
+        "LIBERTY HOTEL OLUDENIZ"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 59563,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Prestige Garden Hotel"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 74032,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "SUNRISE Serano Club Resort"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1521,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Sultan Of Side"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 123374,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Regnum The Crown"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 15879,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Kirman Belazur Resort & Spa"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1501,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Selectum Family Resort Side",
+        "SELECTUM FAMILY RESORT SIDE (EX. SILENCE BEACH RESORT)",
+        "SILENCE BEACH RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1139,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Crystal Admiral Aqua Collection",
+        "CRYSTAL ADMIRAL AQUA COLLECTION (EX. CRYSTAL ADMIRAL RESORT SUITES & SPA)",
+        "CRYSTAL ADMIRAL RESORT SUITES & SPA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 15872,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Crystal Waterworld Aqua Collection",
+        "CRYSTAL WATERWORLD AQUA COLLECTION (EX. CRYSTAL WATERWORLD RESORT & SPA)",
+        "CRYSTAL WATERWORLD RESORT & SPA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1141,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Crystal Family Comfort Collection",
+        "CRYSTAL FAMILY COMFORT COLLECTION (EX. CRYSTAL FAMILY RESORT & SPA)",
+        "CRYSTAL FAMILY RESORT & SPA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1142,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Crystal Flora Pearl Collection",
+        "CRYSTAL FLORA PEARL COLLECTION (EX. CRYSTAL FLORA BEACH RESORT)",
+        "CRYSTAL FLORA BEACH RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 28159,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Vonresort Golden Beach",
+        "VON RESORT GOLDEN BEACH (EX. VON CLUB GOLDEN BEACH)",
+        "VON RESORT GOLDEN BEACH",
+        "VON CLUB GOLDEN BEACH"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1014,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Side Star Elegance",
+        "SIDE STAR ELEGANCE (EX. ASTERIA SIDE)",
+        "ASTERIA SIDE"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 352,
+      "scope": "next_eighteen_after160_first_clearance",
+      "logical_id": null,
+      "aliases": [
+        "Parrotel Aqua Park Resort (Ex. Park Inn By Radisson Sharm)",
+        "PARROTEL AQUA PARK RESORT (EX. PARK INN BY RADISSON)",
+        "Parrotel Aqua Park Resort",
+        "Park Inn By Radisson Sharm",
+        "PARK INN BY RADISSON"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    }
+  ],
+  "candidate_count": 18,
+  "read_at_utc": "2026-11-07T15:58:30+00:00",
+  "scope_hotels": 9,
+  "feed_rows": 9,
+  "deferred_count": 0,
+  "installed_sha": "6d193b7740dc212b92b1893041f0a1047b179635",
+  "original_artifact": {
+    "run_id": 42388903377,
+    "job_id": 128452113664,
+    "commit": "1b11c8ce9581beebcea28acab367b53f1f8b8bef",
+    "artifact_id": 13581035926,
+    "zip_sha256": "6e84296b8547f6dbd3f8f2196f70b55faa841c0696d50ae98e4aa59d4d8ea3f7",
+    "private_receipt_sha256": "c41a40a57155661bd009246cb1db77a05d8da041296e5733d521d42457093857",
+    "input_artifact_id": 13581160194,
+    "input_zip_sha256": "05d1ca5ddff1ac2d8ee98ed286f5655c9617b594b255259083ee039ef89bdbd1"
+  }
+}
