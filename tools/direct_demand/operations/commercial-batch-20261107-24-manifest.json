@@ -1,0 +1,808 @@
+{
+  "operation": "commercial-hotel-batch-20261107-24-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 324,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and the typed AnyTour catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "type": "first_registry_clearance",
+        "run_id": 42388903377,
+        "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42388903377",
+        "reader": "read34",
+        "native_hotel_ids": [
+          1313,
+          1293,
+          37168,
+          69184,
+          9303,
+          59563,
+          74032,
+          1521,
+          123374,
+          15879,
+          1501,
+          1139,
+          15872,
+          1141,
+          1142,
+          28159,
+          1014,
+          352
+        ],
+        "outcome": "ALL_CLEAR_PREVIOUSLY_ACCEPTED_NOT_REPLAYED"
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing authorized mass release; parent reviewed all18 reconstructed captions against accepted WORKING165 and retained constraints. All18 Canva designs were already committed and visually approved; current600x600 bytes are recovered without edit/upload, tied to exact retained original asset IDs. No missing sourcePNG SHA or original byte identity is invented. Release only after parent approves this exact manifest SHA.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-eight-after-324-standard-heading-release-manifest.json",
+    "sha256": "bd0759ddd358f045996e12120fd8808ace3c5639e052803e01ab4bb905d4c106",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-eight-after-324-standard-heading-captions.json",
+    "caption_sha256": "16ec9d63f683e731cc020d9ece1795ff951574e94e0a5f5d8d4efff6cd37c7ee",
+    "subset_native_ids": [
+      1501,
+      1139,
+      15872,
+      1141,
+      1142,
+      28159,
+      1014,
+      352
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1501,
+      "logical_id": "commercial-selectum-side-1501-v1",
+      "aliases": [
+        "Selectum Family Resort Side",
+        "SELECTUM FAMILY RESORT SIDE (EX. SILENCE BEACH RESORT)",
+        "SILENCE BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Selectum Family Resort Side с перелётом\n📍 Сиде, Турция.\n\nДля отпуска с бассейнами и яркими вечерами.\n\n🛏 Двухместный Land View от 26 до 30 м² с балконом.\n🏊 Основной, семейный и детские бассейны.\n🎶 Тематические вечеринки, DJ и танцевальные шоу.\n🍽 Ultra All Inclusive.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "c229285cb319ab662bb2d0eb37b7e307436d068d459afea13baaad2b964d8fd0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1501.png",
+      "photo_sha256": "35a3d3624f2350aaba04f00b80f3005d0b807e66e27eb888d011f071f28816c5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.oktopod.rs/content_files/pdf_koncepti/332-selectum-family-resort-side-5-ex-silence-beach-resort.pdf",
+        "https://www.dertour.de/hotel/selectum-family-resort-side-11247Q",
+        "https://familyresortside.selectumhotels.com/ru",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/hbAo29rxNokZHSa"
+      ],
+      "identity_binding": {
+        "anex_id": 31515,
+        "anytour_id": 711,
+        "legacy_native_id": 1501,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQLgK6LQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_01f34fa46fcaa951_gap50_1_c1",
+        "top500_01f34fa46fcaa951_gap50_1_c2",
+        "top500_01f34fa46fcaa951_run11_c01",
+        "top500_01f34fa46fcaa951_run11_c02",
+        "top500_01f34fa46fcaa951_c01",
+        "top500_01f34fa46fcaa951_c02"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/hbAo29rxNokZHSa",
+          "canva_original_asset_id": "MAHaQMz8o_g",
+          "original_uploaded_filename": "selectum-side-g26.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 768
+          },
+          "alt": "Детская водная зона Selectum Family Resort Side",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/hbAo29rxNokZHSa",
+          "canva_original_asset_id": "MAHaQLR_bOs",
+          "original_uploaded_filename": "selectum-side-g02.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 512
+          },
+          "alt": "Интерьер номера Selectum Family Resort Side",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/hbAo29rxNokZHSa",
+          "canva_original_asset_id": "MAHaQJzc69Y",
+          "original_uploaded_filename": "selectum-side-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Корпуса и бассейн Selectum Family Resort Side",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1139,
+      "logical_id": "commercial-crystal-admiral-1139-v1",
+      "aliases": [
+        "Crystal Admiral Aqua Collection",
+        "CRYSTAL ADMIRAL AQUA COLLECTION (EX. CRYSTAL ADMIRAL RESORT SUITES & SPA)",
+        "Crystal Admiral",
+        "CRYSTAL ADMIRAL RESORT SUITES & SPA"
+      ],
+      "text": "✈️ Туры в Crystal Admiral с перелётом\n📍 Сиде, Турция.\n\nДля пляжного отпуска с вечерней музыкой.\n\n🛏 Standard ROH 35 м².\n🍽 Ultimate All Inclusive.\n🎶 Живая музыка в отдельные дни и дискотека.\n🏖 Собственный пляж через дорогу.\n\nВ категории ROH конкретный вид и расположение номера не гарантированы.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "744daed035b4dc01d4071852a044617c34d5c6145132fa6dac0012941b50e771",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1139.png",
+      "photo_sha256": "96f21e6368c03fbc54b2ddd670da36efb404e8b17224c436c829433b2e71da53",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/side/crystal_admiral_resort_suites__spa/",
+        "https://www.easyjet.com/en/holidays/turkey/antalya/side/crystal-admiral-aqua-collection",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/hkyFEIUZFfX5xvQ"
+      ],
+      "identity_binding": {
+        "anex_id": 15120,
+        "anytour_id": 510,
+        "legacy_native_id": 1139,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQC5pnVI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_a571c6f129a0b2bd_run04_c01",
+        "top500_a571c6f129a0b2bd_run04_c02",
+        "top500_a571c6f129a0b2bd_run04_c03",
+        "top500_a571c6f129a0b2bd_run04_c05",
+        "top500_a571c6f129a0b2bd_context13_c03",
+        "top500_a571c6f129a0b2bd_material58_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/hkyFEIUZFfX5xvQ",
+          "canva_original_asset_id": "MAHaQICGhEI",
+          "original_uploaded_filename": "crystal-admiral-g42.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Крытый бассейн Crystal Admiral",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/hkyFEIUZFfX5xvQ",
+          "canva_original_asset_id": "MAHaQAkgnfY",
+          "original_uploaded_filename": "crystal-admiral-g02.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Crystal Admiral",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/hkyFEIUZFfX5xvQ",
+          "canva_original_asset_id": "MAHaQBVmzts",
+          "original_uploaded_filename": "crystal-admiral-g16.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 576
+          },
+          "alt": "Аквапарк Crystal Admiral",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 15872,
+      "logical_id": "commercial-crystal-waterworld-15872-v1",
+      "aliases": [
+        "Crystal Waterworld Aqua Collection",
+        "CRYSTAL WATERWORLD AQUA COLLECTION (EX. CRYSTAL WATERWORLD RESORT & SPA)",
+        "CRYSTAL WATERWORLD RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Crystal Waterworld Aqua Collection с перелётом\n📍 Белек, Турция.\n\nДля семейного отпуска с отдельными спальнями и песчаным пляжем.\n\n🛏 Family 33 м²: две спальни с дверью, двуспальная и две отдельные кровати.\n🏖 Собственный песчаный пляж на первой линии.\n🍽 Ultimate All Inclusive.\n\nКорпус размещения уточним при подборе тура.\n\n✈️ Подберём номер под вашу семью и рассчитаем тур с перелётом.",
+      "text_sha256": "a80a2c4368f94a68bfbf3124af8d41ccc100d5015ff4d3bdd2d5129aea86ad39",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/15872.png",
+      "photo_sha256": "205ee0bb30b26e983229396902890ced237b98bbc1f41368a1a2f33a83ad1535",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/belek/crystal_waterworld_resort_spa/",
+        "https://www.schauinsland-reisen.de/hotel/261485-crystal-waterworld-aqua-collection",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/s6N2KAq8XHIkRSx"
+      ],
+      "identity_binding": {
+        "anex_id": 15127,
+        "anytour_id": 1747,
+        "legacy_native_id": 15872,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQMFRCBg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_ac64aec71d3ed11c_run04_c01",
+        "top500_ac64aec71d3ed11c_run04_c02",
+        "top500_ac64aec71d3ed11c_run04_c03",
+        "top500_ac64aec71d3ed11c_run04_c04",
+        "top500_ac64aec71d3ed11c_mass31_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/s6N2KAq8XHIkRSx",
+          "canva_original_asset_id": "MAHaQNbG1Fs",
+          "original_uploaded_filename": "crystal-waterworld-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 576
+          },
+          "alt": "Crystal Waterworld и бассейн",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/s6N2KAq8XHIkRSx",
+          "canva_original_asset_id": "MAHaQPv8rkw",
+          "original_uploaded_filename": "crystal-waterworld-g02.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Crystal Waterworld",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/s6N2KAq8XHIkRSx",
+          "canva_original_asset_id": "MAHaQH9lF_8",
+          "original_uploaded_filename": "crystal-waterworld-g72.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Детская игровая зона Crystal Waterworld",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1141,
+      "logical_id": "commercial-crystal-family-1141-v1",
+      "aliases": [
+        "Crystal Family Comfort Collection",
+        "CRYSTAL FAMILY COMFORT COLLECTION (EX. CRYSTAL FAMILY RESORT & SPA)",
+        "Crystal Family Resort & Spa"
+      ],
+      "text": "✈️ Туры в Crystal Family Resort & Spa с перелётом\n📍 Белек, Турция.\n\nДля семейного отпуска с отдельными спальнями и водными развлечениями.\n\n🛏 Family 40 м²: две спальни с дверью.\n🎨 Мини клуб для детей от 4 до 12 лет.\n💦 Взрослые и детские водные горки.\n🍽 Ultimate All Inclusive.\n\nНа взрослые горки детей допускают от 10 лет; детские горки требуют присмотра родителей.\n\n✈️ Подберём размещение под возраст детей и рассчитаем тур с перелётом.",
+      "text_sha256": "50f461d75e826d1c53f188cd61443002e5bb9d2e2d991c33afbc1a61bde025e9",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1141.png",
+      "photo_sha256": "1e109765c3f797095ef69776136efac865dac44257ee3d1c9eed9cc748cfd9a8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/md/rus/country/turkey/belek/crystal_family_resort_spa/",
+        "https://kompastour.com/useruploads/tiny_MCE/turkey/Belek/crystal%20family%20resort%20&%20spa/crystal_family_comfort_collectio.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/Sy0cdyjCBrgDZkW"
+      ],
+      "identity_binding": {
+        "anex_id": 15122,
+        "anytour_id": 512,
+        "legacy_native_id": 1141,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQH6PSYQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7a5ff1aa09f06d91_run04_c01",
+        "top500_7a5ff1aa09f06d91_run04_c02",
+        "top500_7a5ff1aa09f06d91_context13_c03",
+        "top500_7a5ff1aa09f06d91_demand22_c01",
+        "top500_7a5ff1aa09f06d91_demand22_c02"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Sy0cdyjCBrgDZkW",
+          "canva_original_asset_id": "MAHaQKE43W8",
+          "original_uploaded_filename": "crystal-family-g25.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 576
+          },
+          "alt": "Сад и зона отдыха Crystal Family",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Sy0cdyjCBrgDZkW",
+          "canva_original_asset_id": "MAHaQDnKHZE",
+          "original_uploaded_filename": "crystal-family-r01.png",
+          "original_asset_dimensions": {
+            "width": 1000,
+            "height": 666
+          },
+          "alt": "Семейный номер Crystal Family",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Sy0cdyjCBrgDZkW",
+          "canva_original_asset_id": "MAHaQJpKiak",
+          "original_uploaded_filename": "crystal-family-g40.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Детская ресторанная зона Crystal Family",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1142,
+      "logical_id": "commercial-crystal-flora-1142-v1",
+      "aliases": [
+        "Crystal Flora Pearl Collection",
+        "CRYSTAL FLORA PEARL COLLECTION (EX. CRYSTAL FLORA BEACH RESORT)",
+        "Crystal Flora Beach Resort"
+      ],
+      "text": "✈️ Туры в Crystal Flora Beach Resort с перелётом\n📍 Бельдиби, Турция.\n\nДля отдыха у моря с музыкой по вечерам.\n\n🛏 Standard Double 19 м² с балконом и видом на окрестности.\n🏖 Пляж на первой линии.\n🍽 Ultimate All Inclusive.\n🎶 Живая музыка, турецкая ночь и дискотека по расписанию.\n\nВход в море галечный.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "780f5ca52e67611f1aaf3ce5b96a07db8f166bb0e89e859371e5d90b28ef0dcb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1142.png",
+      "photo_sha256": "ee03f78b6341175b790a8e092432c65562668b6e6e3a90d993042e59e65914bd",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/md/rus/country/turkey/kemer/crystal_flora_beach_resort/",
+        "https://www.icstrvl.ru/data/2026/04/29/4800749952/crystal-flora-pearl-collection-crystal-f..AL%20FLORA%20-%20FACT%20SHEET%202026%20-%20RU.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/7jtFH5Ktf_5pfcs"
+      ],
+      "identity_binding": {
+        "anex_id": 15123,
+        "anytour_id": 513,
+        "legacy_native_id": 1142,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQHx67jI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5b799c0302d7ab74_run04_c01",
+        "top500_5b799c0302d7ab74_run04_c02",
+        "top500_5b799c0302d7ab74_criteria46_c01",
+        "top500_5b799c0302d7ab74_run04_c04",
+        "top500_5b799c0302d7ab74_context13_c01",
+        "top500_5b799c0302d7ab74_context13_c03"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/7jtFH5Ktf_5pfcs",
+          "canva_original_asset_id": "MAHaQELsREA",
+          "original_uploaded_filename": "crystal-flora-g02.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 576
+          },
+          "alt": "Crystal Flora у моря",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/7jtFH5Ktf_5pfcs",
+          "canva_original_asset_id": "MAHaQJ1OsSw",
+          "original_uploaded_filename": "crystal-flora-g03.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Crystal Flora",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/7jtFH5Ktf_5pfcs",
+          "canva_original_asset_id": "MAHaQPJwSjE",
+          "original_uploaded_filename": "crystal-flora-g105.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Ресторанная терраса Crystal Flora у моря",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 28159,
+      "logical_id": "commercial-vonresort-golden-28159-v1",
+      "aliases": [
+        "Vonresort Golden Beach",
+        "VON RESORT GOLDEN BEACH (EX. VON CLUB GOLDEN BEACH)",
+        "VON RESORT GOLDEN BEACH",
+        "VON CLUB GOLDEN BEACH"
+      ],
+      "text": "✈️ Туры в VONRESORT Golden Beach с перелётом\n📍 Сиде, Турция.\n\nДля отпуска с пляжными днями и ночным перекусом.\n\n🛏 Standard 30 м².\n🏖 Собственный песчаный пляж примерно в 250 м.\n🚌 Гостиничный шаттл к пляжу.\n🍴 Ночной буфет в ресторане Allium.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "287096435e3d41c7048690e61ab76f93e05ec9baeaba184e0c56ed90cf0b8727",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/28159.png",
+      "photo_sha256": "a5bb18f789cd21433e91567502b3b92be9eab448226e9d03169ef92dfd2aa105",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://goldenbeach.vonresort.com/en",
+        "https://kompastravel.ch/hotelhits/turkey/vonresort-golden-beach",
+        "https://goldenbeach.vonresort.com/en/place/allium-restaurant-1433",
+        "https://www.dertour.de/hotel/vonresort-golden-beach-1116ZF",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/sABiC0-7_fbv7oU"
+      ],
+      "identity_binding": {
+        "anex_id": 8537,
+        "anytour_id": 2020,
+        "legacy_native_id": 28159,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQKAXHzA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e10f668107dd1873_run04_c01",
+        "top500_e10f668107dd1873_demand16_c01",
+        "top500_e10f668107dd1873_material58_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/sABiC0-7_fbv7oU",
+          "canva_original_asset_id": "MAHaQEitJr8",
+          "original_uploaded_filename": "vonresort-golden-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 576
+          },
+          "alt": "Бассейн VONRESORT Golden Beach с высоты",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/sABiC0-7_fbv7oU",
+          "canva_original_asset_id": "MAHaQJQVnMc",
+          "original_uploaded_filename": "vonresort-golden-g03.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера VONRESORT Golden Beach",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/sABiC0-7_fbv7oU",
+          "canva_original_asset_id": "MAHaQK-6gKA",
+          "original_uploaded_filename": "vonresort-golden-g77.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 576
+          },
+          "alt": "Территория и бассейн VONRESORT Golden Beach",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1014,
+      "logical_id": "commercial-side-star-elegance-1014-v1",
+      "aliases": [
+        "Side Star Elegance",
+        "SIDE STAR ELEGANCE (EX. ASTERIA SIDE)",
+        "ASTERIA SIDE"
+      ],
+      "text": "✈️ Туры в Side Star Elegance с перелётом\n📍 Сиде, Турция.\n\nДля отдыха у моря с музыкой по вечерам.\n\n🛏 Двухместный номер или категория Swim Up.\n🏖 Отель у пляжа.\n🍽 Вариант питания All Inclusive.\n🎶 Живая музыка.\n\nНа территории есть перепады высоты, к пляжу спускаются по лестницам или на лифте. Swim Up доступен гостям от 16 лет.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом.",
+      "text_sha256": "73ab895fb49038e8e645ede7156701d49324c29d1e8540e8732c048046a9eafb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/1014.png",
+      "photo_sha256": "61f5c9665b1ef0933b49af9ba9eb810d534abd24acc3c7c096c5b8c5bcc46a12",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.nl/side-star-elegance-509508408/",
+        "https://www.sidestarhotels.com/elegance/en",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/Kauy9mFJLkQLVDj"
+      ],
+      "identity_binding": {
+        "anex_id": 8475,
+        "anytour_id": 7425,
+        "legacy_native_id": 1014,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQFvAbYs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_b73b1521377bb3ea_run05_c01",
+        "top500_b73b1521377bb3ea_run05_c02",
+        "top500_b73b1521377bb3ea_run05_c03",
+        "top500_b73b1521377bb3ea_run05_c04",
+        "top500_b73b1521377bb3ea_run05_c05",
+        "top500_b73b1521377bb3ea_run05audit_c05"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Kauy9mFJLkQLVDj",
+          "canva_original_asset_id": "MAHaQJ407CI",
+          "original_uploaded_filename": "side-star-elegance-h01.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 750
+          },
+          "alt": "Бассейн Side Star Elegance вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Kauy9mFJLkQLVDj",
+          "canva_original_asset_id": "MAHaQBGNTa0",
+          "original_uploaded_filename": "side-star-elegance-r02.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 667
+          },
+          "alt": "Двухместный номер Side Star Elegance",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Kauy9mFJLkQLVDj",
+          "canva_original_asset_id": "MAHaQLgYnlI",
+          "original_uploaded_filename": "side-star-elegance-d01.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 750
+          },
+          "alt": "Ресторан Side Star Elegance",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 352,
+      "logical_id": "commercial-parrotel-aqua-352-v1",
+      "aliases": [
+        "Parrotel Aqua Park Resort (Ex. Park Inn By Radisson Sharm)",
+        "PARROTEL AQUA PARK RESORT (EX. PARK INN BY RADISSON)",
+        "Parrotel Aqua Park Resort",
+        "Park Inn By Radisson Sharm",
+        "PARK INN BY RADISSON"
+      ],
+      "text": "✈️ Туры в Parrotel Aqua Park Resort с перелётом\n📍 Шарм эль Шейх, Египет.\n\nДля семейного отпуска с просторным номером.\n\n🛏 Family от 68 до 75 м²: спальня и гостиная с дверью.\n🍽 All Inclusive.\n🚌 Трансфер к пляжу.\n🐠 Рифовый вход в море с общего понтона.\n\nОтель на второй линии: пляж через дорогу.\n\n✈️ Подберём размещение под вашу семью и рассчитаем тур с перелётом.",
+      "text_sha256": "39ebd3cca4a71c876e49c7defb8f95e516215ad3befad90bb1f90031fd5b44b5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-24/352.png",
+      "photo_sha256": "04167dd031a7fdb4fb7c963edb1fd56abbaf07acf67e1a238dd3b0fa326ed23d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/sharm/parrotel_aqua_park_resort/?load_map=",
+        "https://joinup.ro/ro/hotel/26589",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/M9Q5G1tjkZfvfrf"
+      ],
+      "identity_binding": {
+        "anex_id": 825,
+        "anytour_id": 147,
+        "legacy_native_id": 352,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQGAuen0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_79470161c4244f40_c01",
+        "top500_79470161c4244f40_c02",
+        "top500_79470161c4244f40_c03",
+        "top500_79470161c4244f40_c04",
+        "top500_79470161c4244f40_mass37_c01",
+        "top500_79470161c4244f40_mass37_c02"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/M9Q5G1tjkZfvfrf",
+          "canva_original_asset_id": "MAHaQILRSj4",
+          "original_uploaded_filename": "parrotel-aqua-g26.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 801
+          },
+          "alt": "Водные горки Parrotel Aqua Park Resort",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/M9Q5G1tjkZfvfrf",
+          "canva_original_asset_id": "MAHaQNqiBbo",
+          "original_uploaded_filename": "parrotel-aqua-g47.png",
+          "original_asset_dimensions": {
+            "width": 1170,
+            "height": 650
+          },
+          "alt": "Интерьер номера Parrotel Aqua Park Resort",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/M9Q5G1tjkZfvfrf",
+          "canva_original_asset_id": "MAHaQPv6GV8",
+          "original_uploaded_filename": "parrotel-aqua-g40.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 801
+          },
+          "alt": "Ресторанная терраса Parrotel Aqua Park Resort вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    }
+  ],
+  "heading_format_basis": {
+    "prepare_commit": "b2bbf3b76c4d1f21a143201e8a91d65b827f73f1",
+    "prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+    "only_two_heading_lines_changed": true,
+    "prior_body_photo_button_unchanged": true
+  }
+}
