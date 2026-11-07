@@ -1,0 +1,1240 @@
+{
+  "operation": "commercial-hotel-batch-20261107-31-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 388,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read38",
+        "run_id": 42400163043,
+        "original_read_sha256": "9982d11466f103ab6bcf1c29d7d5989e433805aaeac2ddd6c55293655783deb0",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed19 commercial captions in cutover24 format,57 real source photos and19 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before31/32 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nineteen-after-388-commercial-release-manifest.json",
+    "sha256": "388f01170cc39c4f2f054903290860697ee203bbb4a0427b075a59102edd434c",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-second20-commercial-captions.json",
+    "caption_sha256": "d648f930ca055d4292741ccd68b178277599784e668f0b779b1e945ae4b1fb23",
+    "subset_native_ids": [
+      1198,
+      1201,
+      1165,
+      109786,
+      1452,
+      46670,
+      956,
+      64371,
+      1344,
+      45496
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "source_held_native_ids": [
+    983
+  ],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1198,
+      "logical_id": "commercial-gloria-golf-1198-v1",
+      "aliases": [
+        "Gloria Golf Resort Hotel",
+        "GLORIA GOLF RESORT"
+      ],
+      "text": "✈️ Туры в Gloria Golf Resort с перелётом\n📍 Белек, Турция.\n\nДля семейного отдыха с отдельными спальнями и пляжем рядом.\n\n🛏 Family Suite 60 м²: две спальни и две ванные.\n🍽 All Inclusive Elegance.\n🏖 Собственный пляж с песком и галькой на первой линии.\n🎶 Живая музыка и вечерняя программа.\n\n✈️ Подберём номер под вашу семью и рассчитаем тур с перелётом.",
+      "text_sha256": "9c6765033de17ed4982dc020e7da2645142fd5aea18ce30beeb33c6198f11094",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/1198.png",
+      "photo_sha256": "b9208d92e9ec0810675d1564b898aa0f4299f57594ee72e70f83a7dc78348032",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/belek/gloria_golf_resort/",
+        "https://media.joinup.travel/storage/hotel/37499/files_en/Fact-Sheet-Gloria-Golf-Resort-2026.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-golf-resort-98851700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-golf-resort-98851715.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-golf-resort-98851726.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8579,
+        "anytour_id": 540,
+        "legacy_native_id": 1198,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQpw22xs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_3cd488b19d1502dd_c01",
+        "top500_3cd488b19d1502dd_c02",
+        "top500_3cd488b19d1502dd_c04",
+        "top500_3cd488b19d1502dd_c05",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c50"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-golf-resort-98851700.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6d6e466f8fe20b290ec1c720aa29933265552ef5ceb2afce9ed6f5c163be5787",
+          "source_png_sha256": "6ef72ca2fc8bb59750a49687221a607c86dddcb2a4ed6cc4692600dfe97efa87",
+          "source_png_bytes": 1903845,
+          "dimensions": [
+            1200,
+            674
+          ],
+          "alt": "Территория Gloria Golf Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQsGsT_c",
+          "canva_asset_dimensions": [
+            1200,
+            674
+          ],
+          "source_png_filename": "gloria-golf-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-golf-resort-98851715.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d6a684e593cc4aaec2fb028e7081f177da316b2761ca41ff8ac0a2364cbf33e7",
+          "source_png_sha256": "60f248981484b941d9b6e333e5053cd173c4727c3de2f4b213e5ca375d3f0b8f",
+          "source_png_bytes": 1890314,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Бар у бассейна Gloria Golf Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQp-GupQ",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "gloria-golf-g19.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g30",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-golf-resort-98851726.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "856d2ea4de14c73362e82cba80ba59352479069685ec9489ef69a8f6cd6ddf05",
+          "source_png_sha256": "1b670e2df5b2be9f70dd0db5b82d10adf78ebd4d5efdae50c5c4152bd8af2d94",
+          "source_png_bytes": 1112327,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Детская комната Gloria Golf Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQu7YGIE",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "gloria-golf-g30.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1201,
+      "logical_id": "commercial-gloria-verde-1201-v1",
+      "aliases": [
+        "Gloria Verde Resort Hotel",
+        "GLORIA VERDE RESORT"
+      ],
+      "text": "✈️ Туры в Gloria Verde Resort с перелётом\n📍 Белек, Турция.\n\nПляжные дни и вечера с живой музыкой.\n\n🛏 Standard 25 м² в основном здании.\n🍽 All Inclusive.\n🏖 Собственный пляж на первой линии; у входа в море песок и галька.\n🎶 Живая музыка и вечерняя программа.\n\n✈️ Подберём подходящий номер и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "08e7fd124c8df6b491209c48db6ec836ceb7d05675539fb12961b76c96e4bcea",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/1201.png",
+      "photo_sha256": "9409fac989df6424d729932c83a014a255a8f7b37ad8bf8d663bd8652f5b3f2e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/belek/gloria_verde_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-verde-resort-17700401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-verde-resort-17700425.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-verde-resort-17700435.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8582,
+        "anytour_id": 542,
+        "legacy_native_id": 1201,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQimVa4A",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8fe8c6cbd38f3849_c01",
+        "top500_8fe8c6cbd38f3849_c02",
+        "top500_8fe8c6cbd38f3849_c03",
+        "top500_8fe8c6cbd38f3849_c04",
+        "top500_8fe8c6cbd38f3849_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-verde-resort-17700401.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f34d4476f82ba6b12dfe551cc86ca02cc160f5bb52dbb4a25c137faa734e39f3",
+          "source_png_sha256": "3451b150218c7c71435bd863820807e70932b170ea624cb2628560f0935f2888",
+          "source_png_bytes": 1427040,
+          "dimensions": [
+            1200,
+            674
+          ],
+          "alt": "Территория и побережье Gloria Verde Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQkY9qzM",
+          "canva_asset_dimensions": [
+            1200,
+            674
+          ],
+          "source_png_filename": "gloria-verde-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g27",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-verde-resort-17700425.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "1b2e74e1cbaa02add62191af06eb38447daf0f12690dcc484363c0b5fb192d41",
+          "source_png_sha256": "ea4f1b5b189b9e50168bbeb680b2e08fa8150e8e84bf67c784c29fb2448a4c02",
+          "source_png_bytes": 1377027,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Бар у моря Gloria Verde Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQiGyb2A",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "gloria-verde-g27.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g37",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/gloria-verde-resort-17700435.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a243788e66e5cba76edb888b84894f6a4d218aba8062d3651bdf5f15287adbde",
+          "source_png_sha256": "05ba6ba90d0dbafd0ba3a9755b4f455b024fe5996ea4f48764adb14335e4e2ed",
+          "source_png_bytes": 1590173,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Детская площадка Gloria Verde Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQoyiMYY",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "gloria-verde-g37.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1165,
+      "logical_id": "commercial-ela-excellence-1165-v1",
+      "aliases": [
+        "Ela Excellence",
+        "ELA EXCELLENCE RESORT BELEK (EX. ELA QUALITY RESORT)"
+      ],
+      "text": "✈️ Туры в Ela Excellence Resort Belek с перелётом\n📍 Белек, Турция.\n\nПросторный номер и песчаный вход в море для семейного отдыха.\n\n🛏 Superior Garden View 45 м² в основном корпусе.\n🍽 Ela All Inclusive.\n🏖 Собственный пляж с пологим песчаным входом.\n🎶 Вечерние шоу и живая музыка.\n\n✈️ Подберём размещение для вашей семьи и рассчитаем тур с перелётом.",
+      "text_sha256": "4ca5ad24982cb804705f614fcfbf52f7dad2f91e493cd034fe04aa0430276ff6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/1165.png",
+      "photo_sha256": "9da286ac8d27fb357fc34e8f0d32880906ad8d6b482d1888c871932c2d4c1f75",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/belek/ela_quality_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ela-quality-102202358.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ela-quality-102202340.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ela-quality-1022023649.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8562,
+        "anytour_id": 524,
+        "legacy_native_id": 1165,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQp9k2Sg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e10c59c9d6a92633_c01",
+        "top500_e10c59c9d6a92633_c02",
+        "top500_e10c59c9d6a92633_c03",
+        "top500_e10c59c9d6a92633_c04",
+        "top500_e10c59c9d6a92633_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ela-quality-102202358.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0d0c4826968193c4c201b081cd4c6b3df0a61bb5abbf118df9e7a0648f5dddc4",
+          "source_png_sha256": "673b1e4427d5efa555e2b483af9a38f8c74a089528a31b8a35822b0390af4fd4",
+          "source_png_bytes": 1340399,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Бассейн и здания Ela Excellence Resort Belek",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQnUW4Fk",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "ela-excellence-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ela-quality-102202340.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "596f5da0310a45daaa5ea5ded82f906428e8a1689653eadb559c014acd225157",
+          "source_png_sha256": "301cc11036547e6f4e93c7dc71a27eafb9a9bb26477db280fb028f419b01af49",
+          "source_png_bytes": 1545469,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Пляжная территория Ela Excellence Resort Belek",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQphJbrU",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "ela-excellence-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g51",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ela-quality-1022023649.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fd971d6f09ff5adce280e23c337104da35e9674b011e974f9ee7782d4e9d0f6d",
+          "source_png_sha256": "d714569b94ac04a1bea204f194c3d802be51fce3d187e8eca43b386ceb58e387",
+          "source_png_bytes": 1776486,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан Ela Excellence Resort Belek",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQvvtR_Y",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "ela-excellence-g51.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 109786,
+      "logical_id": "commercial-ethno-belek-109786-v1",
+      "aliases": [
+        "Ethno Hotels Belek",
+        "ETHNO HOTEL BELEK"
+      ],
+      "text": "✈️ Туры в Ethno Belek с перелётом\n📍 Белек, Турция.\n\nОтдых вдвоём с просторным номером и вечерними шоу.\n\n🛏 Двухместный Deluxe Forest View около 56 м² с балконом.\n🍽 Ultra All Inclusive.\n🏖 Собственный пляж на первой линии.\n🎶 Вечерние шоу и живая музыка.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером на ваши даты.",
+      "text_sha256": "2165aeef7ad7d6098aaa9a6ae88b68397ce7d2a4d9e6b0649806453e21e7a08b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/109786.png",
+      "photo_sha256": "40076f55174d6db6c4a1c5f75843face349e03a43e55fdd31548b8e56f18646f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/belek/ethno_belek/",
+        "https://www.corendon.nl/turkije/turkse-riviera/belek/ethno-belek",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ethno-hotel-belek-67982521.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ethno-hotel-belek-67990300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ethno-hotel-belek-68005423.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37386,
+        "anytour_id": 3722,
+        "legacy_native_id": 109786,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQve32cg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_dd64b7227f51a79d_c01",
+        "top500_dd64b7227f51a79d_c02",
+        "top500_dd64b7227f51a79d_c04",
+        "top500_dd64b7227f51a79d_c05",
+        "top500_dd64b7227f51a79d_crit50_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ethno-hotel-belek-67982521.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c52388b3fefe2eff450f1fa131bee287de72bc5c9132632e167ebc750dc1195d",
+          "source_png_sha256": "94a707fe8da0cb45d38101c9d313804e2a3d248aee53132cce12373655348977",
+          "source_png_bytes": 1362434,
+          "dimensions": [
+            1024,
+            740
+          ],
+          "alt": "Территория Ethno Belek",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQkohEE8",
+          "canva_asset_dimensions": [
+            1024,
+            740
+          ],
+          "source_png_filename": "ethno-belek-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g61",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ethno-hotel-belek-67990300.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "60178fb4798d494c46f47c8dbbdbc4a2f67c651e9d789c9f1b02a43c8b35a97f",
+          "source_png_sha256": "c663b7bdc0342a98e65228ddaf6d271221fa5bbe3fe0909bf914c92a528a4f3b",
+          "source_png_bytes": 735154,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Ethno Belek",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQlTYd44",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "ethno-belek-g61.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g204",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ethno-hotel-belek-68005423.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b8daf2d9a38471e16d43cd5ec199c567e1f90c5693fa22f41398b6a7bee74177",
+          "source_png_sha256": "95c63a44c37bd1e9d1484feee664d64ae09d4d49b2c7e781636e6aeb928464f8",
+          "source_png_bytes": 875973,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Ресторан Ethno Belek",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQk53F_c",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "ethno-belek-g204.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1452,
+      "logical_id": "commercial-rixos-sungate-1452-v1",
+      "aliases": [
+        "Rixos Sungate",
+        "RIXOS SUNGATE THE LAND OF LEGENDS FREE ACCESS"
+      ],
+      "text": "✈️ Туры в Rixos Sungate с перелётом\n📍 Кемер, Турция.\n\nМоре днём и дискотека вечером.\n\n🛏 Двухместный Standard Mountain View около 38 м² в главном корпусе.\n🍽 All Exclusive All Inclusive.\n🏖 Собственный пляж с песком и мелкой галькой.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "94694367e08991eba3eb3cadc4db45d2b82cab3dd97da5d43946bf08924dec36",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/1452.png",
+      "photo_sha256": "d56fd543e5a59aa2e927910c8d75f67096122b481b27de625962366a6333ecab",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/kemer/rixos_sungate/",
+        "https://www.tui-reisecenter.sk/hotel/najoblubenejsie-destinacie/kemer-a-beldibi/rixos-sungate",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-sungate-99446901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-sungate-99446921.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-sungate-99446913.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8383,
+        "anytour_id": 686,
+        "legacy_native_id": 1452,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQqvfuPc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_da4c625a9315485d_c01",
+        "top500_da4c625a9315485d_c02",
+        "top500_da4c625a9315485d_c04",
+        "top500_da4c625a9315485d_c05",
+        "top500_da4c625a9315485d_run10_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-sungate-99446901.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e5aef7c0848a029b5cc8a134adde9e1c2399ce15bfdd2a76af8802765a19e578",
+          "source_png_sha256": "c4acbebb56ef304c9bc1e4087db54d7eb9730a0987d21c7706d9a3d12c1a2e30",
+          "source_png_bytes": 1187002,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Территория и побережье Rixos Sungate",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9OlI14",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-sungate-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g23",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-sungate-99446921.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c56947542f7f81e96de86028b059fbeaa7298a663d17273d5fb797167d91a460",
+          "source_png_sha256": "068e1f9d0866079171cbe9f9d29ffa4a5d7f8156ffdb175ab8527f4fac8e3341",
+          "source_png_bytes": 762593,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Один из номеров Rixos Sungate",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ90bN4k",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-sungate-g23.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-sungate-99446913.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e798eb8a84113c7ddf41e89b1645d96a3325b1f1bc3d28e578af764955c440db",
+          "source_png_sha256": "e228b62784de01923ece16556033a369a5bf2bbc9e085d7d099866cfd161f8c3",
+          "source_png_bytes": 609827,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Один из номеров Rixos Sungate",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9x4dl8",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-sungate-g15.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 46670,
+      "logical_id": "commercial-trendy-lara-46670-v1",
+      "aliases": [
+        "Trendy Lara Hotel",
+        "TRENDY LARA"
+      ],
+      "text": "✈️ Туры в Trendy Lara с перелётом\n📍 Анталья, Турция.\n\nДо пляжа по реке на катере, вечером живая музыка.\n\n🛏 Standard 36 м² в основном здании.\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж, бесплатный катер от отеля.\n🎶 Живая музыка в отдельные дни.\n\n✈️ Подберём номер под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "5dbce04686c7615f9c6086817960cf23e487b4580ae2bd8a02b5001ae7b801d7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/46670.png",
+      "photo_sha256": "552ce5d01944224d4e1d991d573d9d9bcd3b0f413a3a2a9b186085a29e4a874d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/antaliya/trendy_lara/",
+        "https://trendy.com.tr/en/trendy-lara/trendy-lara-havuzlar-ve-plajlar/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/trendy-lara-42622100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/trendy-lara-42622150.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/trendy-lara-42622114.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 13756,
+        "anytour_id": 2431,
+        "legacy_native_id": 46670,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQhZN570",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_63accdf7b8c08a99_c01",
+        "top500_63accdf7b8c08a99_c02",
+        "top500_63accdf7b8c08a99_c03",
+        "top500_63accdf7b8c08a99_c04",
+        "top500_63accdf7b8c08a99_c05",
+        "top500_63accdf7b8c08a99_demand25_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/trendy-lara-42622100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "1fb1a8852e7669647bd2902142d53f97c648db24972c7ccbc063a28d4741f15a",
+          "source_png_sha256": "a9c3d1743e5ee745a58e4cbc1e710119bb0eefc2adf4425f7d223734cbfe0298",
+          "source_png_bytes": 851995,
+          "dimensions": [
+            1024,
+            599
+          ],
+          "alt": "Территория Trendy Lara",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQsmXySY",
+          "canva_asset_dimensions": [
+            1024,
+            599
+          ],
+          "source_png_filename": "trendy-lara-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g52",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/trendy-lara-42622150.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2d6f59f2e7e739be326c5618db49f6370c5b32a8849993d0d55f7457b6deeade",
+          "source_png_sha256": "f576fd8c9c575a86f5ba9caad93ed16db35574a4cd4ef1202148b444aa88a211",
+          "source_png_bytes": 520177,
+          "dimensions": [
+            1024,
+            512
+          ],
+          "alt": "Один из номеров Trendy Lara",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQk7dwWQ",
+          "canva_asset_dimensions": [
+            1024,
+            512
+          ],
+          "source_png_filename": "trendy-lara-g52.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/trendy-lara-42622114.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3cc0d6f24af0ba8c695a3d6f22e81deef84163d74e9ec6b3dd04705694723fbf",
+          "source_png_sha256": "5379c0353b3fd7ac396693902ca5fb70328bc72970031d72e0743ca58021d558",
+          "source_png_bytes": 762656,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Лобби Trendy Lara",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQpZ9qFA",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "trendy-lara-g16.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 956,
+      "logical_id": "commercial-akka-claros-956-v1",
+      "aliases": [
+        "Akka Hotels Claros",
+        "AKKA CLAROS HOTEL"
+      ],
+      "text": "✈️ Туры в Akka Claros Hotel с перелётом\n📍 Кемер, Турция.\n\nДля отдыха вдвоём с All Inclusive и вечерней музыкой.\n\n🛏 Standard от 22 до 25 м² с балконом.\n🍽 All Inclusive.\n🏖 Собственный пляж примерно в 350 м от отеля.\n🎶 Живая музыка и вечерняя программа.\n\n✈️ Рассчитаем тур с перелётом и номером на ваши даты.",
+      "text_sha256": "2e96036eeb2878bdf636935c269acd366aef10f37aca00e4182e638b546ed241",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/956.png",
+      "photo_sha256": "d04c36caf38e2a9eac147a5062918c3c897b06d1a0723e0c572496bc3e284822",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/kemer/akka_claros_hotel/",
+        "https://www.akkahotels.com/claros/en/standard-room",
+        "https://www.fibula.rs/avionom/turska/antalijska-regija/kemer/akka-claros-hotel--19153",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-park-claros-15504800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-park-claros-15504825.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-park-claros-15504805.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8209,
+        "anytour_id": 407,
+        "legacy_native_id": 956,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQnQFVnM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d08522c77718a97d_c01",
+        "top500_d08522c77718a97d_c02",
+        "top500_d08522c77718a97d_c04",
+        "top500_d08522c77718a97d_c05",
+        "top500_d08522c77718a97d_run10_c01",
+        "top500_d08522c77718a97d_run12_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-park-claros-15504800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "cffb414581479d535d47e0553ecf62c773080218ac5759448aa32a1531791729",
+          "source_png_sha256": "fd0f1d0b323d4c8c492471c762cd41dc38cb9300bcd5ee77e1cc84b19774455e",
+          "source_png_bytes": 1563609,
+          "dimensions": [
+            1200,
+            779
+          ],
+          "alt": "Территория Akka Claros Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQhol9uo",
+          "canva_asset_dimensions": [
+            1200,
+            779
+          ],
+          "source_png_filename": "akka-claros-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g27",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-park-claros-15504825.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2ce86e9cf886bf51d127d3809032690fd28ff87834b3a79869987c8ca0c894f0",
+          "source_png_sha256": "d3ed0f3b7e95071f1a1967863c96fef9cf991a37f6cf884d409d490fd755abcc",
+          "source_png_bytes": 938297,
+          "dimensions": [
+            1200,
+            757
+          ],
+          "alt": "Один из номеров Akka Claros Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQsPepQA",
+          "canva_asset_dimensions": [
+            1200,
+            757
+          ],
+          "source_png_filename": "akka-claros-g27.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g07",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-park-claros-15504805.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "40f586ba816dfe5c0a193fc0a8878cf94c49896bc60129abeb3a9b40a5c59470",
+          "source_png_sha256": "81b547483cfb31e05f6776a7c4d8e10f8782ddf121653f526c0d2be7d7706083",
+          "source_png_bytes": 816993,
+          "dimensions": [
+            1200,
+            794
+          ],
+          "alt": "Буфет ресторана Akka Claros Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQoFzvkU",
+          "canva_asset_dimensions": [
+            1200,
+            794
+          ],
+          "source_png_filename": "akka-claros-g07.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 64371,
+      "logical_id": "commercial-crystal-boutique-64371-v1",
+      "aliases": [
+        "Crystal Boutique Comfort Collection (Adults Only)",
+        "CRYSTAL BOUTIQUE COMFORT COLLECTION ADULTS ONLY 16+"
+      ],
+      "text": "✈️ Туры в Crystal Boutique Comfort Collection с перелётом\n📍 Белек, Турция.\n\nОтдых вдвоём в отеле для гостей от 16 лет.\n\n🛏 Двухместный Standard 21 м² с балконом.\n🍽 Ultimate All Inclusive.\n🏖 Собственный пляж с песком и галькой в пешей доступности.\n\n✈️ Подберём номер и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "84f8096950b23cce65146ebf6e2626e8300468eeca3134b8ac4bcfc0164d050c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/64371.png",
+      "photo_sha256": "5e8b0a656bb8e9afdeb2e36d3a10a5210c140524f4ff392f609675e5d2b4b7e7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/belek/crystal_boutique_beach_resort/",
+        "https://www.ltur.com/at/urlaub/crystal-boutique-comfort-collection-866472",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-boutique-beach-resort-19921700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-boutique-beach-resort-19921717.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-boutique-beach-resort-19921721.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21523,
+        "anytour_id": 2900,
+        "legacy_native_id": 64371,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQkGs27g",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d8f39cd6daa3be80_run04_c01",
+        "top500_d8f39cd6daa3be80_run04_c02",
+        "top500_d8f39cd6daa3be80_run04_c04",
+        "top500_d8f39cd6daa3be80_run04_c05",
+        "top500_d8f39cd6daa3be80_run10_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-boutique-beach-resort-19921700.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9ce9a95633c48a1fe63318e75f4fb6617e9a372720a4c38d1fb78d8cee32e107",
+          "source_png_sha256": "1a2bba594e6493a3e42e4c6e1dcf0e4e035f7d669ed3ecf72f0aca0454b01718",
+          "source_png_bytes": 1526765,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Территория Crystal Boutique Comfort Collection",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQjXqWdI",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "crystal-boutique-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-boutique-beach-resort-19921717.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "470a4b7137053d62d83ed9e26687cbfd6756f4faf845d63046fbf2ce2ad1d53c",
+          "source_png_sha256": "d466573c2469aa6337e64a1d26b1dceda1ffc042644f0c1e15d56ca68dadc227",
+          "source_png_bytes": 1440209,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Территория у бассейна Crystal Boutique Comfort Collection",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQpo3mG8",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "crystal-boutique-g19.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g23",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-boutique-beach-resort-19921721.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5d5baf7e011e74c043283954441c0d911fa024425b677d15fa849ab169e4031f",
+          "source_png_sha256": "20f3d22a987e05aa9929ce0bc720b9949e0f8a01c34f3baa5b8b0a6a92dad6dc",
+          "source_png_bytes": 1263105,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Бассейн Crystal Boutique Comfort Collection",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQnORXfc",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "crystal-boutique-g23.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1344,
+      "logical_id": "commercial-lonicera-resort-1344-v1",
+      "aliases": [
+        "Lonicera Resort & Spa",
+        "LONICERA RESORT & SPA HOTEL"
+      ],
+      "text": "✈️ Туры в Lonicera Resort & Spa с перелётом\n📍 Аланья, Турция.\n\nСемейный отдых с двумя комнатами и детским клубом.\n\n🛏 Resort Family 72 м²: две комнаты.\n🏖 Песчаный пляж комплекса.\n🧒 Детский клуб для гостей от 4 до 12 лет.\n\n✈️ Подберём размещение именно в Lonicera Resort & Spa, подходящее питание и рассчитаем тур с перелётом.",
+      "text_sha256": "fc58fabeff2808645333e3c20e0325835ae082277c31ff76a37e755b69e4b947",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/1344.png",
+      "photo_sha256": "c659702ddc4636ca55bd5600e434aa37d4bda18498e6719f16e7672e63cfa9f4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.lonicera.com.tr/en/resort/servisler.html",
+        "https://kompastour.com/by/rus/country/turkey/alanya/lonicera_world_resort_spa/",
+        "https://lonicera.com.tr/",
+        "https://www.lonicera.com.tr/en/resort/servisler/odalar.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-6301501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-6295303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-6346610.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14845,
+        "anytour_id": 625,
+        "legacy_native_id": 1344,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQuLSblI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7da87efe6c90d580_run04_c01",
+        "top500_7da87efe6c90d580_run04_c03",
+        "top500_7da87efe6c90d580_run04_c04",
+        "top500_7da87efe6c90d580_demand22_c01",
+        "HOTEL-TR-MANUAL-20261025T205516Z-BASE09_c10"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-6301501.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "65315d3139b4181f4f87405e0acfdccc8fad5a465aba53bcbb9fb48a7ba3bb4b",
+          "source_png_sha256": "74c3369121c8c92a05e2af555dfb889240f9a9da5b9a8d8a82e081495757373c",
+          "source_png_bytes": 1694409,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "Главное здание Lonicera Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQiNr9ks",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "lonicera-resort-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-6295303.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c22d59c4ce26c5a38073e5ee3b73a99569a3c9617cb4d33030cfadb199f5743d",
+          "source_png_sha256": "291ea683d985ec93108db066a6aa15c6d0f9e782bfd12a6ce361840eff9a1aea",
+          "source_png_bytes": 849266,
+          "dimensions": [
+            1024,
+            684
+          ],
+          "alt": "Детская комната Lonicera Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQla2K00",
+          "canva_asset_dimensions": [
+            1024,
+            684
+          ],
+          "source_png_filename": "lonicera-resort-g16.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g42",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-6346610.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "49aa4fdb43cf1ad82ccbd4361f16f0d9115921994422710e644c68be99115543",
+          "source_png_sha256": "f024490882cfb2f65bcd6096953ffe4a8f9fa7c52efa6ba4cb4a461850a5c8c9",
+          "source_png_bytes": 1114393,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан Lonicera Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQtFWOX4",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "lonicera-resort-g42.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 45496,
+      "logical_id": "commercial-asia-beach-45496-v1",
+      "aliases": [
+        "Asia Beach Resort & Spa Hotel",
+        "ASIA BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Asia Beach Resort & Spa с перелётом\n📍 Аланья, Турция.\n\nДля отдыха у моря с выбором подходящего номера.\n\n🛏 Standard 29 м²; наличие балкона зависит от категории.\n🏖 Собственный пляж и пирс с выходом к морю.\n\n✈️ Подберём номер и питание на ваши даты. Рассчитаем полную стоимость тура с перелётом для вашего состава.",
+      "text_sha256": "6029ebc17409e05ee819effbcafe715118886505bdc41a16e8c4f9e403160709",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/930fc44cdf87eab80c154d6ca6bcc0699288d0ba/.github/traffic-publish/commercial-batch-20261107-31/45496.png",
+      "photo_sha256": "25387751bdbc57f198648956a7aaf56518b8dcc96ea0416ca41a9ce3a734cf39",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://joinup.md/media/2022/10/2025ingilizce-fact-sheet.pdf",
+        "https://www.asiabeachresort.com/en/room/standard-room",
+        "https://www.asiabeachresort.com/en/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1198&legacyHotelIds%5B%5D=1201&legacyHotelIds%5B%5D=1165&legacyHotelIds%5B%5D=109786&legacyHotelIds%5B%5D=1452&legacyHotelIds%5B%5D=46670&legacyHotelIds%5B%5D=956&legacyHotelIds%5B%5D=64371&legacyHotelIds%5B%5D=1344&legacyHotelIds%5B%5D=45496&legacyHotelIds%5B%5D=2222&legacyHotelIds%5B%5D=1042&legacyHotelIds%5B%5D=15917&legacyHotelIds%5B%5D=1493&legacyHotelIds%5B%5D=1154&legacyHotelIds%5B%5D=970&legacyHotelIds%5B%5D=1055&legacyHotelIds%5B%5D=75040&legacyHotelIds%5B%5D=983&legacyHotelIds%5B%5D=1124",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/asia-beach-102404350.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/asia-beach-1024043614.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/asia-beach-102404365.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 11109,
+        "anytour_id": 2413,
+        "legacy_native_id": 45496,
+        "source_file": "additional-second20-current-catalog.json",
+        "source_sha256": "5ef936817948deca58693ba3c0daa3b2d0c2623451c91a8a56900a119e9afbbe",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQhCRGE4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d5afa99659d9ce27_gap50_1_c1",
+        "top500_d5afa99659d9ce27_run04_c01",
+        "top500_d5afa99659d9ce27_run04_c02",
+        "top500_d5afa99659d9ce27_run04_c03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/asia-beach-102404350.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c0cbfe94766e22ec3f6a3146ce8edda3f70baa5c03bb523f655097c80379c330",
+          "source_png_sha256": "d87ab5f1847bbffb2f4d99487d04ebb1218b14ad8e959c2404dc3915fad30349",
+          "source_png_bytes": 1364317,
+          "dimensions": [
+            1200,
+            751
+          ],
+          "alt": "Здание и бассейн Asia Beach Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQncD5_o",
+          "canva_asset_dimensions": [
+            1200,
+            751
+          ],
+          "source_png_filename": "asia-beach-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/asia-beach-1024043614.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "50e14e4752cc548c8f321712eb5f16a50b24beda32e56d5259c281e150938e7b",
+          "source_png_sha256": "2d02235599b4ad6b436ecfb78ea0f657d234ebc8928b915e94b445d9048113b5",
+          "source_png_bytes": 785567,
+          "dimensions": [
+            1200,
+            593
+          ],
+          "alt": "Пляж и пирс Asia Beach Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQkw5smQ",
+          "canva_asset_dimensions": [
+            1200,
+            593
+          ],
+          "source_png_filename": "asia-beach-g16.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g07",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/asia-beach-102404365.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "eb628fcfcb7970f063fc2c1d209df24ae11a14be719fc4d31992063904654a84",
+          "source_png_sha256": "5afa1b2e14dd655ed753e9d79d0edd1dbf9c9cdb4b46e18835a88abeef484a41",
+          "source_png_bytes": 1168687,
+          "dimensions": [
+            1200,
+            745
+          ],
+          "alt": "Лобби Asia Beach Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQjy5pYI",
+          "canva_asset_dimensions": [
+            1200,
+            745
+          ],
+          "source_png_filename": "asia-beach-g07.png"
+        }
+      ]
+    }
+  ]
+}
