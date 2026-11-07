@@ -1,0 +1,202 @@
+[
+  {
+    "hotel_id": 206,
+    "logical_id": null,
+    "aliases": [
+      "White Valley Palace",
+      "PALACE BEACH HOTEL (EX. WHITE VALLEY)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 466,
+    "logical_id": null,
+    "aliases": [
+      "Stella Beach Resort & Spa Makadi Bay",
+      "STELLA MAKADI BEACH RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 14140,
+    "logical_id": null,
+    "aliases": [
+      "Stella Gardens Resort & Spa Makadi Bay",
+      "STELLA MAKADI GARDENS RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 124,
+    "logical_id": null,
+    "aliases": [
+      "Amwaj Oyoun Hotel & Resort Sharm El Sheikh",
+      "AMWAJ OYOUN RESORT & CASINO (EX. AA AMWAJ HOTEL & RESORT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1962,
+    "logical_id": null,
+    "aliases": [
+      "Baron Palms Resort (Adult Only +16)",
+      "BARON PALMS RESORT ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 91404,
+    "logical_id": null,
+    "aliases": [
+      "Swissotel Sharm El Sheikh Managed By Rixos",
+      "SWISSOTEL SHARM EL SHEIKH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 319,
+    "logical_id": null,
+    "aliases": [
+      "Sunrise Remal Beach",
+      "SUNRISE REMAL BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 134,
+    "logical_id": null,
+    "aliases": [
+      "Albatros Sharm Resort Sharm El Sheikh (Ex. Beach Albatros)",
+      "ALBATROS SHARM (EX. BEACH ALBATROS SHARM)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 71147,
+    "logical_id": null,
+    "aliases": [
+      "Parrotel Lagoon Resort Sharm El Sheikh",
+      "PARROTEL LAGOON WATERPARK RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 71259,
+    "logical_id": null,
+    "aliases": [
+      "Alibu Resort Nha Trang",
+      "ALIBU RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 117935,
+    "logical_id": null,
+    "aliases": [
+      "Avari Boutique Hotel",
+      "AVARI HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 81154,
+    "logical_id": null,
+    "aliases": [
+      "December Hotel",
+      "DECEMBER HOTEL NHA TRANG"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 36451,
+    "logical_id": null,
+    "aliases": [
+      "Edele Hotel Nha Trang",
+      "EDELE HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 32356,
+    "logical_id": null,
+    "aliases": [
+      "Galina Hotel",
+      "GALINA HOTEL & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 36453,
+    "logical_id": null,
+    "aliases": [
+      "GM Doc Let Beach Resort",
+      "GM DOC LET BEACH RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 70032,
+    "logical_id": null,
+    "aliases": [
+      "Gonsala Nha Trang Hotel",
+      "GONSALA HOTEL NHA TRANG"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 28509,
+    "logical_id": null,
+    "aliases": [
+      "Green World Hotel Nha Trang",
+      "GREEN WORLD NHA TRANG"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 57082,
+    "logical_id": null,
+    "aliases": [
+      "Ibis Styles Nha Trang Hotel",
+      "IBIS STYLES NHA TRANG"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 64672,
+    "logical_id": null,
+    "aliases": [
+      "Maple Hotel & Apartment",
+      "MAPLE HOTEL & APARTMENT NHA TRANG"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 80605,
+    "logical_id": null,
+    "aliases": [
+      "Miracle Luxury Hotel",
+      "MIRACLE LUXURY"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_fifth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  }
+]
