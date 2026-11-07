@@ -1,0 +1,471 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read43",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 1380,
+      "name": "Mirada Del Mar",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/437",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3oYGfVHM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1380.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 949,
+      "name": "Adam & Eve",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/438",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3oYrTVTI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/949.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1483,
+      "name": "Seher Resort & Spa",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/439",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3oZO-Yqw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1483.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1196,
+      "name": "Viking Garden Hotel & Spa",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/440",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3oZykOIE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1196.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1051,
+      "name": "Blue Fish Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/441",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3oaW-MPo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1051.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 53514,
+      "name": "Royal Seginus",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/442",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3oa6FOpM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/53514.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 15873,
+      "name": "White City Resort",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/443",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3obfMTSI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/15873.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 28754,
+      "name": "Kleopatra Atlas",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/444",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3ocDhB_s",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/28754.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1189,
+      "name": "Flora Garden Beach",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/445",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3ocnWfBg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1189.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1410,
+      "name": "Ozkaymak Marina",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/446",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3odK-HZs",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1410.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1339,
+      "name": "Limak Limra",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/447",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3o82NB0U",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1339.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1586,
+      "name": "White City Beach",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/448",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3o9ayEyo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1586.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 55925,
+      "name": "Villa Sunflower",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/449",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3o9-xTb0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/55925.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 113292,
+      "name": "Granada Luxury Red",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/450",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3o-ijcuk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/113292.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1436,
+      "name": "Porto Bello Hotel Resort & Spa",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/451",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3o_FYBiA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1436.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 53578,
+      "name": "Kahya Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/452",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3o_pIVEI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/53578.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1336,
+      "name": "Limak Arcadia Sport Resort",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/453",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3pAMxE1A",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1336.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1004,
+      "name": "Sealife Buket Resort & Beach",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/454",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3pAxRYIY",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1004.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 17595,
+      "name": "Ramada Resort Lara",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/455",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3pBVMct4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/17595.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 19,
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 70033,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Nalicas Nha Trang Hotel",
+        "NALICAS HOTEL"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 57652,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Queen Ann Nha Trang Hotel",
+        "QUEEN ANN NHA TRANG"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 57650,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Red Sun Nha Trang Hotel",
+        "RED SUN NHA TRANG"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 23766,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Sea Light Hotel",
+        "SEA LIGHT"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 4078,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Starlet Hotel",
+        "STARLET"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 24778,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Aroma Beach Resort & Spa Muine",
+        "AROMA BEACH RESORT & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 4054,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Muine Century Beach Resort & Spa (Ex. Muine De Century Beach)",
+        "MUINE DE CENTURY BEACH RESORT & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 14133,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Oriental Pearl Resort (Hoang Ngoc)",
+        "HOANG NGOC BEACH RESORT (ORIENTAL PEARL)"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 4074,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Seahorse Resort",
+        "SEAHORSE RESORT & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 4079,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Sunny Beach Resort",
+        "SUNNY BEACH RESORT & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 80915,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ana Mandara Cam Ranh Resort",
+        "ANA MANDARA CAM RANH"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 65254,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Premier Residences Phu Quoc Emerald Bay Managed By Accorhotels",
+        "PREMIER RESIDENCES PHU QUOC EMERALD BAY"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 22791,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Thien Thanh Phu Quoc Resort",
+        "THIEN THANH RESORT"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 57064,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Muong Thanh Luxury Phu Quoc Hotel",
+        "MUONG THANH LUXURY PHU QUOC"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 57039,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Amarin Resort & Spa",
+        "AMARIN RESORT"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 65266,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Palma Phu Quoc Resort",
+        "PALMA RESORT",
+        "PALMA RESORT PHU QUOC TRADEMARK COLLECTION BY WYNDHAM"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 116934,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Courtyard By Marriott Phuket, Patong Beach",
+        "COURTYARD BY MARRIOTT PHUKET PATONG BEACH RESORT"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 681,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Kata Sea Breeze Resort",
+        "KATA SEA BREEZE"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 8008,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "La Flora Khao Lak",
+        "LA FLORA RESORT & SPA KHAO LAK"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 119046,
+      "scope": "additional_sixth20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Sugar Marina Resort Pop Kata Beach",
+        "SUGAR MARINA HOTEL POP KATA BEACH"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    }
+  ],
+  "candidate_count": 20,
+  "read_at_utc": "2026-11-07T20:14:58+00:00",
+  "scope_hotels": 19,
+  "feed_rows": 19,
+  "deferred_count": 0,
+  "installed_sha": "6d193b7740dc212b92b1893041f0a1047b179635"
+}

@@ -1,0 +1,88 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update41",
+  "state": "PREPARED_CONFIRMED_MAX441_INSTALL",
+  "new_hotel_ids": [
+    1380,
+    949,
+    1483,
+    1196,
+    1051,
+    53514,
+    15873,
+    28754,
+    1189,
+    1410,
+    1339,
+    1586,
+    55925,
+    113292,
+    1436,
+    53578,
+    1336,
+    1004,
+    17595
+  ],
+  "previous_rows": [
+    422,
+    422,
+    844
+  ],
+  "target_rows": [
+    441,
+    441,
+    882
+  ],
+  "previous422_offer_blocks_identical": true,
+  "max_route_install_run": 42410274956,
+  "max_route_install_commit": "c4b1f4892e87e8aa90cceda05d75835df6358509",
+  "new19_binding_run": 42410067722,
+  "new19_binding_artifact": 13589236290,
+  "approved_destination_labels": {
+    "1380": "Кемер",
+    "949": "Белек",
+    "1483": "Сиде",
+    "1196": "Кемер",
+    "1051": "Аланья",
+    "53514": "Анталья",
+    "15873": "Аланья",
+    "28754": "Аланья",
+    "1189": "Сиде",
+    "1410": "Кемер",
+    "1339": "Кемер",
+    "1586": "Аланья",
+    "55925": "Аланья",
+    "113292": "Аланья",
+    "1436": "Анталья",
+    "53578": "Аланья",
+    "1336": "Белек",
+    "1004": "Аланья",
+    "17595": "Анталья"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 283483,
+      "sha256": "df683249875108f0e5bce45ccb53441435e9a8d46478dbebaa2eb2d1695df989",
+      "rows": 441,
+      "expected_previous_sha256": "941cbe76738e99865fb6efc685536c86832731350e5311e757b5229f075fda3d"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 354752,
+      "sha256": "ed41c37d547a6663077097a8a5c01d5a7be36988be4568e6bcb45c830dd2fdb3",
+      "rows": 441,
+      "expected_previous_sha256": "4dbc75ee49f0e8f494a6e4a56d0267c05055152ac7a79efb454068d942fb93a9"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 637862,
+      "sha256": "fcb199632e01eb5587794fdbf1b4e76c063369ed121ffd4b290da735f989a30e",
+      "rows": 882,
+      "expected_previous_sha256": "15565149428bc3ea67bd0132c146c24f59c7e0ff3a5caa05e3648054908d21ba"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

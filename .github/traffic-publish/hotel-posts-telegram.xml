@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 20:01">
+<yml_catalog date="2026-11-07 20:18">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -3802,6 +3802,177 @@
         <description>Тур с перелётом. Калутара. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Калутара</custom_label_1>
+      </offer>
+      <offer id="tg_1380">
+        <url>https://t.me/any_toour/437</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1380.png</picture>
+        <name>Путевки в Mirada Del Mar</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="tg_949">
+        <url>https://t.me/any_toour/438</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/949.png</picture>
+        <name>Путевки в Adam &amp; Eve</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_1483">
+        <url>https://t.me/any_toour/439</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1483.png</picture>
+        <name>Путевки в Seher Resort &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_1196">
+        <url>https://t.me/any_toour/440</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1196.png</picture>
+        <name>Путевки в Viking Garden Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="tg_1051">
+        <url>https://t.me/any_toour/441</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1051.png</picture>
+        <name>Путевки в Blue Fish Hotel</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_53514">
+        <url>https://t.me/any_toour/442</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/53514.png</picture>
+        <name>Путевки в Royal Seginus</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="tg_15873">
+        <url>https://t.me/any_toour/443</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/15873.png</picture>
+        <name>Путевки в White City Resort</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_28754">
+        <url>https://t.me/any_toour/444</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/28754.png</picture>
+        <name>Путевки в Kleopatra Atlas</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_1189">
+        <url>https://t.me/any_toour/445</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1189.png</picture>
+        <name>Путевки в Flora Garden Beach</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_1410">
+        <url>https://t.me/any_toour/446</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-35/1410.png</picture>
+        <name>Путевки в Ozkaymak Marina</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="tg_1339">
+        <url>https://t.me/any_toour/447</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1339.png</picture>
+        <name>Путевки в Limak Limra</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="tg_1586">
+        <url>https://t.me/any_toour/448</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1586.png</picture>
+        <name>Путевки в White City Beach</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_55925">
+        <url>https://t.me/any_toour/449</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/55925.png</picture>
+        <name>Путевки в Villa Sunflower</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_113292">
+        <url>https://t.me/any_toour/450</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/113292.png</picture>
+        <name>Путевки в Granada Luxury Red</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_1436">
+        <url>https://t.me/any_toour/451</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1436.png</picture>
+        <name>Путевки в Porto Bello Hotel Resort &amp; Spa</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="tg_53578">
+        <url>https://t.me/any_toour/452</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/53578.png</picture>
+        <name>Путевки в Kahya Hotel</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_1336">
+        <url>https://t.me/any_toour/453</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1336.png</picture>
+        <name>Путевки в Limak Arcadia Sport Resort</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_1004">
+        <url>https://t.me/any_toour/454</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1004.png</picture>
+        <name>Путевки в Sealife Buket Resort &amp; Beach</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_17595">
+        <url>https://t.me/any_toour/455</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/17595.png</picture>
+        <name>Путевки в Ramada Resort Lara</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
       </offer>
     </offers>
   </shop>
