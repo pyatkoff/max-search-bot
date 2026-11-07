@@ -1,0 +1,65 @@
+[
+  {
+    "hotel_id": 817,
+    "name": "Thavorn Beach Village Resort & Spa",
+    "accepted_first_line": "✈️ Туры в Thavorn Beach Village Resort & Spa",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/817.png",
+    "image_sha256": "93c4fab3db8d98758a58faf59a349efbbe2d32877280170cbf0f955b1ebb2ed2"
+  },
+  {
+    "hotel_id": 2559,
+    "name": "Fujairah Rotana Resort & Spa",
+    "accepted_first_line": "✈️ Туры в Fujairah Rotana Resort & Spa",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/2559.png",
+    "image_sha256": "d054c68322178e97db70cb36bddcf4f846c127e6b489ee93cc22d8f73cc9202e"
+  },
+  {
+    "hotel_id": 73055,
+    "name": "Address Fujairah Beach Resort",
+    "accepted_first_line": "✈️ Туры в Address Fujairah Beach Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/73055.png",
+    "image_sha256": "875bb9805fe6ffc31a7ea0db31b41982d94dace5da8fc1484ed061416928a52d"
+  },
+  {
+    "hotel_id": 43060,
+    "name": "Golden Tulip Media Hotel",
+    "accepted_first_line": "✈️ Туры в Golden Tulip Media Hotel",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/43060.png",
+    "image_sha256": "93e5e9d26868955500ffb7d74db16354bccf64b6c74c1e4e02bdf47ab794638e"
+  },
+  {
+    "hotel_id": 2536,
+    "name": "Coral Beach Resort Sharjah",
+    "accepted_first_line": "✈️ Туры в Coral Beach Resort Sharjah",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/2536.png",
+    "image_sha256": "3b6402e9f83830aa084a251a7d3b3028cee4815cad618fc1e2028065d274d4d0"
+  },
+  {
+    "hotel_id": 50869,
+    "name": "Riu Sri Lanka",
+    "accepted_first_line": "✈️ Туры в Riu Sri Lanka",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/50869.png",
+    "image_sha256": "5ca74d213f6dbea826466c30745e29170b2ca8a91a1307ca2da01ffb6709f61c"
+  },
+  {
+    "hotel_id": 51238,
+    "name": "Radisson Blu Galle",
+    "accepted_first_line": "✈️ Туры в Radisson Blu Galle",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/51238.png",
+    "image_sha256": "49cbedad05612247b8589a7f093afd7c5f539f3dacdff275470340203518f615"
+  },
+  {
+    "hotel_id": 1702,
+    "name": "Rixos Premium Bodrum",
+    "accepted_first_line": "✈️ Туры в Rixos Premium Bodrum",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/1702.png",
+    "image_sha256": "a779fa99f6e5a04a674b72e84b488853efb78bd3f3f640ea5a7e082b75c2dc66"
+  },
+  {
+    "hotel_id": 5389,
+    "name": "Coral Sands",
+    "accepted_first_line": "✈️ Туры в Coral Sands",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/5389.png",
+    "image_sha256": "dd47230f463acd74b0beed57d384f960ba174c7f17d44b4baf622fecf0763cbe"
+  }
+]
