@@ -1,0 +1,308 @@
+{
+  "operation": "commercial-hotel-batch-20261107-9-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 200,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "native_hotel_ids": [
+          66555
+        ],
+        "read_only_clearance": "read23",
+        "read_at_utc": "2026-11-07T12:08:12Z",
+        "atomic_sender_preflight_still_required": true
+      },
+      {
+        "native_hotel_ids": [
+          110289,
+          513,
+          103731,
+          800,
+          3452
+        ],
+        "read_only_clearance": "read24",
+        "run_id": 42372696111,
+        "read_at_utc": "2026-11-07T12:29:43Z",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-six-after-200-commercial-release-manifest.json",
+    "sha256": "0d803acf0efbb25417ec5dddddbd9d0aaae69f23c6121b4707a3a50c7f27e0b4"
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 66555,
+      "logical_id": "commercial-sonasea-66555-v1",
+      "aliases": [
+        "Best Western Premier Sonasea Phu Quoc Resort"
+      ],
+      "text": "🌴 Best Western Premier Sonasea Phu Quoc Resort 5★\n\nДля семейного отпуска на Фукуоке с просторным номером и лагунными бассейнами.\n\n🏖 Собственный пляж длиной 130 м.\n🛏 Executive Suite 2 Bed Room Sea View 73 м²: две спальни, отдельная гостиная и балкон.\n💧 Лагунные бассейны протянулись по территории на 300 м.\n🏋️ Тренажёрный зал с кардио и силовыми тренажёрами.\n\n✈️ Подберём номер и питание, рассчитаем тур в Sonasea Resort с перелётом на ваши даты и состав семьи.",
+      "text_sha256": "7acd480211d3a03a0290e040506e0fc8c5a33716e8d728db104aea3210072c8a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/66555.png",
+      "photo_sha256": "d4ab3d384576d835faee270c19d821b5e068ea208f561dd78fb42f8b7b794894",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://bwpremier-sonaseaphuquoc.com/cus_accommodation/executive-suite/",
+        "https://bwpremier-sonaseaphuquoc.com/cus_facilities/lagoon-swimming-pool/",
+        "https://bwpremier-sonaseaphuquoc.com/facilities/",
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/best_western_premier_sonasea_phuquoc/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=140&legacyHotelIds%5B%5D=8053&legacyHotelIds%5B%5D=1112&legacyHotelIds%5B%5D=58987&legacyHotelIds%5B%5D=1033&legacyHotelIds%5B%5D=443&legacyHotelIds%5B%5D=386&legacyHotelIds%5B%5D=496&legacyHotelIds%5B%5D=66555&legacyHotelIds%5B%5D=33313",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/66555-56286107.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/66555-56287052.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/66555-56286002.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 25529,
+        "anytour_id": 3018,
+        "legacy_native_id": 66555,
+        "source_file": "next-ten-after-eight-current-catalog.json",
+        "source_sha256": "558dae3ff3255a57b81e26fa66c4baf8e2da9073d24b832775b86194f0e0c2e2",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaPDQ9l_c",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_80edada48f45ef2e_run07r_c04",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C23",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C27",
+        "HOTEL-VN-MASS-20261025T212816Z-C23"
+      ]
+    },
+    {
+      "hotel_id": 110289,
+      "logical_id": "commercial-club-prive-sharm-110289-v1",
+      "aliases": [
+        "Club Prive By Rixos Sharm EL Sheikh",
+        "Club Privé by Rixos Sharm El Sheikh"
+      ],
+      "text": "🏝 Club Privé by Rixos Sharm El Sheikh 5★\n\nВилла для отдыха большой семьёй: свои спальни, кухня и бассейн.\n\n🛏 Villa Privé 285 м²: три спальни, гостиная и четыре ванные.\n💧 Собственный бассейн у виллы.\n🍳 Кухня с плитой, духовкой, микроволновкой и холодильником.\n🏖 Собственный песчаный пляж и понтон.\n\nПитание организовано в Rixos Radamis.\n\n✈️ Подберём виллу под ваш состав и рассчитаем тур с перелётом на нужные даты.",
+      "text_sha256": "dcd6475e01d1691b11bae1eb043c490423dec12dc752f19263548a1ca800f3f3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/110289.png",
+      "photo_sha256": "ff1f46e6aad0c2ef4bcc0b757afa96a2dfd900f66be145334e6a79ea2937971b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/sharm/club_prive_by_rixos_sharm/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/110289-15334201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/110289-15334510.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/110289-15334717.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37505,
+        "anytour_id": 3730,
+        "legacy_native_id": 110289,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaPC9HfQ0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_77f75c5bdbc32f4e_c03",
+        "top500_77f75c5bdbc32f4e_c04",
+        "top500_77f75c5bdbc32f4e_c02",
+        "HOTEL-EG-MANUAL-20261026-SHARM-TOP500-08_c19",
+        "HOTEL-EG-MANUAL-20261026-SHARM-TOP500-08_c21",
+        "HOTEL-EG-MANUAL-20261026-SHARM-TOP500-08_c22"
+      ]
+    },
+    {
+      "hotel_id": 513,
+      "logical_id": "commercial-naama-bay-513-v1",
+      "aliases": [
+        "Naama Bay Hotel & Resort",
+        "NAAMA BAY HOTEL & RESORT (EX. TROPITEL NAAMA BAY)",
+        "TROPITEL NAAMA BAY"
+      ],
+      "text": "🌴 Naama Bay Hotel & Resort 5★ · Шарм эль Шейх\n\nПляжный отдых в Наама Бей с бассейнами и горками.\n\n🏖 Песчаный пляж примерно в 150 м, через дорогу.\n💧 Четыре открытых бассейна; три взрослые и три детские горки.\n🛏 Superior 45 м² в корпусе Executive в зоне Resort.\n🎨 Детский клуб для возраста от 4 до 12 лет.\n\nЗона Resort расположена на возвышенности.\n\n✈️ Поможем выбрать корпус и номер, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "398d6d51343ccee1c03f2b564b21b85079800e01113daaf85762803541d40ff8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/513.png",
+      "photo_sha256": "910ef60a3a5421eb0092dfc33de5c9ea479a0e305b355bf1c6e508ed34e64f8d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/sharm/tropitel_naama_bay/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/tropitel-naama-bay-313212.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/tropitel-naama-bay-313231.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/tropitel-naama-bay-313200.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 4168,
+        "anytour_id": 235,
+        "legacy_native_id": 513,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaPCIygPk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_6cf2b10b3a2e209d_c03",
+        "top500_6cf2b10b3a2e209d_c04",
+        "top500_6cf2b10b3a2e209d_demand22_c01",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c19",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c21"
+      ]
+    },
+    {
+      "hotel_id": 103731,
+      "logical_id": "commercial-comodo-103731-v1",
+      "aliases": [
+        "Comodo Nha Trang Hotel (Ex. Asteria Comodo Nha Trang Hotel)",
+        "COMODO NHA TRANG HOTEL",
+        "Asteria Comodo Nha Trang Hotel"
+      ],
+      "text": "🌊 Comodo Nha Trang Hotel 5★ · Нячанг\n\nДля городского отпуска с морским видом и собственным балконом у номера.\n\n🏖 Пляж примерно в 50 м, через дорогу.\n🛏 Premier Deluxe Ocean View: от 35 до 40 м², балкон и вид на море.\n💧 Бассейн с баром и тренажёрный зал на 27 этаже.\n\n✈️ Подберём категорию с нужным видом и питание. Рассчитаем тур в Comodo с перелётом на ваши даты.",
+      "text_sha256": "45816c21ecc05979c3e3304ef958081ce8d311bf02dbecb00b835ac85dfcd7cc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/103731.png",
+      "photo_sha256": "c96fd2312b4aced34938ee36ef9e73cd7ce45b44ec845be02d925e3e8f7468ef",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/vietnam/nhatrang/comodo_nha_trang/",
+        "https://comodonhatranghotel.com/",
+        "https://comodonhatranghotel.com/vi/swimming-pool-and-bar",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/asteria-comodo-nha-trang-hotel-3009317.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/asteria-comodo-nha-trang-hotel-3009338.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/asteria-comodo-nha-trang-hotel-3009318.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 36809,
+        "anytour_id": 3673,
+        "legacy_native_id": 103731,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaPBDk7Tc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5af62039bd0f4de4_run07_c04",
+        "HOTEL-VN-MANUAL-20261025T183514Z-C11",
+        "HOTEL-VN-MANUAL-20261025T183514Z-C17"
+      ]
+    },
+    {
+      "hotel_id": 800,
+      "logical_id": "commercial-sugar-art-800-v1",
+      "aliases": [
+        "Sugar Marina Resort-Art-Karon Beach",
+        "SUGAR MARINA RESORT ART KARON BEACH"
+      ],
+      "text": "🎨 Sugar Marina Resort Art Karon Beach 4★ · Пхукет\n\nКарон для семейной поездки: номер с выходом к бассейну и место для детских игр.\n\n🛏 Family Pool Access 45 м²: кровать King, двухъярусная кровать и прямой выход к бассейну.\n🏖 Общественный пляж Карон, вторая линия.\n🎈 В детском клубе есть игровая зона с шариками.\n\nКлуб для детей от 4 до 12 лет, с присутствием родителей.\n\n✈️ Подберём семейную категорию и питание, рассчитаем тур с перелётом.",
+      "text_sha256": "ccc14aa025621ed2dd809e70a846246b8c67c5c5dea11b3b9281ac949ce98bc3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/800.png",
+      "photo_sha256": "aa9cc4a029116c98adf156e1b845fe4d47f1a40401f9addff6115621ae0036da",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.sugarmarinahotel.com/art/rooms/",
+        "https://kompastour.com/kz/rus/country/thailand/phuket/sugar_marina_art_karon/",
+        "https://www.sugarmarinahotel.com/art/space-and-facilities/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-palm-karon-18405939.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-palm-karon-18405944.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-palm-karon-18405903.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 4482,
+        "anytour_id": 360,
+        "legacy_native_id": 800,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaPGkSDZQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8c21b203546c7566_mass39_c02",
+        "top500_8c21b203546c7566_run07_c04",
+        "top500_8c21b203546c7566_run07_c06",
+        "country61_TH_20261025T195546Z_mass_c15"
+      ]
+    },
+    {
+      "hotel_id": 3452,
+      "logical_id": "commercial-liberty-lykia-3452-v1",
+      "aliases": [
+        "Liberty Hotels Lykia"
+      ],
+      "text": "🌿 Liberty Hotels Lykia 5★ · Фетхие\n\nМоре, детская лагуна и занятия для детей разных возрастов.\n\n🏖 Собственный пляж длиной 650 м: песок и галька, отдельная детская лагуна.\n🎨 Libby & Berty для детей от 3 до 12 лет.\n🍼 Baby Club для малышей от 6 до 36 месяцев. Вечерние занятия проходят вместе с семьёй.\n\nНа территории есть подъёмы и спуски.\n\n✈️ Подберём корпус и номер под вашу семью, рассчитаем тур с перелётом на нужные даты.",
+      "text_sha256": "38e6ae48e3d39a93cfa48cd2793f74b6384e483f84ce50c1c8f555390778ace6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/3452.png",
+      "photo_sha256": "b26360e73618ef1e6dead3a4d7ed434c1c7b896318b787b9b5c214837b5eb971",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/eng/country/turkey/fethie/liberty_lykia_fethiye/",
+        "https://www.corendon.be/turkije/egeische-kust/fethiye/oludeniz/liberty-hotels-lykia",
+        "https://www.libertyhotels.com/en/hotels/liberty-lykia/kids-world/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3452-72868452.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3452-72871706.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/3452-72868129.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 9144,
+        "anytour_id": 1213,
+        "legacy_native_id": 3452,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaPFgSsFM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_04e79a09c3e6d1b8_run06_c04",
+        "top500_04e79a09c3e6d1b8_mass38_c02",
+        "HOTEL-TR-MANUAL-20261026T052235Z-BASE04_c11",
+        "HOTEL-TR-MANUAL-20261026T052235Z-BASE04_c12",
+        "HOTEL-TR-MANUAL-20261026T052235Z-BASE04_c13"
+      ]
+    }
+  ]
+}
