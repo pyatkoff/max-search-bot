@@ -1,0 +1,431 @@
+{
+  "operation": "commercial-hotel-batch-20261107-18-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 266,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read30",
+        "run_id": 42379881031,
+        "job_id": 128425055414,
+        "read_at_utc": "2026-11-07T14:05:11Z",
+        "private_receipt_sha256": "f9500ae391ab7d12102a9bf4a5584081c9328bc58ae40db6acab8c96e3a96bd4",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nine-after-266-commercial-release-manifest.json",
+    "sha256": "11468fda02e4279943db867d5cebb9c9e64dc15acd718c9d1ee72b5159352531",
+    "full_parent_manifest_sha256": "11468fda02e4279943db867d5cebb9c9e64dc15acd718c9d1ee72b5159352531",
+    "full_parent_caption_sha256": "82c82f696f0e0a582ffde13553ee5ef9a4285a6e4d0ecbd5eaa23bd73f5add45",
+    "within_sender_max10": true
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 66496,
+      "logical_id": "commercial-art-nest-66496-v1",
+      "aliases": [
+        "The Art Nest Hotel Nha Trang"
+      ],
+      "text": "🌆 The Art Nest Hotel Nha Trang 4★ · Нячанг\n\nДля городского отдыха с бассейном высоко над улицами.\n\n🛏 Deluxe 32 м² с балконом, одной двуспальной или двумя отдельными кроватями.\n💧 Бассейн 60 м² на крыше, на 28 этаже.\n🍹 Uptown Bar на 27 и 28 этажах.\n🍽 В Good Morning Restaurant подают завтрак в формате шведского стола.\n\nДо муниципального пляжа около 150 м.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "176181104eef7cb02e935aa585e2bdade44eec9b5fb123a5430716173962dd69",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/66496.png",
+      "photo_sha256": "5cec214777c0939dd01a08f307b2ead8f39cf4961507a73aa4d482f1e2f67e28",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/vietnam/nhatrang/the_art_nest_hotel/",
+        "https://artnesthotel.com/introduction",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://artnesthotel.com/storage/hinh-new/hb-sw/hb19-1200xauto.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/the-art-nest-hotel-nha-trang-1114325.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/the-art-nest-hotel-nha-trang-1114338.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 25033,
+        "anytour_id": 3010,
+        "legacy_native_id": 66496,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPmAP1MM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T192804Z-C47",
+        "HOTEL-VN-MASS-20261025T192804Z-C50",
+        "HOTEL-VN-MASS-20261025T192804Z-C49",
+        "HOTEL-VN-MASS-20261025T192804Z-C48",
+        "top500_8579124a5a06061c_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 981,
+      "logical_id": "commercial-ananas-981-v1",
+      "aliases": [
+        "Ananas Hotel"
+      ],
+      "text": "🏖 Ananas Hotel 4★ · Аланья\n\nДля пляжного отпуска с прогулками по городу.\n\n🛏 Economy Room 24 м² для двух гостей.\n🌊 Пляж примерно в 70 м, через дорогу.\n🚶 К нему ведёт подземный переход.\n🎶 Дискотека на территории.\n\n✈️ Подберём номер и питание, рассчитаем тур в Ananas с перелётом на ваши даты.",
+      "text_sha256": "a85a99a930c3f8ec5ec2a9bc23dfedeb5320cf658ed2139da5b7f9acbdc354f2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/981.png",
+      "photo_sha256": "279568ee0d7fea77ccfb00d1c312696f309c33388c2229a9159445835d4fc4a4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://joinup.ee/en/hotel/41451",
+        "https://media.joinup.travel/storage/hotel/25528/files_en/ANANAS-HOTEL--SUMMER-2026-FACTSHEET-.pdf",
+        "https://www.ananasotel.com/Home/Otelimiz",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ananas-hotel-26916007.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ananas-hotel-26916017.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ananas-hotel-26916002.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8860,
+        "anytour_id": 423,
+        "legacy_native_id": 981,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPgiziPA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8ed68b26d3da4b98_gap50_1_c2",
+        "top500_8ed68b26d3da4b98_gap50_2_c4",
+        "top500_8ed68b26d3da4b98_c03",
+        "HOTEL-TR-CONTINUOUS-20261028-C390C63BAD18-08_c07"
+      ]
+    },
+    {
+      "hotel_id": 128508,
+      "logical_id": "commercial-seaside-boutique-128508-v1",
+      "aliases": [
+        "Seaside Boutique Hotel"
+      ],
+      "text": "🌅 Seaside Boutique Hotel 4★ · Нячанг\n\nДля тех, кому хочется балкон с видом на море и вечера над городом.\n\n🛏 Family Ocean View With Balcony 28 м²: большая двуспальная кровать и балкон с видом на море.\n🛋 Более просторная альтернатива: Seaside Suite Ocean View 50 м².\n🍹 Skybar на крыше.\n\nДо муниципального пляжа около 600 м.\n\n✈️ Подберём категорию под состав гостей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "504ed254cfb2af5c94689646779c0e850398c630c1f5a94610c9365cb42855ec",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/128508.png",
+      "photo_sha256": "a77ac22f3cfa50405a3dd790954bd8046c93d41b107a2b13757a956021cdf2d4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/seaside_boutique/",
+        "https://seasidenhatranghotel.com/accommodation/",
+        "https://seasidenhatranghotel.com/accommodation/family-ocean-view-with-balcony/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/seaside-boutique-hotel-71382300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/seaside-boutique-hotel-71382331.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/seaside-boutique-hotel-71382311.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 41260,
+        "anytour_id": 3963,
+        "legacy_native_id": 128508,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPlWQgG8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-C35",
+        "HOTEL-VN-MASS-20261025T201851Z-C34",
+        "top500_54e3f6f4fb85b13c_run07_c05",
+        "top500_54e3f6f4fb85b13c_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 45516,
+      "logical_id": "commercial-praha-45516-v1",
+      "aliases": [
+        "Praha Hotel"
+      ],
+      "text": "💧 Praha Hotel 3★ · Фукуок\n\nДля пляжных дней и отдыха у бассейна.\n\n🏊 Два бассейна для взрослых: открытый и с крытой частью.\n💦 Два небольших детских бассейна.\n🍹 Бар в отеле и рестораны поблизости.\n\nДо муниципального пляжа около 300 м через дорогу.\n\n✈️ Подберём номер и питание в Praha, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "26f1ead9d02e0a696501f6da930c3348a75dda8456d5f230d2cfcce79ef5bcd2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/45516.png",
+      "photo_sha256": "f6e94682a92f6e4551ad3a4cf36c359d124da4fd39239ca46933a62bec65ad90",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/praha_hotel_phu_quoc/",
+        "https://www.coral.ge/en/hotels/vietnam/praha-hotel-phu-quoc/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/praha-hotel181-46322611.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/praha-hotel181-46322608.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/praha-hotel181-46322613.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 20626,
+        "anytour_id": 2414,
+        "legacy_native_id": 45516,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaPp5UM-g",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T195135Z-C64",
+        "HOTEL-VN-MASS-20261025T195135Z-C65",
+        "top500_e3457406a8118fbe_run07_c05",
+        "top500_e3457406a8118fbe_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 1429,
+      "logical_id": "commercial-dobedan-world-1429-v1",
+      "aliases": [
+        "Dobedan World Palace (Ex. Brand Alva Donna World Palace)",
+        "DOBEDAN WORLD PALACE (EX. ALVA DONNA WORLD PALACE)",
+        "Dobedan World Palace",
+        "Brand Alva Donna World Palace",
+        "ALVA DONNA WORLD PALACE"
+      ],
+      "text": "🎾 Dobedan World Palace 5★ · Кириш\n\nДля отпуска у моря с тренировками и отдыхом в хаммаме.\n\n🛏 Superior Standard Side Sea View 35 м²: балкон и боковой вид на море.\n🏖 Первая линия.\n🎾 Девять теннисных кортов с твёрдым покрытием.\n🧖 Хаммам, сауна и парная.\n\nОсвещение и оборудование для тенниса оплачиваются отдельно.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f78f38443f33fd670d2a314c5ce010d901abb77b4469a87acca62c61dc0546cc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/1429.png",
+      "photo_sha256": "3d4dae2910c3e9dfc98ef9ab5c9a14d8d1afaba7236d7b1a011f3079fbea030a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/kemer/alva_donna_world/",
+        "https://www.ltur.com/at/urlaub/dobedan-world-palace-kemer-5762",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/pgs-hotels-world-palace-exjoy-world-palace-39956809.jpg",
+        "https://www.dobedanhotels.com/media/mmydofg2/superior-standard-room-1-gallery.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/pgs-hotels-world-palace-exjoy-world-palace-39956813.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 10123,
+        "anytour_id": 4110,
+        "legacy_native_id": 1429,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPsilXxk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_44bf60535f74c4e6_crit48_c01",
+        "top500_44bf60535f74c4e6_run04_c04",
+        "HOTEL-TR-W164-20261027T101948Z-ROTATE08B_c04",
+        "HOTEL-TR-W164-20261027T101948Z-ROTATE08B_c05"
+      ]
+    },
+    {
+      "hotel_id": 15905,
+      "logical_id": "commercial-royal-garden-15905-v1",
+      "aliases": [
+        "Royal Garden Beach Hotel",
+        "ROYAL GARDEN BEACH HOTEL (EX. ROYAL GARDEN SELECT & SUITE)",
+        "ROYAL GARDEN SELECT & SUITE"
+      ],
+      "text": "🌊 Royal Garden Beach Hotel 5★ · Конаклы\n\nДля пляжного отдыха вдвоём с вечерними развлечениями.\n\n🛏 STD DBL ROH 20 м² для двух гостей.\n🏖 Основная территория расположена у пляжа.\n🏋️ Тренажёрный зал и пляжный волейбол.\n🎶 Дискотека на территории.\n\nПри подборе проверим корпус: часть номеров находится через дорогу от основной территории.\n\n✈️ Подберём корпус, номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f33b24580b52a50d3bc3153de75cdb630b989fa1a75277229ced1fa85bd1c513",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/15905.png",
+      "photo_sha256": "547eece14339f326da40bccd75a49232ba5ad0c021155f4d236e0fad14c62e58",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://royalgardenbeach.com/uploads/2025/01/Royal-Garden_Fact-Sheet-2025-RUS.pdf",
+        "https://kompastour.com/kz/rus/country/turkey/alanya/royal_garden_beach/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-garden-select-86243900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-garden-select-86243908.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-garden-select-86243904.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 26523,
+        "anytour_id": 1760,
+        "legacy_native_id": 15905,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPqFkXuA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_f078161a6730defe_run05_c03",
+        "top500_f078161a6730defe_run05_c04",
+        "HOTEL-TR-W164-20261027T054020Z-ROTATE08_c09",
+        "top500_f078161a6730defe_run05audit_c05",
+        "top500_f078161a6730defe_run05_c05"
+      ]
+    },
+    {
+      "hotel_id": 50624,
+      "logical_id": "commercial-diamond-bay-hotel-50624-v1",
+      "aliases": [
+        "Diamond Bay Hotel"
+      ],
+      "text": "🌆 Diamond Bay Hotel 5★ · Нячанг\n\nДля городского отдыха рядом с пляжем в комплексе Nha Trang Center.\n\n🛏 Grand Room City View от 30 до 32 м² с видом на город.\n💧 Открытый бассейн и бар на территории.\n\nОбщественный пляж находится через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "6fc2b36074850060f02716a991e6b789c4ef7a78e3056e01a955ac051e2a4af7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/50624.png",
+      "photo_sha256": "b673f4906bd7ebdb0559b83aece39688e98224e0f3063711faaef9e181ecd424",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/diamond_bay_hotel/",
+        "https://www.coral.ge/en/hotels/vietnam/diamond-bay-hotel-nha-trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/diamond-bay-hotel-36230900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/diamond-bay-hotel-36230944.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/diamond-bay-hotel-36230924.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 12714,
+        "anytour_id": 2490,
+        "legacy_native_id": 50624,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPqby7bc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-C20",
+        "HOTEL-VN-MASS-20261025T201851Z-C19",
+        "HOTEL-VN-MASS-20261025T201851Z-C18",
+        "top500_302ca7a1200a76d9_run07_c05",
+        "HOTEL-VN-MASS-20261025T201851Z-C17",
+        "top500_302ca7a1200a76d9_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 58473,
+      "logical_id": "commercial-ca-ty-58473-v1",
+      "aliases": [
+        "Ca Ty Muine Resort"
+      ],
+      "text": "🌴 Ca Ty Muine Resort 4★ · Муйне\n\nДля семейного отдыха с просторным номером у моря.\n\n🛏 Family Room 50 м² с балконом: одна двуспальная и две отдельные кровати.\n🏖 Собственный пляж, первая линия.\n🍹 Pool Bar на территории.\n\n✈️ Подберём размещение под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "2cba0001fcfe247dcc895a5b202f7616e95bcbe4a1bf851f9c2101029042732b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/58473.png",
+      "photo_sha256": "4de1b3d8c9c1415f0ec46eaae04b8de04376e132232e37b25afabfb6ea4b4f3e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fantet/ca_ty_muine_resort/",
+        "https://catymuineresort.com/room/family-room-5.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ca-ty-muine-resort-45981700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ca-ty-muine-resort-45981711.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ca-ty-muine-resort-45981717.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21351,
+        "anytour_id": 2691,
+        "legacy_native_id": 58473,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPvMICs4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T204322Z-C05",
+        "top500_333f67bceacaaaff_run08_c04",
+        "top500_333f67bceacaaaff_run08_c05",
+        "HOTEL-VN-MASS-20261025T204322Z-C06"
+      ]
+    },
+    {
+      "hotel_id": 4060,
+      "logical_id": "commercial-ocean-star-4060-v1",
+      "aliases": [
+        "Ocean Star Resort"
+      ],
+      "text": "🌴 Ocean Star Resort 4★ · Муйне\n\nДля отдыха у моря в номере с видом на сад.\n\n🛏 Superior Garden View With Terrace от 25 до 27 м² с видом на сад.\n🏖 Собственный пляж.\n💧 Открытый и отдельный детский бассейны.\n🍹 Бар на территории.\n\nПуть к берегу зависит от выбранного размещения.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "75fb8ff0e74b259bdf476c97999cee4b6c647d28a95b036ade781bfb3669aab4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/4060.png",
+      "photo_sha256": "26b9eea88051210cef749227da07bbb8b794cd9ea4eae65b3b64af72edcc8208",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fantet/ocean_star_resort/",
+        "https://www.coral.ge/en/hotels/vietnam/ocean-star-resort-phan-thiet/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1353&legacyHotelIds%5B%5D=1067&legacyHotelIds%5B%5D=66496&legacyHotelIds%5B%5D=14135&legacyHotelIds%5B%5D=981&legacyHotelIds%5B%5D=74036&legacyHotelIds%5B%5D=213&legacyHotelIds%5B%5D=90236&legacyHotelIds%5B%5D=47470&legacyHotelIds%5B%5D=27647&legacyHotelIds%5B%5D=1512&legacyHotelIds%5B%5D=75041&legacyHotelIds%5B%5D=1258&legacyHotelIds%5B%5D=128508&legacyHotelIds%5B%5D=45516&legacyHotelIds%5B%5D=1429&legacyHotelIds%5B%5D=15905&legacyHotelIds%5B%5D=50624&legacyHotelIds%5B%5D=58473&legacyHotelIds%5B%5D=4060",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ocean-star-resort-21042105.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ocean-star-resort-21042118.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/ocean-star-resort-21042115.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5449,
+        "anytour_id": 1235,
+        "legacy_native_id": 4060,
+        "source_file": "next-twenty-after-hundred-current-catalog.json",
+        "source_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPrfiE-8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T204322Z-C02",
+        "top500_2d3f7578fe4ff3a2_run07_c04",
+        "HOTEL-VN-MASS-20261025T204322Z-C01",
+        "top500_2d3f7578fe4ff3a2_run07_c05",
+        "top500_2d3f7578fe4ff3a2_run07_c06"
+      ]
+    }
+  ]
+}

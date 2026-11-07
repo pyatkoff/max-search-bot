@@ -1,0 +1,338 @@
+{
+  "status": "READY_REVIEWED_CAPTIONS",
+  "hotels": [
+    {
+      "hotel_key": "top500_8579124a5a06061c",
+      "name": "The Art Nest Hotel Nha Trang",
+      "native_hotel_id": 66496,
+      "anex_hotel_id": 25033,
+      "anytour_hotel_id": 3010,
+      "current_catalog_name": "THE ART NEST HOTEL NHA TRANG",
+      "category": 4,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T192804Z-C47",
+        "HOTEL-VN-MASS-20261025T192804Z-C50",
+        "HOTEL-VN-MASS-20261025T192804Z-C49",
+        "HOTEL-VN-MASS-20261025T192804Z-C48",
+        "top500_8579124a5a06061c_run07_c04"
+      ],
+      "source_urls": [
+        "https://kompastour.com/az/rus/country/vietnam/nhatrang/the_art_nest_hotel/",
+        "https://artnesthotel.com/introduction"
+      ],
+      "text": "🌆 The Art Nest Hotel Nha Trang 4★ · Нячанг\n\nДля городского отдыха с бассейном высоко над улицами.\n\n🛏 Deluxe 32 м² с балконом, одной двуспальной или двумя отдельными кроватями.\n💧 Бассейн 60 м² на крыше, на 28 этаже.\n🍹 Uptown Bar на 27 и 28 этажах.\n🍽 В Good Morning Restaurant подают завтрак в формате шведского стола.\n\nДо муниципального пляжа около 150 м.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "176181104eef7cb02e935aa585e2bdade44eec9b5fb123a5430716173962dd69",
+      "utf16_units": 430,
+      "notes": [
+        "Current category4 used, no invented4+. Deluxe32 is separate from Senior/URLsuperior28. ARTFamily100 conflicting bed fields omitted; no two closed bedrooms. Rooftop pool presence is not heating/child admission proof, and breakfast format is not included in every rate.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "art-nest",
+      "label": "THE ART NEST HOTEL 4★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T192804Z-S14",
+        "top500_8579124a5a06061c_run07_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_8ed68b26d3da4b98",
+      "name": "Ananas Hotel",
+      "native_hotel_id": 981,
+      "anex_hotel_id": 8860,
+      "anytour_hotel_id": 423,
+      "current_catalog_name": "ANANAS HOTEL",
+      "category": 4,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_8ed68b26d3da4b98_gap50_1_c2",
+        "top500_8ed68b26d3da4b98_gap50_2_c4",
+        "top500_8ed68b26d3da4b98_c03",
+        "HOTEL-TR-CONTINUOUS-20261028-C390C63BAD18-08_c07"
+      ],
+      "source_urls": [
+        "https://joinup.ee/en/hotel/41451",
+        "https://media.joinup.travel/storage/hotel/25528/files_en/ANANAS-HOTEL--SUMMER-2026-FACTSHEET-.pdf",
+        "https://www.ananasotel.com/Home/Otelimiz"
+      ],
+      "text": "🏖 Ananas Hotel 4★ · Аланья\n\nДля пляжного отпуска с прогулками по городу.\n\n🛏 Economy Room 24 м² для двух гостей.\n🌊 Пляж примерно в 70 м, через дорогу.\n🚶 К нему ведёт подземный переход.\n🎶 Дискотека на территории.\n\n✈️ Подберём номер и питание, рассчитаем тур в Ananas с перелётом на ваши даты.",
+      "text_sha256": "a85a99a930c3f8ec5ec2a9bc23dfedeb5320cf658ed2139da5b7f9acbdc354f2",
+      "utf16_units": 295,
+      "notes": [
+        "Economy24 exact two-person base, not arbitrary Standard3adult+child formula. Underground passage/70m retained, no road-free beachfront claim. Disco/fitness existence not nightly schedule/free all services. DatedSummer2026 factsheet not blanket2027operation assurance.",
+        "Road and underground passage preserved; repetitive beach paragraph and ambiguous gym reading-scope assertion not used in advertising."
+      ],
+      "slug": "ananas",
+      "label": "ANANAS HOTEL 4★",
+      "source_ids": [
+        "top500_8ed68b26d3da4b98_gap50_1_s",
+        "top500_8ed68b26d3da4b98_gap50_2_s",
+        "top500_8ed68b26d3da4b98_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_54e3f6f4fb85b13c",
+      "name": "Seaside Boutique Hotel",
+      "native_hotel_id": 128508,
+      "anex_hotel_id": 41260,
+      "anytour_hotel_id": 3963,
+      "current_catalog_name": "SEASIDE BOUTIQUE HOTEL",
+      "category": 4,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-C35",
+        "HOTEL-VN-MASS-20261025T201851Z-C34",
+        "top500_54e3f6f4fb85b13c_run07_c05",
+        "top500_54e3f6f4fb85b13c_run07_c04"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/seaside_boutique/",
+        "https://seasidenhatranghotel.com/accommodation/",
+        "https://seasidenhatranghotel.com/accommodation/family-ocean-view-with-balcony/"
+      ],
+      "text": "🌅 Seaside Boutique Hotel 4★ · Нячанг\n\nДля тех, кому хочется балкон с видом на море и вечера над городом.\n\n🛏 Family Ocean View With Balcony 28 м²: большая двуспальная кровать и балкон с видом на море.\n🛋 Более просторная альтернатива: Seaside Suite Ocean View 50 м².\n🍹 Skybar на крыше.\n\nДо муниципального пляжа около 600 м.\n\n✈️ Подберём категорию под состав гостей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "504ed254cfb2af5c94689646779c0e850398c630c1f5a94610c9365cb42855ec",
+      "utf16_units": 409,
+      "notes": [
+        "ExactNhaTrang Seaside, not namesake resort. Family28 is not two bedrooms and3–4field does not establish age/bed formula. Suite50 bedroom/bath count not established. TemplateAmenities2–8 not used; rooftop bar presence not fixed entertainment programme.600m beach distance retained.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "seaside-boutique",
+      "label": "SEASIDE BOUTIQUE HOTEL 4★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-S11",
+        "HOTEL-VN-MASS-20261025T201851Z-S10",
+        "top500_54e3f6f4fb85b13c_run07_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_e3457406a8118fbe",
+      "name": "Praha Hotel",
+      "native_hotel_id": 45516,
+      "anex_hotel_id": 20626,
+      "anytour_hotel_id": 2414,
+      "current_catalog_name": "PRAHA HOTEL",
+      "category": 3,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T195135Z-C64",
+        "HOTEL-VN-MASS-20261025T195135Z-C65",
+        "top500_e3457406a8118fbe_run07_c05",
+        "top500_e3457406a8118fbe_run07_c04"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/praha_hotel_phu_quoc/",
+        "https://www.coral.ge/en/hotels/vietnam/praha-hotel-phu-quoc/"
+      ],
+      "text": "💧 Praha Hotel 3★ · Фукуок\n\nДля пляжных дней и отдыха у бассейна.\n\n🏊 Два бассейна для взрослых: открытый и с крытой частью.\n💦 Два небольших детских бассейна.\n🍹 Бар в отеле и рестораны поблизости.\n\nДо муниципального пляжа около 300 м через дорогу.\n\n✈️ Подберём номер и питание в Praha, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "26f1ead9d02e0a696501f6da930c3348a75dda8456d5f230d2cfcce79ef5bcd2",
+      "utf16_units": 328,
+      "notes": [
+        "Pool sizes stated literally, small child pools not made into large aqua area. No heating or child admission guarantee. Superior22PoolView vs24window/no balcony remains unresolved, so room details omitted.2018room-renovation declaration not current quality/recent renovation proof; no inferred pair occupancy from3+1.",
+        "Retained exact pool measurements remain in evidence; copy keeps two small child pools without aquapark or heated-pool claim."
+      ],
+      "slug": "praha",
+      "label": "PRAHA HOTEL 3★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T195135Z-S20",
+        "top500_e3457406a8118fbe_run07_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_44bf60535f74c4e6",
+      "name": "Dobedan World Palace (Ex. Brand Alva Donna World Palace)",
+      "native_hotel_id": 1429,
+      "anex_hotel_id": 10123,
+      "anytour_hotel_id": 4110,
+      "current_catalog_name": "DOBEDAN WORLD PALACE (EX. ALVA DONNA WORLD PALACE)",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_44bf60535f74c4e6_crit48_c01",
+        "top500_44bf60535f74c4e6_run04_c04",
+        "HOTEL-TR-W164-20261027T101948Z-ROTATE08B_c04",
+        "HOTEL-TR-W164-20261027T101948Z-ROTATE08B_c05"
+      ],
+      "source_urls": [
+        "https://kompastour.com/by/rus/country/turkey/kemer/alva_donna_world/",
+        "https://www.ltur.com/at/urlaub/dobedan-world-palace-kemer-5762"
+      ],
+      "text": "🎾 Dobedan World Palace 5★ · Кириш\n\nДля отпуска у моря с тренировками и отдыхом в хаммаме.\n\n🛏 Superior Standard Side Sea View 35 м²: балкон и боковой вид на море.\n🏖 Первая линия.\n🎾 Девять теннисных кортов с твёрдым покрытием.\n🧖 Хаммам, сауна и парная.\n\nОсвещение и оборудование для тенниса оплачиваются отдельно.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f78f38443f33fd670d2a314c5ce010d901abb77b4469a87acca62c61dc0546cc",
+      "utf16_units": 387,
+      "notes": [
+        "DZX2 Superior35 side sea view not frontal view or proven block5/6; old2024block renovation not universal room promise. TerraceSuite57 is bedroom plus living, not this base category. Tennis fee limitation material to sport hook; no included SPA treatments/free all sauna or future2025UAI rights.",
+        "Root reviewed exact retained claims, material unknowns and limitations; copy preserves room, access and seasonal scope."
+      ],
+      "slug": "dobedan-world",
+      "label": "DOBEDAN WORLD PALACE 5★",
+      "source_ids": [
+        "top500_44bf60535f74c4e6_crit48_s02",
+        "top500_44bf60535f74c4e6_run04_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_f078161a6730defe",
+      "name": "Royal Garden Beach Hotel",
+      "native_hotel_id": 15905,
+      "anex_hotel_id": 26523,
+      "anytour_hotel_id": 1760,
+      "current_catalog_name": "ROYAL GARDEN BEACH HOTEL (EX. ROYAL GARDEN SELECT & SUITE)",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_f078161a6730defe_run05_c03",
+        "top500_f078161a6730defe_run05_c04",
+        "HOTEL-TR-W164-20261027T054020Z-ROTATE08_c09",
+        "top500_f078161a6730defe_run05audit_c05",
+        "top500_f078161a6730defe_run05_c05"
+      ],
+      "source_urls": [
+        "https://royalgardenbeach.com/uploads/2025/01/Royal-Garden_Fact-Sheet-2025-RUS.pdf",
+        "https://kompastour.com/kz/rus/country/turkey/alanya/royal_garden_beach/"
+      ],
+      "text": "🌊 Royal Garden Beach Hotel 5★ · Конаклы\n\nДля пляжного отдыха вдвоём с вечерними развлечениями.\n\n🛏 STD DBL ROH 20 м² для двух гостей.\n🏖 Основная территория расположена у пляжа.\n🏋️ Тренажёрный зал и пляжный волейбол.\n🎶 Дискотека на территории.\n\nПри подборе проверим корпус: часть номеров находится через дорогу от основной территории.\n\n✈️ Подберём корпус, номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f33b24580b52a50d3bc3153de75cdb630b989fa1a75277229ced1fa85bd1c513",
+      "utf16_units": 416,
+      "notes": [
+        "STDROH20 exactmax2 not Premium35 occupancy. Family is bedroom plus living, not two bedrooms; FamilyRoom2 block across road retained. No generalized four-a-la-carte/freeSPA/honeymoon privilege. Fitness existence does not include every sports service.",
+        "Across-road block limitation preserved without suggesting every STDROH is beachfront."
+      ],
+      "slug": "royal-garden",
+      "label": "ROYAL GARDEN BEACH 5★",
+      "source_ids": [
+        "top500_f078161a6730defe_run05_s01",
+        "top500_f078161a6730defe_run05audit_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_302ca7a1200a76d9",
+      "name": "Diamond Bay Hotel",
+      "native_hotel_id": 50624,
+      "anex_hotel_id": 12714,
+      "anytour_hotel_id": 2490,
+      "current_catalog_name": "DIAMOND BAY HOTEL",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-C20",
+        "HOTEL-VN-MASS-20261025T201851Z-C19",
+        "HOTEL-VN-MASS-20261025T201851Z-C18",
+        "top500_302ca7a1200a76d9_run07_c05",
+        "HOTEL-VN-MASS-20261025T201851Z-C17",
+        "top500_302ca7a1200a76d9_run07_c04"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/diamond_bay_hotel/",
+        "https://www.coral.ge/en/hotels/vietnam/diamond-bay-hotel-nha-trang/"
+      ],
+      "text": "🌆 Diamond Bay Hotel 5★ · Нячанг\n\nДля городского отдыха рядом с пляжем в комплексе Nha Trang Center.\n\n🛏 Grand Room City View от 30 до 32 м² с видом на город.\n💧 Открытый бассейн и бар на территории.\n\nОбщественный пляж находится через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "6fc2b36074850060f02716a991e6b789c4ef7a78e3056e01a955ac051e2a4af7",
+      "utf16_units": 313,
+      "notes": [
+        "CityHOTEL at20TranPhu/NhaTrangCenter, not DiamondBayResort&Spa. New currentGrandCity30–32 not merged with oldGrand35–38. Coral beach-service cessation1Jul2025 overrides older private-beach claim; towels alone not beach service. Unusual pool depths/sizes not child-safety promise. No renovated rooms from PublicAreas2025.",
+        "Public beach and road retained; private-beach privileges are not promised. Historical cessation remains in evidence."
+      ],
+      "slug": "diamond-bay-hotel",
+      "label": "DIAMOND BAY HOTEL 5★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T201851Z-S05",
+        "top500_302ca7a1200a76d9_run07_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_333f67bceacaaaff",
+      "name": "Ca Ty Muine Resort",
+      "native_hotel_id": 58473,
+      "anex_hotel_id": 21351,
+      "anytour_hotel_id": 2691,
+      "current_catalog_name": "CA TY MUINE RESORT",
+      "category": 4,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T204322Z-C05",
+        "top500_333f67bceacaaaff_run08_c04",
+        "top500_333f67bceacaaaff_run08_c05",
+        "HOTEL-VN-MASS-20261025T204322Z-C06"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/vietnam/fantet/ca_ty_muine_resort/",
+        "https://catymuineresort.com/room/family-room-5.html"
+      ],
+      "text": "🌴 Ca Ty Muine Resort 4★ · Муйне\n\nДля семейного отдыха с просторным номером у моря.\n\n🛏 Family Room 50 м² с балконом: одна двуспальная и две отдельные кровати.\n🏖 Собственный пляж, первая линия.\n🍹 Pool Bar на территории.\n\n✈️ Подберём размещение под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "2cba0001fcfe247dcc895a5b202f7616e95bcbe4a1bf851f9c2101029042732b",
+      "utf16_units": 305,
+      "notes": [
+        "Family50 bed count and max4 do not prove two bedrooms/doors/adult-child ages. Garden/balcony retained without pool-villa inference. Pool hours from2017not current; BBQ frequency/payment not promised. RockSea city restaurant location not assigned to this beachfront hotel; minibar presence not free drinks.",
+        "Balcony and bed layout retained; generic garden field does not become a private-garden promise."
+      ],
+      "slug": "ca-ty",
+      "label": "CA TY MUINE RESORT 4★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T204322Z-S02",
+        "top500_333f67bceacaaaff_run08_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_2d3f7578fe4ff3a2",
+      "name": "Ocean Star Resort",
+      "native_hotel_id": 4060,
+      "anex_hotel_id": 5449,
+      "anytour_hotel_id": 1235,
+      "current_catalog_name": "OCEAN STAR RESORT",
+      "category": 4,
+      "display_category": true,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T204322Z-C02",
+        "top500_2d3f7578fe4ff3a2_run07_c04",
+        "HOTEL-VN-MASS-20261025T204322Z-C01",
+        "top500_2d3f7578fe4ff3a2_run07_c05",
+        "top500_2d3f7578fe4ff3a2_run07_c06"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/vietnam/fantet/ocean_star_resort/",
+        "https://www.coral.ge/en/hotels/vietnam/ocean-star-resort-phan-thiet/"
+      ],
+      "text": "🌴 Ocean Star Resort 4★ · Муйне\n\nДля отдыха у моря в номере с видом на сад.\n\n🛏 Superior Garden View With Terrace от 25 до 27 м² с видом на сад.\n🏖 Собственный пляж.\n💧 Открытый и отдельный детский бассейны.\n🍹 Бар на территории.\n\nПуть к берегу зависит от выбранного размещения.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "75fb8ff0e74b259bdf476c97999cee4b6c647d28a95b036ade781bfb3669aab4",
+      "utf16_units": 353,
+      "notes": [
+        "SuperiorGardenTerrace25–27 not conflictingDeluxe23–25 capacities. Balcony/terrace field plus categoryTerrace retained, exact terrace configuration to confirm. No2AD inference fromPax4; olderroom-type formulas not mixed. Conflicting2500m²/3ha and building/floors/elevators ignored. No heating/child-age safety or0m route for every room; far-villa100m not generalized.",
+        "Exact category name preserved; compressed balcony/terrace field not generalized into an unconditional private-terrace claim."
+      ],
+      "slug": "ocean-star",
+      "label": "OCEAN STAR RESORT 4★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T204322Z-S01",
+        "top500_2d3f7578fe4ff3a2_run07_s01"
+      ]
+    }
+  ]
+}
