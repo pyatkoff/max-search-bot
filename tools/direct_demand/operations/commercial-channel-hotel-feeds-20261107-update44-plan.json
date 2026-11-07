@@ -1,0 +1,88 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update44",
+  "state": "PREPARED_CONFIRMED_MAX493_INSTALL",
+  "new_hotel_ids": [
+    70033,
+    57652,
+    57650,
+    23766,
+    4078,
+    24778,
+    4054,
+    14133,
+    4074,
+    4079,
+    80915,
+    22791,
+    57064,
+    57039,
+    65266,
+    116934,
+    681,
+    8008,
+    119046
+  ],
+  "previous_rows": [
+    474,
+    474,
+    948
+  ],
+  "target_rows": [
+    493,
+    493,
+    986
+  ],
+  "previous474_offer_blocks_identical": true,
+  "max_route_install_run": 42417139198,
+  "max_route_install_commit": "13c22e2b34df74e63f3bb0aa7884626aed6cb5a1",
+  "new19_binding_run": 42416920033,
+  "new19_binding_artifact": 13592330173,
+  "approved_destination_labels": {
+    "70033": "Нячанг",
+    "57652": "Нячанг",
+    "57650": "Нячанг",
+    "23766": "Нячанг",
+    "4078": "Нячанг",
+    "24778": "Муйне",
+    "4054": "Муйне",
+    "14133": "Муйне",
+    "4074": "Муйне",
+    "4079": "Муйне",
+    "80915": "Камрань",
+    "22791": "Фукуок",
+    "57064": "Фукуок",
+    "57039": "Фукуок",
+    "65266": "Фукуок",
+    "116934": "Пхукет",
+    "681": "Пхукет",
+    "8008": "Као Лак",
+    "119046": "Пхукет"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 316927,
+      "sha256": "e0878382ac18b0cd5a04b2e8d39ade1e0bd62324011584356626eb98a6de1791",
+      "rows": 493,
+      "expected_previous_sha256": "e7fdbc55b4626fe9fe6037c429f45fcf4ae214755261ad4ac84824618dd4bf64"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 396394,
+      "sha256": "c99223560eb0a09474441a70cc7715cc8f475fe68bf3a334f95fe25282d42ef6",
+      "rows": 493,
+      "expected_previous_sha256": "d87ecc2911b43fc05b6890ffac9fb4772ed2a0abcc96f6818f6d0c258b82182b"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 712948,
+      "sha256": "54a43efb31d96d9ac55dcac432acde10b47f78f9cea299c6faec2dc8cdd632f9",
+      "rows": 986,
+      "expected_previous_sha256": "a03117ee13b2e8d830d37b7d9550ed804ecb193af2cf1616edec5fae4aed568e"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

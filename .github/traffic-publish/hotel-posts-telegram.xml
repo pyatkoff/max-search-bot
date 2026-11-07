@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 21:16">
+<yml_catalog date="2026-11-07 21:44">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -4270,6 +4270,177 @@
         <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_70033">
+        <url>https://t.me/any_toour/489</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/70033.png</picture>
+        <name>Путевки в Nalicas Nha Trang Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_57652">
+        <url>https://t.me/any_toour/490</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/57652.png</picture>
+        <name>Путевки в Queen Ann Nha Trang Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_57650">
+        <url>https://t.me/any_toour/491</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/57650.png</picture>
+        <name>Путевки в Red Sun Nha Trang Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_23766">
+        <url>https://t.me/any_toour/492</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/23766.png</picture>
+        <name>Путевки в Sea Light Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_4078">
+        <url>https://t.me/any_toour/493</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4078.png</picture>
+        <name>Путевки в Starlet Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_24778">
+        <url>https://t.me/any_toour/494</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/24778.png</picture>
+        <name>Путевки в Aroma Beach Resort &amp; Spa</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
+      </offer>
+      <offer id="tg_4054">
+        <url>https://t.me/any_toour/495</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4054.png</picture>
+        <name>Путевки в Muine Century Beach Resort &amp; Spa</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
+      </offer>
+      <offer id="tg_14133">
+        <url>https://t.me/any_toour/496</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/14133.png</picture>
+        <name>Путевки в Oriental Pearl Resort (Hoang Ngoc)</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
+      </offer>
+      <offer id="tg_4074">
+        <url>https://t.me/any_toour/497</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4074.png</picture>
+        <name>Путевки в Seahorse Resort</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
+      </offer>
+      <offer id="tg_4079">
+        <url>https://t.me/any_toour/498</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4079.png</picture>
+        <name>Путевки в Sunny Beach Resort</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
+      </offer>
+      <offer id="tg_80915">
+        <url>https://t.me/any_toour/499</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/80915.png</picture>
+        <name>Путевки в Ana Mandara Cam Ranh Resort</name>
+        <description>Тур с перелётом. Камрань. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Камрань</custom_label_1>
+      </offer>
+      <offer id="tg_22791">
+        <url>https://t.me/any_toour/500</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/22791.png</picture>
+        <name>Путевки в Thien Thanh Phu Quoc Resort</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_57064">
+        <url>https://t.me/any_toour/501</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/57064.png</picture>
+        <name>Путевки в Muong Thanh Luxury Phu Quoc Hotel</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_57039">
+        <url>https://t.me/any_toour/502</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/57039.png</picture>
+        <name>Путевки в Amarin Resort &amp; Spa</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_65266">
+        <url>https://t.me/any_toour/503</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/65266.png</picture>
+        <name>Путевки в Palma Phu Quoc Resort</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_116934">
+        <url>https://t.me/any_toour/504</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/116934.png</picture>
+        <name>Путевки в Courtyard by Marriott Phuket Patong Beach</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="tg_681">
+        <url>https://t.me/any_toour/505</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/681.png</picture>
+        <name>Путевки в Kata Sea Breeze Resort</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="tg_8008">
+        <url>https://t.me/any_toour/506</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/8008.png</picture>
+        <name>Путевки в La Flora Khao Lak</name>
+        <description>Тур с перелётом. Као Лак. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Као Лак</custom_label_1>
+      </offer>
+      <offer id="tg_119046">
+        <url>https://t.me/any_toour/507</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/119046.png</picture>
+        <name>Путевки в Sugar Marina Resort Pop Kata Beach</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
       </offer>
     </offers>
   </shop>
