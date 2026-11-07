@@ -41,7 +41,7 @@
     5389
   ],
   "not_before_senders37_and38_confirmed": true,
-  "remote_calls": 0,
+  "remote_calls": 1,
   "prior_preparation_failure_before_server": {
     "run_id": 42411317555,
     "job_id": 128519892859,
@@ -269,8 +269,8 @@
     ],
     "deploy_run_id": 42412341859,
     "deploy_status": "in_progress",
-    "first_registry_queries_executed": 0,
-    "consumed_read44": false,
+    "first_registry_queries_executed": 17,
+    "consumed_read44": true,
     "root_reviewed_content_proof_sha256": "8aaff014203831f0df6012b56a2a5bac43f07f8354f42e8bb71fd6dac7fd8fcc",
     "conditional_pin_authorization": "Root authorizes this exact e3ef source only after terminal installed verify of Deploy42412341859 and strictTLS on e3ef. No additional root round is required for those exact terminal conditions; a different future main is not covered.",
     "deploy": {
@@ -1055,5 +1055,60 @@
       "approved_new_source": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
       "verifier_code_or_blob_pin_change": false
     }
-  ]
+  ],
+  "terminal_original_receipt": {
+    "run_id": 42412950055,
+    "job_id": 128524797124,
+    "commit": "53776d3be191be804823a99c79d9bfff4377dc03",
+    "artifact_id": 13590471228,
+    "zip_sha256": "5fee942cff415d71f58c2f943aee203f62cca9f2aa2b179707a2c44218c5092c",
+    "input_artifact_id": 13590690715,
+    "input_zip_sha256": "1be0441f6a510c244b03c62815b25568269435c48ed2393088157d2ca7ba6222",
+    "private_receipt_sha256": "4816aed76338f77710327615a0b39806f823796654d32d22bd14392219cc7da3",
+    "private_receipt_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/feed-preparation/new17-read44-private.json",
+    "safe_receipt_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/feed-preparation/commercial-channel-hotel-feeds-20261107-read44-safe-receipt.json",
+    "status": "CONSUMED_FIRST_CLEARANCE_SUCCESS",
+    "pre_server_attempts": [
+      {
+        "run_id": 42411317555,
+        "job_id": 128519892859,
+        "commit": "15b6fa45c767177eb7258a8999b17f0d9388ad63",
+        "failed_phase": "Bind only exact inputs before server connection",
+        "reason": "Stale preflight count20 versus exact candidate list17",
+        "server_steps": "SKIPPED",
+        "registry_queries": 0,
+        "provider_calls": 0,
+        "message_sends": 0,
+        "artifacts": [],
+        "first_clearance_consumed": false,
+        "corrected_commit": "cc1191095b59f09c4e1a3ef57cbf1ca18557325e"
+      },
+      {
+        "run_id": 42411496854,
+        "job_id": 128520415800,
+        "commit": "cc1191095b59f09c4e1a3ef57cbf1ca18557325e",
+        "failed_phase": "Verify exact approved source",
+        "reason": "approved_source_not_current",
+        "server_steps": "SKIPPED",
+        "registry_queries": 0,
+        "provider_calls": 0,
+        "message_sends": 0,
+        "artifacts": [],
+        "first_clearance_consumed": false
+      },
+      {
+        "run_id": 42412424022,
+        "job_id": 128523229955,
+        "commit": "982a5c693d5f2eca5daf4d23403e9f082317514b",
+        "failed_phase": "Verify exact approved source",
+        "reason": "approved_source_not_current after ROOT-approved223938source",
+        "server_steps": "SKIPPED",
+        "registry_queries": 0,
+        "provider_calls": 0,
+        "message_sends": 0,
+        "artifacts": [],
+        "first_clearance_consumed": false
+      }
+    ]
+  }
 }
