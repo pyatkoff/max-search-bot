@@ -1,0 +1,248 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read32",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 57066,
+      "name": "Duyen Ha Resort Cam Ranh",
+      "country_id": 16,
+      "region_id": 700,
+      "destination": "Камрань",
+      "telegram_post_url": "https://t.me/any_toour/260",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2d_XzI9M",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/57066.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2015,
+      "name": "Diamond Cottage Resort & Spa",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/261",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2d_94R6M",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/2015.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 21817,
+      "name": "Asteria Collection Side",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/262",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2eAiYDj0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/21817.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1026,
+      "name": "Baia Lara Hotel",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/263",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2eBHEQpo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/1026.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 4091,
+      "name": "Vinpearl Resort Nha Trang",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/264",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2eBrpNlk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/4091.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1350,
+      "name": "Asteria Family Resort Belek",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/265",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2eCRtcfE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/1350.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1140,
+      "name": "Crystal De Luxe Comfort Collection",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/266",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2eC1wANs",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/1140.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1203,
+      "name": "Goldcity Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/267",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2eDarJWo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/1203.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 55828,
+      "name": "Selectum Luxury Resort Belek",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/268",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2eD-BQRg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/55828.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 108167,
+      "name": "Asteria Mui Ne Resort",
+      "country_id": 16,
+      "region_id": 88,
+      "destination": "Фантьет",
+      "telegram_post_url": "https://t.me/any_toour/269",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2erK-Lj0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-16/108167.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 63674,
+      "name": "Radisson Blu Resort Phu Quoc",
+      "country_id": 16,
+      "region_id": 104,
+      "destination": "Фукуок",
+      "telegram_post_url": "https://t.me/any_toour/270",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2erwGCro",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-16/63674.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 47025,
+      "name": "Adalya Elite Lara",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/271",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2esUuLcc",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-16/47025.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 12,
+  "candidate_count": 19,
+  "read_at_utc": "2026-11-07T14:55:03+00:00",
+  "scope_hotels": 12,
+  "feed_rows": 12,
+  "deferred_count": 0,
+  "installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083",
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 2219,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1507,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 65020,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 83189,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 95159,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 55721,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 16750,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 713,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 341,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 340,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1439,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 28325,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1096,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1486,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 37527,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 48863,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 15889,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 27642,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 76588,
+      "clear": true,
+      "matches": []
+    }
+  ]
+}
