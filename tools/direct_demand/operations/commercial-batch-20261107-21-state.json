@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-21-v1",
-  "state": "SENDER_SUCCESS_CONSUMED_PENDING_COMBINED20_BINDING_ROUTE_FEED_CLOSURE",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     1145,
     37364,
@@ -34,5 +34,40 @@
   "private_receipt_sha256": "b4b64560a66c0661705a9298faa791e8b2553a5d97c31bccb23f84402d9933b1",
   "private_receipt_extraction": "Original final JSON line from original publication JSONL output; complete original ZIP retained",
   "input_artifact_id": 13582992195,
-  "input_zip_sha256": "daa2005fbc1279ebd3bb31087314b25c61c9aef521255c80c890f12c66ab8953"
+  "input_zip_sha256": "daa2005fbc1279ebd3bb31087314b25c61c9aef521255c80c890f12c66ab8953",
+  "combined_full_pairs_after": 314,
+  "routes": {
+    "logical_hotels": 314,
+    "new_routes_verified": 20,
+    "previous294_rows_identical": true,
+    "run_id": 42395673244,
+    "commit": "27dd86bc09430a75034e3339ae247e13952bbe07",
+    "result_artifact_id": 13583601494
+  },
+  "feeds": {
+    "run_id": 42396192015,
+    "job_id": 128473961799,
+    "commit": "6861ed1a1b750099311ebaad06a7444a20f09a5e",
+    "result_artifact_id": 13583780568,
+    "receipt_sha256": "8f077cf3751f221e81560c1613b09bd14da9fe42b5609461833159ec0f2a957e",
+    "rows": [
+      314,
+      314,
+      628
+    ],
+    "previous294_offer_blocks_identical": true
+  },
+  "binding_read": {
+    "run_id": 42395346729,
+    "result_artifact_id": 13583580500,
+    "new_binding_count": 20,
+    "deferred_count": 0,
+    "image_missing_count": 0
+  },
+  "closed_operations": [
+    "sender",
+    "binding_read36",
+    "max314",
+    "feed34"
+  ]
 }
