@@ -1,0 +1,1144 @@
+{
+  "operation": "commercial-hotel-batch-20261107-36-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 432,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read40",
+        "run_id": 42403909881,
+        "original_read_sha256": "c7f28e329d9a40c11a2af21155f726fed42ea7e19d2b3a9febc54f0dde56f70a",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed19 commercial captions in cutover24 format,57 real source photos and19 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before35/36 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nineteen-after-422-commercial-release-manifest.json",
+    "sha256": "8eabb714622afc9dc2d858942bfb9caeffaaf2ce7e8b69493fe3f4bf4b478291",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-third20-commercial-captions.json",
+    "caption_sha256": "419d8e2ba9adbc828f8b6e972551581c0b9fd5dc1b344b0777383d2423cac5f9",
+    "subset_native_ids": [
+      1339,
+      1586,
+      55925,
+      113292,
+      1436,
+      53578,
+      1336,
+      1004,
+      17595
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "source_held_native_ids": [
+    55511
+  ],
+  "media_held_native_ids": [],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1339,
+      "logical_id": "commercial-limak-limra-1339-v1",
+      "aliases": [
+        "Limak Limra Hotels & Resort",
+        "LIMAK LIMRA HOTEL & RESORT"
+      ],
+      "text": "✈️ Туры в Limak Limra с перелётом\n📍 Кемер, Турция.\n\nБалкон и вид на море для отдыха вдвоём.\n\n🛏 Двухместный Standard Sea View от 24 до 26 м² в главном корпусе, с балконом.\n🍽 Ultra All Inclusive.\n🏖 Пляж с песком и галькой, есть пирс.\n\n✈️ Рассчитаем тур с перелётом и подходящим размещением на ваши даты.",
+      "text_sha256": "ee3c35eb894d1e7a3e757482b28b09254e03de2c5501970f2fccfd959eff9b39",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1339.png",
+      "photo_sha256": "bacc37f206c52ed0a51a248be99c52b751ceff3a274ae4521d7fbefafc955153",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/kemer/limak_limra_hotel__resort/",
+        "https://kompastour.com/by/rus/country/turkey/kemer/limak_limra_hotel__resort/",
+        "https://www.ltur.com/ch/ferien/limak-limra-hotel-resort-5922",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-limra-7280800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-limra-7280832.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-limra-7280845.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8577,
+        "anytour_id": 622,
+        "legacy_native_id": 1339,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ_k39jY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_eaed601c16c44f4f_run05_c01",
+        "top500_eaed601c16c44f4f_run05_c02",
+        "top500_eaed601c16c44f4f_criteria45_c01",
+        "top500_eaed601c16c44f4f_run05audit_c04",
+        "top500_eaed601c16c44f4f_run05audit_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-limra-7280800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "877b173125f7cb90f50f64e93c53b2733cbb8096c13a3c17ba996d4b99a41b2e",
+          "source_png_sha256": "a91366bdcea3ecc4455b4935846773c47f721230b119232924327e630fab9cc2",
+          "source_png_bytes": 917585,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Территория и бассейн Limak Limra",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8T8070",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "limak-limra-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g35",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-limra-7280832.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ecd28b3453c0e3093bb349359ab1e56e1115507b4169525fcc4c3ec2415c06ea",
+          "source_png_sha256": "1b52a79ea0a6b9cf598bfc46b87217cae986534e43e9c7d81bca0c6614bfcd0d",
+          "source_png_bytes": 862727,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Лобби Limak Limra",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ24PPBo",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "limak-limra-g35.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g48",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-limra-7280845.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "81d2167aeb63aac68973358b63c76a3db9a5516b150939017333036d1310fd57",
+          "source_png_sha256": "c539a3bcb4313ee9ab4d1f77ad775f307411a9d4f149a7d7a1f3b7cbd506cb2d",
+          "source_png_bytes": 849101,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Зона отдыха Limak Limra",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQy6DCbI",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "limak-limra-g48.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1586,
+      "logical_id": "commercial-white-city-beach-1586-v1",
+      "aliases": [
+        "White City Beach Hotel (Adults Only 16+)",
+        "WHITE CITY BEACH ADULTS ONLY 16+"
+      ],
+      "text": "✈️ Туры в White City Beach с перелётом\n📍 Аланья, Турция.\n\nОтдых в Аланье в отеле для гостей от 16 лет.\n\n🛏 Standard Land View 28 м².\n🍽 Ultra All Inclusive.\n🏖 Собственный пляж напротив отеля: песчаная зона и платформа.\n🎶 Шоу и музыкальные вечера.\n\n✈️ Подберём номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "72daf7662f94153dea15042bbf5a442b74e6a26a8d5313746d793faacbd20480",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1586.png",
+      "photo_sha256": "9d4603c1e39a029b292ecd3fc0ae00c70c96d2329edbdb2e7ffdf1941581edfd",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/alanya/white_city_beach_hotel/",
+        "https://1atravel.onesystem.online/STORAGES/1ATRAVEL/files/439.file.21012026.1331.6970c2af60f676.99784489.559.pdf",
+        "https://www.whitecityhotels.com/white-city-beach/accommodation/standard-land-view-room",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1586-73531000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1586-73531951.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1586-73531633.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15017,
+        "anytour_id": 765,
+        "legacy_native_id": 1586,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQ1-scko",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7081b01bbb0b9e54_run05_c01",
+        "top500_7081b01bbb0b9e54_run05_c04",
+        "top500_7081b01bbb0b9e54_run05audit_c02",
+        "top500_7081b01bbb0b9e54_run05audit_c03",
+        "top500_7081b01bbb0b9e54_run05audit_c04",
+        "top500_7081b01bbb0b9e54_run05audit_c05",
+        "top500_7081b01bbb0b9e54_run05audit_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1586-73531000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8264c9925c2e03e92f446e4cb3d96f3892f4002d8a801ae79b86da4a931419b7",
+          "source_png_sha256": "b260fc8980f707a2d8dc0abf6011a0b3916bb0e0c4b8cda4acaddc574230139e",
+          "source_png_bytes": 1239444,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Территория и бассейн White City Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8BZlBE",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "white-city-beach-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g53",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1586-73531951.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "23f8104f2e933bfea5295217ab6a6f85d5c682dd9ab1abb988c6c71b455450b3",
+          "source_png_sha256": "382db272e78a2259bfdba22d5bcce79d30d8346263177f16729244d08b52bed8",
+          "source_png_bytes": 833157,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Лобби White City Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6Fbf7U",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "white-city-beach-g53.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g35",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1586-73531633.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3764eaaad4e78e864057915f3cacca8f1c65e6154bc15cb5891061dda9e18bbd",
+          "source_png_sha256": "040e825c769cb381604f4978b4438c89edfc3612a0b396319eef3e7a87d0ce0c",
+          "source_png_bytes": 737604,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Вечерняя программа White City Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ7JtU3M",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "white-city-beach-g35.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 55925,
+      "logical_id": "commercial-villa-sunflower-55925-v1",
+      "aliases": [
+        "Villa Sunflower Hotel",
+        "VILLA SUNFLOWER APARTS & SUITES"
+      ],
+      "text": "✈️ Туры в Villa Sunflower с перелётом\n📍 Аланья, Турция.\n\nГородской отдых в Аланье с поездками на пляж Клеопатра.\n\n🛏 Standard от 17 до 20 м² в корпусах A или B.\n🍽 All Inclusive.\n🏖 Свой участок пляжа примерно в 1,2 км; бесплатный трансфер сезонный. Питание и напитки на пляже платные.\n\n✈️ Подберём номер и рассчитаем тур с перелётом.",
+      "text_sha256": "ec92d0c922e65b92dd4f470a94f670ded87778c7fe7d9d4b6fcdde61cf0d8631",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/55925.png",
+      "photo_sha256": "9942d1cc6efed69e3c7247124cce58de85bd722732129820b975d4044982574d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/alanya/villa_sun_flower_aparts/",
+        "https://www.villasunflower.com/factsheet/en.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/villa-sun-flower-22644100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/villa-sun-flower-22644121.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/villa-sun-flower-22644141.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 22921,
+        "anytour_id": 2590,
+        "legacy_native_id": 55925,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ5xxFmc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_55d3ae99185df3c1_run05_c01",
+        "top500_55d3ae99185df3c1_run05_c02",
+        "top500_55d3ae99185df3c1_run05_c03",
+        "top500_55d3ae99185df3c1_run05_c04",
+        "top500_55d3ae99185df3c1_run05_c05",
+        "top500_55d3ae99185df3c1_run05audit_c04",
+        "top500_55d3ae99185df3c1_run05audit_c05",
+        "top500_55d3ae99185df3c1_run05audit_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/villa-sun-flower-22644100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8bdfd95992227280319fb664f932d7ee2fa49177646109baf6f9c12789185e6e",
+          "source_png_sha256": "10155a00212981137530dd5cec4cf1f69bdcca50eacef69c72a7b74287c7bd46",
+          "source_png_bytes": 1142660,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Здания и бассейн Villa Sunflower",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQx6sCRk",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "villa-sunflower-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g22",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/villa-sun-flower-22644121.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a35532f19a19301805e07c5214622db38fb7f42d7ca6992ec3907105442a97f2",
+          "source_png_sha256": "e1fbe5152e034167dd482d1bb81349f8659f5112d278b22d280af1fec4764183",
+          "source_png_bytes": 600650,
+          "dimensions": [
+            1024,
+            684
+          ],
+          "alt": "Один из номеров Villa Sunflower",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6Ytuhs",
+          "canva_asset_dimensions": [
+            1024,
+            684
+          ],
+          "source_png_filename": "villa-sunflower-g22.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g40",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/villa-sun-flower-22644141.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3ab49df9ebc191a51034424e874c377df81a2ff9ff21adf85e681be1906ca1c3",
+          "source_png_sha256": "fb8208d089163f7b3bb7f3ee49e3459572a26f7cf6846507e1f87793ceb66710",
+          "source_png_bytes": 1016830,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Буфет ресторана Villa Sunflower",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6hDtac",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "villa-sunflower-g40.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 113292,
+      "logical_id": "commercial-granada-red-113292-v1",
+      "aliases": [
+        "Granada Luxury Red (Adults Only 16+)",
+        "GRANADA LUXURY RED ADULTS ONLY"
+      ],
+      "text": "✈️ Туры в Granada Luxury Red с перелётом\n📍 Аланья, Турция.\n\nОтдых с боковым видом на море в отеле для гостей от 16 лет.\n\n🛏 Standard Partial Sea View.\n🏖 Собственный пляж рядом с отелем.\n\n✈️ Подберём даты, питание и номер, рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "c606b3d5663c8bd7d755bdf0b56c22253fe023028c2a75be00fb2162eb8d3c2e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/113292.png",
+      "photo_sha256": "fb64c7eb8e2a4a714bb4ddfdddf71682a1185c14ddd1dc89a3a212a5a1545ba9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/alanya/granada_luxury_red/",
+        "https://media.joinup.travel/storage/hotel/44026/files_en/Fact-Sheet-Granada-Luxury-Red-2026.pdf",
+        "https://granada.com.tr/media/0zfpbemr/granada-luxury-red-en-factsheet.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-red-82310200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-red-82310201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-red-82310218.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37884,
+        "anytour_id": 3776,
+        "legacy_native_id": 113292,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ_lDpUA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_70289c0d1dc7bed1_run05_c01",
+        "top500_70289c0d1dc7bed1_run05_c03",
+        "top500_70289c0d1dc7bed1_run05_c04",
+        "top500_70289c0d1dc7bed1_run05_c05",
+        "HOTEL-TR-MANUAL-20261025T191157Z-BASE08_c01",
+        "HOTEL-TR-MANUAL-20261025T191157Z-BASE08_c02",
+        "HOTEL-TR-MANUAL-20261025T191157Z-BASE08_c08"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-red-82310200.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9a599692682bb6c14934632fc0cf9e4f7c150b3483be2034dfd19631e80b99d3",
+          "source_png_sha256": "cf1e558902e3108e2c9cd616002622e22d1a58217640f5781c6b832f919b8f16",
+          "source_png_bytes": 984598,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Здание и территория Granada Luxury Red",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6eLjz8",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "granada-red-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-red-82310201.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "12b71d893188bc3ea0d2a5275fc6d345f168bc9019c22cf8f00da7452ef8d9db",
+          "source_png_sha256": "416fa8b0e9a38ba84fc4ce8a313fca413792d990d2803c6e03d3aecace379905",
+          "source_png_bytes": 814120,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Granada Luxury Red",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ4KnaKw",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "granada-red-g02.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-red-82310218.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "30c413d4b72a0b697b618675b6d9ccd89397faf8b84e2f7da3118181ac11d263",
+          "source_png_sha256": "537aa25d6a3aee97e7ff9ab376b963a460449df5ee82622603a92a4b53f232ab",
+          "source_png_bytes": 985494,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Лобби Granada Luxury Red",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8h9nOE",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "granada-red-g19.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1436,
+      "logical_id": "commercial-porto-bello-1436-v1",
+      "aliases": [
+        "Porto Bello Hotel Resort & Spa",
+        "PORTO BELLO"
+      ],
+      "text": "✈️ Туры в Porto Bello Hotel Resort & Spa с перелётом\n📍 Анталья, Турция.\n\nОтдых вдвоём у побережья Антальи.\n\n🛏 Двухместный Standard 22 м² с балконом.\n🍽 All Inclusive.\n🏖 Галечный пляж через дорогу. Подземный переход работает сезонно.\n\n✈️ Подберём размещение и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "45d504cb9ed4d8863932f4f6a02a5f3040c51da9e48aff2fb4a9160f88a79786",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1436.png",
+      "photo_sha256": "ee63767d38ef5987a0a66e3d1b0c74df58fa47a386ccca7420de9b81de94b048",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/antaliya/porto_bello_hotel_resort__spa/",
+        "https://kompastour.com/kz/rus/country/turkey/antaliya/porto_bello_hotel_resort__spa/",
+        "https://www.portobello.com.tr/en/room-detail/standard-double-room-547",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/porto-bello-62595600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/porto-bello-62595613.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/porto-bello-62595629.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8360,
+        "anytour_id": 677,
+        "legacy_native_id": 1436,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQxjg16Q",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_ded8e8906cc28e3d_run05_c01",
+        "top500_ded8e8906cc28e3d_run05_c02",
+        "top500_ded8e8906cc28e3d_run05_c04",
+        "top500_ded8e8906cc28e3d_run05_c05",
+        "top500_ded8e8906cc28e3d_run10_c01",
+        "top500_ded8e8906cc28e3d_run10_c02",
+        "top500_ded8e8906cc28e3d_run05audit_c04",
+        "top500_ded8e8906cc28e3d_run05audit_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/porto-bello-62595600.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c64ca2bc17eddac234b941c97c65da1ba7ccc31b6a8849aa8c00b36038e16258",
+          "source_png_sha256": "097be2afb7536f55369695c3e65d3cef4dbcee172ef4fed5a64b634e450bd919",
+          "source_png_bytes": 885174,
+          "dimensions": [
+            1024,
+            575
+          ],
+          "alt": "Побережье и дорога у отеля Porto Bello Hotel Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ76FZME",
+          "canva_asset_dimensions": [
+            1024,
+            575
+          ],
+          "source_png_filename": "porto-bello-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/porto-bello-62595613.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e5fe85590b98537993d44f465666e3105eca72efa7176ffcf7235c6822363ec4",
+          "source_png_sha256": "2116bd3603defdaa12433c84e41689fbd25ecd242963dcdb87fb27a04e4a84eb",
+          "source_png_bytes": 1045717,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Ресторан Porto Bello Hotel Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQxTA8WA",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "porto-bello-g15.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g31",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/porto-bello-62595629.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "909fa4f570978aabed1c10163a45d61b17d26f61b0f5d648b7008344dd315374",
+          "source_png_sha256": "b1ec11834a9468510498dfdf9fcb4af26c26ec0a33453c2185cc42f10896325c",
+          "source_png_bytes": 1068155,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Крытый бассейн Porto Bello Hotel Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ29UAAM",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "porto-bello-g31.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 53578,
+      "logical_id": "commercial-kahya-53578-v1",
+      "aliases": [
+        "Kahya Hotel",
+        "KAHYA"
+      ],
+      "text": "✈️ Туры в Kahya Hotel с перелётом\n📍 Аланья, Турция.\n\nОтдых вдвоём рядом с пляжем Клеопатра.\n\n🛏 Двухместный Standard от 20 до 25 м² в корпусе A.\n🍽 Подберём тур с All Inclusive или полупансионом.\n🏖 Пляж через дорогу. Лежаки, зонтики, еда и напитки на пляже платные.\n\n✈️ Рассчитаем полную стоимость с перелётом и подходящим номером.",
+      "text_sha256": "aa4dae0f9f845d8ec4fff3b69da65ccbd9800fa3909fadd00b033fe60b8d083d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/53578.png",
+      "photo_sha256": "4f1a760d7205d102dec53c117ab9c4329f1922eb6a7307f6400822a9414bb36d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.com/hotels/kahya-hotel-4599/hotelinformation/",
+        "https://www.kahyahotel.com/en",
+        "https://www.corendon.nl/turkije/turkse-riviera/alanya/alanya-centrum/kahya-hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kahya-102410001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kahya-102410007.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kahya-1024100015.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14813,
+        "anytour_id": 5835,
+        "legacy_native_id": 53578,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ9CZSQY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c6a5c4ad15ded70d_run05_c01",
+        "top500_c6a5c4ad15ded70d_run05_c02",
+        "top500_c6a5c4ad15ded70d_run10_c01",
+        "top500_c6a5c4ad15ded70d_run10_c02",
+        "top500_c6a5c4ad15ded70d_run10_c03",
+        "top500_c6a5c4ad15ded70d_run05audit_c04"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/kahya-102410001.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5731c46d4f0cd8bcdf1f2e61917b2dea2a1ca2873833d9aeafdff9b87b3cfe27",
+          "source_png_sha256": "35babc75846caf34afe06dea1b78051a41ce02b7c47a5b8d41f6482017656d0e",
+          "source_png_bytes": 1446331,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Здания и бассейн Kahya Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9ZjMDk",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "kahya-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g08",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/kahya-102410007.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "be9b06557dea202e1d464c8eb0e9f314671d4dc4afea8be7d6b2b29820a613a0",
+          "source_png_sha256": "9d6465ffde49b767b873d38897d464ce88bbaf8839b33b5c303c59239f776cf6",
+          "source_png_bytes": 996909,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Ресторан Kahya Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ5_6T1g",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "kahya-g08.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/kahya-1024100015.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "1c0e796b1c7f7c6ec6f676bc829d53cc985ae1ba53d83dcf37fb7f6ff3e4880e",
+          "source_png_sha256": "46a540b12414e21c265903f2a993a0b47aea104f8ffe285c92b6ef479de8e888",
+          "source_png_bytes": 1794638,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Пляж и расположение отеля Kahya Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2-bqqc",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "kahya-g16.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1336,
+      "logical_id": "commercial-limak-arcadia-1336-v1",
+      "aliases": [
+        "Limak Arcadia Sport Resort",
+        "LIMAK ARCADIA GOLF & SPORT RESORT"
+      ],
+      "text": "✈️ Туры в Limak Arcadia Sport Resort с перелётом\n📍 Белек, Турция.\n\nДля семейного отпуска с отдельной гостиной и пляжем рядом.\n\n🛏 Family 40 м²: спальня и гостиная, разделённые дверью.\n🍽 Ultra All Inclusive.\n🏖 Собственный пляж на первой линии, у входа в море песок.\n🎶 Живая музыка по вечерам.\n\n✈️ Подберём размещение для вашей семьи и рассчитаем тур с перелётом.",
+      "text_sha256": "166c515c6ea5ff0720148ded5c6da48d6412a5a59e43e7b5e35321f4c3dc5fa5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1336.png",
+      "photo_sha256": "dedd1fab4c8e10ee663bb8ace51d31ed49285279a9165b74e4103f338f38a180",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/belek/limak_arcadia_golf__sport_resort/",
+        "https://kompastour.com/uz/rus/country/turkey/belek/limak_arcadia_golf__sport_resort/",
+        "https://www.awayholidays.co.uk/europe/turkey/antalya/limak-arcadia-sport-resort.aspx",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-arcadia-53775815.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-arcadia-53775835.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-arcadia-53794909.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8570,
+        "anytour_id": 619,
+        "legacy_native_id": 1336,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ3jNO6U",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_33b5b74072374952_run05_c01",
+        "top500_33b5b74072374952_run05_c02",
+        "top500_33b5b74072374952_run05_c03",
+        "top500_33b5b74072374952_run05_c04",
+        "top500_33b5b74072374952_run05audit_c04",
+        "top500_33b5b74072374952_run05audit_c05",
+        "top500_33b5b74072374952_run12_c01",
+        "top500_33b5b74072374952_run12_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-arcadia-53775815.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "cc8a7a95abed59eea106dd6ff864e2990131acbd26fb049712f68753c9730be6",
+          "source_png_sha256": "0c7d15ba79bf71b289ec575a059e4656844ca2024cac3d5551b58656fa9ecb53",
+          "source_png_bytes": 1210856,
+          "dimensions": [
+            1024,
+            739
+          ],
+          "alt": "Территория и побережье Limak Arcadia Sport Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQzJfSPw",
+          "canva_asset_dimensions": [
+            1024,
+            739
+          ],
+          "source_png_filename": "limak-arcadia-g15.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g32",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-arcadia-53775835.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a1ca6fba07445bf71bf283d6569b86d09cc60bff45f0ce2487080c9befc35fde",
+          "source_png_sha256": "e1fba35958946b9c81f5db3ad2eaeea1075feca518b6570d7cf3afbaa905a399",
+          "source_png_bytes": 1080229,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Лобби Limak Arcadia Sport Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_HooXU",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "limak-arcadia-g32.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g49",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-arcadia-53794909.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "517f20204c7a87a268af13b746d4c4145ed8764db422b9a3c559ec4dbd0bb90c",
+          "source_png_sha256": "6190c2f67cffffc022a7a0171bbb3039229b54603586ef3c8abc65c584c444c8",
+          "source_png_bytes": 1385440,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Зона отдыха в саду Limak Arcadia Sport Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9O2OBA",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "limak-arcadia-g49.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1004,
+      "logical_id": "commercial-sealife-buket-1004-v1",
+      "aliases": [
+        "Sealife Buket Resort & Beach",
+        "SEALIFE BUKET BEACH (EX. ASKA BUKET RESORT & SPA)"
+      ],
+      "text": "✈️ Туры в Sealife Buket Resort & Beach с перелётом\n📍 Аланья, Турция.\n\nБалкон, пляж рядом и вечерняя музыка для отдыха вдвоём.\n\n🛏 Двухместный Standard 20 м² с балконом.\n🍽 All Inclusive.\n🏖 Собственный пляж рядом с отелем.\n\n✈️ Подберём подходящий вид из номера и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "e3899897f5cb0ce5664cfd56e1e62953e928e8b691e79b26e2dec719ff86e63d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/1004.png",
+      "photo_sha256": "d45df2d44bebd1810bc51b33bcfbe2e3f96e0d364af34eae388a9e46b96791f5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/alanya/sealife_buket_beach_hotel/",
+        "https://kompastour.com/uz/rus/country/turkey/alanya/sealife_buket_beach_hotel/",
+        "https://www.sealifebukethotel.com/tr/room-detail/standard-double-room-557",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-buket-exaska-club-n-resort-spa-82813000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-buket-exaska-club-n-resort-spa-82813059.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-buket-exaska-club-n-resort-spa-82813032.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 12143,
+        "anytour_id": 437,
+        "legacy_native_id": 1004,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ67Es_Y",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8ed5eff2b0dd789b_run05_c01",
+        "top500_8ed5eff2b0dd789b_run05_c02",
+        "top500_8ed5eff2b0dd789b_run05_c04",
+        "top500_8ed5eff2b0dd789b_run10_c01",
+        "top500_8ed5eff2b0dd789b_run10_c02",
+        "top500_8ed5eff2b0dd789b_run05audit_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-buket-exaska-club-n-resort-spa-82813000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e1a4f98bd9aa0df8cc02d2bc419ba094948195210cc49bf7c0098947b3f866a9",
+          "source_png_sha256": "bfe7a94ce95233a0bb69ef769ca9024a59f55af59220a137ea9898bbf79f75b0",
+          "source_png_bytes": 1228430,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Территория и побережье Sealife Buket Resort & Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6JpV3k",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sealife-buket-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g61",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-buket-exaska-club-n-resort-spa-82813059.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fe1a6cc1a956da44312faefc8047917d1ae7cf1a647f67b0580d5d04ca41e092",
+          "source_png_sha256": "840da4824967de4902e16fce4fccf09e041471d851f859f5eaadde9dc5de07af",
+          "source_png_bytes": 833849,
+          "dimensions": [
+            1024,
+            698
+          ],
+          "alt": "Один из номеров Sealife Buket Resort & Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ7KbgyE",
+          "canva_asset_dimensions": [
+            1024,
+            698
+          ],
+          "source_png_filename": "sealife-buket-g61.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g34",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/aska-buket-exaska-club-n-resort-spa-82813032.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e418e3d19efb7f8e6f36ca4cc6af2430669a0f77188429d91ff39ad94bd5a990",
+          "source_png_sha256": "9e11eb4fead6ae4b4320e918e66d6f634ab587152d7fecc657ad10d92d5644b9",
+          "source_png_bytes": 760735,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Буфет ресторана Sealife Buket Resort & Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ-mmAmM",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sealife-buket-g34.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 17595,
+      "logical_id": "commercial-ramada-lara-17595-v1",
+      "aliases": [
+        "Ramada Resort Lara",
+        "RAMADA RESORT BY WYNDHAM LARA"
+      ],
+      "text": "✈️ Туры в Ramada Resort Lara с перелётом\n📍 Анталья, Турция.\n\nДля пляжных дней и вечеров с живой музыкой.\n\n🛏 Superior 28 м².\n🏖 Собственный пляж с песком и галькой через дорогу; есть трансфер.\n🎶 Живая музыка в отдельные дни.\n\n✈️ Подберём питание и номер под ваш состав, рассчитаем тур с перелётом.",
+      "text_sha256": "45766a2006b258369eb26ce040c41a9a7ecb1eaa6e2a3724f43ad4f529f7b5d3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d1bbdd5571b9abc496605217f0a8039bc424e951/.github/traffic-publish/commercial-batch-20261107-36/17595.png",
+      "photo_sha256": "e75f07f72630321ab5eeac4c8f8eff594fd4409a84d1274ad8c4c68e95f73042",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://ramadaresortlara.com/en",
+        "https://kompastour.com/kz/rus/country/turkey/antaliya/ramada_resort_lara/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1380&legacyHotelIds%5B%5D=949&legacyHotelIds%5B%5D=1483&legacyHotelIds%5B%5D=1196&legacyHotelIds%5B%5D=1051&legacyHotelIds%5B%5D=53514&legacyHotelIds%5B%5D=15873&legacyHotelIds%5B%5D=28754&legacyHotelIds%5B%5D=1189&legacyHotelIds%5B%5D=1410&legacyHotelIds%5B%5D=1339&legacyHotelIds%5B%5D=1586&legacyHotelIds%5B%5D=55925&legacyHotelIds%5B%5D=113292&legacyHotelIds%5B%5D=1436&legacyHotelIds%5B%5D=53578&legacyHotelIds%5B%5D=55511&legacyHotelIds%5B%5D=1336&legacyHotelIds%5B%5D=1004&legacyHotelIds%5B%5D=17595",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ramada-resort-lara-82724110.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ramada-resort-lara-82724111.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ramada-resort-lara-82724118.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8366,
+        "anytour_id": 1822,
+        "legacy_native_id": 17595,
+        "source_file": "additional-third20-current-catalog.json",
+        "source_sha256": "3ab763cb53ce15e8e29ab288845d5e2a3462921d55590e180c52992d9e306169",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ4jUZIU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c018a9a2da472757_run05audit_c01",
+        "top500_c018a9a2da472757_run05audit_c03",
+        "top500_c018a9a2da472757_run05audit_c04",
+        "top500_c018a9a2da472757_run05audit_c05",
+        "top500_c018a9a2da472757_run05audit_c06",
+        "top500_c018a9a2da472757_run05_c01",
+        "top500_c018a9a2da472757_run05_c03",
+        "top500_c018a9a2da472757_run05_c04"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ramada-resort-lara-82724110.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "db3ceed2783ab86199e773dbaef0b14232a04caba941b3859dc702947aa3c02b",
+          "source_png_sha256": "23cc9c06476b626f05ecfa5736934bb58525a4fd115f928ee6beffbde3b50780",
+          "source_png_bytes": 1062341,
+          "dimensions": [
+            1024,
+            731
+          ],
+          "alt": "Здания и бассейн Ramada Resort Lara",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ0sdDag",
+          "canva_asset_dimensions": [
+            1024,
+            731
+          ],
+          "source_png_filename": "ramada-lara-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g13",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ramada-resort-lara-82724111.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "90e36bb8da6d5c4dcdab5be240ed474f7454e7aa270e5daca40917aed39e98d2",
+          "source_png_sha256": "3f3e2614316a679bf174a988e7abb3eecd6a4ea96b21e211f69b378fbff0c171",
+          "source_png_bytes": 734868,
+          "dimensions": [
+            1024,
+            686
+          ],
+          "alt": "Лобби Ramada Resort Lara",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ673ul4",
+          "canva_asset_dimensions": [
+            1024,
+            686
+          ],
+          "source_png_filename": "ramada-lara-g13.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g20",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ramada-resort-lara-82724118.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d2ea5876cd90472cdf6d0461e063c6b71071267a852dd27dee028bb5aae0bf55",
+          "source_png_sha256": "fe7ad81f743832f7d15a52808f2877c511c3fd6bf49b18a49740b8d485a41f61",
+          "source_png_bytes": 847835,
+          "dimensions": [
+            1024,
+            686
+          ],
+          "alt": "Ресторан Ramada Resort Lara",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ-0zEzg",
+          "canva_asset_dimensions": [
+            1024,
+            686
+          ],
+          "source_png_filename": "ramada-lara-g20.png"
+        }
+      ]
+    }
+  ]
+}
