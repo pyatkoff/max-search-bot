@@ -1,0 +1,433 @@
+{
+  "operation": "commercial-hotel-batch-20261107-11-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 211,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read24",
+        "run_id": 42372696111,
+        "read_at_utc": "2026-11-07T12:29:43Z",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nine-after-211-commercial-release-manifest.json",
+    "sha256": "d1804f60a7d7c1c7e869e0108cb1b7d0ec31db8fb903c1edb189f1fec4a3cacb"
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 129161,
+      "logical_id": "commercial-rewaya-129161-v1",
+      "aliases": [
+        "Rewaya Majestic Resort"
+      ],
+      "text": "🌊 Rewaya Majestic Resort 5★ · Хургада\n\nПляжный отпуск с просторным базовым номером.\n\n🏖 Первая линия, собственный пляж длиной 150 м.\n🛏 Standard 48 м²: двуспальная или две отдельные кровати, балкон или терраса.\n🎶 Дневные и вечерние программы, дискотека.\n\n✈️ Подберём номер и питание в Rewaya, рассчитаем тур с перелётом на ваши даты и состав семьи.",
+      "text_sha256": "965b695af98832291b13a032330b28d352b348cc0910821227632922f7d3edeb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/129161.png",
+      "photo_sha256": "05b39d6eae858271a403f3b7381a2c18012d8d5a1990399127af5a56610d172d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.ge/en/hotels/egypt/rewaya-majestic-resort-hurghada/",
+        "https://alf.ua/public/uploads/media/file/0003/43/7b7e5d057555271910093379c977f2eb3538de9c.pdf",
+        "https://s01.cdn-pegast.net/get/03/6d/93/d7cb7b2f9137cd3f21a100545e6032347df3fc82356c5b5c5b69fc30c8/68ae96061a224.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/rewaya-majestic-resort-33748502.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/rewaya-majestic-resort-33748534.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/rewaya-majestic-resort-33748509.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 41923,
+        "anytour_id": 3980,
+        "legacy_native_id": 129161,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPXjb2cI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "rewaya_majestic_resort_context13_c02",
+        "rewaya_majestic_resort_c05",
+        "rewaya_majestic_resort_demand24_c01"
+      ]
+    },
+    {
+      "hotel_id": 65877,
+      "logical_id": "commercial-vesna-65877-v1",
+      "aliases": [
+        "Vesna Hotel"
+      ],
+      "text": "🌊 Vesna Hotel 5★ · Нячанг\n\nДля поездки в Нячанг втроём или большой семьёй.\n\n🏖 Пляж примерно в 50 м, через дорогу.\n🛏 Deluxe Triple и Premier Triple: три отдельные кровати.\n👨‍👩‍👧‍👦 Family Duplex: два уровня и две отдельные спальни.\n\n✈️ Подберём категорию и вид из номера, рассчитаем тур в Vesna с перелётом на ваши даты и состав.",
+      "text_sha256": "d65956a77973df500323a9149ce73d5cdca456da6468e58c20559cf7f5d4ead1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/65877.png",
+      "photo_sha256": "18211dcfb679b1e0576833e09aaf3d4e633eff2e872c3a05b30fe36c14d3b53f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/vesna_hotel/",
+        "https://www.vesnahotelnhatrang.com/rooms/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vesna-hotel-102301096.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vesna-hotel-1023011022.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vesna-hotel-1023010910.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 24360,
+        "anytour_id": 2977,
+        "legacy_native_id": 65877,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPcbQL5I",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4870e0258723c46e_run07r_c04",
+        "HOTEL-VN-MANUAL-20261025T183514Z-C23",
+        "HOTEL-VN-MANUAL-20261025T183514Z-C24"
+      ]
+    },
+    {
+      "hotel_id": 20971,
+      "logical_id": "commercial-sugar-nautical-20971-v1",
+      "aliases": [
+        "Sugar Marina Resort-Nautical-Kata Beach",
+        "SUGAR MARINA RESORT NAUTICAL KATA BEACH"
+      ],
+      "text": "⛵ Sugar Marina Resort Nautical Kata Beach 4★ · Пхукет\n\nНомер с выходом к бассейну для отдыха на Кате.\n\n🛏 Deluxe Pool Access 32 м²: собственная терраса и прямой выход к бассейну.\n🏖 До общественного пляжа Ката около 650 м, с переходом через дорогу.\n👜 В номерах есть пляжная сумка, коврик и полотенце.\n🏋️ Тренажёрный зал на территории.\n\n✈️ Подберём категорию и питание в Nautical, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "34bbffe017845e4af1072b12907a2aeb8f1764a3d53087750c5d114ffb56de32",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/20971.png",
+      "photo_sha256": "17bca7c177323ec9f023636732c5f78d34d54b80014ae299662e3bbe923939e8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.sugarmarinahotel.com/nautical/rooms/",
+        "https://kompastour.com/by/rus/country/thailand/phuket/sugar_marina_nautical_kata/",
+        "https://www.sugarmarinahotel.com/nautical/space-and-facilities/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-resort-21838200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-resort-21838229.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/sugar-marina-resort-21838202.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5175,
+        "anytour_id": 1853,
+        "legacy_native_id": 20971,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPVkIhjk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261025T191759Z_mass_c21",
+        "top500_ded97d1753220bac_run08_c04",
+        "country61_TH_20261025T191759Z_mass_c23",
+        "country61_TH_20261025T202149Z_mass_c30"
+      ]
+    },
+    {
+      "hotel_id": 1653,
+      "logical_id": "commercial-hilton-dalaman-1653-v1",
+      "aliases": [
+        "Hilton Dalaman Sarigerme Resort & Spa"
+      ],
+      "text": "🌿 Hilton Dalaman Sarigerme Resort & Spa 5★ · Сарыгерме\n\nДля семейного отпуска с большим пляжем и клубами по возрастам.\n\n🏖 Собственный пляж длиной 650 м.\n🛏 Guest Room 36 м² в главном здании.\n🎨 Carpi для детей от 3 до 10 лет, приученных к туалету.\n🎮 Youngster для возраста от 10 до 15 лет, по регистрации.\n\n✈️ Подберём номер под вашу семью и рассчитаем тур с перелётом на нужные даты.",
+      "text_sha256": "2411fb82b4ff3fcd9860368bcbd965a7cb7d942d5648b1d2db28c2bd33c8ef15",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/1653.png",
+      "photo_sha256": "bddda172e2949f05dce133e77c2ab18e05377d2f96269639259ecfaeffe52e31",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/dalaman/hilton_dalaman_sarigerme_resort_and_spa/",
+        "https://kompastour.com/md/rus/country/turkey/dalaman/hilton_dalaman_sarigerme_resort_and_spa/",
+        "https://www.hilton.com/en/hotels/dlmhrhi-hilton-dalaman-sarigerme-resort-and-golf/resort/kids-clubs-activities/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/hilton-dalaman-golf-resort-spa-73123700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/hilton-dalaman-golf-resort-spa-73123729.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/hilton-dalaman-golf-resort-spa-73123701.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 9098,
+        "anytour_id": 793,
+        "legacy_native_id": 1653,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPVs9zYc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_b6511be6d2a54636_run06_c04",
+        "top500_b6511be6d2a54636_run06audit_c03",
+        "HOTEL-TR-MANUAL-20261026T051208Z-BASE04_c30",
+        "HOTEL-TR-MANUAL-20261026T051208Z-BASE04_c32"
+      ]
+    },
+    {
+      "hotel_id": 501,
+      "logical_id": "commercial-empire-beach-501-v1",
+      "aliases": [
+        "Empire Beach Aqua Park (Ex. Triton Empire Beach Resort Hurghada)",
+        "EMPIRE BEACH AQUA PARK (EX.ROYAL STAR EMPIRE BEACH RESORT)",
+        "Empire Beach Aqua Park",
+        "Triton Empire Beach Resort Hurghada",
+        "ROYAL STAR EMPIRE BEACH RESORT"
+      ],
+      "text": "🏖 Empire Beach Aqua Park 3★ · Хургада\n\nМоре рядом с корпусом и бассейны на территории.\n\n🌊 Собственный пляж примерно в 20 м от корпуса.\n🛏 Standard 25 м², балкон или терраса.\n💧 Три бассейна.\n🎨 Детский клуб для возраста от 4 до 11 лет.\n\n✈️ Подберём номер и питание в Empire Beach, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "229c8ebdaf0dba175285483a801506ff64113c045aa6ac061cf7cd759453250a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/501.png",
+      "photo_sha256": "1c8a9f824910740f683d8c93ebe0453086a8d53af188e7c557be07106db27e18",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/hurgada_downtown/empire_beach_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/triton-empire-beach-2512100.jpg",
+        "https://kompastour.com/useruploads/hotels_room/room_244b1ae5d9.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/triton-empire-beach-2512110.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 797,
+        "anytour_id": 229,
+        "legacy_native_id": 501,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaPfbpmk0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5f3ca03e332ab8c0_c03",
+        "top500_5f3ca03e332ab8c0_c04",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c34",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c35",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c36"
+      ]
+    },
+    {
+      "hotel_id": 502,
+      "logical_id": "commercial-empire-hotel-502-v1",
+      "aliases": [
+        "Empire Hotel Aqua Park (Ex. Triton Empire Hotel Hurghada)",
+        "EMPIRE HOTEL AQUA PARK (EX. THE THREE CORNERS TRITON EMPIRE)",
+        "Empire Hotel Aqua Park",
+        "Triton Empire Hotel Hurghada",
+        "THE THREE CORNERS TRITON EMPIRE"
+      ],
+      "text": "💦 Empire Hotel Aqua Park 3★ · Хургада\n\nДля отпуска с бассейнами и водными горками.\n\n🛏 Standard от 26 до 28 м²: одна спальня, балкон или терраса.\n💧 Взрослый и детский бассейны.\n🎢 Три взрослые горки.\n🏖 До пляжа около 500 м, через дорогу.\n\nЕда и напитки на пляже оплачиваются отдельно.\n\n✈️ Подберём номер и питание в Empire Hotel, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "16fc98a8195765778d2757dcfe4a2864e28bed27ed98fd4fa1b520ef857fe072",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/502.png",
+      "photo_sha256": "1db02e76e6e7e7e0cf076b6269686f54aa1dfd663e298af2524016f363ce692c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.ge/en/hotels/egypt/empire-hotel-aqua-park-hurghada/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/502-26372000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/502-26372002.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/502-26372211.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 798,
+        "anytour_id": 230,
+        "legacy_native_id": 502,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaPZeS9Tg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c40",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c42",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c43",
+        "top500_0e656d60c975b419_c04",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c45"
+      ]
+    },
+    {
+      "hotel_id": 95165,
+      "logical_id": "commercial-annova-95165-v1",
+      "aliases": [
+        "Annova Nha Trang Hotel"
+      ],
+      "text": "🌇 Annova Nha Trang Hotel 5★ · Нячанг\n\nДля семейной поездки с просторным номером и удобствами для длительного отдыха.\n\n🛏 Family Club Suite 60 м²: отдельные жилые зоны, две ванные, кухня и стиральная машина.\n💧 Взрослый и детский бассейны на 6 этаже.\n🏖 До общественного пляжа от 100 до 200 м, через дорогу.\n\n✈️ Подберём категорию под вашу семью и рассчитаем тур в Annova с перелётом на нужные даты.",
+      "text_sha256": "487852ca1f121b43b522a358ffd7c4e4c463b241e7b584617bfcf8ed625dee9f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/95165.png",
+      "photo_sha256": "7a4e754f1794f8ca6573c056fcfb8c66e70f0b558e39fc2cac2e76fb0af89f1a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://annovahotel.com/en/rooms",
+        "https://annovahotel.com/en/swimming-pool-1",
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/annova_nha_trang_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://www.annovahotel.com/storage/1-23.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/annova-nha-trang-hotel-1025102528.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/annova-nha-trang-hotel-102510250.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37147,
+        "anytour_id": 3623,
+        "legacy_native_id": 95165,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPWFtZxk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T192804Z-C33",
+        "HOTEL-VN-MASS-20261025T192804Z-C35",
+        "top500_50eb0ca076e73c96_run08_c04"
+      ]
+    },
+    {
+      "hotel_id": 50659,
+      "logical_id": "commercial-sheraton-phu-quoc-50659-v1",
+      "aliases": [
+        "Sheraton Phu Quoc Long Beach Resort (Ex.Vinpearl Resort & Golf)",
+        "SHERATON PHU QUOC LONG BEACH RESORT (EX. VINPEARL RESORT & GOLF PHU QUOC)",
+        "Sheraton Phu Quoc Long Beach Resort",
+        "Vinpearl Resort & Golf",
+        "VINPEARL RESORT & GOLF PHU QUOC"
+      ],
+      "text": "🌴 Sheraton Phu Quoc Long Beach Resort 5★ · Фукуок\n\nПляжный отдых с бассейнами и выбором ресторанов.\n\n🏖 Собственный пляж рядом с отелем.\n💧 Основной и детский бассейны, джакузи на открытом воздухе.\n🍝 Il Tramonto с итальянской кухней, The Sands Bar & Grill с морепродуктами.\n🌿 Собственные сад и пасека.\n\n✈️ Подберём номер и питание в Sheraton, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "af8d9e84a55cc9936152f9494db8abada84c18f37d0422c811af06658873ed0a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/50659.png",
+      "photo_sha256": "10af863f5ed781f4a307b4588d2e5712ba620689bbc8c4ce58540831bc594069",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/sheraton_phuquoc_longbeach_resort/",
+        "https://www.marriott.com/en-us/hotels/pqcsr-sheraton-phu-quoc-long-beach-resort/experiences/",
+        "https://www.marriott.com/en-us/hotels/pqcsr-sheraton-phu-quoc-long-beach-resort/dining/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-phu-quoc-resort-gol-50840300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-phu-quoc-resort-gol-50840301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-phu-quoc-resort-gol-50840331.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 20620,
+        "anytour_id": 2497,
+        "legacy_native_id": 50659,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPd1QkU8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_57091eb88da9fc60_run07r_c04",
+        "HOTEL-VN-MASS-20261025T195135Z-C24",
+        "HOTEL-VN-MASS-20261025T195135Z-C28",
+        "HOTEL-VN-MASS-20261025T195135Z-C26"
+      ]
+    },
+    {
+      "hotel_id": 79071,
+      "logical_id": "commercial-wyndham-grandworld-79071-v1",
+      "aliases": [
+        "Wyndham Garden Grandworld Phu Quoc",
+        "WYNDHAM GARDEN GRANDWORLD PHU QUOC (EX. VINHOLIDAYS INFINITY PHU QUOC)",
+        "VINHOLIDAYS INFINITY PHU QUOC"
+      ],
+      "text": "🌴 Wyndham Garden Grandworld Phu Quoc 4★ · Фукуок\n\nДля семейного отпуска с соединёнными номерами и большой зоной бассейнов.\n\n🛏 Family Connecting: два Superior со смежной дверью.\n💧 Зона бассейнов почти 1 000 м² со взрослой и детской частями.\n🏖 До пляжа Бай Дай около 400 м.\n🏋️ Тренажёрный зал на территории.\n\n✈️ Подберём семейную категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "16fc090496c94a8594e12f10f2c3bd8b0d8788b569475bb00f542a4d43334f78",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9a9d706621cc950a1004abbe8fd8c9923120d96/.github/traffic-publish/commercial-batch-20261107-11/79071.png",
+      "photo_sha256": "184d9d20d7d8ed63440c24aa0af8c8856d6c7ae1924505c8d32ff966fc5bac19",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/wyndham_garden_grandworld_phuquoc/",
+        "https://wyndhamgardenphuquoc.com/facilities/pool?lang=en&r_culture=vi",
+        "https://wyndhamgardenphuquoc.com/destination/under-1-km/bai-dai-beach?lang=en",
+        "https://wyndhamgardenphuquoc.com/facilities?lang=en",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=110289&legacyHotelIds%5B%5D=513&legacyHotelIds%5B%5D=103731&legacyHotelIds%5B%5D=800&legacyHotelIds%5B%5D=1253&legacyHotelIds%5B%5D=3452&legacyHotelIds%5B%5D=21847&legacyHotelIds%5B%5D=302&legacyHotelIds%5B%5D=512&legacyHotelIds%5B%5D=107938&legacyHotelIds%5B%5D=15871&legacyHotelIds%5B%5D=129161&legacyHotelIds%5B%5D=65877&legacyHotelIds%5B%5D=20971&legacyHotelIds%5B%5D=1653&legacyHotelIds%5B%5D=501&legacyHotelIds%5B%5D=502&legacyHotelIds%5B%5D=95165&legacyHotelIds%5B%5D=50659&legacyHotelIds%5B%5D=79071",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinholidays-infinity-phu-quoc-39705724.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinholidays-infinity-phu-quoc-39705701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinholidays-infinity-phu-quoc-39705710.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 39696,
+        "anytour_id": 3427,
+        "legacy_native_id": 79071,
+        "source_file": "next-twenty-after-forty-current-catalog.json",
+        "source_sha256": "edc5edea0ba0c7e98873fbcbb9bd6cb7b729cffaf1782f49fdf0c20f4235f39c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPVd-bFA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7c96ce2726178551_run08_c06",
+        "HOTEL-VN-MASS-20261025T211157Z-C03",
+        "top500_7c96ce2726178551_run08_c04",
+        "country61_VN_20261021T070106Z_94_af7597bb_c02",
+        "HOTEL-VN-20261027T134712Z-PILOT3-WELLNESS08_H08_C01"
+      ]
+    }
+  ]
+}
