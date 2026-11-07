@@ -19,5 +19,15 @@
   "manifest_sha256": "4780f87eab196dca4b3513bc48c0af4712a7f7aa3871b2235a2d1a0958612f76",
   "asset_commit": "20e906e26214e7a17c7b089c307eecc8c3b928c9",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "prior_gate_only_run": {
+    "run_id": 42390103183,
+    "job_id": 128455686779,
+    "outcome": "LOCAL_WORKFLOW_BATCH_SIZE_ASSERTION_BEFORE_INTENT_SERVER_SENDER",
+    "post_write_attempts": 0,
+    "new_posts": 0,
+    "sender_invoked": false,
+    "replay_run": false,
+    "source_verification_success": true
+  }
 }

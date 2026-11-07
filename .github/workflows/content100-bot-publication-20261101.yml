@@ -38,7 +38,7 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Prepare this exact approved nine-hotel batch
+      - name: Prepare this exact approved ten-hotel batch
         shell: bash
         run: |
           set -euo pipefail
@@ -50,7 +50,7 @@ jobs:
           assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf'
           approval=json.loads((base/'commercial-batch-20261107-19-approval.json').read_text())
           assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert approval['operation']=='commercial-hotel-batch-20261107-19-v1' and len(approval['hotel_ids'])==9
+          assert approval['operation']=='commercial-hotel-batch-20261107-19-v1' and len(approval['hotel_ids'])==10
           PY
           python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261107-19-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261107-19-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
           php -l "$RUNNER_TEMP/channel-preflight.php"
