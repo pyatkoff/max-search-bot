@@ -1,0 +1,987 @@
+{
+  "operation": "commercial-hotel-batch-20261107-22-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 304,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and the typed AnyTour catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "type": "first_registry_clearance",
+        "run_id": 42385438357,
+        "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42385438357",
+        "reader": "read33",
+        "native_hotel_ids": [
+          1145,
+          37364,
+          17669,
+          1402,
+          1346,
+          120209,
+          27652,
+          1183,
+          76515,
+          1684,
+          1614,
+          1228,
+          1134,
+          47027,
+          1101,
+          70233,
+          996,
+          28581,
+          1287,
+          16794
+        ],
+        "outcome": "ALL_CLEAR_PREVIOUSLY_ACCEPTED_NOT_REPLAYED"
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing authorized mass release; parent reviewed all20 reconstructed captions against accepted WORKING165 and retained constraints. All20 Canva designs were already committed and visually approved; current600x600 bytes are recovered without edit/upload, tied to exact retained original asset IDs. No missing sourcePNG SHA or original byte identity is invented. Release only after parent approves this exact manifest SHA.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-twenty-after-294-commercial-release-manifest.json",
+    "sha256": "8523a550c8f9387bffcc1e701411bfde8146c502dc7f9cf75e5b66be2c87d52a",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-twenty-after-140-commercial-captions.json",
+    "caption_sha256": "c86deb5c842dcb0c05ac2ff8f779de9545d0d52279eebf9d864267075eb5bccc",
+    "subset_native_ids": [
+      1614,
+      1228,
+      1134,
+      47027,
+      1101,
+      70233,
+      996,
+      28581,
+      1287,
+      16794
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1614,
+      "logical_id": "commercial-blue-bay-1614-v1",
+      "aliases": [
+        "Blue Bay Platinum"
+      ],
+      "text": "🌴 Blue Bay Platinum 5★ · Мармарис\n\nДля семейного отпуска с местом для отдыха в номере.\n\n🛏 1 Bedroom Family Room со спальней и гостиной с диваном.\n🎨 Детский клуб от 4 до 12 лет.\n💦 Водные горки и два детских бассейна.\n🎶 Живая музыка и шоу.\n\nК выделенному участку общественного пляжа нужно перейти дорогу. Условия горок уточним под возраст детей.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "text_sha256": "f1a5d5e3101e81e8ae259c2bf91ebd78dc5e9627586ded13e7b3d216825a7967",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1614.png",
+      "photo_sha256": "d0f1b8ca81516a9173fef375871a1ca2b98983a7720e07ba8b5d40c45c3126d9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/marmaris/blue_bay_platinium/",
+        "https://www.bluebayplatinum.com/rooms/",
+        "https://www.bluebayplatinum.com/room/1-bedroom-family-room/",
+        "https://www.bluebayplatinum.com/activities/",
+        "https://www.tui.se/resa/turkiet/marmariskusten/marmaris/blue-bay-platinum/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/0jZ9sB2B71vjPH9"
+      ],
+      "identity_binding": {
+        "anex_id": 9403,
+        "anytour_id": 780,
+        "legacy_native_id": 1614,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPwSXKII",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_49842ad0706abf01_c01",
+        "country61_TR_20261022T185800Z_human156_13eb98d0_c02",
+        "top500_49842ad0706abf01_enrich04_20261019_c01",
+        "top500_49842ad0706abf01_enrich04_20261019_c02",
+        "top500_49842ad0706abf01_c05",
+        "top500_49842ad0706abf01_c04",
+        "top500_49842ad0706abf01_demand17_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/0jZ9sB2B71vjPH9",
+          "canva_original_asset_id": "MAHaP_UaF1A",
+          "original_uploaded_filename": "blue-bay-g21.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 680
+          },
+          "alt": "Лобби Blue Bay Platinum вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/0jZ9sB2B71vjPH9",
+          "canva_original_asset_id": "MAHaPzJYevI",
+          "original_uploaded_filename": "blue-bay-g26.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 680
+          },
+          "alt": "Интерьер номера Blue Bay Platinum",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/0jZ9sB2B71vjPH9",
+          "canva_original_asset_id": "MAHaP2AZRhY",
+          "original_uploaded_filename": "blue-bay-g15.png",
+          "original_asset_dimensions": {
+            "width": 511,
+            "height": 768
+          },
+          "alt": "Ресторан Blue Bay Platinum",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1228,
+      "logical_id": "commercial-senza-garden-1228-v1",
+      "aliases": [
+        "Senza Garden Holiday Club",
+        "SENZA GARDEN HOLIDAY CLUB (EX. LARISSA HILL BEACH)",
+        "LARISSA HILL BEACH"
+      ],
+      "text": "🌴 Senza Garden Holiday Club 5★ · Аланья\n\nДля семейного отпуска с детскими развлечениями у моря.\n\n🛏 Standard 30 м² с балконом.\n🏖 Собственный пляж с песком и галькой.\n🎨 Мини клуб для детей от 4 до 12 лет.\n💦 Два детских бассейна и мини диско.\n\nВход в море галечный. Допуск на zipline и в adventure park уточним под возраст ребёнка.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "b8ae455152a06820a4d9a2b3f514ff6921cb965cac2eb4885f48b93ac9e2ec8e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1228.png",
+      "photo_sha256": "5263629e137292a3943d2ba8a2254043a2f0782440cb294bb7fe51fdde017454",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/alanya/larissa_hill_beach_hotel/",
+        "https://sofinco.mondialtourisme.fr/fr/sejours/senza-garden-holiday-club-5-2/LUX/2026-10-20/04",
+        "https://gardenholidayclub.senzahotels.com/en/rooms/standard-room/",
+        "https://gardenholidayclub.senzahotels.com/en/kids/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/tArx10NUsKEDcii"
+      ],
+      "identity_binding": {
+        "anex_id": 27611,
+        "anytour_id": 555,
+        "legacy_native_id": 1228,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP0SGxIU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_aad21a0fa927ab5a_c01",
+        "top500_aad21a0fa927ab5a_demand30_c01",
+        "top500_aad21a0fa927ab5a_run10_c01",
+        "top500_aad21a0fa927ab5a_c04",
+        "top500_aad21a0fa927ab5a_enrich20261020_c01",
+        "top500_aad21a0fa927ab5a_enrich20261020_c02"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/tArx10NUsKEDcii",
+          "canva_original_asset_id": "MAHaP6OtNU8",
+          "original_uploaded_filename": "senza-garden-g55.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 575
+          },
+          "alt": "Территория Senza Garden Holiday Club и море",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/tArx10NUsKEDcii",
+          "canva_original_asset_id": "MAHaPxuAoGA",
+          "original_uploaded_filename": "senza-garden-r01.png",
+          "original_asset_dimensions": {
+            "width": 1280,
+            "height": 853
+          },
+          "alt": "Номер из официальной галереи Standard Senza Garden Holiday Club без гарантии конкретного вида",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/tArx10NUsKEDcii",
+          "canva_original_asset_id": "MAHaP-sO1dM",
+          "original_uploaded_filename": "senza-garden-g31.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Десерты в Senza Garden Holiday Club",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1134,
+      "logical_id": "commercial-concordia-celes-1134-v1",
+      "aliases": [
+        "Concordia Celes Hotel"
+      ],
+      "text": "🌊 Concordia Celes Hotel 5★ · Окурджалар\n\nДля пляжного отпуска с питанием Ultra All Inclusive.\n\n🛏 Standard 24 м² с двуспальной и односпальной кроватями.\n🌊 Отель на первой линии.\n🍽 Ultra All Inclusive.\n🍴 Один визит à la carte от 7 ночей, по записи.\n\nВход в море по песку и гальке. Пирс и аквапарк сезонные: работу на ваши даты проверим отдельно.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "text_sha256": "1c7d5c89b4f72b54f414489d9e12fd7ffa29fe19bbfc4b89b8d14b5cb398e26d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1134.png",
+      "photo_sha256": "9822ccab1a65d9e203bf60af555d51d61f4eb25f890b50b071c57a685ebb0001",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.ge/en/hotels/turkey/concordia-celes-hotel-alanya/",
+        "https://media.joinup.travel/storage/hotel/50892/files_en/ENGLI%CC%87SH-factsheet-S2026.pdf",
+        "https://concordiaceles.com/En",
+        "https://concordiaceles.com/En/TermsConditions",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/a7N-pNWu6T6BKoX"
+      ],
+      "identity_binding": {
+        "anex_id": 8375,
+        "anytour_id": 507,
+        "legacy_native_id": 1134,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP8JLeVk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "concordia_celes_core20_c01",
+        "concordia_celes_demand20_c01",
+        "concordia_celes_context13_c01",
+        "concordia_celes_c02",
+        "concordia_celes_c07",
+        "concordia_celes_demand14_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/a7N-pNWu6T6BKoX",
+          "canva_original_asset_id": "MAHaP9Pp4jU",
+          "original_uploaded_filename": "concordia-celes-g02.png",
+          "original_asset_dimensions": {
+            "width": 511,
+            "height": 768
+          },
+          "alt": "Бассейн Concordia Celes Hotel вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/a7N-pNWu6T6BKoX",
+          "canva_original_asset_id": "MAHaP6crzdo",
+          "original_uploaded_filename": "concordia-celes-g37.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Concordia Celes Hotel",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/a7N-pNWu6T6BKoX",
+          "canva_original_asset_id": "MAHaP0R4_04",
+          "original_uploaded_filename": "concordia-celes-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 507
+          },
+          "alt": "Пляжная зона у Concordia Celes Hotel",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 47027,
+      "logical_id": "commercial-sidemarin-47027-v1",
+      "aliases": [
+        "Sidemarin Kirman Premium"
+      ],
+      "text": "🌴 Sidemarin Kirman Premium 5★ · Сиде\n\nДля семейного отдыха с отдельными спальнями и занятиями по возрасту.\n\n🛏 Family 38 м²: две спальни с дверью.\n🎨 Kichi Club для детей от 4 до 12 лет.\n🎮 Fun Club для подростков от 13 до 16 лет.\n🎶 Тематические вечера и живая музыка в отдельные дни.\n\nТочный маршрут к пляжу и расписание клубов проверим перед бронированием.\n\n✈️ Подберём размещение под возраст детей и рассчитаем тур с перелётом.",
+      "text_sha256": "b5aea2e8cf235e0f3ebf8ef5d1621a216a21e6a86d3e2e8ea089b3772e21770c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/47027.png",
+      "photo_sha256": "6dbb996cfa6cd9faea3aa06c6d288442a90470522d21c91b0c64c351b6ddd016",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/uz/rus/country/turkey/side/kirman_sidemarin_beach_spa/",
+        "https://www.kirmanpremium.com/en/kichi-kids-club-6",
+        "https://www.kirmanpremium.com/en/premium-for-kichies",
+        "https://www.dertour.de/hotel/sidemarin-kirman-premium-11PaDu",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/HVRXY1gUAdsQdRf"
+      ],
+      "identity_binding": {
+        "anex_id": 12200,
+        "anytour_id": 2444,
+        "legacy_native_id": 47027,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP_usG3M",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_ba237883790ae5ba_c01",
+        "top500_ba237883790ae5ba_c03",
+        "top500_ba237883790ae5ba_demand17_c01",
+        "top500_ba237883790ae5ba_demand17_c02",
+        "top500_ba237883790ae5ba_c05",
+        "top500_ba237883790ae5ba_mass33_c02"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/HVRXY1gUAdsQdRf",
+          "canva_original_asset_id": "MAHaP7QQR5I",
+          "original_uploaded_filename": "sidemarin-g52.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Ресторан Sidemarin Kirman Premium",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/HVRXY1gUAdsQdRf",
+          "canva_original_asset_id": "MAHaPyw7EtY",
+          "original_uploaded_filename": "sidemarin-g109.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 653
+          },
+          "alt": "Интерьер номера Sidemarin Kirman Premium",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/HVRXY1gUAdsQdRf",
+          "canva_original_asset_id": "MAHaPxex_M4",
+          "original_uploaded_filename": "sidemarin-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Корпус и бассейны Sidemarin Kirman Premium",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1101,
+      "logical_id": "commercial-sidera-1101-v1",
+      "aliases": [
+        "Sidera Kirman Premium"
+      ],
+      "text": "💦 Sidera Kirman Premium 5★ · Окурджалар\n\nДля отпуска с семьёй, отдельными комнатами и водными развлечениями.\n\n🛏 Family: две комнаты с дверью, один санузел, двуспальная и две односпальные кровати.\n🎨 Мини клуб для детей от 4 до 12 лет.\n💦 Взрослые и детские водные горки.\n🍽 Ultra All Inclusive.\n\nПирс и горки работают по сезону и погоде. Условия допуска на горки уточним под возраст детей.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "text_sha256": "dbfae677f9d0243c6579e55c8ad578aaf8b25e786d052437df7a063671de83f2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1101.png",
+      "photo_sha256": "af0249d7998a414b05723c302f386c37311ccf217e28a7466f65c416dcec6000",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.kirmanpremium.com/sidera-kirman-premium",
+        "https://s01.cdn.pegast.ru/get/77/35/17/ed3bcda3bd1da2f82d7034c9f27fcee3e1698b63657110cfe6a29abe22/69b072f0c109e.pdf",
+        "https://www.kirmanpremium.com/sidera-kirman-premium/en/family-room-5",
+        "https://pegast.ru/hotel/turkey/antalya/alanya/sidera-kirman-premium-13973",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/Yxr0QstgKLqxP8s"
+      ],
+      "identity_binding": {
+        "anex_id": 8662,
+        "anytour_id": 489,
+        "legacy_native_id": 1101,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP8f9L1U",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "sidera_kirman_premium_c01",
+        "sidera_kirman_premium_mass35_c01",
+        "sidera_kirman_premium_c08",
+        "sidera_kirman_premium_c09",
+        "sidera_kirman_premium_c05",
+        "sidera_kirman_premium_context13_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Yxr0QstgKLqxP8s",
+          "canva_original_asset_id": "MAHaP_emG1A",
+          "original_uploaded_filename": "sidera-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Sidera Kirman Premium вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Yxr0QstgKLqxP8s",
+          "canva_original_asset_id": "MAHaP9PAhhs",
+          "original_uploaded_filename": "sidera-g67.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 658
+          },
+          "alt": "Интерьер номера Sidera Kirman Premium",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/Yxr0QstgKLqxP8s",
+          "canva_original_asset_id": "MAHaP7VxPBE",
+          "original_uploaded_filename": "sidera-g85.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 542
+          },
+          "alt": "Ресторан Sidera Kirman Premium",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 70233,
+      "logical_id": "commercial-crystal-world-70233-v1",
+      "aliases": [
+        "Crystal World Of Colours Comfort Collection",
+        "Crystal World Of Colours"
+      ],
+      "text": "🎨 Crystal World Of Colours · Белек\n\nДля семейного отпуска с детским клубом и вечерней музыкой.\n\n🛏 Двухместный Standard 25 м² с балконом.\n🎨 Crispy Club для детей от 4 до 12 лет.\n🎶 Живая музыка в отдельные дни недели.\n\nК пляжу Crystal Paraiso Verde предусмотрен трансфер. Условия доступа проверим на даты поездки.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "e80b08f6e98403b5066df05e6a6508b6af8d6561d4ed4d608d78ba511879974e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/70233.png",
+      "photo_sha256": "468c25834dec05a475fe89c88437371109e8af2811a64e9f154768f21fc67129",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://holidays.eurowings.com/de-de/hotel/turkei/belek/crystal-world-of-colours-comfort-collection-1272242",
+        "https://b2ccdn.coraltravel.ee/content/CRYSTAL%20World%20of%20Colours%20-%20FACT%20SHEET%202026%20-%20EN.pdf",
+        "https://kompastour.com/md/rus/country/turkey/belek/crystal_club_world_of_colours_spa/",
+        "https://crystalhotels.com.tr/en/hotels/crystal-world-of-colours",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/NcPmze7hBojFNRW"
+      ],
+      "identity_binding": {
+        "anex_id": 29104,
+        "anytour_id": 3154,
+        "legacy_native_id": 70233,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 4,
+      "display_category": false,
+      "canva_design_id": "DAHaQNidWcg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_75c83a33ea97aa89_run11_c01",
+        "top500_75c83a33ea97aa89_run10_c02",
+        "top500_75c83a33ea97aa89_c04",
+        "top500_75c83a33ea97aa89_c06",
+        "top500_75c83a33ea97aa89_enrich03_20261019_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/NcPmze7hBojFNRW",
+          "canva_original_asset_id": "MAHaQE5lv5Y",
+          "original_uploaded_filename": "crystal-world-g38.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 799
+          },
+          "alt": "Аквапарк Crystal World Of Colours",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/NcPmze7hBojFNRW",
+          "canva_original_asset_id": "MAHaQO3sIrE",
+          "original_uploaded_filename": "crystal-world-g10.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 800
+          },
+          "alt": "Интерьер номера Crystal World Of Colours",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/NcPmze7hBojFNRW",
+          "canva_original_asset_id": "MAHaQIQA7Nc",
+          "original_uploaded_filename": "crystal-world-g21.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 800
+          },
+          "alt": "Детское пространство Crystal World Of Colours",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 996,
+      "logical_id": "commercial-corendon-playa-996-v1",
+      "aliases": [
+        "Corendon Playa Kemer",
+        "CORENDON PLAYA KEMER (EX. GRAND PARK KEMER)",
+        "GRAND PARK KEMER"
+      ],
+      "text": "🌊 Corendon Playa Kemer 5★ · Бельдиби\n\nДля отдыха с морским видом и музыкой по вечерам.\n\n🛏 Standard Sea View от 24 до 27 м²: балкон и вид на море.\n🏖 Пляж с песком и галькой на первой линии.\n🎶 Вечерняя программа, живая музыка и дискотека.\n\nДля поездки только мужским составом заранее проверим правила размещения. Состав питания подберём по вашему тарифу.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером на ваши даты.",
+      "text_sha256": "aad1b4f095b472b2bb08869a53a674904ad3486ae02ecdb5f836f6ed17242bf8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/996.png",
+      "photo_sha256": "1c7309f404d82e5c5a810f3e5f8e35991470624d54050b9ad0169946b3d4f932",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/kemer/grand_park_kemer/",
+        "https://www.corendonhotels.com.tr/corendon-playa-kemer/en/accomodation/standard-sea-view-room",
+        "https://kompastour.com/useruploads/tiny_MCE/turkey/Kemer/grand_park5/RU_Corendon_Playa_Kemer_Fact_She.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/VBkCMb9SamvRJ8s"
+      ],
+      "identity_binding": {
+        "anex_id": 11756,
+        "anytour_id": 431,
+        "legacy_native_id": 996,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP2yMBgk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_aecf213ae7cc7f89_run04_c01",
+        "top500_aecf213ae7cc7f89_crit48_c01",
+        "top500_aecf213ae7cc7f89_run04_c04",
+        "top500_aecf213ae7cc7f89_context13_c01",
+        "top500_aecf213ae7cc7f89_run04_c05",
+        "top500_aecf213ae7cc7f89_demand23_c03"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VBkCMb9SamvRJ8s",
+          "canva_original_asset_id": "MAHaQJZl0kM",
+          "original_uploaded_filename": "corendon-playa-g02.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 682
+          },
+          "alt": "Corendon Playa Kemer и бассейн вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VBkCMb9SamvRJ8s",
+          "canva_original_asset_id": "MAHaPwtglw4",
+          "original_uploaded_filename": "corendon-playa-g53.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Corendon Playa Kemer",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VBkCMb9SamvRJ8s",
+          "canva_original_asset_id": "MAHaP2rrCAA",
+          "original_uploaded_filename": "corendon-playa-g19.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 599
+          },
+          "alt": "Барная зона Corendon Playa Kemer",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 28581,
+      "logical_id": "commercial-ma-biche-28581-v1",
+      "aliases": [
+        "Ma Biche Kemer By Werde Hotels",
+        "MA BICHE KEMER BY WERDE HOTELS (EX. KIMEROS MA BICHE HOTEL & THALASSO)",
+        "KIMEROS MA BICHE HOTEL & THALASSO"
+      ],
+      "text": "🌴 Ma Biche Kemer By Werde Hotels 5★ · Гёйнюк\n\nДля отдыха у моря с вечерними шоу и поздними закусками.\n\n🛏 Standard Land View 26 м² в главном корпусе, с балконом.\n🏖 Собственный пляж рядом с отелем.\n🎶 Шоу, дискотека и живая музыка.\n🍽 Ночные закуски.\n\nМеждународный ресторан à la carte оплачивается отдельно и работает по записи.\n\n✈️ Подберём питание и номер, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "af68ad4d31fe86fc541360ee3a01a095f296568cd2d8c68d69d7cfa41102044d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/28581.png",
+      "photo_sha256": "c76114f165bcb242b2f719a6231dba61f1d4bb713d88836f760b8ab97e17317b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/md/rus/country/turkey/kemer/ma_biche_kemer_by_werde_hotels/",
+        "https://www.ltur.com/de/urlaub/ma-biche-kemer-27357",
+        "https://kompastour.com/uz/rus/country/turkey/kemer/ma_biche_kemer_by_werde_hotels/",
+        "https://www.tui.com/hotels/ma-biche-kemer-27357/hotelinformation/",
+        "https://kompastour.com/useruploads/tiny_MCE/turkey/Kemer/ma_biche_kemer_by_werde_hotels/MB_S26_Fact_Sheet_RU.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/VIFzzFmbU32ey1J"
+      ],
+      "identity_binding": {
+        "anex_id": 35511,
+        "anytour_id": 2060,
+        "legacy_native_id": 28581,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaP5n-rik",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7e093752ddf85f3d_run05_c01",
+        "top500_7e093752ddf85f3d_crit50_c01",
+        "top500_7e093752ddf85f3d_run05_c04",
+        "top500_7e093752ddf85f3d_run05audit_c05",
+        "top500_7e093752ddf85f3d_mass31_c01",
+        "top500_7e093752ddf85f3d_run10_c02"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VIFzzFmbU32ey1J",
+          "canva_original_asset_id": "MAHaPweiUTY",
+          "original_uploaded_filename": "ma-biche-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 575
+          },
+          "alt": "Территория Ma Biche Kemer By Werde Hotels",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VIFzzFmbU32ey1J",
+          "canva_original_asset_id": "MAHaP9oDtXg",
+          "original_uploaded_filename": "ma-biche-g03.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Ma Biche Kemer By Werde Hotels",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VIFzzFmbU32ey1J",
+          "canva_original_asset_id": "MAHaP1NnJmw",
+          "original_uploaded_filename": "ma-biche-g39.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 732
+          },
+          "alt": "Буфет Ma Biche Kemer By Werde Hotels",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1287,
+      "logical_id": "commercial-kemer-dream-1287-v1",
+      "aliases": [
+        "Kemer Dream Hotel"
+      ],
+      "text": "💦 Kemer Dream Hotel 4★ · Кемер\n\nДля отпуска с бассейнами и прогулками к морю.\n\n🛏 Стандартный двухместный номер.\n💦 Аквапарк с четырьмя горками.\n🏊 Два открытых и крытый бассейн.\n\nДо выделенного участка пляжа около 250 м через улицу. Берег и вход в море галечные. Работу горок проверим на даты поездки.\n\n✈️ Подберём подходящий номер и питание, рассчитаем тур с перелётом.",
+      "text_sha256": "8cc79b70931ce423b0b774ad5ba626b84e7b086ab3f4a5b5133e09c724f4e0c1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/1287.png",
+      "photo_sha256": "67c3624cd94ad65567ba3abae8e51829a45b00739d854a5c08db31baa7fd557a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/turkey/kemer/kemer_dream_hotel/",
+        "https://kemerdreamhotel.com.tr/tr/",
+        "https://kemerdreamhotel.com.tr/",
+        "https://www.coraltravel.pl/hotel/turcja/kemer-dream-hotel-kemer/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/UyYEwC79Tb_2wFT"
+      ],
+      "identity_binding": {
+        "anex_id": 8685,
+        "anytour_id": 593,
+        "legacy_native_id": 1287,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQByZ2sA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_61b68d6a8ef13c57_c01",
+        "top500_61b68d6a8ef13c57_run10_c01",
+        "top500_61b68d6a8ef13c57_enrich03_20261019_c01",
+        "top500_61b68d6a8ef13c57_enrich03_20261019_c02",
+        "top500_61b68d6a8ef13c57_mass35_c02"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/UyYEwC79Tb_2wFT",
+          "canva_original_asset_id": "MAHaQK4PwZY",
+          "original_uploaded_filename": "kemer-dream-g02.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Кемер Дрим вечером у бассейна",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/UyYEwC79Tb_2wFT",
+          "canva_original_asset_id": "MAHaQOO-_lI",
+          "original_uploaded_filename": "kemer-dream-r01.png",
+          "original_asset_dimensions": {
+            "width": 1000,
+            "height": 666
+          },
+          "alt": "Стандартный номер Kemer Dream Hotel",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/UyYEwC79Tb_2wFT",
+          "canva_original_asset_id": "MAHaQKso7qI",
+          "original_uploaded_filename": "kemer-dream-g25.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Ресторан Kemer Dream Hotel",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 16794,
+      "logical_id": "commercial-senza-inn-16794-v1",
+      "aliases": [
+        "Senza The Inn Resort & Spa",
+        "SENZA THE INN RESORT & SPA (EX. ZEN THE INN)",
+        "ZEN THE INN"
+      ],
+      "text": "🏴‍☠️ Senza The Inn Resort & Spa 5★ · Тюрклер\n\nДля семейного отпуска с водной игровой зоной для детей.\n\n🛏 Standard 24 м² с двуспальной и односпальной кроватями.\n💦 Детская водная зона с пиратским кораблём.\n🎨 Мини клуб и детская площадка.\n\nПляж примерно в 400 м от отеля, берег песчаный и галечный. Возрастные условия детских развлечений уточним на ваши даты.\n\n✈️ Подберём размещение под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "ce31e7762f5bac23cc7650f8fd1423cae44011b0c3bce11ea7a3d6554f8c8325",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/dc9a5ddc63525b0808edca5f0c934644a3f1fe8f/.github/traffic-publish/commercial-batch-20261107-22/16794.png",
+      "photo_sha256": "fde6fc13510e4940a015961bcc3c559e15eced0450401ef9298dfb47980c7a8e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/uz/rus/country/turkey/alanya/senza_hotels_the_inn_resort_spa/",
+        "https://theinn.senzahotels.com/en/kids-club/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1145&legacyHotelIds%5B%5D=37364&legacyHotelIds%5B%5D=17669&legacyHotelIds%5B%5D=1402&legacyHotelIds%5B%5D=1346&legacyHotelIds%5B%5D=120209&legacyHotelIds%5B%5D=27652&legacyHotelIds%5B%5D=1183&legacyHotelIds%5B%5D=76515&legacyHotelIds%5B%5D=1684&legacyHotelIds%5B%5D=1614&legacyHotelIds%5B%5D=1228&legacyHotelIds%5B%5D=1134&legacyHotelIds%5B%5D=47027&legacyHotelIds%5B%5D=1101&legacyHotelIds%5B%5D=70233&legacyHotelIds%5B%5D=996&legacyHotelIds%5B%5D=28581&legacyHotelIds%5B%5D=1287&legacyHotelIds%5B%5D=16794",
+        "https://www.canva.com/d/On-MvIKl2gRWkgA"
+      ],
+      "identity_binding": {
+        "anex_id": 8554,
+        "anytour_id": 1773,
+        "legacy_native_id": 16794,
+        "source_file": "next-twenty-after-140-current-catalog.json",
+        "source_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQLdTorE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d0989e2db02b5dc4_c01",
+        "top500_d0989e2db02b5dc4_c03",
+        "top500_d0989e2db02b5dc4_enrich04_20261019_c01",
+        "top500_d0989e2db02b5dc4_c04"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/On-MvIKl2gRWkgA",
+          "canva_original_asset_id": "MAHaQFID-uE",
+          "original_uploaded_filename": "senza-inn-g45.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 575
+          },
+          "alt": "Вечерние бассейны Senza The Inn Resort & Spa",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/On-MvIKl2gRWkgA",
+          "canva_original_asset_id": "MAHaQEb6iD4",
+          "original_uploaded_filename": "senza-inn-d03.png",
+          "original_asset_dimensions": {
+            "width": 1280,
+            "height": 853
+          },
+          "alt": "Стандартный номер Senza The Inn Resort & Spa",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/On-MvIKl2gRWkgA",
+          "canva_original_asset_id": "MAHaQMZY54Y",
+          "original_uploaded_filename": "senza-inn-g178.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Детская игровая зона Senza The Inn Resort & Spa",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    }
+  ]
+}
