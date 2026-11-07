@@ -1,0 +1,312 @@
+{
+  "operation": "commercial-hotel-batch-20261107-6-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 187,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "read_at_utc": "2026-11-07T11:35:45+00:00",
+    "run_id": 42368822039,
+    "ids": [
+      1065,
+      1960,
+      116932,
+      748,
+      247,
+      73974,
+      54193
+    ],
+    "all_clear": true,
+    "same_clearance_not_replayed": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "rows": [
+    {
+      "hotel_id": 1065,
+      "logical_id": "commercial-calista-luxury-resort-1065-v1",
+      "aliases": [
+        "Calista Luxury Resort",
+        "CALISTA LUXURY RESORT"
+      ],
+      "text": "🌿 Calista Luxury Resort 5★ · Белек\n\nМоре, детские клубы и отдельные спальни для семейного отпуска.\n\n🏖 Собственный пляж длиной 250 м.\n🛏 Superior Family Connection: две спальни с межкомнатной дверью и две ванные комнаты.\n🎨 Cally Club с отдельными группами для детей от 4 до 12 лет.\n\nПирс и пляжные павильоны зимой не обслуживаются.\n\n✈️ Подберём номер для вашей семьи и рассчитаем тур в Calista с перелётом на нужные даты.",
+      "text_sha256": "bb79dcae8949bc03c9ab7a76d6d058b07b26008d8784348c5bea720887739606",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/1065.png",
+      "photo_sha256": "a2e7a7ac3bef8158f0b5152407a6fd7e2260b77e07fd874abf147740b9bf10e1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://calista.com.tr/en/kids-club",
+        "https://calista.com.tr/en/beaches-pools",
+        "https://calista.com.tr/en/rooms/superior-family-connection-room",
+        "https://kompastour.com/by/rus/country/turkey/belek/calista_luxury_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1065&legacyHotelIds%5B%5D=1960&legacyHotelIds%5B%5D=116932&legacyHotelIds%5B%5D=7938&legacyHotelIds%5B%5D=748&legacyHotelIds%5B%5D=247&legacyHotelIds%5B%5D=20288&legacyHotelIds%5B%5D=73974&legacyHotelIds%5B%5D=132002&legacyHotelIds%5B%5D=54193"
+      ],
+      "identity_binding": {
+        "anex_id": 8278,
+        "anytour_id": 471,
+        "legacy_native_id": 1065,
+        "source_file": "next-ten-after-thirteen-current-catalog.json",
+        "source_sha256": "3d65653a1fed3d081e25c706a72d52615709b37380a46b3668d31f693623044c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO2Dw7q4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_cdfb16008dfefcd3_c04",
+        "top500_cdfb16008dfefcd3_mass35_c01",
+        "top500_cdfb16008dfefcd3_enrich20261020_c01",
+        "top500_cdfb16008dfefcd3_demand17_c01",
+        "top500_cdfb16008dfefcd3_enrich20261020_c03"
+      ]
+    },
+    {
+      "hotel_id": 1960,
+      "logical_id": "commercial-amwaj-beach-club-abu-soma-1960-v1",
+      "aliases": [
+        "Amwaj Beach Club Abu Soma",
+        "AMWAJ BEACH CLUB ABU SOMA (EX. PICKALBATROS BEACH CLUB)"
+      ],
+      "text": "💦 Amwaj Beach Club Abu Soma 4★ · Сома Бей\n\nСемейный отпуск с морем, горками и занятиями для детей.\n\n🏖 Собственный пляж длиной 180 м и пирс для выхода в море.\n🎢 Аквапарк: 6 взрослых и 5 детских горок.\n🛏 Family Bunkbeds 51 м²: двуспальная и двухъярусная кровати.\n🎨 Детский клуб для возраста от 5 до 12 лет.\n\n✈️ Подберём семейный номер с учётом возраста детей и рассчитаем тур в Amwaj с перелётом на ваши даты.",
+      "text_sha256": "f7dae70dc298d608ecb1c4d336c52c8bdd7aa8322eaec353673f5608052321e4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/1960.png",
+      "photo_sha256": "ea7d7658850e95962220bd2e2adbfd931aeb68f345745e1479ed4facb9645ecf",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/egypt/hurgada_soma_bay/albatros_beach_club_abu_soma/",
+        "https://amwajbeachdigitalfachseet.lovable.app/",
+        "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/albatros-beach-club",
+        "https://amwajbeachclub.com/aquapark",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1065&legacyHotelIds%5B%5D=1960&legacyHotelIds%5B%5D=116932&legacyHotelIds%5B%5D=7938&legacyHotelIds%5B%5D=748&legacyHotelIds%5B%5D=247&legacyHotelIds%5B%5D=20288&legacyHotelIds%5B%5D=73974&legacyHotelIds%5B%5D=132002&legacyHotelIds%5B%5D=54193"
+      ],
+      "identity_binding": {
+        "anex_id": 1783,
+        "anytour_id": 866,
+        "legacy_native_id": 1960,
+        "source_file": "next-ten-after-thirteen-current-catalog.json",
+        "source_sha256": "3d65653a1fed3d081e25c706a72d52615709b37380a46b3668d31f693623044c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaO3APbFU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "amwaj_beach_club_abu_soma_c02",
+        "amwaj_beach_club_abu_soma_demand27_c01",
+        "amwaj_beach_club_abu_soma_c07",
+        "HOTEL-EG-MANUAL-20261026-MAKADI-SOMA-07_c32",
+        "amwaj_beach_club_abu_soma_c08"
+      ]
+    },
+    {
+      "hotel_id": 116932,
+      "logical_id": "commercial-chateau-du-village-116932-v1",
+      "aliases": [
+        "Chateau Du Village",
+        "CHATEAU DU VILLAGE"
+      ],
+      "text": "🌇 Chateau Du Village 4★ · Патонг, Пхукет\n\nДля тех, кто хочет чередовать пляж, прогулки по Патонгу и отдых у бассейна.\n\n💧 Два бассейна, в том числе на крыше с панорамой Патонга.\n🚌 Бесплатный трансфер к пляжу; до моря около 1,5 км.\n🏋️ Тренажёрный зал.\n🍳 Завтраки в La Vache у бассейна в формате «шведский стол».\n\n✈️ Подберём номер и питание в Chateau Du Village. Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "571175ef7920f83054edb626dac9b398526e651cfd1693996bd2d779c1d0130e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/116932.png",
+      "photo_sha256": "99534de3a437467a2aafc54b39ff150b203e460db5805bb26103f993cfa31688",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/chateau_du_village/",
+        "https://www.chateauduvillagepatong.com/facilities/",
+        "https://www.chateauduvillagepatong.com/dine/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1065&legacyHotelIds%5B%5D=1960&legacyHotelIds%5B%5D=116932&legacyHotelIds%5B%5D=7938&legacyHotelIds%5B%5D=748&legacyHotelIds%5B%5D=247&legacyHotelIds%5B%5D=20288&legacyHotelIds%5B%5D=73974&legacyHotelIds%5B%5D=132002&legacyHotelIds%5B%5D=54193"
+      ],
+      "identity_binding": {
+        "anex_id": 40296,
+        "anytour_id": 3816,
+        "legacy_native_id": 116932,
+        "source_file": "next-ten-after-thirteen-current-catalog.json",
+        "source_sha256": "3d65653a1fed3d081e25c706a72d52615709b37380a46b3668d31f693623044c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaO4xuTLw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261025T191759Z_mass_c08",
+        "country61_TH_20261025T191759Z_mass_c09",
+        "country61_TH_20261025T191759Z_mass_c10",
+        "top500_27543db371f793ab_run07_c04",
+        "country61_TH_20261025T214500Z_mass_c20"
+      ]
+    },
+    {
+      "hotel_id": 748,
+      "logical_id": "commercial-phuket-graceland-resort-spa-748-v1",
+      "aliases": [
+        "Phuket Graceland Resort & Spa",
+        "PHUKET GRACELAND RESORT & SPA"
+      ],
+      "text": "🌊 Phuket Graceland Resort & Spa 4★ · Патонг, Пхукет\n\nПляжный отдых на Патонге с развлечениями на территории.\n\n🏖 Общественный пляж Патонг находится через дорогу.\n💧 Четыре бассейна с видом на море.\n🛏 Family Room 62 м² с двумя двуспальными кроватями и балконом.\n🎳 Боулинг на восьми дорожках для гостей отеля, за доплату.\n\n✈️ Подберём корпус и номер в Phuket Graceland, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "4cbb88875d46f7350286ead620b9adba47bd093d96d3880c747719b415b1b61b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/748.png",
+      "photo_sha256": "804520834903646b4eb94a6ec716f90d0569867a834b760ea933113074173e4f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/phuket_graceland_resort/",
+        "https://www.phuketgraceland.com/familyfriendly",
+        "https://www.phuketgraceland.com/leisure",
+        "https://www.phuketgraceland.com/health-club",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1065&legacyHotelIds%5B%5D=1960&legacyHotelIds%5B%5D=116932&legacyHotelIds%5B%5D=7938&legacyHotelIds%5B%5D=748&legacyHotelIds%5B%5D=247&legacyHotelIds%5B%5D=20288&legacyHotelIds%5B%5D=73974&legacyHotelIds%5B%5D=132002&legacyHotelIds%5B%5D=54193"
+      ],
+      "identity_binding": {
+        "anex_id": 4479,
+        "anytour_id": 340,
+        "legacy_native_id": 748,
+        "source_file": "next-ten-after-thirteen-current-catalog.json",
+        "source_sha256": "3d65653a1fed3d081e25c706a72d52615709b37380a46b3668d31f693623044c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaO6UPRNo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261025T191759Z_mass_c41",
+        "country61_TH_20261025T191759Z_mass_c37",
+        "country61_TH_20261025T204503Z_mass_c15",
+        "top500_9db5bb21d76ffc58_run07_c05",
+        "top500_9db5bb21d76ffc58_run07_c04"
+      ]
+    },
+    {
+      "hotel_id": 247,
+      "logical_id": "commercial-long-beach-resort-hurghada-ex-hilton-long-beach-resort-247-v1",
+      "aliases": [
+        "Long Beach Resort Hurghada (Ex. Hilton Long Beach Resort)",
+        "LONG BEACH RESORT HURGHADA (EX. HILTON)"
+      ],
+      "text": "🐠 Long Beach Resort Hurghada 4★ · Хургада\n\nДля отпуска у моря с домашним рифом и просторным пляжем.\n\n🏖 Береговая линия 1 100 м, вход в море с берега и понтона.\n💧 Пять взрослых бассейнов.\n🛏 Superior Family 54 м²: две комнаты с дверью. Этот корпус расположен за главным зданием, ближе к дороге.\n\nДля кораллового участка пригодится обувь для купания.\n\n✈️ Подберём категорию с удобным расположением и рассчитаем тур в Long Beach с перелётом на ваши даты.",
+      "text_sha256": "b748e4a1bfa79b2248e911c69c35e297c2e3ba30976fda836c25298e55d96248",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/247.png",
+      "photo_sha256": "3e1695850021c0a57f3f9c3bce00be7287291042a405172a49c322640de345a4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/egypt/hurgada_village_road/hurghada_long_beach_resort_ex_hilton_long_beach_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1065&legacyHotelIds%5B%5D=1960&legacyHotelIds%5B%5D=116932&legacyHotelIds%5B%5D=7938&legacyHotelIds%5B%5D=748&legacyHotelIds%5B%5D=247&legacyHotelIds%5B%5D=20288&legacyHotelIds%5B%5D=73974&legacyHotelIds%5B%5D=132002&legacyHotelIds%5B%5D=54193"
+      ],
+      "identity_binding": {
+        "anex_id": 795,
+        "anytour_id": 86,
+        "legacy_native_id": 247,
+        "source_file": "next-ten-after-thirteen-current-catalog.json",
+        "source_sha256": "3d65653a1fed3d081e25c706a72d52615709b37380a46b3668d31f693623044c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaO3OkWTk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_2c1e4214ea6f2a2f_c04",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c03",
+        "top500_2c1e4214ea6f2a2f_c03",
+        "top500_2c1e4214ea6f2a2f_demand16_c01"
+      ]
+    },
+    {
+      "hotel_id": 73974,
+      "logical_id": "commercial-alma-resort-cam-ranh-73974-v1",
+      "aliases": [
+        "Alma Resort Cam Ranh",
+        "ALMA RESORT CAM RANH"
+      ],
+      "text": "🌴 Alma Resort Cam Ranh 5★ · Камрань\n\nДля семейного отпуска с просторным номером и водными развлечениями.\n\n🏖 Пляж Бай Дай и береговая линия 800 м.\n🛏 One Bedroom Suite with Terrace Ocean View 70 м²: спальня с кроватью King и отдельная гостиная.\n💦 Splash Water Park с ленивой рекой, волновым бассейном и семейными горками.\n\nДетский клуб для детей младше 10 лет; до 7 лет нужен взрослый рядом.\n\n✈️ Подберём номер и питание в Alma, рассчитаем тур с перелётом на ваши даты и состав семьи.",
+      "text_sha256": "669abc4e5b20684daff9d2eb89d82612164618514ebab2f8353a1e7740f2556c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/73974.png",
+      "photo_sha256": "e0a4766271afd5ee8ac524705de410e1ecbf1196117e9d5e41de280ebdb94308",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/useruploads/tiny_MCE/Vietnam/alma_resort_cam_ranh/alma_cam_ranh_Factsheet_2024.pdf",
+        "https://www.alma-resort.com/",
+        "https://www.alma-resort.com/suites-pavilions/",
+        "https://www.alma-resort.com/family-experiences/",
+        "https://experiences.alma-resort.com/recreation/water-park/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1065&legacyHotelIds%5B%5D=1960&legacyHotelIds%5B%5D=116932&legacyHotelIds%5B%5D=7938&legacyHotelIds%5B%5D=748&legacyHotelIds%5B%5D=247&legacyHotelIds%5B%5D=20288&legacyHotelIds%5B%5D=73974&legacyHotelIds%5B%5D=132002&legacyHotelIds%5B%5D=54193"
+      ],
+      "identity_binding": {
+        "anex_id": 41135,
+        "anytour_id": 3257,
+        "legacy_native_id": 73974,
+        "source_file": "next-ten-after-thirteen-current-catalog.json",
+        "source_sha256": "3d65653a1fed3d081e25c706a72d52615709b37380a46b3668d31f693623044c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO802EE4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_76352132cfdfb031_run06_c03",
+        "top500_76352132cfdfb031_run08r_c01",
+        "HOTEL-VN-MASS-20261025T212816Z-C01",
+        "country61_VN_20261021T203608Z_133_cd09aefb_c01"
+      ]
+    },
+    {
+      "hotel_id": 54193,
+      "logical_id": "commercial-sol-by-melia-phu-quoc-54193-v1",
+      "aliases": [
+        "Sol by Melia Phu Quoc",
+        "SOL BY MELIA PHU QUOC (EX. SOL BEACH HOUSE PHU QUOC)"
+      ],
+      "text": "🌴 SOL by Meliá Phu Quoc · Фукуок\n\nПляжный отдых на Фукуоке с выбором номера у бассейна.\n\n🏖 Прямой выход на пляж Труонг.\n🌊 Открытый бассейн инфинити с видом на море.\n🛏 Superior Room 46 м² с балконом; для выхода к бассейну есть отдельная категория Superior Room with Pool Access 54 м².\n\n✈️ Подберём номер и план питания в SOL by Meliá Phu Quoc, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "8f9fdcf1d16d07e54ba2709a70ffbe79489e06a762ff1792c80a3f3345af9bf8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/d6210a2dda62ebb3e2d2954839815f7c6fb07fd9/.github/traffic-publish/commercial-batch-20261107-6/54193.png",
+      "photo_sha256": "20efe57c7b13267a2eeada982b631d0b9ce5f93182ff32704b2c5fb6eb0405d3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.melia.com/en/hotels/vietnam/phu-quoc/sol-phu-quoc",
+        "https://www.melia.com/en/hotels/vietnam/phu-quoc/sol-phu-quoc/rooms",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1065&legacyHotelIds%5B%5D=1960&legacyHotelIds%5B%5D=116932&legacyHotelIds%5B%5D=7938&legacyHotelIds%5B%5D=748&legacyHotelIds%5B%5D=247&legacyHotelIds%5B%5D=20288&legacyHotelIds%5B%5D=73974&legacyHotelIds%5B%5D=132002&legacyHotelIds%5B%5D=54193"
+      ],
+      "identity_binding": {
+        "anex_id": 20701,
+        "anytour_id": 2553,
+        "legacy_native_id": 54193,
+        "source_file": "next-ten-after-thirteen-current-catalog.json",
+        "source_sha256": "3d65653a1fed3d081e25c706a72d52615709b37380a46b3668d31f693623044c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO6um5TY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MANUAL-20261025T184831Z-C05",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C06",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C02",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C01"
+      ]
+    }
+  ]
+}
