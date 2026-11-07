@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-17-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "SENDER_CONFIRMED_PENDING_ROUTE_FEED",
   "native_hotel_ids": [
     1353,
     1067,
@@ -18,5 +18,126 @@
   "manifest_sha256": "b98ed83258eafb3d624677ce1af1bb06a5441fd4a445180640f3c92874d3454a",
   "asset_commit": "2cbfe83d94e56fd545da012e0121244032e023d6",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "sender_run_id": 42385170595,
+  "sender_job_id": 128440898767,
+  "sender_commit": "bbaebb289110553dbe25baa594e519ed8a8b313c",
+  "new_posts": 18,
+  "post_write_attempts": 18,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13578309313,
+  "result_zip_sha256": "e10ab2220689e63c9478fce67d0240ea31e8f03f2b0c3ce0a23e59dfffe072ec",
+  "private_receipt_sha256": "f26c2f2c0b4197e614251134ce90eb53e89fead6762664bceede6bff674a215d",
+  "full_pairs_after": 266,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-asteria-family-side-1353-v1",
+      "post_url": "https://t.me/any_toour/272",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-catamaran-1067-v1",
+      "post_url": "https://t.me/any_toour/273",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-hawaii-14135-v1",
+      "post_url": "https://t.me/any_toour/274",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-the-v-luxury-90236-v1",
+      "post_url": "https://t.me/any_toour/275",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-the-sol-47470-v1",
+      "post_url": "https://t.me/any_toour/276",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-asteria-bloom-27647-v1",
+      "post_url": "https://t.me/any_toour/277",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-spice-1512-v1",
+      "post_url": "https://t.me/any_toour/278",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-rubi-sign-75041-v1",
+      "post_url": "https://t.me/any_toour/279",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-ic-green-palace-1258-v1",
+      "post_url": "https://t.me/any_toour/280",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-asteria-family-side-1353-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2kaKJTuI",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-catamaran-1067-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2kavEGKY",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-hawaii-14135-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2kbULQgE",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-the-v-luxury-90236-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2kb5GDi8",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-the-sol-47470-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2kccpLM0",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-asteria-bloom-27647-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2kdBJaSY",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-spice-1512-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2kdlITSg",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-rubi-sign-75041-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2keIrBrw",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-ic-green-palace-1258-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2keteR4o",
+      "verified": true
+    }
+  ]
 }

@@ -1,0 +1,65 @@
+[
+  {
+    "hotel_id": 1353,
+    "name": "Asteria Family Resort Side",
+    "accepted_first_line": "🌴 Asteria Family Resort Side 5★ · Кызылагач",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1353.png",
+    "image_sha256": "0c79905b4c8f8d32f6d34e1972aaab011f7b2a721acafba574ad9b4ce3941e72"
+  },
+  {
+    "hotel_id": 1067,
+    "name": "Catamaran Quality Times",
+    "accepted_first_line": "🌿 Catamaran Quality Times 5★ · Бельдиби",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1067.png",
+    "image_sha256": "78ccaa52464739cc68564f24a9412994f0a08846d92138aa69558620732b3a38"
+  },
+  {
+    "hotel_id": 14135,
+    "name": "Hawaii Resort Phu Quoc",
+    "accepted_first_line": "🌴 Hawaii Resort Phu Quoc 3★ · Фукуок",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/14135.png",
+    "image_sha256": "e5561596f3d3557aa9044c631d8c8ab0caebd2ace31c50d94d10677b56b7db22"
+  },
+  {
+    "hotel_id": 90236,
+    "name": "The V Luxury Resort",
+    "accepted_first_line": "🌊 The V Luxury Resort 5★ · Сахль Хашиш",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/90236.png",
+    "image_sha256": "a0904ca81c62b48063ea30b2a7af21b614aea94da88e6506b6c01a30936aed1c"
+  },
+  {
+    "hotel_id": 47470,
+    "name": "The Sol Hotel",
+    "accepted_first_line": "🌆 The Sol Hotel 3★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/47470.png",
+    "image_sha256": "a5a58f1202bb3287341a760b6b8a27cfaedfa9a9f1c839e7953b524b655aa9b7"
+  },
+  {
+    "hotel_id": 27647,
+    "name": "Asteria Bloom Side",
+    "accepted_first_line": "🎶 Asteria Bloom Side 5★ · Кызылагач",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/27647.png",
+    "image_sha256": "91045973f5f82ccc0216098a255549b7bdd9dd2eaceea97b623a97977f5afadc"
+  },
+  {
+    "hotel_id": 1512,
+    "name": "Spice Hotel & Spa",
+    "accepted_first_line": "🌴 Spice Hotel & Spa 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1512.png",
+    "image_sha256": "528e9efa4460d4e6e18f214c55d4e4dd8bb59bf1c50dd0f2778d0db2b873314c"
+  },
+  {
+    "hotel_id": 75041,
+    "name": "Rubi Platinum Sign",
+    "accepted_first_line": "🌴 Rubi Platinum Sign 5★ · Тюрклер",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/75041.png",
+    "image_sha256": "90537a97484043daf6490f2728ba38bc00ce0ff151fa97462594fcd6a36fd504"
+  },
+  {
+    "hotel_id": 1258,
+    "name": "IC Hotels Green Palace",
+    "accepted_first_line": "🌿 IC Hotels Green Palace 5★ · Кунду",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1258.png",
+    "image_sha256": "1c025af75db01cafc11969737e48313de4d68943fe4571135b9fa9a267ebbe6a"
+  }
+]

@@ -1,0 +1,196 @@
+[
+  {
+    "hotel_id": 1145,
+    "logical_id": null,
+    "aliases": [
+      "Miarosa Kemer Beach",
+      "MIAROSA KEMER BEACH (EX. DAIMA RESORT)",
+      "DAIMA RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 37364,
+    "logical_id": null,
+    "aliases": [
+      "Water Side Resort & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 17669,
+    "logical_id": null,
+    "aliases": [
+      "Ramada Resort By Wyndham Side",
+      "RAMADA RESORT BY WYNDHAM SIDE (EX. RAMADA RESORT SIDE)",
+      "RAMADA RESORT SIDE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1402,
+    "logical_id": null,
+    "aliases": [
+      "Orange County Kemer"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1346,
+    "logical_id": null,
+    "aliases": [
+      "Selectum Family Comfort Side",
+      "SELECTUM FAMILY COMFORT SIDE (EX. LYRA RESORT HOTEL)",
+      "LYRA RESORT HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 120209,
+    "logical_id": null,
+    "aliases": [
+      "Lusso Sorgun"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 27652,
+    "logical_id": null,
+    "aliases": [
+      "Lucida Beach Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1183,
+    "logical_id": null,
+    "aliases": [
+      "Fame Residence Kemer & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 76515,
+    "logical_id": null,
+    "aliases": [
+      "Side Amour Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1684,
+    "logical_id": null,
+    "aliases": [
+      "Marmaris Park Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1614,
+    "logical_id": null,
+    "aliases": [
+      "Blue Bay Platinum"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1228,
+    "logical_id": null,
+    "aliases": [
+      "Senza Garden Holiday Club",
+      "SENZA GARDEN HOLIDAY CLUB (EX. LARISSA HILL BEACH)",
+      "LARISSA HILL BEACH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1134,
+    "logical_id": null,
+    "aliases": [
+      "Concordia Celes Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 47027,
+    "logical_id": null,
+    "aliases": [
+      "Sidemarin Kirman Premium"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1101,
+    "logical_id": null,
+    "aliases": [
+      "Sidera Kirman Premium"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 70233,
+    "logical_id": null,
+    "aliases": [
+      "Crystal World Of Colours Comfort Collection"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 996,
+    "logical_id": null,
+    "aliases": [
+      "Corendon Playa Kemer",
+      "CORENDON PLAYA KEMER (EX. GRAND PARK KEMER)",
+      "GRAND PARK KEMER"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 28581,
+    "logical_id": null,
+    "aliases": [
+      "Ma Biche Kemer By Werde Hotels",
+      "MA BICHE KEMER BY WERDE HOTELS (EX. KIMEROS MA BICHE HOTEL & THALASSO)",
+      "KIMEROS MA BICHE HOTEL & THALASSO"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 1287,
+    "logical_id": null,
+    "aliases": [
+      "Kemer Dream Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  },
+  {
+    "hotel_id": 16794,
+    "logical_id": null,
+    "aliases": [
+      "Senza The Inn Resort & Spa",
+      "SENZA THE INN RESORT & SPA (EX. ZEN THE INN)",
+      "ZEN THE INN"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after140_first_clearance"
+  }
+]
