@@ -1,4 +1,4 @@
-name: Correct 91 reviewed existing AnyTour hotel pairs
+name: Correct existing AnyTour hotel posts after direct MAX readback
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -13,7 +13,7 @@ env:
   EXPECTED_PRODUCTION_SHA: 6d193b7740dc212b92b1893041f0a1047b179635
 jobs:
   legacy_first:
-    name: Correct 30 older hotel headings and resort lines
+    name: legacy first
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -39,9 +39,17 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42391449634 > "$evidence/prior-resorts.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42391723318 > "$evidence/feed294.json"
-          python3 -c 'import json,sys; a,b=(json.load(open(v)) for v in sys.argv[1:]); assert [(r["status"],r["conclusion"],r["head_sha"]) for r in (a,b)] == [("completed","success","f5ddf31c38dd3e4367158a5a8fe7b1bc5a3cb3e0"),("completed","success","06fbf32e3cae2f0f078c187610b47a2452dae9f2")]' "$evidence/prior-resorts.json" "$evidence/feed294.json"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42391887962
+          name: commercial-legacy-hotel-headings-20261107-8-result
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-zero-write
+      - name: Require the previous exact operation to have stopped before writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -c 'import json,sys; r=json.loads(open(sys.argv[1]).read().splitlines()[-1]); assert r["operation"]=="commercial-legacy-hotel-headings-20261107-8-v1" and r["ok"] is False and r["post_write_attempts"]==0 and r["error"]=="existing_max_readback_changed"' "$RUNNER_TEMP/prior-zero-write/channel-preflight.json"
       - uses: actions/download-artifact@v4
         with:
           run-id: 42387323343
@@ -58,10 +66,10 @@ jobs:
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(base/'commercial-legacy-hotel-headings-20261107-8-inputs.json').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='5cb9d7dff5f58913a6a49480a4aa0365cc291ec7096275aa199ee8110a98b18b'
+          raw=(base/'commercial-legacy-hotel-headings-20261107-8-readback2-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='f8c4c06a5651fa1396708683d3e68e2bd84678e1f952c15f7e92a02b51af9810'
           inp=json.loads(raw)
-          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-8-v1'
+          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-8-readback2-v1'
           rows=inp['rows']
           assert len(rows)==30 and len({r['hotel_id'] for r in rows})==30
           audit=json.loads((tmp/'prior-registry'/'registry-audit.json').read_text())
@@ -95,8 +103,8 @@ jobs:
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
           (tmp/'caption-correction-input.json').write_bytes(raw)
           source=(base/'update-legacy-hotel-headings-20261107-8-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='5f199ad8a5f212ae309e52b0991ebfa1f7e3df8e73575d3cb8df40e5c87d2c05'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-8-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert hashlib.sha256(source.encode()).hexdigest()=='251ae1e2ee06c57e9d58efcf94c0193f7f6f6ad7be8e93a6895ddbf38491f281'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-8-readback2-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
           print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':60,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
@@ -105,7 +113,7 @@ jobs:
       - name: Retain exact caption edit intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-legacy-hotel-headings-20261107-8-inputs
+          name: commercial-legacy-hotel-headings-20261107-8-readback2-inputs
           path: ${{ runner.temp }}/caption-correction-input.json
           retention-days: 14
           if-no-files-found: error
@@ -161,28 +169,32 @@ jobs:
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-legacy-hotel-headings-20261107-8-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
-          assert d['ok'] is True and len(d['posts'])==60 and d['post_write_attempts']==60 and d['new_posts_created']==0
+          assert d['operation']=='commercial-legacy-hotel-headings-20261107-8-readback2-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          held=d['held_pairs']
+          assert d['ok'] is True and len(d['posts'])==d['post_write_attempts']==d['preflight_existing_messages'] and len(d['posts'])+2*len(held)==60 and d['new_posts_created']==0
           assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
-          assert d['commercial_text_updates']==60 and d['configuration_write_attempts']==0
+          assert d['commercial_text_updates']==len(d['posts']) and d['configuration_write_attempts']==0
           source=json.loads((tmp/'caption-correction-input.json').read_text())
           prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
           rows={r['logical_id']:r for r in source['rows']}
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==60
+          held_ids={r['logical_id'] for r in held}
+          assert len(held_ids)==len(held) and held_ids<=rows.keys()
+          assert all(r['hotel_id']==rows[r['logical_id']]['hotel_id'] and not all(r[k] for k in ('caption_matches','photo_matches','post_url_matches','button_matches')) for r in held)
+          assert {(p['platform'],p['logical_id']) for p in d['posts']}=={(platform,key) for platform in ('max','telegram') for key in rows.keys()-held_ids}
           for p in d['posts']:
               old=prior[(p['platform'],p['logical_id'])]
               assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','source_key'))
               assert hashlib.sha256(p['button_url'].encode()).hexdigest()==old['button_url_sha256']
               assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
               assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
-          print('EXISTING_30_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          print(json.dumps({'edited_pairs':len(d['posts'])//2,'held_pairs':len(held),'new_sends':0},ensure_ascii=False))
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-legacy-hotel-headings-20261107-8-result
+          name: commercial-legacy-hotel-headings-20261107-8-readback2-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
@@ -192,7 +204,7 @@ jobs:
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
 
   legacy_second:
-    name: Correct 27 older hotel headings and resort lines
+    name: legacy second
     needs: legacy_first
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
@@ -235,10 +247,10 @@ jobs:
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(base/'commercial-legacy-hotel-headings-20261107-9-inputs.json').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='c672f50073a71cb4400e7aad8e034d248e376c21db65feade065fab5fb875fdd'
+          raw=(base/'commercial-legacy-hotel-headings-20261107-9-readback2-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='d552d15a202966a21db9dcb82188126e222f9399e42d72f49792f2c3936bde42'
           inp=json.loads(raw)
-          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-9-v1'
+          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-9-readback2-v1'
           rows=inp['rows']
           assert len(rows)==27 and len({r['hotel_id'] for r in rows})==27
           audit=json.loads((tmp/'prior-registry'/'registry-audit.json').read_text())
@@ -272,8 +284,8 @@ jobs:
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
           (tmp/'caption-correction-input.json').write_bytes(raw)
           source=(base/'update-legacy-hotel-headings-20261107-9-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='4243030163a87fc65104a13ade35e439715efd82470b4bf3ea413a487a5a4748'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-9-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert hashlib.sha256(source.encode()).hexdigest()=='30ee28a7d28c54eda83883d094c9f07a8745175ca2b975dd20d7919240a5102d'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-9-readback2-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
           print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':54,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
@@ -282,7 +294,7 @@ jobs:
       - name: Retain exact caption edit intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-legacy-hotel-headings-20261107-9-inputs
+          name: commercial-legacy-hotel-headings-20261107-9-readback2-inputs
           path: ${{ runner.temp }}/caption-correction-input.json
           retention-days: 14
           if-no-files-found: error
@@ -338,28 +350,32 @@ jobs:
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-legacy-hotel-headings-20261107-9-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
-          assert d['ok'] is True and len(d['posts'])==54 and d['post_write_attempts']==54 and d['new_posts_created']==0
+          assert d['operation']=='commercial-legacy-hotel-headings-20261107-9-readback2-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          held=d['held_pairs']
+          assert d['ok'] is True and len(d['posts'])==d['post_write_attempts']==d['preflight_existing_messages'] and len(d['posts'])+2*len(held)==54 and d['new_posts_created']==0
           assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
-          assert d['commercial_text_updates']==54 and d['configuration_write_attempts']==0
+          assert d['commercial_text_updates']==len(d['posts']) and d['configuration_write_attempts']==0
           source=json.loads((tmp/'caption-correction-input.json').read_text())
           prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
           rows={r['logical_id']:r for r in source['rows']}
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==54
+          held_ids={r['logical_id'] for r in held}
+          assert len(held_ids)==len(held) and held_ids<=rows.keys()
+          assert all(r['hotel_id']==rows[r['logical_id']]['hotel_id'] and not all(r[k] for k in ('caption_matches','photo_matches','post_url_matches','button_matches')) for r in held)
+          assert {(p['platform'],p['logical_id']) for p in d['posts']}=={(platform,key) for platform in ('max','telegram') for key in rows.keys()-held_ids}
           for p in d['posts']:
               old=prior[(p['platform'],p['logical_id'])]
               assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','source_key'))
               assert hashlib.sha256(p['button_url'].encode()).hexdigest()==old['button_url_sha256']
               assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
               assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
-          print('EXISTING_27_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          print(json.dumps({'edited_pairs':len(d['posts'])//2,'held_pairs':len(held),'new_sends':0},ensure_ascii=False))
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-legacy-hotel-headings-20261107-9-result
+          name: commercial-legacy-hotel-headings-20261107-9-readback2-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
@@ -369,7 +385,7 @@ jobs:
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
 
   newer:
-    name: Correct 28 recently published hotel headings and resort lines
+    name: newer
     needs: legacy_second
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
@@ -424,10 +440,10 @@ jobs:
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(base/'commercial-existing-headings-20261107-10-inputs.json').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='28729d35fe301662983c36012cb79d2cf7a0a0554ecf444076bcd05beee132b1'
+          raw=(base/'commercial-existing-headings-20261107-10-readback2-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='cbc2425a5194eda8ea3ce0d698bf79c1952f53ee62f55baee49aca575fabd0b4'
           inp=json.loads(raw)
-          assert inp['operation']=='commercial-existing-headings-20261107-10-v1'
+          assert inp['operation']=='commercial-existing-headings-20261107-10-readback2-v1'
           rows=inp['rows']
           assert len(rows)==28 and len({r['hotel_id'] for r in rows})==28
           old={}
@@ -457,8 +473,8 @@ jobs:
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
           (tmp/'caption-correction-input.json').write_bytes(raw)
           source=(base/'update-existing-headings-20261107-10-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='4ca139583e017db4ebd7a8bdbf94f0f68844045eb54d7fae70d4ab817aa2257e'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-existing-headings-20261107-10-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert hashlib.sha256(source.encode()).hexdigest()=='c9232ca06d7b1321906064f8ca3081dcb735dc0dcbaba40cf8bdc2420ab3b241'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-existing-headings-20261107-10-readback2-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
           print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':56,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
@@ -467,7 +483,7 @@ jobs:
       - name: Retain exact caption edit intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-existing-headings-20261107-10-inputs
+          name: commercial-existing-headings-20261107-10-readback2-inputs
           path: ${{ runner.temp }}/caption-correction-input.json
           retention-days: 14
           if-no-files-found: error
@@ -523,27 +539,31 @@ jobs:
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-existing-headings-20261107-10-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
-          assert d['ok'] is True and len(d['posts'])==56 and d['post_write_attempts']==56 and d['new_posts_created']==0
+          assert d['operation']=='commercial-existing-headings-20261107-10-readback2-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          held=d['held_pairs']
+          assert d['ok'] is True and len(d['posts'])==d['post_write_attempts']==d['preflight_existing_messages'] and len(d['posts'])+2*len(held)==56 and d['new_posts_created']==0
           assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
-          assert d['commercial_text_updates']==56 and d['configuration_write_attempts']==0
+          assert d['commercial_text_updates']==len(d['posts']) and d['configuration_write_attempts']==0
           source=json.loads((tmp/'caption-correction-input.json').read_text())
           prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
           rows={r['logical_id']:r for r in source['rows']}
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==56
+          held_ids={r['logical_id'] for r in held}
+          assert len(held_ids)==len(held) and held_ids<=rows.keys()
+          assert all(r['hotel_id']==rows[r['logical_id']]['hotel_id'] and not all(r[k] for k in ('caption_matches','photo_matches','post_url_matches','button_matches')) for r in held)
+          assert {(p['platform'],p['logical_id']) for p in d['posts']}=={(platform,key) for platform in ('max','telegram') for key in rows.keys()-held_ids}
           for p in d['posts']:
               old=prior[(p['platform'],p['logical_id'])]
               assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','source_key'))
               assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
               assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
-          print('EXISTING_TWENTY_EIGHT_RECENT_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          print(json.dumps({'edited_pairs':len(d['posts'])//2,'held_pairs':len(held),'new_sends':0},ensure_ascii=False))
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-existing-headings-20261107-10-result
+          name: commercial-existing-headings-20261107-10-readback2-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
@@ -553,7 +573,7 @@ jobs:
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
 
   live_buttons:
-    name: Check buttons and correct the six remaining hotel pairs
+    name: live buttons
     needs: newer
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
@@ -596,10 +616,10 @@ jobs:
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(base/'commercial-legacy-hotel-headings-20261107-11-inputs.json').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='b61477a11a047a214413342e67183782a6606c26a69a984206c15d5f0bdf8683'
+          raw=(base/'commercial-legacy-hotel-headings-20261107-11-readback2-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='dfd0e11a70da75f7d8a7c984065b802b59be93cb4706ba68eb781bbf9a4538a7'
           inp=json.loads(raw)
-          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-11-v1'
+          assert inp['operation']=='commercial-legacy-hotel-headings-20261107-11-readback2-v1'
           rows=inp['rows']
           assert len(rows)==6 and len({r['hotel_id'] for r in rows})==6
           audit=json.loads((tmp/'prior-registry'/'registry-audit.json').read_text())
@@ -633,8 +653,8 @@ jobs:
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
           (tmp/'caption-correction-input.json').write_bytes(raw)
           source=(base/'update-legacy-hotel-headings-20261107-11-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='22278c8e378f79237b7f5677c68ccead0effa6a41e859420eaebe3bec91cd55c'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-11-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert hashlib.sha256(source.encode()).hexdigest()=='8c3dfd62dc4afb5341d898085d97477e815190b1273121920745089132e654f4'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-legacy-hotel-headings-20261107-11-readback2-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
           print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':12,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
@@ -643,7 +663,7 @@ jobs:
       - name: Retain exact caption edit intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-legacy-hotel-headings-20261107-11-inputs
+          name: commercial-legacy-hotel-headings-20261107-11-readback2-inputs
           path: ${{ runner.temp }}/caption-correction-input.json
           retention-days: 14
           if-no-files-found: error
@@ -699,28 +719,32 @@ jobs:
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-legacy-hotel-headings-20261107-11-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
-          assert d['ok'] is True and len(d['posts'])==12 and d['post_write_attempts']==12 and d['new_posts_created']==0
+          assert d['operation']=='commercial-legacy-hotel-headings-20261107-11-readback2-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          held=d['held_pairs']
+          assert d['ok'] is True and len(d['posts'])==d['post_write_attempts']==d['preflight_existing_messages'] and len(d['posts'])+2*len(held)==12 and d['new_posts_created']==0
           assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
-          assert d['commercial_text_updates']==12 and d['configuration_write_attempts']==0
+          assert d['commercial_text_updates']==len(d['posts']) and d['configuration_write_attempts']==0
           source=json.loads((tmp/'caption-correction-input.json').read_text())
           prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
           rows={r['logical_id']:r for r in source['rows']}
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==12
+          held_ids={r['logical_id'] for r in held}
+          assert len(held_ids)==len(held) and held_ids<=rows.keys()
+          assert all(r['hotel_id']==rows[r['logical_id']]['hotel_id'] and not all(r[k] for k in ('caption_matches','photo_matches','post_url_matches','button_matches')) for r in held)
+          assert {(p['platform'],p['logical_id']) for p in d['posts']}=={(platform,key) for platform in ('max','telegram') for key in rows.keys()-held_ids}
           for p in d['posts']:
               old=prior[(p['platform'],p['logical_id'])]
               assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','source_key'))
               assert hashlib.sha256(p['button_url'].encode()).hexdigest()==old['button_url_sha256']
               assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
               assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
-          print('EXISTING_6_PAIRS_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          print(json.dumps({'edited_pairs':len(d['posts'])//2,'held_pairs':len(held),'new_sends':0},ensure_ascii=False))
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-legacy-hotel-headings-20261107-11-result
+          name: commercial-legacy-hotel-headings-20261107-11-readback2-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn

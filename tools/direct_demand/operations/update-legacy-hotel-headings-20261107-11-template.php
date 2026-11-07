@@ -58,7 +58,7 @@ try {
 
     $inputRaw=base64_decode(MANIFEST_BASE64,true);need(is_string($inputRaw)&&hash('sha256',$inputRaw)===APPROVED_MANIFEST_SHA256,'approved_manifest_bytes_changed');
     $payload=json_decode($inputRaw,true,128,JSON_THROW_ON_ERROR);
-    need(($payload['operation']??'')===APPROVED_UPDATE_OPERATION&&APPROVED_UPDATE_OPERATION==='commercial-legacy-hotel-headings-20261107-11-v1','exact_caption_operation_changed');
+    need(($payload['operation']??'')===APPROVED_UPDATE_OPERATION&&APPROVED_UPDATE_OPERATION==='commercial-legacy-hotel-headings-20261107-11-readback2-v1','exact_caption_operation_changed');
     need(($payload['button_text']??'')==='✈️ Узнать стоимость тура'&&($payload['update_kind']??'')==='caption_only'&&($payload['search_link_included']??null)===false,'caption_only_scope_changed');
     $rows=$payload['rows']??null;need(is_array($rows)&&array_column($rows,'hotel_id')===[80964,482,476,81173,32577,478],'exact_caption_hotel_scope_changed');
     foreach($rows as $r){
@@ -86,18 +86,19 @@ try {
     $pdo=ConversationDb::connection();
     $active=$pdo->query("SELECT COUNT(*) FROM post_versions WHERE publication_id IN (286,278,145,142,146,143,147,144,157,154,170,167) AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");need((int)$active->fetchColumn()===0,'existing_publication_active_or_unknown_stop');
     foreach(['033_channel_post_context.sql','036_channel_post_member_delivery.sql','040_channel_post_reconciliation.sql'] as $m){$q=$pdo->prepare('SELECT checksum FROM schema_migrations WHERE version=?');$q->execute([$m]);need($q->fetchColumn()===hash_file('sha256',getcwd().'/migrations/'.$m),'publishing_schema_not_accepted');}
-    need(APPROVED_UPDATE_OPERATION==='commercial-legacy-hotel-headings-20261107-11-v1','invalid_exact_update_operation');$dir='/var/www/anytoour/data/channel-post-operations/'.APPROVED_UPDATE_OPERATION;need(!is_link(dirname($dir))&&!is_link($dir),'invalid_operation_directory');if(!is_dir($dir))need(mkdir($dir,0700,true),'invalid_operation_directory');need(realpath($dir)===$dir,'invalid_operation_directory');
+    need(APPROVED_UPDATE_OPERATION==='commercial-legacy-hotel-headings-20261107-11-readback2-v1','invalid_exact_update_operation');$dir='/var/www/anytoour/data/channel-post-operations/'.APPROVED_UPDATE_OPERATION;need(!is_link(dirname($dir))&&!is_link($dir),'invalid_operation_directory');if(!is_dir($dir))need(mkdir($dir,0700,true),'invalid_operation_directory');need(realpath($dir)===$dir,'invalid_operation_directory');
     $receiptPath=$dir.'/receipt.jsonl';need(!is_link($receiptPath),'invalid_receipt_path');$receiptExisted=is_file($receiptPath);need(!$receiptExisted,'prior_edit_requires_reconciliation');$lock=fopen($receiptPath,'x+');need($lock!==false&&flock($lock,LOCK_EX|LOCK_NB),'operation_busy');$journal=stream_get_contents($lock);need(is_string($journal)&&(!$receiptExisted||$journal!==''),'empty_existing_receipt_unresolved');need($journal===''||str_ends_with($journal,"\n"),'partial_receipt_unresolved');$lines=$journal===''?[]:explode("\n",rtrim($journal,"\n"));$raw=$lines?end($lines):'';$manifestHash=hash('sha256',json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     $state=$raw===''?['operation'=>$payload['operation'],'manifest_hash'=>$manifestHash,'configs'=>[],'posts'=>[]]:json_decode($raw,true,64,JSON_THROW_ON_ERROR);need(($state['operation']??'')===$payload['operation']&&($state['manifest_hash']??'')===$manifestHash,'operation_scope_changed');durable($lock,$state);
     foreach($state['configs'] as $r)need(($r['state']??'')==='confirmed','prior_configuration_outcome_unresolved');foreach($state['posts'] as $r)need(($r['state']??'')==='confirmed','prior_edit_outcome_unresolved');
     $registry=new ChannelPostRegistryService($pdo);$automation=new ChannelPostAutomationService($registry);
-    $targets=['max'=>['bot'=>'id9704048781_1_bot','channel'=>'-80492244209683','source'=>'max_anytour_msk1','id'=>9],'telegram'=>['bot'=>'anyru_bot','channel'=>'-1002262666616','source'=>'tg_anytour_msk','id'=>10]];$channels=[];$plans=[];
+    $targets=['max'=>['bot'=>'id9704048781_1_bot','channel'=>'-80492244209683','source'=>'max_anytour_msk1','id'=>9],'telegram'=>['bot'=>'anyru_bot','channel'=>'-1002262666616','source'=>'tg_anytour_msk','id'=>10]];$channels=[];$plans=[];$held=[];
     // Resolve the two existing messages and exact retained photos before any provider/configuration write.
     foreach($targets as $platform=>$t){
         $identity=ChannelPostRuntime::identity($platform);need(is_array($identity)&&$identity['project_key']==='anytour'&&$identity['bot_key']===$t['bot'],'configured_bot_changed');
         $channel=$registry->channel('anytour',$platform,$t['bot'],$t['channel']);need(is_array($channel)&&(int)$channel['id']===$t['id']&&$channel['source_key']===$t['source']&&$channel['button_text']===$payload['button_text']&&(int)$channel['config_version']===2,'channel_configuration_changed');
         need(((new ChannelPostButtonTransport())->verifyChannel($channel)['state']??'')==='ready','provider_channel_rights_changed');$channels[$platform]=$channel;
         foreach($rows as $r){
+            if(isset($held[$r['hotel_id']])) continue;
             $proof=$proofs[$r['hotel_id']][$platform]??null;need(is_array($proof),'original_receipt_platform_missing');
             $id=(int)$proof['publication_id'];$mid=(string)$proof['message_id'];
             $out['current']=['platform'=>$platform,'logical_id'=>$r['logical_id']];
@@ -107,11 +108,31 @@ try {
             if(!$done)need((int)$p['version_id']===(int)$proof['version_id'],'captured_legacy_version_changed');
             need(($p['snapshot']['text']??'')===($done?$r['new_text']:$r['old_text']),'existing_caption_changed');
             $snap=$p['snapshot'];
-            if($platform==='max'){$actual=ChannelPostIncomingAdapter::maxSnapshot(readMax($mid));need(is_array($actual)&&($actual['text']??'')===$snap['text']&&photoSignature($actual)===photoSignature($snap)&&($actual['post_url']??'')===($snap['post_url']??'')&&ChannelPostIncomingAdapter::containsOnlyButton($actual,ChannelPostButtonTransport::buttonUrl($p),'✈️ Узнать стоимость тура'),'existing_max_readback_changed');}
+            if ($platform==='max') {
+                $actual=ChannelPostIncomingAdapter::maxSnapshot(readMax($mid));
+                $livePhoto=false;
+                if (is_array($actual)) {
+                    try { $livePhoto=photoSignature($actual)===photoSignature($snap); }
+                    catch (RuntimeException $ignored) { $livePhoto=false; }
+                }
+                $same=[
+                    'caption_matches'=>is_array($actual)&&($actual['text']??'')===$snap['text'],
+                    'photo_matches'=>$livePhoto,
+                    'post_url_matches'=>is_array($actual)&&($actual['post_url']??'')===($snap['post_url']??''),
+                    'button_matches'=>is_array($actual)&&ChannelPostIncomingAdapter::containsOnlyButton($actual,ChannelPostButtonTransport::buttonUrl($p),'✈️ Узнать стоимость тура'),
+                ];
+                if (in_array(false,$same,true)) {
+                    $held[$r['hotel_id']]=['hotel_id'=>$r['hotel_id'],'logical_id'=>$r['logical_id'],'post_url'=>$snap['post_url'],
+                        'keyboard_rows'=>is_array($actual)?count($actual['keyboard']??[]):0]+$same;
+                    continue;
+                }
+            }
             $plans[$key]=['platform'=>$platform,'key'=>$r['key'],'logical_id'=>$r['logical_id'],'message_id'=>$mid,'publication_id'=>$id,'old_version_id'=>(int)$p['version_id'],'token'=>$p['start_payload'],'post_url'=>$snap['post_url'],'photo_signature'=>photoSignature($snap),'text'=>$r['new_text'],'update_text'=>$r['update_text']];
         }
     }
     unset($out['current']);
+    need(count($plans)+2*count($held)===2*count($rows),'provider_preflight_scope_incomplete');
+    $out['held_pairs']=array_values($held);
     $out['preflight_existing_messages']=count($plans);$out['configuration_write_attempts']=0;$out['content_edit_attempts']=0;$out['button_only_edit_attempts']=0;$out['posts']=[];
     foreach($plans as $key=>$plan){
         $out['current']=['platform'=>$plan['platform'],'logical_id'=>$plan['logical_id']];if(isset($state['posts'][$key])){$out['posts'][]=$state['posts'][$key]['receipt'];continue;}
