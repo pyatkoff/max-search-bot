@@ -101,10 +101,12 @@ try {
     cpeCheck('foreign publication has no hotel greeting',SourceQualificationPrompt::publicationContext($foreign),[]);
     $heading=$publications['max'];$heading['snapshot']['text']="✈️ Rixos Premium Seagate 5★\nТур с перелётом";
     cpeCheck('hotel heading drops presentation emoji and stars',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'Rixos Premium Seagate');
+    $heading['snapshot']['text']="🏖 Side Star Resort 5★ | Турция, Сиде\nОтдых для семьи";
+    cpeCheck('compact hotel title keeps only hotel name',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'Side Star Resort');
     $heading['snapshot']['text']="Тур с перелётом в Египет\nRixos Premium Seagate";
     cpeCheck('ordinary caption never guesses a hotel from a later line',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'');
     $copy=SourceQualificationPrompt::text(['date','adults','children'],'Rixos Premium Seagate');
-    cpeCheck('new hotel asks dates and explicit party',str_contains($copy,'Rixos Premium Seagate')&&str_contains($copy,'На какие даты')&&!str_contains($copy,'Сколько взрослых и детей'),true);
+    cpeCheck('new hotel asks dates and explicit party',str_contains($copy,'Rixos Premium Seagate')&&str_contains($copy,'Когда планируете отдых?')&&!str_contains($copy,'Сколько взрослых и детей'),true);
     $copy=SourceQualificationPrompt::text(['country'],'Side Star Resort');
     cpeCheck('hotel post does not ask destination again',!str_contains($copy,'Куда хотите')&&str_contains($copy,'Что хотите уточнить'),true);
     $copy=SourceQualificationPrompt::text(['date'],'Rixos Premium Seagate');
@@ -135,7 +137,7 @@ try {
         else cpeStartTelegram($user,$named[0]['start_payload'],$dispatcher,$messenger,8800+$index);
         $text=$sent[$beforeSent]['payload']['text']??'';
         cpeCheck('actual current post names hotel before entry ledger write: '.$platform,str_contains($text,'Rixos Premium Seagate'),true);
-        cpeCheck('current entry asks only missing date: '.$platform,str_contains($text,'дата вылета')&&!str_contains($text,'взросл')&&!str_contains($text,'дет'),true);
+        cpeCheck('current entry asks only missing date: '.$platform,str_contains($text,'Когда планируете отдых?')&&!str_contains($text,'взросл')&&!str_contains($text,'дет'),true);
         cpeCheck('post dates and party do not mutate tourist needs: '.$platform,[MaxSearchApi::$needContexts[$chat],count(MaxSearchApi::$needApplications),count(MaxSearchApi::$resets)],[$known,$beforeApplied,$beforeResets]);
         $afterFirst=count($sent);
         if($platform==='max')cpeStartMax($user,$named[0]['start_payload'],8810+$index);
