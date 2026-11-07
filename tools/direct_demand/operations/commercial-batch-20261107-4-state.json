@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation": "commercial-hotel-batch-20261107-4-v1",
-  "state": "SENDER_COMPLETE_NINE_NEW_PAIRS_FEED_APPEND_PENDING",
+  "state": "COMPLETE_NINE_NEW_PAIRS_NATIVE_ROUTES_AND_PUBLIC_FEEDS_VERIFIED",
   "run_id": 42368588925,
   "job_id": 128391812460,
   "source_commit": "88036ab7fdb97e3f6c9713bea14c66bac3a87fa5",
@@ -165,22 +165,12 @@
     }
   ],
   "current_feed_counts": {
-    "telegram": 174,
-    "max": 174,
-    "all": 348
+    "telegram": 183,
+    "max": 183,
+    "all": 366
   },
-  "current_max_native_route_count": 174,
-  "pending_new_route_native_ids": [
-    1074,
-    108146,
-    1362,
-    68984,
-    703,
-    118475,
-    462,
-    2050,
-    1354
-  ],
+  "current_max_native_route_count": 183,
+  "pending_new_route_native_ids": [],
   "sender_operation_closed": true,
   "unknown_operations": 0,
   "remaining_prepared_native_ids": [
@@ -189,7 +179,26 @@
     55647,
     120117
   ],
-  "repeat_policy": "Do not replay sender. Finish only new9 add-only routes/feed; remaining4 send requires exact final media manifest. Next8 catalog-photo candidates are preparation only; held7938/20288/818 excluded.",
+  "repeat_policy": "Sender/read21/native183/feed183 CLOSED. Do not replay. Next exact prepared4 batch remains separately authorized. Next8 clearance accepted from read21 without repeat; only final approved copy/media may be sent. Held7938/20288/818 excluded.",
   "mac_touched": false,
-  "prices_and_search_links_replayed": false
+  "prices_and_search_links_replayed": false,
+  "native_route_operation_closed": true,
+  "feed_operation_closed": true,
+  "native_route_receipt": {
+    "run_id": 42369038622,
+    "job_id": 128393135045,
+    "source_commit": "cf7e72272ce14da61556761a28a6feae9c22a839",
+    "result_artifact_id": 13573435551,
+    "new_routes_verified": 9,
+    "previous174_unchanged": true
+  },
+  "feed_receipt": {
+    "run_id": 42369179729,
+    "job_id": 128393549848,
+    "source_commit": "e7cf4ad5f24361a8ce590836c2f05e36750181f5",
+    "result_artifact_id": 13572798183,
+    "public_gets": 3,
+    "http_200_exact_bytes": true,
+    "previous174_unchanged": true
+  }
 }
