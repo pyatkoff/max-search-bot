@@ -1,0 +1,44 @@
+[
+  {
+    "hotel_id": 66555,
+    "name": "Best Western Premier Sonasea Phu Quoc Resort",
+    "accepted_first_line": "🌴 Best Western Premier Sonasea Phu Quoc Resort 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/66555.png",
+    "image_sha256": "d4ab3d384576d835faee270c19d821b5e068ea208f561dd78fb42f8b7b794894"
+  },
+  {
+    "hotel_id": 110289,
+    "name": "Club Privé by Rixos Sharm El Sheikh",
+    "accepted_first_line": "🏝 Club Privé by Rixos Sharm El Sheikh 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/110289.png",
+    "image_sha256": "ff1f46e6aad0c2ef4bcc0b757afa96a2dfd900f66be145334e6a79ea2937971b"
+  },
+  {
+    "hotel_id": 513,
+    "name": "Naama Bay Hotel & Resort",
+    "accepted_first_line": "🌴 Naama Bay Hotel & Resort 5★ · Шарм эль Шейх",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/513.png",
+    "image_sha256": "910ef60a3a5421eb0092dfc33de5c9ea479a0e305b355bf1c6e508ed34e64f8d"
+  },
+  {
+    "hotel_id": 103731,
+    "name": "Comodo Nha Trang Hotel",
+    "accepted_first_line": "🌊 Comodo Nha Trang Hotel 5★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/103731.png",
+    "image_sha256": "c96fd2312b4aced34938ee36ef9e73cd7ce45b44ec845be02d925e3e8f7468ef"
+  },
+  {
+    "hotel_id": 800,
+    "name": "Sugar Marina Resort Art Karon Beach",
+    "accepted_first_line": "🎨 Sugar Marina Resort Art Karon Beach 4★ · Пхукет",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/800.png",
+    "image_sha256": "aa9cc4a029116c98adf156e1b845fe4d47f1a40401f9addff6115621ae0036da"
+  },
+  {
+    "hotel_id": 3452,
+    "name": "Liberty Hotels Lykia",
+    "accepted_first_line": "🌿 Liberty Hotels Lykia 5★ · Фетхие",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/3452.png",
+    "image_sha256": "b26360e73618ef1e6dead3a4d7ed434c1c7b896318b787b9b5c214837b5eb971"
+  }
+]

@@ -1,0 +1,174 @@
+[
+  {
+    "hotel_id": 1143,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Paraiso Aqua Collection",
+      "CRYSTAL PARAISO AQUA COLLECTION (EX. CRYSTAL PARAISO VERDE RESORT & SPA)",
+      "CRYSTAL PARAISO VERDE RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 41495,
+    "logical_id": null,
+    "aliases": [
+      "Liberty Central Nha Trang Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 69261,
+    "logical_id": null,
+    "aliases": [
+      "Virgo Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 1221,
+    "logical_id": null,
+    "aliases": [
+      "Megasaray Resort Side",
+      "MEGASARAY RESORT SIDE (EX. ASKA SIDE HOTEL)",
+      "ASKA SIDE HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 32342,
+    "logical_id": null,
+    "aliases": [
+      "Vinpearl Resort & Spa Phu Quoc"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 64670,
+    "logical_id": null,
+    "aliases": [
+      "Orbit Resort & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 4095,
+    "logical_id": null,
+    "aliases": [
+      "Yasaka Saigon Nhatrang Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 13941,
+    "logical_id": null,
+    "aliases": [
+      "Blue Pearl Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 4071,
+    "logical_id": null,
+    "aliases": [
+      "Sai Gon Mui Ne Resort",
+      "SAIGON MUI NE RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 41149,
+    "logical_id": null,
+    "aliases": [
+      "Vinpearl Resort & Spa Nha Trang Bay"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 54592,
+    "logical_id": null,
+    "aliases": [
+      "Granada Luxury Belek"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 57217,
+    "logical_id": null,
+    "aliases": [
+      "Wyndham Grand Phu Quoc ( Ex.Vinoasis Phu Quoc Resort)",
+      "WYNDHAM GRAND PHU QUOC (EX. VINOASIS PHU QUOC RESORT)",
+      "WYNDHAM GRAND PHU QUOC",
+      "VINOASIS PHU QUOC RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 4432,
+    "logical_id": null,
+    "aliases": [
+      "Barcelo Coconut Island",
+      "BARCELO COCONUT ISLAND (EX. THE VILLAGE COCONUT ISLAND)",
+      "THE VILLAGE COCONUT ISLAND"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 82606,
+    "logical_id": null,
+    "aliases": [
+      "Lonicera World Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 1337,
+    "logical_id": null,
+    "aliases": [
+      "Limak Atlantis De Luxe Hotel & Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 380,
+    "logical_id": null,
+    "aliases": [
+      "Rehana Sharm Resort Aqua Park & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 1257,
+    "logical_id": null,
+    "aliases": [
+      "Bellis Deluxe Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  },
+  {
+    "hotel_id": 82567,
+    "logical_id": null,
+    "aliases": [
+      "Phuket Emerald Beach Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_sixty_first_clearance"
+  }
+]

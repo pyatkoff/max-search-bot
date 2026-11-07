@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-9-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "POSTS_CONFIRMED_ROUTES_PENDING",
   "native_hotel_ids": [
     66555,
     110289,
@@ -15,5 +15,92 @@
   "manifest_sha256": "63543aed4537a4f3c920d60b63b068915b491a500fe08b13d55320a427494027",
   "asset_commit": "42ad8b8dc207ceea63d5d9357aaa6936ea32c557",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "full_pairs_after": 206,
+  "sender_run_id": 42374862472,
+  "sender_commit": "617cb6aeef24ffcbcca9bcc433aca6abd2178048",
+  "sender_job_id": 128410280343,
+  "new_posts": 12,
+  "post_write_attempts": 12,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13575046580,
+  "result_zip_sha256": "34906e59f977e051a143dc7ba8d8a8663a1f252ddcd30a8b3751fe765c847a10",
+  "private_receipt_sha256": "dd4077e00b413f1ed9f11645c3e49578e5162adf06b5ec5ad0d66cedc671ce47",
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sonasea-66555-v1",
+      "post_url": "https://t.me/any_toour/215",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-club-prive-sharm-110289-v1",
+      "post_url": "https://t.me/any_toour/216",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-naama-bay-513-v1",
+      "post_url": "https://t.me/any_toour/217",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-comodo-103731-v1",
+      "post_url": "https://t.me/any_toour/218",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sugar-art-800-v1",
+      "post_url": "https://t.me/any_toour/219",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-liberty-lykia-3452-v1",
+      "post_url": "https://t.me/any_toour/220",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sonasea-66555-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2GEpLHjw",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-club-prive-sharm-110289-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2GFMuUmw",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-naama-bay-513-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2GFxpMCA",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-comodo-103731-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2GGU0fgw",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sugar-art-800-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2GG5XH2I",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-liberty-lykia-3452-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2GHc8bvM",
+      "verified": true
+    }
+  ],
+  "routes": "PENDING",
+  "feeds": "PENDING_ADD_ONLY_200_TO_206"
 }
