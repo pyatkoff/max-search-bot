@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 12:10">
+<yml_catalog date="2026-11-07 12:36">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -1750,6 +1750,60 @@
         <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="max_140">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjEzYTA2MzRiNzk1NjFiYzNhNzBjOTA5YmM5Yzk4ZDAiLCJvZmZlcl9pZCI6Im1heF8xNDAifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/140.png</picture>
+        <name>Туры в Golden Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_8053">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOGQwNjcxNmFlNDQ0NzBhNmQ0OWIwZmJjNmM1ZTMwOTIiLCJvZmZlcl9pZCI6Im1heF84MDUzIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/8053.png</picture>
+        <name>Туры в Novotel Phuket Vintage Park</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="max_58987">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTI1ODljZmY5Njc0N2E2OTc2YmJkYTFkNmJlZDdjODIiLCJvZmZlcl9pZCI6Im1heF81ODk4NyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/58987.png</picture>
+        <name>Туры в Seashells Phu Quoc Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="max_1033">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzM2OTk4Y2JhNDhmZWFkOGExMmMzNTgxMTQzYWEwYjEiLCJvZmZlcl9pZCI6Im1heF8xMDMzIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/1033.png</picture>
+        <name>Туры в Barut Hemera</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_386">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzdkMzM0ZDhiMjRkZGRkOTkxYTA4YzUyNWYzZjU4MTAiLCJvZmZlcl9pZCI6Im1heF8zODYifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/386.png</picture>
+        <name>Туры в Monte Carlo Sharm Resort &amp; Spa</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_33313">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTEzNDE2NjE3ZTY5NDQ3OTJiYjczNGE4NmNiMDk0ZTYiLCJvZmZlcl9pZCI6Im1heF8zMzMxMyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/33313.png</picture>
+        <name>Туры в Sugar Marina Surf Kata Beach</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
       </offer>
     </offers>
   </shop>

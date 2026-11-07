@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 12:10">
+<yml_catalog date="2026-11-07 12:36">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -1750,6 +1750,60 @@
         <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_140">
+        <url>https://t.me/any_toour/209</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/140.png</picture>
+        <name>Путевки в Golden Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_8053">
+        <url>https://t.me/any_toour/210</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/8053.png</picture>
+        <name>Путевки в Novotel Phuket Vintage Park</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="tg_58987">
+        <url>https://t.me/any_toour/211</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/58987.png</picture>
+        <name>Путевки в Seashells Phu Quoc Hotel &amp; Spa</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_1033">
+        <url>https://t.me/any_toour/212</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/1033.png</picture>
+        <name>Путевки в Barut Hemera</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_386">
+        <url>https://t.me/any_toour/213</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/386.png</picture>
+        <name>Путевки в Monte Carlo Sharm Resort &amp; Spa</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_33313">
+        <url>https://t.me/any_toour/214</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/33313.png</picture>
+        <name>Путевки в Sugar Marina Surf Kata Beach</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
       </offer>
     </offers>
   </shop>
