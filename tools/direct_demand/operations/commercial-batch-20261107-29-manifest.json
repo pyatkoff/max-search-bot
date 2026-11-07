@@ -1,0 +1,1249 @@
+{
+  "operation": "commercial-hotel-batch-20261107-29-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 370,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read37",
+        "run_id": 42397616407,
+        "original_read_sha256": "b01deb44cafdd99ff75fca51d62e934206a1e315c5ae5bf1728e014eba2ee5e9",
+        "read_at_utc": "2026-11-07T17:43:02+00:00",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed18 commercial captions in cutover24 format,54 real source photos and18 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before29/30 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-eighteen-after-370-commercial-release-manifest.json",
+    "sha256": "c2abd082bf5045fb1f0097680b01269c3460ade3f5787052a698eccdddabdfac",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-first20-commercial-captions.json",
+    "caption_sha256": "f5ffa61fc9aa5faeb3af69ccb376c428ff011b0f959df059abe63275f957600f",
+    "subset_native_ids": [
+      70289,
+      123757,
+      1032,
+      21673,
+      1126,
+      61591,
+      1972,
+      955,
+      954,
+      1469
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "source_held_native_ids": [
+    1551,
+    212
+  ],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 70289,
+      "logical_id": "commercial-alexia-resort-70289-v1",
+      "aliases": [
+        "Alexia Resort & Spa (Adults Only 16+)",
+        "ALEXIA RESORT & SPA ADULTS ONLY 16+"
+      ],
+      "text": "✈️ Туры в Alexia Resort & Spa с перелётом\n📍 Сиде, Турция.\n\nДля отдыха с террасой, пляжными днями и живой музыкой. Отель принимает гостей от 16 лет.\n\n🛏 Terrace Deluxe Sea View 31 м² с террасой.\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж примерно в 300 м через дорогу.\n🎶 Живая музыка и дискотека.\n\n✈️ Подберём номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "294ae8815ac7081f5a6ae20f57390de8d732152862402acb2fa3b9fcfb5b3296",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/70289.png",
+      "photo_sha256": "8a123dae19464296eb56a8f57db36e31e9c1424c6ce37138b7a109b6a76a3175",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/side/alexia_resort_spa_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/alexia-resort-spa-hotel-23411409.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/alexia-resort-spa-hotel-23411415.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/alexia-resort-spa-hotel-23411432.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 26356,
+        "anytour_id": 3160,
+        "legacy_native_id": 70289,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQv87_Hg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_74395621db6db0d6_c01",
+        "top500_74395621db6db0d6_c02",
+        "top500_74395621db6db0d6_c03",
+        "top500_74395621db6db0d6_c04",
+        "top500_74395621db6db0d6_c05",
+        "top500_74395621db6db0d6_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/alexia-resort-spa-hotel-23411409.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6ea27c5419c5d717d2c56ee5501f5ba05d8b6a1b0229e50bf28bbd08b0bf458d",
+          "source_png_sha256": "5e463507a0519b15feba2bc40d8893106791b9d1ab20e6b8438997565a72a76b",
+          "source_png_bytes": 1175118,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн и здание Alexia Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQpZpUy4",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "alexia-resort-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/alexia-resort-spa-hotel-23411415.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8533de2f6242248b90b03b9e927b35e9034a601cb7089cf8b8dcd8e31eb264d6",
+          "source_png_sha256": "f548629782b82d67ac8141e4ef79a408218d128ece6b0294dd97eab032e8d445",
+          "source_png_bytes": 865102,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Лобби Alexia Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQtUZA8E",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "alexia-resort-g16.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g33",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/alexia-resort-spa-hotel-23411432.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f5f1b5132252a7601780c951f93e6d37a7ae68ff28104e9361547d642e092b5f",
+          "source_png_sha256": "70ca4dcaf71ca3de9ba5f50eb91319a983d7b82040a64ce62c0940e44e4a8387",
+          "source_png_bytes": 790904,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Бар у бассейна Alexia Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQhxcfbg",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "alexia-resort-g33.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 123757,
+      "logical_id": "commercial-seher-quality-123757-v1",
+      "aliases": [
+        "Seher Side Quality Resort & Spa (Adults Only 16+)",
+        "SEHER SIDE QUALITY RESORT & SPA ADULTS ONLY 16+"
+      ],
+      "text": "✈️ Туры в Seher Side Quality Resort & Spa с перелётом\n📍 Сиде, Турция.\n\nДля отдыха вдвоём у песчаного пляжа. Отель для гостей от 16 лет.\n\n🛏 Двухместный Standard от 20 до 22 м² с балконом в главном корпусе.\n🍽 All Inclusive.\n🏖 Собственный песчаный пляж примерно в 80 м.\n\n✈️ Подберём номер и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "03f951977f0c7487967809d20ba297c67421ec620736ed56e866ede0d38709e8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/123757.png",
+      "photo_sha256": "81e55c5f0c1047f0a9277d75003de0b97dc46a811f07803856b792dd66c33dc2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.seherhotels.com/seher-side-quality-resort-spa/odalar-suitler",
+        "https://www.ltur.com/de/urlaub/seher-side-quality-resort-spa-hotel-adults-only-16-1431031",
+        "https://www.seherhotels.com/seher-side-quality-resort-spa?dl=en",
+        "https://www.tui.com/hotels/seher-side-quality-resort-and-spa-hotel-adults-only-16-1431031/hotelinformation/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/123757-73440314.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/123757-73493500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/123757-73486307.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 39641,
+        "anytour_id": 3871,
+        "legacy_native_id": 123757,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQvJsDZE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_722bb1bea6e7e6fd_c01",
+        "top500_722bb1bea6e7e6fd_c03",
+        "top500_722bb1bea6e7e6fd_c05",
+        "top500_722bb1bea6e7e6fd_run10_c01",
+        "top500_722bb1bea6e7e6fd_run10_c02",
+        "top500_722bb1bea6e7e6fd_crit50_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/123757-73440314.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f56169eb7e814734ec87c61dab67cd4bdca69344c735d04dfa88d2abff808517",
+          "source_png_sha256": "ce1e5c82f803c8968c7ed3cffe967148f2ef6c3737c122a8478be4ba9a6f084a",
+          "source_png_bytes": 1250850,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Территория Seher Side Quality",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQnrK2Dg",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "seher-quality-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g55",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/123757-73493500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5118e5c07b7dd57500b8b60f773a7960cc8bdd641e01353ff165e74bdaa35abf",
+          "source_png_sha256": "26d1f1a7889ab5b111b4bea75ad15355d1002886026e15550ebfa6ed36f4930c",
+          "source_png_bytes": 369251,
+          "dimensions": [
+            800,
+            480
+          ],
+          "alt": "Один из номеров Seher Side Quality",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQk92F74",
+          "canva_asset_dimensions": [
+            800,
+            480
+          ],
+          "source_png_filename": "seher-quality-g55.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g36",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/123757-73486307.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "245b0717273bea993046b1c8af054b9c4c18115d243187708ea274db42d9e834",
+          "source_png_sha256": "25a0469590b21d1995c2c25c47cd48b261bcedd39b6037b237d3579262472520",
+          "source_png_bytes": 522192,
+          "dimensions": [
+            800,
+            480
+          ],
+          "alt": "Терраса Seher Side Quality",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQqAiFYU",
+          "canva_asset_dimensions": [
+            800,
+            480
+          ],
+          "source_png_filename": "seher-quality-g36.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1032,
+      "logical_id": "commercial-acanthus-cennet-1032-v1",
+      "aliases": [
+        "Acanthus & Cennet Barut Collection",
+        "ACANTHUS CENNET BARUT COLLECTION",
+        "BAYOU ACANTHUS (EX. ACANTHUS CENNET BARUT COLLECTION)"
+      ],
+      "text": "✈️ Туры в Acanthus Cennet Barut Collection с перелётом\n📍 Сиде, Турция.\n\nДля отдыха вдвоём с песчаным пляжем и частичным видом на море.\n\n🛏 Superior Side Sea View 34 м².\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж.\n🎶 Музыка, кинопоказы и уроки танцев.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a5c77f140a02412a74c6ee86d50ec71d7c038d2714e4a953982bb84dd3426a2e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1032.png",
+      "photo_sha256": "416877129a577db2983d1f49e6a377dd9b6a7e4eac7c27426fc3c848ace6bbec",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/side/barut_cennet__acanthus/",
+        "https://barutacanthuscennet.com/en/accommodation",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-hotels-cennet-102212380.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-hotels-cennet-1022123910.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-hotels-cennet-1022123916.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 26287,
+        "anytour_id": 455,
+        "legacy_native_id": 1032,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQiTRSWA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_b7a0a42c146ff2c3_run05_c01",
+        "top500_b7a0a42c146ff2c3_run05_c02",
+        "top500_b7a0a42c146ff2c3_run05_c04",
+        "top500_b7a0a42c146ff2c3_run05audit_c05",
+        "top500_b7a0a42c146ff2c3_run11_c01",
+        "top500_b7a0a42c146ff2c3_run11_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-hotels-cennet-102212380.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c5b0b7268160ce6639e65e22e0ae2e1fa348efbd76b1897f4072a8424714a355",
+          "source_png_sha256": "c2409e8c506823d68f6d6e50d78c816dd70886f48abcc3426698251b24fbbd5d",
+          "source_png_bytes": 1589596,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Бассейн Acanthus Cennet Barut Collection",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQgGESfs",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "acanthus-cennet-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g12",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-hotels-cennet-1022123910.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6b686a2b99a0414a0edd721b807ec639704d6efd2cc7875d25717ecdf71e5db7",
+          "source_png_sha256": "eb396be0683087c1e48567a672438b4042c6b830dfe1d63a24b426a8a868c5b3",
+          "source_png_bytes": 1400288,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Лобби Acanthus Cennet Barut Collection",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQjHneFk",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "acanthus-cennet-g12.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g18",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barut-hotels-cennet-1022123916.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c508078e7c04b44eeca13b36d5d7e3f5284303148f49442d4deab47bd5bc3585",
+          "source_png_sha256": "cff5ae5c390d9de591daf6cc31e4798bd7336c1e2a0aaa28c2c5bed77a805610",
+          "source_png_bytes": 1720667,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Терраса Acanthus Cennet Barut Collection",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQp_VWsk",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "acanthus-cennet-g18.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 21673,
+      "logical_id": "commercial-barut-andiz-21673-v1",
+      "aliases": [
+        "Tui Blue Barut Andiz (Adults Only 16+)",
+        "TUI BLUE BARUT ANDIZ ADULTS ONLY 16+"
+      ],
+      "text": "✈️ Туры в TUI Blue Barut Andiz с перелётом\n📍 Сиде, Турция.\n\nДля отдыха вдвоём с живой музыкой и вечерами на крыше. Отель принимает гостей от 16 лет.\n\n🛏 Двухместный Standard Land View 28 м² с балконом в главном здании.\n🍽 All Inclusive.\n🏖 Собственный песчаный пляж примерно в 150 м.\n🎶 Живая музыка и бар на крыше.\n\n✈️ Подберём номер и рассчитаем тур с перелётом.",
+      "text_sha256": "e58f1d7a088daba421551d58a872de8b5791e48145f02d4f32a6067fdfe8309a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/21673.png",
+      "photo_sha256": "fb9f9e752a9f3b8d33957ed76926618b0eb248992745563b2bcaadb77d99c467",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/turkey/side/tui_blue_barut_andiz/",
+        "https://cms.joinup.travel/storage/hotel/39357/files_en/TUI-BLUE-BARUT-ANDIZ_EN_2025.pdf",
+        "https://barutandiz.com/en",
+        "https://barutandiz.com/en/accommodation/standard-rooms",
+        "https://www.ltur.com/at/urlaub/tui-blue-barut-andiz-302411",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/21673-4253400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/21673-4260611.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/21673-4261027.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 26337,
+        "anytour_id": 4129,
+        "legacy_native_id": 21673,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQgqwdhs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_fc67f9c45cf59b94_run06_c01",
+        "top500_fc67f9c45cf59b94_run06_c02",
+        "top500_fc67f9c45cf59b94_run06_c04",
+        "top500_fc67f9c45cf59b94_run06_c05",
+        "top500_fc67f9c45cf59b94_run06audit_c06",
+        "top500_fc67f9c45cf59b94_run11_c01",
+        "top500_fc67f9c45cf59b94_run11_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/21673-4253400.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "972f52216edef3a88856bf30839c7a5b27ef78e12f63de616843cb0b5cb651ea",
+          "source_png_sha256": "4f40f289030c5e4ae868a358e6a5cbdb59b627ba9d32e1e427e6f47e80965e5a",
+          "source_png_bytes": 983232,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Территория TUI Blue Barut Andiz",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQlm84i4",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "barut-andiz-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g72",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/21673-4260611.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "042696ba902ee36f63a45ce3e2bd664278720771f675d412f2facf123097248e",
+          "source_png_sha256": "790249712b79f9e2de874c81c4ae4b680b67ba305e72898bb22681ba638a9cb8",
+          "source_png_bytes": 652520,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Один из номеров TUI Blue Barut Andiz",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQuENHl0",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "barut-andiz-g72.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g88",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/21673-4261027.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f299d30e4b59185f17eab663671cf0668bde893555dd02fc7139b1ae58146939",
+          "source_png_sha256": "1752b4945c99c7df7e87f7efbcc8409a2830ea00b19b1a2ddc51ef9e8c7a9426",
+          "source_png_bytes": 899539,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "TUI Blue Barut Andiz вечером",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQoEdSb4",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "barut-andiz-g88.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1126,
+      "logical_id": "commercial-sun-heaven-1126-v1",
+      "aliases": [
+        "Club Sun Heaven Family & Spa",
+        "SUN HEAVEN HOTEL (EX. CLUB SUN HEAVEN FAMILY & SPA)"
+      ],
+      "text": "✈️ Туры в Sun Heaven Hotel с перелётом\n📍 Конаклы, Турция.\n\nДля пляжного отпуска в Конаклы с вечерней программой.\n\n🛏 Двухместный Standart от 28 до 30 м² с балконом в новом главном здании.\n🍽 Ultra All Inclusive.\n🏖 Собственный пляж с песком и галькой примерно в 50 м через дорогу.\n🎶 Танцевальные вечера и живая музыка.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "text_sha256": "e4bb7204b2edb9ac0625affdf2d31637bbbfd440802662b64650841a2c3728aa",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1126.png",
+      "photo_sha256": "2a4b8b51bc570bdcdc0e5d64a0bc70afa7b5c08c73a94ff794e781e8cca553c1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/eng/country/turkey/alanya/club_sun_heaven_family_spa/",
+        "https://www.tui.com/hotels/club-sun-heaven-4648/hotelinformation/",
+        "https://www.ltur.com/at/urlaub/club-sun-heaven-4648",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-sun-heaven-hotel-69132500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-sun-heaven-hotel-69132517.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-sun-heaven-hotel-69132538.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8766,
+        "anytour_id": 502,
+        "legacy_native_id": 1126,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQhE-Acc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4cc7e816bf2303df_run06_c01",
+        "top500_4cc7e816bf2303df_run06_c02",
+        "top500_4cc7e816bf2303df_run06_c04",
+        "top500_4cc7e816bf2303df_run12_c01",
+        "top500_4cc7e816bf2303df_crit50_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/club-sun-heaven-hotel-69132500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d057884aadf63ee2997bc4d7f3d970a92f75b7df580450276025c64678efdf36",
+          "source_png_sha256": "4470d9fa26e6499313a0fd189df81455173b9d1b924bb8ae73d9541958f4cd92",
+          "source_png_bytes": 1212084,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Sun Heaven Hotel вечером",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQjPZE-I",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sun-heaven-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/club-sun-heaven-hotel-69132517.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9a470272dd0b60b49f54832b61e32cf9609797b6033b51db55d216cacd8620a4",
+          "source_png_sha256": "7d5f3243c82a6fa0938f289889e1b71854339754f2cdc2115e6a2006cead9bc4",
+          "source_png_bytes": 530494,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Sun Heaven Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQqU-zA0",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sun-heaven-g19.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g40",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/club-sun-heaven-hotel-69132538.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "292b05039fc995350b4fa5d2dd6f3e2d6a9d846b6e41fb8c077125f663e7b6f3",
+          "source_png_sha256": "3d470a9e9637019b84e54603c8a24eb9c8a759a297174b97c79d4212a7524614",
+          "source_png_bytes": 1404577,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Территория Sun Heaven Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQnZzUq0",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sun-heaven-g40.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 61591,
+      "logical_id": "commercial-vinpearl-empire-61591-v1",
+      "aliases": [
+        "Melia Vinpearl Nha Trang Empire(EX. Vinpearl Condotel Empire)",
+        "VINPEARL EMPIRE NHA TRANG AFFILIATED BY MELIA (EX. MELIA VINPEARL NHA TRANG EMPIRE)"
+      ],
+      "text": "✈️ Туры в Vinpearl Empire Nha Trang Affiliated by Meliá с перелётом\n📍 Нячанг, Вьетнам.\n\nДля отдыха вдвоём в городском ритме Нячанга.\n\n🛏 Deluxe Double 32 м² с большой кроватью.\n🍽 Можно выбрать пакет с завтраками в ресторане Amber.\n\n✈️ Подберём номер и перелёт, рассчитаем полную стоимость тура на ваши даты.",
+      "text_sha256": "46a7379ad98f696fc7ed3deb5affe56f46de3c7373488518f3b0991898f6aab2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/61591.png",
+      "photo_sha256": "0435a86cf16474994e800c8c0fbdada0ec73f8d92188d566a71fab2ff1c8ca16",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kg/rus/country/vietnam/nhatrang/melia_vinpearl_nhatrang_empire/",
+        "https://vinpearl.com/en/faqs-about-vinpearl-empire-nha-trang-affiliated-by-melia",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-empire-nha-trang-102311240.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-empire-nha-trang-102311241.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-empire-nha-trang-1023112413.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 20522,
+        "anytour_id": 2816,
+        "legacy_native_id": 61591,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQmO3foI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_3c715d50de33488e_run07_c01",
+        "top500_3c715d50de33488e_run07_c06",
+        "top500_3c715d50de33488e_run07r_c01",
+        "top500_3c715d50de33488e_run07r_c02",
+        "top500_3c715d50de33488e_run07r_c03",
+        "top500_3c715d50de33488e_run07r_c04"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-empire-nha-trang-102311240.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b50ea38f218abb6b3e14d72bf8d1cc80f66439f640ffdff34b7196b6391e2eb0",
+          "source_png_sha256": "805f7e8c20022e96e0eaa59f40ed2198f1c721885c01c55738ccff7c92d06748",
+          "source_png_bytes": 1469194,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Городской отель Vinpearl Empire Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQhC78aE",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "vinpearl-empire-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-empire-nha-trang-102311241.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "48c9c520cc62191e642a1a026d784d59d1cbf74113815847c6084296c25a4d03",
+          "source_png_sha256": "236925f25f05112390c66d3c6125403bfe7dd1ca5c0653b05817849939e9d8ab",
+          "source_png_bytes": 1589496,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Бассейн Vinpearl Empire Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQtyVHyU",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "vinpearl-empire-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-condotel-empire-nha-trang-1023112413.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4da0de5ed73ef51a850b9405b61e6044a4dd58605c5ad4a918e30549311b2a81",
+          "source_png_sha256": "0aed487a0f5b65dc991b4f2c31be28d06fda5025ed923c34d5c19dbb865773c6",
+          "source_png_bytes": 1308773,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Ресторан Vinpearl Empire Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQlk07Jw",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "vinpearl-empire-g15.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1972,
+      "logical_id": "commercial-moreno-horizon-1972-v1",
+      "aliases": [
+        "Moreno Horizon Spa & Resort Hurghada",
+        "MORENO HORIZON SPA & RESORT (EX. HOTELUX MARINA BEACH)"
+      ],
+      "text": "✈️ Туры в Moreno Horizon Spa & Resort с перелётом\n📍 Хургада, Египет.\n\nОтдых в Хургаде с All Inclusive.\n\nПодберём номер под ваш состав и сравним перелёты на нужные даты.\n\n✈️ Рассчитаем полную стоимость пакета: перелёт, проживание и питание.",
+      "text_sha256": "971be35be2ddc0967286a4fc19d5de8dde35692a7fd3d20bf3a2476d86a98619",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1972.png",
+      "photo_sha256": "e706c865ea2cf5d164582ea1c51d15ff6481171750a2b07a8f9bf2250006ce10",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.nl/moreno-horizon-spa-en-resort-50944201/?msockid=165510895712622220ce078b563363dc",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/montillon-grand-horizon-resort-102004000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/montillon-grand-horizon-resort-102004018.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/montillon-grand-horizon-resort-1020040315.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 759,
+        "anytour_id": 874,
+        "legacy_native_id": 1972,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQu4IuDE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_9fc91c24522df278_gap50_1_c1",
+        "top500_9fc91c24522df278_gap50_1_c2",
+        "top500_9fc91c24522df278_gap50_1_c3"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/montillon-grand-horizon-resort-102004000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6d5f93d310059eb11bec6486ba7432c0bf86829a3c40d0e60af4d3c3f2bcbc58",
+          "source_png_sha256": "25c294b861a01ac66385c1fcc14885a7a6092ba9185e69b968ca086408d0b3f6",
+          "source_png_bytes": 1312260,
+          "dimensions": [
+            1200,
+            682
+          ],
+          "alt": "Территория Moreno Horizon Spa & Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQsB4ASk",
+          "canva_asset_dimensions": [
+            1200,
+            682
+          ],
+          "source_png_filename": "moreno-horizon-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g09",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/montillon-grand-horizon-resort-102004018.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9adb516b66dbfde87a53ee55ab9979c475512e9816d223186c2d2853b2c43c7e",
+          "source_png_sha256": "b7ba855785312ce33eef6fa85759d721019dd48d5df6b230df2cc0bd7bec98ea",
+          "source_png_bytes": 1208948,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Лобби Moreno Horizon Spa & Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQqwsYbc",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "moreno-horizon-g09.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/montillon-grand-horizon-resort-1020040315.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e0219f13f5ef6c359dafff669b9b05d1eead60613ca774c9daf500f49e6721d6",
+          "source_png_sha256": "ff0709ea7b09e2223331d87dbb855c7fc3ad85604666e642ecdad07d90bfc6f7",
+          "source_png_bytes": 1524244,
+          "dimensions": [
+            1200,
+            834
+          ],
+          "alt": "Открытая терраса Moreno Horizon Spa & Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQnuWboU",
+          "canva_asset_dimensions": [
+            1200,
+            834
+          ],
+          "source_png_filename": "moreno-horizon-g16.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 955,
+      "logical_id": "commercial-akka-antedon-955-v1",
+      "aliases": [
+        "Akka Hotels Antedon",
+        "AKKA ANTEDON HOTEL"
+      ],
+      "text": "✈️ Туры в Akka Antedon Hotel с перелётом\n📍 Бельдиби, Турция.\n\nДля семейного отпуска с отдельными спальнями и пляжными днями.\n\n🛏 Deluxe Family Room 37 м²: две спальни с дверью и два душа.\n🍽 Premium All Inclusive.\n🏖 Первая линия, вход в море с песком и галькой.\n🎶 Живая музыка и вечерняя программа.\n\n✈️ Подберём номер под вашу семью и рассчитаем тур с перелётом.",
+      "text_sha256": "369558a4ff711212da31aed023b8d824e257d952e1b0e920de6b90387dec6ca3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/955.png",
+      "photo_sha256": "e1d6d157d26496ae084373594f5f00ff7cd78cc22c1f3a741b1b91beeba43467",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/kemer/akka_antedon_hotel/",
+        "https://www.akkahotels.com/antedon/en/deluxe-family-room",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-antedon-hotel-71919808.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-antedon-hotel-71919800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-antedon-hotel-71926746.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8208,
+        "anytour_id": 406,
+        "legacy_native_id": 955,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQnnN5pQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_96d257e1e6258b55_c01",
+        "top500_96d257e1e6258b55_c02",
+        "top500_96d257e1e6258b55_c04",
+        "top500_96d257e1e6258b55_c05",
+        "top500_96d257e1e6258b55_pending43_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-antedon-hotel-71919808.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7ea4115add8601a5daef876602926b4bdaaa3328e8e1fad51e24eb1cd2d992c3",
+          "source_png_sha256": "8176c51556aa11c120b2144e59bd9fc411dde4152e0fcf5567256b117785f5be",
+          "source_png_bytes": 1511071,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Территория Akka Antedon",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQhQ93lo",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "akka-antedon-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-antedon-hotel-71919800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ef86bfb9dca4eb3bf64b3c855ab9f1d91012d80f71645b16b197c8041fe2f21b",
+          "source_png_sha256": "e2fc63daf24e20170bd25bf90f5b9dd9133bda7fe5b8fc9492425354f4a58dbe",
+          "source_png_bytes": 1357283,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "Побережье Akka Antedon",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQgZJtts",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "akka-antedon-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g96",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/ak-ka-antedon-hotel-71926746.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5ef7d67ff11d047c4f93af525c3b4c38209384c5a8fbdee0d2948509229e8cd8",
+          "source_png_sha256": "9cb7e9563bc3f5b26de3e732cadc09f1ea7ddfc0e320674d0b1190644020a7ba",
+          "source_png_bytes": 627427,
+          "dimensions": [
+            1024,
+            524
+          ],
+          "alt": "Ресторан Akka Antedon",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQm32sL8",
+          "canva_asset_dimensions": [
+            1024,
+            524
+          ],
+          "source_png_filename": "akka-antedon-g96.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 954,
+      "logical_id": "commercial-akka-alinda-954-v1",
+      "aliases": [
+        "Akka Hotels Alinda",
+        "AKKA ALINDA HOTEL"
+      ],
+      "text": "✈️ Туры в Akka Alinda Hotel с перелётом\n📍 Кириш, Турция.\n\nДля семейного отпуска у моря с музыкой и вечерними развлечениями.\n\n🛏 Comfort Family 36 м²: две комнаты с дверью.\n🍽 Вариант питания Premium All Inclusive.\n🏖 Первая линия и собственный пляж с песком и галькой.\n🎶 Живая музыка, дискотека и караоке.\n\n✈️ Подберём размещение под вашу семью и рассчитаем тур с перелётом.",
+      "text_sha256": "f72a53e5566eef4cdf1a4559b4d4aaf1e88a59ff7995e5489a71cefefb9b399e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/954.png",
+      "photo_sha256": "b5bddcab22bcfcc531e87f76cb6ee3a86f2cd3877e8851cdcd34f3444ee42b28",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.corendon.nl/turkije/turkse-riviera/kemer/kiris/akka-alinda",
+        "https://kompastour.com/kz/rus/country/turkey/kemer/akka_alinda_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/akka-alinda-hotel-69152500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/akka-alinda-hotel-69152550.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/akka-alinda-hotel-69152523.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8188,
+        "anytour_id": 405,
+        "legacy_native_id": 954,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQgtjeqg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_04408f210202bdc9_c01",
+        "top500_04408f210202bdc9_c02",
+        "top500_04408f210202bdc9_c03",
+        "top500_04408f210202bdc9_c04",
+        "top500_04408f210202bdc9_c05",
+        "top500_04408f210202bdc9_mass39_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/akka-alinda-hotel-69152500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "02463a4b623d9f173c35a71164d0c72373c914275edadc6cbdbc333191891820",
+          "source_png_sha256": "7ae7af05ab8ee67cba38a1f3cd1f55077317ec5088ca5882e7ea15ec3607d3f3",
+          "source_png_bytes": 941084,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Побережье Akka Alinda",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQmRmEjA",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "akka-alinda-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g52",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/akka-alinda-hotel-69152550.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7d622885eb9a5ecde281533da5b2e8d0cf49eb73e8baeb8f32225da14276cf5f",
+          "source_png_sha256": "c20614aae0c7f27d623be868f3f1de5fa2e88d4cb12430d122ca8f622297b8d7",
+          "source_png_bytes": 1323968,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "Водные горки Akka Alinda",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQgvtMAY",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "akka-alinda-g52.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/akka-alinda-hotel-69152523.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "80bd705f872fe3e0c8e5ee2f73a7b4a604777f49e5ff7b0df9c001e8e5ebca3d",
+          "source_png_sha256": "88b5f4575eca9748c506e779f4a8ef0c3f7b9e07e6a7d8efa7a0c144e66d7d4a",
+          "source_png_bytes": 849550,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Ресторан Akka Alinda",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQks7R98",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "akka-alinda-g25.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1469,
+      "logical_id": "commercial-senza-santana-1469-v1",
+      "aliases": [
+        "Senza Grand Santana",
+        "SENZA HOTELS GRAND SANTANA"
+      ],
+      "text": "✈️ Туры в Senza Grand Santana с перелётом\n📍 Махмутлар, Турция.\n\nДля семейного отпуска с двумя спальнями и вечерней музыкой.\n\n🛏 Family 2 Bedrooms 45 м².\n🍽 Ultra All Inclusive.\n🏖 До муниципального галечного пляжа около 20 м, с территории ведёт подземный тоннель.\n🎶 Живая музыка.\n\n✈️ Подберём подходящее размещение и рассчитаем тур с перелётом на вашу семью.",
+      "text_sha256": "6a111801d49866e281fd3152631a21aa83ca0486889198c3420933f2ad708da4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1469.png",
+      "photo_sha256": "259033e9545bf71b95acc4c9735d5f8f9e7fc5365878486a0ec5202ebaef7901",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://grandsantana.senzahotels.com/en/rooms/family-2-bedrooms/",
+        "https://kompastour.com/kz/rus/country/turkey/alanya/senza_hotels_grand_santana_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1551&legacyHotelIds%5B%5D=70289&legacyHotelIds%5B%5D=123757&legacyHotelIds%5B%5D=1032&legacyHotelIds%5B%5D=21673&legacyHotelIds%5B%5D=1126&legacyHotelIds%5B%5D=212&legacyHotelIds%5B%5D=61591&legacyHotelIds%5B%5D=1972&legacyHotelIds%5B%5D=955&legacyHotelIds%5B%5D=954&legacyHotelIds%5B%5D=1469&legacyHotelIds%5B%5D=1186&legacyHotelIds%5B%5D=9354&legacyHotelIds%5B%5D=1440&legacyHotelIds%5B%5D=1459&legacyHotelIds%5B%5D=1173&legacyHotelIds%5B%5D=65712&legacyHotelIds%5B%5D=27349&legacyHotelIds%5B%5D=15904",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/santana-hotel-14565600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/santana-hotel-14565612.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/santana-hotel-14565617.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8602,
+        "anytour_id": 695,
+        "legacy_native_id": 1469,
+        "source_file": "additional-first20-current-catalog.json",
+        "source_sha256": "5c3586ea26b3811c62430bab192e473e0b64fe4afe65d5c00e5f5f10f4b54b17",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQtluOeg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_de81b39fe12adcbd_c01",
+        "top500_de81b39fe12adcbd_c02",
+        "top500_de81b39fe12adcbd_c04",
+        "top500_de81b39fe12adcbd_c05",
+        "top500_de81b39fe12adcbd_enrich04_20261019_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/santana-hotel-14565600.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f07221c472656335c87f25bced577b12394902420ae7b479b3fbbba97db4da57",
+          "source_png_sha256": "22eba9d3be6823c9922ea72f36e64638b65591291088e5e7e98fd0cb7cff7974",
+          "source_png_bytes": 1668548,
+          "dimensions": [
+            1200,
+            690
+          ],
+          "alt": "Senza Grand Santana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQsGD3hk",
+          "canva_asset_dimensions": [
+            1200,
+            690
+          ],
+          "source_png_filename": "senza-santana-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g14",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/santana-hotel-14565612.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "16424fb9cf2e1a9df467add4516c73133c4d17439ac15626f7cf107c67c9f577",
+          "source_png_sha256": "6cb7c8353e8994cdf61b54eb36bd42e7ac9535ea62278185979f931c9f305291",
+          "source_png_bytes": 1416158,
+          "dimensions": [
+            1200,
+            676
+          ],
+          "alt": "Территория Senza Grand Santana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQuFNfyE",
+          "canva_asset_dimensions": [
+            1200,
+            676
+          ],
+          "source_png_filename": "senza-santana-g14.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/santana-hotel-14565617.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "749ec71cca32707180e39f4de0ff30a5a2250241b0c9fec673c67397f52f6f28",
+          "source_png_sha256": "d64de2209e00a9cbde5d3162dfa7e99b0444d067bf9c157fb6527d8f956fb77b",
+          "source_png_bytes": 1280973,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Терраса Senza Grand Santana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQjZcSB8",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "senza-santana-g19.png"
+        }
+      ]
+    }
+  ]
+}
