@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 18:36">
+<yml_catalog date="2026-11-07 19:04">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -3334,6 +3334,168 @@
         <description>Тур с перелётом. Окурджалар. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Окурджалар</custom_label_1>
+      </offer>
+      <offer id="tg_70289">
+        <url>https://t.me/any_toour/385</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/70289.png</picture>
+        <name>Путевки в Alexia Resort &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_123757">
+        <url>https://t.me/any_toour/386</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/123757.png</picture>
+        <name>Путевки в Seher Side Quality Resort &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_1032">
+        <url>https://t.me/any_toour/387</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1032.png</picture>
+        <name>Путевки в Acanthus Cennet Barut Collection</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_21673">
+        <url>https://t.me/any_toour/388</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/21673.png</picture>
+        <name>Путевки в TUI Blue Barut Andiz</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_1126">
+        <url>https://t.me/any_toour/389</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1126.png</picture>
+        <name>Путевки в Sun Heaven Hotel</name>
+        <description>Тур с перелётом. Конаклы. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Конаклы</custom_label_1>
+      </offer>
+      <offer id="tg_61591">
+        <url>https://t.me/any_toour/390</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/61591.png</picture>
+        <name>Путевки в Vinpearl Empire Nha Trang Affiliated by Meliá</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_1972">
+        <url>https://t.me/any_toour/391</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1972.png</picture>
+        <name>Путевки в Moreno Horizon Spa &amp; Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_955">
+        <url>https://t.me/any_toour/392</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/955.png</picture>
+        <name>Путевки в Akka Antedon Hotel</name>
+        <description>Тур с перелётом. Бельдиби. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Бельдиби</custom_label_1>
+      </offer>
+      <offer id="tg_954">
+        <url>https://t.me/any_toour/393</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/954.png</picture>
+        <name>Путевки в Akka Alinda Hotel</name>
+        <description>Тур с перелётом. Кириш. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кириш</custom_label_1>
+      </offer>
+      <offer id="tg_1469">
+        <url>https://t.me/any_toour/394</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1469.png</picture>
+        <name>Путевки в Senza Grand Santana</name>
+        <description>Тур с перелётом. Махмутлар. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Махмутлар</custom_label_1>
+      </offer>
+      <offer id="tg_1186">
+        <url>https://t.me/any_toour/395</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1186.png</picture>
+        <name>Путевки в The Norm Oriental Kemer</name>
+        <description>Тур с перелётом. Чамьюва. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Чамьюва</custom_label_1>
+      </offer>
+      <offer id="tg_9354">
+        <url>https://t.me/any_toour/396</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/9354.png</picture>
+        <name>Путевки в Vikingen Infinity Resort &amp; Spa</name>
+        <description>Тур с перелётом. Тюрклер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Тюрклер</custom_label_1>
+      </offer>
+      <offer id="tg_1440">
+        <url>https://t.me/any_toour/397</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1440.png</picture>
+        <name>Путевки в Queens Park Goynuk</name>
+        <description>Тур с перелётом. Гойнюк. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Гойнюк</custom_label_1>
+      </offer>
+      <offer id="tg_1459">
+        <url>https://t.me/any_toour/398</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1459.png</picture>
+        <name>Путевки в Royal Dragon Hotel</name>
+        <description>Тур с перелётом. Эвренсеки. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Эвренсеки</custom_label_1>
+      </offer>
+      <offer id="tg_1173">
+        <url>https://t.me/any_toour/399</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1173.png</picture>
+        <name>Путевки в The Sense De Luxe</name>
+        <description>Тур с перелётом. Кумкой. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кумкой</custom_label_1>
+      </offer>
+      <offer id="tg_65712">
+        <url>https://t.me/any_toour/400</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/65712.png</picture>
+        <name>Путевки в Granada Luxury Beach</name>
+        <description>Тур с перелётом. Авсаллар. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Авсаллар</custom_label_1>
+      </offer>
+      <offer id="tg_27349">
+        <url>https://t.me/any_toour/401</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/27349.png</picture>
+        <name>Путевки в Maxx Royal Kemer Resort</name>
+        <description>Тур с перелётом. Кириш. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кириш</custom_label_1>
+      </offer>
+      <offer id="tg_15904">
+        <url>https://t.me/any_toour/402</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/15904.png</picture>
+        <name>Путевки в Kaya Palazzo Golf Resort</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
       </offer>
     </offers>
   </shop>

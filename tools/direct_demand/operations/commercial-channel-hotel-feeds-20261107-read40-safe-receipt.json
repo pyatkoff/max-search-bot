@@ -1,0 +1,459 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read40",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 70289,
+      "name": "Alexia Resort & Spa",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/385",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3WYqQZnE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/70289.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 123757,
+      "name": "Seher Side Quality Resort & Spa",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/386",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3WZNSBGM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/123757.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1032,
+      "name": "Acanthus Cennet Barut Collection",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/387",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3WZyRdPo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1032.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 21673,
+      "name": "TUI Blue Barut Andiz",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/388",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3WaWEAts",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/21673.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1126,
+      "name": "Sun Heaven Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/389",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Wa6tH-o",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1126.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 61591,
+      "name": "Vinpearl Empire Nha Trang Affiliated by Meliá",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/390",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3WbfCHxE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/61591.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1972,
+      "name": "Moreno Horizon Spa & Resort",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/391",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3WcDqe3Y",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1972.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 955,
+      "name": "Akka Antedon Hotel",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/392",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Wcn7UFc",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/955.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 954,
+      "name": "Akka Alinda Hotel",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/393",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3WdL9MLk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/954.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1469,
+      "name": "Senza Grand Santana",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/394",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Wdu6PaA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1469.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1186,
+      "name": "The Norm Oriental Kemer",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/395",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Xwa4Fn4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1186.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 9354,
+      "name": "Vikingen Infinity Resort & Spa",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/396",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3XxI1TGQ",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/9354.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1440,
+      "name": "Queens Park Goynuk",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/397",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3XxufPwc",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1440.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1459,
+      "name": "Royal Dragon Hotel",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/398",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3XyTlF80",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1459.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1173,
+      "name": "The Sense De Luxe",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/399",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Xy3JP5c",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1173.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 65712,
+      "name": "Granada Luxury Beach",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/400",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3XzamMEk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/65712.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 27349,
+      "name": "Maxx Royal Kemer Resort",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/401",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Xz91efA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/27349.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 15904,
+      "name": "Kaya Palazzo Golf Resort",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/402",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3X0hTDhw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/15904.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 18,
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 1380,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Mirada Del Mar Hotel",
+        "MIRADA DEL MAR"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 949,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Adam & Eve (Adults Only 16+)",
+        "ADAM & EVE HOTEL ADULTS ONLY 16+"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1483,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Seher Resort & Spa Hotel",
+        "SEHER RESORT & SPA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1196,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Viking Garden Hotel & Spa",
+        "VIKING GARDEN HOTEL (EX. GARDEN RESORT BERGAMOT)"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1051,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Blue Fish Hotel",
+        "BLUE FISH"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 53514,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Royal Seginus Hotel",
+        "ROYAL SEGINUS"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 15873,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "White City Resort Hotel",
+        "WHITE CITY RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 28754,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Kleopatra Atlas Hotel (Adults Only 16+)",
+        "KLEOPATRA ATLAS ADULTS ONLY 16+"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1189,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Flora Garden Beach Hotel (Adults Only 16+)",
+        "FLORA GARDEN BEACH ADULTS ONLY 16+"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1410,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ozkaymak Marina Hotel",
+        "OZKAYMAK MARINA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1339,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Limak Limra Hotels & Resort",
+        "LIMAK LIMRA HOTEL & RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1586,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "White City Beach Hotel (Adults Only 16+)",
+        "WHITE CITY BEACH ADULTS ONLY 16+"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 55925,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Villa Sunflower Hotel",
+        "VILLA SUNFLOWER APARTS & SUITES"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 113292,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Granada Luxury Red (Adults Only 16+)",
+        "GRANADA LUXURY RED ADULTS ONLY"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1436,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Porto Bello Hotel Resort & Spa",
+        "PORTO BELLO"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 53578,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Kahya Hotel",
+        "KAHYA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 55511,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Sentido Trendy Verbena Beach",
+        "SENTIDO TRENDY VERBENA BEACH HOTEL"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1336,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Limak Arcadia Sport Resort",
+        "LIMAK ARCADIA GOLF & SPORT RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1004,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Sealife Buket Resort & Beach",
+        "SEALIFE BUKET BEACH (EX. ASKA BUKET RESORT & SPA)"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 17595,
+      "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ramada Resort Lara",
+        "RAMADA RESORT BY WYNDHAM LARA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    }
+  ],
+  "candidate_count": 20,
+  "read_at_utc": "2026-11-07T18:59:15+00:00",
+  "scope_hotels": 18,
+  "feed_rows": 18,
+  "deferred_count": 0,
+  "installed_sha": "6d193b7740dc212b92b1893041f0a1047b179635"
+}

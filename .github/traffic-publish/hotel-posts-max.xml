@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 18:36">
+<yml_catalog date="2026-11-07 19:04">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -3334,6 +3334,168 @@
         <description>Тур с перелётом. Окурджалар. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Окурджалар</custom_label_1>
+      </offer>
+      <offer id="max_70289">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNDdkZTZlNzBiMWRjNTAxYzg5NWJlZDE0NjhkZGIyNDgiLCJvZmZlcl9pZCI6Im1heF83MDI4OSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/70289.png</picture>
+        <name>Туры в Alexia Resort &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_123757">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTMyMDI5ODFkMWM3NWMzNzU0NDIyZDIzMDhlNDFkNzIiLCJvZmZlcl9pZCI6Im1heF8xMjM3NTcifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/123757.png</picture>
+        <name>Туры в Seher Side Quality Resort &amp; Spa</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_1032">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOWY1YmQzMjc1MzJmYTIxNzMwYzBhMzA0MjcxYTYyYTAiLCJvZmZlcl9pZCI6Im1heF8xMDMyIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1032.png</picture>
+        <name>Туры в Acanthus Cennet Barut Collection</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_21673">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTIyZmJlMTZmN2VkYzM3ZTZjY2JmMjQ2MWExNTcwNzQiLCJvZmZlcl9pZCI6Im1heF8yMTY3MyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/21673.png</picture>
+        <name>Туры в TUI Blue Barut Andiz</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_1126">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOWY2Zjg5ZWQ5YmRlNmQ1OWNlOGI0YTg0ZTgyM2FlNjQiLCJvZmZlcl9pZCI6Im1heF8xMTI2In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1126.png</picture>
+        <name>Туры в Sun Heaven Hotel</name>
+        <description>Тур с перелётом. Конаклы. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Конаклы</custom_label_1>
+      </offer>
+      <offer id="max_61591">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDI5ZmFmMmQ5ZTE2MzE0YmUxYmMyMTg2OWZkM2FjNjgiLCJvZmZlcl9pZCI6Im1heF82MTU5MSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/61591.png</picture>
+        <name>Туры в Vinpearl Empire Nha Trang Affiliated by Meliá</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_1972">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfN2NkYzQ4ZjJkZDc5OWY5MWFkNzRkOThiNTNmN2MzMjQiLCJvZmZlcl9pZCI6Im1heF8xOTcyIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1972.png</picture>
+        <name>Туры в Moreno Horizon Spa &amp; Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_955">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzM1ODIwZDA5ODM2YTE3NDUyYTMxZDhmYmJjMDQ1ZTkiLCJvZmZlcl9pZCI6Im1heF85NTUifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/955.png</picture>
+        <name>Туры в Akka Antedon Hotel</name>
+        <description>Тур с перелётом. Бельдиби. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Бельдиби</custom_label_1>
+      </offer>
+      <offer id="max_954">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjE5NjE4ZTEzYWFjZDVlZWJjZTEwYzZjM2QzMDE5OTgiLCJvZmZlcl9pZCI6Im1heF85NTQifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/954.png</picture>
+        <name>Туры в Akka Alinda Hotel</name>
+        <description>Тур с перелётом. Кириш. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Кириш</custom_label_1>
+      </offer>
+      <offer id="max_1469">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjE2ZjBkMDY4ZDk0ODAzZGRhMDNjZTkwMTNiODRmMzUiLCJvZmZlcl9pZCI6Im1heF8xNDY5In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-29/1469.png</picture>
+        <name>Туры в Senza Grand Santana</name>
+        <description>Тур с перелётом. Махмутлар. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Махмутлар</custom_label_1>
+      </offer>
+      <offer id="max_1186">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZmUxZTc4NGNmOGY2MWQxNjNkNjNmYTY5YjMyODY1ODQiLCJvZmZlcl9pZCI6Im1heF8xMTg2In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1186.png</picture>
+        <name>Туры в The Norm Oriental Kemer</name>
+        <description>Тур с перелётом. Чамьюва. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Чамьюва</custom_label_1>
+      </offer>
+      <offer id="max_9354">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGRlZTA4NzQ1YmU5YmRkYmI3YTcxNGE4NDMxYjBhMmEiLCJvZmZlcl9pZCI6Im1heF85MzU0In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/9354.png</picture>
+        <name>Туры в Vikingen Infinity Resort &amp; Spa</name>
+        <description>Тур с перелётом. Тюрклер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Тюрклер</custom_label_1>
+      </offer>
+      <offer id="max_1440">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZDY3NzNiNzEwNmFiNWQyZWZiNDRjYmMzMzA4OTI3YmQiLCJvZmZlcl9pZCI6Im1heF8xNDQwIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1440.png</picture>
+        <name>Туры в Queens Park Goynuk</name>
+        <description>Тур с перелётом. Гойнюк. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Гойнюк</custom_label_1>
+      </offer>
+      <offer id="max_1459">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYmYyNmQ3ODcxOGViODZjYWNmNGZhNTkzMzk0ODNiNDAiLCJvZmZlcl9pZCI6Im1heF8xNDU5In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1459.png</picture>
+        <name>Туры в Royal Dragon Hotel</name>
+        <description>Тур с перелётом. Эвренсеки. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Эвренсеки</custom_label_1>
+      </offer>
+      <offer id="max_1173">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNjAzYjAwN2I4ZDRjYmYyM2VjNGRkNDUyM2Q4OWVlNGEiLCJvZmZlcl9pZCI6Im1heF8xMTczIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/1173.png</picture>
+        <name>Туры в The Sense De Luxe</name>
+        <description>Тур с перелётом. Кумкой. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Кумкой</custom_label_1>
+      </offer>
+      <offer id="max_65712">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGMyOTJkNWE5Nzg0NzZjODYxOWM0M2M5MTM0NmQ2YzkiLCJvZmZlcl9pZCI6Im1heF82NTcxMiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/65712.png</picture>
+        <name>Туры в Granada Luxury Beach</name>
+        <description>Тур с перелётом. Авсаллар. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Авсаллар</custom_label_1>
+      </offer>
+      <offer id="max_27349">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjI2ZjgxNDI2MTAzODU3Y2FjMTZiMjJkYTk0NGQzY2QiLCJvZmZlcl9pZCI6Im1heF8yNzM0OSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/27349.png</picture>
+        <name>Туры в Maxx Royal Kemer Resort</name>
+        <description>Тур с перелётом. Кириш. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Кириш</custom_label_1>
+      </offer>
+      <offer id="max_15904">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODQzMTUyNWEzODI0ZGM0ODRkZGJhM2UzMTJjNmIyOTkiLCJvZmZlcl9pZCI6Im1heF8xNTkwNCJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32/.github/traffic-publish/commercial-batch-20261107-30/15904.png</picture>
+        <name>Туры в Kaya Palazzo Golf Resort</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
       </offer>
     </offers>
   </shop>
