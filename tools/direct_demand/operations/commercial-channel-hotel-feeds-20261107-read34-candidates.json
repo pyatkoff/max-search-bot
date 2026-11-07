@@ -1,0 +1,186 @@
+[
+  {
+    "hotel_id": 1313,
+    "logical_id": null,
+    "aliases": [
+      "L'oceanica Beach Resort Hotel",
+      "LOCEANICA BEACH RESORT HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 1293,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Centro Pearl Collection"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 37168,
+    "logical_id": null,
+    "aliases": [
+      "Litore Resort Hotel & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 69184,
+    "logical_id": null,
+    "aliases": [
+      "Lonicera Premium"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 9303,
+    "logical_id": null,
+    "aliases": [
+      "Sundia By Liberty Oludeniz",
+      "SUNDIA BY LIBERTY OLUDENIZ (EX. LIBERTY HOTEL OLUDENIZ)",
+      "LIBERTY HOTEL OLUDENIZ"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 59563,
+    "logical_id": null,
+    "aliases": [
+      "Prestige Garden Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 74032,
+    "logical_id": null,
+    "aliases": [
+      "SUNRISE Serano Club Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 1521,
+    "logical_id": null,
+    "aliases": [
+      "Sultan Of Side"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 123374,
+    "logical_id": null,
+    "aliases": [
+      "Regnum The Crown"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 15879,
+    "logical_id": null,
+    "aliases": [
+      "Kirman Belazur Resort & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 1501,
+    "logical_id": null,
+    "aliases": [
+      "Selectum Family Resort Side",
+      "SELECTUM FAMILY RESORT SIDE (EX. SILENCE BEACH RESORT)",
+      "SILENCE BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 1139,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Admiral Aqua Collection",
+      "CRYSTAL ADMIRAL AQUA COLLECTION (EX. CRYSTAL ADMIRAL RESORT SUITES & SPA)",
+      "CRYSTAL ADMIRAL RESORT SUITES & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 15872,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Waterworld Aqua Collection",
+      "CRYSTAL WATERWORLD AQUA COLLECTION (EX. CRYSTAL WATERWORLD RESORT & SPA)",
+      "CRYSTAL WATERWORLD RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 1141,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Family Comfort Collection",
+      "CRYSTAL FAMILY COMFORT COLLECTION (EX. CRYSTAL FAMILY RESORT & SPA)",
+      "CRYSTAL FAMILY RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 1142,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Flora Pearl Collection",
+      "CRYSTAL FLORA PEARL COLLECTION (EX. CRYSTAL FLORA BEACH RESORT)",
+      "CRYSTAL FLORA BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 28159,
+    "logical_id": null,
+    "aliases": [
+      "Vonresort Golden Beach",
+      "VON RESORT GOLDEN BEACH (EX. VON CLUB GOLDEN BEACH)",
+      "VON RESORT GOLDEN BEACH",
+      "VON CLUB GOLDEN BEACH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 1014,
+    "logical_id": null,
+    "aliases": [
+      "Side Star Elegance",
+      "SIDE STAR ELEGANCE (EX. ASTERIA SIDE)",
+      "ASTERIA SIDE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  },
+  {
+    "hotel_id": 352,
+    "logical_id": null,
+    "aliases": [
+      "Parrotel Aqua Park Resort (Ex. Park Inn By Radisson Sharm)",
+      "PARROTEL AQUA PARK RESORT (EX. PARK INN BY RADISSON)",
+      "Parrotel Aqua Park Resort",
+      "Park Inn By Radisson Sharm",
+      "PARK INN BY RADISSON"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after160_first_clearance"
+  }
+]

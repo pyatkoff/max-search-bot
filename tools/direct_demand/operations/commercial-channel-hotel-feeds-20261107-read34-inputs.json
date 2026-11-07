@@ -1,0 +1,65 @@
+[
+  {
+    "hotel_id": 66496,
+    "name": "The Art Nest Hotel Nha Trang",
+    "accepted_first_line": "🌆 The Art Nest Hotel Nha Trang 4★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/66496.png",
+    "image_sha256": "5cec214777c0939dd01a08f307b2ead8f39cf4961507a73aa4d482f1e2f67e28"
+  },
+  {
+    "hotel_id": 981,
+    "name": "Ananas Hotel",
+    "accepted_first_line": "🏖 Ananas Hotel 4★ · Аланья",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/981.png",
+    "image_sha256": "279568ee0d7fea77ccfb00d1c312696f309c33388c2229a9159445835d4fc4a4"
+  },
+  {
+    "hotel_id": 128508,
+    "name": "Seaside Boutique Hotel",
+    "accepted_first_line": "🌅 Seaside Boutique Hotel 4★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/128508.png",
+    "image_sha256": "a77ac22f3cfa50405a3dd790954bd8046c93d41b107a2b13757a956021cdf2d4"
+  },
+  {
+    "hotel_id": 45516,
+    "name": "Praha Hotel",
+    "accepted_first_line": "💧 Praha Hotel 3★ · Фукуок",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/45516.png",
+    "image_sha256": "f6e94682a92f6e4551ad3a4cf36c359d124da4fd39239ca46933a62bec65ad90"
+  },
+  {
+    "hotel_id": 1429,
+    "name": "Dobedan World Palace",
+    "accepted_first_line": "🎾 Dobedan World Palace 5★ · Кириш",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/1429.png",
+    "image_sha256": "3d4dae2910c3e9dfc98ef9ab5c9a14d8d1afaba7236d7b1a011f3079fbea030a"
+  },
+  {
+    "hotel_id": 15905,
+    "name": "Royal Garden Beach Hotel",
+    "accepted_first_line": "🌊 Royal Garden Beach Hotel 5★ · Конаклы",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/15905.png",
+    "image_sha256": "547eece14339f326da40bccd75a49232ba5ad0c021155f4d236e0fad14c62e58"
+  },
+  {
+    "hotel_id": 50624,
+    "name": "Diamond Bay Hotel",
+    "accepted_first_line": "🌆 Diamond Bay Hotel 5★ · Нячанг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/50624.png",
+    "image_sha256": "b673f4906bd7ebdb0559b83aece39688e98224e0f3063711faaef9e181ecd424"
+  },
+  {
+    "hotel_id": 58473,
+    "name": "Ca Ty Muine Resort",
+    "accepted_first_line": "🌴 Ca Ty Muine Resort 4★ · Муйне",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/58473.png",
+    "image_sha256": "4de1b3d8c9c1415f0ec46eaae04b8de04376e132232e37b25afabfb6ea4b4f3e"
+  },
+  {
+    "hotel_id": 4060,
+    "name": "Ocean Star Resort",
+    "accepted_first_line": "🌴 Ocean Star Resort 4★ · Муйне",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/bcba5fb359ce144ccc27773a7d50f1fb251a1c30/.github/traffic-publish/commercial-batch-20261107-18/4060.png",
+    "image_sha256": "26b9eea88051210cef749227da07bbb8b794cd9ea4eae65b3b64af72edcc8208"
+  }
+]
