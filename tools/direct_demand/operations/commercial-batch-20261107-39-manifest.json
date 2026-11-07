@@ -1,0 +1,1247 @@
+{
+  "operation": "commercial-hotel-batch-20261107-39-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 458,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read42",
+        "run_id": 42408760749,
+        "original_read_sha256": "9a0c08c1a25744d487b35fc0aa379d105b1c8299d854b0c6576eca0b47589b7d",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed16 commercial captions in cutover39 short-title format,48 real source photos and16 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before39/40 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-sixteen-after-458-commercial-release-manifest.json",
+    "sha256": "414e288104ff09e8c4a73e67c44ad77cbbf7a319a44a7460e462ec9a0bb3eb7c",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-fifth20-commercial-captions.json",
+    "caption_sha256": "40d0c80c4ee34a3507753feb83614d19a839e9a9579528e70fd8db984aee3100",
+    "subset_native_ids": [
+      466,
+      124,
+      1962,
+      91404,
+      134,
+      71147,
+      71259,
+      117935,
+      81154,
+      36451
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "63a932bdf56b9e958369911fe522a77ddb1d141bcde5ce10ade4f59ee8a9093b",
+  "source_held_native_ids": [
+    206,
+    14140,
+    32356
+  ],
+  "media_held_native_ids": [],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    },
+    {
+      "native_hotel_id": 319,
+      "public_url": "https://max.ru/channel_anytour/AaF1Ae28ZNw"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 466,
+      "logical_id": "commercial-stella-makadi-beach-466-v1",
+      "aliases": [
+        "Stella Beach Resort & Spa Makadi Bay",
+        "STELLA MAKADI BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Stella Beach Resort & Spa Makadi Bay\n📍 Макади Бей, Египет.\n\nПляжный отдых в Макади Бей с вечерними шоу.\n\n🛏 Standard 32 м².\n🍽 Варианты All Inclusive и Premium All Inclusive.\n🏖 Собственный пляж на первой линии. Вход в море с понтона.\n\n✈️ Подберём номер и питание, рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "7cc5945b212d7ef9c9019a194e6f154d7e6ead2cb009b226bdba8877567af3b7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/466.png",
+      "photo_sha256": "46d2ec0e85dca171b1986a4c58993ea18a852724b1a5834459bccda8848695ac",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/hurgada_makadi_bay/stella_di_mare_beach_resort_spa_makadi_bay/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/stella-makadi-1021050020.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/stella-makadi-39104800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/stella-makadi-39092802.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14656,
+        "anytour_id": 211,
+        "legacy_native_id": 466,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ1flZEc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e1f9e0c531df367f_c01",
+        "top500_e1f9e0c531df367f_c02",
+        "top500_e1f9e0c531df367f_c03",
+        "top500_e1f9e0c531df367f_c04",
+        "top500_e1f9e0c531df367f_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/stella-makadi-1021050020.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f79459fb91805a220adeeed051c07c3d8f611acab05b2d3c2218f0951e914af1",
+          "source_png_sha256": "d4dea8ea881f82f1fe77a90f417227b8aed494eba67663d6ca19f5d703cd7144",
+          "source_png_bytes": 2047758,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Сад и корпуса Stella Beach Makadi",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ1QxM50",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "stella-makadi-beach-g16.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/stella-makadi-39104800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b4c4317b1a17ecc196da254eddc0008851b01d0e9185dc8462f8c5183cb9693a",
+          "source_png_sha256": "da15364088bb934781f3d79b3897c0dc50fef212d1cd107e4fef03143140d455",
+          "source_png_bytes": 670910,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Один из номеров Stella Beach Makadi",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQwvJi_w",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "stella-makadi-beach-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g34",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/stella-makadi-39092802.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "792f98ddbb9893e75c00b2c45747641b9bbd966fdacb3a6d0b760dad7ace2f2c",
+          "source_png_sha256": "61a05158a18e64f0cebb7d9673e929e3727295bced7ef1d64dbfac69a218b72c",
+          "source_png_bytes": 1118134,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Бассейн Stella Beach Makadi",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ1uIGiA",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "stella-makadi-beach-g34.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 124,
+      "logical_id": "commercial-amwaj-oyoun-124-v1",
+      "aliases": [
+        "Amwaj Oyoun Hotel & Resort Sharm El Sheikh",
+        "AMWAJ OYOUN RESORT & CASINO (EX. AA AMWAJ HOTEL & RESORT)"
+      ],
+      "text": "✈️ Туры в Amwaj Oyoun Hotel & Resort\n📍 Шарм-эль-Шейх, Египет.\n\nДля отдыха у моря с рифом и живой музыкой.\n\n🛏 Superior Main 32 м² в основном корпусе.\n🍽 All Inclusive.\n🏖 Первая линия, риф и понтон. Для входа с берега рекомендована обувь.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "cdbe3f77d052a14f6ae9fb7e01f2fcef2314091cc64bd77111af9dbb97263f2e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/124.png",
+      "photo_sha256": "cfe13fd29bca44fe8201a6a3fe95464d6cd786c318dab3087ca27124bc7a7fe5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/sharm/amwaj_oyoun_resort_spa_sharm_el_sheikh/",
+        "https://amwajoyoun.com/rooms/superior-room/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/amwaj-oyoun-hotel-and-resort-34820101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/amwaj-oyoun-hotel-and-resort-34820110.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/amwaj-oyoun-hotel-and-resort-34820117.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 1102,
+        "anytour_id": 9,
+        "legacy_native_id": 124,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ1Pem2M",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5ddf5ce29634ed82_c01",
+        "top500_5ddf5ce29634ed82_c02",
+        "top500_5ddf5ce29634ed82_c03",
+        "top500_5ddf5ce29634ed82_c04",
+        "top500_5ddf5ce29634ed82_c05",
+        "top500_5ddf5ce29634ed82_c06",
+        "top500_5ddf5ce29634ed82_enrich04_20261019_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/amwaj-oyoun-hotel-and-resort-34820101.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f25f4cd2d6a882cab5cf8bc73226f19eeb89d2db339212036528429d9653b769",
+          "source_png_sha256": "834f61b10aaf6204a86d467085aeef42cf7ea53e3decdf8e7a9c2aae4b9ef076",
+          "source_png_bytes": 2096755,
+          "dimensions": [
+            1200,
+            900
+          ],
+          "alt": "Бассейн и территория Amwaj Oyoun",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ5eOafg",
+          "canva_asset_dimensions": [
+            1200,
+            900
+          ],
+          "source_png_filename": "amwaj-oyoun-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g12",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/amwaj-oyoun-hotel-and-resort-34820110.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "1d0c3a05c5e25d8b694edf95201ce1bbd5530d89ab29ce5f079802ff3234735b",
+          "source_png_sha256": "d10db45c6116d96c1d5b5a2aa8748bffb20ba2e7d0344d211357c0eb5f5e09f2",
+          "source_png_bytes": 1182475,
+          "dimensions": [
+            1200,
+            900
+          ],
+          "alt": "Пляж Amwaj Oyoun",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ0EcmVo",
+          "canva_asset_dimensions": [
+            1200,
+            900
+          ],
+          "source_png_filename": "amwaj-oyoun-g12.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/amwaj-oyoun-hotel-and-resort-34820117.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5803ccc0a5a86621428ab00fdeeb9775ac99e286810cb78870311ed40bf60f9a",
+          "source_png_sha256": "fe0a8d80ad998720c82a98a368a1e647cc2fb3bbc1f91c0f90a5627e9416faa1",
+          "source_png_bytes": 891444,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Буфет ресторана Amwaj Oyoun",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6kp5Rc",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "amwaj-oyoun-g19.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1962,
+      "logical_id": "commercial-baron-palms-1962-v1",
+      "aliases": [
+        "Baron Palms Resort (Adult Only +16)",
+        "BARON PALMS RESORT ADULTS ONLY 16+"
+      ],
+      "text": "✈️ Туры в Baron Palms Resort\n📍 Шарм-эль-Шейх, Египет.\n\nОтдых вдвоём в отеле для гостей от 16 лет.\n\n🛏 Superior Double Classic 32 м²: вид на сад, балкон или терраса.\n🍽 All Inclusive.\n🏖 Пляж с рифом рядом и общим с Baron Resort понтоном.\n🎶 Живая музыка.\n\n✈️ Рассчитаем полную стоимость тура с перелётом для вашей пары.",
+      "text_sha256": "39677d804afd35ad5751de56853301da6ca8a76fe0a27688ff62390fc9e7a464",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/1962.png",
+      "photo_sha256": "483b91882c6fe7137b3fba196058aed6e57ef7d897d54ac7885211b499092896",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/sharm/baron_palms/",
+        "https://baronhotels.com/baron-palms-sharm-el-sheikh/",
+        "https://baronhotels.com/to_book/superior-classic-room/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-palms-102108533.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-palms-102108545.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-palms-102108548.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 985,
+        "anytour_id": 867,
+        "legacy_native_id": 1962,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ2Ahglc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_6f323c1d8a3cc6fe_c01",
+        "top500_6f323c1d8a3cc6fe_c02",
+        "top500_6f323c1d8a3cc6fe_c04",
+        "top500_6f323c1d8a3cc6fe_c05",
+        "top500_6f323c1d8a3cc6fe_enrich04_20261019_c01",
+        "top500_6f323c1d8a3cc6fe_enrich04_20261019_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-palms-102108533.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "954ba795f8582c516c351b71a94ae68d18851c803fb0724c455c2872ecf9d786",
+          "source_png_sha256": "858ef4302bb3e7977c0c3c4986f983078ac0cf28ff4d9ab45dddded123ac04ff",
+          "source_png_bytes": 1488169,
+          "dimensions": [
+            1200,
+            702
+          ],
+          "alt": "Территория Baron Palms",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ44g4gI",
+          "canva_asset_dimensions": [
+            1200,
+            702
+          ],
+          "source_png_filename": "baron-palms-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g07",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-palms-102108545.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "25013834c5508080915b74b554322a2a12bef0b9fc8b1124b026ddec73e69908",
+          "source_png_sha256": "97ee3b68110c17a15cbff2c96c353e5f4bd09ea5d9e7605699ad181c320efb85",
+          "source_png_bytes": 1396931,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Ресторан Baron Palms",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQxYwaf8",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "baron-palms-g07.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g10",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/baron-palms-102108548.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6e936c2f87c63251a0390e2d9784a6fc910b0f21a99ee76b277dab409821df5b",
+          "source_png_sha256": "cf916af199c7bd9000aa5432565eb3508e3a078ae2bdafc50492c6af45a40438",
+          "source_png_bytes": 1696782,
+          "dimensions": [
+            1200,
+            811
+          ],
+          "alt": "Лобби Baron Palms",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8QxbXM",
+          "canva_asset_dimensions": [
+            1200,
+            811
+          ],
+          "source_png_filename": "baron-palms-g10.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 91404,
+      "logical_id": "commercial-swissotel-sharm-91404-v1",
+      "aliases": [
+        "Swissotel Sharm El Sheikh Managed By Rixos",
+        "SWISSOTEL SHARM EL SHEIKH"
+      ],
+      "text": "✈️ Туры в Swissotel Sharm El Sheikh Managed By Rixos\n📍 Шарм-эль-Шейх, Египет.\n\nСемейный отдых с двумя комнатами и вечерними шоу.\n\n🛏 Family Aqua 55 м²: две комнаты с дверью, балкон или терраса.\n🍽 Ultra All Inclusive.\n🏖 Корпуса Aqua на второй линии, до пляжа около 350 м.\n\n✈️ Подберём размещение для вашей семьи и рассчитаем тур с перелётом.",
+      "text_sha256": "b4844dc0d5c1d4f97124e12216fff8ecc9899ae601e406eb85db6cc50124f2e7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/91404.png",
+      "photo_sha256": "15211785e2b890cf229d4395c6aa27011371e4eed2226707e5b3c07d6f763ef8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/sharm/swissotel_sharm/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/swissotel-sharm-el-sheikh-1907000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/swissotel-sharm-el-sheikh-1907030.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/swissotel-sharm-el-sheikh-1907024.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37441,
+        "anytour_id": 3612,
+        "legacy_native_id": 91404,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ95hZmI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7bc4867f0436083c_c01",
+        "top500_7bc4867f0436083c_c02",
+        "top500_7bc4867f0436083c_c03",
+        "top500_7bc4867f0436083c_c04",
+        "top500_7bc4867f0436083c_c05",
+        "top500_7bc4867f0436083c_context13_c01",
+        "HOTEL-EG-MANUAL-20261026-SHARM-TOP500-08_c30"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/swissotel-sharm-el-sheikh-1907000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "75c1d53a20d179353e07c6f72f7f1a18c718cb3a52cdb1e14d16e6cde0bf5888",
+          "source_png_sha256": "f707f604e6087981831f4e8108dfb5d9d7378f1c67fcc851d120daeb0fcf7735",
+          "source_png_bytes": 1361852,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Территория Swissotel Sharm El Sheikh",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQwvoCSY",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "swissotel-sharm-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g32",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/swissotel-sharm-el-sheikh-1907030.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7290cfacce2a6f34f22a0baef23a458ff6394273ae5fa73cb9b00b9be64e80d0",
+          "source_png_sha256": "b161bdf8915f9aa3bc073d6b8c9f7ec34a835637f697140264fe0d9f965253cf",
+          "source_png_bytes": 459494,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Swissotel Sharm El Sheikh",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_D_q4s",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "swissotel-sharm-g32.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g26",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/swissotel-sharm-el-sheikh-1907024.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fde7d38f99566a9d959858fbc2fa49ee93b12105dc1fccac18e75eff9ae69cee",
+          "source_png_sha256": "e4b7b984e076e8eb12624cbcca318c5cb2b8b40eb50c2bab7ca697236e913d9f",
+          "source_png_bytes": 322469,
+          "dimensions": [
+            512,
+            768
+          ],
+          "alt": "Ванная комната Swissotel Sharm El Sheikh",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ1sFIBY",
+          "canva_asset_dimensions": [
+            512,
+            768
+          ],
+          "source_png_filename": "swissotel-sharm-g26.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 134,
+      "logical_id": "commercial-albatros-sharm-134-v1",
+      "aliases": [
+        "Albatros Sharm Resort Sharm El Sheikh (Ex. Beach Albatros)",
+        "ALBATROS SHARM (EX. BEACH ALBATROS SHARM)"
+      ],
+      "text": "✈️ Туры в Albatros Sharm Resort\n📍 Шарм-эль-Шейх, Египет.\n\nСемейный отдых с отдельными спальнями и песчаным пляжем.\n\n🛏 Family 42 м²: две спальни с дверью.\n🍽 All Inclusive.\n🏖 Первая линия. К пляжу ведут лифты и лестница.\n🎶 Вечерние шоу и живая музыка.\n\n✈️ Подберём номер под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "69f6cb9505d946609ac683b4c18fda322e5d1e95dd565f395772126d8f4e2701",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/134.png",
+      "photo_sha256": "5a3a23bf94462dfd89994d25f3bb1b2c074d1fa4a07aee40daa40e0c86e0c625",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/egypt/sharm/beach_albatros_resort_sharm_el_sheikh/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-ssh-38254701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-ssh-38254723.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-ssh-38254738.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5168,
+        "anytour_id": 17,
+        "legacy_native_id": 134,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ4_Gx14",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_29392e432f954e1d_c01",
+        "top500_29392e432f954e1d_c02",
+        "top500_29392e432f954e1d_c03",
+        "top500_29392e432f954e1d_c04",
+        "top500_29392e432f954e1d_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-ssh-38254701.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "614a7ef029f8feddd2d92786c288383d6cdc2d0170466c0beb67ee95177378df",
+          "source_png_sha256": "cc4c3d20cb36f067fbebd3b5f8400166614924d11dc9c0be41e493177a2773ac",
+          "source_png_bytes": 1205260,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Территория Albatros Sharm Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2QvMhc",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "albatros-sharm-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-ssh-38254723.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "db4d77481d25c146fc5cef212dac5ef55202437377a841e9f796c509860ef2a0",
+          "source_png_sha256": "cd4b0cfaee70f546127c6629c412b9232623990c3abce2ba9b3295884340625c",
+          "source_png_bytes": 984989,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Детский клуб Albatros Sharm Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ5GYi5g",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "albatros-sharm-g25.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g38",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/beach-albatros-ssh-38254738.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4af41bd8647692a58331daa39bc52b08039075c3bee57478f76729e16e5ade61",
+          "source_png_sha256": "73c2b00aa61d7a9abfc8ee7d27f3d9129829aacf3086f89fadbf296821834dc9",
+          "source_png_bytes": 1070814,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Ресторан Albatros Sharm Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQwzRqZQ",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "albatros-sharm-g38.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 71147,
+      "logical_id": "commercial-parrotel-lagoon-71147-v1",
+      "aliases": [
+        "Parrotel Lagoon Resort Sharm El Sheikh",
+        "PARROTEL LAGOON WATERPARK RESORT"
+      ],
+      "text": "✈️ Туры в Parrotel Lagoon Resort\n📍 Шарм-эль-Шейх, Египет.\n\nДля семейного отдыха с двумя отдельными спальнями.\n\n🛏 Family 85 м²: две спальни с дверью.\n🏖 До пляжа около 700 м, есть шаттл. В море кораллы, предусмотрен понтон.\n\n✈️ Подберём питание и подходящий номер, рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "6b917826580fea9f446ebe0140f547b4c2515e9bd4beed3f73a9cd66c91ed6d0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/71147.png",
+      "photo_sha256": "b2c55747ca6d56ba6c9cf3c0a1cc8e6c9df1a7a6572bfcafb110e5dc6b9edc27",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/sharm/parrotel_lagoon_resort/",
+        "https://kompastour.com/useruploads/tiny_MCE/egypt/sharm/parrotel_lagoon_resort/Hard_All_Inclusive_CIS.pdf",
+        "https://kompastour.com/useruploads/tiny_MCE/egypt/sharm/parrotel_lagoon_resort/parrotel_lagoon_resort_AI.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/parrotel-lagoon-resort-2712003.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/parrotel-lagoon-resort-2712017.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/parrotel-lagoon-resort-2712030.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 28137,
+        "anytour_id": 3187,
+        "legacy_native_id": 71147,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQzO_Ut4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c8ac2c991a546bd8_c01",
+        "top500_c8ac2c991a546bd8_c03",
+        "top500_c8ac2c991a546bd8_c04",
+        "top500_c8ac2c991a546bd8_demand22_c03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/parrotel-lagoon-resort-2712003.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3c16dfca5448ed36fe364bedfa63e372ffea16532ea7c2d59b48a3ed5d61b472",
+          "source_png_sha256": "686028c282fe84c99d42691ee1261815e1dc0000539bc73bb910b8d2fecb3d98",
+          "source_png_bytes": 804702,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Территория Parrotel Lagoon",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRFmHvXo",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "parrotel-lagoon-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/parrotel-lagoon-resort-2712017.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c00010c261d8b59e8193af1d427be51a9316d0c0b25e5c603f4f20798de703d2",
+          "source_png_sha256": "8b1ecf3e49a0caed3463f3bd9e9eb410afda620fa5eedfe2a872ff5442234c37",
+          "source_png_bytes": 1243589,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Прогулочная дорожка Parrotel Lagoon",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRJclyJE",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "parrotel-lagoon-g19.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g32",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/parrotel-lagoon-resort-2712030.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "34d81c8946e966ec1d4cc3389dda1e97a4732ffdaacd2d6a8647c7cadb16c94d",
+          "source_png_sha256": "82d2913fd217247956a63deeb5177015e312defde7d3f215ccab9cfc1e9d6946",
+          "source_png_bytes": 610911,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Лобби Parrotel Lagoon",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRIzvFjU",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "parrotel-lagoon-g32.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 71259,
+      "logical_id": "commercial-alibu-nha-trang-71259-v1",
+      "aliases": [
+        "Alibu Resort Nha Trang",
+        "ALIBU RESORT"
+      ],
+      "text": "✈️ Туры в Alibu Resort Nha Trang\n📍 Нячанг, Вьетнам.\n\nОтдых вдвоём с выходом к пляжу с территории отеля.\n\n🛏 Двухместный номер Balcony площадью от 41 до 45 м².\n🍽 Подберём вариант тура с завтраками.\n🏖 Прямой выход к пляжу.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "a3705611dd65223a89fd108f074b2e217d18196a4ddf30db228c00c479cb6c32",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/71259.png",
+      "photo_sha256": "75069928bdc6594f90a2125808f8fda2e165a13cd45362db9ad848c1080946f5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.dertour.de/hotel/alibu-resort-12cujn",
+        "https://www.aliburesort.com/faqs.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/alibu-resort-45228100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/alibu-resort-45228138.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/alibu-resort-45228145.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37269,
+        "anytour_id": 3199,
+        "legacy_native_id": 71259,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQyKpwzE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_fd5d8077f3884460_mass31_c01",
+        "top500_fd5d8077f3884460_mass31_c02",
+        "top500_fd5d8077f3884460_run06_c03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/alibu-resort-45228100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f74a5148ccafa30c181bcaa54e99878a975664036f4805eebec5903745a07647",
+          "source_png_sha256": "98882eee84ed31eddfd9da93d6fa16c657ad2acfe5ab7709948218b2c9746736",
+          "source_png_bytes": 1307034,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "Побережье и территория Alibu Resort Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRKubwHE",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "alibu-nha-trang-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g39",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/alibu-resort-45228138.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "12f8d7217a35d55b626d5a62c69b9456097f52858891f834cd13f05c059a4d50",
+          "source_png_sha256": "525ce26bf4aae6b9f59f71daf925bcc5c50b8d1537074288d7c1fc12f9ff994b",
+          "source_png_bytes": 783950,
+          "dimensions": [
+            1024,
+            613
+          ],
+          "alt": "Лобби Alibu Resort Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRPNzkRY",
+          "canva_asset_dimensions": [
+            1024,
+            613
+          ],
+          "source_png_filename": "alibu-nha-trang-g39.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g46",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/alibu-resort-45228145.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "478b9b04d5e4d60b2514bb313c05cf98d46cf8df2be247733581d8a1fef4bacd",
+          "source_png_sha256": "2dc3d3a44c4b8c7081bb4c23d33f340f78add20b6f3b9201df1bec8e602d691e",
+          "source_png_bytes": 964499,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Пляж Alibu Resort Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRFn9rBU",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "alibu-nha-trang-g46.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 117935,
+      "logical_id": "commercial-avari-boutique-117935-v1",
+      "aliases": [
+        "Avari Boutique Hotel",
+        "AVARI HOTEL"
+      ],
+      "text": "✈️ Туры в Avari Boutique Hotel\n📍 Нячанг, Вьетнам.\n\nДля городского отпуска с прогулками к морю.\n\n🛏 Superior Room City View 24 м² с видом на город.\n🍽 Подберём вариант тура с завтраками.\n🏖 До общественного пляжа около 350 м, путь через дорогу.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом под ваши даты.",
+      "text_sha256": "769b93b19178adbabafcd988f701c23a563d5d0ef3e7fe75bb769d1e78db90a5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/117935.png",
+      "photo_sha256": "5e9769d6408bfbcc6c128df41c88962c84048fc42b67d332c0ae1442836dcb34",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/avari_hotel/",
+        "https://www.coral.ge/en/hotels/vietnam/avari-hotel-nha-trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/avari-hotel-2012534.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/avari-hotel-2012500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/avari-hotel-2012526.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 40551,
+        "anytour_id": 3825,
+        "legacy_native_id": 117935,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ_lr4f8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_f914c3117634a464_run07_c01",
+        "top500_f914c3117634a464_run07_c02",
+        "top500_f914c3117634a464_run07_c03",
+        "top500_f914c3117634a464_run07_c04",
+        "top500_f914c3117634a464_run07_c06",
+        "HOTEL-VN-MASS-20261025T201851Z-C68"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/avari-hotel-2012534.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fc9cac3fd6872c47639b2042116dcae5d75020d08deaeb845bce05fe92b78d18",
+          "source_png_sha256": "b7b858c4c85eb49cf3ba2e08d4024c3eb273526ba975f413b1a9632e2eac136b",
+          "source_png_bytes": 978957,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Вход Avari Boutique Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRBCcNtA",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "avari-boutique-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/avari-hotel-2012500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "45b0618108a2950fea04aea7eccb347d27d13428bc4bbbc43371f8c18404eebf",
+          "source_png_sha256": "3f09dde0a1bf98772b6c94e2b16aed83c4fee6ed8282a1884555a32e89911da8",
+          "source_png_bytes": 690228,
+          "dimensions": [
+            758,
+            768
+          ],
+          "alt": "Лобби Avari Boutique Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRJn_-cE",
+          "canva_asset_dimensions": [
+            758,
+            768
+          ],
+          "source_png_filename": "avari-boutique-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g24",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/avari-hotel-2012526.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0fa9aa917fd92d3253c1db73322b03d061a1de7b00e8f407870e64b96f7c1675",
+          "source_png_sha256": "6786f7a955f413cc70fadd6c69741282d187b1c640f2262ccfaf9047620f78da",
+          "source_png_bytes": 482289,
+          "dimensions": [
+            1024,
+            429
+          ],
+          "alt": "Бассейн Avari Boutique Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRCzsm0U",
+          "canva_asset_dimensions": [
+            1024,
+            429
+          ],
+          "source_png_filename": "avari-boutique-g24.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 81154,
+      "logical_id": "commercial-december-nha-trang-81154-v1",
+      "aliases": [
+        "December Hotel",
+        "DECEMBER HOTEL NHA TRANG"
+      ],
+      "text": "✈️ Туры в December Hotel\n📍 Нячанг, Вьетнам.\n\nДля отпуска в Нячанге с городскими прогулками и пляжем.\n\n🛏 Classic City View 30 м² с видом на город.\n🍽 Вариант тура с завтраками.\n🏖 До общественного пляжа около 400 м. Лежаки и зонты платные.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом.",
+      "text_sha256": "c75683c08a42a030ba49b62cb9d4d067867ceb5bca698d8b05a753efeb09fb39",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/81154.png",
+      "photo_sha256": "efe411f8434e2ed159c38f4a4cfa1d4a9b5a96b499a1042badba0b00da3b53e5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/december_hotel/",
+        "https://www.coral.ge/en/hotels/vietnam/december-hotel-nha-trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/december-hotel-nha-trang-95450809.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/december-hotel-nha-trang-95450800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/december-hotel-nha-trang-95450823.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 35406,
+        "anytour_id": 3479,
+        "legacy_native_id": 81154,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": false,
+      "canva_design_id": "DAHaQy_iRfs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4005ae0bd4fb278a_run07_c01",
+        "top500_4005ae0bd4fb278a_run07_c02",
+        "top500_4005ae0bd4fb278a_run07_c03",
+        "top500_4005ae0bd4fb278a_run07_c04",
+        "HOTEL-VN-MASS-20261025T192804Z-C20"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/december-hotel-nha-trang-95450809.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a3b2fde9193155618663e600d01081851aae40a6a753b83efec54a6feda0bfeb",
+          "source_png_sha256": "685d97fd026814d623118d3cbf92f614bcd7c5ea68a7ad33fbf322d6a83cbe50",
+          "source_png_bytes": 733311,
+          "dimensions": [
+            1024,
+            567
+          ],
+          "alt": "Вход в December Hotel Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRO5G1mI",
+          "canva_asset_dimensions": [
+            1024,
+            567
+          ],
+          "source_png_filename": "december-nha-trang-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/december-hotel-nha-trang-95450800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a2749fe3a5ee7caa6e452447c3fe5f3f55f195e21e8a33dbe815108f535ff20b",
+          "source_png_sha256": "04998bdff959ff4187e129ade782ff64e7695c6ea197b1a4c3e265ba62868b30",
+          "source_png_bytes": 765071,
+          "dimensions": [
+            768,
+            768
+          ],
+          "alt": "Бассейн на крыше December Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRD-hvHg",
+          "canva_asset_dimensions": [
+            768,
+            768
+          ],
+          "source_png_filename": "december-nha-trang-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/december-hotel-nha-trang-95450823.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "92f95d270313c1ee5955ed096ba0466d69c8637fb2bc7ab68d83968123b46f60",
+          "source_png_sha256": "302f0e03574f10a952b3624083f1f716e1a2481a65c98ff609b8919da7cae6d4",
+          "source_png_bytes": 677721,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Терраса December Hotel с видом на город",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRG5lu2Q",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "december-nha-trang-g25.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 36451,
+      "logical_id": "commercial-edele-nha-trang-36451-v1",
+      "aliases": [
+        "Edele Hotel Nha Trang",
+        "EDELE HOTEL"
+      ],
+      "text": "✈️ Туры в Edele Hotel Nha Trang\n📍 Нячанг, Вьетнам.\n\nЖить в центре Нячанга и отдыхать у бассейна на крыше.\n\n🏙 Отель в оживлённом центральном квартале.\n🏊 Бассейн на крыше с видом на город.\n🏖 До общественного пляжа нужно перейти дорогу. Лежаки и зонты платные.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "eead9655c8a5547aeeb743dcf29f42dd9a7eac72a84791b1c6e4d6bb2e52acb2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/36451.png",
+      "photo_sha256": "b5fc54d6daecf93ea654162d46c70cff4071865c51086a9d1eb999482a97e9c1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://edelehotel.vn/accommodation/phong-senior-deluxe/",
+        "https://edelehotel.vn/",
+        "https://www.coral.ge/en/hotels/vietnam/edele-hotel-nha-trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=206&legacyHotelIds%5B%5D=466&legacyHotelIds%5B%5D=14140&legacyHotelIds%5B%5D=124&legacyHotelIds%5B%5D=1962&legacyHotelIds%5B%5D=91404&legacyHotelIds%5B%5D=319&legacyHotelIds%5B%5D=134&legacyHotelIds%5B%5D=71147&legacyHotelIds%5B%5D=71259&legacyHotelIds%5B%5D=117935&legacyHotelIds%5B%5D=81154&legacyHotelIds%5B%5D=36451&legacyHotelIds%5B%5D=32356&legacyHotelIds%5B%5D=36453&legacyHotelIds%5B%5D=70032&legacyHotelIds%5B%5D=28509&legacyHotelIds%5B%5D=57082&legacyHotelIds%5B%5D=64672&legacyHotelIds%5B%5D=80605",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/edele-hotel-58154100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/edele-hotel-58154119.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/edele-hotel-58154130.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8891,
+        "anytour_id": 2211,
+        "legacy_native_id": 36451,
+        "source_file": "additional-fifth20-current-catalog.json",
+        "source_sha256": "37e1e03bf0fb01543284170add4c26299027eee2a6aaea50c1ee3fa79d49e44e",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 3,
+      "display_category": false,
+      "canva_design_id": "DAHaQ5SMNZ0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "edele_hotel_c01",
+        "edele_hotel_c08",
+        "edele_hotel_demand18_c01",
+        "edele_hotel_demand18_c02",
+        "edele_hotel_demand18_c03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/edele-hotel-58154100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ae9f2baf0004f26df9d6cbabb7c2ae20050a5de5a6f4aa497c492e09026bff88",
+          "source_png_sha256": "05d045176036bb85c7e724c08f035459449cb237937cad688b76cd6c8eab3307",
+          "source_png_bytes": 890130,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "Бассейн на крыше Edele Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRO_qzjk",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "edele-nha-trang-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g21",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/edele-hotel-58154119.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8bd08edf5a3ec385ab804858dcee9c7fd72b062a7c4ff0838e118743e16fd5b8",
+          "source_png_sha256": "fc23cfd90512b4c42970f54d82dfc8cf47d8a16d06d9a92417d25e841c0cf685",
+          "source_png_bytes": 696110,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Номер Edele Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaREiIgSw",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "edele-nha-trang-g21.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g32",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/edele-hotel-58154130.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c1aa577b69f9ea609f5f4643cfb501bab1963d0cbda368f10fc8d9ae58a0ce9e",
+          "source_png_sha256": "0386784698d2d20fb51b3035afbe076519a5e0d4fdd2e2258655b7fabf3d3936",
+          "source_png_bytes": 678221,
+          "dimensions": [
+            1024,
+            566
+          ],
+          "alt": "Здание Edele Hotel в Нячанге",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRE6m2AA",
+          "canva_asset_dimensions": [
+            1024,
+            566
+          ],
+          "source_png_filename": "edele-nha-trang-g32.png"
+        }
+      ]
+    }
+  ]
+}
