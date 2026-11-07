@@ -1,4 +1,4 @@
-name: Correct both existing Rixos Premium Seagate headings
+name: Publish ten approved AnyTour hotels in both channels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,98 +38,29 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 42387323343
-          name: commercial-read-existing-hotel-captions-20261107-result
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/prior-registry
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 42393477611
-          name: commercial-read-held-max-captions-20261107-result
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/current-max
-      - uses: actions/download-artifact@v4
-        with:
-          run-id: 42393702413
-          name: commercial-read-rixos-telegram-caption-20261107-result
-          github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/current-telegram
-      - name: Bind the two Rixos heading edits to the exact read-only snapshot
+      - name: Prepare this exact approved ten-hotel batch
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
           umask 077
-          python3 -c 'import json,pathlib; root=pathlib.Path("tools/direct_demand/operations"); assert all(json.loads((root/f"commercial-batch-20261107-{n}-state.json").read_text())["state"] == "COMPLETE" for n in (15,16))'
-          python3 - <<'PYCODE'
-          import base64,hashlib,json,os,pathlib
-          base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(base/'commercial-rixos-existing-headings-20261107-inputs.json').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='a2153f7e46d0abadb7d214cb0da25ec66a2219e9bea7eeb21705001b3cfdba30'
-          inp=json.loads(raw)
-          assert inp['operation']=='commercial-rixos-existing-headings-20261107-v1'
-          rows=inp['rows']
-          assert [r['hotel_id'] for r in rows]==[37668]
-          r=rows[0]
-          m=json.loads((tmp/'current-max'/'held-max-readback.json').read_text())
-          t=json.loads((tmp/'current-telegram'/'rixos-telegram-public-readback.json').read_text())
-          assert m['ok'] and m['post_write_attempts']==0 and m['provider_reads']==len(m['posts'])==1
-          p=m['posts'][0]
-          assert p['hotel_id']==37668 and [p['publication_id'],p['version_id']]==inp['exact_ids']['37668']['max']
-          assert p['same_photo'] and p['canonical_button_observed'] and p['canonical_route_resolves']
-          assert p['live_caption']==r['max_live_before'] and p['live_caption_sha256']==r['max_live_before_sha256']
-          assert p['registry_caption']==r['old_text'] and p['registry_caption_sha256']==r['old_text_sha256']
-          assert t['ok'] and t['write_attempts']==0 and t['post_url']=='https://t.me/any_toour/66'
-          assert t['caption']==r['old_text'] and t['caption_sha256']==r['old_text_sha256']
-          first,second,body=r['max_live_before'].split('\n',2)
-          assert (first,second)==(r['previous_heading'],r['previous_location'])
-          assert r['max_live_after']==r['new_heading']+'\n'+r['new_location']+'\n'+body
-          assert hashlib.sha256(r['max_live_after'].encode()).hexdigest()==r['max_live_after_sha256']
-          audit=json.loads((tmp/'prior-registry'/'registry-audit.json').read_text())
-          assert audit['operation']=='commercial-read-existing-hotel-captions-20261107-v1' and audit['ok']
-          assert audit['provider_calls']==audit['post_write_attempts']==0
-          old={(p['hotel_id'],p['platform']):p for p in audit['posts']}
-          assert len(old)==532
-          confirmed=[]
-          for r in rows:
-              heading,location,body=r['old_text'].split('\n',2)
-              assert heading==r['previous_heading'] and location==r['previous_location']
-              if not location:
-                  body='\n'+body
-              assert r['new_text']==r['new_heading']+'\n'+r['new_location']+'\n'+body
-              for kind in ('old','new'):
-                  assert hashlib.sha256(r[kind+'_text'].encode()).hexdigest()==r[kind+'_text_sha256']
-              assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
-              for platform in ('max','telegram'):
-                  p=old.pop((r['hotel_id'],platform))
-                  assert [p['publication_id'],p['version_id']]==inp['exact_ids'][str(r['hotel_id'])][platform]
-                  assert p['caption_sha256']==r['old_text_sha256'] and p['caption']==r['old_text']
-                  assert p['status']=='sent' and p['media_types']==['image'] and p['button_observed_in_snapshot'] and p['button_resolves_to_current_post']
-                  p['logical_id']=r['logical_id']
-                  p['state']=p['status']
-                  p['text_sha256']=p['caption_sha256']
-                  p['source_key']={'max':'max_anytour_msk1','telegram':'tg_anytour_msk'}[platform]
-                  confirmed.append(p)
-          assert len(confirmed)==2
-          bound={'operation':'bound_verified_caption_receipts','ok':True,'new_posts_created':0,'posts':confirmed}
-          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':bound,'exact_ids':inp['exact_ids']}
-          raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
-          (tmp/'caption-correction-input.json').write_bytes(raw)
-          source=(base/'update-existing-rixos-headings-20261107-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='f286fd225e7240f31ae5accfd1f0d7a032ab58a9e95618a2d50b90e7495f2379'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-rixos-existing-headings-20261107-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
-          assert source.count('declare(strict_types=1);')==1
-          (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':2,'heading_and_location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
-          PYCODE
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations')
+          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf'
+          approval=json.loads((base/'commercial-batch-20261107-21-approval.json').read_text())
+          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert approval['operation']=='commercial-hotel-batch-20261107-21-v1' and len(approval['hotel_ids'])==10
+          PY
+          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261107-21-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261107-21-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
           php -l "$RUNNER_TEMP/channel-preflight.php"
-      - name: Retain exact caption edit intent before provider access
+      - name: Retain exact approved inputs before any channel write
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-rixos-existing-headings-20261107-inputs
-          path: ${{ runner.temp }}/caption-correction-input.json
+          name: commercial-batch-20261107-21-inputs
+          path: |
+            tools/direct_demand/operations/commercial-batch-20261107-21-manifest.json
+            tools/direct_demand/operations/commercial-batch-20261107-21-approval.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -170,7 +101,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Correct the two existing Rixos headings and verify retained context
+      - name: Publish the exact ten approved hotel posts with canonical buttons and no duplicates
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -180,32 +111,23 @@ jobs:
           umask 077
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
-          import pathlib,json,os,hashlib
-          tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
+          import pathlib,json,os
+          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
+          d=json.loads(lines[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-rixos-existing-headings-20261107-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
-          assert d['ok'] is True and len(d['posts'])==2 and d['post_write_attempts']==2 and d['new_posts_created']==0
-          assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
-          assert d['commercial_text_updates']==2 and d['configuration_write_attempts']==0
-          source=json.loads((tmp/'caption-correction-input.json').read_text())
-          prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
-          rows={r['logical_id']:r for r in source['rows']}
-          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==2
-          for p in d['posts']:
-              old=prior[(p['platform'],p['logical_id'])]
-              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','source_key'))
-              assert hashlib.sha256(p['button_url'].encode()).hexdigest()==old['button_url_sha256']
-              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
-              assert p['text_sha256']==rows[p['logical_id']]['max_live_after_sha256' if p['platform']=='max' else 'new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
-          print('EXISTING_RIXOS_PAIR_HEADINGS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']} for p in d.get('posts',[])]},ensure_ascii=False))
+          assert d['operation']=='commercial-hotel-batch-20261107-21-v1' and d['mode']=='publish_approved_commercial_batch'
+          assert d['ok'] is True and len(d['posts'])==20
+          assert d['post_write_attempts']<=20 and d['new_posts']<=20
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==20
+          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-rixos-existing-headings-20261107-result
+          name: commercial-batch-20261107-21-publication
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
