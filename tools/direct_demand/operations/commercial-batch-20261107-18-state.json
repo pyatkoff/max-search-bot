@@ -18,5 +18,15 @@
   "manifest_sha256": "d88b279afde8690bcbc47c705718f6d520f2ddc035b2f68b057d3789a9fe6c2c",
   "asset_commit": "bcba5fb359ce144ccc27773a7d50f1fb251a1c30",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "prior_gate_only_run": {
+    "run_id": 42387437475,
+    "job_id": 128448864206,
+    "outcome": "APPROVED_SOURCE_NOT_CURRENT_BEFORE_INTENT_OR_SERVER",
+    "new_posts": 0,
+    "post_write_attempts": 0,
+    "sender_invoked": false,
+    "replay_run": false
+  },
+  "expected_source_sha": "6d193b7740dc212b92b1893041f0a1047b179635"
 }
