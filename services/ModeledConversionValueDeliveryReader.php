@@ -183,16 +183,19 @@ final class ModeledConversionValueDeliveryReader
             $columns[]="(SELECT COALESCE(SUM(prior.value_rub),0) FROM max_channel_conversion_outbox prior"
                 ." WHERE prior.project_key=o.project_key AND prior.conversation_id=o.conversation_id"
                 ." AND prior.transport_target=o.transport_target AND prior.value_contract=o.value_contract AND prior.id<o.id)";
-            $sql="SELECT JSON_ARRAY(".implode(',',$columns).") AS packet FROM"
+            $sql="SELECT o.id AS packet_id,JSON_ARRAY(".implode(',',$columns).") AS packet FROM"
                 ." (SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
                 ." AND transport_target=? AND value_contract=? ORDER BY id DESC LIMIT ".self::ROW_LIMIT.") o"
                 ." LEFT JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND p.project_key=o.project_key"
                 ." AND p.platform=o.platform AND p.conversation_id=o.conversation_id"
-                ." WHERE o.target LIKE 'anytour_value_pred_%' ORDER BY o.id DESC LIMIT 17";
+                ." WHERE o.target LIKE 'anytour_value_pred_%' ORDER BY o.id DESC LIMIT 17 OFFSET 0";
             $packetBytes=$mysql?'OCTET_LENGTH(JSON_QUOTE(CAST(packet AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST(packet AS TEXT)) AS BLOB))';
-            $size=$this->query('SELECT COALESCE(SUM('.$packetBytes.'+24),0)+2 AS packet_bytes FROM ('.$sql.') packet_sizes',[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
-            if((int)($size[0]['packet_bytes']??PHP_INT_MAX)+8192>$this->budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
-            $rows=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
+            // LIMIT/OFFSET keeps the projection materialized once, including SQLite window rewriting.
+            // Gate the whole escaped result inside SQL: an oversized set copies only bounded NULL sentinels.
+            $rows=$this->query('SELECT CASE WHEN SUM('.$packetBytes.'+24) OVER ()+2<=? THEN packet ELSE NULL END AS packet'
+                .' FROM ('.$sql.') bounded_packets ORDER BY packet_id DESC',
+                [ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION],8192);
+            if($rows&&$rows[0]['packet']===null)return ['available'=>false,'reason'=>'budget_headroom'];
             $out=['available'=>true,'basis'=>'saved_predictive_key_rows_and_frozen_scalar_calculations_not_reclassification',
                 'window'=>['max_goal_rows'=>self::ROW_LIMIT,'max_predictive_rows'=>17,'inspected_predictive_rows'=>count($rows),
                     'complete_within_goal_suffix'=>count($rows)<17,'global_coverage_known'=>false],
@@ -390,9 +393,12 @@ final class ModeledConversionValueDeliveryReader
         return $money?round($n,2):(int)$n;
     }
     private function unavailable(string $reason):array{return ['available'=>false,'goal_id'=>self::GOAL,'reason'=>$reason];}
-    private function query(string $sql,array $args):array
+    private function query(string $sql,array $args,?int $packetReserve=null):array
     {
-        $this->budget->check();($this->authorize)();$this->budget->check();$q=$this->budget->prepare($this->pdo,$sql);
+        $this->budget->check();($this->authorize)();$this->budget->check();
+        // Authorization consumes the same shared budget before the predictive copy limit is bound.
+        if($packetReserve!==null)array_unshift($args,$this->budget->remainingBytes()-$packetReserve);
+        $q=$this->budget->prepare($this->pdo,$sql);
         foreach($args as$i=>$v)$q->bindValue($i+1,$v,is_int($v)?PDO::PARAM_INT:PDO::PARAM_STR);
         $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$this->budget->check();
         $this->budget->consumeBytes(strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)));
