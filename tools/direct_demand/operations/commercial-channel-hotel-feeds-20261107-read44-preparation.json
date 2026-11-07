@@ -83,38 +83,37 @@
       "message_sends": 0,
       "artifacts": [],
       "first_clearance_consumed": false
+    },
+    {
+      "run_id": 42412424022,
+      "job_id": 128523229955,
+      "commit": "982a5c693d5f2eca5daf4d23403e9f082317514b",
+      "failed_phase": "Verify exact approved source",
+      "reason": "approved_source_not_current after ROOT-approved223938source",
+      "server_steps": "SKIPPED",
+      "registry_queries": 0,
+      "provider_calls": 0,
+      "message_sends": 0,
+      "artifacts": [],
+      "first_clearance_consumed": false
     }
   ],
   "source_gate_review": {
-    "status": "ROOT_EXACT_SOURCE_GATE_PASS",
-    "baseline_approved_source": "6d193b7740dc212b92b1893041f0a1047b179635",
-    "current_main_sha": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
-    "current_main_tree": "837249a2bfceb54d51df7902046ce26106c26518",
-    "compare_url": "https://github.com/pyatkoff/max-search-bot/compare/6d193b7740dc212b92b1893041f0a1047b179635...223938059ed79e6bc4f3d3e62599898e5657f2ff",
+    "status": "ROOT_EXACT_SOURCE_GATE_PASS_CONDITIONS_MET",
+    "baseline_approved_source": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
+    "current_main_sha": "e3ef9591402da618e7b22fe4a8f4eb2291c4d10c",
+    "current_main_tree": "95d207b5ba1c036b9f060ef23eb5e8eb9fb1bb70",
+    "compare_url": "https://github.com/pyatkoff/max-search-bot/compare/223938059ed79e6bc4f3d3e62599898e5657f2ff...e3ef9591402da618e7b22fe4a8f4eb2291c4d10c",
     "changed_files": [
       {
-        "path": "docs/MODELED_CONVERSION_STATUS.md",
+        "path": "services/SourceQualificationPrompt.php",
         "status": "modified",
-        "additions": 30,
-        "deletions": 1
+        "patch": "@@ -25,7 +25,7 @@ private static function hotelName(array $snapshot): string\n         foreach ([(string)($snapshot['title'] ?? ''), $first] as $heading) {\n             $name = trim(html_entity_decode(strip_tags($heading), ENT_QUOTES | ENT_HTML5, 'UTF-8'));\n             $name = preg_replace('/\\\\A[^\\\\p{L}\\\\p{N}]+/u', '', $name) ?? '';\n-            $name = preg_replace('/\\\\A\u0422\u0443\u0440\u044b \u0432 (.+) \u0441 \u043f\u0435\u0440\u0435\u043b[\u0435\u0451]\u0442\u043e\u043c\\\\z/u', '$1', $name) ?? '';\n+            $name = preg_replace('/\\\\A\u0422\u0443\u0440\u044b \u0432 (.+?)(?: \u0441 \u043f\u0435\u0440\u0435\u043b[\u0435\u0451]\u0442\u043e\u043c)?\\\\z/u', '$1', $name) ?? '';\n             $name = preg_replace('/\\\\s*[1-5]\\\\s*[\u2605\u2b50*](?:[^\\\\p{L}\\\\p{N}]*)\\\\z/u', '', $name) ?? '';\n             $name = preg_replace('/\\\\s*[\\\\x{1F1E6}-\\\\x{1F1FF}]{2}\\\\s*\\\\z/u', '', $name) ?? '';\n             $name = trim($name);"
       },
       {
-        "path": "services/ModeledConversionForecastStatusReader.php",
+        "path": "tests/run_channel_post_entry_regression.php",
         "status": "modified",
-        "additions": 1,
-        "deletions": 1
-      },
-      {
-        "path": "services/ModeledConversionValueDeliveryReader.php",
-        "status": "modified",
-        "additions": 13,
-        "deletions": 7
-      },
-      {
-        "path": "tests/run_modeled_conversion_forecast_status_regression.php",
-        "status": "modified",
-        "additions": 93,
-        "deletions": 1
+        "patch": "@@ -120,11 +120,15 @@ static function ($chat, string $text, array $buttons) use (&$sent): bool { $sent\n         $basePost=$publications[$platform];$user=88877100+$index;$chat=$platform==='max'?-$user:$user;\n         $known=['city'=>'\u041c\u043e\u0441\u043a\u0432\u0430','country'=>'\u0415\u0433\u0438\u043f\u0435\u0442','adults'=>2,'children'=>0,'nights'=>'5'];\n         MaxSearchApi::$needContexts[$chat]=$known;MaxSearchApi::$missingNeeds[$chat]=['date'];\n+        $legacyTitle=SourceQualificationPrompt::publicationContext([\n+            ...$basePost, 'snapshot'=>['text'=>\"\u2708\ufe0f \u0422\u0443\u0440\u044b \u0432 Papillon Zeugma \u0441 \u043f\u0435\u0440\u0435\u043b\u0451\u0442\u043e\u043c\\n\ud83d\udccd \u0411\u0435\u043b\u0435\u043a, \u0422\u0443\u0440\u0446\u0438\u044f.\"],\n+        ]);\n+        cpeCheck('existing flight-suffix heading still resolves the hotel: '.$platform,$legacyTitle['hotel_name']??'','Papillon Zeugma');\n         $named=[];\n         foreach(['Rixos Premium Seagate','Papillon Zeugma'] as $variant=>$hotel){\n             $message=$platform==='max'?'mid.greeting.'.($variant+1):(string)(951+$variant);\n             $url=$platform==='max'?'https://max.ru/c/-80095447388179/greeting'.($variant+1):'https://t.me/c/1234567890/'.$message;\n-            $caption=$variant===0?\"\u2708\ufe0f \".$hotel.\" 5\u2605\\n\u0422\u0443\u0440 \u0441 \u043f\u0435\u0440\u0435\u043b\u0451\u0442\u043e\u043c\":\"\u2708\ufe0f \u0422\u0443\u0440\u044b \u0432 \".$hotel.\" \u0441 \u043f\u0435\u0440\u0435\u043b\u0451\u0442\u043e\u043c\\n\ud83d\udccd \u0411\u0435\u043b\u0435\u043a, \u0422\u0443\u0440\u0446\u0438\u044f.\";\n+            $caption=$variant===0?\"\u2708\ufe0f \".$hotel.\" 5\u2605\\n\u0422\u0443\u0440 \u0441 \u043f\u0435\u0440\u0435\u043b\u0451\u0442\u043e\u043c\":\"\u2708\ufe0f \u0422\u0443\u0440\u044b \u0432 \".$hotel.\"\\n\ud83d\udccd \u0411\u0435\u043b\u0435\u043a, \u0422\u0443\u0440\u0446\u0438\u044f.\";\n             $named[]=$registry->registerPublication('anytour',$platform,$basePost['bot_key'],$basePost['channel_id'],$message,\n                 ['text'=>$caption,'format'=>'native','post_url'=>$url]);\n         }"
       }
     ],
     "publishing_blobs_unchanged": 21,
@@ -268,20 +267,25 @@
         "equal": true
       }
     ],
+    "deploy_run_id": 42412341859,
+    "deploy_status": "in_progress",
+    "first_registry_queries_executed": 0,
+    "consumed_read44": false,
+    "root_reviewed_content_proof_sha256": "8aaff014203831f0df6012b56a2a5bac43f07f8354f42e8bb71fd6dac7fd8fcc",
+    "conditional_pin_authorization": "Root authorizes this exact e3ef source only after terminal installed verify of Deploy42412341859 and strictTLS on e3ef. No additional root round is required for those exact terminal conditions; a different future main is not covered.",
     "deploy": {
-      "run_id": 42411467141,
-      "head_sha": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
+      "run_id": 42412341859,
+      "head_sha": "e3ef9591402da618e7b22fe4a8f4eb2291c4d10c",
       "path": ".github/workflows/deploy.yml",
       "status": "completed",
       "conclusion": "success",
-      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42411467141",
-      "updated_at": "2026-11-07T20:37:06Z",
+      "updated_at": "2026-11-07T20:47:58Z",
       "verify_job": {
-        "id": 128521471667,
+        "id": 128524075324,
         "name": "verify",
         "status": "completed",
         "conclusion": "success",
-        "run_id": 42411467141,
+        "run_id": 42412341859,
         "logs_url": null,
         "steps": [
           {
@@ -339,7 +343,7 @@
             "number": 9
           },
           {
-            "name": "Bind the published result to its original deployment run \u2014 19b436935e773e41af89c9100b6f0fb8108c9c19c43455dd624ed684c3a6d2ca",
+            "name": "Bind the published result to its original deployment run \u2014 72ce183c581844f7dc928094eee45959aa19dab1cf04b10ed41ca61ff33d7779",
             "status": "completed",
             "conclusion": "success",
             "number": 10
@@ -371,11 +375,11 @@
         ]
       },
       "deploy_job": {
-        "id": 128521004144,
+        "id": 128523430593,
         "name": "deploy",
         "status": "completed",
         "conclusion": "success",
-        "run_id": 42411467141,
+        "run_id": 42412341859,
         "logs_url": null,
         "steps": [
           {
@@ -478,20 +482,19 @@
       }
     },
     "strict_tls": {
-      "run_id": 42411925142,
-      "head_sha": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
+      "run_id": 42412775570,
+      "head_sha": "e3ef9591402da618e7b22fe4a8f4eb2291c4d10c",
       "path": ".github/workflows/max-tls-preflight.yml",
       "status": "completed",
       "conclusion": "success",
-      "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42411925142",
-      "updated_at": "2026-11-07T20:37:26Z",
+      "updated_at": "2026-11-07T20:48:18Z",
       "jobs": [
         {
-          "id": 128521713665,
+          "id": 128524283464,
           "name": "strict-tls-preflight",
           "status": "completed",
           "conclusion": "success",
-          "run_id": 42411925142,
+          "run_id": 42412775570,
           "logs_url": null,
           "steps": [
             {
@@ -552,14 +555,8 @@
         }
       ]
     },
-    "current_workflow_verify_contract": "The unchanged verify-commercial-source.py requires the unique terminal successful job named verify. Current deploy.yml has that job after deploy; job 128521471667 exists and passed. No parser/guard modification is needed.",
-    "runtime_evidence": "verify job 128521471667 completed exact installed-production check, diagnostic snapshot, publication and cleanup successfully. strict-tls-preflight job 128521713665 completed exact active-server SHA and strict TLS check successfully. The subsequent existing PHP reader still enforces installed SHA/host/schema/rights and operation guards.",
-    "proposed_change": "Only pending read44/new operation approved source and corresponding accepted Deploy/TLS references; all 21 blob pins and source verifier code remain unchanged. Consumed 37/38 and earlier records remain immutable.",
-    "first_registry_queries_executed": 0,
-    "consumed_read44": false,
-    "root_reviewed_proof_sha256": "7189a27ab0e3d1e74d6609b5c8b0a70a28044274386f9b6424e766e241e7a225",
-    "accepted_at": "2026-11-07T20:42:15.119529+00:00",
-    "approved_new_source": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
+    "approved_new_source": "e3ef9591402da618e7b22fe4a8f4eb2291c4d10c",
+    "accepted_at": "2026-11-07T20:49:21.763158+00:00",
     "verifier_code_or_blob_pin_change": false
   },
   "source_pin_cas_reconciliation": {
@@ -579,5 +576,484 @@
       "tools/direct_demand/operations/short-heading-scope-20261107.json"
     ],
     "old_cas_replayed": false
-  }
+  },
+  "source_gate_reviews": [
+    {
+      "status": "ROOT_EXACT_SOURCE_GATE_PASS",
+      "baseline_approved_source": "6d193b7740dc212b92b1893041f0a1047b179635",
+      "current_main_sha": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
+      "current_main_tree": "837249a2bfceb54d51df7902046ce26106c26518",
+      "compare_url": "https://github.com/pyatkoff/max-search-bot/compare/6d193b7740dc212b92b1893041f0a1047b179635...223938059ed79e6bc4f3d3e62599898e5657f2ff",
+      "changed_files": [
+        {
+          "path": "docs/MODELED_CONVERSION_STATUS.md",
+          "status": "modified",
+          "additions": 30,
+          "deletions": 1
+        },
+        {
+          "path": "services/ModeledConversionForecastStatusReader.php",
+          "status": "modified",
+          "additions": 1,
+          "deletions": 1
+        },
+        {
+          "path": "services/ModeledConversionValueDeliveryReader.php",
+          "status": "modified",
+          "additions": 13,
+          "deletions": 7
+        },
+        {
+          "path": "tests/run_modeled_conversion_forecast_status_regression.php",
+          "status": "modified",
+          "additions": 93,
+          "deletions": 1
+        }
+      ],
+      "publishing_blobs_unchanged": 21,
+      "publishing_blobs_changed": 0,
+      "publishing_blob_proof": [
+        {
+          "path": "integrations/ChannelPostApiTransport.php",
+          "accepted_sha": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+          "current_sha": "300634d77cb9fddf51adf9869974f956cca6e3f9",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "migrations/033_channel_post_context.sql",
+          "accepted_sha": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+          "current_sha": "0530458030a4bfe6b6cc55d1e5e441745c29b947",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "migrations/036_channel_post_member_delivery.sql",
+          "accepted_sha": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+          "current_sha": "1bda463e52b33130ad12752ddef4ee5c92699c05",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "migrations/040_channel_post_reconciliation.sql",
+          "accepted_sha": "0f24b838eacd45333c5ade9a2991d060488c6035",
+          "current_sha": "0f24b838eacd45333c5ade9a2991d060488c6035",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostAdminService.php",
+          "accepted_sha": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+          "current_sha": "b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostAutomationService.php",
+          "accepted_sha": "f5975ab95de5f45e087eb7a0f768f566c5bca648",
+          "current_sha": "f5975ab95de5f45e087eb7a0f768f566c5bca648",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostButtonTransport.php",
+          "accepted_sha": "b6c123069810ad490391e825315abd8567c55310",
+          "current_sha": "b6c123069810ad490391e825315abd8567c55310",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostEntryService.php",
+          "accepted_sha": "f0e04e9b4e0ed6859ced96279cbf0619931596e6",
+          "current_sha": "f0e04e9b4e0ed6859ced96279cbf0619931596e6",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostMaxAlbumRecovery.php",
+          "accepted_sha": "de266cd068587cc3b2ff83f308a966ea66887a04",
+          "current_sha": "de266cd068587cc3b2ff83f308a966ea66887a04",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostMediaService.php",
+          "accepted_sha": "f794efd0f6f24df916e18909ff6281b0bc928433",
+          "current_sha": "f794efd0f6f24df916e18909ff6281b0bc928433",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostMemberDeliveryService.php",
+          "accepted_sha": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+          "current_sha": "20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostReconciliationService.php",
+          "accepted_sha": "2b559b067a91abb9402a9dc2f3ce75d1ddedc7c3",
+          "current_sha": "2b559b067a91abb9402a9dc2f3ce75d1ddedc7c3",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostReconciliationState.php",
+          "accepted_sha": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+          "current_sha": "d9583ceca80d1424a44ade3561c21282a23a52f0",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostRegistryService.php",
+          "accepted_sha": "a407757b9ac54a9e286900d34385d519d22b8c84",
+          "current_sha": "a407757b9ac54a9e286900d34385d519d22b8c84",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostRuntime.php",
+          "accepted_sha": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+          "current_sha": "2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostTelegramAlbum.php",
+          "accepted_sha": "faa1a14bc279a4af33936282126bf0d46e343040",
+          "current_sha": "faa1a14bc279a4af33936282126bf0d46e343040",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ChannelPostWebhookConfigService.php",
+          "accepted_sha": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+          "current_sha": "d5fdcb056088f1e3a541b4046325d97eef6417d9",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ConversationDb.php",
+          "accepted_sha": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+          "current_sha": "bb6281faf55aca7beeae7f8a57389d19751936f7",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/MaxTlsConfig.php",
+          "accepted_sha": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+          "current_sha": "032c0211ee3f39c6f0d27c669abd5b467e321dea",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/MaxTransport.php",
+          "accepted_sha": "bfa583167347ff42ed632c52a552e5585bb97de9",
+          "current_sha": "bfa583167347ff42ed632c52a552e5585bb97de9",
+          "type": "blob",
+          "equal": true
+        },
+        {
+          "path": "services/ProjectConfig.php",
+          "accepted_sha": "538b596981f2c61fbf524e18756bf672578948f6",
+          "current_sha": "538b596981f2c61fbf524e18756bf672578948f6",
+          "type": "blob",
+          "equal": true
+        }
+      ],
+      "deploy": {
+        "run_id": 42411467141,
+        "head_sha": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
+        "path": ".github/workflows/deploy.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42411467141",
+        "updated_at": "2026-11-07T20:37:06Z",
+        "verify_job": {
+          "id": 128521471667,
+          "name": "verify",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42411467141,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Checkout exact installed verification SHA",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Admit only unfinished verification without installation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Publish the proven unchanged result without installed stages",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 4
+            },
+            {
+              "name": "Prepare canonical SSH private key",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Verify installed production checks",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Download exact installed diagnostic snapshot",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Publish verification stage status",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Reuse the exact status when only its publication proof failed",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 9
+            },
+            {
+              "name": "Bind the published result to its original deployment run \u2014 19b436935e773e41af89c9100b6f0fb8108c9c19c43455dd624ed684c3a6d2ca",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Remove acknowledged diagnostic snapshot",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Require complete installed verification",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Post Checkout exact installed verification SHA",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 24
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 25
+            }
+          ]
+        },
+        "deploy_job": {
+          "id": 128521004144,
+          "name": "deploy",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 42411467141,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Require the complete deployment verification",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Checkout exact deployment SHA",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Verify deployment SHA is current main",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Resolve original accepted installation and complete release intent",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Prepare canonical SSH private key",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Select installation or prove the unchanged application without mutation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Build exact deployment bundle",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Sync canonical production checkout",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Apply database migrations and fence the old hotel contour",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Reconcile canonical MAX webhook ownership",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Ensure Metrika offline uploader cron",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Apply profile and retain exact diagnostic snapshot",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Fail failed installation",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Post Checkout exact deployment SHA",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 28
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 29
+            }
+          ]
+        }
+      },
+      "strict_tls": {
+        "run_id": 42411925142,
+        "head_sha": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
+        "path": ".github/workflows/max-tls-preflight.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42411925142",
+        "updated_at": "2026-11-07T20:37:26Z",
+        "jobs": [
+          {
+            "id": 128521713665,
+            "name": "strict-tls-preflight",
+            "status": "completed",
+            "conclusion": "success",
+            "run_id": 42411925142,
+            "logs_url": null,
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1
+              },
+              {
+                "name": "Resolve exact production source",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2
+              },
+              {
+                "name": "Checkout exact production source",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3
+              },
+              {
+                "name": "Verify exact source is current main",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4
+              },
+              {
+                "name": "Resolve accepted repository and application",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5
+              },
+              {
+                "name": "Prepare SSH private key",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6
+              },
+              {
+                "name": "Wait for exact active-server SHA and verify strict TLS",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7
+              },
+              {
+                "name": "Post Checkout exact production source",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15
+              }
+            ]
+          }
+        ]
+      },
+      "current_workflow_verify_contract": "The unchanged verify-commercial-source.py requires the unique terminal successful job named verify. Current deploy.yml has that job after deploy; job 128521471667 exists and passed. No parser/guard modification is needed.",
+      "runtime_evidence": "verify job 128521471667 completed exact installed-production check, diagnostic snapshot, publication and cleanup successfully. strict-tls-preflight job 128521713665 completed exact active-server SHA and strict TLS check successfully. The subsequent existing PHP reader still enforces installed SHA/host/schema/rights and operation guards.",
+      "proposed_change": "Only pending read44/new operation approved source and corresponding accepted Deploy/TLS references; all 21 blob pins and source verifier code remain unchanged. Consumed 37/38 and earlier records remain immutable.",
+      "first_registry_queries_executed": 0,
+      "consumed_read44": false,
+      "root_reviewed_proof_sha256": "7189a27ab0e3d1e74d6609b5c8b0a70a28044274386f9b6424e766e241e7a225",
+      "accepted_at": "2026-11-07T20:42:15.119529+00:00",
+      "approved_new_source": "223938059ed79e6bc4f3d3e62599898e5657f2ff",
+      "verifier_code_or_blob_pin_change": false
+    }
+  ]
 }
