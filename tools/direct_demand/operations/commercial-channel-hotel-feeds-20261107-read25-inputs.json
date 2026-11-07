@@ -1,0 +1,44 @@
+[
+  {
+    "hotel_id": 140,
+    "name": "Golden Beach Resort",
+    "accepted_first_line": "🏖 Golden Beach Resort 4★ · Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/140.png",
+    "image_sha256": "4ab4dc288494051bf1915646cd98281e331268023c30431e709ea43b313ef07b"
+  },
+  {
+    "hotel_id": 8053,
+    "name": "Novotel Phuket Vintage Park",
+    "accepted_first_line": "🌴 Novotel Phuket Vintage Park 4★ · Патонг",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/8053.png",
+    "image_sha256": "05af188e6da7ed2581bc1b0a60f0215955bc209bcbac61dd4aa90946b96051de"
+  },
+  {
+    "hotel_id": 58987,
+    "name": "Seashells Phu Quoc Hotel & Spa",
+    "accepted_first_line": "🌊 Seashells Phu Quoc Hotel & Spa 5★ · Фукуок",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/58987.png",
+    "image_sha256": "0754e4cb72ed347c447fcf0f1aab72f452ac0847185302b455c0d5dcf7470be2"
+  },
+  {
+    "hotel_id": 1033,
+    "name": "Barut Hemera",
+    "accepted_first_line": "🌿 Barut Hemera 5★ · Сиде",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/1033.png",
+    "image_sha256": "49bf2df875f6b5883f5111950cbd29e9630f9742d856130da30523f2a6bea778"
+  },
+  {
+    "hotel_id": 386,
+    "name": "Monte Carlo Sharm Resort & Spa",
+    "accepted_first_line": "🐠 Monte Carlo Sharm Resort & Spa 5★ · Шарм эль Шейх",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/386.png",
+    "image_sha256": "3ac56c3a8edabb1edf577b81f0ba4412a91bbdaaabab34a85dd9cd678894a174"
+  },
+  {
+    "hotel_id": 33313,
+    "name": "Sugar Marina Surf Kata Beach",
+    "accepted_first_line": "🏄 Sugar Marina Resort Surf Kata Beach 4★ · Пхукет",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/33313.png",
+    "image_sha256": "e674b162417328f704e45149e63b8517214c2e870d4a0c9a22dd201e20ac9b3a"
+  }
+]
