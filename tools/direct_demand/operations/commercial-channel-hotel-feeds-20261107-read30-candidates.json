@@ -1,0 +1,186 @@
+[
+  {
+    "hotel_id": 1353,
+    "logical_id": null,
+    "aliases": [
+      "Asteria Family Resort Side (Ex. Euphoria Palm)",
+      "ASTERIA FAMILY RESORT SIDE (EX. EUPHORIA PALM BEACH RESORT)",
+      "Asteria Family Resort Side",
+      "Euphoria Palm",
+      "EUPHORIA PALM BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 1067,
+    "logical_id": null,
+    "aliases": [
+      "Catamaran Quality Times",
+      "CATAMARAN QUALITY TIMES (EX. CATAMARAN)",
+      "CATAMARAN"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 66496,
+    "logical_id": null,
+    "aliases": [
+      "The Art Nest Hotel Nha Trang"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 14135,
+    "logical_id": null,
+    "aliases": [
+      "Hawaii Resort Phu Quoc",
+      "HAWAII RESORT PHU QUOC (EX. THIEN HAI SON RESORT)",
+      "THIEN HAI SON RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 981,
+    "logical_id": null,
+    "aliases": [
+      "Ananas Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 90236,
+    "logical_id": null,
+    "aliases": [
+      "The V Luxury Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 47470,
+    "logical_id": null,
+    "aliases": [
+      "The Sol Hotel (Ex. Anvista Hotel)",
+      "THE SOL HOTEL (EX. AN VISTA)",
+      "The Sol Hotel",
+      "Anvista Hotel",
+      "AN VISTA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 27647,
+    "logical_id": null,
+    "aliases": [
+      "Asteria Bloom Side (ex. Selectum For two)",
+      "ASTERIA BLOOM SIDE (EX. SELECTUM FOR TWO SIDE)",
+      "Asteria Bloom Side",
+      "Selectum For two",
+      "SELECTUM FOR TWO SIDE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 1512,
+    "logical_id": null,
+    "aliases": [
+      "Spice Hotel & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 75041,
+    "logical_id": null,
+    "aliases": [
+      "Rubi Platinum Sign"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 1258,
+    "logical_id": null,
+    "aliases": [
+      "Ic Hotels Green Palace"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 128508,
+    "logical_id": null,
+    "aliases": [
+      "Seaside Boutique Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 45516,
+    "logical_id": null,
+    "aliases": [
+      "Praha Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 1429,
+    "logical_id": null,
+    "aliases": [
+      "Dobedan World Palace (Ex. Brand Alva Donna World Palace)",
+      "DOBEDAN WORLD PALACE (EX. ALVA DONNA WORLD PALACE)",
+      "Dobedan World Palace",
+      "Brand Alva Donna World Palace",
+      "ALVA DONNA WORLD PALACE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 15905,
+    "logical_id": null,
+    "aliases": [
+      "Royal Garden Beach Hotel",
+      "ROYAL GARDEN BEACH HOTEL (EX. ROYAL GARDEN SELECT & SUITE)",
+      "ROYAL GARDEN SELECT & SUITE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 50624,
+    "logical_id": null,
+    "aliases": [
+      "Diamond Bay Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 58473,
+    "logical_id": null,
+    "aliases": [
+      "Ca Ty Muine Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  },
+  {
+    "hotel_id": 4060,
+    "logical_id": null,
+    "aliases": [
+      "Ocean Star Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_eighteen_after_hundred_first_clearance"
+  }
+]

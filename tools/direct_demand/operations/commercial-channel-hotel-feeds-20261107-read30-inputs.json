@@ -1,0 +1,65 @@
+[
+  {
+    "hotel_id": 41149,
+    "name": "Vinpearl Resort & Spa Nha Trang Bay",
+    "accepted_first_line": "🏝 Vinpearl Resort & Spa Nha Trang Bay 5★ · Хон Тре",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/41149.png",
+    "image_sha256": "96ba621ac6ab44ff45b2066ee4a354aac158ce1dab4038fc3702857d6d9f11fc"
+  },
+  {
+    "hotel_id": 54592,
+    "name": "Granada Luxury Belek",
+    "accepted_first_line": "💦 Granada Luxury Belek 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/54592.png",
+    "image_sha256": "fa0b40e33601a1dfd3a9b4da8748221cf87d3a9cba39f395a2b88be253d24706"
+  },
+  {
+    "hotel_id": 57217,
+    "name": "Wyndham Grand Phu Quoc",
+    "accepted_first_line": "🏝 Wyndham Grand Phu Quoc 5★ · Фукуок",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/57217.png",
+    "image_sha256": "d3c8f36d38201e7abe968e2b84167c2a69a73e9db63a54effae205a5b4f4b751"
+  },
+  {
+    "hotel_id": 4432,
+    "name": "Barcelo Coconut Island",
+    "accepted_first_line": "🏝 Barcelo Coconut Island 5★ · Пхукет",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/4432.png",
+    "image_sha256": "7e352b919c9c728ca8f02ffe002592efbb51bfae5907da90ac67ac052d0478b1"
+  },
+  {
+    "hotel_id": 82606,
+    "name": "Lonicera World Hotel",
+    "accepted_first_line": "🏖 Lonicera World Hotel 4★ · Аланья",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82606.png",
+    "image_sha256": "9634e33c4f419b25999053049966a6978dde31331ca99aa4e982f91ad8d6031a"
+  },
+  {
+    "hotel_id": 1337,
+    "name": "Limak Atlantis De Luxe",
+    "accepted_first_line": "🌊 Limak Atlantis De Luxe 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1337.png",
+    "image_sha256": "ee4285d26f7c9cb810c9ab530c0c607b9cf8cc28dedaae84a61af868a29bb803"
+  },
+  {
+    "hotel_id": 380,
+    "name": "Rehana Sharm Resort",
+    "accepted_first_line": "🐠 Rehana Sharm Resort 4★ · Набк Бей",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/380.png",
+    "image_sha256": "66cfc7ea14e306fe5345aa01ab68d3628cfc93bf337e6da4c17a8ecd16ccb3ef"
+  },
+  {
+    "hotel_id": 1257,
+    "name": "Bellis Deluxe Hotel",
+    "accepted_first_line": "🌿 Bellis Deluxe Hotel 5★ · Белек",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1257.png",
+    "image_sha256": "7578665683a20cf9fb69f1153d03b39692f060dd94b736a9f5aaaf8ed452ebe1"
+  },
+  {
+    "hotel_id": 82567,
+    "name": "Phuket Emerald Beach Resort",
+    "accepted_first_line": "💦 Phuket Emerald Beach Resort 5★ · Карон",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82567.png",
+    "image_sha256": "2011f2cda68796c37c53a56fe5c40b585ba0d4f096e48abd4fc0b6b402fba3e4"
+  }
+]
