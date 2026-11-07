@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation": "commercial-hotel-batch-20261107-5-v1",
-  "state": "SENDER_COMPLETE_FOUR_NEW_PAIRS_FEED_APPEND_PENDING",
+  "state": "COMPLETE_FOUR_NEW_PAIRS_AND_ADDITIVE_FEEDS_CONFIRMED",
   "run_id": 42369397913,
   "job_id": 128394191289,
   "source_commit": "b02b4f36c1fd411e885037ee8c93f2275f091e77",
@@ -85,17 +85,12 @@
     }
   ],
   "current_feed_counts": {
-    "telegram": 183,
-    "max": 183,
-    "all": 366
+    "telegram": 187,
+    "max": 187,
+    "all": 374
   },
-  "current_max_native_route_count": 183,
-  "pending_new_route_native_ids": [
-    128087,
-    969,
-    55647,
-    120117
-  ],
+  "current_max_native_route_count": 187,
+  "pending_new_route_native_ids": [],
   "sender_operation_closed": true,
   "unknown_operations": 0,
   "next_candidate_clearance": {
@@ -121,7 +116,14 @@
     20288,
     818
   ],
-  "repeat_policy": "Sender batch5 CLOSED. Finish only new4 routes and feed. Next candidates require exact final media manifest and next-eight-commercial-captions.json; Akra132002 renders rejected, no send.",
+  "repeat_policy": "Sender batch5, MAX187 and feed187 CLOSED; no replay. Next unique candidates require exact final media manifest and approved captions. Akra132002 renders rejected, no send.",
   "mac_touched": false,
-  "prices_and_search_links_replayed": false
+  "prices_and_search_links_replayed": false,
+  "native_routes_operation_closed": true,
+  "feed_operation_closed": true,
+  "max_route_install_run": 42369981545,
+  "max_route_result_artifact_id": 13573143073,
+  "feed_run": 42370083297,
+  "feed_result_artifact_id": 13573561336,
+  "completed_at_utc": "2026-11-07T11:53:56Z"
 }
