@@ -1,0 +1,20 @@
+{
+  "operation": "commercial-hotel-batch-20261107-14-v1",
+  "state": "PREPARED_NOT_SENT",
+  "native_hotel_ids": [
+    1294,
+    975,
+    26530,
+    69116,
+    1588,
+    3415,
+    964
+  ],
+  "baseline_full_pairs": 238,
+  "expected_new_full_pairs": 7,
+  "target_full_pairs": 245,
+  "manifest_sha256": "7fc0afb4219de9cb836aec9bd228563838627d54271516f80645a82d48bf985f",
+  "asset_commit": "7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d",
+  "sender_replay_allowed": false,
+  "unknown": 0
+}

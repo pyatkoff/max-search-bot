@@ -1,0 +1,337 @@
+{
+  "operation": "commercial-hotel-batch-20261107-14-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 238,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "Read27",
+        "run_id": 42375960417,
+        "read_at_utc": "2026-11-07T13:13:39Z",
+        "receipt_sha256": "c04345764643b1e3a5e5449f41a0a080e7246c3d031842973f77d9394be0a281",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-seven-after-238-commercial-release-manifest.json",
+    "sha256": "dff0a7dd1f8c8107659c05e8c409cc8d61b9456c53fab2c4710fd7d673e2ecc2"
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1294,
+      "logical_id": "commercial-nirvana-cosmopolitan-1294-v1",
+      "aliases": [
+        "Nirvana Cosmopolitan"
+      ],
+      "text": "🌴 Nirvana Cosmopolitan 5★ · Анталья\n\nДля семейного отпуска с отдельным местом для отдыха и вечерними развлечениями.\n\n🛏 Family 56 м²: спальня и гостиная.\n🏖 Собственный пляж на первой линии.\n🎨 Mini Club для детей от 4 до 7 лет, Junior Club от 8 до 12 лет.\n🎶 Живая музыка и вечерние шоу.\n\nВ Baby Club дети от 0 до 3 лет находятся с родителями.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "9e813a86ffdcc0c2ee63ee66eafb497e695e04e4932c9a825ba30cb1c4783d3b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1294.png",
+      "photo_sha256": "47c3b77a6dc2b54ec5458da9b6cb4abf5c1d9fd4db406488e2c1cc3826a18fd0",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/antaliya/nirvana_cosmopolitan/",
+        "https://media.joinup.travel/storage/hotel/50331/files_en/Factsheet_Nirvana-Cosmopolitan_2026.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kervansaray-lara-81434303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kervansaray-lara-81434327.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kervansaray-lara-81472613.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 26930,
+        "anytour_id": 597,
+        "legacy_native_id": 1294,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPZ0L57w",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c32",
+        "top500_64aa551e28a97128_c04",
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c39",
+        "top500_64aa551e28a97128_c05"
+      ]
+    },
+    {
+      "hotel_id": 975,
+      "logical_id": "commercial-nirvana-dolce-vita-975-v1",
+      "aliases": [
+        "Nirvana Dolce Vita"
+      ],
+      "text": "🌿 Nirvana Dolce Vita 5★ · Текирова\n\nДля семьи, которой нужны две отдельные спальни и занятия для детей разного возраста.\n\n🛏 Deluxe Family 72 м² в Venezia: две спальни с дверью.\n🏖 Собственный пляж на первой линии.\n🎨 Детские группы от 4 до 7 и от 8 до 12 лет, Teen Club от 13 до 16 лет.\n🎶 Живая музыка и тематические вечеринки.\n\nУ входа в море есть камни. Программу детских клубов уточним на даты поездки.\n\n✈️ Подберём размещение под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "4b004e7093a79526ec58a612a8865452dc1d83135a52881fc9d2925d3a012064",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/975.png",
+      "photo_sha256": "3112c32b192c29be71183d7f0fdf8c6668f097c6412e9f8cea07ae271533427e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/kemer/nirvana_dolce_vita/",
+        "https://s01.cdn.pegast.ru/get/9d/5d/68/d67a76e3dfa7a92b4a8d7f326976354bf60e7eb4083088c1ff80e0e0e5/6a27fe540a507.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/amara-dolce-vita-81126109.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/amara-dolce-vita-81126136.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/amara-dolce-vita-81163007.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 18646,
+        "anytour_id": 420,
+        "legacy_native_id": 975,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPsKuKpk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c44",
+        "top500_759f19be1137e630_c04",
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c52",
+        "top500_759f19be1137e630_c05"
+      ]
+    },
+    {
+      "hotel_id": 26530,
+      "logical_id": "commercial-royal-star-beach-26530-v1",
+      "aliases": [
+        "Royal Star Beach Resort"
+      ],
+      "text": "🏖 Royal Star Beach Resort 4★ · Хургада\n\nДля пары, которой нужен городской отдых рядом с собственным пляжем.\n\n🛏 Standard 26 м² с балконом или террасой.\n🌊 Собственный песчаный пляж.\n🍽 В Aquila шведский стол и тематические ужины.\n📍 Расположение в районе Эль Дахар.\n\nВид из Standard зависит от выбранной категории.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "ba6c74a1c4923f7f478699249a2f0651e88a15a3d1e77002e3d7e347dc3e4e9e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/26530.png",
+      "photo_sha256": "807a09bac2f7713d092d8a22958afa79fd0bedb515be37f4e8c749e1403a24ce",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://royalstarbeachresort.net/accommodation/standard-room",
+        "https://royalstarbeachresort.net/dining/",
+        "https://royalstarbeachresort.net/facilities/",
+        "https://royalstarhotels.net/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/the-three-corners-royal-star-beach-resort-1026014218.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/the-three-corners-royal-star-beach-resort-1026014238.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/the-three-corners-royal-star-beach-resort-102601422.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14824,
+        "anytour_id": 1989,
+        "legacy_native_id": 26530,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPss93qE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "royal_star_beach_run11_c01",
+        "royal_star_beach_c05",
+        "royal_star_beach_c03",
+        "royal_star_beach_c01"
+      ]
+    },
+    {
+      "hotel_id": 69116,
+      "logical_id": "commercial-selectum-noa-69116-v1",
+      "aliases": [
+        "Selectum Noa Resort Cam Ranh"
+      ],
+      "text": "💦 Selectum Noa Resort Cam Ranh 5★ · Камрань\n\nДля семейного отпуска с просторным номером и водными развлечениями.\n\n🛏 Premier Deluxe 46 м² с балконом.\n🏖 Собственный пляж протяжённостью 400 м.\n🎨 Selecto Kids для детей от 4 до 12 лет.\n🎢 В аквапарке есть взрослые горки и детская водная зона.\n\nДоступ к конкретным горкам зависит от возрастных и ростовых условий.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "86b905b278ec989b7f1f051126f401d75ea01467c9e905062a087eff1432462b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/69116.png",
+      "photo_sha256": "bd6ed8680cc8f594790a207e136562383e9fdf9bd9c7d923697bea8192bdb0fe",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://selectumnoaresort.com/selectum-stay/",
+        "https://selectumnoaresort.com/things-to-do/selecto-kids/",
+        "https://selectumnoaresort.com/beach/",
+        "https://selectumnoaresort.com/things-to-do/aqua-park-swimming-pool/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/selectum-noa-resort-cam-ranh-102302160.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/selectum-noa-resort-cam-ranh-1023022070.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/selectum-noa-resort-cam-ranh-1023021929.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 26551,
+        "anytour_id": 3098,
+        "legacy_native_id": 69116,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPr3AuRM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_89ca913bf9e689f5_run07r_c02",
+        "top500_89ca913bf9e689f5_run07r_c05",
+        "top500_89ca913bf9e689f5_run07r_c03",
+        "HOTEL-VN-MASS-20261025T211157Z-C05"
+      ]
+    },
+    {
+      "hotel_id": 1588,
+      "logical_id": "commercial-kremlin-palace-1588-v1",
+      "aliases": [
+        "Kremlin Palace",
+        "KREMLIN PALACE (EX. ASTERIA KREMLIN PALACE)",
+        "ASTERIA KREMLIN PALACE"
+      ],
+      "text": "🎶 Kremlin Palace 5★ · Анталья\n\nДля семейного отпуска с пляжными днями и занятиями на территории.\n\n🏖 Собственный песчаный пляж на первой линии.\n🎨 В Kids & Youth Club есть творческие занятия, кулинария и минидиско.\n🏹 Стрельба из лука, минифутбол и волейбол.\n🎵 Живая музыка и дискотека.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "1c15d96192566f0494300a5e74e7caa8f5ee91d00ac8d6150d2f0f06f6576f7b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1588.png",
+      "photo_sha256": "725f7a1eb43faaad60d19c33391ee077aaf1e10651a9d3afc1c5a7745dd78f98",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.kremlinpalace.com.tr/en/kids",
+        "https://kompastour.com/kz/rus/country/turkey/antaliya/asteria_hotel_kremlin_palace/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/wow-kremlin-palace-2515202.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/wow-kremlin-palace-2515211.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/wow-kremlin-palace-2515237.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 22879,
+        "anytour_id": 767,
+        "legacy_native_id": 1588,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPiteDwQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_7492c360387c1f59_c04",
+        "top500_7492c360387c1f59_enrich04_20261019_c01",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c01",
+        "top500_7492c360387c1f59_c05"
+      ]
+    },
+    {
+      "hotel_id": 3415,
+      "logical_id": "commercial-royal-holiday-3415-v1",
+      "aliases": [
+        "Royal Holiday Palace"
+      ],
+      "text": "🌊 Royal Holiday Palace 5★ · Лара\n\nДля семьи, которой нужны отдельные спальни и отдых у моря.\n\n🛏 Family Connection 60 м²: две спальни с дверью и одна ванная.\n🏖 Собственный пляж на первой линии.\n🎨 Mini Club для детей от 4 до 12 лет.\n🎶 Живая музыка в отдельные дни и дискотека.\n\nНа пляже песок и галька, есть пирс.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "7deb21634cda81953c7151886051297f3ab1a09de1db5ae51dfc9699fbb0596e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/3415.png",
+      "photo_sha256": "e085e3dc129cd0e31672784d40324c8f74696ca10c1164f31f120bd8763b1026",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/antaliya/royal_holiday_palace/",
+        "https://media.joinup.travel/storage/hotel/50291/files_en/ENG-ROYAL-HOLIDAY-PALACE-2026-SUMMER-FACTSHEET.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-holiday-palace-20980300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-holiday-palace-20980301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/royal-holiday-palace-20980357.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8392,
+        "anytour_id": 1199,
+        "legacy_native_id": 3415,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPtz6iEk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T212153Z-BASE10_c17",
+        "top500_3043a2bfae11befa_c04",
+        "top500_3043a2bfae11befa_demand21_c01",
+        "top500_3043a2bfae11befa_c05"
+      ]
+    },
+    {
+      "hotel_id": 964,
+      "logical_id": "commercial-crystal-aura-964-v1",
+      "aliases": [
+        "Crystal Aura Aqua Collection",
+        "CRYSTAL AURA AQUA COLLECTION (EX. CRYSTAL AURA BEACH RESORT & SPA)",
+        "CRYSTAL AURA BEACH RESORT & SPA"
+      ],
+      "text": "💦 Crystal Aura Aqua Collection 5★ · Кемер\n\nДля семейного отдыха с отдельными спальнями и водными развлечениями.\n\n🛏 Family Land View 34 м²: две спальни и одна ванная.\n🏖 Собственный пляж с песком и мелкой галькой.\n🎨 Mini Club для детей от 4 до 12 лет.\n🎢 Водные горки доступны с 10 лет при росте от 120 см.\n\nРаботу горок и детского клуба уточним на даты поездки.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "c33a8bcacc4a7e25893d6d234bd1a6ac695df9ebcf68a9def0a512d667b28ee4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/964.png",
+      "photo_sha256": "cb11c29aeaa2147980ba22e43b38ebaa358f0fe80a4ab4d7716348ccaa5a3ec9",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://b2ccdn.coraltravel.ee/content/CRYSTAL%20AURA%20-%20FACT%20SHEET%202026%20-%20EN.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/alatimya-village-19690004.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/alatimya-village-19690015.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/alatimya-village-19710500.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15119,
+        "anytour_id": 412,
+        "legacy_native_id": 964,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPntLw-k",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c22",
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c24",
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c28",
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c26"
+      ]
+    }
+  ]
+}
