@@ -1,0 +1,61 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update22",
+  "state": "PREPARED_MAX194_INSTALL_CONFIRMED",
+  "new_hotel_ids": [
+    1065,
+    1960,
+    116932,
+    748,
+    247,
+    73974,
+    54193
+  ],
+  "previous_rows": [
+    187,
+    187,
+    374
+  ],
+  "target_rows": [
+    194,
+    194,
+    388
+  ],
+  "previous187_offer_blocks_identical": true,
+  "approved_destination_overrides": {
+    "1960": {
+      "label": "Сома Бей",
+      "basis": "Already approved exact hotel caption; canonical region is broad Hurghada"
+    }
+  },
+  "max_route_install_run": 42371274849,
+  "max_route_install_commit": "4708e8e2e95ee4af843703fb69aa61fb07bb083b",
+  "new7_binding_run": 42371107787,
+  "new7_binding_artifact": 13573616793,
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 125374,
+      "sha256": "960b083ba82c19744e9ba5b7f597f5f6e2c17e55e36ae2fc0f6fe47d0620af2b",
+      "rows": 194,
+      "expected_previous_sha256": "908c5a1ad4324275c96ba9c77b647672a64421d8496582278de2948cec8e6f67"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 157755,
+      "sha256": "a3bec6d8d20542e147e1f244b4fe39e79441fb91ee3d47e00fa5699cc371a6b1",
+      "rows": 194,
+      "expected_previous_sha256": "1a1dd1dd244057c25e6ee07c17323a26d516adb9c9c53b94fb1cbfd304a18eea"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 282756,
+      "sha256": "cb8fec3afdab865c85fe0fe7cbb6e86a39cf61da9f9c4ec577d43ff55bd9fda7",
+      "rows": 388,
+      "expected_previous_sha256": "48e1d049f676bed418eadbc92f4c553f18e826d4a0a2ca4cb7ecb637e5ac8a97"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0,
+  "native_result_artifact_id": 13574375019
+}
