@@ -1,0 +1,433 @@
+{
+  "operation": "commercial-hotel-batch-20261107-13-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 229,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read26",
+        "run_id": 42375078643,
+        "read_at_utc": "2026-11-07T13:02:23Z",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nine-after-229-commercial-release-manifest.json",
+    "sha256": "462108ca3b785af739dd29683a4c6b9af2aa569e40048f2857aae44d87b1a66b"
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 41149,
+      "logical_id": "commercial-vinpearl-nha-trang-bay-41149-v1",
+      "aliases": [
+        "Vinpearl Resort & Spa Nha Trang Bay"
+      ],
+      "text": "🏝 Vinpearl Resort & Spa Nha Trang Bay 5★ · Хон Тре\n\nОстровной отпуск с выбором между номером и виллой для семьи.\n\n🛏 Deluxe 45 м² с двуспальной или двумя отдельными кроватями.\n🏡 Villa 2 Bedroom Beachfront 230 м²: две спальни, гостиная и собственный бассейн.\n🏖 Собственный песчаный пляж через дорогу.\n\nБилеты в VinWonders зависят от выбранного пакета.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a63bfcb93d6dfe189cc2753dd15bdd066a0c6088feda48c53b6d5b6e85b6b38f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/41149.png",
+      "photo_sha256": "96ba621ac6ab44ff45b2066ee4a354aac158ce1dab4038fc3702857d6d9f11fc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/vinpearl_resortspa_nha_trang_bay/",
+        "https://vinpearl.com/en/hotels/vinpearl-resort-spa-nha-trang-bay/rooms",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/41149-65273602.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/41149-65274630.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/41149-65273601.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 9051,
+        "anytour_id": 2304,
+        "legacy_native_id": 41149,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPUbC3yE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_66f7cbb888aa78ca_run07_c03",
+        "HOTEL-VN-MASS-20261025T201851Z-C37",
+        "top500_66f7cbb888aa78ca_run07_c04",
+        "top500_66f7cbb888aa78ca_run07_c06"
+      ]
+    },
+    {
+      "hotel_id": 54592,
+      "logical_id": "commercial-granada-belek-54592-v1",
+      "aliases": [
+        "Granada Luxury Belek"
+      ],
+      "text": "💦 Granada Luxury Belek 5★ · Белек\n\nДля семейного отпуска с бассейнами и вечерней программой.\n\n🛏 Family 38 м²: две спальни с дверью, балкон, двуспальная и две отдельные кровати.\n💧 Крытые бассейны с пресной и солёной водой.\n🎶 Живая музыка и дискотека.\n\nЗимняя концепция 2026/27 не включает доступ на частный пляж.\n\n✈️ Подберём номер и сезон отдыха, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "050a5b9983c6b86f9d26a94943323b8c4130b26a081749d0e925efac7d35e1e3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/54592.png",
+      "photo_sha256": "fa0b40e33601a1dfd3a9b4da8748221cf87d3a9cba39f395a2b88be253d24706",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.granada.com.tr/en/our-hotels/granada-luxury-belek/beach-pools/pools/",
+        "https://www.corendon.nl/turkije/turkse-riviera/belek/granada-luxury-belek",
+        "https://kompastour.com/kz/rus/country/turkey/belek/granada_luxury_belek/",
+        "https://www.granada.com.tr/en/our-hotels/granada-luxury-belek/accommodation/family-rooms/family-rooms/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-belek-1839001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-belek-1848055.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/granada-luxury-belek-1865823.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14933,
+        "anytour_id": 2556,
+        "legacy_native_id": 54592,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPZyFwbc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c002c6744f57b9d8_pending27_39_c01",
+        "top500_c002c6744f57b9d8_enrich05_20261019_c01",
+        "top500_c002c6744f57b9d8_c05",
+        "top500_c002c6744f57b9d8_mass39_c01"
+      ]
+    },
+    {
+      "hotel_id": 57217,
+      "logical_id": "commercial-wyndham-grand-57217-v1",
+      "aliases": [
+        "Wyndham Grand Phu Quoc ( Ex.Vinoasis Phu Quoc Resort)",
+        "WYNDHAM GRAND PHU QUOC (EX. VINOASIS PHU QUOC RESORT)",
+        "Wyndham Grand Phu Quoc",
+        "VINOASIS PHU QUOC RESORT"
+      ],
+      "text": "🏝 Wyndham Grand Phu Quoc 5★ · Фукуок\n\nДля отпуска у моря с просторным номером и развлечениями.\n\n🛏 Deluxe 42 м²: балкон и двуспальная или две отдельные кровати.\n🏖 Собственный пляж рядом с отелем.\n🎨 Детский клуб и игровые занятия.\n🎶 В Brew Bar есть живая музыка и караоке.\n\nВид из Deluxe зависит от категории: сад, бассейн или море.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "c6110a212f6f33bae1fc61900b7f29264e1a45eed376f7983bb5ad2cbc9a4a08",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/57217.png",
+      "photo_sha256": "d3c8f36d38201e7abe968e2b84167c2a69a73e9db63a54effae205a5b4f4b751",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fukuok/wyndham_grand_phuquoc_resort/",
+        "https://www.wyndhamhotels.com/wyndham-grand/kien-giang-province-vietnam/wyndham-grand-phu-quoc/dining",
+        "https://wyndhamgrand-phuquoc.com/stay/",
+        "https://wyndhamgrand-phuquoc.com/wellness/daily-activities-schedule/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinoasis-phu-quoc-90001401.jpg",
+        "https://wyndhamgrand-phuquoc.com/wp-content/uploads/2025/10/WGPQ_Deluxe-Garden-View-1-200095.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinoasis-phu-quoc-90001406.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 38681,
+        "anytour_id": 2649,
+        "legacy_native_id": 57217,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPeEeGAs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T195135Z-C14",
+        "top500_1b3f9f70c9dbc5fb_run07_c04",
+        "HOTEL-VN-MASS-20261025T195135Z-C17",
+        "top500_1b3f9f70c9dbc5fb_run07r_c02"
+      ]
+    },
+    {
+      "hotel_id": 4432,
+      "logical_id": "commercial-barcelo-coconut-4432-v1",
+      "aliases": [
+        "Barcelo Coconut Island",
+        "BARCELO COCONUT ISLAND (EX. THE VILLAGE COCONUT ISLAND)",
+        "THE VILLAGE COCONUT ISLAND"
+      ],
+      "text": "🏝 Barcelo Coconut Island 5★ · Пхукет\n\nДля островного отдыха в собственной вилле.\n\n🏡 Lux 2 Bedroom Sea View Pool Villa: две спальни и собственный бассейн.\n🏖 Частный пляж на Coconut Island.\n🍽 Kabang: тайская кухня. Kucina: пицца на дровах и паста.\n🏋️ Йога и зал для тренировок на территории.\n\nНа остров добираются только лодкой, трансфер работает по расписанию.\n\n✈️ Подберём виллу и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f4834b3b380c8dbd5dad9f28e6a81e3c5421afec581f558d0c4d8032894085fc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/4432.png",
+      "photo_sha256": "7e352b919c9c728ca8f02ffe002592efbb51bfae5907da90ac67ac052d0478b1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/thailand/phuket/the_village_coconut_island/",
+        "https://www.barcelo.com/en-us/barcelo-coconut-island/",
+        "https://www.barcelo.com/en-us/barcelo-coconut-island/wellness/",
+        "https://www.barcelo.com/en-us/barcelo-coconut-island/cuisine/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/the-village-coconut-island-508110.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/the-village-coconut-island-508130.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/the-village-coconut-island-508101.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 10411,
+        "anytour_id": 1315,
+        "legacy_native_id": 4432,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPXklmxw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261025T195546Z_mass_c21",
+        "top500_e0b0adb40d4a9473_run07_c04",
+        "country61_TH_20261025T212744Z_mass_c09",
+        "country61_TH_20261025T195546Z_mass_c24",
+        "top500_e0b0adb40d4a9473_run07r_c03"
+      ]
+    },
+    {
+      "hotel_id": 82606,
+      "logical_id": "commercial-lonicera-world-82606-v1",
+      "aliases": [
+        "Lonicera World Hotel"
+      ],
+      "text": "🏖 Lonicera World Hotel 4★ · Аланья\n\nДля семейного отпуска на песчаном побережье.\n\n🌊 Первая линия и мелководный песчаный пляж.\n🛏 World Standard 24 м² с балконом.\n👨‍👩‍👧 Family 44 м² для семейного размещения.\n🍽 Собственные рестораны World: Aspera и Beach.\n\nУ Family есть варианты с одной комнатой и с двумя: нужный подбирается отдельно.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "3e8ad49706f6e4e3b7d69d812bbeab81c9dc8e961d1667c3ab8f8678631c062f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82606.png",
+      "photo_sha256": "9634e33c4f419b25999053049966a6978dde31331ca99aa4e982f91ad8d6031a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/alanya/lonicera_world_resort_spa/",
+        "https://www.lonicera.com.tr/en/world/servisler/odalar.html",
+        "https://lonicera.com.tr/factsheet/de/LonicerWorldFactSheet2026.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-hotel-41829741.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-hotel-41919724.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lonicera-world-hotel-41829722.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8559,
+        "anytour_id": 3544,
+        "legacy_native_id": 82606,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPcQ-Iv8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d6b4409e4aa1295e_run04_c04",
+        "top500_d6b4409e4aa1295e_run10_c01",
+        "HOTEL-TR-MANUAL-20261025T205516Z-BASE09_c13",
+        "HOTEL-TR-MANUAL-20261025T205516Z-BASE09_c15"
+      ]
+    },
+    {
+      "hotel_id": 1337,
+      "logical_id": "commercial-limak-atlantis-1337-v1",
+      "aliases": [
+        "Limak Atlantis De Luxe Hotel & Resort",
+        "Limak Atlantis De Luxe"
+      ],
+      "text": "🌊 Limak Atlantis De Luxe 5★ · Белек\n\nСемейный отдых на первой линии с программами для детей и подростков.\n\n🛏 Standard 30 м²: двуспальная или две отдельные кровати и раскладной диван.\n🎨 Kids Club для детей от 4 до 12 лет.\n🎮 Отдельный Teen Club для подростков от 13 до 17 лет.\n🎶 Живая музыка и дискотека.\n\nНа пляже песок и мелкая галька.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "653be0865c957be88a3ae0497328a7070821a88eb2011f0841f2739377c3c387",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1337.png",
+      "photo_sha256": "ee4285d26f7c9cb810c9ab530c0c607b9cf8cc28dedaae84a61af868a29bb803",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.limakhotels.com/limak-atlantis-activities",
+        "https://kompastour.com/ua/rus/country/turkey/belek/limak_atlantis_de_luxe_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-atlantis-31616500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-atlantis-31616505.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/limak-atlantis-31621712.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8572,
+        "anytour_id": 620,
+        "legacy_native_id": 1337,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPV9yC_U",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e3aa57fad2a17abd_c03",
+        "top500_e3aa57fad2a17abd_enrich03_20261019_c01",
+        "top500_e3aa57fad2a17abd_c05",
+        "top500_e3aa57fad2a17abd_c04"
+      ]
+    },
+    {
+      "hotel_id": 380,
+      "logical_id": "commercial-rehana-sharm-380-v1",
+      "aliases": [
+        "Rehana Sharm Resort Aqua Park & Spa",
+        "Rehana Sharm Resort"
+      ],
+      "text": "🐠 Rehana Sharm Resort 4★ · Набк Бей\n\nДля семейного отпуска с отдельными спальнями и вечерней программой.\n\n🛏 Family Suite 55 м²: две спальни с дверью.\n🌊 К выделенной пляжной зоне ведёт подземный проход; вход коралловый, для плавания есть понтон.\n🎶 Вечерняя программа и дискотека Sombrero.\n\nОстальная инфраструктура соседнего Rehana Royal недоступна.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты и состав семьи.",
+      "text_sha256": "56980a46c8e12c460e6d99b0e24605cc9c929597799ec166c81e39aa88c2b8ef",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/380.png",
+      "photo_sha256": "66cfc7ea14e306fe5345aa01ab68d3628cfc93bf337e6da4c17a8ecd16ccb3ef",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://pegast.ru/hotel/egypt/sharm-el-sheikh/sharm-el-sheikh/rehana-sharm-resort-aqua-park-and-spa-12650",
+        "https://www.rehanaresorts.com/copy-of-hotel-info",
+        "https://joinup.md/ro/hotel/26799",
+        "https://www.tez-tour.com/ru/spb/hotel.html?id=107088",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/rehana-resort-102103152.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/rehana-resort-1021031720.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/rehana-resort-1021031611.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 1565,
+        "anytour_id": 161,
+        "legacy_native_id": 380,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPdcY_u0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "rehana_sharm_resort_pending40_c01",
+        "rehana_sharm_resort_c02",
+        "rehana_sharm_resort_c03",
+        "rehana_sharm_resort_core20_c04",
+        "rehana_sharm_resort_c04"
+      ]
+    },
+    {
+      "hotel_id": 1257,
+      "logical_id": "commercial-bellis-1257-v1",
+      "aliases": [
+        "Bellis Deluxe Hotel"
+      ],
+      "text": "🌿 Bellis Deluxe Hotel 5★ · Белек\n\nДля семейного отдыха с двумя спальнями и водными развлечениями.\n\n🛏 Family Room 45 м² в главном здании: две спальни, одна ванная и боковой вид на море.\n💦 Аквапарки для взрослых и детей. Режим работы уточним на даты поездки.\n🎶 Живая музыка и дискотека.\n🏖 Песчаный пляж на первой линии; у входа есть галька.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "cad3970ad0c454751c8905b319a7abcfcf02c2cbb7b8ffb23cb9c617b7f48e9b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1257.png",
+      "photo_sha256": "7578665683a20cf9fb69f1153d03b39692f060dd94b736a9f5aaaf8ed452ebe1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://bellis.com.tr/en/experiences",
+        "https://kompastour.com/ua/rus/country/turkey/belek/bellis_deluxe/",
+        "https://bellis.com.tr/en/rooms/family-room",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/iberostar-bellis-hotel-73182301.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/iberostar-bellis-hotel-73187805.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/iberostar-bellis-hotel-73182300.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8255,
+        "anytour_id": 573,
+        "legacy_native_id": 1257,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPdANd6Q",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "hf01_bellis_c01",
+        "top500_30025d66b4a22c73_enrich03_20261019_c01",
+        "top500_30025d66b4a22c73_c05",
+        "top500_30025d66b4a22c73_c04"
+      ]
+    },
+    {
+      "hotel_id": 82567,
+      "logical_id": "commercial-phuket-emerald-82567-v1",
+      "aliases": [
+        "Phuket Emerald Beach Resort"
+      ],
+      "text": "💦 Phuket Emerald Beach Resort 5★ · Карон\n\nДля семейного отпуска с просторным номером и детскими водными развлечениями.\n\n🛏 Grand Family Pool View 108 м²: две спальни и два санузла.\n💧 Детская водная зона Emerald Adventure.\n🎨 Детский клуб с бассейном из шариков.\n🏋️ Тренажёрный зал на территории.\n\nДо пляжа Карон около 200 м через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "89eab3256d72deccaaec15e3ac4f3052f77139f3d4cc167909fc268346bff272",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82567.png",
+      "photo_sha256": "2011f2cda68796c37c53a56fe5c40b585ba0d4f096e48abd4fc0b6b402fba3e4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.dertour.de/hotel/phuket-emerald-beach-resort-12oHE6",
+        "https://whitesandbluesea.com/phuketemeraldbeachresort/accommodation/",
+        "https://whitesandbluesea.com/phuketemeraldbeachresort/service-activity/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1143&legacyHotelIds%5B%5D=41495&legacyHotelIds%5B%5D=69261&legacyHotelIds%5B%5D=58463&legacyHotelIds%5B%5D=1221&legacyHotelIds%5B%5D=32342&legacyHotelIds%5B%5D=64670&legacyHotelIds%5B%5D=4095&legacyHotelIds%5B%5D=13941&legacyHotelIds%5B%5D=4071&legacyHotelIds%5B%5D=41149&legacyHotelIds%5B%5D=68661&legacyHotelIds%5B%5D=54592&legacyHotelIds%5B%5D=57217&legacyHotelIds%5B%5D=4432&legacyHotelIds%5B%5D=82606&legacyHotelIds%5B%5D=1337&legacyHotelIds%5B%5D=380&legacyHotelIds%5B%5D=1257&legacyHotelIds%5B%5D=82567",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/phuket-emerald-beach-resort-and-spa-102308302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/phuket-emerald-beach-resort-and-spa-1023083132.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/phuket-emerald-beach-resort-and-spa-102308301.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 35355,
+        "anytour_id": 7016,
+        "legacy_native_id": 82567,
+        "source_file": "next-twenty-after-sixty-current-catalog.json",
+        "source_sha256": "df51e1d09aa4ee5cf7d597515207e3ecc6ee11829491dfb8bb1f077149db528e",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPe6w9dg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261025T193417Z_mass_c45",
+        "country61_TH_20261025T193417Z_mass_c46",
+        "country61_TH_20261025T193417Z_mass_c47",
+        "top500_f6932ef519844ab4_demand28_c03"
+      ]
+    }
+  ]
+}
