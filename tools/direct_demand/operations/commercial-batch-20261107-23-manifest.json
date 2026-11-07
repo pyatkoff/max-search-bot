@@ -1,0 +1,967 @@
+{
+  "operation": "commercial-hotel-batch-20261107-23-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 314,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and the typed AnyTour catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "type": "first_registry_clearance",
+        "run_id": 42388903377,
+        "url": "https://github.com/pyatkoff/max-search-bot/actions/runs/42388903377",
+        "reader": "read34",
+        "native_hotel_ids": [
+          1313,
+          1293,
+          37168,
+          69184,
+          9303,
+          59563,
+          74032,
+          1521,
+          123374,
+          15879,
+          1501,
+          1139,
+          15872,
+          1141,
+          1142,
+          28159,
+          1014,
+          352
+        ],
+        "outcome": "ALL_CLEAR_PREVIOUSLY_ACCEPTED_NOT_REPLAYED"
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing authorized mass release; parent reviewed all18 reconstructed captions against accepted WORKING165 and retained constraints. All18 Canva designs were already committed and visually approved; current600x600 bytes are recovered without edit/upload, tied to exact retained original asset IDs. No missing sourcePNG SHA or original byte identity is invented. Release only after parent approves this exact manifest SHA.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-eighteen-after-314-commercial-release-manifest.json",
+    "sha256": "b0b5e7a11460f8fa23dcb1c0ca3b2476516b48fee00d23d5d443b96418d7f98d",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-twenty-reviewed-after-160-commercial-captions.json",
+    "caption_sha256": "264305fdc1ad2cdfdd275804ea12cc45fb7fc2d3167fac36e75276d7261e3adc",
+    "subset_native_ids": [
+      1313,
+      1293,
+      37168,
+      69184,
+      9303,
+      59563,
+      74032,
+      1521,
+      123374,
+      15879
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1313,
+      "logical_id": "commercial-loceanica-1313-v1",
+      "aliases": [
+        "L'oceanica Beach Resort Hotel",
+        "LOCEANICA BEACH RESORT HOTEL",
+        "L'oceanica Beach Resort"
+      ],
+      "text": "🌴 L'oceanica Beach Resort 5★ · Кемер\n\nДля семейного отпуска в пляжный сезон.\n\n🛏 Family от 35 до 43 м².\n🎨 В основном корпусе мини клуб для детей от 4 до 12 лет.\n🍽 Ultra All Inclusive.\n🏖 Пляж примерно в 100 м через дорогу.\n\nОтель работает сезонно. В основном корпусе есть номера без балкона; Annex выбирается отдельно.\n\n✈️ Подберём корпус и номер, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "37336d0c4ea1d4a03bbdc902468b930f3d1ba77c1b78ddca4553810570714fe6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1313.png",
+      "photo_sha256": "de68c43869028dc9032f1ee0280ffd67f3f4cbc26fb050097eebf2e5035a54e1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kg/rus/country/turkey/kemer/loceanica_beach_resort/",
+        "https://www.loceanicahotel.com/eng/",
+        "https://www.loceanicahotel.com/eng/hotel/main-building/kids-club/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/8qTku3joIRTzkbt"
+      ],
+      "identity_binding": {
+        "anex_id": 8591,
+        "anytour_id": 607,
+        "legacy_native_id": 1313,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQJUI-gs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4ac70bd025f43487_c01",
+        "top500_4ac70bd025f43487_c02",
+        "top500_4ac70bd025f43487_c03",
+        "top500_4ac70bd025f43487_c04",
+        "top500_4ac70bd025f43487_c06",
+        "top500_4ac70bd025f43487_enrich05_20261019_c01",
+        "top500_4ac70bd025f43487_enrich05_20261019_c03"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/8qTku3joIRTzkbt",
+          "canva_original_asset_id": "MAHaQJBeBbQ",
+          "original_uploaded_filename": "loceanica-g02.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "L'oceanica Beach Resort у моря",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/8qTku3joIRTzkbt",
+          "canva_original_asset_id": "MAHaQFSXOxE",
+          "original_uploaded_filename": "loceanica-g03.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 768
+          },
+          "alt": "Интерьер номера L'oceanica Beach Resort",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/8qTku3joIRTzkbt",
+          "canva_original_asset_id": "MAHaQBuhCKk",
+          "original_uploaded_filename": "loceanica-g31.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Ресторан L'oceanica Beach Resort",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1293,
+      "logical_id": "commercial-crystal-centro-1293-v1",
+      "aliases": [
+        "Crystal Centro Pearl Collection"
+      ],
+      "text": "💦 Crystal Centro Pearl Collection 5★ · Лара\n\nДля семейного отпуска с отдельными спальнями и водными развлечениями.\n\n🛏 Family 35 м²: две спальни с дверью.\n🎨 Детский Crispy Kids World.\n💦 Бассейны и аквапарки для взрослых и детей.\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж на первой линии.\n\nУсловия детских развлечений проверим под возраст детей и даты.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "text_sha256": "e044aeca4aa5e12c4c90430f99d5b2823d11dcd7c5e7801f85f9b96d0d57ba34",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1293.png",
+      "photo_sha256": "919c041b8ddae4f7a6dbffbe1441ad781e3377a12d69ee6f11a460f105f090a4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/turkey/antaliya/amara_centro_resort/",
+        "https://crystalhotels.com.tr/en/hotels/crystal-centro",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/B5k_RLEvknjrGuw"
+      ],
+      "identity_binding": {
+        "anex_id": 26931,
+        "anytour_id": 596,
+        "legacy_native_id": 1293,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQBubN_w",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_b25dd5f50bee8150_c01",
+        "top500_b25dd5f50bee8150_c02",
+        "top500_b25dd5f50bee8150_c03",
+        "top500_b25dd5f50bee8150_c04",
+        "top500_b25dd5f50bee8150_enrich03_20261019_c01",
+        "top500_b25dd5f50bee8150_enrich03_20261019_c02"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/B5k_RLEvknjrGuw",
+          "canva_original_asset_id": "MAHaQPVXX_c",
+          "original_uploaded_filename": "crystal-centro-g21.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 900
+          },
+          "alt": "Пляж и аквапарк Crystal Centro",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/B5k_RLEvknjrGuw",
+          "canva_original_asset_id": "MAHaQO-qLd8",
+          "original_uploaded_filename": "crystal-centro-g44.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 800
+          },
+          "alt": "Интерьер номера Crystal Centro",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/B5k_RLEvknjrGuw",
+          "canva_original_asset_id": "MAHaQCLJn9o",
+          "original_uploaded_filename": "crystal-centro-g32.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 800
+          },
+          "alt": "Детская игровая комната Crystal Centro",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 37168,
+      "logical_id": "commercial-litore-37168-v1",
+      "aliases": [
+        "Litore Resort Hotel & Spa"
+      ],
+      "text": "🌊 Litore Resort Hotel & Spa 5★ · Окурджалар\n\nДля семейного отпуска с отдельными спальнями и видом на море.\n\n🛏 Family Sea View 54 м²: две спальни.\n🍽 Ultra All Inclusive с основными буфетами, закусками и ночным перекусом.\n🏖 Собственный пляж с песком и галькой, пляжный шаттл.\n\nОтель расположен на холме. Состав размещения проверим под вашу семью.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером.",
+      "text_sha256": "8500574fe0aba78f333fbd3fbaed32a2336c7378ffa77d571066b03f0fd8cfd4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/37168.png",
+      "photo_sha256": "714aefd4348c235a30a4728c4dc5899a50e1ba5b005cc4a59778b4d2c548ea5f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.corendon.nl/turkije/turkse-riviera/alanya/okurcalar/litore-resort-hotel-spa?tab=destination-info-tab",
+        "https://kompastour.com/ua/rus/country/turkey/alanya/litore_hotel_resort_spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/OCIUcqVAVyiBJ6J"
+      ],
+      "identity_binding": {
+        "anex_id": 8587,
+        "anytour_id": 2225,
+        "legacy_native_id": 37168,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQAhkt1c",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "litore_resort_hotel_spa_core20_c01",
+        "litore_resort_hotel_spa_mass37_c01",
+        "litore_resort_hotel_spa_c04",
+        "litore_resort_hotel_spa_context13_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/OCIUcqVAVyiBJ6J",
+          "canva_original_asset_id": "MAHaQHCFWR8",
+          "original_uploaded_filename": "litore-g48.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Бассейн Litore Resort Hotel & Spa",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/OCIUcqVAVyiBJ6J",
+          "canva_original_asset_id": "MAHaQGiigtw",
+          "original_uploaded_filename": "litore-g03.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Litore Resort Hotel & Spa",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/OCIUcqVAVyiBJ6J",
+          "canva_original_asset_id": "MAHaQPv3Njk",
+          "original_uploaded_filename": "litore-g119.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Детская игровая площадка Litore Resort Hotel & Spa",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 69184,
+      "logical_id": "commercial-lonicera-premium-69184-v1",
+      "aliases": [
+        "Lonicera Premium"
+      ],
+      "text": "🌴 Lonicera Premium · Аланья\n\nДля семейного отпуска с детским клубом и песчаным пляжем.\n\n🛏 Standard 33 м² с двуспальной или двумя отдельными кроватями и софой.\n🎨 Детский клуб от 4 до 12 лет, площадка и мини диско.\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж на первой линии.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом.",
+      "text_sha256": "5bc1d17b32689b08193d966f812f518f629a0c4c96bfeeb678f03c498ba5c72e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/69184.png",
+      "photo_sha256": "e1a7a2d9aea087fccf556873fbe8cf0477581cb4f2b1b2aa8f6c818a369f54b5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/turkey/alanya/lonicera_premium/",
+        "https://www.lonicera.com.tr/en/premium/servisler.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/kuaiL7DmJIBMFxE"
+      ],
+      "identity_binding": {
+        "anex_id": 26153,
+        "anytour_id": 3106,
+        "legacy_native_id": 69184,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQLfWj7Y",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_bac39090b17a88c3_c02",
+        "top500_bac39090b17a88c3_c03",
+        "top500_bac39090b17a88c3_c04",
+        "top500_bac39090b17a88c3_enrich20261020_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/kuaiL7DmJIBMFxE",
+          "canva_original_asset_id": "MAHaQCyA0jQ",
+          "original_uploaded_filename": "lonicera-premium-g37.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 675
+          },
+          "alt": "Lonicera Premium и бассейн вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/kuaiL7DmJIBMFxE",
+          "canva_original_asset_id": "MAHaQF7Wp2k",
+          "original_uploaded_filename": "lonicera-premium-r01.png",
+          "original_asset_dimensions": {
+            "width": 1000,
+            "height": 750
+          },
+          "alt": "Стандартный номер Lonicera Premium",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/kuaiL7DmJIBMFxE",
+          "canva_original_asset_id": "MAHaQI4RdJ8",
+          "original_uploaded_filename": "lonicera-premium-g11.png",
+          "original_asset_dimensions": {
+            "width": 810,
+            "height": 1080
+          },
+          "alt": "Детский бассейн Lonicera Premium",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 9303,
+      "logical_id": "commercial-sundia-oludeniz-9303-v1",
+      "aliases": [
+        "Sundia By Liberty Oludeniz",
+        "SUNDIA BY LIBERTY OLUDENIZ (EX. LIBERTY HOTEL OLUDENIZ)",
+        "LIBERTY HOTEL OLUDENIZ"
+      ],
+      "text": "🌴 Sundia By Liberty Oludeniz 4★ · Олюдениз\n\nДля отдыха с прогулками к морю и выбором бассейнов.\n\n🛏 Компактный номер Superior 18 м².\n🏊 Основной, детский и тихий бассейны.\n🍽 All Inclusive.\n🏖 К пляжной зоне Бельджекиз можно дойти пешком.\n\nЛежаки и зонты на пляже оплачиваются отдельно.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "dd221fa4abb75840e6eff8cea5398f103dc30cf254ff0413e0a0666fc800f099",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/9303.png",
+      "photo_sha256": "4b22741b741baaf06d6707f579fcb28fbb53a8b2b3deda436a5d795a4a17183b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/fethie/sundia_by_liberty_oludeniz/",
+        "https://www.sundiabyliberty.com/en/hotels/sundia-by-liberty-oludeniz/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/QNp5r6wE9BpH9Cs"
+      ],
+      "identity_binding": {
+        "anex_id": 12114,
+        "anytour_id": 5353,
+        "legacy_native_id": 9303,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQL6nxDc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8a1b3172509859e3_run06_c01",
+        "top500_8a1b3172509859e3_run06_c02",
+        "top500_8a1b3172509859e3_run06_c03",
+        "top500_8a1b3172509859e3_run06_c04",
+        "HOTEL-TR-MANUAL-20261025T191157Z-BASE08_c46",
+        "HOTEL-TR-MANUAL-20261025T191157Z-BASE08_c48"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/QNp5r6wE9BpH9Cs",
+          "canva_original_asset_id": "MAHaQJ3sltU",
+          "original_uploaded_filename": "sundia-oludeniz-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 575
+          },
+          "alt": "Бассейны и корпуса Sundia By Liberty Oludeniz",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/QNp5r6wE9BpH9Cs",
+          "canva_original_asset_id": "MAHaQIFFwOQ",
+          "original_uploaded_filename": "sundia-oludeniz-g89.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Sundia By Liberty Oludeniz",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/QNp5r6wE9BpH9Cs",
+          "canva_original_asset_id": "MAHaQPjNNOA",
+          "original_uploaded_filename": "sundia-oludeniz-g02.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Зелёная территория Sundia By Liberty Oludeniz",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 59563,
+      "logical_id": "commercial-prestige-garden-59563-v1",
+      "aliases": [
+        "Prestige Garden Hotel"
+      ],
+      "text": "💦 Prestige Garden Hotel · Мармарис\n\nДля семейного отпуска с отдельным местом для отдыха в номере.\n\n🛏 Family 35 м²: спальня и гостиная с диваном.\n💦 Открытый бассейн и водные горки.\n🍽 All Inclusive.\n🏖 Муниципальный пляж рядом с отелем.\n\nЛежаки и зонты на пляже платные. Условия горок уточним под возраст детей.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "text_sha256": "de53d377920b354d82af425cd3b9873e926908a18acd4db0caaf6d030e201238",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/59563.png",
+      "photo_sha256": "b5218053afabd5adfda203eb9004baa2cc998c12ff0c4f9dd7b5c88c36389f6d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/marmaris/prestige_garden_marmaris/",
+        "https://www.prestigegardenhotel.com/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/pd79UD2mDuhQNlB"
+      ],
+      "identity_binding": {
+        "anex_id": 16228,
+        "anytour_id": 2741,
+        "legacy_native_id": 59563,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 4,
+      "display_category": false,
+      "canva_design_id": "DAHaQG7-4Fo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_bbe580eed9e67fa0_run06_c02",
+        "top500_bbe580eed9e67fa0_run06_c03",
+        "top500_bbe580eed9e67fa0_run06_c04",
+        "HOTEL-TR-MANUAL-20261025T191157Z-BASE08_c27"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/pd79UD2mDuhQNlB",
+          "canva_original_asset_id": "MAHaQAAjHZE",
+          "original_uploaded_filename": "prestige-garden-g01.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 676
+          },
+          "alt": "Prestige Garden Hotel и бассейн",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/pd79UD2mDuhQNlB",
+          "canva_original_asset_id": "MAHaQOXTXy0",
+          "original_uploaded_filename": "prestige-garden-g21.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 800
+          },
+          "alt": "Интерьер номера Prestige Garden Hotel",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/pd79UD2mDuhQNlB",
+          "canva_original_asset_id": "MAHaQLKwLx0",
+          "original_uploaded_filename": "prestige-garden-g12.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 676
+          },
+          "alt": "Ресторанная зона Prestige Garden Hotel вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 74032,
+      "logical_id": "commercial-serano-club-74032-v1",
+      "aliases": [
+        "SUNRISE Serano Club Resort",
+        "Serano Club Resort"
+      ],
+      "text": "💦 Serano Club Resort 4★ · Шарм эль Шейх\n\nДля семейного отпуска с просторным номером и аквапарком.\n\n🛏 Family Suite Pool View 52 м²: две спальни с дверью, двуспальная и две отдельные кровати.\n💦 Бесплатный доступ в аквапарк соседнего Serano Aqua Park Resort.\n🍽 All Inclusive.\n\nМинимальный рост для горок 120 см. Пляж находится через дорогу.\n\n✈️ Подберём размещение под вашу семью и рассчитаем тур с перелётом.",
+      "text_sha256": "2768b39a2423fb78735ca551014f869f6e3da63b2ec98b83337b5215a9ddd1b5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/74032.png",
+      "photo_sha256": "53e628b0868014a3afc99cbdadf65cf7af1810ae5d5262d3dc721d2104e2e6df",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.ge/en/hotels/egypt/sunrise-serano-club-resort-hurghada/",
+        "https://pegast.ru/hotel/egypt/hurghada/hurghada/sunrise-serano-club-180703291",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/VbT7aQfU-aW7ek-"
+      ],
+      "identity_binding": {
+        "anex_id": 42197,
+        "anytour_id": 3260,
+        "legacy_native_id": 74032,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQKB-juU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "sunrise_serano_club_resort_core20_c01",
+        "sunrise_serano_club_resort_mass39_c01",
+        "sunrise_serano_club_resort_mass39_c02",
+        "sunrise_serano_club_resort_c04",
+        "sunrise_serano_club_resort_c06"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VbT7aQfU-aW7ek-",
+          "canva_original_asset_id": "MAHaQC50BQw",
+          "original_uploaded_filename": "serano-club-g01.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 800
+          },
+          "alt": "SUNRISE Serano Club Resort и бассейн",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VbT7aQfU-aW7ek-",
+          "canva_original_asset_id": "MAHaQFoSCZU",
+          "original_uploaded_filename": "serano-club-g20.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 800
+          },
+          "alt": "Интерьер номера SUNRISE Serano Club Resort",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VbT7aQfU-aW7ek-",
+          "canva_original_asset_id": "MAHaQBOyOpc",
+          "original_uploaded_filename": "serano-club-g16.png",
+          "original_asset_dimensions": {
+            "width": 1200,
+            "height": 800
+          },
+          "alt": "Открытая ресторанная зона SUNRISE Serano Club Resort",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1521,
+      "logical_id": "commercial-sultan-side-1521-v1",
+      "aliases": [
+        "Sultan Of Side"
+      ],
+      "text": "🌴 Sultan Of Side 5★ · Сиде\n\nДля отдыха с бассейнами и прогулками к морю.\n\n🛏 Двухместный Land View от 31 до 35 м² с балконом: двуспальная или две отдельные кровати.\n🏊 Бассейны на территории.\n🍽 All Inclusive.\n🏖 Собственный пляж в пешей доступности от отеля.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "e3d5a4ebb72b911578b29f4e34d21c0f498d949179cc74e42cb2ef0c815c356a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/1521.png",
+      "photo_sha256": "be34ff2bd89ec49d22c190af5ba6c2bdc3720ef3db447441268329c6ee415958",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://intourist.ru/info/turkey/side/side/hotel/sultan-of-side?search_id=3wxkok1r",
+        "https://sultanofside.com/En",
+        "https://www.dertour.de/hotel/sultan-of-side-1145Vy",
+        "https://sultanofside.com/ru",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/VmEfAqtrYQX0ViS"
+      ],
+      "identity_binding": {
+        "anex_id": 8500,
+        "anytour_id": 721,
+        "legacy_native_id": 1521,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQOskBSs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e370848754e9f63b_c01",
+        "top500_e370848754e9f63b_c02",
+        "top500_e370848754e9f63b_demand29_c01",
+        "top500_e370848754e9f63b_c04",
+        "top500_e370848754e9f63b_run03_c01"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VmEfAqtrYQX0ViS",
+          "canva_original_asset_id": "MAHaQAE5ULg",
+          "original_uploaded_filename": "sultan-side-g03.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 682
+          },
+          "alt": "Sultan Of Side и бассейн",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VmEfAqtrYQX0ViS",
+          "canva_original_asset_id": "MAHaQHaztFQ",
+          "original_uploaded_filename": "sultan-side-g51.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 682
+          },
+          "alt": "Интерьер номера Sultan Of Side",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/VmEfAqtrYQX0ViS",
+          "canva_original_asset_id": "MAHaQDTBx9g",
+          "original_uploaded_filename": "sultan-side-g25.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 682
+          },
+          "alt": "Спа центр Sultan Of Side",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 123374,
+      "logical_id": "commercial-regnum-crown-123374-v1",
+      "aliases": [
+        "Regnum The Crown"
+      ],
+      "text": "✨ Regnum The Crown 5★ · Белек\n\nДля отдыха с просторным сьютом и вечерними развлечениями.\n\n🛏 Seascape Suite 110 м².\n🍽 Luxury All Inclusive.\n🏖 Собственная пляжная зона на первой линии.\n🎶 Тематические вечеринки и живая музыка.\n\nЗона Seven Rooftop для гостей от 18 лет. Пляжный сервис сезонный.\n\n✈️ Подберём сьют под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "f61ca0b8f30e8134a00f7e60524338d08f4791ffe9e68919694d9e517f1321a4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/123374.png",
+      "photo_sha256": "ea981f3142572ac0e65d1c4d0557f36290cd70071321a503cf5976a943fa4b39",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/belek/regnum_the_crown/",
+        "https://www.regnumhotels.com/media/j2fjgnm4/factsinformation_summer_2026_en_rtc_dp.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/G2gJUinfroBIfzd"
+      ],
+      "identity_binding": {
+        "anex_id": 39629,
+        "anytour_id": 3870,
+        "legacy_native_id": 123374,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQKAwwJY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_f2fa8ea63f127a9d_c01",
+        "top500_f2fa8ea63f127a9d_c02",
+        "top500_f2fa8ea63f127a9d_c03",
+        "top500_f2fa8ea63f127a9d_c04",
+        "top500_f2fa8ea63f127a9d_c05",
+        "top500_f2fa8ea63f127a9d_mass39_c02",
+        "top500_f2fa8ea63f127a9d_mass39_c03"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/G2gJUinfroBIfzd",
+          "canva_original_asset_id": "MAHaQM--wlw",
+          "original_uploaded_filename": "regnum-crown-g01.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 717
+          },
+          "alt": "Regnum The Crown у моря",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/G2gJUinfroBIfzd",
+          "canva_original_asset_id": "MAHaQDyZmqw",
+          "original_uploaded_filename": "regnum-crown-g60.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Интерьер номера Regnum The Crown",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/G2gJUinfroBIfzd",
+          "canva_original_asset_id": "MAHaQGESXXw",
+          "original_uploaded_filename": "regnum-crown-g33.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 677
+          },
+          "alt": "Ресторанный буфет Regnum The Crown",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 15879,
+      "logical_id": "commercial-belazur-15879-v1",
+      "aliases": [
+        "Kirman Belazur Resort & Spa",
+        "Belazur Kirman Signature"
+      ],
+      "text": "🌴 Belazur Kirman Signature 5★ · Белек\n\nДля семейного отпуска с отдельными спальнями у моря.\n\n🛏 Family 39 м²: две спальни с соединяющей дверью, двуспальная и две отдельные кровати.\n🏖 Собственный пляж на первой линии.\n🍽 Ultra All Inclusive.\n🎶 Живая музыка и дискотека в отдельные дни.\n\nПирс работает сезонно: даты проверим перед бронированием.\n\n✈️ Подберём размещение под вашу семью и рассчитаем тур с перелётом.",
+      "text_sha256": "f036b27df40bc77108ef0804f61f84bc4f3447edfa299a063c20b47e414559ad",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/f9982557533b6c1dbe983f85d2aa28ffaa671fbf/.github/traffic-publish/commercial-batch-20261107-23/15879.png",
+      "photo_sha256": "9711e93a5c630fc5a33d76c61feb9db18dc00ddb9c1c4f0115f66d48d3012b57",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/uz/rus/country/turkey/belek/kirman_belazur_resort_and_spa/",
+        "https://www.belazur.com.tr/en",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1313&legacyHotelIds%5B%5D=1293&legacyHotelIds%5B%5D=37168&legacyHotelIds%5B%5D=69184&legacyHotelIds%5B%5D=9303&legacyHotelIds%5B%5D=59563&legacyHotelIds%5B%5D=74032&legacyHotelIds%5B%5D=1521&legacyHotelIds%5B%5D=123374&legacyHotelIds%5B%5D=15879&legacyHotelIds%5B%5D=1501&legacyHotelIds%5B%5D=1139&legacyHotelIds%5B%5D=15872&legacyHotelIds%5B%5D=1141&legacyHotelIds%5B%5D=1142&legacyHotelIds%5B%5D=28159&legacyHotelIds%5B%5D=1014&legacyHotelIds%5B%5D=352&legacyHotelIds%5B%5D=1569&legacyHotelIds%5B%5D=59114",
+        "https://www.canva.com/d/gbrejzZg6QdFlvP"
+      ],
+      "identity_binding": {
+        "anex_id": 8667,
+        "anytour_id": 1751,
+        "legacy_native_id": 15879,
+        "source_file": "next-twenty-after-160-current-catalog.json",
+        "source_sha256": "7555b8dbd5df6579ffdb9e46ef3123819b4463048b95092ff4834d8a88aea05b",
+        "binding": "Accepted explicit ANEX match and returned typed AnyTour native link; no array-position or cross-catalog numeric identity"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQIfYLys",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_f7a7e2c64cfe3b08_c01",
+        "top500_f7a7e2c64cfe3b08_c02",
+        "top500_f7a7e2c64cfe3b08_enrich20261020_c01",
+        "top500_f7a7e2c64cfe3b08_c04",
+        "top500_f7a7e2c64cfe3b08_c05",
+        "top500_f7a7e2c64cfe3b08_c06"
+      ],
+      "recovered_photo_provenance": [
+        {
+          "role": "hero",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/gbrejzZg6QdFlvP",
+          "canva_original_asset_id": "MAHaQPwM_pM",
+          "original_uploaded_filename": "belazur-g62.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Терраса и корпуса Kirman Belazur вечером",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "room",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/gbrejzZg6QdFlvP",
+          "canva_original_asset_id": "MAHaQJwrmZA",
+          "original_uploaded_filename": "belazur-r02.png",
+          "original_asset_dimensions": {
+            "width": 1015,
+            "height": 532
+          },
+          "alt": "Семейный номер Kirman Belazur",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        },
+        {
+          "role": "detail",
+          "source_kind": "RETAINED_CANVA_ORIGINAL_ASSET_FROM_PREVIOUSLY_REVIEWED_REAL_HOTEL_PHOTOGRAPH",
+          "source_url": "https://www.canva.com/d/gbrejzZg6QdFlvP",
+          "canva_original_asset_id": "MAHaQJsD2a4",
+          "original_uploaded_filename": "belazur-g03.png",
+          "original_asset_dimensions": {
+            "width": 1024,
+            "height": 683
+          },
+          "alt": "Ресторан Kirman Belazur",
+          "original_source_png_sha256": null,
+          "source_png_recovery_status": "Local source PNG lost; exact retained Canva asset is unchanged; missing hash is not fabricated",
+          "asset_present_in_recovered_committed_design": true
+        }
+      ]
+    }
+  ]
+}
