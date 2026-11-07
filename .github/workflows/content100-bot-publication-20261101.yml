@@ -1,4 +1,4 @@
-name: Correct only the six existing hotel captions without new sends
+name: Remove repeated final CTA instruction from six existing hotel captions
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -40,11 +40,11 @@ jobs:
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
       - uses: actions/download-artifact@v4
         with:
-          run-id: 42354637509
-          name: commercial-batch-20261107-1-publication
+          run-id: 42356233002
+          name: commercial-hotel-caption-correction-20261107-1-result
           github-token: ${{ github.token }}
-          path: ${{ runner.temp }}/original-three-publication
-      - name: Bind exact revised captions to original six confirmed messages
+          path: ${{ runner.temp }}/prior-caption-correction
+      - name: Bind only the final CTA-line removal to the six current messages
         shell: bash
         run: |
           set -euo pipefail
@@ -53,35 +53,36 @@ jobs:
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          newraw=(base/'commercial-hotel-caption-correction-20261107-1-inputs.json').read_bytes()
-          assert hashlib.sha256(newraw).hexdigest()=='6dcb161fd414a8c30bdc19634ba07db11de3d958dc747ba2e673ccf1379ca515'
-          new=json.loads(newraw);assert new['status']=='EDITORIAL_CORRECTION_READY_NOT_USER_ACCEPTED'
-          oldraw=(base/'commercial-batch-20261107-1-manifest.json').read_bytes()
-          assert hashlib.sha256(oldraw).hexdigest()=='c1ca5c8191c56620a02b32800bfd69fb7eb3687a446e9bb919c808d182c70c44'
-          old=json.loads(oldraw)
-          proof=(tmp/'original-three-publication'/'channel-preflight.json').read_text().splitlines()
-          receipt=json.loads(proof[-1]);assert receipt['ok'] and receipt['operation']=='commercial-hotel-batch-20261107-1-v1' and receipt['new_posts']==6 and receipt['reused']==0
-          assert [r['hotel_id'] for r in new['rows']]==[27426,1216,1095]
-          rows=[]
-          for nr in new['rows']:
-              previous=next(r for r in old['rows'] if r['hotel_id']==nr['hotel_id'])
-              assert hashlib.sha256(nr['new_text'].encode()).hexdigest()==nr['new_text_sha256']
-              assert 0<len(nr['new_text'].encode('utf-16-le'))//2<=1024 and nr['new_text']!=previous['text']
-              rows.append({'hotel_id':nr['hotel_id'],'key':previous['logical_id'],'logical_id':previous['logical_id'],'old_text':previous['text'],'old_text_sha256':previous['text_sha256'],'new_text':nr['new_text'],'new_text_sha256':nr['new_text_sha256'],'photo_sha256':previous['photo_sha256'],'update_text':True})
-          payload={'operation':'commercial-hotel-caption-correction-20261107-1-v1','button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':receipt}
+          raw=(base/'commercial-hotel-caption-cta-dedup-20261107-1-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='56b12124776c06422621da3b62edfcdbd7a5818b47972e1bf3adfd107c1ac629'
+          inp=json.loads(raw);assert inp['operation']=='commercial-hotel-caption-cta-dedup-20261107-1-v1'
+          rows=inp['rows'];assert [r['hotel_id'] for r in rows]==[27426,1216,1095]
+          suffix='\n👇 Нажмите «Узнать стоимость тура».'
+          for r in rows:
+              assert r['old_text'].endswith(suffix) and r['new_text']==r['old_text'][:-len(suffix)]
+              assert hashlib.sha256(r['old_text'].encode()).hexdigest()==r['old_text_sha256']
+              assert hashlib.sha256(r['new_text'].encode()).hexdigest()==r['new_text_sha256']
+              assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
+          receipt=json.loads((tmp/'prior-caption-correction'/'channel-preflight.json').read_text().splitlines()[-1])
+          assert receipt['ok'] and receipt['operation']=='commercial-hotel-caption-correction-20261107-1-v1' and receipt['commercial_text_updates']==6 and receipt['new_posts_created']==0
+          assert sorted(p['version_id'] for p in receipt['posts'])==[921,922,923,924,925,926]
+          for r in rows:
+              proof=[p for p in receipt['posts'] if p['logical_id']==r['logical_id']]
+              assert len(proof)==2 and all(p['text_sha256']==r['old_text_sha256'] for p in proof)
+          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':receipt}
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode();(tmp/'caption-correction-input.json').write_bytes(raw)
-          source=(base/'update-existing-three-captions-20261107-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='ef6636881b3969da8041f07f69017bbaf54261224c13692d5ac9e316760deb32'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-hotel-caption-correction-20261107-1-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          source=(base/'update-existing-three-captions-cta-dedup-20261107-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='d7fbb481e4242714674b318d00d29ea65cdcfadd82ba5920166811241ee32c50'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-hotel-caption-cta-dedup-20261107-1-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':6,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
+          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':6,'only_final_cta_line_removed':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
           PYCODE
           php -l "$RUNNER_TEMP/channel-preflight.php"
       - name: Retain exact caption edit intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-caption-correction-20261107-1-inputs
+          name: commercial-hotel-caption-cta-dedup-20261107-1-inputs
           path: ${{ runner.temp }}/caption-correction-input.json
           retention-days: 14
           if-no-files-found: error
@@ -137,7 +138,7 @@ jobs:
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-hotel-caption-correction-20261107-1-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          assert d['operation']=='commercial-hotel-caption-cta-dedup-20261107-1-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
           assert d['ok'] is True and len(d['posts'])==6 and d['post_write_attempts']==6 and d['new_posts_created']==0
           assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
           assert d['commercial_text_updates']==6 and d['configuration_write_attempts']==0
@@ -148,16 +149,16 @@ jobs:
           for p in d['posts']:
               old=prior[(p['platform'],p['logical_id'])]
               assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','source_key'))
-              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id']
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==old['photo_signature']
               assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
-          print('EXISTING_SIX_CAPTIONS_CORRECTED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
+          print('EXISTING_SIX_FINAL_CTA_LINES_REMOVED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-caption-correction-20261107-1-result
+          name: commercial-hotel-caption-cta-dedup-20261107-1-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
