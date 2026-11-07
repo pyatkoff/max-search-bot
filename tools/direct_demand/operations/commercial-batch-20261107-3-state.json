@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation": "commercial-hotel-batch-20261107-3-v1",
-  "state": "SENDER_COMPLETE_SIX_NEW_PAIRS_FEED_APPEND_PENDING",
+  "state": "COMPLETE_SIX_NEW_PAIRS_NATIVE_ROUTES_AND_PUBLIC_FEEDS_VERIFIED",
   "run_id": 42366571943,
   "job_id": 128385778924,
   "source_commit": "cfd1acb33f19f9e9fa7a5ee45910653e6bf091bd",
@@ -116,22 +116,58 @@
     }
   ],
   "current_feed_counts": {
-    "telegram": 168,
-    "max": 168,
-    "all": 336
+    "telegram": 174,
+    "max": 174,
+    "all": 348
   },
-  "current_max_native_route_count": 168,
-  "pending_new_route_native_ids": [
-    1352,
-    37360,
-    1035,
-    45199,
-    613,
-    24909
-  ],
+  "current_max_native_route_count": 174,
+  "pending_new_route_native_ids": [],
   "sender_operation_closed": true,
   "unknown_operations": 0,
-  "repeat_policy": "Do not replay sender. Finish only the new6 add-only routes/feed. Held Thavorn818 is excluded from next13 clearance and send scope.",
+  "repeat_policy": "Sender/read20/native174/feed174 operations are CLOSED. Do not replay. Continue only separately prepared new unique captions and media; sender max batch10. Held Thavorn818 remains excluded.",
   "mac_touched": false,
-  "prices_and_search_links_replayed": false
+  "prices_and_search_links_replayed": false,
+  "native_route_operation_closed": true,
+  "feed_operation_closed": true,
+  "native_route_receipt": {
+    "run_id": 42367087522,
+    "job_id": 128387306372,
+    "source_commit": "558bc300c50b79761284c75cc97e7ea837c582f9",
+    "result_artifact_id": 13572152212,
+    "new_routes_verified": 6,
+    "previous168_unchanged": true
+  },
+  "feed_receipt": {
+    "run_id": 42367243824,
+    "job_id": 128387781451,
+    "source_commit": "521dc15364b8fcfb3954bb367d16afe87dbc4983",
+    "result_artifact_id": 13572486626,
+    "public_gets": 3,
+    "http_200_exact_bytes": true,
+    "previous168_unchanged": true
+  },
+  "next_prepared_native_ids": [
+    1074,
+    108146,
+    1362,
+    68984,
+    703,
+    118475,
+    462,
+    2050,
+    1354,
+    128087,
+    969,
+    55647,
+    120117
+  ],
+  "next_candidate_clearance": {
+    "run_id": 42366839876,
+    "at_utc": "2026-11-07T11:07:50Z",
+    "all13_clear": true,
+    "commercial_media_manifest_pending": true
+  },
+  "held_native_ids": [
+    818
+  ]
 }
