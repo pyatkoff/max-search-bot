@@ -1,0 +1,491 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read38",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 28326,
+      "name": "Port Nature Luxury Resort Hotel & Spa",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/347",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Mg98aeo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/28326.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 961,
+      "name": "Utopia Resort & Residence",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/348",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3MhpTQJU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/961.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1105,
+      "name": "Club Hotel Turan Prince World",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/349",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3MiNXaZ4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/1105.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1433,
+      "name": "Pirate’s Beach Club",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/350",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Mix7DQ0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/1433.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1246,
+      "name": "Holiday Park Resort",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/351",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3MjYHc9Y",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/1246.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1070,
+      "name": "Cesars Side",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/352",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3Mj8UNo0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/1070.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 28512,
+      "name": "Karmir Resort & Spa",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/353",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3MkgCL9Q",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/28512.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 78905,
+      "name": "Serenity Queen Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/354",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3MlD1AUY",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/78905.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1273,
+      "name": "Lago Hotel",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/355",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3MlpHDdo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/1273.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 88750,
+      "name": "The X Belek",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/356",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3MmMJYLc",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-25/88750.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 28779,
+      "name": "Dream Family Club",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/357",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NVd3fs4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/28779.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 37396,
+      "name": "Orka Lotus Beach",
+      "country_id": 4,
+      "region_id": 26,
+      "destination": "Мармарис",
+      "telegram_post_url": "https://t.me/any_toour/358",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NWCoRe8",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/37396.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 9419,
+      "name": "Aqua Fantasy Aquapark Hotel & Spa",
+      "country_id": 4,
+      "region_id": 154,
+      "destination": "Кушадасы",
+      "telegram_post_url": "https://t.me/any_toour/359",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NWnfEfI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/9419.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 365,
+      "name": "Parrotel Beach Resort",
+      "country_id": 1,
+      "region_id": 6,
+      "destination": "Шарм-эль-Шейх",
+      "telegram_post_url": "https://t.me/any_toour/360",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NXLmM1g",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/365.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1494,
+      "name": "Rixos Downtown Antalya",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/361",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NXweS5Q",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/1494.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1456,
+      "name": "Sealife Kemer Resort",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/362",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NYWCHEo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/1456.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 990,
+      "name": "Arabella World Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/363",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NY7MVQ4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/990.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 3434,
+      "name": "Diamond Excellence Resort & Spa",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/364",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NZg2BQw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/3434.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1474,
+      "name": "Saturn Palace Resort",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/365",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NaGLK_k",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/1474.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1292,
+      "name": "Kempinski Hotel The Dome",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/366",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3NarZXZY",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/1292.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 20,
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 1198,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Gloria Golf Resort Hotel",
+        "GLORIA GOLF RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1201,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Gloria Verde Resort Hotel",
+        "GLORIA VERDE RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1165,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ela Excellence",
+        "ELA EXCELLENCE RESORT BELEK (EX. ELA QUALITY RESORT)"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 109786,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ethno Hotels Belek",
+        "ETHNO HOTEL BELEK"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1452,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Rixos Sungate",
+        "RIXOS SUNGATE THE LAND OF LEGENDS FREE ACCESS"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 46670,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Trendy Lara Hotel",
+        "TRENDY LARA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 956,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Akka Hotels Claros",
+        "AKKA CLAROS HOTEL"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 64371,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Crystal Boutique Comfort Collection (Adults Only)",
+        "CRYSTAL BOUTIQUE COMFORT COLLECTION ADULTS ONLY 16+"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1344,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Lonicera Resort & Spa",
+        "LONICERA RESORT & SPA HOTEL"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 45496,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Asia Beach Resort & Spa Hotel",
+        "ASIA BEACH RESORT & SPA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 2222,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Narcia Resort Hotel",
+        "NARCIA RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1042,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Belek Beach Resort Hotel",
+        "BELEK BEACH RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 15917,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Tac Premier Hotel",
+        "TAC PREMIER HOTEL & SPA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1493,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Mc Beach Park Resort",
+        "MC BEACH RESORT"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1154,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Side Aluna Hotel",
+        "SIDE ALUNA (EX. DIAMOND BEACH HOTEL)"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 970,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ali Bey Resort",
+        "ALI BEY RESORT SORGUN"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1055,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Blue Star Hotel",
+        "BLUE STAR"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 75040,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Grand Kolibri Prestige Hotel",
+        "GRAND KOLIBRI PRESTIGE & SPA"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 983,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Anitas Hotel",
+        "ANITAS"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    },
+    {
+      "native_hotel_id": 1124,
+      "scope": "additional_second20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Club Hotel Sidelya",
+        "CLUB HOTEL SIDELYA HV-2"
+      ],
+      "matches": [],
+      "clear": true,
+      "limit_reached": false
+    }
+  ],
+  "candidate_count": 20,
+  "read_at_utc": "2026-11-07T18:13:47+00:00",
+  "scope_hotels": 20,
+  "feed_rows": 20,
+  "deferred_count": 0,
+  "installed_sha": "6d193b7740dc212b92b1893041f0a1047b179635",
+  "source_original_artifact": {
+    "run_id": 42400163043,
+    "job_id": 128485997342,
+    "commit": "62587bb1fb5a1df901e5e168fb6a8572be56571e",
+    "artifact_id": 13584229431,
+    "artifact_zip_sha256": "088288cbd7d66a08b6ed72900b389ae11c30f817316d894e5f85eb108a1b174e",
+    "input_artifact_id": 13584374204,
+    "input_artifact_zip_sha256": "ad1ac64bdaccdd029b506574faaecf88565fe2f6d5bd547157cc88041c86598a",
+    "private_receipt_sha256": "9982d11466f103ab6bcf1c29d7d5989e433805aaeac2ddd6c55293655783deb0"
+  }
+}

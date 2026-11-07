@@ -1,0 +1,90 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update36",
+  "state": "PREPARED_CONFIRMED_MAX352_INSTALL",
+  "new_hotel_ids": [
+    28326,
+    961,
+    1105,
+    1433,
+    1246,
+    1070,
+    28512,
+    78905,
+    1273,
+    88750,
+    28779,
+    37396,
+    9419,
+    365,
+    1494,
+    1456,
+    990,
+    3434,
+    1474,
+    1292
+  ],
+  "previous_rows": [
+    332,
+    332,
+    664
+  ],
+  "target_rows": [
+    352,
+    352,
+    704
+  ],
+  "previous332_offer_blocks_identical": true,
+  "max_route_install_run": 42400354070,
+  "max_route_install_commit": "5bf7f4f03fcc6ebf357789200b3267cb58701556",
+  "new20_binding_run": 42400163043,
+  "new20_binding_artifact": 13584229431,
+  "approved_destination_labels": {
+    "28326": "Белек",
+    "961": "Авсаллар",
+    "1105": "Сиде",
+    "1433": "Текирова",
+    "1246": "Окурджалар",
+    "1070": "Кумкой",
+    "28512": "Гойнюк",
+    "78905": "Конаклы",
+    "1273": "Сиде",
+    "88750": "Белек",
+    "28779": "Сиде",
+    "37396": "Ичмелер",
+    "9419": "Кушадасы",
+    "365": "Набк Бей",
+    "1494": "Анталья",
+    "1456": "Кемер",
+    "990": "Авсаллар",
+    "3434": "Сиде",
+    "1474": "Лара",
+    "1292": "Белек"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 226562,
+      "sha256": "74cc79333f1a3051a56ef7b5be4502e3c6d606ca2524de6f2b6ad5e4441827fe",
+      "rows": 352,
+      "expected_previous_sha256": "afb2f44b3035297c4edfb7bc1f9958f6d4e13f47d8bcc94d1413ee3f65d177b8"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 283822,
+      "sha256": "f8bb3841e7eb09063de27b746487bc18a8c4c2c6a88b0800f4f18c7c244ebf2f",
+      "rows": 352,
+      "expected_previous_sha256": "8a4f3f59cab6321f734dba6cfe7f8e31d3810c593956268cffe2de35f09527e0"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 510011,
+      "sha256": "e331016120c336634003ec5a1a08e67d8c43079c90078fc46659546b8a77de0c",
+      "rows": 704,
+      "expected_previous_sha256": "ad7a5891801d12aa6088516ba93cd0d216d832cfe1541250cc0dcfd394867a4c"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}
