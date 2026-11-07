@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-9-v1",
-  "state": "POSTS_AND_MAX_ROUTES_CONFIRMED_FEEDS_PENDING",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     66555,
     110289,
@@ -109,7 +109,54 @@
     "commit": "1524c165703cb91abbbab7fdca195da16120d0e0",
     "result_artifact_id": 13575542076
   },
-  "feeds": "PENDING_ADD_ONLY_200_TO_206",
+  "feeds": {
+    "run_id": 42375383051,
+    "job_id": 128411781514,
+    "commit": "9b63fa310c8eb0e878ea061feedd5c6067bd5eba",
+    "result_artifact_id": 13575417668,
+    "receipt_sha256": "f472cbe443c667e207a749856422cfa8326609bebcfbd9d4f3aeb6a0513a0090",
+    "rows": [
+      206,
+      206,
+      412
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous200_offer_blocks_identical": true
+  },
   "feed_binding_read_run": 42375078643,
-  "feed_binding_read_artifact": 13575392112
+  "feed_binding_read_artifact": 13575392112,
+  "goal_remaining_to_500": 294,
+  "own_active_workflow": 0,
+  "next_eighteen_clearance": {
+    "run_id": 42375078643,
+    "read_at_utc": "2026-11-07T13:02:23+00:00",
+    "native_hotel_ids": [
+      1143,
+      41495,
+      69261,
+      1221,
+      32342,
+      64670,
+      4095,
+      13941,
+      4071,
+      41149,
+      54592,
+      57217,
+      4432,
+      82606,
+      1337,
+      380,
+      1257,
+      82567
+    ],
+    "all_clear": true,
+    "not_commercial_ready_until_parent_final_cover_manifest": true
+  },
+  "completed_at_utc": "2026-11-07T13:06:15Z"
 }
