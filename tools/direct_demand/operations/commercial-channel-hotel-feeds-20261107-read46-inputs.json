@@ -1,0 +1,135 @@
+[
+  {
+    "hotel_id": 70033,
+    "name": "Nalicas Nha Trang Hotel",
+    "accepted_first_line": "✈️ Туры в Nalicas Nha Trang Hotel",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/70033.png",
+    "image_sha256": "453eb01153570befda87ddb79d3ec5a6cf5e79571b76ae3784548ca5255a973d"
+  },
+  {
+    "hotel_id": 57652,
+    "name": "Queen Ann Nha Trang Hotel",
+    "accepted_first_line": "✈️ Туры в Queen Ann Nha Trang Hotel",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/57652.png",
+    "image_sha256": "880545e8ec5b4bc06f5028026c9de60616eb1a466a44fc6d3b7c0ab2ea132bb6"
+  },
+  {
+    "hotel_id": 57650,
+    "name": "Red Sun Nha Trang Hotel",
+    "accepted_first_line": "✈️ Туры в Red Sun Nha Trang Hotel",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/57650.png",
+    "image_sha256": "1e1213f06e2ffd931d95a171324f6fe7f964ad9748fe52e54505ef7b74dffc78"
+  },
+  {
+    "hotel_id": 23766,
+    "name": "Sea Light Hotel",
+    "accepted_first_line": "✈️ Туры в Sea Light Hotel",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/23766.png",
+    "image_sha256": "9467e298327bc43e05c164dd41f029988a56295c81e3b0a7a54bb39897df1530"
+  },
+  {
+    "hotel_id": 4078,
+    "name": "Starlet Hotel",
+    "accepted_first_line": "✈️ Туры в Starlet Hotel",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4078.png",
+    "image_sha256": "ebb073ab0e5cf9003dc5ce1011cb539975972a63bc6008e639133d85bbf34221"
+  },
+  {
+    "hotel_id": 24778,
+    "name": "Aroma Beach Resort & Spa",
+    "accepted_first_line": "✈️ Туры в Aroma Beach Resort & Spa",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/24778.png",
+    "image_sha256": "197de53dbcbd904ba7ebde74a19eefaa885fe5e2a529cadd1cb4a534bdbe34ee"
+  },
+  {
+    "hotel_id": 4054,
+    "name": "Muine Century Beach Resort & Spa",
+    "accepted_first_line": "✈️ Туры в Muine Century Beach Resort & Spa",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4054.png",
+    "image_sha256": "afb651c8a8a3491dd76190e33864e9c70df32e6c560a3f1877f477792000d46d"
+  },
+  {
+    "hotel_id": 14133,
+    "name": "Oriental Pearl Resort (Hoang Ngoc)",
+    "accepted_first_line": "✈️ Туры в Oriental Pearl Resort (Hoang Ngoc)",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/14133.png",
+    "image_sha256": "355a21b18b47c5dde837255a55723be890f682daa0bdb305be589c73fa14f0bb"
+  },
+  {
+    "hotel_id": 4074,
+    "name": "Seahorse Resort",
+    "accepted_first_line": "✈️ Туры в Seahorse Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4074.png",
+    "image_sha256": "d6f96c47bd8cececa7ed410fc8f0b9c0d33f9830cd85967ed21e52656d4c97c4"
+  },
+  {
+    "hotel_id": 4079,
+    "name": "Sunny Beach Resort",
+    "accepted_first_line": "✈️ Туры в Sunny Beach Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4079.png",
+    "image_sha256": "b2eabe85c8ce4a61c640ccfed8cf80308b6653c6b8bdf3bbaa64fed214862381"
+  },
+  {
+    "hotel_id": 80915,
+    "name": "Ana Mandara Cam Ranh Resort",
+    "accepted_first_line": "✈️ Туры в Ana Mandara Cam Ranh Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/80915.png",
+    "image_sha256": "d056d5443e2c4b7dbd0e3caa1e24df16cbf91e81cf863bb1b152f3b6a3c17323"
+  },
+  {
+    "hotel_id": 22791,
+    "name": "Thien Thanh Phu Quoc Resort",
+    "accepted_first_line": "✈️ Туры в Thien Thanh Phu Quoc Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/22791.png",
+    "image_sha256": "588f4a65e466d035eebe2a699c519183b6efa3105093a2c39be89bc1af0b0948"
+  },
+  {
+    "hotel_id": 57064,
+    "name": "Muong Thanh Luxury Phu Quoc Hotel",
+    "accepted_first_line": "✈️ Туры в Muong Thanh Luxury Phu Quoc Hotel",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/57064.png",
+    "image_sha256": "f38e2109c6e72076a28d1b99dbcb57429ed02323af81e82dcf9748aa22469954"
+  },
+  {
+    "hotel_id": 57039,
+    "name": "Amarin Resort & Spa",
+    "accepted_first_line": "✈️ Туры в Amarin Resort & Spa",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/57039.png",
+    "image_sha256": "978eabfeb972f56ae53cc93ef9715f34c58057634385853598cbf95ed07665b6"
+  },
+  {
+    "hotel_id": 65266,
+    "name": "Palma Phu Quoc Resort",
+    "accepted_first_line": "✈️ Туры в Palma Phu Quoc Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/65266.png",
+    "image_sha256": "c7506cc7ebe2fd9c0d2726e8b29acf556d3e9760968c1d442cf30c1e13152f6f"
+  },
+  {
+    "hotel_id": 116934,
+    "name": "Courtyard by Marriott Phuket Patong Beach",
+    "accepted_first_line": "✈️ Туры в Courtyard by Marriott Phuket Patong Beach",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/116934.png",
+    "image_sha256": "3fd2cdcf3d30fb0939c8a55c543bee8d7ac0996d09e8b481701c8f254628d86e"
+  },
+  {
+    "hotel_id": 681,
+    "name": "Kata Sea Breeze Resort",
+    "accepted_first_line": "✈️ Туры в Kata Sea Breeze Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/681.png",
+    "image_sha256": "7512a5c9fbe206334922e52f8e03a01bbf14abbcc898694b349f445b266c68c3"
+  },
+  {
+    "hotel_id": 8008,
+    "name": "La Flora Khao Lak",
+    "accepted_first_line": "✈️ Туры в La Flora Khao Lak",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/8008.png",
+    "image_sha256": "6536ba5eeec32f02fa5d1bf1019d825dad9aad075cc62e754d3446db6e2adc07"
+  },
+  {
+    "hotel_id": 119046,
+    "name": "Sugar Marina Resort Pop Kata Beach",
+    "accepted_first_line": "✈️ Туры в Sugar Marina Resort Pop Kata Beach",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-42/119046.png",
+    "image_sha256": "41fff4595e50ee18c04cf072a031bdd428c4f5512d0deecfcc4d69655f6c4fb8"
+  }
+]
