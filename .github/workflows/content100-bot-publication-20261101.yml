@@ -1,4 +1,4 @@
-name: Read the existing Side Star media operation without another write
+name: Complete the confirmed MAX cover and first Telegram media edit
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -44,6 +44,12 @@ jobs:
           name: commercial-hotel-caption-cta-dedup-20261107-1-result
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/prior-cta-dedup
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42363843492
+          name: commercial-side-star-media-20261107-1-read1-result
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/side-star-readback
       - name: Bind the committed cover to the two exact current Side Star contexts
         shell: bash
         run: |
@@ -60,10 +66,11 @@ jobs:
           assert receipt['ok'] and receipt['operation']=='commercial-hotel-caption-cta-dedup-20261107-1-v1' and receipt['commercial_text_updates']==6 and receipt['new_posts_created']==0
           selected=[r for r in receipt['posts'] if r['logical_id']=='commercial-side-star-resort-1095-v1']
           assert len(selected)==2 and {r['version_id'] for r in selected}=={929,932} and all(r['text_sha256']==media['text_sha256'] for r in selected)
-          payload={'operation':media['operation'],'media':media,'prior_result':receipt}
+          readback=json.loads((tmp/'side-star-readback'/'channel-preflight.json').read_text().splitlines()[-1]);assert readback['ok'] and readback['operation']=='commercial-side-star-media-20261107-1-read1'
+          payload={'operation':media['operation'],'media':media,'prior_result':receipt,'readback':readback}
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode();(tmp/'side-star-media-input.json').write_bytes(raw)
-          source=(base/'read-side-star-media-original-receipt-20261107-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='71800121e0c0f1d3c2c36d8128e7a2ddf01a6a80129eda12557efd894a40fa48'
+          source=(base/'finish-side-star-media-original-operation-20261107-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='47d1354487d96a5ba65b9cf3864aedaeada81fac565bbf2be3b61258a474d4a7'
           constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_MEDIA_OPERATION='commercial-side-star-media-20261107-1-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
@@ -73,7 +80,7 @@ jobs:
       - name: Retain exact approved media intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-side-star-media-20261107-1-read1-inputs
+          name: commercial-side-star-media-20261107-1-finish1-inputs
           path: ${{ runner.temp }}/side-star-media-input.json
           retention-days: 14
           if-no-files-found: error
@@ -115,7 +122,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read the original receipt and current MAX state once without retry
+      - name: Confirm saved MAX success and execute the first Telegram media edit
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -128,17 +135,25 @@ jobs:
           import pathlib,json,os
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
-          print(json.dumps({k:d[k] for k in ('operation','mode','ok','provider_writes','registry_writes','new_posts_created','error','max_readback_summary','next_candidate_registry_clearance') if k in d},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-side-star-media-20261107-1-read1' and d['ok'] is True
-          assert d['provider_writes']==d['registry_writes']==d['new_posts_created']==0
-          print('SIDE_STAR_ORIGINAL_RECEIPT_AND_CURRENT_STATE_READ_NO_WRITE')
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-side-star-media-20261107-1-v1' and d['mode']=='complete_confirmed_max_registry_and_first_telegram_media_edit'
+          assert d['ok'] is True and d['media_updates']==2 and len(d['posts'])==2 and d['new_posts_created']==0 and d['media_edit_attempts']==2
+          assert d['caption_edits']==d['tour_search_calls']==d['price_queries']==d['max_provider_writes_this_action']==d['max_uploads_this_action']==0
+          source=json.loads((tmp/'side-star-media-input.json').read_text());prior={p['platform']:p for p in source['prior_result']['posts'] if p['logical_id']=='commercial-side-star-resort-1095-v1'}
+          for p in d['posts']:
+              old=prior[p['platform']]
+              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','source_key','text_sha256'))
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id']
+              assert p['previous_photo_signature']==old['photo_signature'] and p['photo_signature']!=old['photo_signature']
+              assert p['photo_sha256']==source['media']['photo_sha256'] and p['caption_unchanged'] and p['body_photo_button_verified'] and p['existing_message_reused']
+          print('SIDE_STAR_TWO_EXISTING_MEDIA_UPDATED caption_button_token_url=preserved new_posts=0 other_hotels_changed=0')
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-side-star-media-20261107-1-read1-result
+          name: commercial-side-star-media-20261107-1-finish1-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
