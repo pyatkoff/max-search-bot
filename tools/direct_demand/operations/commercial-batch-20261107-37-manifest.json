@@ -1,0 +1,1254 @@
+{
+  "operation": "commercial-hotel-batch-20261107-37-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 441,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read41",
+        "run_id": 42407026283,
+        "original_read_sha256": "9d7a542608da9bfb6c136b58703ded041a77fc22458d469f0e0360ce66e3734a",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed17 commercial captions in cutover24 format,51 real source photos and17 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before37/38 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-seventeen-after-441-commercial-release-manifest.json",
+    "sha256": "175bc60c8643468365635892c966498e04301c310c2d26a18ad2ed3375f1239d",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-fourth20-commercial-captions.json",
+    "caption_sha256": "3620d6a06db0abad061cad2d6c57095452843e94af5c471a4ed4cb35b72abf39",
+    "subset_native_ids": [
+      54621,
+      1579,
+      1218,
+      52925,
+      49083,
+      42928,
+      1712,
+      1647,
+      109655,
+      108942
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "source_held_native_ids": [
+    132016,
+    473,
+    475
+  ],
+  "media_held_native_ids": [],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    },
+    {
+      "native_hotel_id": 319,
+      "public_url": "https://max.ru/channel_anytour/AaF1Ae28ZNw"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 54621,
+      "logical_id": "commercial-green-garden-54621-v1",
+      "aliases": [
+        "Green Garden Resort & Spa Hotel",
+        "GREEN GARDEN RESORT HOTEL"
+      ],
+      "text": "✈️ Туры в Green Garden Resort & Spa с перелётом\n📍 Аланья, Турция.\n\nОтдых вдвоём с балконом и пляжем неподалёку.\n\n🛏 Двухместный Standard Land View 23 м² в главном здании, с балконом.\n🍽 All Inclusive.\n🏖 Собственный пляж примерно в 300 м через дорогу; есть каменистые участки.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом.",
+      "text_sha256": "98bb1e342e2ad69ae64dd9a64eeb545442358b625002aea0ef522e4ffd71cc1d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/54621.png",
+      "photo_sha256": "d2620efb94f690be22cd4e0d543d15dfcf986380b1ec927ff0ef5adc0cb3e1cf",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/uz/rus/country/turkey/alanya/green_garden_resort_spa_hotel/",
+        "https://kompastour.com/kz/rus/country/turkey/alanya/green_garden_resort_spa_hotel/",
+        "https://www.ltur.com/at/urlaub/green-garden-resort-and-spa-hotel-263463",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/green-garden-apartment-62674900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/green-garden-apartment-62674949.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/green-garden-apartment-62674927.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 30791,
+        "anytour_id": 5839,
+        "legacy_native_id": 54621,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ1-IX6I",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_720042a3bd586b89_run05_c01",
+        "top500_720042a3bd586b89_run05_c02",
+        "top500_720042a3bd586b89_run05audit_c04",
+        "top500_720042a3bd586b89_run11_c01",
+        "top500_720042a3bd586b89_run11_c02",
+        "top500_720042a3bd586b89_run11_c03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/green-garden-apartment-62674900.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "92cf709e231b113b54b93f765383918fd3ef133a9def7a551a04ab873cd6e9ff",
+          "source_png_sha256": "86800deb305d85925f36ecad76396d7165206a4e4439194b8a370677202a55fe",
+          "source_png_bytes": 848806,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Территория и бассейн Green Garden Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ22rE-k",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "green-garden-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g51",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/green-garden-apartment-62674949.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2ea2eea8127201f388aa1bf9729453af3a01840a2159f9bd1811ed81ce81bb9a",
+          "source_png_sha256": "eb1ed4bdc127b0a36e8bb2d329b333b136aefda61edd670a624e48e8842a1818",
+          "source_png_bytes": 440408,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Green Garden Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ18avJs",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "green-garden-g51.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g29",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/green-garden-apartment-62674927.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f71b88f68d77166749103ce83b75441c63a91eb51b1b62422db06e5aba934be5",
+          "source_png_sha256": "c3ad1ba1bf72eaf9623e03f7caf8d3476f97b0d4d06bc3c355af495f05d2d739",
+          "source_png_bytes": 948376,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Пляж Green Garden Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ7shTpk",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "green-garden-g29.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1579,
+      "logical_id": "commercial-orange-alanya-1579-v1",
+      "aliases": [
+        "Orange County Alanya",
+        "ORANGE COUNTY RESORT HOTEL ALANYA"
+      ],
+      "text": "✈️ Туры в Orange County Alanya с перелётом\n📍 Аланья, Турция.\n\nПляжный отпуск с вечерней дискотекой.\n\n🛏 Standard от 20 до 32 м².\n🍽 Ultra All Inclusive.\n🏖 Собственный пляж с песком и галькой рядом с отелем.\n🎶 Дискотека для вечернего отдыха.\n\n✈️ Подберём размещение под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "9a2e13e839580a670eb99c05f1202ab8a3d1b04172010e4d47a527a313206f8f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/1579.png",
+      "photo_sha256": "1863611b8dab1670afe12d1e2d42ee4fe0c1a421afc01b90a8f50061aa7c6da5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/useruploads/tiny_MCE/turkey/Alanya/orange_county_resort_hotel_alanya/ORANGE_COUNTY_ALANYA_FACTSHEET.10.pdf",
+        "https://kompastour.com/by/rus/country/turkey/alanya/orange_county_resort_hotel_alanya/",
+        "https://kompastour.com/ua/rus/country/turkey/alanya/orange_county_resort_hotel_alanya/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/vikingen-quality-resort-spa-93376400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/vikingen-quality-resort-spa-93376417.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/vikingen-quality-resort-spa-93379102.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 11707,
+        "anytour_id": 758,
+        "legacy_native_id": 1579,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ42LxRY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e9ba85c906442001_run05_c01",
+        "top500_e9ba85c906442001_run05_c02",
+        "top500_e9ba85c906442001_run05_c03",
+        "top500_e9ba85c906442001_run05_c04",
+        "top500_e9ba85c906442001_run05audit_c05",
+        "top500_e9ba85c906442001_demand19_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/vikingen-quality-resort-spa-93376400.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0ec171bdab2610a8708e1fb58916e7a48329b9e4ccc2d76448798df7b423f6f0",
+          "source_png_sha256": "5ba6a2168a073122f70c4d7efa5377a60af651fe674f942f25b9a5c042e3b60a",
+          "source_png_bytes": 967173,
+          "dimensions": [
+            1024,
+            684
+          ],
+          "alt": "Здание Orange County Alanya у моря",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2j8nWQ",
+          "canva_asset_dimensions": [
+            1024,
+            684
+          ],
+          "source_png_filename": "orange-alanya-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/vikingen-quality-resort-spa-93376417.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a6b845ba1ad0346b0838b08e3e4de35ed1f795d99599c939d6263d7f82fa9b95",
+          "source_png_sha256": "144f5e78e1eb1f9c59f082b76052e0c2f9d0e5485379da7cfff590e88f92a123",
+          "source_png_bytes": 419129,
+          "dimensions": [
+            1024,
+            599
+          ],
+          "alt": "Один из номеров Orange County Alanya",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQxaohbY",
+          "canva_asset_dimensions": [
+            1024,
+            599
+          ],
+          "source_png_filename": "orange-alanya-g19.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g64",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/vikingen-quality-resort-spa-93379102.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0d1319bac0b59688fb6862a36a1f1acec37ccd03e39de8a1562050fa8132de5b",
+          "source_png_sha256": "c66e8aec951b131b9577a3f6c7e6cd0ece5deaff3432520ac395c919b34aad60",
+          "source_png_bytes": 1024040,
+          "dimensions": [
+            1024,
+            684
+          ],
+          "alt": "Лобби Orange County Alanya",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_uyP2A",
+          "canva_asset_dimensions": [
+            1024,
+            684
+          ],
+          "source_png_filename": "orange-alanya-g64.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1218,
+      "logical_id": "commercial-grand-kaptan-1218-v1",
+      "aliases": [
+        "Grand Kaptan Hotel",
+        "GRAND KAPTAN"
+      ],
+      "text": "✈️ Туры в Grand Kaptan с перелётом\n📍 Аланья, Турция.\n\nДля семьи, которой удобно отдыхать в соединённых номерах.\n\n🛏 Connecting от 50 до 60 м²: два соединённых стандартных номера, два санузла и два балкона.\n🍽 Ultra All Inclusive.\n🏖 Собственный пляж с песком и галькой через дорогу.\n\n✈️ Подберём размещение для вашей семьи и рассчитаем тур с перелётом.",
+      "text_sha256": "f5969c012804521e2e0864f60cc3329bfafb0cc09d0838d16d5ccccb4b5295d6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/1218.png",
+      "photo_sha256": "d4bdba5e85d01dd34105ec902e749af604d2e535d851cdd5241b9be77cddc30d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/alanya/grand_kaptan/",
+        "https://kompastour.com/useruploads/tiny_MCE/turkey/Alanya/grand_kaptan/ENGLISH_CONCEPT_2026_.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-kaptan-41806400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-kaptan-41806448.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-kaptan-41809323.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 18645,
+        "anytour_id": 550,
+        "legacy_native_id": 1218,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ8VBFa0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_2fbd003da0e38cca_run05_c01",
+        "top500_2fbd003da0e38cca_run05_c02",
+        "top500_2fbd003da0e38cca_run05_c04",
+        "HOTEL-TR-MANUAL-20261025T183648Z-BASE04_c03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-kaptan-41806400.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b9b0a41974dd5a3fb078d1bbb1aa47414b18a89b001a91a5dc0380010b55dad1",
+          "source_png_sha256": "7af18e19c877e5abcd7d7b92d1a2f50c7c61ddf07091de3f76673bbd55897eb0",
+          "source_png_bytes": 1327894,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Побережье и территория Grand Kaptan",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ-1w3RU",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "grand-kaptan-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g49",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-kaptan-41806448.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "259e7b3d6747f4865a12629e4a4dbdc4dc9192b52a987b51f70ce8f08282924a",
+          "source_png_sha256": "9d953cc8496cd3e216d84a44244f049932133f457780aa0ee2fa1ced6bac8800",
+          "source_png_bytes": 1080700,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Главный вход Grand Kaptan",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ1oqJCY",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "grand-kaptan-g49.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g84",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-kaptan-41809323.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e7e1473c4a68dd5173bb10419de9b341de3f2e020461ae8e10c8fc40c4ec3390",
+          "source_png_sha256": "01b731d8e6c586f96bd6fa464c6f3d1ee0dcdc314b0b5c13c343ff49d4c098ed",
+          "source_png_bytes": 825165,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бар у моря Grand Kaptan",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ5_Oq3E",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "grand-kaptan-g84.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 52925,
+      "logical_id": "commercial-bosphorus-sorgun-52925-v1",
+      "aliases": [
+        "Bosphorus Sorgun Hotels",
+        "BOSPHORUS SORGUN"
+      ],
+      "text": "✈️ Туры в Bosphorus Sorgun с перелётом\n📍 Сиде, Турция.\n\nОтдых вдвоём с просторным номером и вечерними шоу.\n\n🛏 Двухместный Standard Land View от 30 до 34 м² с балконом или террасой.\n🍽 Ultra All Inclusive.\n🎶 Шоу и живая музыка.\n\n✈️ Рассчитаем полную стоимость тура с перелётом и подходящим номером.",
+      "text_sha256": "03615ce13f04956ce43b6b8979baba45f1c782faed201d09731f95ca1d59ae23",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/52925.png",
+      "photo_sha256": "c7bd4ae3924499d1c7d8f7a2440759767faf7c24b4b5a101aa1219ab06f8b7c7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.com/hotels/bosphorus-sorgun-hotel-567130/hotelinformation/",
+        "https://www.bosphorussorgun.com/en/hotels/bosphorus-sorgun-hotel/dining",
+        "https://neckermann.be/nl/vakanties/turkije/turkse-riviera/manavgat/bosphorus-sorgun-hotel--567130",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/bosphorus-sorgun-74069700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/bosphorus-sorgun-74115800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/bosphorus-sorgun-74069741.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15180,
+        "anytour_id": 2538,
+        "legacy_native_id": 52925,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ9JZh3Q",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_45e1e628021b82d0_run05audit_c01",
+        "top500_45e1e628021b82d0_run05audit_c02",
+        "top500_45e1e628021b82d0_run05audit_c05",
+        "top500_45e1e628021b82d0_run11_c01",
+        "top500_45e1e628021b82d0_run11_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/bosphorus-sorgun-74069700.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7a876be7dc270246f3e8d42cd11c4f5480b9554465caa2248ca24a207c490539",
+          "source_png_sha256": "d371ddfbf81c152b8cdc9aaf343f16350a2c5ad7761697a3ef0d8efa25336492",
+          "source_png_bytes": 762641,
+          "dimensions": [
+            1024,
+            575
+          ],
+          "alt": "Расположение Bosphorus Sorgun у реки и моря",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8fSKOE",
+          "canva_asset_dimensions": [
+            1024,
+            575
+          ],
+          "source_png_filename": "bosphorus-sorgun-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/bosphorus-sorgun-74115800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a25adb23f334f03d81cea526491453c4ea71a7529d5850b2964695369e8f5fd9",
+          "source_png_sha256": "c6de27d8a7a428c00e5756aa7be7f71fe4e809020dfbef138b4de94daa8e55e3",
+          "source_png_bytes": 921805,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Один из номеров Bosphorus Sorgun",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQzk_o-g",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "bosphorus-sorgun-g02.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g43",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/bosphorus-sorgun-74069741.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a0260da507a461a102e9ceb994c51b72c67156f6c4e6415ba44b0dc57d7d56d7",
+          "source_png_sha256": "d1e731078ed767adb8864b938abf2e5783144d42305b6c0549de1327a6c96858",
+          "source_png_bytes": 616078,
+          "dimensions": [
+            1024,
+            575
+          ],
+          "alt": "Пляж Bosphorus Sorgun",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQwgoDeo",
+          "canva_asset_dimensions": [
+            1024,
+            575
+          ],
+          "source_png_filename": "bosphorus-sorgun-g43.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 49083,
+      "logical_id": "commercial-land-legends-kingdom-49083-v1",
+      "aliases": [
+        "The Land Of Legends Kingdom Hotel",
+        "THE LAND OF LEGENDS KINGDOM (EX. RIXOS THE LAND OF LEGENDS THEME PARK)"
+      ],
+      "text": "✈️ Туры в The Land of Legends Kingdom с перелётом\n📍 Белек, Турция.\n\nОтпуск с вечерними шоу и поющими фонтанами.\n\n🛏 Deluxe 38 м².\n🍽 All Inclusive.\n🎭 Вечерние представления и фонтаны.\n\n✈️ Подберём номер под вашу семью и рассчитаем тур с перелётом на нужные даты.",
+      "text_sha256": "b3594ec2161ffccbd20a78444efcddca9ba7722a4df8e13894744872db592b89",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/49083.png",
+      "photo_sha256": "6a0e5a1e8b8da2e7f23b9127be9d15e4e873f8a81790fc6d28dd31b885e5f76f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://allinclusive-collection.com/hotel/the-land-of-legends-kingdom/",
+        "https://www.thelandoflegends.com/en/hotels/kingdom-hotel",
+        "https://kompastour.com/by/rus/country/turkey/belek/the_land_of_legends_kingdom_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-the-land-of-legends-70444900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-the-land-of-legends-70444902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-the-land-of-legends-70464532.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 12755,
+        "anytour_id": 2468,
+        "legacy_native_id": 49083,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ4hhhDU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_78c3c80292cefd0f_run05_c01",
+        "top500_78c3c80292cefd0f_run05_c02",
+        "top500_78c3c80292cefd0f_run05_c03",
+        "top500_78c3c80292cefd0f_run05_c04",
+        "top500_78c3c80292cefd0f_run05audit_c03",
+        "top500_78c3c80292cefd0f_run05audit_c04",
+        "top500_78c3c80292cefd0f_run05audit_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-the-land-of-legends-70444900.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "978403e59fceb020a079813fccf8fa904858799d8d4fc60773450e86b11fdb3a",
+          "source_png_sha256": "db071b433cf672fdf64c95998ffb07fa4dd7c34c3a940f803317375ce8a3b6e3",
+          "source_png_bytes": 1259096,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Здание The Land of Legends Kingdom",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ5e2iaI",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "land-legends-kingdom-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-the-land-of-legends-70444902.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "681dd71b7293c6f6dab494a83fd62f9993295cb9f3d8b0a7fd28caac70b12b51",
+          "source_png_sha256": "240ecbfb39bb04dbcb47880361755fb4ebaed1d1b93d6d0f614cf37d2ef6f3b4",
+          "source_png_bytes": 909846,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Один из номеров The Land of Legends Kingdom",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQyVUk00",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "land-legends-kingdom-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g145",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rixos-the-land-of-legends-70464532.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "bc5695cf758cd4e7146deaf4bc885eda7ce7246caebfc913aa2e3974f1a27571",
+          "source_png_sha256": "3e551062a8ef46e766669d416e4b9039dd1213f0fae8400fe5c58a870053acfa",
+          "source_png_bytes": 733716,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Игровая комната The Land of Legends Kingdom",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQymI2cQ",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "land-legends-kingdom-g145.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 42928,
+      "logical_id": "commercial-diamond-premium-42928-v1",
+      "aliases": [
+        "Diamond Premium Hotel & Spa",
+        "DIAMOND PREMIUM"
+      ],
+      "text": "✈️ Туры в Diamond Premium Hotel & Spa с перелётом\n📍 Сиде, Турция.\n\nПляжные дни и вечера с живой музыкой.\n\n🛏 Standard 28 м².\n🍽 Ultra All Inclusive.\n🏖 Собственный пляж с песком и галькой примерно в 250 м.\n🎶 Живая музыка и дискотека.\n\n✈️ Подберём подходящее размещение и рассчитаем тур с перелётом.",
+      "text_sha256": "d738a461d3aabfde9ff9d20929f5843d15221a507e3f999787b24fbce17f65d2",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/42928.png",
+      "photo_sha256": "396c93e60efa360c112efcecd26c75d7151cf9cfc0ab76222c53fdeb8a7f59ed",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/turkey/side/diamond_premium_spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/42928-2809000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/42928-2809011.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/42928-2809035.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 17307,
+        "anytour_id": 2339,
+        "legacy_native_id": 42928,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQyNXi_Q",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_0816af2c11b1eb85_run06_c01",
+        "top500_0816af2c11b1eb85_run06_c02",
+        "top500_0816af2c11b1eb85_run06_c03",
+        "top500_0816af2c11b1eb85_run06_c04",
+        "top500_0816af2c11b1eb85_run06_c05",
+        "top500_0816af2c11b1eb85_run06_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/42928-2809000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e15b08e4176d238d0333b9b6b74f7b1d2fa27e2239585f224875050795130f12",
+          "source_png_sha256": "8bbeba0cd2201fd8afc2698fdb56844ea030c7b455303484bcb9acb80676366f",
+          "source_png_bytes": 1559863,
+          "dimensions": [
+            1200,
+            821
+          ],
+          "alt": "Здание и бассейн Diamond Premium Hotel & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQyMvp34",
+          "canva_asset_dimensions": [
+            1200,
+            821
+          ],
+          "source_png_filename": "diamond-premium-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g13",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/42928-2809011.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2a02213e3c15637ecc59d3fe3241a4540727e23d821691b9504552e1de67a3b2",
+          "source_png_sha256": "189a36cf47ba70d7039600df69395ba4b4255008524c010381039e398a420797",
+          "source_png_bytes": 899748,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Лобби Diamond Premium Hotel & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQyaSg1Q",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "diamond-premium-g13.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g36",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/42928-2809035.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d1afed907778fbba214f1aba8cb601cc36a4eb16d63ff45e41b65a221ecb668b",
+          "source_png_sha256": "74302599a66c3a9426f202890eb60b976ee2c69676cbd10b869af20a9d81eeee",
+          "source_png_bytes": 704550,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Буфет ресторана Diamond Premium Hotel & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9xFSrs",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "diamond-premium-g36.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1712,
+      "logical_id": "commercial-turunc-resort-1712-v1",
+      "aliases": [
+        "Turunc Resort",
+        "TURUNC HOTEL"
+      ],
+      "text": "✈️ Туры в Turunc Resort с перелётом\n📍 Мармарис, Турция.\n\nОтдых вдвоём с боковым видом на море и пляжем рядом.\n\n🛏 Двухместный номер с балконом и боковым видом на море.\n🍽 All Inclusive.\n🏖 Собственный пляж на первой линии.\n\n✈️ Рассчитаем тур с перелётом и нужной категорией номера на ваши даты.",
+      "text_sha256": "79b1286312eeadda04f691172bedb08c6f5c28b99681d5f120962633d9f88920",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/1712.png",
+      "photo_sha256": "8537b0b7023575031c2fa5a400dc9ac9da50c4b836d7f41b855fd4b36581ced3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://holidays.eurowings.com/de-de/hotel/turkei/turunc--marmaris-/turunc-resort-4451",
+        "https://kompastour.com/ge/eng/country/turkey/marmaris/turunc_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/turunc-hotel-61758900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/turunc-hotel-61758901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/turunc-hotel-61758930.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 9163,
+        "anytour_id": 819,
+        "legacy_native_id": 1712,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ65VWFo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_a0731cc3435dc34a_mass31_c01",
+        "top500_a0731cc3435dc34a_mass31_c02",
+        "top500_a0731cc3435dc34a_run06_c01",
+        "top500_a0731cc3435dc34a_run06_c02",
+        "top500_a0731cc3435dc34a_run06_c04",
+        "top500_a0731cc3435dc34a_run06_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/turunc-hotel-61758900.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d1fe5cc356dd86b251c475cb678ac5394b9a6dffe59a4f6ccbf88c0ce357b782",
+          "source_png_sha256": "d7a672fe6d87e846976eaf43ea193a54f8b3c0da361c272311d7c83264429042",
+          "source_png_bytes": 1032056,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Бухта и территория Turunc Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8dn6Kk",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "turunc-resort-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/turunc-hotel-61758901.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7d09436a2fa61394eac23d88c92131158c35afb5144fa9ddec29eb85498694ba",
+          "source_png_sha256": "fba43de95854aa48f1786a19c0db8eb2b84689fc8e743394ab79e936edda602e",
+          "source_png_bytes": 605617,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Turunc Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_MJePI",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "turunc-resort-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g30",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/turunc-hotel-61758930.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "70cf6b4a4f2abbbe89b12c3248ea13d078ea23a9a5f3dafe73f9e6503a87f1e2",
+          "source_png_sha256": "d783011cd10ba241d2aafe4a81018aae200139bc2adbfdbf41b843b920041de2",
+          "source_png_bytes": 670102,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Вечерняя программа Turunc Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQyq658c",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "turunc-resort-g30.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1647,
+      "logical_id": "commercial-yazici-turban-1647-v1",
+      "aliases": [
+        "Grand Yazici Club Turban Thermal Hotel",
+        "GRAND YAZICI CLUB TURBAN"
+      ],
+      "text": "✈️ Туры в Grand Yazici Club Turban с перелётом\n📍 Мармарис, Турция.\n\nДля семьи, которой нужны отдельные спальни и две ванные.\n\n🛏 Family 38 м²: две спальни с дверью и две ванные комнаты.\n🏖 Собственный пляж примерно в 50 м, есть деревянная платформа.\n🎶 Живая музыка в отдельные дни.\n\n✈️ Подберём питание и размещение, рассчитаем тур с перелётом для вашей семьи.",
+      "text_sha256": "bf4523911b9a83e115f0e3e36cf4ec0ee2d45cf48555db8ccde727802d69ec6b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/1647.png",
+      "photo_sha256": "7527e3a141c227dbd4e4b331fa0eeb3de6589867168f729f5cad7248437de0e0",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/marmaris/grand_yazici_club_turban_termal_otel/",
+        "https://www.tui.nl/grand-yazici-club-turban-thermal-50956884/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-yazici-club-turban-50021300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-yazici-club-turban-50021302.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-yazici-club-turban-50045911.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 9432,
+        "anytour_id": 4467,
+        "legacy_native_id": 1647,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQ6jgGNA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_d8a15414e00ed111_run06_c03",
+        "top500_d8a15414e00ed111_run06_c04",
+        "top500_d8a15414e00ed111_run06_c05",
+        "top500_d8a15414e00ed111_run06_c06",
+        "top500_d8a15414e00ed111_run06audit_c02",
+        "top500_d8a15414e00ed111_run06audit_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-yazici-club-turban-50021300.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4897bb5a9ecb8255855a8447bafdc32134bcbaf238d6012e9d274e0a00a23f14",
+          "source_png_sha256": "55f233c2125fd67b6b13ce4c72347a19a6aaee41d4bc6de4afcb6e4cfce97efc",
+          "source_png_bytes": 1541803,
+          "dimensions": [
+            1024,
+            711
+          ],
+          "alt": "Пляж и территория Grand Yazici Club Turban",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQyQmt9w",
+          "canva_asset_dimensions": [
+            1024,
+            711
+          ],
+          "source_png_filename": "yazici-turban-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-yazici-club-turban-50021302.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a203edfd2e505e6132058f2c1bdb00e0ce10e8f3b47fbf88627845e6f23bf326",
+          "source_png_sha256": "fc32e85e46644baca4294f190e5ca14e9ea4d01cad3644ab1deb6e369e56de3b",
+          "source_png_bytes": 1266519,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Сад Grand Yazici Club Turban",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ5J3WSo",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "yazici-turban-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g132",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/grand-yazici-club-turban-50045911.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a3598257c3d80653433e986e45fe91029d4bb023277a1198c30d382bee3ff06d",
+          "source_png_sha256": "8be93981a80492fffe4efc2775c6551a000bd7f7316f2c284ef3d0c55da529a6",
+          "source_png_bytes": 897238,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Буфет ресторана Grand Yazici Club Turban",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ1jA4sE",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "yazici-turban-g132.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 109655,
+      "logical_id": "commercial-liberty-signa-109655-v1",
+      "aliases": [
+        "Liberty Signa Hotel",
+        "LIBERTY SIGNA"
+      ],
+      "text": "✈️ Туры в Liberty Signa с перелётом\n📍 Фетхие, Турция.\n\nОтдых вдвоём с боковым видом на море и вечерними шоу.\n\n🛏 Двухместный Side Sea View 35 м².\n🍽 Ultra All Inclusive.\n🏖 Собственный пляж рядом с отелем.\n🎶 Вечерние шоу и живая музыка.\n\n✈️ Подберём номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "08c99bbbbcb1af225391325853d8284195c371dabf897a2b341954a684cda03c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/109655.png",
+      "photo_sha256": "c917b801795143b2e1e4828047f53798ac2b535ddcc8efddd9f0a8e14558e95b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/eng/country/turkey/fethie/liberty_signa/",
+        "https://www.tui.nl/liberty-signa-5091010284/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/liberty-signa-50874800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/liberty-signa-50874817.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/liberty-signa-50891302.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37395,
+        "anytour_id": 7134,
+        "legacy_native_id": 109655,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ2nabVw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_3c3f08a5ea0e73bf_run06_c01",
+        "top500_3c3f08a5ea0e73bf_run06_c02",
+        "top500_3c3f08a5ea0e73bf_run06_c04",
+        "top500_3c3f08a5ea0e73bf_run06_c05",
+        "top500_3c3f08a5ea0e73bf_run06_c06",
+        "top500_3c3f08a5ea0e73bf_run06audit_c03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/liberty-signa-50874800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0e8e0495a2f02e43c11d81a5137476ccde95f8954022c68d22972e793c25e3e3",
+          "source_png_sha256": "21ac5d6ffff3cccbe961a852e2b894a3d692a41d61a097331411d99f7c2d9668",
+          "source_png_bytes": 1406297,
+          "dimensions": [
+            1200,
+            900
+          ],
+          "alt": "Территория и побережье Liberty Signa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ0u84Wg",
+          "canva_asset_dimensions": [
+            1200,
+            900
+          ],
+          "source_png_filename": "liberty-signa-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g18",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/liberty-signa-50874817.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "490b57bced8a97c5aa3b66172ba85f9e96f38a948941bed22e52112b2a223893",
+          "source_png_sha256": "d423bed404ff301d9c016aac8b6679e9d91f0346b0b315899b107b6ef58ae414",
+          "source_png_bytes": 1466960,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Терраса ресторана Liberty Signa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQzPlRfE",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "liberty-signa-g18.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g48",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/liberty-signa-50891302.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "240d3aaf787ed8fff35033b6479b7104bb72c4d29fcb6ae4749c1e5c41c71e0a",
+          "source_png_sha256": "1af038730d601e7dcbcd3a72013b9eeddb3a86c09f7a17e0efa05abe41e37ef6",
+          "source_png_bytes": 1362214,
+          "dimensions": [
+            1200,
+            1014
+          ],
+          "alt": "Вечерняя сцена Liberty Signa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8IJam4",
+          "canva_asset_dimensions": [
+            1200,
+            1014
+          ],
+          "source_png_filename": "liberty-signa-g48.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 108942,
+      "logical_id": "commercial-maxx-bodrum-108942-v1",
+      "aliases": [
+        "Maxx Royal Bodrum",
+        "MAXX ROYAL BODRUM RESORT"
+      ],
+      "text": "✈️ Туры в Maxx Royal Bodrum с перелётом\n📍 Бодрум, Турция.\n\nПросторный Suite и отдых у бухты Бодрума.\n\n🛏 Suite 72 м².\n🍽 Maxx All Inclusive.\n🏖 Четыре пляжа у отеля, бухта и пирс.\n🎶 Живая музыка.\n\n✈️ Подберём размещение под ваш состав и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "86623e2481b55b356b5c42d7ba61a6e254bcb316ba0b003a466a2bb9e313d95e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/108942.png",
+      "photo_sha256": "569dd6ede7efb262d766b7166ee0577245baf73d19afa9a2b5e328ca0c3cf929",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kg/rus/country/turkey/bodrum/maxx_royal_bodrum_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/maxx-royal-bodrum-resort-22902848.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/maxx-royal-bodrum-resort-22902830.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/maxx-royal-bodrum-resort-22905623.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 37198,
+        "anytour_id": 3714,
+        "legacy_native_id": 108942,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQx4WozU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_f897e944474833fc_run06_c01",
+        "top500_f897e944474833fc_run06_c02",
+        "top500_f897e944474833fc_run06_c03",
+        "top500_f897e944474833fc_run06_c04",
+        "top500_f897e944474833fc_run06_c05",
+        "top500_f897e944474833fc_run06_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g49",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/maxx-royal-bodrum-resort-22902848.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "852d8e0b0e746eec94dcb53a3b7e6c799d9bfe07460b711185de60c0aa75ea77",
+          "source_png_sha256": "9d83a3a7ed3851d62f9db474fc6612b68e1c270d9f96ab64ba037b5b7bbbd0ef",
+          "source_png_bytes": 438815,
+          "dimensions": [
+            1024,
+            636
+          ],
+          "alt": "Территория Maxx Royal Bodrum на закате",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2SUhHo",
+          "canva_asset_dimensions": [
+            1024,
+            636
+          ],
+          "source_png_filename": "maxx-bodrum-g49.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g31",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/maxx-royal-bodrum-resort-22902830.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "71b27a1e21496f0080ad34943cb6dacdf5c70728902c86a1b5de186dee6fefa9",
+          "source_png_sha256": "e7f28a50e68e4045430d34b21d86cf359fce82f4c8b921db6d12d3d981039712",
+          "source_png_bytes": 795922,
+          "dimensions": [
+            1024,
+            560
+          ],
+          "alt": "Ресторан с видом на бухту Maxx Royal Bodrum",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ4WrO0Q",
+          "canva_asset_dimensions": [
+            1024,
+            560
+          ],
+          "source_png_filename": "maxx-bodrum-g31.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g84",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/maxx-royal-bodrum-resort-22905623.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "cf7eb3622e64d35ef96ed46d8ba896fc21b6dab983952cbc3a91337c4a7739ef",
+          "source_png_sha256": "c71e1c0e2d3a286f7ca12096c7669036751a1e7015fe38e1482f6efa3a8b7221",
+          "source_png_bytes": 1387258,
+          "dimensions": [
+            1024,
+            732
+          ],
+          "alt": "Ресторан в саду Maxx Royal Bodrum",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQyPzmQc",
+          "canva_asset_dimensions": [
+            1024,
+            732
+          ],
+          "source_png_filename": "maxx-bodrum-g84.png"
+        }
+      ]
+    }
+  ]
+}
