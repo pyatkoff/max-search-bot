@@ -1,0 +1,293 @@
+{
+  "operation": "commercial-hotel-batch-20261107-8-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 194,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "read_at_utc": "2026-11-07T12:29:43+00:00",
+    "run_id": 42372696111,
+    "ids": [
+      140,
+      8053,
+      58987,
+      1033,
+      386,
+      33313
+    ],
+    "all_clear": true,
+    "same_clearance_not_replayed": true,
+    "predicate": "Exact publisher native/logical/literal case-folded alias matches"
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "rows": [
+    {
+      "hotel_id": 140,
+      "logical_id": "commercial-golden-beach-resort-ex-movie-gate-140-v1",
+      "aliases": [
+        "Golden Beach Resort (Ex. Movie Gate)",
+        "GOLDEN BEACH RESORT (EX. MOVIE GATE)"
+      ],
+      "text": "🏖 Golden Beach Resort 4★ · Хургада\n\nДля семейного отпуска с собственным пляжем и отдельными комнатами.\n\n🌊 Песчаный пляж на первой линии, вход с берега или понтона.\n🛏 Family Two Units 56 м²: два номера со смежной дверью и двумя ванными.\n🎨 Детский клуб для возраста от 4 до 12 лет.\n🎭 Вечерние шоу на территории.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур в Golden Beach с перелётом на ваши даты.",
+      "text_sha256": "6f7177b357f6aca7c58fe3db39cb2156f48fd3cc1cef3d6f9a765f92a068a9f8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/140.png",
+      "photo_sha256": "4ab4dc288494051bf1915646cd98281e331268023c30431e709ea43b313ef07b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.goldenbeachresort.net/activities.html",
+        "https://kompastour.com/az/rus/country/egypt/hurgada_al_ahiya_road/golden_beach_exmovie/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=140&legacyHotelIds%5B%5D=8053&legacyHotelIds%5B%5D=1112&legacyHotelIds%5B%5D=58987&legacyHotelIds%5B%5D=1033&legacyHotelIds%5B%5D=443&legacyHotelIds%5B%5D=386&legacyHotelIds%5B%5D=496&legacyHotelIds%5B%5D=66555&legacyHotelIds%5B%5D=33313"
+      ],
+      "identity_binding": {
+        "anex_id": 1341,
+        "anytour_id": 20,
+        "legacy_native_id": 140,
+        "source_file": "next-ten-after-eight-current-catalog.json",
+        "source_sha256": "558dae3ff3255a57b81e26fa66c4baf8e2da9073d24b832775b86194f0e0c2e2",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaPODIHuA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5e4edf320a749e4e_c04",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c14",
+        "top500_5e4edf320a749e4e_enrich20261020_c03",
+        "top500_5e4edf320a749e4e_c05"
+      ]
+    },
+    {
+      "hotel_id": 8053,
+      "logical_id": "commercial-novotel-phuket-vintage-park-8053-v1",
+      "aliases": [
+        "Novotel Phuket Vintage Park",
+        "NOVOTEL PHUKET VINTAGE PARK"
+      ],
+      "text": "🌴 Novotel Phuket Vintage Park 4★ · Патонг\n\nСемейный отпуск на Патонге: своя спальная зона для родителей и детей.\n\n🛏 Family Room 45 м²: спальные зоны родителей и детей, King и двухъярусная кровать, два санузла.\n💧 Deluxe Pool Access with Jacuzzi 46 м²: отдельная категория с выходом к бассейну и личным джакузи.\n🍽 В ресторане The Square есть тайские блюда и детское меню.\n\nДо общественного пляжа Патонг можно дойти пешком.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "4c6b493dd24a5c09e2afa5e22e2635201922d62ae06b4b66149ba9720a7d1b83",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/8053.png",
+      "photo_sha256": "05af188e6da7ed2581bc1b0a60f0215955bc209bcbac61dd4aa90946b96051de",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.novotelphuketvintagepark.com/news/hotel-near-patong-beach/",
+        "https://kompastour.com/kz/rus/country/thailand/phuket/novotel_phuket_vintage_park/",
+        "https://www.novotelphuketvintagepark.com/guest-rooms/family-room/",
+        "https://www.novotelphuketvintagepark.com/news/family-friendly-hotels-phuket-family-rooms/",
+        "https://www.novotelphuketvintagepark.com/guest-rooms/deluxe-pool-access-room/",
+        "https://www.novotelphuketvintagepark.com/restaurants-bars/",
+        "https://www.novotelphuketvintagepark.com/restaurants-bars/the-square/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=140&legacyHotelIds%5B%5D=8053&legacyHotelIds%5B%5D=1112&legacyHotelIds%5B%5D=58987&legacyHotelIds%5B%5D=1033&legacyHotelIds%5B%5D=443&legacyHotelIds%5B%5D=386&legacyHotelIds%5B%5D=496&legacyHotelIds%5B%5D=66555&legacyHotelIds%5B%5D=33313"
+      ],
+      "identity_binding": {
+        "anex_id": 13980,
+        "anytour_id": 1423,
+        "legacy_native_id": 8053,
+        "source_file": "next-ten-after-eight-current-catalog.json",
+        "source_sha256": "558dae3ff3255a57b81e26fa66c4baf8e2da9073d24b832775b86194f0e0c2e2",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaPGylLH0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261022T003235Z_137_b8e378c2_c01",
+        "country61_TH_20261025T193417Z_mass_c18",
+        "country61_TH_20261025T211312Z_mass_c08",
+        "country61_TH_20261025T211312Z_mass_c09",
+        "top500_405633e0a7eed5f6_demand17_c01"
+      ]
+    },
+    {
+      "hotel_id": 58987,
+      "logical_id": "commercial-seashells-phu-quoc-hotel-spa-58987-v1",
+      "aliases": [
+        "Seashells Phu Quoc Hotel & Spa",
+        "SEASHELLS PHU QUOC HOTEL & SPA"
+      ],
+      "text": "🌊 Seashells Phu Quoc Hotel & Spa 5★ · Фукуок\n\nДля пары, которой хочется совместить море и вечерние прогулки по Дуонг Донгу.\n\n🏖 Собственный пляж у отеля.\n🌃 Ночной рынок примерно в 200 м.\n🛏 Classic City View 33 м² с балконом и кроватью King или двумя отдельными кроватями.\n💧 Бассейн и тренажёрный зал на территории.\n\nУ Classic City View ванная со стеклянной стеной.\n\n✈️ Подберём номер и питание в Seashells, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f0a44e1c682c4fc96432487e1135aa6cfc4bd2580793afbf66f7cdba56bd7643",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/58987.png",
+      "photo_sha256": "0754e4cb72ed347c447fcf0f1aab72f452ac0847185302b455c0d5dcf7470be2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/vietnam/fukuok/seashells_hotel_spa_phuquoc/",
+        "https://www.seashellshotel.vn/en/rooms-suites/classic-city-view/",
+        "https://www.seashellshotel.vn/en/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=140&legacyHotelIds%5B%5D=8053&legacyHotelIds%5B%5D=1112&legacyHotelIds%5B%5D=58987&legacyHotelIds%5B%5D=1033&legacyHotelIds%5B%5D=443&legacyHotelIds%5B%5D=386&legacyHotelIds%5B%5D=496&legacyHotelIds%5B%5D=66555&legacyHotelIds%5B%5D=33313"
+      ],
+      "identity_binding": {
+        "anex_id": 20563,
+        "anytour_id": 2709,
+        "legacy_native_id": 58987,
+        "source_file": "next-ten-after-eight-current-catalog.json",
+        "source_sha256": "558dae3ff3255a57b81e26fa66c4baf8e2da9073d24b832775b86194f0e0c2e2",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaPPCrlnw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4a7dbb31e3f74c79_run07_c04",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C21",
+        "top500_4a7dbb31e3f74c79_run07r_c01",
+        "HOTEL-VN-MANUAL-20261025T184831Z-C22"
+      ]
+    },
+    {
+      "hotel_id": 1033,
+      "logical_id": "commercial-barut-hemera-1033-v1",
+      "aliases": [
+        "Barut Hemera",
+        "BARUT HEMERA"
+      ],
+      "text": "🌿 Barut Hemera 5★ · Сиде\n\nДля семейного отпуска с песчаным пляжем и отдельными спальнями.\n\n🏖 Собственный песчаный пляж.\n🛏 Family 41 м²: две проходные спальни с дверью, двуспальная и две отдельные кровати.\n🎨 Детский клуб для возраста от 4 до 12 лет.\n🎮 В Youth Centre есть настольный теннис, настольный футбол, бильярд и PlayStation 4.\n\nДетям младше 4 лет в клубе нужен родитель.\n\n✈️ Подберём семейный номер в Barut Hemera и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "3450d060c144f4e8c7c52df843e2ed62d313cb6d6897d8190abcc629a76bd2da",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/1033.png",
+      "photo_sha256": "49bf2df875f6b5883f5111950cbd29e9630f9742d856130da30523f2a6bea778",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/uz/rus/country/turkey/side/barut_hemera/",
+        "https://baruthemera.com/en/kids-teens",
+        "https://baruthemera.com/en/kids-teens/youth-centre",
+        "https://www.bgoperator.ru/pr_img/1000512/20250926/03276858/BARUT_HEMERA_2026_LETO_RU_Factsheet.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=140&legacyHotelIds%5B%5D=8053&legacyHotelIds%5B%5D=1112&legacyHotelIds%5B%5D=58987&legacyHotelIds%5B%5D=1033&legacyHotelIds%5B%5D=443&legacyHotelIds%5B%5D=386&legacyHotelIds%5B%5D=496&legacyHotelIds%5B%5D=66555&legacyHotelIds%5B%5D=33313"
+      ],
+      "identity_binding": {
+        "anex_id": 8882,
+        "anytour_id": 456,
+        "legacy_native_id": 1033,
+        "source_file": "next-ten-after-eight-current-catalog.json",
+        "source_sha256": "558dae3ff3255a57b81e26fa66c4baf8e2da9073d24b832775b86194f0e0c2e2",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaPFvrYEA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_389588c5502d88a5_run05audit_c04",
+        "HOTEL-TR-MANUAL-20261025T205516Z-BASE09_c25",
+        "country61_TR_20261022T093826Z_146_2a3dce41_c01",
+        "HOTEL-TR-MANUAL-20261025T205516Z-BASE09_c29"
+      ]
+    },
+    {
+      "hotel_id": 386,
+      "logical_id": "commercial-monte-carlo-sharm-resort-spa-aqua-park-386-v1",
+      "aliases": [
+        "Monte Carlo Sharm Resort SPA & Aqua Park",
+        "MONTE CARLO SHARM RESORT SPA & AQUA PARK"
+      ],
+      "text": "🐠 Monte Carlo Sharm Resort & Spa 5★ · Шарм эль Шейх\n\nДля отдыха у рифа с выбором номера под вашу компанию.\n\n🌊 Первая линия, домашний риф и понтон.\n🛏 Junior Suite 60 м² в корпусе H: кровать King и гостиная зона.\n👨‍👩‍👧‍👦 Family 2 Connected: два смежных Deluxe Garden View.\n🎶 Живая музыка и анимация.\n\nУ берега кораллы и мелководье; для плавания есть понтон.\n\n✈️ Подберём категорию и расположение номера, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d94fbd0651150519f36836f137b4c9532f3dc0aac4995fc8826fe4e284b923b4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/386.png",
+      "photo_sha256": "3ac56c3a8edabb1edf577b81f0ba4412a91bbdaaabab34a85dd9cd678894a174",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/sharm/monte_carlo_sharm/",
+        "https://www.itaka.pl/wczasy/egipt/sharm-el-sheikh/hotel-monte-carlo-sharm-el-sheikh-resort,SSHMONT/?adults%5B0%5D=2&id%5B0%5D=CgVJdGFrYRIEVklUWBoDUExOIgdTU0hNT05UKAQ6BEwyODBCBgiA3trWBkoGCIDT%2F9YGUAJiBQoDV0FXagUKA1NTSHIDCgExegUKA1NTSIIBBQoDV0FXigEDCgExkgEGCIDe2tYGmgEGCIDT%2F9YGogEFCgNEVlCqAQMKAUHiAQkKB1Jlc2FiZWXqAQkKB1Jlc2FiZWXyAQkKB1Jlc2FiZWU%3D",
+        "https://carthage.group/hotels/monte-carlo-sharm-resort-spa-aqua-park-5/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=140&legacyHotelIds%5B%5D=8053&legacyHotelIds%5B%5D=1112&legacyHotelIds%5B%5D=58987&legacyHotelIds%5B%5D=1033&legacyHotelIds%5B%5D=443&legacyHotelIds%5B%5D=386&legacyHotelIds%5B%5D=496&legacyHotelIds%5B%5D=66555&legacyHotelIds%5B%5D=33313"
+      ],
+      "identity_binding": {
+        "anex_id": 36921,
+        "anytour_id": 166,
+        "legacy_native_id": 386,
+        "source_file": "next-ten-after-eight-current-catalog.json",
+        "source_sha256": "558dae3ff3255a57b81e26fa66c4baf8e2da9073d24b832775b86194f0e0c2e2",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaPEpsbiA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "monte_carlo_sharm_c06",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c38",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c39",
+        "HOTEL-EG-MANUAL-20261025-SHARM-COAST-05_c41"
+      ]
+    },
+    {
+      "hotel_id": 33313,
+      "logical_id": "commercial-sugar-marina-resort-surf-kata-beach-33313-v1",
+      "aliases": [
+        "Sugar Marina Resort-Surf- Kata Beach",
+        "SUGAR MARINA RESORT SURF KATA BEACH"
+      ],
+      "text": "🏄 Sugar Marina Resort Surf Kata Beach 4★ · Пхукет\n\nДля пляжных дней на Кате и отдыха в отеле с тематикой сёрфинга.\n\n🛏 Family Room 40 м²: кровать King, двухъярусная кровать и балкон.\n💧 Открытый бассейн.\n🏋️ Тренажёрный зал с видом на бассейн.\n👜 В номерах есть пляжная сумка, коврик и полотенце.\n\nДо пляжа Ката около 700 м.\n\n✈️ Подберём номер и питание в Sugar Marina Surf, рассчитаем тур с перелётом на ваши даты и состав семьи.",
+      "text_sha256": "22e71bb4d68f0fea5d8552f13bcf9b450bf6e9e1f0776a3c31b6f5ec0249cffd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/133453a0b72825d7221f10640304c621eede5152/.github/traffic-publish/commercial-batch-20261107-7/33313.png",
+      "photo_sha256": "e674b162417328f704e45149e63b8517214c2e870d4a0c9a22dd201e20ac9b3a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/thailand/phuket/sugar_marina_surf/",
+        "https://www.sugarmarinahotel.com/surf/space-and-facilities/",
+        "https://www.sugarmarinahotel.com/surf/rooms/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=140&legacyHotelIds%5B%5D=8053&legacyHotelIds%5B%5D=1112&legacyHotelIds%5B%5D=58987&legacyHotelIds%5B%5D=1033&legacyHotelIds%5B%5D=443&legacyHotelIds%5B%5D=386&legacyHotelIds%5B%5D=496&legacyHotelIds%5B%5D=66555&legacyHotelIds%5B%5D=33313"
+      ],
+      "identity_binding": {
+        "anex_id": 6743,
+        "anytour_id": 2175,
+        "legacy_native_id": 33313,
+        "source_file": "next-ten-after-eight-current-catalog.json",
+        "source_sha256": "558dae3ff3255a57b81e26fa66c4baf8e2da9073d24b832775b86194f0e0c2e2",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaPP_Svr4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_f5bba203d9e01edd_run08_c06",
+        "country61_TH_20261025T202149Z_mass_c21",
+        "country61_TH_20261025T191759Z_mass_c27",
+        "country61_TH_20261025T202149Z_mass_c24",
+        "top500_f5bba203d9e01edd_run08_c04"
+      ]
+    }
+  ],
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-six-after-194-commercial-release-manifest.json",
+    "sha256": "d69ebacbb42c93cb0ac4b1a7e66818bc8cee2469598518b0b04ccae5c96d7f79"
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "publication_id": 59,
+      "version_id": 71,
+      "reason": "Existing sent current hotel publication; preserve and do not duplicate"
+    }
+  ],
+  "prior_zero_send_stop": {
+    "operation": "commercial-hotel-batch-20261107-7-v1",
+    "run_id": 42372476858,
+    "new_posts": 0,
+    "post_write_attempts": 0,
+    "state": "CLOSED_PREFLIGHT_NO_SEND_NO_REPLAY"
+  }
+}
