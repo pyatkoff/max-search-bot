@@ -1,0 +1,65 @@
+[
+  {
+    "hotel_id": 1074,
+    "name": "Gural Premier Belek",
+    "accepted_first_line": "🌿 Gural Premier Belek 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/1074.png",
+    "image_sha256": "38b5e0a973ddbc1d3237df7636339c050c65b358023dffe7e461aed778e23e82"
+  },
+  {
+    "hotel_id": 108146,
+    "name": "Anda Barut Collection",
+    "accepted_first_line": "🌊 Anda Barut Collection 5★ · Дидим",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/108146.png",
+    "image_sha256": "6c9d2ebd6e5e4ac218f4bb092d5e122cbe8e32cb6c1750340cd6defa6a31745b"
+  },
+  {
+    "hotel_id": 1362,
+    "name": "Pine Beach Belek",
+    "accepted_first_line": "🌿 Pine Beach Belek 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/1362.png",
+    "image_sha256": "6fc48abd78bc49695a4c55707367850d21a609f05baac706bc0370225b7230c0"
+  },
+  {
+    "hotel_id": 68984,
+    "name": "Le Meridien Khao Lak Resort & Spa",
+    "accepted_first_line": "🌴 Le Meridien Khao Lak Resort & Spa 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/68984.png",
+    "image_sha256": "2094de528d7e2a2a01739bcfa91ba3626c48dde75cfb480e742c236b0e94096f"
+  },
+  {
+    "hotel_id": 703,
+    "name": "Phuket Marriott Resort & Spa Merlin Beach",
+    "accepted_first_line": "🌴 Phuket Marriott Resort & Spa Merlin Beach 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/703.png",
+    "image_sha256": "a92f44bec1b6e556a805e06e9523da4ac8d2d0bcb8ca18cdf0acb4797884cb6b"
+  },
+  {
+    "hotel_id": 118475,
+    "name": "Flow Spectrum Resort Sahl Hasheesh",
+    "accepted_first_line": "☀️ Flow Spectrum Resort Sahl Hasheesh 4★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/118475.png",
+    "image_sha256": "a35d335d1768b70ec34dfcd42beb8c1a4c41b36c18af51a0874bf5e95a585b6a"
+  },
+  {
+    "hotel_id": 462,
+    "name": "Sphinx Aqua Park Beach Resort",
+    "accepted_first_line": "☀️ Sphinx Aqua Park Beach Resort 4★ · Хургада",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/462.png",
+    "image_sha256": "0405f6421847ea67993211df27c7d0b84007a7dcea6a18d1290a96bba527e64a"
+  },
+  {
+    "hotel_id": 2050,
+    "name": "Pullman Pattaya Hotel G",
+    "accepted_first_line": "🌊 Pullman Pattaya Hotel G 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/2050.png",
+    "image_sha256": "fec4c08592feca0b13745958abf4a4a71c7d7b09dbb796ea71ed295e3ea2e01e"
+  },
+  {
+    "hotel_id": 1354,
+    "name": "Mirage Park Resort",
+    "accepted_first_line": "🌿 Mirage Park Resort 5★ · Кемер",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/1354.png",
+    "image_sha256": "126ac7a7dff228cddcd803377f33d608e5b0c340a7006079a45b2d38a292c790"
+  }
+]

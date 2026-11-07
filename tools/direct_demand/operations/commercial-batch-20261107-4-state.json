@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261107-4-v1",
+  "state": "SENDER_COMPLETE_NINE_NEW_PAIRS_FEED_APPEND_PENDING",
+  "run_id": 42368588925,
+  "job_id": 128391812460,
+  "source_commit": "88036ab7fdb97e3f6c9713bea14c66bac3a87fa5",
+  "installed_source": "a9b03a52bb4c4505640eae79541b7d48aa391083",
+  "intent_artifact_id": 13572613275,
+  "result_artifact_id": 13572078493,
+  "result_artifact_zip_sha256": "3235c02be5bb2b960bdecb5f6867a3ca2d59eaf1ba605d693115583a42044178",
+  "previous_accepted_pairs": 174,
+  "new_full_pairs": 9,
+  "confirmed_full_pairs_total": 183,
+  "goal_pairs": 500,
+  "remaining_to_500": 317,
+  "new_posts": 18,
+  "post_write_attempts": 18,
+  "reused_posts": 0,
+  "all_new_posts_body_photo_button_verified": true,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-gural-premier-belek-1074-v1",
+      "post_url": "https://t.me/any_toour/189",
+      "text_sha256": "bb02a180e0af062dbacf1c66d3188bead377782d5cfb6153dad5efc79ad008c0",
+      "photo_sha256": "38b5e0a973ddbc1d3237df7636339c050c65b358023dffe7e461aed778e23e82",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-anda-barut-collection-108146-v1",
+      "post_url": "https://t.me/any_toour/190",
+      "text_sha256": "9286d95736ebf957e756b2f568f834d59efc1e0ef8cae71b4b63eac46fa3d636",
+      "photo_sha256": "6c9d2ebd6e5e4ac218f4bb092d5e122cbe8e32cb6c1750340cd6defa6a31745b",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-pine-beach-belek-1362-v1",
+      "post_url": "https://t.me/any_toour/191",
+      "text_sha256": "d86fdf52661885e1cc5661ae97095cb3994b6e9653b66b16e6517c5fa3d2c240",
+      "photo_sha256": "6fc48abd78bc49695a4c55707367850d21a609f05baac706bc0370225b7230c0",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-le-meridien-khao-lak-resort-spa-68984-v1",
+      "post_url": "https://t.me/any_toour/192",
+      "text_sha256": "b26bbe6b4f738083532b1af9b36ec19c3c2ac54883e7d8217476923257f06e12",
+      "photo_sha256": "2094de528d7e2a2a01739bcfa91ba3626c48dde75cfb480e742c236b0e94096f",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-phuket-marriott-resort-spa-merlin-beach-703-v1",
+      "post_url": "https://t.me/any_toour/193",
+      "text_sha256": "9502214faa4cba1e87f43224275c9b150d2f286e71b9179db4d7b2d1136c8d9a",
+      "photo_sha256": "a92f44bec1b6e556a805e06e9523da4ac8d2d0bcb8ca18cdf0acb4797884cb6b",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-flow-spectrum-resort-sahl-hasheesh-118475-v1",
+      "post_url": "https://t.me/any_toour/194",
+      "text_sha256": "ebf06f2582697dc30a9fb1509b089eae52775efc8dca5b6e1b9030892ce82d8f",
+      "photo_sha256": "a35d335d1768b70ec34dfcd42beb8c1a4c41b36c18af51a0874bf5e95a585b6a",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sphinx-aqua-park-beach-resort-462-v1",
+      "post_url": "https://t.me/any_toour/195",
+      "text_sha256": "6ed0d4a3d5491cc0c22eaeb0e314df294571e5c5a34c09f44fca8ef54a888780",
+      "photo_sha256": "0405f6421847ea67993211df27c7d0b84007a7dcea6a18d1290a96bba527e64a",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-pullman-pattaya-hotel-g-2050-v1",
+      "post_url": "https://t.me/any_toour/196",
+      "text_sha256": "ea1c4fef5458e5154a41d4ba2b9f4ee718a7a95468f66057698b6bf11d782ea4",
+      "photo_sha256": "fec4c08592feca0b13745958abf4a4a71c7d7b09dbb796ea71ed295e3ea2e01e",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-mirage-park-resort-1354-v1",
+      "post_url": "https://t.me/any_toour/197",
+      "text_sha256": "149a0d04fd9f273a9153edcf6c5e05c51eb33281fa9a9a5967b2147634720d0b",
+      "photo_sha256": "126ac7a7dff228cddcd803377f33d608e5b0c340a7006079a45b2d38a292c790",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-gural-premier-belek-1074-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yNfoLas",
+      "text_sha256": "bb02a180e0af062dbacf1c66d3188bead377782d5cfb6153dad5efc79ad008c0",
+      "photo_sha256": "38b5e0a973ddbc1d3237df7636339c050c65b358023dffe7e461aed778e23e82",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-anda-barut-collection-108146-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yOCiXr4",
+      "text_sha256": "9286d95736ebf957e756b2f568f834d59efc1e0ef8cae71b4b63eac46fa3d636",
+      "photo_sha256": "6c9d2ebd6e5e4ac218f4bb092d5e122cbe8e32cb6c1750340cd6defa6a31745b",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-pine-beach-belek-1362-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yOmXEko",
+      "text_sha256": "d86fdf52661885e1cc5661ae97095cb3994b6e9653b66b16e6517c5fa3d2c240",
+      "photo_sha256": "6fc48abd78bc49695a4c55707367850d21a609f05baac706bc0370225b7230c0",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-le-meridien-khao-lak-resort-spa-68984-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yPKiXNI",
+      "text_sha256": "b26bbe6b4f738083532b1af9b36ec19c3c2ac54883e7d8217476923257f06e12",
+      "photo_sha256": "2094de528d7e2a2a01739bcfa91ba3626c48dde75cfb480e742c236b0e94096f",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-phuket-marriott-resort-spa-merlin-beach-703-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yPuGEJA",
+      "text_sha256": "9502214faa4cba1e87f43224275c9b150d2f286e71b9179db4d7b2d1136c8d9a",
+      "photo_sha256": "a92f44bec1b6e556a805e06e9523da4ac8d2d0bcb8ca18cdf0acb4797884cb6b",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-flow-spectrum-resort-sahl-hasheesh-118475-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yQSfbMc",
+      "text_sha256": "ebf06f2582697dc30a9fb1509b089eae52775efc8dca5b6e1b9030892ce82d8f",
+      "photo_sha256": "a35d335d1768b70ec34dfcd42beb8c1a4c41b36c18af51a0874bf5e95a585b6a",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sphinx-aqua-park-beach-resort-462-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yQ2XJb8",
+      "text_sha256": "6ed0d4a3d5491cc0c22eaeb0e314df294571e5c5a34c09f44fca8ef54a888780",
+      "photo_sha256": "0405f6421847ea67993211df27c7d0b84007a7dcea6a18d1290a96bba527e64a",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-pullman-pattaya-hotel-g-2050-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yRaEb7g",
+      "text_sha256": "ea1c4fef5458e5154a41d4ba2b9f4ee718a7a95468f66057698b6bf11d782ea4",
+      "photo_sha256": "fec4c08592feca0b13745958abf4a4a71c7d7b09dbb796ea71ed295e3ea2e01e",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-mirage-park-resort-1354-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG1yR92cnk",
+      "text_sha256": "149a0d04fd9f273a9153edcf6c5e05c51eb33281fa9a9a5967b2147634720d0b",
+      "photo_sha256": "126ac7a7dff228cddcd803377f33d608e5b0c340a7006079a45b2d38a292c790",
+      "body_photo_button_verified": true
+    }
+  ],
+  "current_feed_counts": {
+    "telegram": 174,
+    "max": 174,
+    "all": 348
+  },
+  "current_max_native_route_count": 174,
+  "pending_new_route_native_ids": [
+    1074,
+    108146,
+    1362,
+    68984,
+    703,
+    118475,
+    462,
+    2050,
+    1354
+  ],
+  "sender_operation_closed": true,
+  "unknown_operations": 0,
+  "remaining_prepared_native_ids": [
+    128087,
+    969,
+    55647,
+    120117
+  ],
+  "repeat_policy": "Do not replay sender. Finish only new9 add-only routes/feed; remaining4 send requires exact final media manifest. Next8 catalog-photo candidates are preparation only; held7938/20288/818 excluded.",
+  "mac_touched": false,
+  "prices_and_search_links_replayed": false
+}
