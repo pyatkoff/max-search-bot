@@ -10,7 +10,7 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: c21ee260e70b8f879e6f788405186ea9dab11543
+  EXPECTED_PRODUCTION_SHA: 42921afec01af4d88a931f548e3442db76248f87
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -31,9 +31,9 @@ jobs:
           evidence="$RUNNER_TEMP/commercial-source-evidence"
           mkdir -p "$evidence"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42353354646 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/42353354646/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42353811651 > "$evidence/tls_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42355624766 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42355624766/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42356043235 > "$evidence/tls_run.json"
           gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
@@ -54,7 +54,7 @@ jobs:
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           newraw=(base/'commercial-hotel-caption-correction-20261107-1-inputs.json').read_bytes()
-          assert hashlib.sha256(newraw).hexdigest()=='959615d738a7f5c1a372a59a925c8ee07baf6b64843af82ab7c706d08899ac80'
+          assert hashlib.sha256(newraw).hexdigest()=='6dcb161fd414a8c30bdc19634ba07db11de3d958dc747ba2e673ccf1379ca515'
           new=json.loads(newraw);assert new['status']=='EDITORIAL_CORRECTION_READY_NOT_USER_ACCEPTED'
           oldraw=(base/'commercial-batch-20261107-1-manifest.json').read_bytes()
           assert hashlib.sha256(oldraw).hexdigest()=='c1ca5c8191c56620a02b32800bfd69fb7eb3687a446e9bb919c808d182c70c44'

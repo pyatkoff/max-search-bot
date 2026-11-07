@@ -18,7 +18,7 @@
     {
       "hotel_id": 1216,
       "hotel_name": "Rox Resort Hotel",
-      "new_text": "🏖 Rox Resort Hotel 5★ · Кемер\n\nАктивный отпуск у моря с Ultra All Inclusive.\n\n💦 Пять водных горок и детские бассейны.\n🎶 Вечерние шоу и живая музыка.\n🌊 Собственный пляж с песком и галькой.\n\nРаботу горок и программу развлечений уточним на ваши даты.\n\n✈️ Подберём тур в Rox Resort: перелёт, подходящий номер для двоих или семьи и полную стоимость на всех.\n👇 Нажмите «Узнать стоимость тура».",
+      "new_text": "🏖 Rox Resort Hotel 5★ · Кемер\n\nАктивный отпуск у моря с Ultra All Inclusive.\n\n💦 Пять водных горок и детский бассейн.\n🎶 Вечерние шоу и живая музыка.\n🌊 Собственный пляж с песком и галькой.\n\nРаботу горок и программу развлечений уточним на ваши даты.\n\n✈️ Подберём тур в Rox Resort: перелёт, подходящий номер для двоих или семьи и полную стоимость на всех.\n👇 Нажмите «Узнать стоимость тура».",
       "source_urls": [
         "https://roxresorthotel.com/en/en-general-information/",
         "https://roxresorthotel.com/en/en-pools/",
@@ -26,20 +26,20 @@
         "https://roxresorthotel.com/en/en-beach/"
       ],
       "editorial_notes": "Active-leisure positioning from verified facilities; beach surface retained, operation on requested dates to be checked; no unverified beach distance or contradictory length.",
-      "new_text_sha256": "00fdac932fb79c88eb951c11374a00abee8bb5cd17626a2f105158f423c5805d",
-      "utf16_length": 392
+      "new_text_sha256": "c3bedefb5f12c2c8485973ae88cb325dbb818504bf65fea2402867064adbfc20",
+      "utf16_length": 391
     },
     {
       "hotel_id": 1095,
       "hotel_name": "Side Star Resort",
-      "new_text": "🏖 Side Star Resort 5★ · Сиде\n\nМоре, горки и «всё включено» для семейного отпуска.\n\n🌊 Пляж с мелким песком и неглубокой прибрежной зоной.\n💦 Три водные горки и детские бассейны.\n🛏 Для большой семьи есть Suite с двумя спальнями и гостиной.\n\nЗимой предусмотрен подогрев крытого и детского уличного бассейнов. Режим работы на ваши даты уточним.\n\n✈️ Подберём тур в Side Star Resort с перелётом и подходящим номером. Рассчитаем полную стоимость на вашу семью.\n👇 Нажмите «Узнать стоимость тура».",
+      "new_text": "🏖 Side Star Resort 5★ · Сиде\n\nМоре, горки и «всё включено» для семейного отпуска.\n\n🌊 Пляж с мелким песком и неглубокой прибрежной зоной.\n💦 Три водные горки и детский бассейн.\n🛏 Для большой семьи есть Suite с двумя спальнями и гостиной.\n\nЗимой предусмотрен подогрев крытого и детского уличного бассейнов. Режим работы на ваши даты уточним.\n\n✈️ Подберём тур в Side Star Resort с перелётом и подходящим номером. Рассчитаем полную стоимость на вашу семью.\n👇 Нажмите «Узнать стоимость тура».",
       "source_urls": [
         "https://www.sidestarhotels.com/resort/en",
         "https://www.sidestarhotels.com/resort/en/activity/beach-and-pools"
       ],
       "editorial_notes": "Family beach-holiday offer; Suite is a category option, not a promised standard room; two bedrooms and living room reuse accepted exact room facts; heating explicitly winter-only and date-specific operation not guaranteed.",
-      "new_text_sha256": "56f1502d181840f34fd883a977b7375270aebc88ec28e5b90db4d9ebfc764b42",
-      "utf16_length": 492
+      "new_text_sha256": "3aa4a5dec4f07b227d1ddfda82cf39c925939e669bb0d2ef63fa5462dede1270",
+      "utf16_length": 491
     }
   ]
 }
