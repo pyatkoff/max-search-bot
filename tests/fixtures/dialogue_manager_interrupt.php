@@ -36,6 +36,11 @@ class MaxSearchApi {
     public static $statuses=[],$needs=[];
     public static function getCurentStatus($chat){return self::$statuses[$chat]??0;}
     public static function getAiSearchContext($chat){return self::$needs[$chat]??[];}
+    public static function getAiMissingFields($chat){
+        $needs=self::$needs[$chat]??[];
+        return array_values(array_filter(['city','country','adults','children','nights','date'],
+            static fn($field)=>!array_key_exists($field,$needs)||$needs[$field]===null||$needs[$field]===''));
+    }
     public static function getLastClaimForChat($chat){return null;}
     public static function deletePrevMessage($chat){}
     public static function funnelLog(...$args){}
@@ -66,7 +71,7 @@ $real = [
     'handlers/StateMessageHandler.php', 'actions/ManagerAction.php',
 ];
 $stubs = [
-    'services'=>['ConversationDb','ProjectConfig','DiagnosticLogger','ConversationRecorder','ConversationAttributionService',
+    'services'=>['ConversationDb','ConversationStateRepository','ProjectConfig','DiagnosticLogger','ConversationRecorder','ConversationAttributionService',
         'MetrikaConversionGoalService','SourceHandlingService','ManagerPushService','ManagerAvailabilityService',
         'ManagerRequestService','IntegrationRegistry','CallbackController','PostTourService','EditFlowService',
         'DepartureCityResolver','DestinationAreaResolver','DestinationResolver','TripStateService','ActionRouter',

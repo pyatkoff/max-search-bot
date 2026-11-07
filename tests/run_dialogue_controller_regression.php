@@ -56,15 +56,43 @@ class AiRuntimeLogger {
 }
 PHP
         );
+        file_put_contents($tmp . '/services/TravelDirectoryRepository.php', <<<'PHP'
+<?php
+class TravelDirectoryRepository {
+    public static function activeDepartures(): array {
+        return [
+            ['id'=>1, 'name'=>'Казань', 'name_genitive'=>'Казани'],
+            ['id'=>2, 'name'=>'Ростов-на-Дону', 'name_genitive'=>'Ростова-на-Дону'],
+            ['id'=>3, 'name'=>'Минеральные Воды', 'name_genitive'=>'Минеральных Вод'],
+            ['id'=>10, 'name'=>'Санкт Город', 'name_genitive'=>'Санкт Города'],
+            ['id'=>11, 'name'=>'Санаторный Город', 'name_genitive'=>'Санаторного Города'],
+        ];
+    }
+}
+PHP
+        );
+        file_put_contents($tmp . '/services/DestinationCatalogRepository.php', <<<'PHP'
+<?php
+class DestinationCatalogRepository {
+    public static array $queries = [];
+    public static function query(int $id, array $filter, array $select, int $limit=20): array {
+        self::$queries[] = [$id, $filter, $select, $limit];
+        return [];
+    }
+}
+PHP
+        );
         class DialogueStartAiReached extends RuntimeException {}
         class MaxSearchApi {
             public static $statusStart=64, $statusCityChoose=65, $statusContryChoose=66, $statusAdults=67,
                 $statusChild=68, $statusAge=69, $statusStars=70, $statusMeal=71, $statusNights=72,
                 $statusDate=73, $statusCheck=74, $statusPhone=75, $statusAi=76;
             public static array $statuses=[], $needs=[], $edits=[], $followups=[], $writes=[], $events=[], $searchIntros=[];
+            public static array $aiContexts=[], $missingFields=[], $parameterWrites=[];
             public static string $testBaseDir='';
             public static ?int $resetFailureChat=null;
             public static bool $probeAi=false;
+            public static bool $rejectParameters=false, $staleParameterReadback=false;
             public static function cancelToursFollowup($chat): void { unset(self::$followups[$chat]); }
             public static function deleteAllStatus($chat): void {
                 if (self::$resetFailureChat === $chat) throw new RuntimeException('Synthetic reset failure');
@@ -78,8 +106,17 @@ PHP
                 self::$writes[] = [$chat, $status]; self::$statuses[$chat] = $status;
             }
             public static function getTrafficMeta($chat): array { return TrafficAttributionService::get(self::$testBaseDir, $chat); }
-            public static function getAiSearchContext($chat): array { return []; }
-            public static function getAiMissingFields($chat): array { return ['city']; }
+            public static function getAiSearchContext($chat): array { return self::$aiContexts[$chat] ?? []; }
+            public static function getAiMissingFields($chat): array { return self::$missingFields[$chat] ?? ['city']; }
+            public static function applyAiParameters($chat, array $params): array {
+                self::$parameterWrites[] = [$chat, $params];
+                if (self::$rejectParameters) return [];
+                if (!self::$staleParameterReadback) {
+                    self::$aiContexts[$chat] = array_merge(self::getAiSearchContext($chat), $params);
+                    self::$missingFields[$chat] = array_values(array_diff(self::getAiMissingFields($chat), array_keys($params)));
+                }
+                return array_fill_keys(array_keys($params), true);
+            }
             public static function deletePrevMessage(...$args): void {}
             public static function funnelLog($chat, $event, $details=[]): void {
                 self::$events[] = [$chat, $event, $details];
@@ -177,6 +214,83 @@ PHP
             $check($platform . ' free text needs no intermediate chooser response', count($sent), $messagesBefore);
         }
         $check('MAX and Telegram organic welcome text and buttons match', $welcomes[0], $welcomes[1]);
+
+        // Exercise the real controller/resolver/application/progression route.
+        // Stop unmatched turns at the existing AI log boundary before any model call.
+        $cityTurn = static function (int $chat, string $platform, string $text, array $context, array $missing, int $status)
+            use (&$chats, &$sent, $maxMessenger, $telegramMessenger): array {
+            $chats[] = $chat;
+            MaxSearchApi::$statuses[$chat] = $status;
+            MaxSearchApi::$aiContexts[$chat] = $context;
+            MaxSearchApi::$missingFields[$chat] = $missing;
+            MaxSearchApi::$parameterWrites = [];
+            DestinationCatalogRepository::$queries = [];
+            IntegrationRegistry::useMessenger($platform === 'max' ? $maxMessenger : $telegramMessenger);
+            $before = count($sent); $eventsBefore = count(MaxSearchApi::$events);
+            $reached = null; $handled = null;
+            MaxSearchApi::$probeAi = true;
+            try {
+                $handled = (new DialogueController())->handleIncomingMessage(IncomingMessage::text(
+                    $platform, abs($chat), $chat, 'fixture-city', $text
+                ));
+            } catch (DialogueStartAiReached $e) { $reached = $e->getMessage(); }
+            finally { MaxSearchApi::$probeAi = false; }
+            return [
+                'handled'=>$handled, 'ai_text'=>$reached,
+                'messages'=>array_slice($sent, $before),
+                'events'=>array_column(array_slice(MaxSearchApi::$events, $eventsBefore), 1),
+                'context'=>MaxSearchApi::getAiSearchContext($chat),
+                'writes'=>MaxSearchApi::$parameterWrites,
+                'destination_queries'=>count(DestinationCatalogRepository::$queries),
+            ];
+        };
+        foreach ([
+            ['max', 'Казань', 'Казань', MaxSearchApi::$statusAi],
+            ['telegram', 'Ростов-на-Дону', 'Ростов-на-Дону', MaxSearchApi::$statusStart],
+            ['max', 'Мин. Воды', 'Минеральные Воды', MaxSearchApi::$statusAi],
+        ] as $index=>[$platform, $text, $city, $status]) {
+            $chat = $platform === 'max' ? -($chatBase + 100 + $index) : $chatBase + 100 + $index;
+            $result = $cityTurn($chat, $platform, $text, ['country'=>'Турция'], ['city', 'date'], $status);
+            $label = $platform . ' current city answer ' . $text;
+            $check($label . ' is handled without AI', [$result['handled'], $result['ai_text']], [true, null]);
+            $check($label . ' saves only the canonical departure', $result['writes'], [[$chat, ['city'=>$city]]]);
+            $check($label . ' preserves the destination', $result['context'], ['country'=>'Турция', 'city'=>$city]);
+            $check($label . ' bypasses destination inference', $result['destination_queries'], 0);
+            $check($label . ' asks the next missing field once', array_column($result['messages'], 'text'),
+                [MissingFieldQuestionService::question('date')]);
+        }
+        foreach ([
+            ['unknown city', 'Неизвестноград', [], ['city', 'date']],
+            ['ambiguous abbreviation', 'Сан. Город', [], ['city', 'date']],
+            ['city question', 'Казань?', [], ['city', 'date']],
+            ['mixed trip text', 'Казань в Египет', [], ['city', 'date']],
+            ['known departure', 'Казань', ['city'=>'Москва'], ['country', 'date']],
+            ['city is not the current question', 'Казань', [], ['date', 'city']],
+        ] as $index=>[$label, $text, $context, $missing]) {
+            $chat = -($chatBase + 110 + $index);
+            $result = $cityTurn($chat, 'max', $text, $context, $missing, MaxSearchApi::$statusAi);
+            $check($label . ' retains the ordinary AI route', $result['ai_text'], $text);
+            $check($label . ' does not save a bare departure', $result['writes'], []);
+            $check($label . ' does not advance the field question', $result['messages'], []);
+        }
+        $chat = -($chatBase + 120);
+        $text = 'из Казани в Египет';
+        $result = $cityTurn($chat, 'max', $text, [], ['city', 'date'], MaxSearchApi::$statusAi);
+        $check('explicit rich departure still saves its city', $result['writes'], [[$chat, ['city'=>'Казань']]]);
+        $check('explicit rich departure continues destination inference', $result['destination_queries'] > 0, true);
+        $check('explicit rich departure reaches AI unchanged', $result['ai_text'], $text);
+        $check('explicit rich departure is not consumed as a field answer', $result['messages'], []);
+
+        foreach (['rejectParameters', 'staleParameterReadback'] as $index=>$failure) {
+            MaxSearchApi::${$failure} = true;
+            try {
+                $result = $cityTurn(-($chatBase + 130 + $index), 'max', 'Казань', [], ['city', 'date'], MaxSearchApi::$statusAi);
+            } finally { MaxSearchApi::${$failure} = false; }
+            $check($failure . ' does not report a confirmed departure', in_array('departure_city_resolved', $result['events'], true), false);
+            $check($failure . ' does not advance the field question', $result['messages'], []);
+            $check($failure . ' retains the ordinary AI route', $result['ai_text'], 'Казань');
+        }
+        $check('bare departure remains disabled for existing callers', DepartureCityResolver::resolveAndStore($chat, 'Казань'), false);
 
         $paidChat = -($chatBase + 10); $seed($paidChat);
         $before = count($sent);

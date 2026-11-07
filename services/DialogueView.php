@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/IntegrationRegistry.php';
+require_once __DIR__ . '/ConversationStateRepository.php';
 require_once __DIR__ . '/MissingFieldQuestionService.php';
 require_once __DIR__ . '/ButtonFactory.php';
 require_once __DIR__ . '/CallbackGeneration.php';
@@ -89,10 +90,28 @@ class DialogueView
         );
     }
 
+    /** Specialized source entries bypass the ordinary start; retain the existing trip. */
+    public static function prepareSourceTrip($chatId): void
+    {
+        $status = MaxSearchApi::getCurentStatus($chatId);
+        if ($status === false) {
+            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusStart);
+        } elseif ($status > 0) {
+            ConversationStateRepository::restoreSourceStartBoundary(
+                $chatId, (int)MaxSearchApi::$statusStart, (int)MaxSearchApi::$statusAi, (int)MaxSearchApi::$statusCheck,
+                [(int)MaxSearchApi::$statusCityChoose,(int)MaxSearchApi::$statusContryChoose,
+                    (int)MaxSearchApi::$statusAdults,(int)MaxSearchApi::$statusChild,(int)MaxSearchApi::$statusAge,
+                    (int)MaxSearchApi::$statusStars,(int)MaxSearchApi::$statusMeal,(int)MaxSearchApi::$statusNights,
+                    (int)MaxSearchApi::$statusDate,(int)MaxSearchApi::$statusPhone]
+            );
+        }
+    }
+
     /** Start only the source-specific qualification; retain all saved needs. */
     public static function sourceQualificationStart($chatId,array $missing,bool $greet=true,string $hotelName=''): bool
     {
         require_once __DIR__.'/SourceQualificationPrompt.php';
+        self::prepareSourceTrip($chatId);
         // Delivery failure must not leave the next real reply on an old check
         // surface. This changes mode, never resets or replaces the collected trip.
         MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);
