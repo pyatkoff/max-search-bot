@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-20-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     1439,
     28325,
@@ -18,5 +18,229 @@
   "manifest_sha256": "d2b34144925d063604b9d9f924ad10948c81d9e792e91db3d9b3490c6ad74c6b",
   "asset_commit": "20e906e26214e7a17c7b089c307eecc8c3b928c9",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "sender_run_id": 42390530227,
+  "sender_job_id": 128456964121,
+  "sender_commit": "463fdf6d85270865f9e3d7295968a2d419622a46",
+  "sender_result_ok": true,
+  "new_posts": 18,
+  "post_write_attempts": 18,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13580384676,
+  "result_zip_sha256": "deb73ea6cbe07d3bd23ae2b11abe010c7b8fd2d55047078d366d32728c5a933a",
+  "private_receipt_sha256": "5384ac51c57fea02d0b318e60144444815eb9f95c76d82de809e688cfea00a2d",
+  "full_pairs_after": 294,
+  "combined_full_pairs_after": 294,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-rai-tekirova-1439-v1",
+      "post_url": "https://t.me/any_toour/300",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-quattro-28325-v1",
+      "post_url": "https://t.me/any_toour/301",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-phaselis-rose-1096-v1",
+      "post_url": "https://t.me/any_toour/302",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-selcukhan-1486-v1",
+      "post_url": "https://t.me/any_toour/303",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-kimeros-37527-v1",
+      "post_url": "https://t.me/any_toour/304",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-sensitive-48863-v1",
+      "post_url": "https://t.me/any_toour/305",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-grand-park-lara-15889-v1",
+      "post_url": "https://t.me/any_toour/306",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-aska-lara-27642-v1",
+      "post_url": "https://t.me/any_toour/307",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-liu-76588-v1",
+      "post_url": "https://t.me/any_toour/308",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-rai-tekirova-1439-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zgMzTew",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-quattro-28325-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zgySZTY",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-phaselis-rose-1096-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zhV2Rxw",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-selcukhan-1486-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zh6MRlQ",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-kimeros-37527-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zigHLzM",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-sensitive-48863-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zjF2a3k",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-grand-park-lara-15889-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zjrAGmk",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-aska-lara-27642-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zkPUfYA",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-liu-76588-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2zkytfiM",
+      "verified": true
+    }
+  ],
+  "routes": {
+    "logical_hotels": 294,
+    "new_routes_verified": 19,
+    "previous275_rows_identical": true,
+    "run_id": 42391419207,
+    "commit": "955021753d839d1c69cba60e7cbf9d3bbd7b417a",
+    "result_artifact_id": 13581168192
+  },
+  "feeds": {
+    "run_id": 42391723318,
+    "job_id": 128460720806,
+    "commit": "06fbf32e3cae2f0f078c187610b47a2452dae9f2",
+    "result_artifact_id": 13582250577,
+    "receipt_sha256": "0e7187876180b7e1340d4863c8913e9a5b015e502b665e586e9bb8687abab24b",
+    "rows": [
+      294,
+      294,
+      588
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous275_offer_blocks_identical": true
+  },
+  "feed_binding_read_run": 42390967846,
+  "feed_binding_read_artifact": 13581860245,
+  "goal_remaining_to_500": 206,
+  "own_active_workflow": 0,
+  "completed_at_utc": "2026-11-07T16:32:55Z",
+  "publishing_source": {
+    "sha": "6d193b7740dc212b92b1893041f0a1047b179635",
+    "deploy_run": 42387774695,
+    "strict_tls_run": 42388210320,
+    "accepted_publishing_blobs_unchanged": 21
+  },
+  "workflow_conclusion": "success",
+  "workspace_recovery": {
+    "environment_removed_transient_folder": true,
+    "publisher_inputs_restored_from_in_memory_and_existing_git": true,
+    "original_receipts_restored_from_same_immutable_artifacts_with_same_hashes": true,
+    "runtime_reads_or_sends_repeated": false,
+    "prepared_media_for_next_groups_recovery_in_progress": true
+  },
+  "pending_groups": {
+    "matches140to160": {
+      "first_clearance_read": 33,
+      "count": 20,
+      "root_canva_committed": 20,
+      "prior_final_manifest_sha256": "de94af57ce233ec8e257d6aaf2aa55b080e51d2feec810456a33fb22129a5e34",
+      "state": "RECOVERING_FINAL_PNG_AND_APPROVED_COPY_FROM_COMMITTED_DESIGNS_AND_PARENT_STATE",
+      "new_exact_final_manifest_required": true
+    },
+    "matches160to180": {
+      "first_clearance_read": 34,
+      "eligible": 18,
+      "root_canva_committed": 18,
+      "held_native_ids": [
+        1569,
+        59114
+      ],
+      "new_exact_final_manifest_required": true
+    },
+    "matches180to200": {
+      "first_clearance_read": 35,
+      "clear_without_collision": 19,
+      "candidate365_generic_alias_false_positive_root_resolved": true,
+      "remove_only_standalone_alias": "RADISSON BLU RESORT",
+      "different_existing_native_id": 63674,
+      "different_existing_public_urls": [
+        "https://t.me/any_toour/270",
+        "https://max.ru/channel_anytour/AaG2erwGCro"
+      ],
+      "atomic_native_logical_distinguishing_alias_guard_still_required": true,
+      "catalog_sha256_reference_only": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+      "original_catalog_and_raw_media_local_bytes_lost": true,
+      "draft_copy_parent_recovery_in_progress": true
+    },
+    "matches200to220": {
+      "retained_claims": 148,
+      "typed_catalog_original_get_completed_once": true,
+      "catalog_sha256_reference_only": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+      "original_catalog_local_bytes_lost": true,
+      "registry_clearance_not_performed": true
+    },
+    "additional147": {
+      "root_accepted_for_retained_extraction": 128,
+      "pending_identity": 19,
+      "send_ready": 0,
+      "last_local_preparation_sha256_reference_only": "422c13765ce2bdd51150fcf033c4c24b38994ffa98cea290bf94f79d1b757e59",
+      "parent_approvals_retained_no_repeat_identity_review": true
+    }
+  },
+  "foreign_branch_changes_preserved": {
+    "no_owner_attribution": true,
+    "resort27_native_ids_disjoint": true,
+    "publisher_and_feed_blobs_unchanged_in_foreign_diff": true,
+    "shared_concurrency_not_cancelled": true
+  }
 }
