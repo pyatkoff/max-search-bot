@@ -184,6 +184,7 @@ try {
   put(editorWrapper,'<?php // standalone wrapper\n');put(editorFixture,'module.exports = {};\n');
   put('tests/run_manager_prepared_reply_regression.php','<?php // shared backend fixture\n');
   put('tests/visual/manager-tour-selection.spec.js', 'base selection cases\n');
+  put('tools/manager2_visual_shards.js', '// base case allocation\n');
   put(collectorPage,'collector page base\n');
   for(const file of collector1108)put(file,'collector dependency base\n');
   put(browserSpec, sharedSpec);
@@ -265,6 +266,7 @@ try {
   commitCase('selection plus shared bootstrap',()=>{put(tour,'changed\n');put('manager/_bootstrap.php','shared changed\n');},'full');
   commitCase('selection runtime addition',()=>put('selection/photo.php','<?php\n'),'full');
   commitCase('CI edits retain full and commission scoped browser runner',()=>put('tools/ci_change_scope.js','// changed CI\n'),'full',true);
+  commitCase('shared sharder edits retain full and commission both component parts',()=>put('tools/manager2_visual_shards.js','// changed case allocation\n'),'full',true);
   commitCase('OAuth change', () => put(oauth, 'changed\n'), 'oauth');
   commitCase('new browser fixture', () => put(fixture, 'module.exports = {};\n'), 'oauth');
   commitCase('documentation only', () => put(doc, 'changed docs\n'), 'full');

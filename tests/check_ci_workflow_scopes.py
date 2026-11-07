@@ -92,6 +92,7 @@ check("--grep 'OAuth native (allow|deny|legacy policy control)'" in oauth_steps,
 check('verify_oauth_browser_report.js oauth-browser.json' in oauth_steps, 'OAuth cannot pass with missing or skipped consent cases')
 check('tools/ci_change_scope.js' in str(load('ci-change-scope.yml')), 'canonical selector must execute')
 tour=visual['tour-browser']
+tour_parts=visual['tour-browser-parts']
 visual_document=load('workspace-v2-visual-qa.yml')
 visual_events=visual_document.get('on',visual_document.get(True))
 visual_paths=visual_events['pull_request']['paths']
@@ -137,10 +138,41 @@ for runtime_path in ['extensions/selection-collector/popup.js','extensions/selec
     check(visual_triggered(runtime_path),'collector runtime/package path must retain a native gate: '+runtime_path)
     check(visual_triggered(collector_readme,runtime_path),'README must not suppress another changed runtime path: '+runtime_path)
 check(tour['strategy']['matrix']['browser']==['chromium','webkit'],'selection requires both engines')
-check(tour['if']=="needs.change-scope.outputs.mode == 'tour-selection' || needs.change-scope.outputs.tour-proof == 'true'",'CI edits commission scoped runner while full gates remain')
-tour_steps='\n'.join(s.get('run','') for s in tour['steps'])
-check('--list --reporter=json > tour-selection-expected.json' in tour_steps and '--grep' not in tour_steps,'selection executes and lists the entire component, without grep')
-check(tour_steps.count('--forbid-only')==2 and 'verify_tour_selection_browser_report.js tour-selection-browser.json tour-selection-expected.json' in tour_steps,'selection requires complete native execution and evidence')
+component_condition="needs.change-scope.outputs.mode == 'tour-selection' || needs.change-scope.outputs.tour-proof == 'true'"
+check(tour_parts['if']==component_condition,'CI edits commission both component parts while full gates remain')
+check(tour_parts['needs']=='change-scope' and set(tour['needs'])=={'change-scope','tour-browser-parts'},'component parts and assembly retain canonical dependencies')
+check(tour['if']=='always() && ('+component_condition+')','selected assembly must reject missing or failed parts')
+check(tour_parts['strategy']['matrix']=={'browser':['chromium','webkit'],'part':[0,1]},'exactly two isolated parts per engine')
+check(tour_parts['strategy']['fail-fast'] is False and tour['strategy']['fail-fast'] is False,'one failed part cannot cancel its successful siblings')
+part_steps=tour_parts['steps']
+native_list=next(s for s in part_steps if s.get('name')=='List the complete component inventory')
+check(native_list['run']=='npx playwright test tests/visual/manager-tour-selection.spec.js --browser=${{ matrix.browser }} --workers=1 --forbid-only --list --reporter=json > tour-selection-expected.json','each part starts from a fresh complete unfiltered native inventory')
+part_run=next(s for s in part_steps if s.get('name')=='Execute this exact component part')
+part_record=next(s for s in part_steps if s.get('name')=='Require original component part evidence')
+check(part_run['run']=='node tools/verify_tour_selection_browser_report.js run-part ${{ matrix.browser }} ${{ matrix.part }}','component executes the canonical exact-key allocation')
+check(part_record['run']=='node tools/verify_tour_selection_browser_report.js record-part ${{ matrix.browser }} ${{ matrix.part }}','each part must verify execution before producing a receipt')
+check(part_steps.index(native_list)<part_steps.index(part_run)<part_steps.index(part_record),'full listing precedes filtered execution and proof')
+for step in [native_list,part_run,part_record]:
+    check(not step.get('if') and not step.get('continue-on-error',False),'component evidence cannot ignore a failed producer')
+part_upload=next(s for s in part_steps if s.get('uses')=='actions/upload-artifact@v4')
+check(part_upload['with']['name']=='tour-selection-part-${{ matrix.browser }}-${{ matrix.part }}-${{ github.sha }}','part artifacts have source/engine/part identity')
+check(part_upload['with']['path'].splitlines()==['tour-selection-part-receipt.json','tour-selection-browser.json','tour-selection-expected.json','tour-selection-filtered.json','manager2-artifacts/case-part-${{ matrix.part }}--tour-selection-*.png','test-results/**/error-context.md'],'retain all original reports and namespaced component PNG without importing full-only captures')
+check(tour['env']['QA_PARTS_RESULT']=='${{ needs.tour-browser-parts.result }}','assembly uses the real matrix result')
+check(tour['steps'][0]['name']=='Require successful component parts','failed parts stop assembly before any download')
+for result in ['success','failure','skipped','cancelled','timed_out','']:
+    check(gate_passes(tour,{'QA_PARTS_RESULT':result},'Require successful component parts')==(result=='success'),'component assembly hid matrix result '+result)
+downloads=[s for s in tour['steps'] if s.get('uses')=='actions/download-artifact@v4']
+check([s['with'] for s in downloads]==[
+    {'name':'tour-selection-part-${{ matrix.browser }}-0-${{ github.sha }}','path':'tour-parts/${{ matrix.browser }}/part-0'},
+    {'name':'tour-selection-part-${{ matrix.browser }}-1-${{ github.sha }}','path':'tour-parts/${{ matrix.browser }}/part-1'}],
+    'download exactly two current-source artifacts into separate original directories')
+assembly=next(s for s in tour['steps'] if s.get('name')=='Require complete current-source component evidence')
+check(assembly['run']=='node tools/verify_tour_selection_browser_report.js assemble ${{ matrix.browser }} tour-parts tour-evidence' and not assembly.get('if') and not assembly.get('continue-on-error',False),'component union must verify before publication')
+assembled_upload=next(s for s in tour['steps'] if s.get('uses')=='actions/upload-artifact@v4')
+check(assembled_upload['with']['name']=='tour-selection-browser-${{ matrix.browser }}-${{ github.sha }}' and assembled_upload['with']['path']=='tour-evidence/' and not assembled_upload.get('if'),'stable complete component artifact retains nested original proofs only after successful assembly')
+check(tour['steps'].index(assembly)<tour['steps'].index(assembled_upload),'failed proof cannot become a complete artifact')
+check('playwright test' not in '\n'.join(s.get('run','') for s in tour['steps']) and 'container' not in tour,'assembly does not execute browsers again')
+check(visual_triggered('tools/manager2_visual_shards.js'),'shared allocator changes require native commissioning')
 plan_upload=next(step for step in visual['selection']['steps'] if step.get('id')=='plan-artifact')
 check(plan_upload['uses']=='actions/upload-artifact@v4','immutable plan ID comes from actual upload')
 check(visual['selection']['outputs']['plan-id']=='${{ steps.plan-artifact.outputs.artifact-id }}','selection publishes actual artifact ID')
@@ -151,7 +183,7 @@ check(plan_download['with']=={'artifact-ids':'${{ needs.selection.outputs.plan-i
 check(plan_steps.index(plan_guard)<plan_steps.index(plan_download),'empty ID cannot fall through to download every artifact')
 prepared=json.loads((root/'tools/browser_qa_environment.json').read_text())
 native_jobs={
-    'workspace-v2-visual-qa.yml':['selection','browser-parts','firefox-history','firefox-notifications','oauth-browser','tour-browser'],
+    'workspace-v2-visual-qa.yml':['selection','browser-parts','firefox-history','firefox-notifications','oauth-browser','tour-browser-parts'],
     'channel-post-context.yml':['browser'],
     'workspace-sound.yml':['sound'],
     'workspace-photo-viewer.yml':['photo-opening'],

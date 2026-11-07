@@ -597,7 +597,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-  tour-browser:
+  tour-browser-parts:
     needs: change-scope
     # Rule edits still run the full suite and also commission this shorter path.
     if: needs.change-scope.outputs.mode == 'tour-selection' || needs.change-scope.outputs.tour-proof == 'true'
@@ -616,6 +616,7 @@ jobs:
       fail-fast: false
       matrix:
         browser: [chromium, webkit]
+        part: [0, 1]
     env:
       QA_BROWSER_IMAGE: ghcr.io/pyatkoff/max-search-bot-browser-qa@sha256:7b95d1abd4105d9fa3d2af76a7e3c832e5bfe6afe43d091bbe8cdc18814a9c5a
       TZ: UTC
@@ -633,23 +634,67 @@ jobs:
           node /opt/manager2-qa/verify-runtime.js --require-source
       - name: List the complete component inventory
         run: npx playwright test tests/visual/manager-tour-selection.spec.js --browser=${{ matrix.browser }} --workers=1 --forbid-only --list --reporter=json > tour-selection-expected.json
-      - name: Execute every selection case on all four widths
-        env:
-          PLAYWRIGHT_JSON_OUTPUT_NAME: tour-selection-browser.json
-        run: npx playwright test tests/visual/manager-tour-selection.spec.js --browser=${{ matrix.browser }} --workers=1 --forbid-only --reporter=line,json
-      - name: Require complete current-source component evidence
-        run: node tools/verify_tour_selection_browser_report.js tour-selection-browser.json tour-selection-expected.json ${{ matrix.browser }}
+      - name: Execute this exact component part
+        run: node tools/verify_tour_selection_browser_report.js run-part ${{ matrix.browser }} ${{ matrix.part }}
+      - name: Require original component part evidence
+        run: node tools/verify_tour_selection_browser_report.js record-part ${{ matrix.browser }} ${{ matrix.part }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: tour-selection-browser-${{ matrix.browser }}-${{ github.sha }}
+          name: tour-selection-part-${{ matrix.browser }}-${{ matrix.part }}-${{ github.sha }}
           overwrite: true
           path: |
-            tour-selection-receipt.json
+            tour-selection-part-receipt.json
             tour-selection-browser.json
             tour-selection-expected.json
-            manager2-artifacts/tour-selection-*.png
+            tour-selection-filtered.json
+            manager2-artifacts/case-part-${{ matrix.part }}--tour-selection-*.png
             test-results/**/error-context.md
+          if-no-files-found: error
+          retention-days: 14
+
+  # The stable component result now proves the exact union of both native parts.
+  tour-browser:
+    needs: [change-scope, tour-browser-parts]
+    if: always() && (needs.change-scope.outputs.mode == 'tour-selection' || needs.change-scope.outputs.tour-proof == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
+    env:
+      QA_TESTED_SHA: ${{ github.sha }}
+      QA_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      QA_RUN_ID: ${{ github.run_id }}
+      QA_RUN_ATTEMPT: ${{ github.run_attempt }}
+      QA_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+      QA_PARTS_RESULT: ${{ needs.tour-browser-parts.result }}
+    steps:
+      - name: Require successful component parts
+        run: test "$QA_PARTS_RESULT" = success
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Read original component part zero
+        uses: actions/download-artifact@v4
+        with:
+          name: tour-selection-part-${{ matrix.browser }}-0-${{ github.sha }}
+          path: tour-parts/${{ matrix.browser }}/part-0
+      - name: Read original component part one
+        uses: actions/download-artifact@v4
+        with:
+          name: tour-selection-part-${{ matrix.browser }}-1-${{ github.sha }}
+          path: tour-parts/${{ matrix.browser }}/part-1
+      - name: Require complete current-source component evidence
+        run: node tools/verify_tour_selection_browser_report.js assemble ${{ matrix.browser }} tour-parts tour-evidence
+      - name: Upload complete component evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: tour-selection-browser-${{ matrix.browser }}-${{ github.sha }}
+          overwrite: true
+          path: tour-evidence/
           if-no-files-found: error
           retention-days: 14
 
