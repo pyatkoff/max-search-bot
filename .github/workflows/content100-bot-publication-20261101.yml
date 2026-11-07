@@ -56,7 +56,7 @@ jobs:
           constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst FEED_EXPORT_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst FEED_EXPORT_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"
           candidate_raw=(base/'commercial-channel-hotel-feeds-20261107-read44-candidates.json').read_bytes()
           assert hashlib.sha256(candidate_raw).hexdigest()=='d96d49a80ec0f15a3140cdc634e73bd04b748445686f4cb522f6a833d98dc7d3'
-          assert len(json.loads(candidate_raw))==20
+          assert len(json.loads(candidate_raw))==17
           (tmp/'feed-read44-candidates.json').write_bytes(candidate_raw)
           constants+="\nconst CANDIDATE_INPUT_SHA256='d96d49a80ec0f15a3140cdc634e73bd04b748445686f4cb522f6a833d98dc7d3';\nconst CANDIDATE_INPUT_B64='"+base64.b64encode(candidate_raw).decode()+"';\n"
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
