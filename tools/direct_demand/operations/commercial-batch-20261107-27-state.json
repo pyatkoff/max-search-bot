@@ -29,5 +29,24 @@
   "receipt_artifact_id": 13586005132,
   "receipt_sha256": "5068173786ea3a8df24532d947a79f1ced2561bb675d50a7ebd7c11966cceff8",
   "all_body_photo_button_verified": true,
-  "operation_consumed_do_not_replay": true
+  "operation_consumed_do_not_replay": true,
+  "source_commit": "76b47b0711defbb4a7a42a7618468c50c361383d",
+  "publication_artifact_id": 13586005132,
+  "publication_zip_sha256": "44085f5bdcf7d737a93c80f49d2c4772a5238d7d75c539f4ae56ff7cea16530f",
+  "input_artifact_id": 13585467891,
+  "input_zip_sha256": "08dfdc5801c8bc423808a8873f830de3c72ce506e9aa60a91a860c817fff0785",
+  "full_cycle_closed": true,
+  "route_feed_closure": {
+    "logical_total": 370,
+    "read_run": 42401865637,
+    "native_install_run": 42402053644,
+    "feed_run": 42402199096,
+    "feed_rows": [
+      370,
+      370,
+      740
+    ],
+    "previous352_preserved": true
+  },
+  "no_replay": true
 }
