@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionValueContract.php';
+require_once __DIR__.'/ModeledConversionTickFailure.php';
 
 /** Fixed derived-value aggregates only. No source tables, network, processing or mutation. */
 final class ModeledConversionValueDeliveryReader
@@ -54,7 +55,7 @@ final class ModeledConversionValueDeliveryReader
             if($seen>self::ROW_LIMIT)return $this->unavailable('invalid_ledger');
             $out=['available'=>true,'goal_id'=>self::GOAL,'counter_id'=>'98615635','target'=>ModeledConversionValueContract::TARGET,
                 'contract'=>ModeledConversionValueContract::VERSION,'currency'=>'RUB','mode'=>$s['mode'],
-                'activated_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$activation),'last_tick_at'=>null,'last_tick_errors'=>null,
+                'activated_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$activation),'last_tick_at'=>null,'last_tick_errors'=>null,'last_recorded_failure'=>null,
                 'window'=>['basis'=>'latest_live_and_owner_authorized_historical_goal_rows','max_rows'=>self::ROW_LIMIT,'inspected_rows'=>$seen,
                     'complete_within_bound'=>$seen<self::ROW_LIMIT],
                 'reserved_value_rub'=>$this->number($r['reserved_rub'],true),
@@ -75,6 +76,11 @@ final class ModeledConversionValueDeliveryReader
             if(is_string($s['receipt_json']??null)){try{$receipt=json_decode($s['receipt_json'],true,32,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){}}
             if(is_array($receipt)&&is_int($receipt['errors']??null)&&$receipt['errors']>=0&&$receipt['errors']<=100)$out['last_tick_errors']=$receipt['errors'];
             $tick=(int)($s['last_tick_unix']??0);if($tick>=$activation&&$tick<=$now)$out['last_tick_at']=gmdate('Y-m-d\\TH:i:s\\Z',$tick);
+            if($out['last_tick_at']!==null){
+                $failure=ModeledConversionTickFailure::normalize($receipt['last_recorded_failure']??null,$activation,$tick);
+                if($failure!==null)$out['last_recorded_failure']=['tick_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$failure['tick_at_unix']),
+                    'phase'=>$failure['phase'],'category'=>$failure['category']];
+            }
             $out['metrika_goal_report']=$this->report($receipt['metrika_report']??null,$activation,$now);
             if(!in_array($out['metrika_goal_report']['status']??null,['ok','sampled'],true)){
                 $lastGood=is_string($s['last_success_json']??null)?json_decode($s['last_success_json'],true):null;
@@ -103,6 +109,7 @@ final class ModeledConversionValueDeliveryReader
                         'profiles_scanned'=>$this->number($first['history_scanned'],false),'events_collected'=>$this->number($first['history_collected'],false)];
             }
             $out['interpretation']=['values'=>'owner_assigned_advertising_estimates_not_actual_income',
+                'last_recorded_failure_is_historical'=>true,
                 'states_are_disjoint'=>true,'accepted_receipts_include_later_rejected_or_unmatched_rows'=>true,
                 'processed_means_validated_upload_rows_not_verified_visit_linkage'=>true,
                 'matched_upload_status_means_user_ids_matched_not_per_upload_visit_proof'=>true,

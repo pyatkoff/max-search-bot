@@ -320,6 +320,40 @@ Statuses sampled/forbidden/unavailable/not_recorded and age>900sec remain explic
 missing or stale reporting data is never fabricated as zero or exact linkage.
 Counters/values are private results, never published into Git/Actions/diagnostics.
 
+#### Retained conversion-cycle failure
+
+The same bounded settings receipt now retains `last_recorded_failure`: the start
+time of the latest recorded failed tick, its first failing phase and a fixed
+category. This is distinct from `last_tick_at` and `last_tick_errors`; a healthy
+tick keeps the historical failure without keeping the current tick degraded.
+An absent or invalid record is `null`, not proof that no previous failure occurred.
+The reader validates an integer time between activation and the current saved
+tick (itself no later than the read), and reconstructs only `tick_at`, `phase` and
+`category`. `last_recorded_failure_is_historical` makes this distinction explicit.
+
+Phases are `recover`, `price_continuity`, `collect_profiles`, `collect_history`,
+`resolve_identity`, `goal_check`, `upload` and `reconcile_receipts`. Categories are
+`storage_failed`, `configuration_unavailable`, `goal_verification_failed`,
+`goal_read_failed`, `processing_failed`, `transport_not_sent`, `rate_limited`,
+`api_rejected` and `upload_failed`. Arbitrary exception messages, SQL, provider
+responses, identifiers and customer text are never copied into this record.
+Only the existing two paths that increment conversion `errors` create it.
+An uncertain upload acknowledgement and an independent Reporting API failure
+retain their existing separate meanings and do not create a conversion failure.
+
+After all network work, a short transaction locks and merges the current settings
+receipt. A late older failed tick can add its failure to a newer healthy receipt
+without replacing that receipt's counts, tick or report clocks. A newer failure
+wins; equal-second failures retain the first saved record. No lock is held during
+network work. The same 8192-byte receipt bound and existing read queries, response
+budgets, authorization and alert rules remain. No new table or schedule is added.
+This preserves future failures only when their bounded metadata can be committed; it
+cannot recover already overwritten details or record a database-write failure in
+an unavailable database. A malformed or oversized newer receipt is not overwritten
+by the stale-tick merge. Failure enrichment that would exceed the existing receipt
+cap is omitted, preserving the current statistics and report metadata. On MySQL,
+the writer checks native JSON byte length, including its normalization whitespace.
+
 ### V1.5: diverse saved-input diagnosis
 
 The same private route additionally projects fixed scalar counters from at most
