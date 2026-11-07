@@ -1,0 +1,166 @@
+[
+  {
+    "hotel_id": 22660,
+    "logical_id": null,
+    "aliases": [
+      "Sunsuri Phuket",
+      "SUNSURI PHUKET RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 817,
+    "logical_id": null,
+    "aliases": [
+      "Thavorn Beach Village Resort & Spa",
+      "THAVORN BEACH VILLAGE & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2559,
+    "logical_id": null,
+    "aliases": [
+      "Fujairah Rotana Resort & Spa",
+      "FUJAIRAH ROTANA RESORT & SPA AL AQAH BEACH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 73055,
+    "logical_id": null,
+    "aliases": [
+      "Address Fujairah Beach Resort",
+      "ADDRESS BEACH RESORT FUJAIRAH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 43060,
+    "logical_id": null,
+    "aliases": [
+      "Golden Tulip Media Hotel",
+      "GOLDEN TULIP MEDIA (EX. GOLDEN TULIP AL THANYAH)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2536,
+    "logical_id": null,
+    "aliases": [
+      "Coral Beach Resort Sharjah",
+      "CORAL BEACH RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 50869,
+    "logical_id": null,
+    "aliases": [
+      "Riu Sri Lanka",
+      "RIU SRI LANKA AHUNGALLA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 51238,
+    "logical_id": null,
+    "aliases": [
+      "Radisson Blu Galle",
+      "RADISSON BLU RESORT GALLE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 70030,
+    "logical_id": null,
+    "aliases": [
+      "Utopia Beach Club"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1555,
+    "logical_id": null,
+    "aliases": [
+      "Doubletree By Hilton Antalya Kemer"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1690,
+    "logical_id": null,
+    "aliases": [
+      "Mirage World"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 28704,
+    "logical_id": null,
+    "aliases": [
+      "Selectum Collection Bodrum",
+      "SELECTUM COLLECTION BODRUM (EX. KAIRABA BODRUM IMPERIAL)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1699,
+    "logical_id": null,
+    "aliases": [
+      "Yasmin Bodrum Resort",
+      "YASMIN BODRUM RESORT (EX. PALOMA YASMIN RESORT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1702,
+    "logical_id": null,
+    "aliases": [
+      "Rixos Premium Bodrum"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 82545,
+    "logical_id": null,
+    "aliases": [
+      "Ell Lounge Spa & Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 70048,
+    "logical_id": null,
+    "aliases": [
+      "Marina Gallery Resort - KACHA - Kalim Bay",
+      "MARINA GALLERY RESORT KACHA KALIM BAY"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 5389,
+    "logical_id": null,
+    "aliases": [
+      "Coral Sands"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  }
+]
