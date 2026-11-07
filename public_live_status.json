@@ -1,47 +1,47 @@
 {
     "ok": true,
-    "generated_at": "2026-11-07T20:37:31+00:00",
+    "generated_at": "2026-11-07T20:48:29+00:00",
     "window_type": "rolling_hours",
     "window_hours": 1,
     "timezone": "UTC",
     "channel": "max",
     "summary": {
-        "sessions": 30,
-        "raw_sessions": 30,
+        "sessions": 31,
+        "raw_sessions": 31,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 30,
+            "resolved": 31,
             "unresolved": 0
         },
-        "started": 18,
+        "started": 19,
         "needs_collected": 1,
         "tours_opened": 0,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 18,
+        "manager_requested": 19,
         "manager_replied": 9,
         "customer_replied_after_manager": 3,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 9,
-            "still_unanswered": 8,
+            "still_unanswered": 9,
             "measured_responses": 9,
             "avg_seconds": 4137,
             "max_seconds": 9121
         },
         "drop_points": {
             "started_only": 12,
-            "manager_requested": 9,
+            "manager_requested": 10,
             "manager_replied": 6,
             "customer_replied_after_manager": 3
         },
         "flags": {
-            "manager_requested_no_reply": 8
+            "manager_requested_no_reply": 9
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-07T20:37:31Z",
+        "sampled_at": "2026-11-07T20:48:29Z",
         "available": true,
         "error": null,
         "mode": "send",
@@ -60,6 +60,6 @@
         },
         "queue_total": 28
     },
-    "since_utc": "2026-11-07 19:37:31",
+    "since_utc": "2026-11-07 19:48:29",
     "public_redacted": true
 }
