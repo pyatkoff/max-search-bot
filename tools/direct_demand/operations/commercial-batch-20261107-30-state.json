@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-30-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     1186,
     9354,
@@ -18,5 +18,21 @@
   "asset_commit": "c9169e876056b9cc10d2c7cd5bc1bfbf08ba9c32",
   "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "run_id": 42403691684,
+  "job_id": 128496725019,
+  "terminal_result": "SUCCESS",
+  "new_complete_pairs": 8,
+  "new_posts": 16,
+  "receipt_artifact_id": 13586626772,
+  "receipt_sha256": "4114a82f0f5fca1284fed8be4f71594e49e478decde740791a93b248a09b9d86",
+  "all_body_photo_button_verified": true,
+  "operation_consumed_do_not_replay": true,
+  "source_commit": "ff4aec9c5f6627c5e674c80868b15fd292b38b43",
+  "publication_artifact_id": 13586626772,
+  "publication_zip_sha256": "4d100164672992ef0a2c3bef164f1463814d7740bec44ae3c1965eb23973d7a3",
+  "input_artifact_id": 13586692094,
+  "input_zip_sha256": "720e7eab74015eeecc38f2b3c79fac95bc4f8cfd2638b10cc71c3231e1ad6032",
+  "full_cycle_closed": false,
+  "no_replay": true
 }

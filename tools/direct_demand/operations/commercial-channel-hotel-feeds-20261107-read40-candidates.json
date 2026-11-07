@@ -1,0 +1,202 @@
+[
+  {
+    "hotel_id": 1380,
+    "logical_id": null,
+    "aliases": [
+      "Mirada Del Mar Hotel",
+      "MIRADA DEL MAR"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 949,
+    "logical_id": null,
+    "aliases": [
+      "Adam & Eve (Adults Only 16+)",
+      "ADAM & EVE HOTEL ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1483,
+    "logical_id": null,
+    "aliases": [
+      "Seher Resort & Spa Hotel",
+      "SEHER RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1196,
+    "logical_id": null,
+    "aliases": [
+      "Viking Garden Hotel & Spa",
+      "VIKING GARDEN HOTEL (EX. GARDEN RESORT BERGAMOT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1051,
+    "logical_id": null,
+    "aliases": [
+      "Blue Fish Hotel",
+      "BLUE FISH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 53514,
+    "logical_id": null,
+    "aliases": [
+      "Royal Seginus Hotel",
+      "ROYAL SEGINUS"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 15873,
+    "logical_id": null,
+    "aliases": [
+      "White City Resort Hotel",
+      "WHITE CITY RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 28754,
+    "logical_id": null,
+    "aliases": [
+      "Kleopatra Atlas Hotel (Adults Only 16+)",
+      "KLEOPATRA ATLAS ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1189,
+    "logical_id": null,
+    "aliases": [
+      "Flora Garden Beach Hotel (Adults Only 16+)",
+      "FLORA GARDEN BEACH ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1410,
+    "logical_id": null,
+    "aliases": [
+      "Ozkaymak Marina Hotel",
+      "OZKAYMAK MARINA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1339,
+    "logical_id": null,
+    "aliases": [
+      "Limak Limra Hotels & Resort",
+      "LIMAK LIMRA HOTEL & RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1586,
+    "logical_id": null,
+    "aliases": [
+      "White City Beach Hotel (Adults Only 16+)",
+      "WHITE CITY BEACH ADULTS ONLY 16+"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 55925,
+    "logical_id": null,
+    "aliases": [
+      "Villa Sunflower Hotel",
+      "VILLA SUNFLOWER APARTS & SUITES"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 113292,
+    "logical_id": null,
+    "aliases": [
+      "Granada Luxury Red (Adults Only 16+)",
+      "GRANADA LUXURY RED ADULTS ONLY"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1436,
+    "logical_id": null,
+    "aliases": [
+      "Porto Bello Hotel Resort & Spa",
+      "PORTO BELLO"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 53578,
+    "logical_id": null,
+    "aliases": [
+      "Kahya Hotel",
+      "KAHYA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 55511,
+    "logical_id": null,
+    "aliases": [
+      "Sentido Trendy Verbena Beach",
+      "SENTIDO TRENDY VERBENA BEACH HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1336,
+    "logical_id": null,
+    "aliases": [
+      "Limak Arcadia Sport Resort",
+      "LIMAK ARCADIA GOLF & SPORT RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 1004,
+    "logical_id": null,
+    "aliases": [
+      "Sealife Buket Resort & Beach",
+      "SEALIFE BUKET BEACH (EX. ASKA BUKET RESORT & SPA)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 17595,
+    "logical_id": null,
+    "aliases": [
+      "Ramada Resort Lara",
+      "RAMADA RESORT BY WYNDHAM LARA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "additional_third20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  }
+]
