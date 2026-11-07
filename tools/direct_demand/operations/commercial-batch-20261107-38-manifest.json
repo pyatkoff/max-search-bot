@@ -1,0 +1,901 @@
+{
+  "operation": "commercial-hotel-batch-20261107-38-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 451,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read41",
+        "run_id": 42407026283,
+        "original_read_sha256": "9d7a542608da9bfb6c136b58703ded041a77fc22458d469f0e0360ce66e3734a",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed17 commercial captions in cutover24 format,51 real source photos and17 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before37/38 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-seventeen-after-441-commercial-release-manifest.json",
+    "sha256": "175bc60c8643468365635892c966498e04301c310c2d26a18ad2ed3375f1239d",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-fourth20-commercial-captions.json",
+    "caption_sha256": "3620d6a06db0abad061cad2d6c57095452843e94af5c471a4ed4cb35b72abf39",
+    "subset_native_ids": [
+      59116,
+      9260,
+      106,
+      114,
+      1959,
+      288,
+      415
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "source_held_native_ids": [
+    132016,
+    473,
+    475
+  ],
+  "media_held_native_ids": [],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    },
+    {
+      "native_hotel_id": 319,
+      "public_url": "https://max.ru/channel_anytour/AaF1Ae28ZNw"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 59116,
+      "logical_id": "commercial-lujo-bodrum-59116-v1",
+      "aliases": [
+        "Lujo Bodrum",
+        "LUJO HOTEL BODRUM (EX. LUJO ART & JOY)"
+      ],
+      "text": "✈️ Туры в Lujo Bodrum с перелётом\n📍 Бодрум, Турция.\n\nОтдых вдвоём с боковым видом на море и песчаным пляжем.\n\n🛏 Двухместный Side Sea View 45 м².\n🍽 Подберём тур с завтраками или All Inclusive.\n🏖 Отель у песчаного пляжа в Гюверджинлике.\n🎶 Шоу и живая музыка.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером.",
+      "text_sha256": "2173a232157c17f76da8049cb6a174e3601755b09faf8a0dfc74237c24b97ae5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/59116.png",
+      "photo_sha256": "9e7a00a8f44e52e8d3d583dfcc248c2b74813f622addfdc1bcce7e1dc41c16a5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.nl/lujo-bodrum-509665361/",
+        "https://kompastour.com/kz/rus/country/turkey/bodrum/lujo_hotel_bodrum/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lujo-art-joy-10643801.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lujo-art-joy-10657305.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/lujo-art-joy-10643845.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 18643,
+        "anytour_id": 2716,
+        "legacy_native_id": 59116,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ0eYqqA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_23b5dcf40ac7536f_run06_c01",
+        "top500_23b5dcf40ac7536f_run06_c02",
+        "top500_23b5dcf40ac7536f_run06_c03",
+        "top500_23b5dcf40ac7536f_run06_c04",
+        "top500_23b5dcf40ac7536f_run06_c05",
+        "top500_23b5dcf40ac7536f_run06_c06",
+        "top500_23b5dcf40ac7536f_run06audit_c02",
+        "top500_23b5dcf40ac7536f_run06audit_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/lujo-art-joy-10643801.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4a5c2f325ed72126eb74e87774182b2f626972a2893c7610f1575a1b706ce420",
+          "source_png_sha256": "6e0b702926783556b32f3c1c32c37129a5b3a3a88f778dbd3beaa1941d17c83f",
+          "source_png_bytes": 1165732,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "Побережье и территория Lujo Bodrum",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ7bOiQ8",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "lujo-bodrum-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g126",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/lujo-art-joy-10657305.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d2734559c4b53a9d0f1acb151a8d7ca64d69ca56d8898314c1e9ee3f34cf7976",
+          "source_png_sha256": "1869cdd3a6733bde29383c787752d60d13f4ebf15231f0735e9329348fa7611e",
+          "source_png_bytes": 496593,
+          "dimensions": [
+            1024,
+            686
+          ],
+          "alt": "Один из номеров Lujo Bodrum",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ4Dh8j0",
+          "canva_asset_dimensions": [
+            1024,
+            686
+          ],
+          "source_png_filename": "lujo-bodrum-g126.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g46",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/lujo-art-joy-10643845.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "744f511c4d2f061457815b4ab6a38fb3a6e00693618aa3a83bab076a5f4dd77d",
+          "source_png_sha256": "ff61ea9c89b05134f2866a9750245d8af97a864ccaa190bb0113d0e9e1584670",
+          "source_png_bytes": 902115,
+          "dimensions": [
+            1024,
+            709
+          ],
+          "alt": "Терраса ресторана Lujo Bodrum",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8yP4dA",
+          "canva_asset_dimensions": [
+            1024,
+            709
+          ],
+          "source_png_filename": "lujo-bodrum-g46.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 9260,
+      "logical_id": "commercial-flora-ephesus-9260-v1",
+      "aliases": [
+        "Flora Garden Ephesus Hotel",
+        "FLORA GARDEN EPHESUS (EX. CLUB MERSIN BEACH)"
+      ],
+      "text": "✈️ Туры в Flora Garden Ephesus с перелётом\n📍 Кушадасы, Турция.\n\nОтдых вдвоём у моря в Кушадасы.\n\n🛏 Двухместный Land View от 21 до 25 м² в корпусе Annex.\n🍽 All Inclusive.\n🏖 Собственный пляж у отеля.\n\n✈️ Подберём нужный корпус и номер, рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "ba67d3e1e17f620ac7e61363a79d3b94614be03893d088dd65597e389996a162",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/9260.png",
+      "photo_sha256": "ae1d9cb1bb176a9d26f1c325eb5104ea2273922576cf1e34b3b64bbcdbd3c34b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://floragardenhotels.com/ephesus/",
+        "https://www.dertour.de/hotel/flora-garden-ephesus-11PWSB",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-mersin-beach-102303401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-mersin-beach-1023034114.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/club-mersin-beach-1023034123.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 19020,
+        "anytour_id": 1510,
+        "legacy_native_id": 9260,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQyGjl5Q",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_cee71d83e60fc987_run06_c01",
+        "top500_cee71d83e60fc987_run06_c02",
+        "top500_cee71d83e60fc987_run06_c04",
+        "top500_cee71d83e60fc987_run12_c01",
+        "top500_cee71d83e60fc987_run12_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/club-mersin-beach-102303401.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "47a842b224ef531eb303ab15a704e3a0ac81f1a56aeb8566bf373b93ad6419fd",
+          "source_png_sha256": "322667e59b8b7c2784701870fb6d20e4251d46c8f1187ffd5584e2524f78db95",
+          "source_png_bytes": 1477586,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Пляж и территория Flora Garden Ephesus",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9Secd8",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "flora-ephesus-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/club-mersin-beach-1023034114.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "90816e97b35d5b53fdba529b95087dd718b3322dedf4b264242b68683c423346",
+          "source_png_sha256": "9dc4829a9cd793ae0eea627fa27af059b000b65cc28534f76461c030b42a87d2",
+          "source_png_bytes": 1283997,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Ресторан Flora Garden Ephesus",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6kv5Yw",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "flora-ephesus-g16.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/club-mersin-beach-1023034123.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b9fb326af861d361cab8af63b085887421f444bcbaf191c6d025da527010c313",
+          "source_png_sha256": "b232445f602e67759d1ac602b089cf794c7972f9ecc1fdf8fc91717b288fc790",
+          "source_png_bytes": 837439,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Терраса Flora Garden Ephesus",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ3VHlRg",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "flora-ephesus-g25.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 106,
+      "logical_id": "commercial-aladdin-beach-106-v1",
+      "aliases": [
+        "Aladdin Beach Resort Hurghada",
+        "ALADDIN BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Aladdin Beach Resort с перелётом\n📍 Хургада, Египет.\n\nДля пляжного отдыха с пологим входом в море.\n\n🛏 Standard от 34 до 38 м² в бунгало или двухэтажном корпусе.\n🍽 All Inclusive.\n🏖 Первая линия, пляж с песком и галькой.\n🎶 Вечерние шоу и живая музыка.\n\n✈️ Подберём номер под вашу семью и рассчитаем тур с перелётом.",
+      "text_sha256": "531a2273f358f12a2a43e11c808fde31c6b41a06c903b3efae192d5c1b390e8c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/106.png",
+      "photo_sha256": "6a37dbc464a8b18eec7d1a62466903f478324723ebd865efeb4a114108d17095",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/egypt/hurgada_village_road/aladdin_beach_resort/",
+        "https://joinup.cz/en/hotel/26354",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/aladdin-45026800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/106-79415133.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/106-79416050.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 4740,
+        "anytour_id": 2,
+        "legacy_native_id": 106,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ8Ytg7Y",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_bd0d3eeff9a303d0_c01",
+        "top500_bd0d3eeff9a303d0_c02",
+        "top500_bd0d3eeff9a303d0_c03",
+        "top500_bd0d3eeff9a303d0_c04",
+        "top500_bd0d3eeff9a303d0_c05",
+        "top500_bd0d3eeff9a303d0_c06",
+        "top500_bd0d3eeff9a303d0_enrich20261020_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/aladdin-45026800.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a2865aa3353a8056c3a76ff476f1c2e48c36a578e180664fd33e11158f9c3798",
+          "source_png_sha256": "6b99135962af0790b62c6b4e0ee210bd03b1ad61ac822b4bad2a4995cd580c24",
+          "source_png_bytes": 653500,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Пляж Aladdin Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_1nCsc",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "aladdin-beach-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g33",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/106-79415133.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "cebeede4f4a7c0276e000eb2af889ed0ba20fb213bab8a8b5939f780396b3b93",
+          "source_png_sha256": "6933b3932b17c7a17bb8571afc548af0f26a32ec7b7ffdf93b042c9219513adc",
+          "source_png_bytes": 957952,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Один из номеров Aladdin Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQyu7xyQ",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "aladdin-beach-g33.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g50",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/106-79416050.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fc830b88d27deeafb14603366ec5db83a25e7d8bf9bba4cb86db1afc2b1d16fd",
+          "source_png_sha256": "b79e46920a2acfda40e5a79144a43f8fbb7645670dcd5e0ab2816875ecfd01be",
+          "source_png_bytes": 1443562,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Бунгало в саду Aladdin Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQwTAmgI",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "aladdin-beach-g50.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 114,
+      "logical_id": "commercial-ali-baba-palace-114-v1",
+      "aliases": [
+        "Ali Baba Palace Hurghada",
+        "ALI BABA PALACE"
+      ],
+      "text": "✈️ Туры в Ali Baba Palace с перелётом\n📍 Хургада, Египет.\n\nДля семейного отпуска с двумя комнатами.\n\n🛏 Family Connected 70 м²: две комнаты с дверью.\n🍽 All Inclusive.\n🏖 Собственный песчаный пляж; у входа в море песок и галька, пригодится обувь для купания.\n\n✈️ Подберём размещение с учётом возраста детей и рассчитаем тур с перелётом.",
+      "text_sha256": "4c99c617eaa4bae9016899a86bc8c6a7ec0730b8d791ba52c4b1eea7368927bd",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/114.png",
+      "photo_sha256": "b5fd6fba7f1227e5640d3af386674ead1e822a73dc4adf152c4b28b0b667f0b4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.ge/en/hotels/egypt/ali-baba-palace-hurghada/",
+        "https://kompastour.com/ua/rus/country/egypt/hurgada_village_road/ali_baba_aquapark/",
+        "https://joinup.lv/en/hotel/26358",
+        "https://egyiptom-travel.hu/_store/Hotelek/Hurghada/Adatlapok/Ali_Baba_Palace_adalap_angol.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/ali-baba-1020093112.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/ali-baba-13242700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/ali-baba-13242703.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 977,
+        "anytour_id": 8,
+        "legacy_native_id": 114,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ5EtOYo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_12fce00c0906705f_c01",
+        "top500_12fce00c0906705f_c03",
+        "top500_12fce00c0906705f_c04",
+        "top500_12fce00c0906705f_gap50_1_c1",
+        "top500_12fce00c0906705f_enrich20261020_c01",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-MASS-04_c08"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/ali-baba-1020093112.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "958f896f51d2940d9f42c7a487b3b5170cb2fec1ecfc3332af52fc747fa1191b",
+          "source_png_sha256": "79af10cdc49cba1d5489ddfb3e81c028734937491f854002ba313e3a73a69658",
+          "source_png_bytes": 1672842,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан Ali Baba Palace",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ79l50E",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "ali-baba-palace-g15.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/ali-baba-13242700.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fddefabb95b58109ca01e0523740f52126b262ca7523e6f28dff8d8c6c8ccbd3",
+          "source_png_sha256": "b2a6dc739e16d0f59093f48b2376cf8f790cd9f284dae13b7b8eeccccf289fd9",
+          "source_png_bytes": 373183,
+          "dimensions": [
+            1024,
+            575
+          ],
+          "alt": "Комната для просмотра фильмов Ali Baba Palace",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQwKX7UM",
+          "canva_asset_dimensions": [
+            1024,
+            575
+          ],
+          "source_png_filename": "ali-baba-palace-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g32",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/ali-baba-13242703.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "53d834da6f0d0241287e97f83619107405f3be1e16db07e8669ae643f2e84307",
+          "source_png_sha256": "8e77954915444b4a4ace5ab147178e4ffac279ded3be98db98da40276274a590",
+          "source_png_bytes": 791734,
+          "dimensions": [
+            1024,
+            575
+          ],
+          "alt": "Детская игровая комната Ali Baba Palace",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6mSMJg",
+          "canva_asset_dimensions": [
+            1024,
+            575
+          ],
+          "source_png_filename": "ali-baba-palace-g32.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1959,
+      "logical_id": "commercial-amc-royal-1959-v1",
+      "aliases": [
+        "AMC Royal Hotel & Spa",
+        "AMC ROYAL HOTEL"
+      ],
+      "text": "✈️ Туры в AMC Royal Hotel & Spa с перелётом\n📍 Хургада, Египет.\n\nОтдых с песчаным пляжем у отеля и детскими развлечениями.\n\n🛏 Standard 34 м² с балконом или террасой.\n🏖 Вход в море с берега или понтона.\n🧒 Детский клуб для гостей от 4 до 12 лет.\n\n✈️ Подберём питание и номер под вашу семью, рассчитаем тур с перелётом.",
+      "text_sha256": "ba3572ed960867f3546f017a22ffecd2efc26112fc8f53ac9a4cfd009f866dd5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/1959.png",
+      "photo_sha256": "3726ac1cd4ecdbe5ff408ad775d9e386f982a172f4dea0c78c49079bc062a8d6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/amc-royal-hotel-spa",
+        "https://kompastour.com/az/rus/country/egypt/hurgada_al_ahiya_road/amc_royal_aqua_park/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/amc-azur-102108420.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/amc-azur-1021084627.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/amc-azur-1021084419.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 4367,
+        "anytour_id": 865,
+        "legacy_native_id": 1959,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQwtM614",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "amc_royal_c01",
+        "amc_royal_gap50_1_c1",
+        "amc_royal_gap50_1_c2",
+        "amc_royal_demand27_c01",
+        "amc_royal_c04",
+        "amc_royal_c06",
+        "HOTEL-EG-20261026-AMC-PRACTICAL-PROFILE_c08"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/amc-azur-102108420.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "36037af49e6ca15169d56badb8bcb9ce293a3054067f1d247a0849e68eefa7af",
+          "source_png_sha256": "d733837de39575ce3131053fb03c917b5c704dfd6c121074f407be62db82b470",
+          "source_png_bytes": 1323762,
+          "dimensions": [
+            1200,
+            900
+          ],
+          "alt": "Пляж и территория AMC Royal",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQz-lxsM",
+          "canva_asset_dimensions": [
+            1200,
+            900
+          ],
+          "source_png_filename": "amc-royal-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g30",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/amc-azur-1021084627.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "1f29332e4027fdba82bc4aa4a5b3247bec752d7773f4dff59c5634c243c9d1c1",
+          "source_png_sha256": "fca1f3db84899303f6e892cd02e890e7ea0de7ecb0ca8ee06d26a8aaa61ef7e3",
+          "source_png_bytes": 815313,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Один из номеров AMC Royal",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ3bkz3w",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "amc-royal-g30.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g22",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/amc-azur-1021084419.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "59341ebc56d9873f0cfc0207ea875850b649a9090d869bee20dc13326348a8fd",
+          "source_png_sha256": "b3067f2326a1a1b89fee890c0b799456be516d4a0166c10b0d10527d63817d48",
+          "source_png_bytes": 1291708,
+          "dimensions": [
+            1200,
+            960
+          ],
+          "alt": "Ресторан AMC Royal",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6O7KyI",
+          "canva_asset_dimensions": [
+            1200,
+            960
+          ],
+          "source_png_filename": "amc-royal-g22.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 288,
+      "logical_id": "commercial-king-tut-288-v1",
+      "aliases": [
+        "Kingtut Aqua Park Beach Resort Hurghada",
+        "KING TUT AQUA PARK BEACH RESORT"
+      ],
+      "text": "✈️ Туры в King Tut Aqua Park Beach Resort с перелётом\n📍 Хургада, Египет.\n\nМоре и вечерняя программа для отпуска в Хургаде.\n\n🛏 Standard 30 м².\n🍽 All Inclusive.\n🏖 Песчаный пляж общий со Sphinx. Есть кораллы, пригодится обувь для купания.\n🎶 Вечерние шоу и живая музыка.\n\n✈️ Подберём размещение под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "673322a15977872323d553526adbcd6fde44403cdd17b950382bb8c782a1ce74",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/288.png",
+      "photo_sha256": "0ca003599827bd2b1d1ac844643f53202b1490ae01436ffc72a542ad8d81fd2d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/hurgada_downtown/king_tut_aquapark_beach_resort/",
+        "https://www.dertour.ro/egipt/hurghada/hurghada/king-tut-resort",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/king-tut-38153200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/king-tut-38153201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/king-tut-38153217.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 762,
+        "anytour_id": 111,
+        "legacy_native_id": 288,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": false,
+      "canva_design_id": "DAHaQyyHIDY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_bdb5337e27f21e9e_c02",
+        "top500_bdb5337e27f21e9e_c03",
+        "top500_bdb5337e27f21e9e_c04",
+        "top500_bdb5337e27f21e9e_c05",
+        "top500_bdb5337e27f21e9e_c06",
+        "top500_bdb5337e27f21e9e_mass38_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/king-tut-38153200.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e65882b60cfce14d1f3c8abc315918df016a1a79203708db3bd86c7743d4b1cf",
+          "source_png_sha256": "c1c1a4e0fda3cc80ac58b59707273cd5fc4bd1d9ef54b2dde2e7810604c9e405",
+          "source_png_bytes": 747543,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Здание King Tut Aqua Park Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2u332s",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "king-tut-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/king-tut-38153201.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0fd6b9c2c5c11aaf2f6de249308cfe10d052ccb164e802a89c8e2235865925aa",
+          "source_png_sha256": "a30c8e41c9f9c1270897f0db396fa7d77b4ab582a83f8b3e697412b0d4767281",
+          "source_png_bytes": 613559,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров King Tut",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2ffnME",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "king-tut-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/king-tut-38153217.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "bf73b0252bfa73187d9a3caf511c48b18274587df92a0a4b824e5dd53fbca206",
+          "source_png_sha256": "1598aa0590fc529e22018cc27d8a654feaf9f47fa9c627cc084f6b363916a16c",
+          "source_png_bytes": 713538,
+          "dimensions": [
+            1024,
+            504
+          ],
+          "alt": "Лобби King Tut",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8dsunk",
+          "canva_asset_dimensions": [
+            1024,
+            504
+          ],
+          "source_png_filename": "king-tut-g19.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 415,
+      "logical_id": "commercial-seagull-hurghada-415-v1",
+      "aliases": [
+        "Seagull Beach Resort Hurghada",
+        "SEAGULL BEACH RESORT & CLUB"
+      ],
+      "text": "✈️ Туры в Seagull Beach Resort с перелётом\n📍 Хургада, Египет.\n\nДва песчаных пляжа и пологий вход в море для пляжного отпуска.\n\n🛏 Standard 30 м² с балконом.\n🍽 All Inclusive.\n🏖 Два собственных пляжа на первой линии.\n🎶 Вечерние шоу.\n\n✈️ Подберём подходящий номер и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "01988c650532f72c13a9107e4a26f3911e110ddcfbf84eb9e690942595caa9d7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/415.png",
+      "photo_sha256": "45a036ef170da76ad18f5054e172770b54c1950172f20a4ad90f651e7ae37e39",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/egypt/hurgada_downtown/hurghada_seagull_resort/",
+        "https://www.corendon.nl/egypte/rode-zee/hurghada/hurghada-stad/seagull-resort",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=54621&legacyHotelIds%5B%5D=1579&legacyHotelIds%5B%5D=1218&legacyHotelIds%5B%5D=132016&legacyHotelIds%5B%5D=52925&legacyHotelIds%5B%5D=49083&legacyHotelIds%5B%5D=42928&legacyHotelIds%5B%5D=1712&legacyHotelIds%5B%5D=1647&legacyHotelIds%5B%5D=109655&legacyHotelIds%5B%5D=108942&legacyHotelIds%5B%5D=59116&legacyHotelIds%5B%5D=9260&legacyHotelIds%5B%5D=106&legacyHotelIds%5B%5D=114&legacyHotelIds%5B%5D=1959&legacyHotelIds%5B%5D=288&legacyHotelIds%5B%5D=415&legacyHotelIds%5B%5D=473&legacyHotelIds%5B%5D=475",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/seagull-hotel-102103591.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/seagull-hotel-1021040442.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/seagull-hotel-1021040323.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 811,
+        "anytour_id": 177,
+        "legacy_native_id": 415,
+        "source_file": "additional-fourth20-current-catalog.json",
+        "source_sha256": "7cc9257723d16c0850ff65eb15994c0931dacf773028a0c558b953c2938fad12",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQyHWRv0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_b49c67f9bbab8674_c01",
+        "top500_b49c67f9bbab8674_c02",
+        "top500_b49c67f9bbab8674_c03",
+        "top500_b49c67f9bbab8674_c04",
+        "top500_b49c67f9bbab8674_c05",
+        "top500_b49c67f9bbab8674_c06",
+        "top500_b49c67f9bbab8674_mass38_c02",
+        "HOTEL-EG-MANUAL-20261025-HURGHADA-COAST-06_c37"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/seagull-hotel-102103591.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f41b1fb0b4015836730c3e425fe9cd8dfa3908219d968ec80cebe8bd4e1a4b3e",
+          "source_png_sha256": "782adca358d7a077dc848cdd00a651aa55b803175f216438be18ae483754cb5d",
+          "source_png_bytes": 1437228,
+          "dimensions": [
+            1200,
+            774
+          ],
+          "alt": "Здание и бассейн Seagull Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6wPoKI",
+          "canva_asset_dimensions": [
+            1200,
+            774
+          ],
+          "source_png_filename": "seagull-hurghada-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g44",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/seagull-hotel-1021040442.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0bb667fcfa78fc8f43455859a8265a3a6fd03000ff2ef8aac94738e8428448fb",
+          "source_png_sha256": "2bdd88a52da9fb96fabca421f305bcafe79d46d75eaf3833a40e048a9dbdf455",
+          "source_png_bytes": 1124502,
+          "dimensions": [
+            1200,
+            807
+          ],
+          "alt": "Один из номеров Seagull Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ--mzUI",
+          "canva_asset_dimensions": [
+            1200,
+            807
+          ],
+          "source_png_filename": "seagull-hurghada-g44.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/seagull-hotel-1021040323.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e3f710dc5969357514818cba786a893dabfa96aaeb00e160cd14cd7d37ac8fe6",
+          "source_png_sha256": "334fdbd69c0cf57ae000cfad9be7ea6b3011eb96f55e69eea69f01e9ae027e63",
+          "source_png_bytes": 1071814,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан Seagull Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ1a-Om0",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "seagull-hurghada-g25.png"
+        }
+      ]
+    }
+  ]
+}
