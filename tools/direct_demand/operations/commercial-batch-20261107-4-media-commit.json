@@ -1,0 +1,69 @@
+{
+  "commit": "2e2d7c5b79e7e4a028662be70d507723fbbac86b",
+  "images": [
+    {
+      "native": 1074,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/gural-belek-commercial-cover.png",
+      "bytes": 855036,
+      "b64_length": 1140048,
+      "sha256": "38b5e0a973ddbc1d3237df7636339c050c65b358023dffe7e461aed778e23e82"
+    },
+    {
+      "native": 108146,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/anda-commercial-cover-v2.png",
+      "bytes": 601595,
+      "b64_length": 802128,
+      "sha256": "6c9d2ebd6e5e4ac218f4bb092d5e122cbe8e32cb6c1750340cd6defa6a31745b"
+    },
+    {
+      "native": 1362,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/pine-commercial-cover.png",
+      "bytes": 766477,
+      "b64_length": 1021972,
+      "sha256": "6fc48abd78bc49695a4c55707367850d21a609f05baac706bc0370225b7230c0"
+    },
+    {
+      "native": 68984,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/meridien-commercial-cover.png",
+      "bytes": 848787,
+      "b64_length": 1131716,
+      "sha256": "2094de528d7e2a2a01739bcfa91ba3626c48dde75cfb480e742c236b0e94096f"
+    },
+    {
+      "native": 703,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/merlin-commercial-cover.png",
+      "bytes": 894153,
+      "b64_length": 1192204,
+      "sha256": "a92f44bec1b6e556a805e06e9523da4ac8d2d0bcb8ca18cdf0acb4797884cb6b"
+    },
+    {
+      "native": 118475,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/flow-commercial-cover.png",
+      "bytes": 768762,
+      "b64_length": 1025016,
+      "sha256": "a35d335d1768b70ec34dfcd42beb8c1a4c41b36c18af51a0874bf5e95a585b6a"
+    },
+    {
+      "native": 462,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/sphinx-commercial-cover.png",
+      "bytes": 835334,
+      "b64_length": 1113780,
+      "sha256": "0405f6421847ea67993211df27c7d0b84007a7dcea6a18d1290a96bba527e64a"
+    },
+    {
+      "native": 2050,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/pullman-commercial-cover.png",
+      "bytes": 763825,
+      "b64_length": 1018436,
+      "sha256": "fec4c08592feca0b13745958abf4a4a71c7d7b09dbb796ea71ed295e3ea2e01e"
+    },
+    {
+      "native": 1354,
+      "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/thirteen-covers/mirage-commercial-cover.png",
+      "bytes": 850192,
+      "b64_length": 1133592,
+      "sha256": "126ac7a7dff228cddcd803377f33d608e5b0c340a7006079a45b2d38a292c790"
+    }
+  ],
+  "approval_basis": "Parent final first-nine manifest after visual review and Canva commit; existing mass release authorization."
+}

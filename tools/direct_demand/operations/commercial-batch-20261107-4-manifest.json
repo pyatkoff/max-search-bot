@@ -1,0 +1,397 @@
+{
+  "operation": "commercial-hotel-batch-20261107-4-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 174,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "read_at_utc": "2026-11-07T11:07:50+00:00",
+    "run_id": 42366839876,
+    "ids": [
+      1074,
+      108146,
+      1362,
+      68984,
+      703,
+      118475,
+      462,
+      2050,
+      1354
+    ],
+    "all_clear": true,
+    "same_clearance_not_replayed": true
+  },
+  "media_approval_basis": "Existing mass-release mandate in accepted style and latest user instruction давай дальше. All selected final covers shown in chat.",
+  "rows": [
+    {
+      "hotel_id": 1074,
+      "logical_id": "commercial-gural-premier-belek-1074-v1",
+      "aliases": [
+        "Gural Premier Belek",
+        "GURAL PREMIER BELEK"
+      ],
+      "text": "🌿 Gural Premier Belek 5★\n\nСемейный отпуск с просторными номерами и большим аквапарком.\n\n🏖 Песчаный пляж с пологим входом в море.\n💧 Аквапарк площадью 20 000 м²: 20 горок и отдельный детский комплекс.\n🛏 Deluxe Family: две комнаты для отдыха всей семьи. Superior Family 90 м²: две спальни и две ванные комнаты.\n\n✈️ Подберём подходящий семейный номер в Gural Premier Belek и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "bb02a180e0af062dbacf1c66d3188bead377782d5cfb6153dad5efc79ad008c0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/1074.png",
+      "photo_sha256": "38b5e0a973ddbc1d3237df7636339c050c65b358023dffe7e461aed778e23e82",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/turkey/belek/gural_premier_belek_hotel/",
+        "https://ufa.intourist.ru/media/factSheets/694340ba-6f15-4e6d-8a50-ce5de4c80c42_20260820143136_Gural_Premier_Belek_2026_RU_compressed.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117",
+        "https://www.guralpremier.com/en/belek/deluxe-rooms/deluxe-family-room"
+      ],
+      "identity_binding": {
+        "anex_id": 8641,
+        "anytour_id": 476,
+        "legacy_native_id": 1074,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO7piFY8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_0d2f2a86a15a5f94_run04_c04",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c12",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c13"
+      ]
+    },
+    {
+      "hotel_id": 108146,
+      "logical_id": "commercial-anda-barut-collection-108146-v1",
+      "aliases": [
+        "Anda Barut Collection",
+        "ANDA BARUT COLLECTION"
+      ],
+      "text": "🌊 Anda Barut Collection 5★ · Дидим\n\nОтпуск у моря с выбором зоны под ваш ритм отдыха.\n\n👨‍👩‍👧 Для семьи есть Family Zone и Community Zone. Для отдыха взрослых предусмотрена отдельная Adult Zone 16+.\n🏖 Семейная и взрослая пляжные зоны на береговой линии 300 м.\n🛏 Deluxe Adult Zone 54 м² для двоих; семейные категории подбираем отдельно.\n🎶 Живая музыка, шоу и тематические вечеринки.\n\n✈️ Подберём зону и номер в Anda Barut Collection. Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "9286d95736ebf957e756b2f568f834d59efc1e0ef8cae71b4b63eac46fa3d636",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/108146.png",
+      "photo_sha256": "6c9d2ebd6e5e4ac218f4bb092d5e122cbe8e32cb6c1750340cd6defa6a31745b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/didim/anda_barut_collection/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 39820,
+        "anytour_id": 3702,
+        "legacy_native_id": 108146,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaOzxqUOA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_ce1564479c35f809_context13_c01",
+        "top500_ce1564479c35f809_run06_c03",
+        "top500_ce1564479c35f809_run06_c04",
+        "top500_ce1564479c35f809_run06_c05"
+      ]
+    },
+    {
+      "hotel_id": 1362,
+      "logical_id": "commercial-pine-beach-belek-1362-v1",
+      "aliases": [
+        "Pine Beach Belek",
+        "PINE BEACH BELEK (EX. MARITIM PINE BEACH RESORT)"
+      ],
+      "text": "🌿 Pine Beach Belek 5★\n\nПляжный отдых в Белеке с выбором семейного размещения.\n\n🏖 Первая линия, собственный песчаный пляж и пирс. При входе в море есть галька.\n🛏 Club Standard 33 м² или Club Family 65 м² с двумя соединёнными спальнями и видом на сад.\n🎶 Вечерние шоу, музыка и дискотека.\n\n✈️ Подберём подходящий номер и корпус в Pine Beach Belek. Рассчитаем стоимость тура с перелётом на ваш состав и даты.",
+      "text_sha256": "d86fdf52661885e1cc5661ae97095cb3994b6e9653b66b16e6517c5fa3d2c240",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/1362.png",
+      "photo_sha256": "6fc48abd78bc49695a4c55707367850d21a609f05baac706bc0370225b7230c0",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/belek/pine_beach_belek/",
+        "https://kompastour.com/kz/rus/country/turkey/belek/pine_beach_belek/",
+        "https://www.pinebeach.com.tr/en/rooms/club-family-room",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 8273,
+        "anytour_id": 637,
+        "legacy_native_id": 1362,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO4dC7GY",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_815aa231891c1ca6_run05_c03",
+        "top500_815aa231891c1ca6_run05_c04",
+        "top500_815aa231891c1ca6_run05audit_c04",
+        "top500_815aa231891c1ca6_run05audit_c05",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c22"
+      ]
+    },
+    {
+      "hotel_id": 68984,
+      "logical_id": "commercial-le-meridien-khao-lak-resort-spa-68984-v1",
+      "aliases": [
+        "Le Meridien Khao Lak Resort & Spa",
+        "LE MERIDIEN KHAO LAK RESORT & SPA (EX. BANGSAK MERLIN RESORT)"
+      ],
+      "text": "🌴 Le Meridien Khao Lak Resort & Spa 5★\n\nОтдых у пляжа Бангсак с просторными номерами для семьи.\n\n🏖 Первая линия и песчаный пляж.\n💧 Три бассейна и категории с прямым выходом к воде.\n🛏 Two Bedroom Family Pool Access 78 м²: две спальни, два санузла, гостиная и терраса с выходом к бассейну.\n🎨 Собственная Art Studio с творческими занятиями.\n\n✈️ Подберём номер в Le Meridien Khao Lak и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "b26bbe6b4f738083532b1af9b36ec19c3c2ac54883e7d8217476923257f06e12",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/68984.png",
+      "photo_sha256": "2094de528d7e2a2a01739bcfa91ba3626c48dde75cfb480e742c236b0e94096f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/khao_lak/le_meridien_khaolak_beach/",
+        "https://www.marriott.com/en-us/hotels/hktml-le-meridien-khao-lak-resort-and-spa/overview/",
+        "https://www.marriott.com/en-us/hotels/hktml-le-meridien-khao-lak-resort-and-spa/rooms/premium-accommodations/",
+        "https://www.marriott.com/en-us/hotels/hktml-le-meridien-khao-lak-resort-and-spa/experiences/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 25768,
+        "anytour_id": 3092,
+        "legacy_native_id": 68984,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO_Hw9xc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_ee53bd2746942513_run07r_c04",
+        "country61_TH_20261025T183609Z_manual_c11",
+        "country61_TH_20261025T202149Z_mass_c10",
+        "country61_TH_20261025T214500Z_mass_c02"
+      ]
+    },
+    {
+      "hotel_id": 703,
+      "logical_id": "commercial-phuket-marriott-resort-spa-merlin-beach-703-v1",
+      "aliases": [
+        "Phuket Marriott Resort & Spa Merlin Beach",
+        "PHUKET MARRIOTT RESORT & SPA MERLIN BEACH (EX. MERLIN BEACH RESORT)"
+      ],
+      "text": "🌴 Phuket Marriott Resort & Spa Merlin Beach 5★\n\nРиф у берега и номера с выходом к бассейну.\n\n🏖 Первая линия. Для купания и снорклинга здесь важно учитывать приливы: при отливе у берега обнажаются камни.\n💧 Family Pool с водной игровой зоной и горкой.\n🛏 Есть номера Pool Access, а Ocean Suite 83 м² включает спальню, отдельную гостиную и балкон с видом на море.\n\n✈️ Подберём подходящий номер и питание в Marriott Merlin Beach. Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "9502214faa4cba1e87f43224275c9b150d2f286e71b9179db4d7b2d1136c8d9a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/703.png",
+      "photo_sha256": "a92f44bec1b6e556a805e06e9523da4ac8d2d0bcb8ca18cdf0acb4797884cb6b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/phuket_marriott_resort/",
+        "https://www.marriott.com/en-us/hotels/hktmb-phuket-marriott-resort-and-spa-merlin-beach/experiences/experience-good-travel/",
+        "https://www.marriott.com/en-us/hotels/hktmb-phuket-marriott-resort-and-spa-merlin-beach/experiences/",
+        "https://www.marriott.com/en-us/hotels/hktmb-phuket-marriott-resort-and-spa-merlin-beach/rooms/premium-rooms/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117",
+        "https://www.marriott.com/en-us/hotels/hktmb-phuket-marriott-resort-and-spa-merlin-beach/overview/"
+      ],
+      "identity_binding": {
+        "anex_id": 4782,
+        "anytour_id": 321,
+        "legacy_native_id": 703,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO02D7To",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_6b10f51f9fb96229_run07r_c04",
+        "country61_TH_20261021T050428Z_88_f0595ef7_c01",
+        "country61_TH_20261021T050428Z_88_f0595ef7_c02",
+        "country61_TH_20261025T195546Z_mass_c03",
+        "country61_TH_20261025T195546Z_mass_c05",
+        "country61_TH_20261025T195546Z_mass_c06"
+      ]
+    },
+    {
+      "hotel_id": 118475,
+      "logical_id": "commercial-flow-spectrum-resort-sahl-hasheesh-118475-v1",
+      "aliases": [
+        "Flow Spectrum Resort Sahl Hasheesh",
+        "FLOW SPECTRUM RESORT SAHL HASHEESH"
+      ],
+      "text": "☀️ Flow Spectrum Resort Sahl Hasheesh 4★\n\nПросторные номера для отдыха вдвоём или всей семьёй.\n\n🛏 Deluxe для пары; Family Suite 82 м² с двумя спальнями, гостиной зоной и террасой.\n💧 Водная зона с бассейнами для взрослых и детей.\n🏖 Отель расположен не на пляжной полосе. До частной пляжной зоны ходит бесплатный шаттл.\n\n✈️ Подберём номер в Flow Spectrum и рассчитаем тур с перелётом и питанием «всё включено» на ваши даты.",
+      "text_sha256": "ebf06f2582697dc30a9fb1509b089eae52775efc8dca5b6e1b9030892ce82d8f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/118475.png",
+      "photo_sha256": "a35d335d1768b70ec34dfcd42beb8c1a4c41b36c18af51a0874bf5e95a585b6a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://stayatflowhotels.com/our-hotels/flow-spectrum/",
+        "https://stayatflowhotels.com/our-hotels/flow-spectrum/family-suites/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 39345,
+        "anytour_id": 3831,
+        "legacy_native_id": 118475,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaO-enx1A",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "flow_spectrum_core20_c01",
+        "flow_spectrum_demand20_c01",
+        "flow_spectrum_c04",
+        "flow_spectrum_c05",
+        "flow_spectrum_c01"
+      ]
+    },
+    {
+      "hotel_id": 462,
+      "logical_id": "commercial-sphinx-aqua-park-beach-resort-462-v1",
+      "aliases": [
+        "Sphinx Aqua Park Beach Resort",
+        "SPHINX AQUA PARK BEACH RESORT"
+      ],
+      "text": "☀️ Sphinx Aqua Park Beach Resort 4★ · Хургада\n\nОтель у моря с аквапарком для семейного отдыха.\n\n🏖 Пляж у отеля: песчаные и коралловые участки, есть понтон.\n💧 В аквапарке четыре взрослые и две детские горки.\n🛏 Standard 35 м² для пары; семейную категорию подберём под ваш состав.\n🎶 Живая музыка, шоу и дискотека.\n\n✈️ Рассчитаем тур в Sphinx Aqua Park Beach Resort с перелётом и питанием «всё включено» на ваши даты.",
+      "text_sha256": "6ed0d4a3d5491cc0c22eaeb0e314df294571e5c5a34c09f44fca8ef54a888780",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/462.png",
+      "photo_sha256": "0405f6421847ea67993211df27c7d0b84007a7dcea6a18d1290a96bba527e64a",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/md/rus/country/egypt/hurgada_downtown/sphinx_aquapark_beach_resort/",
+        "https://sphinx.kingshotelsgroup.com/",
+        "https://kingshotelsgroup.com/",
+        "https://sphinx.kingshotelsgroup.com/information/",
+        "https://sphinx.kingshotelsgroup.com/services/",
+        "https://www.tui.com/hotels/sphinx-aqua-park-beach-resort-227874/hotelinformation/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 1635,
+        "anytour_id": 208,
+        "legacy_native_id": 462,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaO83fFCA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "sphinx_aqua_park_beach_resort_c02",
+        "HOTEL-EG-20261026-SPHINX-PRACTICAL_c10",
+        "HOTEL-EG-20261026-SPHINX-PRACTICAL_c11",
+        "sphinx_aqua_park_beach_resort_run10_c01",
+        "sphinx_aqua_park_beach_resort_run10_c02",
+        "sphinx_aqua_park_beach_resort_demand14_c01",
+        "sphinx_aqua_park_beach_resort_c04"
+      ]
+    },
+    {
+      "hotel_id": 2050,
+      "logical_id": "commercial-pullman-pattaya-hotel-g-2050-v1",
+      "aliases": [
+        "Pullman Pattaya Hotel G",
+        "PULLMAN PATTAYA HOTEL G (EX. PULLMAN PATTAYA AISAWAN)"
+      ],
+      "text": "🌊 Pullman Pattaya Hotel G 5★\n\nПляж Вонгамат и номера с отдельным пространством для детей.\n\n🏖 Первая линия у песчаного пляжа.\n🛏 Family Room 48 м²: отдельная детская комната с двухъярусной кроватью и балкон с видом на сад.\n👨‍👩‍👧 Premium Two Bedroom 86 м²: две спальни, отдельная гостиная и балкон.\n\n✈️ Подберём подходящий корпус и номер в Pullman Pattaya Hotel G. Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "ea1c4fef5458e5154a41d4ba2b9f4ee718a7a95468f66057698b6bf11d782ea4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/2050.png",
+      "photo_sha256": "fec4c08592feca0b13745958abf4a4a71c7d7b09dbb796ea71ed295e3ea2e01e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/pattajya/pullman_pattaya_hotel_g/",
+        "https://www.pullmanpattayahotelg.com/rooms-suites/family-suite/",
+        "https://www.pullmanpattayahotelg.com/rooms-suites/premium-two-bedroom/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 3209,
+        "anytour_id": 898,
+        "legacy_native_id": 2050,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO1lUe9Y",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5a3f76d75e251ee5_run07_c04",
+        "top500_5a3f76d75e251ee5_run07_c05",
+        "country61_TH_20261025T191759Z_mass_c42",
+        "country61_TH_20261025T191759Z_mass_c44",
+        "country61_TH_20261025T202149Z_mass_c37"
+      ]
+    },
+    {
+      "hotel_id": 1354,
+      "logical_id": "commercial-mirage-park-resort-1354-v1",
+      "aliases": [
+        "Mirage Park Resort",
+        "MIRAGE PARK RESORT (EX. MAJESTY MIRAGE PARK)"
+      ],
+      "text": "🌿 Mirage Park Resort 5★ · Кемер\n\nПервая линия и просторные семейные номера в Гойнюке.\n\n🏖 Собственный пляж длиной 450 м с входом в море по песку и гальке.\n🛏 Family Connection 56 м²: две спальни и две ванные комнаты.\n👨‍👩‍👧 Grand Family 84 м²: две спальни, гостиная с кухонной зоной и две ванные.\n🎶 Дискотека и живая музыка в отдельные дни.\n\n✈️ Подберём номер в Mirage Park Resort и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "149a0d04fd9f273a9153edcf6c5e05c51eb33281fa9a9a5967b2147634720d0b",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/1354.png",
+      "photo_sha256": "126ac7a7dff228cddcd803377f33d608e5b0c340a7006079a45b2d38a292c790",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.bgoperator.ru/pr_img/1000512/20260514/70017125/2026_FactSheet_RU.pdf",
+        "https://kompastour.com/kz/rus/country/turkey/kemer/mirage_park_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1074&legacyHotelIds%5B%5D=108146&legacyHotelIds%5B%5D=1362&legacyHotelIds%5B%5D=68984&legacyHotelIds%5B%5D=703&legacyHotelIds%5B%5D=118475&legacyHotelIds%5B%5D=818&legacyHotelIds%5B%5D=462&legacyHotelIds%5B%5D=2050&legacyHotelIds%5B%5D=1354&legacyHotelIds%5B%5D=128087&legacyHotelIds%5B%5D=969&legacyHotelIds%5B%5D=55647&legacyHotelIds%5B%5D=120117"
+      ],
+      "identity_binding": {
+        "anex_id": 12575,
+        "anytour_id": 634,
+        "legacy_native_id": 1354,
+        "source_file": "next-fourteen-current-catalog.json",
+        "source_sha256": "b5221e619303e82700f87846b9255293a31f95e018a37e9addc40c151249cefa",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaO_bhmj0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8bd4acdfd90cdf86_c04",
+        "top500_8bd4acdfd90cdf86_c05",
+        "HOTEL-TR-MANUAL-20261025T212153Z-BASE10_c32",
+        "HOTEL-TR-MANUAL-20261025T212153Z-BASE10_c33"
+      ]
+    }
+  ]
+}
