@@ -1,0 +1,45 @@
+{
+  "scope": "Correct existing rejected advertising captions for three hotels in Telegram and MAX; no new publications or feed changes",
+  "status": "EDITORIAL_CORRECTION_READY_NOT_USER_ACCEPTED",
+  "rows": [
+    {
+      "hotel_id": 27426,
+      "hotel_name": "Rubi Platinum Spa Resort & Suites",
+      "new_text": "🌴 Rubi Platinum Spa Resort & Suites 5★\nТурция · Аланья\n\nДля семей, которым хочется и развлечений, и спокойного отдыха у моря.\n\n💦 Аквапарк и детские бассейны.\n🎨 Семейный клуб с играми и творческими занятиями.\n☀️ Пляж с пирсом и отдельный Relax Pool.\n🍽 Platinum All Inclusive.\n\nНа пляже есть участки с песком и камнями. Учтём ваши пожелания к пляжу и номеру при подборе.\n\n✈️ Рассчитаем полную стоимость тура в Rubi Platinum с перелётом на ваши даты и ваш состав.\n👇 Нажмите «Узнать стоимость тура».",
+      "source_urls": [
+        "https://rubiplatinum.com/en/hotel/rubiplatinum",
+        "https://rubiplatinum.com/en/hotel/rubiplatinum/beach-and-pools",
+        "https://rubiplatinum.com/en/hotel/rubiplatinum/kids-club"
+      ],
+      "editorial_notes": "Customer benefits replace research-summary wording; no claim that entire beach is sandy, no room upgrade or price invention; 5 stars and Alanya reuse accepted identity facts.",
+      "new_text_sha256": "bd5f212b49f1c3a679d6a46e2f82a1cf0142a7cb969f0f80f35b00d1175a056f",
+      "utf16_length": 500
+    },
+    {
+      "hotel_id": 1216,
+      "hotel_name": "Rox Resort Hotel",
+      "new_text": "🏖 Rox Resort Hotel 5★ · Кемер\n\nАктивный отпуск у моря с Ultra All Inclusive.\n\n💦 Пять водных горок и детские бассейны.\n🎶 Вечерние шоу и живая музыка.\n🌊 Собственный пляж с песком и галькой.\n\nРаботу горок и программу развлечений уточним на ваши даты.\n\n✈️ Подберём тур в Rox Resort: перелёт, подходящий номер для двоих или семьи и полную стоимость на всех.\n👇 Нажмите «Узнать стоимость тура».",
+      "source_urls": [
+        "https://roxresorthotel.com/en/en-general-information/",
+        "https://roxresorthotel.com/en/en-pools/",
+        "https://roxresorthotel.com/en/en-activities/",
+        "https://roxresorthotel.com/en/en-beach/"
+      ],
+      "editorial_notes": "Active-leisure positioning from verified facilities; beach surface retained, operation on requested dates to be checked; no unverified beach distance or contradictory length.",
+      "new_text_sha256": "00fdac932fb79c88eb951c11374a00abee8bb5cd17626a2f105158f423c5805d",
+      "utf16_length": 392
+    },
+    {
+      "hotel_id": 1095,
+      "hotel_name": "Side Star Resort",
+      "new_text": "🏖 Side Star Resort 5★ · Сиде\n\nМоре, горки и «всё включено» для семейного отпуска.\n\n🌊 Пляж с мелким песком и неглубокой прибрежной зоной.\n💦 Три водные горки и детские бассейны.\n🛏 Для большой семьи есть Suite с двумя спальнями и гостиной.\n\nЗимой предусмотрен подогрев крытого и детского уличного бассейнов. Режим работы на ваши даты уточним.\n\n✈️ Подберём тур в Side Star Resort с перелётом и подходящим номером. Рассчитаем полную стоимость на вашу семью.\n👇 Нажмите «Узнать стоимость тура».",
+      "source_urls": [
+        "https://www.sidestarhotels.com/resort/en",
+        "https://www.sidestarhotels.com/resort/en/activity/beach-and-pools"
+      ],
+      "editorial_notes": "Family beach-holiday offer; Suite is a category option, not a promised standard room; two bedrooms and living room reuse accepted exact room facts; heating explicitly winter-only and date-specific operation not guaranteed.",
+      "new_text_sha256": "56f1502d181840f34fd883a977b7375270aebc88ec28e5b90db4d9ebfc764b42",
+      "utf16_length": 492
+    }
+  ]
+}
