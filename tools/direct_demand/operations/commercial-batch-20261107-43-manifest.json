@@ -1,0 +1,1116 @@
+{
+  "operation": "commercial-hotel-batch-20261107-43-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 493,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read44",
+        "run_id": 42412950055,
+        "original_read_sha256": "4816aed76338f77710327615a0b39806f823796654d32d22bd14392219cc7da3",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed seven seventh-group and two reserve commercial captions in cutover39 format,27 real source photos and9 final actual600x600 PNGs; all Canva transactions committed. This exact combined parent awaits root SHA approval before the single sender43 and can only be used after durable closure493.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nine-after-493-commercial-release-manifest.json",
+    "sha256": "4bff281047c52787346450433c516eae6dee33743ad831425b24816b867edbe1",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nine-after-493-commercial-captions.json",
+    "caption_sha256": "1cd7f681093d87e7e307cd8ad354e526a794261e0ac76cc8bd855f51ebd59471",
+    "subset_native_ids": [
+      817,
+      2559,
+      73055,
+      43060,
+      2536,
+      50869,
+      51238,
+      1702,
+      5389
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "63a932bdf56b9e958369911fe522a77ddb1d141bcde5ce10ade4f59ee8a9093b",
+  "source_held_native_ids": [
+    22660
+  ],
+  "media_held_native_ids": [],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    },
+    {
+      "native_hotel_id": 319,
+      "public_url": "https://max.ru/channel_anytour/AaF1Ae28ZNw"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 817,
+      "logical_id": "commercial-thavorn-beach-village-817-v1",
+      "aliases": [
+        "Thavorn Beach Village Resort & Spa",
+        "THAVORN BEACH VILLAGE & SPA"
+      ],
+      "text": "✈️ Туры в Thavorn Beach Village Resort & Spa\n📍 Пхукет, Таиланд.\n\nКоттедж в тропическом саду для отдыха вдвоём на Пхукете.\n\n🛏 Beachside Cottage от 61 до 79 м² с террасой.\n🍽 Подберём тур с завтраками.\n🏖 Рядом пляж Накалай. Во время отлива он не подходит для купания.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "ee13ea28b12d025e1416e9e61cd7536e658e5501e6984a06cf7cd633c6aab9a4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/817.png",
+      "photo_sha256": "93c4fab3db8d98758a58faf59a349efbbe2d32877280170cbf0f955b1ebb2ed2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.thavornbeachvillage.com/phuket-kamala-private-nakalay-beach",
+        "https://kompastour.com/kz/rus/country/thailand/phuket/thavorn_beach_village_spa/",
+        "https://www.thavornbeachvillage.com/phuket-beach-resort-beachside-cottage",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=22660&legacyHotelIds%5B%5D=817&legacyHotelIds%5B%5D=2559&legacyHotelIds%5B%5D=73055&legacyHotelIds%5B%5D=43060&legacyHotelIds%5B%5D=2536&legacyHotelIds%5B%5D=50869&legacyHotelIds%5B%5D=51238",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/thavorn-beach-village-spa-102106572.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/thavorn-beach-village-spa-1021070234.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/thavorn-beach-village-spa-1021065812.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 3235,
+        "anytour_id": 369,
+        "legacy_native_id": 817,
+        "source_file": "additional-seventh8-current-catalog.json",
+        "source_sha256": "ca6ba6b612e147d488bd785f34ecce15106e26517214a3bf0b4beb7b0e445cd8",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaRN95Ayk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_dd0e401317824be7_run07r_c01",
+        "top500_dd0e401317824be7_run07r_c02",
+        "top500_dd0e401317824be7_run07r_c04",
+        "country61_TH_20261025T193417Z_mass_c40"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/thavorn-beach-village-spa-102106572.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fda0777ecc85a72c84d8e913f4b993365c7f443e62b16bd5a013dad6e1851207",
+          "source_png_sha256": "0d2225ef8c8279427334f01d8902566d05b73b87095c23a995f5f38e9e91e1f5",
+          "source_png_bytes": 2229821,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Территория Thavorn Beach Village у пляжа Накалай",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHsKEIg",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "thavorn-beach-village-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g35",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/thavorn-beach-village-spa-1021070234.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "944a913d023861a9e1b7f81471e3578639730a7c443707d6010ec63641da7f55",
+          "source_png_sha256": "7e71f1e91a9eb67da027a9c85b409a2a67f1cadd2c43dec42d0d37000a370dac",
+          "source_png_bytes": 1049464,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Номер Thavorn Beach Village",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRNC4Om8",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "thavorn-beach-village-g35.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g13",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/thavorn-beach-village-spa-1021065812.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4998795e81bee59b6aae7d3b9e59483b06de799030c3b5b3392cb23087a6f7f1",
+          "source_png_sha256": "e8da0baf7ffad622104dbea64132f62a65c33ec6a444f338db566a403fced8cb",
+          "source_png_bytes": 1315508,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Ресторан Thavorn Beach Village",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRNmLQew",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "thavorn-beach-village-g13.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2559,
+      "logical_id": "commercial-fujairah-rotana-2559-v1",
+      "aliases": [
+        "Fujairah Rotana Resort & Spa",
+        "FUJAIRAH ROTANA RESORT & SPA AL AQAH BEACH"
+      ],
+      "text": "✈️ Туры в Fujairah Rotana Resort & Spa\n📍 Фуджейра, ОАЭ.\n\nПляжный отдых в Фуджейре для вашей следующей поездки.\n\n🛏 Guest Room 38 м² с видом на сад.\n🏖 Собственный пляж с бесплатным пляжным оборудованием.\n🍽 Подберём подходящий вариант питания.\n\n✈️ Рассчитаем полную стоимость тура с перелётом и размещением под ваш состав.",
+      "text_sha256": "1686b0f0db849bee95ccaa1164d88606f723e17dd7c24583e959c025aed9241e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/2559.png",
+      "photo_sha256": "d054c68322178e97db70cb36bddcf4f846c127e6b489ee93cc22d8f73cc9202e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/uae/fujairah/fujairah_rotana_resort_and_spa/",
+        "https://kompastour.com/kz/rus/country/uae/fujairah/fujairah_rotana_resort_and_spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=22660&legacyHotelIds%5B%5D=817&legacyHotelIds%5B%5D=2559&legacyHotelIds%5B%5D=73055&legacyHotelIds%5B%5D=43060&legacyHotelIds%5B%5D=2536&legacyHotelIds%5B%5D=50869&legacyHotelIds%5B%5D=51238",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fujairah-rotana-resort-spa-102204130.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fujairah-rotana-resort-spa-1022041414.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fujairah-rotana-resort-spa-14257206.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7699,
+        "anytour_id": 1059,
+        "legacy_native_id": 2559,
+        "source_file": "additional-seventh8-current-catalog.json",
+        "source_sha256": "ca6ba6b612e147d488bd785f34ecce15106e26517214a3bf0b4beb7b0e445cd8",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaRHOIBk0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e479c2583d9deb2f_run09_c01",
+        "top500_e479c2583d9deb2f_run09_c02",
+        "top500_e479c2583d9deb2f_run09_c03",
+        "top500_e479c2583d9deb2f_run09_c04",
+        "top500_e479c2583d9deb2f_run09r_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fujairah-rotana-resort-spa-102204130.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c43641232130c761ce73bf7ba9569f2f7591c5d75a9e3cc7fb5e7da4df30d776",
+          "source_png_sha256": "e99de8176179d7a0f0f09ef6c505d39ef02cf71c5bbdaa4003923aa7c7371046",
+          "source_png_bytes": 1627428,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Территория Fujairah Rotana Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRFEp0FA",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "fujairah-rotana-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fujairah-rotana-resort-spa-1022041414.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "62b96fc30c3f9c5b193e02369e648c993ff818c154a046f8f7e9e45dc030a984",
+          "source_png_sha256": "772abeb4e80fa40c89deba47de5c455d3c8d78824bef2714b4bac9b7cbadf3c8",
+          "source_png_bytes": 1129029,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Номер Fujairah Rotana с видом на сад",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaROEpMMA",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "fujairah-rotana-g16.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g51",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fujairah-rotana-resort-spa-14257206.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2219fb637d72f78e24b84a7316ef4d63d18ac580353243e7a1ee558a14a7dfe8",
+          "source_png_sha256": "3d9708ec1ef09b9a499a5e6718fdfa781a66d1bccaa9637d6941a5beae12a837",
+          "source_png_bytes": 1491840,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Сад Fujairah Rotana Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHtEBtg",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "fujairah-rotana-g51.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 73055,
+      "logical_id": "commercial-address-fujairah-73055-v1",
+      "aliases": [
+        "Address Fujairah Beach Resort",
+        "ADDRESS BEACH RESORT FUJAIRAH"
+      ],
+      "text": "✈️ Туры в Address Fujairah Beach Resort\n📍 Фуджейра, ОАЭ.\n\nМоре и горные пейзажи Фуджейры в одной поездке.\n\n🛏 Deluxe Mountain View 38 м² с видом на горы.\n🏖 Собственный пляж с бесплатным пляжным оборудованием.\n🍽 Подберём вариант питания на ваши даты.\n\n✈️ Рассчитаем полную стоимость тура с перелётом и подходящим размещением.",
+      "text_sha256": "397a858457614e4a1c4dc79962a02e76ed1dae951dc140f6651db378a0d2b025",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/73055.png",
+      "photo_sha256": "875bb9805fe6ffc31a7ea0db31b41982d94dace5da8fc1484ed061416928a52d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/uae/fujairah/address_beach_resort_fujairah/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=22660&legacyHotelIds%5B%5D=817&legacyHotelIds%5B%5D=2559&legacyHotelIds%5B%5D=73055&legacyHotelIds%5B%5D=43060&legacyHotelIds%5B%5D=2536&legacyHotelIds%5B%5D=50869&legacyHotelIds%5B%5D=51238",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/73055-115200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/73055-115207.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/73055-115218.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 28572,
+        "anytour_id": 3235,
+        "legacy_native_id": 73055,
+        "source_file": "additional-seventh8-current-catalog.json",
+        "source_sha256": "ca6ba6b612e147d488bd785f34ecce15106e26517214a3bf0b4beb7b0e445cd8",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaRGoHWpI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4ee6edcb7d408624_run09_c01",
+        "top500_4ee6edcb7d408624_run09_c02",
+        "top500_4ee6edcb7d408624_run09_c03",
+        "top500_4ee6edcb7d408624_run09_c04",
+        "top500_4ee6edcb7d408624_run09r_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/73055-115200.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "388c82fe3869b92030efb496bb0975d13c01310ea1096a963dea7ba712f711e8",
+          "source_png_sha256": "e86216115159c1d277aca23c74e03399154c7f214415ac822b8a51898aadb360",
+          "source_png_bytes": 779961,
+          "dimensions": [
+            920,
+            517
+          ],
+          "alt": "Пляж и территория Address Fujairah Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRC3wB7g",
+          "canva_asset_dimensions": [
+            920,
+            517
+          ],
+          "source_png_filename": "address-fujairah-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g09",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/73055-115207.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0eafeb8fa748d8072ad684f571e092c2b54da8f9f509814da0435c9c81378008",
+          "source_png_sha256": "1cf81372b444b083890b217df1779b38776bd3cf559ae5cc530f18e7ffa1b41c",
+          "source_png_bytes": 519272,
+          "dimensions": [
+            920,
+            613
+          ],
+          "alt": "Номер Address Fujairah с видом на горы",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRNkOtf0",
+          "canva_asset_dimensions": [
+            920,
+            613
+          ],
+          "source_png_filename": "address-fujairah-g09.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g20",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/73055-115218.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "1f5b7aaee27e9b96de71a5fbd35b13bd570112c7abd859d5b5c2a16a868a50b2",
+          "source_png_sha256": "6784d291199ead5ab1b6afbaeb7ad258e4922bc77f938f38e3cc8d065f85402c",
+          "source_png_bytes": 636435,
+          "dimensions": [
+            920,
+            613
+          ],
+          "alt": "Лобби Address Fujairah Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRA2DOog",
+          "canva_asset_dimensions": [
+            920,
+            613
+          ],
+          "source_png_filename": "address-fujairah-g20.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 43060,
+      "logical_id": "commercial-golden-tulip-media-43060-v1",
+      "aliases": [
+        "Golden Tulip Media Hotel",
+        "GOLDEN TULIP MEDIA (EX. GOLDEN TULIP AL THANYAH)"
+      ],
+      "text": "✈️ Туры в Golden Tulip Media Hotel\n📍 Дубай, ОАЭ.\n\nГородской Дубай с поездками на пляж JBR.\n\n🛏 Standard Room 25 м² с кроватью King и видом на город.\n🍽 Подберём тур с завтраками.\n🚌 Шаттл на JBR по очереди и после записи у консьержа.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "cbaf165020b10b6cb5d91045bc98adf8239faba7aad6a849fcb2631b24341f62",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/43060.png",
+      "photo_sha256": "93e5e9d26868955500ffb7d74db16354bccf64b6c74c1e4e02bdf47ab794638e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/uae/dubai/golden_tulip_media_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=22660&legacyHotelIds%5B%5D=817&legacyHotelIds%5B%5D=2559&legacyHotelIds%5B%5D=73055&legacyHotelIds%5B%5D=43060&legacyHotelIds%5B%5D=2536&legacyHotelIds%5B%5D=50869&legacyHotelIds%5B%5D=51238",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/golden-tulip-al-thanyah-hotel-apartment-67612007.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/golden-tulip-al-thanyah-hotel-apartment-1026084214.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/golden-tulip-al-thanyah-hotel-apartment-67612005.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21963,
+        "anytour_id": 2341,
+        "legacy_native_id": 43060,
+        "source_file": "additional-seventh8-current-catalog.json",
+        "source_sha256": "ca6ba6b612e147d488bd785f34ecce15106e26517214a3bf0b4beb7b0e445cd8",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRHrw4dg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e4a81bcf5c9d22be_run09_c01",
+        "top500_e4a81bcf5c9d22be_run09_c02",
+        "top500_e4a81bcf5c9d22be_run09_c03",
+        "top500_e4a81bcf5c9d22be_run09_c04",
+        "top500_e4a81bcf5c9d22be_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/golden-tulip-al-thanyah-hotel-apartment-67612007.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4de8f3221db6fff6dd858d53073db579c7e4028e8717407e7a9e3ee69d1da6d9",
+          "source_png_sha256": "1d15e9a6ec5de6bace9ad3b141264f05a33ebb0e5fbb9a520d2fbf6dc2900390",
+          "source_png_bytes": 860128,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Вход в Golden Tulip Media Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRPonx20",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "golden-tulip-media-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g17",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/golden-tulip-al-thanyah-hotel-apartment-1026084214.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "44146df1ddc4ceccefd93769a08356a795652ac994980604a1140cf52e270701",
+          "source_png_sha256": "746db8f2e77de96dedf7b69bf5af4fbc63b3365be010c1146eef732da59b57df",
+          "source_png_bytes": 577336,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Номер Golden Tulip Media Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRH9_4Dw",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "golden-tulip-media-g17.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g26",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/golden-tulip-al-thanyah-hotel-apartment-67612005.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6b5241f6c8f37b740458b481057490ce4f2189b743724ddf20c5abbc3168b942",
+          "source_png_sha256": "2c0e3b5bd1acc6aeb8f4956a2dd03e16b8ed7be3eaf9f3d3c998a876097ed87a",
+          "source_png_bytes": 1044499,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Терраса Golden Tulip Media Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRKlXg2k",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "golden-tulip-media-g26.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2536,
+      "logical_id": "commercial-coral-beach-sharjah-2536-v1",
+      "aliases": [
+        "Coral Beach Resort Sharjah",
+        "CORAL BEACH RESORT"
+      ],
+      "text": "✈️ Туры в Coral Beach Resort Sharjah\n📍 Шарджа, ОАЭ.\n\nОтдых у моря в Шардже с собственным пляжем.\n\n🛏 City View 32 м² с видом на город.\n🏖 Лежаки, зонты и пляжные полотенца бесплатно.\n🍽 Подберём завтраки или безалкогольное «всё включено».\n\n✈️ Рассчитаем полную стоимость тура с перелётом под ваш состав и даты.",
+      "text_sha256": "fad9041fa8a1299ac30e109a1b89fdd9d83172078b1e14b4f1c5fa25a8888e6c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/2536.png",
+      "photo_sha256": "3b6402e9f83830aa084a251a7d3b3028cee4815cad618fc1e2028065d274d4d0",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/uae/sharjah/coral_beach_resort_sharjah/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=22660&legacyHotelIds%5B%5D=817&legacyHotelIds%5B%5D=2559&legacyHotelIds%5B%5D=73055&legacyHotelIds%5B%5D=43060&legacyHotelIds%5B%5D=2536&legacyHotelIds%5B%5D=50869&legacyHotelIds%5B%5D=51238",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/coral-beach-resort-102411346.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/coral-beach-resort-1024113411.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/coral-beach-resort-23149008.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7938,
+        "anytour_id": 1054,
+        "legacy_native_id": 2536,
+        "source_file": "additional-seventh8-current-catalog.json",
+        "source_sha256": "ca6ba6b612e147d488bd785f34ecce15106e26517214a3bf0b4beb7b0e445cd8",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRNgs3qM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4cafbbf753662be5_run09_c01",
+        "top500_4cafbbf753662be5_run09_c02",
+        "top500_4cafbbf753662be5_run09_c03",
+        "top500_4cafbbf753662be5_run09_c04",
+        "top500_4cafbbf753662be5_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g09",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/coral-beach-resort-102411346.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "83934c199c1edc37e31733cb8559d57a9ccc6f9191ebc8368a9cb9bf260ec920",
+          "source_png_sha256": "0e5aa1d8639121bdd11d0dd914851e0fc898a214c847c0b8bd9f09565028368a",
+          "source_png_bytes": 546179,
+          "dimensions": [
+            1024,
+            527
+          ],
+          "alt": "Пляж Coral Beach Resort Sharjah",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRPXNCKQ",
+          "canva_asset_dimensions": [
+            1024,
+            527
+          ],
+          "source_png_filename": "coral-beach-sharjah-g09.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g14",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/coral-beach-resort-1024113411.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "72b8712cebc930282821b97586b40978240dec61fa85b91bebb172e41b6baf74",
+          "source_png_sha256": "16be0c88a80b814217e6d8fca6fefdaa80724ee24ae889ca47b1ddfb039f9c6f",
+          "source_png_bytes": 1295309,
+          "dimensions": [
+            1024,
+            599
+          ],
+          "alt": "Терраса ресторана Coral Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaREMeA40",
+          "canva_asset_dimensions": [
+            1024,
+            599
+          ],
+          "source_png_filename": "coral-beach-sharjah-g14.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g33",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/coral-beach-resort-23149008.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a4e75f38f648f8a809895611368f38ebc6572c40c7e6c289d4ab38d71eb805de",
+          "source_png_sha256": "85b267d0e61337c2a610687534bddaf01e5bc2655dd5b1c50e98ea832d596766",
+          "source_png_bytes": 1406671,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Пальмовая дорожка Coral Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRG6hW9A",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "coral-beach-sharjah-g33.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 50869,
+      "logical_id": "commercial-riu-sri-lanka-50869-v1",
+      "aliases": [
+        "Riu Sri Lanka",
+        "RIU SRI LANKA AHUNGALLA"
+      ],
+      "text": "✈️ Туры в Riu Sri Lanka\n📍 Ахунгалла, Шри-Ланка.\n\nОтдых на острове с песчаным пляжем и вечерними шоу.\n\n🛏 Junior Suite Non Sea View 38 м² с видом на территорию.\n🍽 Подберём тур с питанием «всё включено».\n🏖 Общественный пляж рядом. Лежаки и зонты на нём не предоставляются.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "d39862866f1f090742c0fe30a27b8df825c1a406591d33af38459d905ae48766",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/50869.png",
+      "photo_sha256": "5ca74d213f6dbea826466c30745e29170b2ca8a91a1307ca2da01ffb6709f61c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kg/rus/country/srilanka/ahungalla/riu_ahungalla/",
+        "https://www.riu.com/en/hotel/sri-lanka/ahungalla/hotel-riu-sri-lanka",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=22660&legacyHotelIds%5B%5D=817&legacyHotelIds%5B%5D=2559&legacyHotelIds%5B%5D=73055&legacyHotelIds%5B%5D=43060&legacyHotelIds%5B%5D=2536&legacyHotelIds%5B%5D=50869&legacyHotelIds%5B%5D=51238",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/riu-sri-lanka-3113201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/riu-sri-lanka-3113208.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/riu-sri-lanka-3113239.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 13495,
+        "anytour_id": 2501,
+        "legacy_native_id": 50869,
+        "source_file": "additional-seventh8-current-catalog.json",
+        "source_sha256": "ca6ba6b612e147d488bd785f34ecce15106e26517214a3bf0b4beb7b0e445cd8",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaREnLgUM",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_182216c0366b1e75_run09_c01",
+        "top500_182216c0366b1e75_run09_c02",
+        "top500_182216c0366b1e75_run09_c03",
+        "top500_182216c0366b1e75_run09_c04",
+        "top500_182216c0366b1e75_run09_c05",
+        "top500_182216c0366b1e75_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/riu-sri-lanka-3113201.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "1a7bc54969e658e69e37c448611853112dc5993438adfb22a6348b66b2af4cd1",
+          "source_png_sha256": "df3a31ea8aa83b6dd60ccdec3f169650baa078eccd72210de56689507351a8da",
+          "source_png_bytes": 558501,
+          "dimensions": [
+            800,
+            495
+          ],
+          "alt": "Riu Sri Lanka со стороны океана",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRJDV3E4",
+          "canva_asset_dimensions": [
+            800,
+            495
+          ],
+          "source_png_filename": "riu-sri-lanka-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g10",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/riu-sri-lanka-3113208.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5ed7dd4af79242da58032ebf51fa8784aba7cdad27f0ecaae840ae0033abc0ef",
+          "source_png_sha256": "5dc4e7af948b48e147588a07d3edaecb7321325f657724c22a3ebaf2f5abd090",
+          "source_png_bytes": 367091,
+          "dimensions": [
+            800,
+            494
+          ],
+          "alt": "Номер Riu Sri Lanka",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRD0LeFw",
+          "canva_asset_dimensions": [
+            800,
+            494
+          ],
+          "source_png_filename": "riu-sri-lanka-g10.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g31",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/riu-sri-lanka-3113239.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2624e3e6c1a2064af5fe787152691005282ca84bea8d3dab20abe753eb6e89df",
+          "source_png_sha256": "c8d23c232e1af1db9b38b32b71348a7313bb25d928c82794a47b96885b5d9902",
+          "source_png_bytes": 450706,
+          "dimensions": [
+            800,
+            494
+          ],
+          "alt": "Ресторан Riu Sri Lanka",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRGcQxec",
+          "canva_asset_dimensions": [
+            800,
+            494
+          ],
+          "source_png_filename": "riu-sri-lanka-g31.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 51238,
+      "logical_id": "commercial-radisson-galle-51238-v1",
+      "aliases": [
+        "Radisson Blu Galle",
+        "RADISSON BLU RESORT GALLE"
+      ],
+      "text": "✈️ Туры в Radisson Blu Galle\n📍 Галле, Шри-Ланка.\n\nНачинайте день с видом на океан в Галле.\n\n🛏 Deluxe Room Ocean View 39 м² с кроватью King.\n🏖 Общественный пляж примерно в 50 м от отеля.\n🍽 Подберём полупансион или «всё включено».\n\n✈️ Рассчитаем полную стоимость тура с перелётом и подходящим размещением.",
+      "text_sha256": "47a2f5456433c2ea5bc0ac5c7e50f649ff960017599851647a18fc46adf00401",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/51238.png",
+      "photo_sha256": "49cbedad05612247b8589a7f093afd7c5f539f3dacdff275470340203518f615",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/srilanka/galle/amari_galle/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=22660&legacyHotelIds%5B%5D=817&legacyHotelIds%5B%5D=2559&legacyHotelIds%5B%5D=73055&legacyHotelIds%5B%5D=43060&legacyHotelIds%5B%5D=2536&legacyHotelIds%5B%5D=50869&legacyHotelIds%5B%5D=51238",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/amari-galle-102408370.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/amari-galle-102408388.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/amari-galle-1024083818.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 28587,
+        "anytour_id": 2507,
+        "legacy_native_id": 51238,
+        "source_file": "additional-seventh8-current-catalog.json",
+        "source_sha256": "ca6ba6b612e147d488bd785f34ecce15106e26517214a3bf0b4beb7b0e445cd8",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaRJssYzs",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_35a930130eea5624_run09_c01",
+        "top500_35a930130eea5624_run09_c02",
+        "top500_35a930130eea5624_run09_c03",
+        "top500_35a930130eea5624_run09_c04",
+        "top500_35a930130eea5624_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/amari-galle-102408370.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b8a14edfb707c9fe233c14f0aaacd5271021106043fc7e834e48684bdcb0cdcc",
+          "source_png_sha256": "89a4836b3c6f1a83114e17b8594f6224cba210b79d7da13a15d2ccfdc9354509",
+          "source_png_bytes": 1715145,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Radisson Blu Galle на закате",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRN9inS8",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "radisson-galle-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g10",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/amari-galle-102408388.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5fc33151a8b14f9cb12ee1f975151d1678645df396795ea4232c8cfb6f94b58f",
+          "source_png_sha256": "82572c482da95c56917003116b91f88bc827fd06cdebb6c9d7fcf957045aa98e",
+          "source_png_bytes": 981703,
+          "dimensions": [
+            1200,
+            724
+          ],
+          "alt": "Бар на крыше Radisson Blu Galle",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRGzpKR4",
+          "canva_asset_dimensions": [
+            1200,
+            724
+          ],
+          "source_png_filename": "radisson-galle-g10.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g20",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/amari-galle-1024083818.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9b97c2caec1dfaeb2cd6f57d46b685b5c7061d0597df1c05a3d70d77dc0d2f8d",
+          "source_png_sha256": "951c0d81f9bd1801727e516bd7decc5d0d79077b2cc73e3712c98a522c3f68ed",
+          "source_png_bytes": 1539257,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Зал мероприятий Radisson Blu Galle",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRDZHidU",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "radisson-galle-g20.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1702,
+      "logical_id": "commercial-rixos-premium-bodrum-1702-v1",
+      "aliases": [
+        "Rixos Premium Bodrum"
+      ],
+      "text": "✈️ Туры в Rixos Premium Bodrum\n📍 Бодрум, Турция.\n\nОтдых в Бодруме с морем и вечерней музыкой.\n\n🛏 Deluxe Garden View 39 м² с видом на сад.\n🏖 Собственный пляж отеля.\n🎶 Живая музыка, DJ и вечерние программы.\n\n✈️ Подберём питание и размещение под ваш состав, рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "157c94a656a53f332b22e418a0ea2c209760bbde859307d8b041db3416eda071",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/1702.png",
+      "photo_sha256": "a779fa99f6e5a04a674b72e84b488853efb78bd3f3f640ea5a7e082b75c2dc66",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/bodrum/rixos_premium_bodrum/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=1702&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048&legacyHotelIds%5B%5D=5389",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1702-83961804.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1702-83962541.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1702-83962859.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15136,
+        "anytour_id": 813,
+        "legacy_native_id": 1702,
+        "source_file": "remaining-original-reserve9-current-catalog.json",
+        "source_sha256": "5229fe977cc3ab112037ea24bf5b9f67c2725d049d56bee855da16dfb6104972",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaRPhHsUo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_32bce4816db5a999_run06_c01",
+        "top500_32bce4816db5a999_run06_c03",
+        "top500_32bce4816db5a999_run06_c04",
+        "top500_32bce4816db5a999_run06_c05",
+        "top500_32bce4816db5a999_run06_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1702-83961804.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5b50976bd7cdfa0306b980b475a417099da2674a6fca8519af5d6be2740555d1",
+          "source_png_sha256": "2cd1558100d4b9f95bbb912b71f7f04733c66fe838447532f31d47b130422966",
+          "source_png_bytes": 1357126,
+          "dimensions": [
+            1024,
+            670
+          ],
+          "alt": "Территория Rixos Premium Bodrum",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaROVAIA0",
+          "canva_asset_dimensions": [
+            1024,
+            670
+          ],
+          "source_png_filename": "rixos-premium-bodrum-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g101",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1702-83962541.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2a78d494098b9662304e1f85d7cfcd0cc4ee07c7f5bfe2031c616507095994e8",
+          "source_png_sha256": "87ab08f22df3fac63894f4ee238b7b289bbaf69b0e28a7b83d4a2882cadc56c5",
+          "source_png_bytes": 1023625,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Интерьер Rixos Premium Bodrum",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRGAKa44",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-premium-bodrum-g101.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g119",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1702-83962859.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c19f49a5bf079f910f5f888376a675e766e0e1a3f8eb5c4612f9cd136e4b5c32",
+          "source_png_sha256": "b4b053fbe09748696fcb0c219c557c98993f70438a8f7a2d028bb80e243adbf2",
+          "source_png_bytes": 1342748,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Ресторан Rixos Premium Bodrum",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRBS7718",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-premium-bodrum-g119.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 5389,
+      "logical_id": "commercial-coral-sands-hikkaduwa-5389-v1",
+      "aliases": [
+        "Coral Sands"
+      ],
+      "text": "✈️ Туры в Coral Sands\n📍 Хиккадува, Шри-Ланка.\n\nВид на океан и прогулки по побережью Хиккадувы.\n\n🛏 Deluxe Room 25 м² с видом на океан.\n🍽 Подберём тур с завтраками.\n🏖 Общественный песчаный пляж. Лежаки и зонты на нём не предоставляются.\n\n✈️ Рассчитаем полную стоимость тура с перелётом под ваш состав и даты.",
+      "text_sha256": "a8371f6fe8639c9ff2335f9633f84bdb89cea1544f5b8f84fd806b47714e2f3c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/5389.png",
+      "photo_sha256": "dd47230f463acd74b0beed57d384f960ba174c7f17d44b4baf622fecf0763cbe",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/srilanka/hikkaduwa/coral_sands_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=1702&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048&legacyHotelIds%5B%5D=5389",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-sands-2812100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-sands-2812116.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-sands-2812111.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 10913,
+        "anytour_id": 1361,
+        "legacy_native_id": 5389,
+        "source_file": "remaining-original-reserve9-current-catalog.json",
+        "source_sha256": "5229fe977cc3ab112037ea24bf5b9f67c2725d049d56bee855da16dfb6104972",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRMuxp0c",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_3ea6daaa42fd5fff_run09_c01",
+        "top500_3ea6daaa42fd5fff_run09_c02",
+        "top500_3ea6daaa42fd5fff_run09_c03",
+        "top500_3ea6daaa42fd5fff_run09_c04",
+        "top500_3ea6daaa42fd5fff_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-sands-2812100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "1b9c598273cebfd05265be9783364118ce538130532b2fcda0bd2fe86318c74f",
+          "source_png_sha256": "055d8323206aa9776eb3d2c9d5a664023c27a3ae1cb776fd7264cb2ac94780ad",
+          "source_png_bytes": 463888,
+          "dimensions": [
+            800,
+            450
+          ],
+          "alt": "Бассейн Coral Sands у океана",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRP3tBvA",
+          "canva_asset_dimensions": [
+            800,
+            450
+          ],
+          "source_png_filename": "coral-sands-hikkaduwa-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g16",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-sands-2812116.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6ad2662c42f192aa44e83ba243e7150e66bf9f428d6d2fe9845a50d08417f482",
+          "source_png_sha256": "12c90dd4d073fed3d88261317de49487e3671454f49107c00d398b1ca2504f98",
+          "source_png_bytes": 421310,
+          "dimensions": [
+            800,
+            534
+          ],
+          "alt": "Лобби Coral Sands",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRBBGKrA",
+          "canva_asset_dimensions": [
+            800,
+            534
+          ],
+          "source_png_filename": "coral-sands-hikkaduwa-g16.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g11",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-sands-2812111.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "21d88b16c96f27aef3fdfc8146d9f8b9c5c29361e941f1e707541d19a7250b52",
+          "source_png_sha256": "92d4ee3603b17bf68fd673ca67ba69869d288ffbc04dda61be82db08dbc7ed88",
+          "source_png_bytes": 546081,
+          "dimensions": [
+            800,
+            534
+          ],
+          "alt": "Ресторан Coral Sands",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRBwbKr8",
+          "canva_asset_dimensions": [
+            800,
+            534
+          ],
+          "source_png_filename": "coral-sands-hikkaduwa-g11.png"
+        }
+      ]
+    }
+  ]
+}
