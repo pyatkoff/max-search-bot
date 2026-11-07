@@ -97,12 +97,13 @@ function directPrivate(string $method,...$args){return (new ReflectionMethod(Man
 function directNativeForm(array $query):string{
     $html='<div class="samo_container" data-csrf-token="synthetic-no-real-session"></div><script src="/public/js/pack.main.js?rev=3187520523"></script><script src="/public/js/search_tour/search_tour.js?rev=3187520523"></script>';
     foreach($query as $name=>$value){
-        if(in_array($name,['samo_action','PRICEPAGE','DYN_SEPARATE','rev','HOTELTYPES','PARTITION_PRICE'],true))continue;
+        if(in_array($name,['samo_action','PRICEPAGE','DYN_SEPARATE','rev','HOTELTYPES','PARTITION_PRICE','AGES'],true))continue;
         if(in_array($name,['TOWNS','HOTELS','STARS','MEALS','ROOMS'],true)){$html.='<div class="checklistbox" name="'.$name.'"></div>';continue;}
         if(in_array($name,['ADULT','CHILD','TOWNFROMINC','STATEINC','CURRENCY'],true)){$html.='<select class="'.$name.'" name="'.$name.'"><option value="'.$value.'" selected>'.($name==='CURRENCY'?'RUB':'Synthetic '.$name).'</option><option value="99" disabled>Disabled</option></select>';continue;}
         $date=in_array($name,['CHECKIN_BEG','CHECKIN_END'],true);if($date)$value=substr($value,6,2).'.'.substr($value,4,2).'.'.substr($value,0,4);
         $html.='<input name="'.$name.'" class="'.$name.($date?' date':'').'" value="'.$value.'">';
     }
+    if(isset($query['AGES'])){$html.='<div class="child_ages">';foreach(explode(',',$query['AGES']) as $index=>$age)$html.='<select class="age age_'.($index+1).'" name="AGE'.($index+1).'"><option value="'.$age.'" selected>'.$age.'</option><option value="99" disabled>Disabled</option></select>';$html.='</div>';}
     $html.='<input class="PARTITION_PRICE" type="checkbox" value="1">';return $html;
 }
 $nativeForm=directNativeForm($direct['query']);$facts=directPrivate('formContext',$nativeForm,$direct['query']);
@@ -191,6 +192,51 @@ capReject(fn()=>directPrivate('remaining',$common,$clock+15),'a later phase cann
 $fakeClock=1000.0;$connections=0;$resolutions=0;
 capReject(function()use($formUrl,&$fakeClock,&$connections,&$resolutions){return directPrivate('withPublicAddress',$formUrl,'html',1015.0,static function($ip,$end)use(&$connections){$connections++;},static function($host,$end)use(&$fakeClock,&$resolutions){$resolutions++;$fakeClock=1015.0;return ['93.184.216.34'];},static function()use(&$fakeClock):float{return $fakeClock;});},'budget spent in resolution prevents connect/read without timing sleeps');
 capCheck($resolutions===1&&$connections===0,'expired shared budget has no reader or retry');
+
+
+// Family branch: unchanged file schema, direct fresh form, exact signed age vector.
+foreach([[0],[8],[17],[8,8],[0,8,17]] as $ages){
+    $ff=syntheticOneTouchSource(2,$ages);$fc=$capture;$fc['reference']='SYNTHETIC_FAMILY_'.implode('_',$ages);$fc['url']=$ff['url'];$fc['prices_gzip_base64']=base64_encode(gzencode($ff['response']));$fc['prices_sha256']=hash('sha256',$ff['response']);
+    $fd=ManagerTourSelectionOneTouchCapture::read($fc,$now);
+    capCheck($fd['quotes'][0]['offer']['child_ages']===$ages&&$fd['expires']===$now+600&&$fd['quotes'][0]['observed_at']===$fc['captured_at'],'unchanged file decoder retains declared ages and original expiry '.implode(',',$ages));
+    $calls=0;$fs=ManagerTourSelectionOneTouchIntake::search(2,1,$key,['capture'=>$fc],static function()use(&$calls){$calls++;throw new RuntimeException('must stay file');});
+    $fr=ManagerTourSelectionOneTouchIntake::review(2,1,$key,['ticket'=>$fs['offers'][0]['ticket'],'gallery_gzip_base64'=>base64_encode(gzencode($ff['hotel']))]);$fo=ManagerTourSelectionOneTouchIntake::open($fr['ticket'],$key,2,1,'ready');
+    capCheck($calls===0&&$fr['ok']&&$fo['observation']['offer']['child_ages']===$ages&&$fo['observation']['raw']['capture_mode']==='manager-file-v1','family file never becomes a direct source read '.implode(',',$ages));
+    $fi=ManagerTourSelectionImportDraft::normalize($fo['observation']);capCheck($fi!==null&&str_contains($fi['offer']['constraints'],'заявленных параметров поиска в файле')&&str_contains($fi['offer']['constraints'],'01.01.2020'),'file ages and gallery provenance stay explicit '.implode(',',$ages));
+    $nativeHtml=directNativeForm($ff['query']);$facts=directPrivate('formContext',$nativeHtml,$ff['query']);
+    capCheck($facts['rev']==='3187520523'&&substr_count($facts['form'],'<select ')===3&&!str_contains($facts['form'],'AGE1'),'actual selected age controls admitted without changing capture public schema '.implode(',',$ages));
+    $initial='https://b2b.onetouch.travel/search_tour?'.http_build_query(array_intersect_key($ff['query'],array_flip(['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM','NIGHTS_TILL','ADULT','CHILD','AGES','CURRENCY'])),'','&',PHP_QUERY_RFC3986);
+    capCheck(directPrivate('readPolicy',$initial,'html')['host']==='b2b.onetouch.travel','bounded INITIAL query admits canonical age vector '.implode(',',$ages));
+}
+$ff=syntheticOneTouchSource(2,[8]);$nativeHtml=directNativeForm($ff['query']);
+$ageSelect='<select class="age age_1" name="AGE1"><option value="8" selected>8</option><option value="99" disabled>Disabled</option></select>';
+foreach([
+    str_replace($ageSelect,str_replace(' selected','',$ageSelect),$nativeHtml),
+    str_replace($ageSelect,str_replace(' selected',' selected disabled',$ageSelect),$nativeHtml),
+    str_replace($ageSelect,str_replace(' selected',' selected disabled',$ageSelect).'<select class="age age_1" name="AGE1"><option value="8" selected>8</option></select>',$nativeHtml),
+    str_replace($ageSelect,str_replace('</select>','<option value="8">8 duplicate</option></select>',$ageSelect),$nativeHtml),
+    str_replace($ageSelect,str_replace('value="99" disabled','value="9" selected',$ageSelect),$nativeHtml),
+    str_replace($ageSelect,str_replace('<select ','<select disabled ',$ageSelect),$nativeHtml),
+    str_replace($ageSelect,str_replace('<select ','<select multiple ',$ageSelect),$nativeHtml),
+    str_replace($ageSelect,'<fieldset disabled>'.$ageSelect.'</fieldset>',$nativeHtml),
+    str_replace('<option value="8" selected>8</option>','<optgroup disabled><option value="8" selected>8</option></optgroup>',$nativeHtml),
+    $nativeHtml.$ageSelect,
+    str_replace($ageSelect,str_replace('value="8"','value="9"',$ageSelect),$nativeHtml),
+    str_replace($ageSelect,str_replace('value="8"','value="08"',$ageSelect),$nativeHtml),
+    str_replace($ageSelect,'',$nativeHtml),
+    str_replace('class="age age_1"','class="age age_2"',$nativeHtml),
+    str_replace('class="child_ages"','class="unrelated"',$nativeHtml)
+] as $index=>$badHtml)capReject(fn()=>directPrivate('formContext',$badHtml,$ff['query']),'new product AGE1 has no fallback duplicate disabled or wrong-age acceptance '.$index);
+$twins=syntheticOneTouchSource(2,[8,8]);$twinHtml=directNativeForm($twins['query']);
+capReject(fn()=>directPrivate('formContext',str_replace('name="AGE2"','name="MISSING_AGE2"',$twinHtml),$twins['query']),'every requested child needs its own actual age control');
+$familyTransport=static fn($url):array=>['url'=>$ff['url'],'response'=>$ff['response'],'form'=>$ff['form'],'observed_at'=>gmdate('Y-m-d\TH:i:s\Z')];
+$fs=ManagerTourSelectionOneTouchIntake::search(2,1,$key,['url'=>$ff['url']],$familyTransport);capCheck($fs['ok']&&$fs['offers'][0]['offer']['child_ages']===[8],'direct requested age retained in quote ticket');
+$fr=ManagerTourSelectionOneTouchIntake::review(2,1,$key,['ticket'=>$fs['offers'][0]['ticket']],static fn($url):string=>$ff['hotel']);$fo=ManagerTourSelectionOneTouchIntake::open($fr['ticket'],$key,2,1,'ready');
+capCheck($fr['ok']&&$fr['source_reference']['url']===$ff['url']&&$fo['observation']['offer']['child_ages']===[8]&&!isset($fo['observation']['raw']['capture_mode']),'direct gallery and ready receipt retain exact requested-age URL without file provenance');
+$other=syntheticOneTouchSource(2,[9]);$bad=ManagerTourSelectionOneTouchIntake::search(2,1,$key,['url'=>$ff['url']],static fn($url):array=>['url'=>$other['url'],'response'=>$other['response'],'form'=>$other['form'],'observed_at'=>gmdate('Y-m-d\TH:i:s\Z')]);
+capCheck(in_array($bad['error']??'',['onetouch_source_unavailable','onetouch_source_changed'],true),'actual reader age nine cannot satisfy requested age eight');
+capReject(fn()=>directPrivate('readPolicy',$initial.'&AGES=0%2C8%2C17','html'),'duplicate INITIAL age vector refused');
+capReject(fn()=>directPrivate('readPolicy',str_replace('AGES=0%2C8%2C17','AGES=0%2C8',$initial),'html'),'INITIAL count mismatch refused');
 
 
 echo json_encode(['checks'=>$passed,'syntheticOnly'=>true,'network'=>0,'imports'=>0,'operatorFareTTLAsserted'=>false],JSON_THROW_ON_ERROR)."\n";

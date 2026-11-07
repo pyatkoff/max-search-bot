@@ -1810,9 +1810,9 @@ async function oneTouchBrowserFileFixture(page,options={}){
  page.on('console',msg=>{if(photoEvents.length<12&&['error','warning'].includes(msg.type()))photoEvents.push({type:msg.type(),text:safePhotoText(msg.text())})});
  const image=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=160;c.height=120;c.getContext('2d').fillRect(0,0,160,120);return c.toDataURL('image/jpeg').split(',')[1]});
  const bytes=Buffer.from(image,'base64'),photo='https://image.onetouch.travel/synthetic/cover.jpg',gallery='https://onetouch.travel/hotels/synthetic-hotel-1001/',reference='SYNTHETIC_BROWSER_ONLY';
- const fields={...oneTouchBrowserBaseOffer(),hotel:'Синтетический OneTouch',amount:'123456.78',price_qualifier:'from'},raw={capture_mode:'manager-file-v1',capture_reference:reference,hotel_url:gallery,capture_gallery_sha256:oneTouchBrowserSha('synthetic-gallery'),capture_photo_sha256:JSON.stringify({[photo]:oneTouchBrowserSha(bytes)}),capture_price_declared_at:'2077-01-01T00:00:00Z',capture_gallery_observed_at:'2020-01-01T00:00:00Z',transport:'Перелёт требует проверки',tour:'Synthetic tour',tariff:'Synthetic tariff',availability:'Номер по запросу',room:fields.room,meal:fields.meal};
+ const fields={...oneTouchBrowserBaseOffer(),hotel:'Синтетический OneTouch',amount:'123456.78',price_qualifier:'from'},raw={party:'2AD',capture_mode:'manager-file-v1',capture_reference:reference,hotel_url:gallery,capture_gallery_sha256:oneTouchBrowserSha('synthetic-gallery'),capture_photo_sha256:JSON.stringify({[photo]:oneTouchBrowserSha(bytes)}),capture_price_declared_at:'2077-01-01T00:00:00Z',capture_gallery_observed_at:'2020-01-01T00:00:00Z',transport:'Перелёт требует проверки',tour:'Synthetic tour',tariff:'Synthetic tariff',availability:'Номер по запросу',room:fields.room,meal:fields.meal};
  const row={ticket:'synthetic-ticket',offer:copy(fields),raw};
- const source={schema:'onetouch-manager-capture-v1',reference,captured_at:raw.capture_price_declared_at,url:'https://b2b.onetouch.travel/search_tour?samo_action=PRICES&CHECKIN_BEG=20770107&NIGHTS_FROM=7',public_controls:{},prices_gzip_base64:'SYNTHETIC_NO_HTTP',prices_sha256:oneTouchBrowserSha('synthetic-prices')};
+ const source={schema:'onetouch-manager-capture-v1',reference,captured_at:raw.capture_price_declared_at,url:"https://b2b.onetouch.travel/search_tour?samo_action=PRICES&TOWNFROMINC=2&STATEINC=9&TOURTYPE=0&TOURINC=0&PROGRAMGROUPINC=0&PROGRAMINC=0&CHECKIN_BEG=20770107&NIGHTS_FROM=7&CHECKIN_END=20770107&NIGHTS_TILL=7&ADULT=2&CURRENCY=1&CHILD=0&TOWNS_ANY=1&townssearch=0&TOWNS=&STARS_ANY=1&STARS=&HOTELS_ANY=1&hotelsearch=0&HOTELS=&MEALS_ANY=1&MEALS=&ROOMS_ANY=1&ROOMS=&CHILD_IN_BED=0&FREIGHT=1&COMFORTABLE_SEATS=0&FILTER=1&MOMENT_CONFIRM=0&WITHOUT_PROMO=0&HOTELTYPES=&PARTITION_PRICE=&PRICEPAGE=1&DYN_SEPARATE=1&rev=965964269",public_controls:{},prices_gzip_base64:'SYNTHETIC_NO_HTTP',prices_sha256:oneTouchBrowserSha('synthetic-prices')};
  const bundle={schema:'onetouch-bundle-v1',source,gallery_cache:[{hotel:'1001',url:gallery,observed_at:raw.capture_gallery_observed_at,html_gzip_base64:'SYNTHETIC_NO_HTTP',html_sha256:raw.capture_gallery_sha256,images:[{url:photo,sha256:oneTouchBrowserSha(bytes),mime:'image/jpeg',base64:options.badImage?Buffer.from('<svg/>').toString('base64'):image}]}]};
  if(options.badImage){bundle.gallery_cache[0].images[0].sha256=oneTouchBrowserSha(Buffer.from('<svg/>'));raw.capture_photo_sha256=JSON.stringify({[photo]:bundle.gallery_cache[0].images[0].sha256})}
  let imported=false;
@@ -2142,7 +2142,7 @@ test('bulk terms preserve a previous frozen publication after new conditions are
 async function oneTouchParametricFixture(page,options={}){
  const adults=options.adults??3,photo='https://image.onetouch.travel/synthetic/party-cover.jpg',gallery='https://onetouch.travel/hotels/synthetic-hotel-1001/',reference='SYNTHETIC_SHARED_PARTY_REFERENCE',newId='d'.repeat(32),otherId='e'.repeat(32);
  const image=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=160;canvas.height=120;canvas.getContext('2d').fillRect(0,0,160,120);return canvas.toDataURL('image/jpeg').split(',')[1]}),bytes=Buffer.from(image,'base64');
- const base={...oneTouchBrowserBaseOffer(),adults:options.baseAdults??2},url='https://b2b.onetouch.travel/search_tour?samo_action=PRICES&CHECKIN_BEG=20770107&NIGHTS_FROM=7&ADULT='+adults+'&CHILD=0';
+ const base={...oneTouchBrowserBaseOffer(),adults:options.baseAdults??2},url="https://b2b.onetouch.travel/search_tour?samo_action=PRICES&TOWNFROMINC=2&STATEINC=9&TOURTYPE=0&TOURINC=0&PROGRAMGROUPINC=0&PROGRAMINC=0&CHECKIN_BEG=20770107&NIGHTS_FROM=7&CHECKIN_END=20770107&NIGHTS_TILL=7&ADULT="+adults+"&CURRENCY=1&CHILD=0&TOWNS_ANY=1&townssearch=0&TOWNS=&STARS_ANY=1&STARS=&HOTELS_ANY=1&hotelsearch=0&HOTELS=&MEALS_ANY=1&MEALS=&ROOMS_ANY=1&ROOMS=&CHILD_IN_BED=0&FREIGHT=1&COMFORTABLE_SEATS=0&FILTER=1&MOMENT_CONFIRM=0&WITHOUT_PROMO=0&HOTELTYPES=&PARTITION_PRICE=&PRICEPAGE=1&DYN_SEPARATE=1&rev=965964269";
  const fields={...copy(base),hotel:'Синтетический OneTouch · состав из источника',adults,amount:'123456.78',price_qualifier:'from',source_label:'OneTouch · synthetic',source_url:url};
  const raw={capture_mode:'manager-file-v1',capture_reference:reference,hotel_url:gallery,capture_gallery_sha256:oneTouchBrowserSha('synthetic-party-gallery'),capture_photo_sha256:JSON.stringify({[photo]:oneTouchBrowserSha(bytes)}),capture_price_declared_at:'2077-01-01T00:00:00Z',capture_gallery_observed_at:'2020-01-01T00:00:00Z',party:adults+'AD',transport:'Перелёт требует проверки',tour:'Synthetic party tour',tariff:'Synthetic party tariff',availability:'Номер по запросу',room:fields.room,meal:fields.meal};
  const source={schema:'onetouch-manager-capture-v1',reference,captured_at:raw.capture_price_declared_at,url,public_controls:{},prices_gzip_base64:'SYNTHETIC_NO_HTTP',prices_sha256:oneTouchBrowserSha('synthetic-party-prices-'+adults)};
@@ -2172,7 +2172,7 @@ async function oneTouchParametricFixture(page,options={}){
  await page.route('https://app.anytoour.ru/manager/tour-selection-photo.php?**',route=>route.fulfill({contentType:'image/jpeg',body:bytes}));
  const f=s.editor;await expect(f.locator('#tsOneTouch')).toBeVisible();await f.locator('#tsOneTouch').click();
  await f.locator('#tsOneTouchFile').setInputFiles({name:'synthetic-onetouch-party.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(bundle))});
- await f.locator('#tsOneTouchRead').click();if(!options.noReview)await f.getByRole('button',{name:'Проверить фото и условия',exact:true}).click();
+ if(Number.isInteger(adults)&&adults>=1&&adults<=14)await f.locator('#tsOneTouchRead').click();else await expect(f.locator('#tsOneTouchRead')).toBeDisabled();if(!options.noReview)await f.getByRole('button',{name:'Проверить фото и условия',exact:true}).click();
  return{...s,f,fields,base,initialOther,newId,otherId,uploadTargets,photoEvents:[],safePhotoText:value=>String(value??'').replace(/blob:[^\s"'<>]+/g,'blob:[local]').slice(0,300)};
 }
 for(const adults of[1,3,14])test('OneTouch actual adult count '+adults+' preserves literal source amount and composition',async({page,browserName})=>{
@@ -2263,7 +2263,7 @@ for(const adults of[1,14])test('OneTouch direct form retains enabled adult bound
  const s=await oneTouchDirectFixture(page,{adults});await oneTouchDirectReadReview(s);await expect(s.f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await expect(s.f.locator('#tsOneTouchResults')).toContainText(adults===1?'1 взрослый · без детей':'14 взрослых · без детей');expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.calls.some(c=>c.action==='onetouch_add')).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });
 test('OneTouch direct invalid party stops before any source request',async({page})=>{
- const s=await oneTouchDirectFixture(page);await s.f.locator('#tsOneTouchAdults').fill('15');await s.f.locator('#tsOneTouchRead').click();await expect(s.f.locator('#tsOneTouchStatus')).toContainText('Проверьте');expect(s.calls.some(c=>c.action.startsWith('onetouch_'))).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);
+ const s=await oneTouchDirectFixture(page);await s.f.locator('#tsOneTouchAdults').fill('15');await expect(s.f.locator('#tsOneTouchRead')).toBeDisabled();expect(s.calls.some(c=>c.action.startsWith('onetouch_'))).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);
 });
 test('OneTouch rejected file requires explicit return to direct search and never silently falls back',async({page})=>{
  const s=await oneTouchDirectFixture(page),f=s.f;await f.locator('#tsOneTouchFile').setInputFiles({name:'invalid-synthetic.json',mimeType:'application/json',buffer:Buffer.from('{')});await expect(f.locator('#tsOneTouchStatus')).not.toBeEmpty();await expect(f.locator('#tsOneTouchRead')).toBeDisabled();expect(s.calls.some(c=>c.action.startsWith('onetouch_'))).toBe(false);
@@ -2293,4 +2293,117 @@ for(const lostAdd of[true,false])test('OneTouch direct receipt keeps a different
  const s=await oneTouchDirectFixture(page,{lostAdd,oldOrigin:true}),f=s.f;await oneTouchDirectReadReview(s);await expect(f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();
  if(lostAdd){await expect(f.locator('#tsRecovery')).toContainText('Проверить');await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect(f.locator('#tsStatus')).toContainText('привязку фотографий нужно проверить');}else await expect(f.locator('#tsStatus')).toContainText('Привязку исходного предложения');
  await expect(f.locator('#tsStatus')).not.toContainText('Завершите перенос');expect(new URL(s.snapshot().draft.offers[1].import_source.url).searchParams.get('rev')).toBe('965964269');expect(new URL(s.actualUrl()).searchParams.get('rev')).toBe('3187520523');expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(lostAdd?1:0);expect(s.calls.some(c=>c.editor_resource==='tour-selection-photo.php')).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+
+async function oneTouchFamilyFixture(page,options={}){
+ const jpeg=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=160;c.height=120;c.getContext('2d').fillRect(0,0,160,120);return c.toDataURL('image/jpeg').split(',')[1]});
+ const photo='https://image.onetouch.travel/images/hotels_hash/100/synthetic/'+'a'.repeat(32)+'.jpg',gallery='https://onetouch.travel/hotels/synthetic-hotel-1001/';
+ const base=oneTouchBrowserBaseOffer(),newId='e'.repeat(32),adults=2,ages=options.ages??[8],party='2AD+'+ages.length+'CH('+ages.join(',')+')';
+ const fields={...copy(base),hotel:'Синтетический OneTouch — семейный поиск',adults,child_ages:[...ages],room:'STANDARD ROOM / 2 ADL + '+ages.length+' CHD(0-17)',amount:'123456.78',price_qualifier:'from'};
+ const raw={party,hotel_url:gallery,transport:'Перелёт требует проверки',tour:'Синтетический пакет',tariff:'Синтетический тариф',availability:'Номер по запросу',room:fields.room,meal:fields.meal};
+ let imported=false,actualUrl='',operation='';
+ const s=await privateEditor(page,{draft:{title:'Синтетический прямой поиск',intro:'',offers:[base]},sourceAction:async(d,store)=>{
+  expect(d).not.toHaveProperty('photo_mode');expect(d).not.toHaveProperty('photo_expected');
+  if(d.action==='onetouch_search'){
+   expect(d).not.toHaveProperty('capture');const u=new URL(d.url);expect(u.origin).toBe('https://b2b.onetouch.travel');expect(u.pathname).toBe('/search_tour');
+   expect(u.searchParams.get('ADULT')).toBe(String(adults));expect(u.searchParams.get('CHILD')).toBe(String(ages.length));expect(u.searchParams.get('AGES')).toBe(ages.join(','));expect(u.searchParams.get('PRICEPAGE')).toBe('1');expect(u.searchParams.get('DYN_SEPARATE')).toBe('1');
+   expect(u.searchParams.get('CHECKIN_BEG')).toBe('20770107');expect(u.searchParams.get('NIGHTS_FROM')).toBe('7');
+   u.searchParams.set('rev','3187520523');actualUrl=u.href;
+   if(options.unavailable)return{ok:false,error:'onetouch_source_unavailable'};
+   const offer=copy(fields);if(options.wrongAge)offer.child_ages=[9];
+   return{ok:true,version:store.snapshot().version,offers:[{ticket:'synthetic-direct-quote',offer,raw:copy(raw)}]};
+  }
+  if(d.action==='onetouch_review'){
+   expect(d.ticket).toBe('synthetic-direct-quote');expect(d).not.toHaveProperty('gallery_gzip_base64');
+   const offer=copy(fields);if(options.wrongReviewAge)offer.child_ages=[9];
+   return{ok:true,version:store.snapshot().version,ticket:'synthetic-direct-ready',offer,raw:copy(raw),photos:[photo],source_reference:{quote_id:'0x'+'a'.repeat(64),url:actualUrl}};
+  }
+  if(d.action==='onetouch_add'){
+   expect(imported).toBe(false);expect(d.ticket).toBe('synthetic-direct-ready');expect(d.confirm_price_from).toBe(true);imported=true;operation=d.operation_id;
+   const savedUrl=new URL(actualUrl);if(options.oldOrigin)savedUrl.searchParams.set('rev','965964269');
+   const draft=store.snapshot().draft;draft.offers.push({...copy(fields),id:newId,amount:d.manager_amount,photos:[{url:photo,kind:'cover',illustrative:true}],import_source:{adapter:'onetouch-public-v1',quote_id:'0x'+'a'.repeat(64),url:savedUrl.href,observed_at:'2077-01-01T00:00:00Z',fields:copy(fields),raw:copy(raw),photos:[photo]}});if(options.ambiguousRecovery)draft.offers.push({...copy(draft.offers[1]),id:'f'.repeat(32)});if(options.wrongSavedAge){const changed=draft.offers[1];changed.child_ages=[9];changed.import_source.fields.child_ages=[9];changed.import_source.raw.party='2AD+1CH(9)';const changedUrl=new URL(changed.import_source.url);changedUrl.searchParams.set('AGES','9');changed.import_source.url=changedUrl.href;}store.replaceDraft(draft);
+   return options.lostAdd?null:{ok:true,state:options.oldOrigin?'already_added':'added',offer_id:newId,saved_version:store.snapshot().version,count:2};
+  }
+  if(d.action==='onetouch_operation'){expect(d.operation_id).toBe(operation);return{ok:true,found:imported,saved_version:store.snapshot().version};}
+  throw Error('Unexpected direct OneTouch action '+d.action);
+ }});
+ await page.route('https://image.onetouch.travel/**',route=>options.brokenPhoto?route.abort('failed'):route.fulfill({contentType:'image/jpeg',body:Buffer.from(jpeg,'base64')}));
+ const f=s.editor;await expect(f.locator('#tsStatus')).toContainText('загружен');await f.locator('#tsOneTouch').click();
+ await expect(f.locator('#tsOneTouchDate')).toBeEnabled();await expect(f.locator('#tsOneTouchNights')).toBeEnabled();await expect(f.locator('#tsOneTouchAdults')).toBeEnabled();
+ await f.locator('#tsOneTouchDate').fill('2077-01-07');await f.locator('#tsOneTouchNights').fill('7');await f.locator('#tsOneTouchAdults').fill(String(adults));
+ await f.locator('#tsOneTouchChildren').fill(String(ages.length));for(let i=0;i<ages.length;i++)await f.locator('#tsOneTouchAge'+i).fill(String(ages[i]));
+ return{...s,f,base,fields,raw,photo,newId,actualUrl:()=>actualUrl};
+}
+
+async function oneTouchFamilyFileFixture(page,options={}){
+ const adults=2,ages=options.ages??[8,8],photo='https://image.onetouch.travel/synthetic/party-cover.jpg',gallery='https://onetouch.travel/hotels/synthetic-hotel-1001/',reference='SYNTHETIC_SHARED_PARTY_REFERENCE',newId='d'.repeat(32),otherId='e'.repeat(32);
+ const image=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=160;canvas.height=120;canvas.getContext('2d').fillRect(0,0,160,120);return canvas.toDataURL('image/jpeg').split(',')[1]}),bytes=Buffer.from(image,'base64');
+ const base={...oneTouchBrowserBaseOffer(),adults:options.baseAdults??2},adultUrl="https://b2b.onetouch.travel/search_tour?samo_action=PRICES&TOWNFROMINC=2&STATEINC=9&TOURTYPE=0&TOURINC=0&PROGRAMGROUPINC=0&PROGRAMINC=0&CHECKIN_BEG=20770107&NIGHTS_FROM=7&CHECKIN_END=20770107&NIGHTS_TILL=7&ADULT="+adults+"&CURRENCY=1&CHILD=0&TOWNS_ANY=1&townssearch=0&TOWNS=&STARS_ANY=1&STARS=&HOTELS_ANY=1&hotelsearch=0&HOTELS=&MEALS_ANY=1&MEALS=&ROOMS_ANY=1&ROOMS=&CHILD_IN_BED=0&FREIGHT=1&COMFORTABLE_SEATS=0&FILTER=1&MOMENT_CONFIRM=0&WITHOUT_PROMO=0&HOTELTYPES=&PARTITION_PRICE=&PRICEPAGE=1&DYN_SEPARATE=1&rev=965964269";
+ const nativeUrl=new URL(adultUrl);nativeUrl.searchParams.set('CHILD',String(ages.length));nativeUrl.searchParams.set('AGES',ages.join(','));const url=nativeUrl.href;
+ const fields={...copy(base),hotel:'Синтетический OneTouch · состав из источника',adults,child_ages:[...ages],room:'STANDARD ROOM / 2 ADL + '+ages.length+' CHD(0-17)',amount:'123456.78',price_qualifier:'from',source_label:'OneTouch · synthetic',source_url:url};
+ const raw={capture_mode:'manager-file-v1',capture_reference:reference,hotel_url:gallery,capture_gallery_sha256:oneTouchBrowserSha('synthetic-party-gallery'),capture_photo_sha256:JSON.stringify({[photo]:oneTouchBrowserSha(bytes)}),capture_price_declared_at:'2077-01-01T00:00:00Z',capture_gallery_observed_at:'2020-01-01T00:00:00Z',party:adults+'AD+'+ages.length+'CH('+ages.join(',')+')',transport:'Перелёт требует проверки',tour:'Synthetic party tour',tariff:'Synthetic party tariff',availability:'Номер по запросу',room:fields.room,meal:fields.meal};
+ const source={schema:'onetouch-manager-capture-v1',reference,captured_at:raw.capture_price_declared_at,url,public_controls:{},prices_gzip_base64:'SYNTHETIC_NO_HTTP',prices_sha256:oneTouchBrowserSha('synthetic-party-prices-'+adults)};
+ const bundle={schema:'onetouch-bundle-v1',source,gallery_cache:[{hotel:'1001',url:gallery,observed_at:raw.capture_gallery_observed_at,html_gzip_base64:'SYNTHETIC_NO_HTTP',html_sha256:raw.capture_gallery_sha256,images:[{url:photo,sha256:oneTouchBrowserSha(bytes),mime:'image/jpeg',base64:image}]}]};
+ function savedOffer(n,id,legacy=false,amount='130000'){
+  const original={...copy(fields),adults:n},sourceFields=copy(original);if(legacy){delete sourceFields.adults;delete sourceFields.child_ages}
+  return{...copy(original),id,amount,photos:[],import_source:{adapter:'onetouch-public-v1',observed_at:source.captured_at,url:source.url.replace('ADULT='+adults,'ADULT='+n),fields:sourceFields,raw:{...copy(raw),party:n+'AD+'+ages.length+'CH('+ages.join(',')+')'},photos:[photo]}};
+ }
+ const initialOther=options.otherAdults?savedOffer(options.otherAdults,otherId,options.otherLegacy):null,initial=[copy(base),...(initialOther?[copy(initialOther)]:[])],uploadTargets=[];
+ let imported=false,savedVersion=null;
+ const s=await privateEditor(page,{draft:{title:'Синтетическая подборка с разными составами',intro:'',offers:initial},sourceAction:async(d,store)=>{
+  if(d.action==='onetouch_search')return{ok:true,version:store.snapshot().version,offers:[{ticket:'synthetic-party-ticket',offer:copy(fields),raw:copy(raw)}]};
+  if(d.action==='onetouch_review')return{ok:true,version:store.snapshot().version,ticket:'synthetic-party-ready',offer:copy(fields),raw:copy(raw),photos:[photo]};
+  if(d.action==='onetouch_add'){
+   expect(imported).toBe(false);imported=true;const next=store.snapshot().draft;next.offers.push(savedOffer(adults,newId,options.newLegacy,d.manager_amount));store.replaceDraft(next);savedVersion=store.snapshot().version;
+   if(options.removeNewAfterAdd){const later=store.snapshot().draft;later.offers=later.offers.filter(offer=>offer.id!==newId);store.replaceDraft(later)}
+   return options.lostAdd?null:{ok:true,state:'added',saved_version:savedVersion,count:store.snapshot().draft.offers.length,offer_id:newId};
+  }
+  if(d.action==='onetouch_operation')return{ok:true,found:imported,saved_version:savedVersion};
+  if(d.editor_resource==='tour-selection-photo.php'){
+   expect(d.action).toBe('upload');expect(d.source_photo_url).toBe(photo);expect(d.image_sha256).toBe(oneTouchBrowserSha(bytes));uploadTargets.push(d.offer_id);
+   return{ok:true,operation_id:d.operation_id,photo:{kind:d.kind,url:'https://app.anytoour.ru/manager/tour-selection-photo.php?conversation_id=11&draft_photo='+'f'.repeat(32)}};
+  }
+  throw Error('Unexpected synthetic party action '+d.action);
+ }});
+ await page.route('blob:https://app.anytoour.ru/*',route=>route.continue());
+ await page.route('https://app.anytoour.ru/manager/tour-selection-photo.php?**',route=>route.fulfill({contentType:'image/jpeg',body:bytes}));
+ const f=s.editor;await expect(f.locator('#tsOneTouch')).toBeVisible();await f.locator('#tsOneTouch').click();
+ await f.locator('#tsOneTouchFile').setInputFiles({name:'synthetic-onetouch-party.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(bundle))});
+ if(Number.isInteger(adults)&&adults>=1&&adults<=14)await f.locator('#tsOneTouchRead').click();else await expect(f.locator('#tsOneTouchRead')).toBeDisabled();if(!options.noReview)await f.getByRole('button',{name:'Проверить фото и условия',exact:true}).click();
+ return{...s,f,fields,base,initialOther,newId,otherId,uploadTargets,photoEvents:[],safePhotoText:value=>String(value??'').replace(/blob:[^\s"'<>]+/g,'blob:[local]').slice(0,300)};
+}
+
+// Family-only new scenarios. Synthetic API/photos; no real provider or selection.
+test('OneTouch family selected file keeps declared ages and file provenance without direct fallback',async({page})=>{
+ const s=await oneTouchFamilyFileFixture(page,{ages:[8,8]}),f=s.f;await oneTouchBrowserWaitForPhotos(s);await expect(f.locator('#tsOneTouchChildren')).toHaveValue('2');await expect(f.locator('#tsOneTouchChildren')).toBeDisabled();await expect(f.locator('#tsOneTouchAge0')).toHaveValue('8');await expect(f.locator('#tsOneTouchAge1')).toHaveValue('8');await expect(f.locator('#tsOneTouchResults')).toContainText('заявленных параметров поиска в файле');
+ await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();await expect.poll(()=>s.snapshot().draft.offers.find(offer=>offer.id===s.newId)?.photos.length).toBe(1);expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.snapshot().draft.offers.find(offer=>offer.id===s.newId)).toMatchObject({child_ages:[8,8],import_source:{fields:{child_ages:[8,8]},raw:{capture_mode:'manager-file-v1',party:'2AD+2CH(8,8)'}}});expect(s.calls.filter(c=>c.action==='onetouch_search').every(c=>!!c.capture&&!c.url)).toBe(true);expect(s.uploadTargets).toEqual([s.newId]);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch family file cannot silently replace requested ages with missing values',async({page})=>{
+ const s=await oneTouchFamilyFixture(page,{ages:[8]}),f=s.f;const badUrl=new URL('https://b2b.onetouch.travel/search_tour?ADULT=2&CHILD=1');await f.locator('#tsOneTouchFile').setInputFiles({name:'invalid-family.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({schema:'onetouch-bundle-v1',source:{schema:'onetouch-manager-capture-v1',url:badUrl.href},gallery_cache:[]}))});await expect(f.locator('#tsOneTouchRead')).toBeDisabled();expect(s.calls.some(c=>c.action.startsWith('onetouch_'))).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);
+});
+for(const ages of[[0],[8],[17],[8,8],[0,8,17]])test('OneTouch family exact ages '+ages.join(',')+' retain whole-party minimum and saved source',async({page,browserName})=>{
+ await page.setViewportSize({width:430,height:932});const s=await oneTouchFamilyFixture(page,{ages}),f=s.f;await oneTouchDirectReadReview(s);
+ await expect(f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await expect(f.locator('#tsOneTouchResults')).toContainText('Возраст детей — из параметров поиска.');await expect(f.locator('#tsOneTouchResults')).toContainText('CHD(0-17)');await expect(f.locator('#tsOneTouchAmount')).toHaveValue('123456.78');
+ for(let i=0;i<ages.length;i++)await expect(f.locator('#tsOneTouchAge'+i)).toHaveValue(String(ages[i]));await f.locator('#tsOneTouchConfirm').check();await expect(f.locator('#tsOneTouchAdd')).toBeEnabled();
+ if(ages.length===2){const frame=page.frames().find(frame=>frame.url().includes('/manager/tour-selection-editor.php'));expect(await frame.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);for(const id of['tsOneTouchChildren','tsOneTouchAge0','tsOneTouchAge1','tsOneTouchAdd'])expect((await f.locator('#'+id).boundingBox()).height).toBeGreaterThanOrEqual(44);fs.mkdirSync(path.join(root,'manager2-artifacts'),{recursive:true});await page.screenshot({path:path.join(root,'manager2-artifacts',`onetouch-family-twins-${browserName}-430.png`),fullPage:true,animations:'disabled'})}
+ await f.locator('#tsOneTouchAmount').fill('145000');await f.locator('#tsOneTouchAdd').click();await expect.poll(()=>s.snapshot().draft.offers.length).toBe(2);
+ expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.snapshot().draft.offers[1]).toMatchObject({child_ages:ages,amount:'145000',price_qualifier:'from',import_source:{fields:{child_ages:ages,amount:'123456.78'},raw:{party:'2AD+'+ages.length+'CH('+ages.join(',')+')'}}});expect(s.snapshot().draft.offers[1].photos).toEqual([{url:s.photo,kind:'cover',illustrative:true}]);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.some(c=>['save','send','publish','collector_import','biblio_add'].includes(c.action))).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
+});
+test('OneTouch family blank age never becomes infant zero and count changes discard review',async({page})=>{
+ const s=await oneTouchFamilyFixture(page,{ages:[8]}),f=s.f;await f.locator('#tsOneTouchAge0').fill('');await expect(f.locator('#tsOneTouchRead')).toBeDisabled();expect(s.calls.some(c=>c.action==='onetouch_search')).toBe(false);
+ await f.locator('#tsOneTouchAge0').fill('8');await oneTouchDirectReadReview(s);await expect(f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await f.locator('#tsOneTouchConfirm').check();
+ await f.locator('#tsOneTouchAge0').fill('9');await expect(f.locator('#tsOneTouchResults')).toBeEmpty();await expect(f.locator('#tsOneTouchConfirm')).toHaveCount(0);await expect(f.locator('#tsOneTouchStatus')).toContainText('заново');
+ await f.locator('#tsOneTouchChildren').fill('2');await expect(f.locator('#tsOneTouchAge0')).toHaveValue('9');await expect(f.locator('#tsOneTouchAge1')).toHaveValue('');await expect(f.locator('#tsOneTouchRead')).toBeDisabled();
+ await f.locator('#tsOneTouchChildren').fill('0');await expect(f.locator('#tsOneTouchAge0')).toHaveCount(0);await expect(f.locator('#tsOneTouchRead')).toBeEnabled();expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.calls.some(c=>c.action==='onetouch_add')).toBe(false);expect(s.errors).toEqual([]);
+});
+test('OneTouch family response with another child age stops before review',async({page})=>{
+ const s=await oneTouchFamilyFixture(page,{ages:[8],wrongAge:true});await s.f.locator('#tsOneTouchRead').click();await expect(s.f.locator('#tsOneTouchStatus')).toContainText('изменились');await expect(s.f.getByRole('button',{name:'Проверить фото и условия',exact:true})).toHaveCount(0);expect(s.calls.some(c=>['onetouch_review','onetouch_add'].includes(c.action))).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);
+});
+test('OneTouch family review cannot replace age with equal-price same-claim offer',async({page})=>{
+ const s=await oneTouchFamilyFixture(page,{ages:[8],wrongReviewAge:true});await oneTouchDirectReadReview(s);await expect(s.f.locator('#tsOneTouchStatus')).toContainText('Не удалось подтвердить фотографии');await expect(s.f.locator('#tsOneTouchAdd')).toHaveCount(0);expect(s.calls.some(c=>c.action==='onetouch_add')).toBe(false);expect(s.snapshot().draft.offers).toEqual([s.base]);expect(s.errors).toEqual([]);
+});
+for(const wrongSavedAge of[false,true])test('OneTouch family lost receipt keeps original requested ages without import replay '+wrongSavedAge,async({page})=>{
+ const s=await oneTouchFamilyFixture(page,{ages:[8],lostAdd:true,wrongSavedAge}),f=s.f;await oneTouchDirectReadReview(s);await expect(f.locator('#tsOneTouchPhotoStatus')).toHaveText('Фотографии загружены.');await f.locator('#tsOneTouchConfirm').check();await f.locator('#tsOneTouchAdd').click();await expect(f.locator('#tsRecovery')).toContainText('Проверить');
+ await page.reload();await expect(f.locator('#tsRecovery')).toContainText('Проверить');await f.locator('#tsRecovery button').filter({hasText:'Проверить'}).click();await expect(f.locator('#tsStatus')).toContainText(wrongSavedAge?'привязку фотографий нужно проверить':'Сохранённая операция OneTouch подтверждена');
+ expect(s.snapshot().draft.offers[0]).toEqual(s.base);expect(s.snapshot().draft.offers[1].child_ages).toEqual(wrongSavedAge?[9]:[8]);expect(s.calls.filter(c=>c.action==='onetouch_add')).toHaveLength(1);expect(s.calls.filter(c=>c.action==='onetouch_operation')).toHaveLength(1);expect(s.calls.some(c=>c.editor_resource==='tour-selection-photo.php')).toBe(false);expect(s.errors).toEqual([]);expect(s.unexpected).toEqual([]);
 });

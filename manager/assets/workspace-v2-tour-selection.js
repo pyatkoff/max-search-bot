@@ -366,48 +366,75 @@ async function applyTrip(){
 }
 const oneTouchPendingFiles=new Map();
 let oneTouchCanonicalParties=null;
-function oneTouchParty(value){return value&&Number.isInteger(value.adults)&&value.adults>=1&&value.adults<=14&&Array.isArray(value.child_ages)&&!value.child_ages.length?{adults:value.adults,child_ages:[]}:null}
-function oneTouchPartyLabel(value){const party=oneTouchParty(value);return party?(party.adults===1?'1 взрослый':party.adults+' взрослых')+' · без детей':'Состав не подтверждён'}
+function oneTouchParty(value){
+  const ages=value?.child_ages;
+  if(!value||!Number.isInteger(value.adults)||value.adults<1||value.adults>14||!Array.isArray(ages)||ages.length>3||Object.keys(ages).length!==ages.length||Array.from(ages).some(age=>!Number.isInteger(age)||age<0||age>17))return null;
+  return {adults:value.adults,child_ages:[...ages].sort((a,b)=>a-b)};
+}
+function oneTouchPartyKey(value){const p=oneTouchParty(value);return p?p.adults+'|'+p.child_ages.join(','):null}
+function sameOneTouchParty(a,b){const key=oneTouchPartyKey(a);return key!==null&&key===oneTouchPartyKey(b)}
+function oneTouchPartyToken(value){const p=oneTouchParty(value);return p?p.adults+'AD'+(p.child_ages.length?'+'+p.child_ages.length+'CH('+p.child_ages.join(',')+')':''):''}
+function oneTouchPartyLabel(value){
+  const p=oneTouchParty(value);if(!p)return 'Состав не подтверждён';
+  const ages=p.child_ages.map(age=>age+' '+(age===1?'год':age>=2&&age<=4?'года':'лет'));
+  return (p.adults===1?'1 взрослый':p.adults+' взрослых')+' · '+(!ages.length?'без детей':(ages.length===1?'ребёнок: ':'дети: ')+ages.join(', '));
+}
+function oneTouchUrlParty(value){
+  try{
+    if(typeof value!=='string'||value.length>4096||/[\x00-\x20\x7f]/.test(value)||value.includes('#'))return null;
+    const u=new URL(value),q=u.searchParams;
+    if(u.origin!=='https://b2b.onetouch.travel'||u.username||u.password||u.port||u.pathname!=='/search_tour'||u.href!==value||q.getAll('ADULT').length!==1||q.getAll('CHILD').length!==1||!/^(?:[1-9]|1[0-4])$/.test(q.get('ADULT'))||!/^[0-3]$/.test(q.get('CHILD')))return null;
+    const count=Number(q.get('CHILD'));let ages=[];
+    if(count){const raw=q.get('AGES');if(q.getAll('AGES').length!==1||typeof raw!=='string'||!raw.split(',').every(age=>/^(?:0|[1-9]|1[0-7])$/.test(age)))return null;ages=raw.split(',').map(Number);if(ages.length!==count)return null;}
+    else if(q.has('AGES'))return null;
+    const p=oneTouchParty({adults:Number(q.get('ADULT')),child_ages:ages});if(!p||count&&p.child_ages.join(',')!==q.get('AGES'))return null;
+    const day=q.get('CHECKIN_BEG');if(!/^[0-9]{8}$/.test(day||''))return null;
+    const date=day.slice(0,4)+'-'+day.slice(4,6)+'-'+day.slice(6,8),parsed=new Date(date+'T00:00:00Z');
+    if(!Number.isFinite(parsed.getTime())||Number(day.slice(0,4))<1||parsed.toISOString().slice(0,10)!==date)return null;
+    const expected=new URL(oneTouchQuery(date,Number(q.get('NIGHTS_FROM')),p.adults,p.child_ages)).searchParams;
+    if(Array.from(q).length!==Array.from(expected).length||!/^[0-9]{1,12}$/.test(q.get('rev')||''))return null;
+    for(const [key,val]of expected)if(q.getAll(key).length!==1||key!=='rev'&&q.get(key)!==val)return null;
+    return p;
+  }catch{return null}
+}
+function oneTouchPanelParty(panel){return panel&&Number.isInteger(panel.childCount)&&panel.childCount>=0&&panel.childCount<=3&&Array.isArray(panel.child_ages)&&panel.child_ages.length===panel.childCount?oneTouchParty({adults:panel.adults,child_ages:panel.child_ages}):null}
 function rememberOneTouchParties(snapshot){
   const parties=new Map(),duplicate=new Set();
   for(const offer of snapshot.draft.offers){
     if(typeof offer.id!=='string'||!/^[a-f0-9]{32}$/.test(offer.id))continue;
     if(parties.has(offer.id)||duplicate.has(offer.id)){parties.delete(offer.id);duplicate.add(offer.id);continue}
-    const party=oneTouchParty(offer);if(party)parties.set(offer.id,party);
+    const p=oneTouchParty(offer);if(p)parties.set(offer.id,p);
   }
   oneTouchCanonicalParties={target:clone(context),epoch,version:snapshot.version,parties};
 }
 function oneTouchCanonicalPartiesCurrent(){return !!oneTouchCanonicalParties&&oneTouchCanonicalParties.epoch===epoch&&oneTouchCanonicalParties.version===version&&current(oneTouchCanonicalParties.target)}
 function oneTouchSavedSourceParty(offer){
-  const fields=offer?.import_source?.fields;
-  if(fields&&Object.hasOwn(fields,'adults')&&Object.hasOwn(fields,'child_ages'))return oneTouchParty(fields);
-  // Legacy source fields may omit party. Only a pinned canonical get supplies it;
-  // never the selected form, an unsaved draft edit, or the default of two adults.
   if(!oneTouchCanonicalPartiesCurrent())return null;
-  const party=oneTouchCanonicalParties.parties.get(offer?.id);if(!party)return null;
-  if(fields&&(Object.hasOwn(fields,'adults')&&fields.adults!==party.adults||Object.hasOwn(fields,'child_ages')&&JSON.stringify(fields.child_ages)!==JSON.stringify(party.child_ages)))return null;
-  return {adults:party.adults,child_ages:[]};
+  const p=oneTouchCanonicalParties.parties.get(offer?.id),fields=offer?.import_source?.fields;
+  if(!p||!sameOneTouchParty(p,oneTouchUrlParty(offer?.import_source?.url)))return null;
+  if(fields&&(Object.hasOwn(fields,'adults')&&fields.adults!==p.adults||Object.hasOwn(fields,'child_ages')&&!sameOneTouchParty(p,{adults:p.adults,child_ages:fields.child_ages})))return null;
+  return {adults:p.adults,child_ages:[...p.child_ages]};
 }
 function oneTouchPartyMatches(offer,expected){
-  const party=oneTouchSavedSourceParty(offer),wanted=oneTouchParty(expected),raw=offer?.import_source?.raw;
-  return !!party&&!!wanted&&!!raw&&party.adults===wanted.adults&&JSON.stringify(party.child_ages)===JSON.stringify(wanted.child_ages)&&(!Object.hasOwn(raw,'party')||raw.party===party.adults+'AD');
+  const p=oneTouchSavedSourceParty(offer),raw=offer?.import_source?.raw;
+  return !!p&&sameOneTouchParty(p,expected)&&!!raw&&(!p.child_ages.length&&!Object.hasOwn(raw,'party')||raw.party===oneTouchPartyToken(p));
 }
 function oneTouchDropPreview(panel){for(const photo of panel?.review?.localPhotos||[])URL.revokeObjectURL(photo.preview)}
 function clearOneTouchCapture(dropFiles=false){oneTouchDropPreview(oneTouchPanel);oneTouchPanel=null;if(dropFiles){oneTouchCanonicalParties=null;for(const saved of oneTouchPendingFiles.values())for(const photo of saved.photos)URL.revokeObjectURL(photo.preview);oneTouchPendingFiles.clear()}}
 function oneTouchCaptureField(panel,editor){
   const label=document.createElement('label');label.textContent='Файл предложений OneTouch';const input=document.createElement('input');input.type='file';input.accept='application/json,.json';input.id='tsOneTouchFile';input.onchange=()=>void oneTouchChooseCapture(panel,input.files?.[0]);label.append(input);const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Использовать сохранённый файл OneTouch';details.append(summary,label);details.open=panel.mode==='file';editor.querySelector('h3').after(details);
   const notice=document.createElement('p');notice.textContent=panel.bundle?'Файл: '+panel.fileName+'. Время цены из файла: '+panel.bundle.source.captured_at+'. Фото могут быть получены раньше цены.':'Выберите полученный файл источника. Цена и время в файле указаны его автором; окончательная стоимость и наличие требуют проверки.';label.after(notice);
-  const resume=document.createElement('button');resume.type='button';resume.id='tsOneTouchResumePhotos';resume.textContent='Дополнить фото сохранённого варианта';resume.hidden=!panel.bundle||item()?.import_source?.raw?.capture_mode!=='manager-file-v1';resume.onclick=()=>void oneTouchResumePhotos(panel);notice.after(resume);const direct=document.createElement('button');direct.type='button';direct.id='tsOneTouchDirect';direct.textContent='Вернуться к поиску на сайте';direct.hidden=panel.mode!=='file';direct.onclick=()=>{if(!oneTouchCurrent(panel)||busy)return;panel.fileRead=(panel.fileRead||0)+1;oneTouchDropPreview(panel);panel.mode='direct';panel.bundle=null;panel.review=null;panel.offers=[];panel.message='Укажите условия и прочитайте предложения с сайта.';panel.error=false;render()};resume.after(direct);
+  const resume=document.createElement('button');resume.type='button';resume.id='tsOneTouchResumePhotos';resume.textContent='Дополнить фото сохранённого варианта';resume.hidden=!panel.bundle||item()?.import_source?.raw?.capture_mode!=='manager-file-v1';resume.onclick=()=>void oneTouchResumePhotos(panel);notice.after(resume);const direct=document.createElement('button');direct.type='button';direct.id='tsOneTouchDirect';direct.textContent='Вернуться к поиску на сайте';direct.hidden=panel.mode!=='file';direct.onclick=()=>{if(!oneTouchCurrent(panel)||busy)return;panel.fileRead=(panel.fileRead||0)+1;oneTouchDropPreview(panel);panel.mode='direct';panel.searchRevision=(panel.searchRevision||0)+1;panel.bundle=null;panel.review=null;panel.offers=[];panel.message='Укажите условия и прочитайте предложения с сайта.';panel.error=false;render()};resume.after(direct);
 }
 async function oneTouchChooseCapture(panel,file){
-  if(!oneTouchCurrent(panel)||busy||!file)return;const fileRead=panel.fileRead=(panel.fileRead||0)+1;oneTouchDropPreview(panel);panel.mode='file';panel.review=null;panel.offers=[];panel.bundle=null;render();
+  if(!oneTouchCurrent(panel)||busy||!file)return;const fileRead=panel.fileRead=(panel.fileRead||0)+1;oneTouchDropPreview(panel);panel.mode='file';panel.searchRevision=(panel.searchRevision||0)+1;panel.review=null;panel.offers=[];panel.bundle=null;render();
   try{
     if(file.size<1||file.size>8388608)throw Error('Файл слишком большой или пустой.');
     const bundle=JSON.parse(await file.text());if(!oneTouchCurrent(panel)||panel.fileRead!==fileRead||panel.mode!=='file')return;
     if(bundle?.schema!=='onetouch-bundle-v1'||!bundle.source||bundle.source.schema!=='onetouch-manager-capture-v1'||!Array.isArray(bundle.gallery_cache)||!bundle.gallery_cache.length||bundle.gallery_cache.length>20)throw Error('Не удалось прочитать файл OneTouch.');
-    const url=new URL(bundle.source.url);if(url.origin!=='https://b2b.onetouch.travel'||url.pathname!=='/search_tour')throw Error('Источник файла не соответствует OneTouch.');
+    const url=new URL(bundle.source.url),party=oneTouchUrlParty(bundle.source.url);if(!party)throw Error('Источник или состав в файле не соответствует поддержанному поиску OneTouch.');
     const seen=new Set();for(const g of bundle.gallery_cache){if(typeof g.url!=='string'||seen.has(g.url)||typeof g.html_gzip_base64!=='string'||!Array.isArray(g.images)||!g.images.length||g.images.length>3)throw Error('В файле не хватает связанных фотографий.');seen.add(g.url)}
-    panel.bundle=bundle;panel.fileName=file.name;const d=url.searchParams.get('CHECKIN_BEG')||'';panel.date=d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);panel.nights=Number(url.searchParams.get('NIGHTS_FROM'));const adults=Number(url.searchParams.get('ADULT'));if(oneTouchParty({adults,child_ages:[]}))panel.adults=adults;panel.message='Файл выбран. Прочитайте предложения перед добавлением.';panel.error=false;
+    panel.bundle=bundle;panel.fileName=file.name;const d=url.searchParams.get('CHECKIN_BEG')||'';panel.date=d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6,8);panel.nights=Number(url.searchParams.get('NIGHTS_FROM'));panel.adults=party.adults;panel.childCount=party.child_ages.length;panel.child_ages=[...party.child_ages];panel.message='Файл выбран. Прочитайте предложения перед добавлением.';panel.error=false;
   }catch(e){if(!oneTouchCurrent(panel)||panel.fileRead!==fileRead||panel.mode!=='file')return;panel.message=e.message||'Файл не прочитан.';panel.error=true}render();
 }
 function oneTouchCaptureHeader(bundle){
@@ -447,38 +474,48 @@ async function oneTouchResumePhotos(panel){
   if(!oneTouchCurrent(panel)||busy||!panel.bundle)return;let offer=item(),source=offer?.import_source;const offerId=offer?.id;
   if(source?.adapter!=='onetouch-public-v1'||source.raw?.capture_reference!==panel.bundle.source.reference)return;
   try{
-    if(!oneTouchParty(source.fields)&&!oneTouchCanonicalPartiesCurrent()){
+    if(!oneTouchCanonicalPartiesCurrent()){
       await load();if(!oneTouchCurrent(panel)||selected!==offerId)throw Error('Сохранённый вариант изменился. Проверьте привязку фотографий.');
       offer=draft.offers.find(value=>value.id===offerId);source=offer?.import_source;
       if(source?.adapter!=='onetouch-public-v1'||source.raw?.capture_reference!==panel.bundle.source.reference)throw Error('Источник сохранённого варианта изменился.');
     }
     const party=oneTouchSavedSourceParty(offer);
-    if(!party||!source.fields||Object.hasOwn(source.raw,'party')&&source.raw.party!==party.adults+'AD')throw Error('Не удалось подтвердить сохранённый состав. Фотографии не перенесены.');
+    if(!party||!source.fields||!oneTouchPartyMatches(offer,party))throw Error('Не удалось подтвердить сохранённый состав. Фотографии не перенесены.');
     const review={raw:source.raw,photos:source.photos},gallery=oneTouchGallery(panel.bundle,source.raw);review.localPhotos=await oneTouchLocalPhotos(panel,review,gallery);
     const operation=id();oneTouchPendingFiles.set(operation,{target:clone(context),epoch,raw:clone(source.raw),offer:{...clone(source.fields),...party},photos:review.localPhotos});clearOneTouchCapture();render();await oneTouchFinishPhotos(operation,offer.id);
   }catch(e){panel.message=e.message;panel.error=true;render()}
 }
 
 function oneTouchCurrent(panel){return oneTouchPanel===panel&&current(panel.target)&&epoch===panel.epoch&&version===panel.version&&canEdit&&!dirty&&!pending&&!conflict&&!preview&&dialog?.open}
-function oneTouchError(result){return {onetouch_capture_required:'Выберите файл источника OneTouch.',onetouch_capture_expired:'Время цены в файле старше допуска приложения. Исходная дата не обновляется.',onetouch_capture_invalid:'Файл источника или связанные данные повреждены.',onetouch_invalid_url:'Проверьте дату и число ночей.',onetouch_source_unavailable:'OneTouch не ответил. Сохранённые варианты не изменены.',onetouch_source_changed:'Условия на сайте изменились или не поддерживаются. Варианты не добавлены.',onetouch_photos_unavailable:'Не удалось подтвердить фотографии именно этого отеля.',onetouch_expired:'Истекло время проверки предложения. Добавление не выполнено.',onetouch_price_confirmation:'Подтвердите, что это минимальная цена «от».',source_price_changed:'Исходная цена такого варианта изменилась. Проверьте сохранённый вариант.',manual_price_conflict:'У сохранённого варианта другая ручная цена.',ambiguous_offer:'Похожий вариант уже есть с другими условиями.'}[result?.error]||error(result)}
+function oneTouchError(result){return {onetouch_capture_required:'Выберите файл источника OneTouch.',onetouch_capture_expired:'Время цены в файле старше допуска приложения. Исходная дата не обновляется.',onetouch_capture_invalid:'Файл источника или связанные данные повреждены.',onetouch_invalid_url:'Проверьте дату, число ночей, состав и возраст детей.',onetouch_source_unavailable:'OneTouch не ответил. Сохранённые варианты не изменены.',onetouch_source_changed:'Условия на сайте изменились или не поддерживаются. Варианты не добавлены.',onetouch_photos_unavailable:'Не удалось подтвердить фотографии именно этого отеля.',onetouch_expired:'Истекло время проверки предложения. Добавление не выполнено.',onetouch_price_confirmation:'Подтвердите, что это минимальная цена «от».',source_price_changed:'Исходная цена такого варианта изменилась. Проверьте сохранённый вариант.',manual_price_conflict:'У сохранённого варианта другая ручная цена.',ambiguous_offer:'Похожий вариант уже есть с другими условиями.'}[result?.error]||error(result)}
 async function showOneTouch(){
   if(!editable()||busy||!current()||(draft?.offers.length||0)>=20)return;
   if(dirty){await save();if(dirty||pending||conflict||busy||!current())return;}
   const trip=draft.offers.find(x=>x.date_from&&x.nights);
-  oneTouchPanel={target:clone(context),epoch,version,date:trip?.date_from||'',nights:trip?.nights||7,adults:oneTouchParty(trip)?.adults||2,mode:'direct',offers:[],offset:0,review:null,message:'',error:false};render();$('tsOneTouchDate')?.focus();
+  oneTouchPanel={target:clone(context),epoch,version,date:trip?.date_from||'',nights:trip?.nights||7,adults:trip?.adults??2,child_ages:Array.isArray(trip?.child_ages)?[...trip.child_ages]:[],childCount:Array.isArray(trip?.child_ages)?trip.child_ages.length:0,searchRevision:0,mode:'direct',offers:[],offset:0,review:null,message:'',error:false};if(!oneTouchPanelParty(oneTouchPanel))oneTouchPanel.message='Укажите 1–14 взрослых, до 3 детей и возраст каждого ребёнка от 0 до 17 лет.';render();$('tsOneTouchDate')?.focus();
 }
-function oneTouchQuery(date,nights,adults=2){
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(nights)||nights<1||nights>60||!oneTouchParty({adults,child_ages:[]}))throw Error('Проверьте дату, число ночей и состав взрослых.');
-  const q={samo_action:'PRICES',TOWNFROMINC:'2',STATEINC:'9',TOURTYPE:'0',TOURINC:'0',PROGRAMGROUPINC:'0',PROGRAMINC:'0',CHECKIN_BEG:date.replaceAll('-',''),NIGHTS_FROM:String(nights),CHECKIN_END:date.replaceAll('-',''),NIGHTS_TILL:String(nights),ADULT:String(adults),CURRENCY:'1',CHILD:'0',TOWNS_ANY:'1',townssearch:'0',TOWNS:'',STARS_ANY:'1',STARS:'',HOTELS_ANY:'1',hotelsearch:'0',HOTELS:'',MEALS_ANY:'1',MEALS:'',ROOMS_ANY:'1',ROOMS:'',CHILD_IN_BED:'0',FREIGHT:'1',COMFORTABLE_SEATS:'0',FILTER:'1',MOMENT_CONFIRM:'0',WITHOUT_PROMO:'0',HOTELTYPES:'',PARTITION_PRICE:'',PRICEPAGE:'1',DYN_SEPARATE:'1',rev:'965964269'};
+function oneTouchQuery(date,nights,adults=2,childAges=[]){
+  const party=oneTouchParty({adults,child_ages:childAges});
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isInteger(nights)||nights<1||nights>60||!party)throw Error('Проверьте дату, число ночей, состав и возраст каждого ребёнка.');
+  const q={samo_action:'PRICES',TOWNFROMINC:'2',STATEINC:'9',TOURTYPE:'0',TOURINC:'0',PROGRAMGROUPINC:'0',PROGRAMINC:'0',CHECKIN_BEG:date.replaceAll('-',''),NIGHTS_FROM:String(nights),CHECKIN_END:date.replaceAll('-',''),NIGHTS_TILL:String(nights),ADULT:String(party.adults),CURRENCY:'1',CHILD:String(party.child_ages.length),TOWNS_ANY:'1',townssearch:'0',TOWNS:'',STARS_ANY:'1',STARS:'',HOTELS_ANY:'1',hotelsearch:'0',HOTELS:'',MEALS_ANY:'1',MEALS:'',ROOMS_ANY:'1',ROOMS:'',CHILD_IN_BED:'0',FREIGHT:'1',COMFORTABLE_SEATS:'0',FILTER:'1',MOMENT_CONFIRM:'0',WITHOUT_PROMO:'0',HOTELTYPES:'',PARTITION_PRICE:'',PRICEPAGE:'1',DYN_SEPARATE:'1',rev:'965964269'};
+  if(party.child_ages.length)q.AGES=party.child_ages.join(',');
   return 'https://b2b.onetouch.travel/search_tour?'+new URLSearchParams(q);
 }
-function validOneTouchRow(row){return row&&typeof row.ticket==='string'&&row.ticket.length<=32768&&row.offer&&typeof row.offer.hotel==='string'&&typeof row.offer.amount==='string'&&row.offer.price_qualifier==='from'&&row.offer.currency==='RUB'&&!!oneTouchParty(row.offer)&&Array.isArray(row.offer.child_ages)&&!row.offer.child_ages.length&&row.raw&&['transport','tour','tariff','availability'].every(k=>typeof row.raw[k]==='string')}
+function validOneTouchRow(row){const p=oneTouchParty(row?.offer);return row&&typeof row.ticket==='string'&&row.ticket.length<=32768&&row.offer&&typeof row.offer.hotel==='string'&&typeof row.offer.amount==='string'&&row.offer.price_qualifier==='from'&&row.offer.currency==='RUB'&&!!p&&row.raw&&row.raw.party===oneTouchPartyToken(p)&&['transport','tour','tariff','availability'].every(k=>typeof row.raw[k]==='string')}
 function oneTouchPhotoList(review){return review?.localPhotos||(!review?.raw?.capture_mode?(review?.photos||[]).map(source=>({source,preview:source})):[])}
 function oneTouchSourcePhoto(url){try{if(typeof url!=='string')return false;const u=new URL(url),p=u.pathname.split('/');return u.origin==='https://image.onetouch.travel'&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&u.href===url&&p.length===6&&p[0]===''&&p[1]==='images'&&p[2]==='hotels_hash'&&/^[1-9][0-9]{0,5}$/.test(p[3])&&/^[a-z0-9]{1,40}$/.test(p[4])&&/^[a-f0-9]{16,64}[.]jpg$/.test(p[5])}catch{return false}}
 function oneTouchPhotosReady(panel){const photos=oneTouchPhotoList(panel?.review),images=Array.from($('tsOneTouchResults')?.querySelectorAll('img')||[]);return photos.length>0&&images.length===photos.length&&images.every((img,i)=>img.isConnected&&img.getAttribute('src')===photos[i].preview&&photos[i].source===panel.review.photos[i]&&biblioImageReady(img))}
-function oneTouchDirectReference(value){try{const u=new URL(value?.url);return /^0x[a-f0-9]{32,1024}$/.test(value?.quote_id)&&u.origin==='https://b2b.onetouch.travel'&&!u.username&&!u.password&&!u.port&&!u.hash&&u.pathname==='/search_tour'}catch{return false}}
+function oneTouchDirectReference(value,offer){
+  try{
+    const party=oneTouchUrlParty(value?.url);
+    if(!/^0x[a-f0-9]{32,1024}$/.test(value?.quote_id)||!party)return false;
+    if(offer===undefined)return true;
+    const q=new URL(value.url).searchParams;
+    return sameOneTouchParty(party,offer)&&typeof offer?.date_from==='string'&&q.get('CHECKIN_BEG')===offer.date_from.replaceAll('-','')&&q.get('NIGHTS_FROM')===String(offer.nights);
+  }catch{return false}
+}
 function oneTouchDirectPhotoOffer(offerId,expected){
-  if(!oneTouchCanonicalPartiesCurrent()||!oneTouchDirectReference(expected?.source_reference)||!oneTouchParty(expected?.offer)||!expected?.raw||!Array.isArray(expected.photos)||!expected.photos.length||expected.photos.length>3||!expected.photos.every(oneTouchSourcePhoto))return null;
+  if(!oneTouchCanonicalPartiesCurrent()||!oneTouchDirectReference(expected?.source_reference,expected?.offer)||!oneTouchParty(expected?.offer)||!expected?.raw||!Array.isArray(expected.photos)||!expected.photos.length||expected.photos.length>3||!expected.photos.every(oneTouchSourcePhoto))return null;
   const matches=draft.offers.filter(offer=>{
     const source=offer.import_source,photos=offer.photos,fields=source?.fields;
     return source?.adapter==='onetouch-public-v1'&&source.quote_id===expected.source_reference.quote_id&&source.url===expected.source_reference.url&&source.raw&&!Object.hasOwn(source.raw,'capture_mode')&&oneTouchPartyMatches(offer,expected.offer)&&['hotel','date_from','nights','room','meal','amount','currency','price_qualifier'].every(key=>fields?.[key]===expected.offer[key])&&['hotel_url','party','tour','tariff','transport','availability'].every(key=>source.raw[key]===expected.raw[key])&&JSON.stringify(source.photos)===JSON.stringify(expected.photos)&&Array.isArray(photos)&&photos.length===expected.photos.length&&photos.every((photo,i)=>photo.url===expected.photos[i]&&photo.kind===['cover','beach','room'][i]);
@@ -486,50 +523,78 @@ function oneTouchDirectPhotoOffer(offerId,expected){
   return matches.length===1&&(offerId===undefined||matches[0].id===offerId)?matches[0]:null;
 }
 function oneTouchControls(){
-  const panel=oneTouchPanel;if(!panel)return;const locked=busy||loading||!oneTouchCurrent(panel);
+  const panel=oneTouchPanel;if(!panel)return;const locked=busy||loading||!oneTouchCurrent(panel),fromFile=panel.mode==='file';
   $('tsEditor')?.querySelectorAll('input,button').forEach(node=>{node.disabled=locked});
-  $('tsOneTouchDate')&&( $('tsOneTouchDate').disabled=locked||panel.mode==='file' );$('tsOneTouchNights')&&( $('tsOneTouchNights').disabled=locked||panel.mode==='file' );$('tsOneTouchAdults')&&( $('tsOneTouchAdults').disabled=locked||panel.mode==='file' );$('tsOneTouchRead')&&( $('tsOneTouchRead').disabled=locked||panel.mode==='file'&&!panel.bundle );
-  const add=$('tsOneTouchAdd');if(add)add.disabled=locked||!$('tsOneTouchConfirm')?.checked||!oneTouchPhotosReady(panel);
+  for(const id of ['tsOneTouchDate','tsOneTouchNights','tsOneTouchAdults','tsOneTouchChildren','tsOneTouchAge0','tsOneTouchAge1','tsOneTouchAge2']){const node=$(id);if(node)node.disabled=locked||fromFile}
+  const read=$('tsOneTouchRead');if(read)read.disabled=locked||(fromFile?!panel.bundle:!oneTouchPanelParty(panel));
+  const add=$('tsOneTouchAdd');if(add)add.disabled=locked||!$('tsOneTouchConfirm')?.checked||!oneTouchPhotosReady(panel)||!sameOneTouchParty(panel.review?.offer,oneTouchPanelParty(panel));
   const state=$('tsOneTouchPhotoStatus');if(state)state.textContent=oneTouchPhotosReady(panel)?'Фотографии загружены.':'Ожидаем фотографии. При ошибке добавление недоступно.';
 }
 function renderOneTouch(){
   const panel=oneTouchPanel,editor=$('tsEditor');if(!panel||!editor)return;
-  editor.innerHTML='<section class="tsBiblioPanel"><h3>Предложения OneTouch</h3><p>Поддержанный поиск: Москва → Турция, взрослые без детей. Состав задаётся ниже; при выборе файла используются его условия. Цена на странице — минимальная «от». Рейсы, багаж, доплаты и окончательная стоимость требуют проверки.</p><label>Дата вылета<input id="tsOneTouchDate" type="date" value="'+esc(panel.date)+'"></label><label>Ночей<input id="tsOneTouchNights" type="number" min="1" max="60" value="'+esc(panel.nights)+'"></label><label>Взрослых<input id="tsOneTouchAdults" type="number" min="1" max="14" value="'+esc(panel.adults)+'"></label><button id="tsOneTouchRead" type="button">Прочитать предложения</button><p id="tsOneTouchStatus" role="status" class="'+(panel.error?'tsError':'')+'">'+esc(busy?'Читаем OneTouch…':panel.message)+'</p><div id="tsOneTouchResults"></div><button id="tsOneTouchCancel" type="button">Вернуться к подборке</button></section>';
+  const ageInputs=(panel.child_ages||[]).slice(0,3).map((age,i)=>'<label>Возраст ребёнка '+(i+1)+' на дату вылета<input id="tsOneTouchAge'+i+'" type="number" inputmode="numeric" min="0" max="17" step="1" value="'+esc(age??'')+'"></label>').join('');
+  editor.innerHTML='<section class="tsBiblioPanel"><h3>Предложения OneTouch</h3><p>Москва → Турция, до 14 взрослых и до 3 детей. Укажите возраст детей на дату вылета. Показываем только варианты с выбранным составом. Цена на странице — минимальная «от»; рейсы, багаж, доплаты и окончательная стоимость требуют проверки.</p><label>Дата вылета<input id="tsOneTouchDate" type="date" value="'+esc(panel.date)+'"></label><label>Ночей<input id="tsOneTouchNights" type="number" min="1" max="60" value="'+esc(panel.nights)+'"></label><label>Взрослых<input id="tsOneTouchAdults" type="number" min="1" max="14" value="'+esc(panel.adults)+'"></label><label>Детей<input id="tsOneTouchChildren" type="number" inputmode="numeric" min="0" max="3" step="1" value="'+esc(panel.childCount??'')+'"></label><div id="tsOneTouchAges">'+ageInputs+'</div><button id="tsOneTouchRead" type="button">Прочитать предложения</button><p id="tsOneTouchStatus" role="status" class="'+(panel.error?'tsError':'')+'">'+esc(busy?'Читаем OneTouch…':panel.message)+'</p><div id="tsOneTouchResults"></div><button id="tsOneTouchCancel" type="button">Вернуться к подборке</button></section>';
   oneTouchCaptureField(panel,editor);
   const results=$('tsOneTouchResults'),review=panel.review;
   if(review){
-    const o=review.offer;
-    results.innerHTML='<article><h4>'+esc(o.hotel+(o.stars?' '+o.stars+'*':''))+'</h4><p><strong>Исходная цена: '+esc(overviewAmount(o.amount,o.currency,'from'))+'</strong></p><dl class="tsBiblioTerms">'+[['Поездка',[o.destination,o.departure,o.date_from,o.nights+' ноч.'].join(' · ')],['Состав',oneTouchPartyLabel(o)],['Номер и размещение',o.room],['Питание',o.meal],['Тур',review.raw.tour],['Перевозка',review.raw.transport],['Тариф',review.raw.tariff],['Ограничения',review.raw.availability]].map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join('')+'</dl><div class="tsBiblioPhotos">'+oneTouchPhotoList(review).map(photo=>'<img src="'+esc(photo.preview)+'" alt="Фото отеля '+esc(o.hotel)+'" referrerpolicy="no-referrer">').join('')+'</div><p id="tsOneTouchPhotoStatus" role="status"></p><p>Фото относятся к отелю. Категория номера и включённые услуги по ним не подтверждены.</p><label>Минимальная цена для клиента, RUB<input id="tsOneTouchAmount" type="text" inputmode="decimal" maxlength="12" value="'+esc(o.amount)+'"></label><label class="tsTripConfirm"><input id="tsOneTouchConfirm" type="checkbox"> Проверил состав и условия. Сохраняю минимальную цену «от», окончательная стоимость требует проверки.</label><button id="tsOneTouchAdd" type="button" disabled>Добавить с фото и условиями</button><button id="tsOneTouchBack" type="button">К предложениям</button></article>';
+    const o=review.offer,ageOrigin=panel.mode==='file'?'заявленных параметров поиска в файле':'параметров поиска';
+    results.innerHTML='<article><h4>'+esc(o.hotel+(o.stars?' '+o.stars+'*':''))+'</h4><p><strong>Исходная цена: '+esc(overviewAmount(o.amount,o.currency,'from'))+'</strong></p><dl class="tsBiblioTerms">'+[['Поездка',[o.destination,o.departure,o.date_from,o.nights+' ноч.'].join(' · ')],['Состав',oneTouchPartyLabel(o)],['Номер и размещение',o.room],['Питание',o.meal],['Тур',review.raw.tour],['Перевозка',review.raw.transport],['Тариф',review.raw.tariff],['Ограничения',review.raw.availability]].map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join('')+'</dl>'+(o.child_ages.length?'<p>Возраст детей — из '+esc(ageOrigin)+'. Размещение и дополнительные кровати для детей подтверждаются у оператора.</p>':'')+'<div class="tsBiblioPhotos">'+oneTouchPhotoList(review).map(photo=>'<img src="'+esc(photo.preview)+'" alt="Фото отеля '+esc(o.hotel)+'" referrerpolicy="no-referrer">').join('')+'</div><p id="tsOneTouchPhotoStatus" role="status"></p><p>Фото относятся к отелю. Категория номера и включённые услуги по ним не подтверждены.</p><label>Минимальная цена для клиента, RUB<input id="tsOneTouchAmount" type="text" inputmode="decimal" maxlength="12" value="'+esc(o.amount)+'"></label><label class="tsTripConfirm"><input id="tsOneTouchConfirm" type="checkbox"> Проверил состав и условия. Сохраняю минимальную цену «от», окончательная стоимость требует проверки.</label><button id="tsOneTouchAdd" type="button" disabled>Добавить с фото и условиями</button><button id="tsOneTouchBack" type="button">К предложениям</button></article>';
     results.querySelectorAll('img').forEach(img=>{img.onload=img.onerror=()=>{if(oneTouchPanel===panel&&panel.review===review)oneTouchControls()}});
     $('tsOneTouchConfirm').onchange=oneTouchControls;$('tsOneTouchAdd').onclick=()=>void addOneTouch(panel);
     $('tsOneTouchBack').onclick=()=>{if(busy)return;panel.review=null;render()};
   }else{
     panel.offers.slice(panel.offset,panel.offset+20).forEach(row=>{const card=document.createElement('article');card.innerHTML='<h4>'+esc(row.offer.hotel)+'</h4><p>'+esc([row.offer.date_from,row.offer.nights+' ноч.',oneTouchPartyLabel(row.offer),row.offer.room,row.offer.meal].join(' · '))+'</p><strong>'+esc(overviewAmount(row.offer.amount,row.offer.currency,'from'))+'</strong>';const select=document.createElement('button');select.type='button';select.textContent='Проверить фото и условия';select.onclick=()=>void reviewOneTouch(panel,row);card.append(select);results.append(card)});
-    for(const [label,offset] of [['Предыдущие',panel.offset-20],['Следующие',panel.offset+20]])if(offset>=0&&offset<panel.offers.length){const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>{if(oneTouchCurrent(panel)&&!busy){panel.offset=offset;render()}};results.append(button)}
+    for(const [label,offset]of [['Предыдущие',panel.offset-20],['Следующие',panel.offset+20]])if(offset>=0&&offset<panel.offers.length){const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>{if(oneTouchCurrent(panel)&&!busy){panel.offset=offset;render()}};results.append(button)}
   }
-  const changedSearch=()=>{if(panel.bundle)return;oneTouchDropPreview(panel);panel.review=null;panel.offers=[];results.replaceChildren();panel.message='Условия изменены. Прочитайте предложения заново.';$('tsOneTouchStatus').textContent=panel.message;panel.error=false};$('tsOneTouchDate').oninput=()=>{panel.date=$('tsOneTouchDate').value;changedSearch()};$('tsOneTouchNights').oninput=()=>{panel.nights=Number($('tsOneTouchNights').value);changedSearch()};$('tsOneTouchAdults').oninput=()=>{panel.adults=Number($('tsOneTouchAdults').value);changedSearch()};
+  const changedSearch=()=>{
+    if(panel.bundle)return;
+    panel.searchRevision=(panel.searchRevision||0)+1;oneTouchDropPreview(panel);panel.review=null;panel.offers=[];results.replaceChildren();
+    panel.message=oneTouchPanelParty(panel)?'Условия изменены. Прочитайте предложения заново.':'Укажите 1–14 взрослых, 0–3 детей и полный возраст каждого ребёнка от 0 до 17 лет.';
+    $('tsOneTouchStatus').textContent=panel.message;panel.error=false;oneTouchControls();
+  };
+  $('tsOneTouchDate').oninput=()=>{panel.date=$('tsOneTouchDate').value;changedSearch()};
+  $('tsOneTouchNights').oninput=()=>{panel.nights=Number($('tsOneTouchNights').value);changedSearch()};
+  $('tsOneTouchAdults').oninput=()=>{panel.adults=Number($('tsOneTouchAdults').value);changedSearch()};
+  $('tsOneTouchChildren').oninput=()=>{
+    const raw=$('tsOneTouchChildren').value,n=/^[0-3]$/.test(raw)?Number(raw):null;
+    panel.childCount=n;
+    if(n!==null)panel.child_ages=Array.from({length:n},(_,i)=>panel.child_ages[i]??null);
+    changedSearch();
+    if(n!==null){render();$('tsOneTouchChildren')?.focus()}
+  };
+  (panel.child_ages||[]).slice(0,3).forEach((age,i)=>{$('tsOneTouchAge'+i).oninput=()=>{const raw=$('tsOneTouchAge'+i).value;panel.child_ages[i]=raw===''?null:Number(raw);changedSearch()}});
   $('tsOneTouchRead').onclick=()=>void readOneTouch(panel);$('tsOneTouchCancel').onclick=()=>{if(!busy){oneTouchPanel=null;render()}};oneTouchControls();
 }
 async function readOneTouch(panel){
-  if(!oneTouchCurrent(panel)||busy||panel.mode==='file'&&!panel.bundle)return;let input;const fromFile=panel.mode==='file',intent={date:panel.date,nights:panel.nights,adults:panel.adults};
-  try{input=fromFile?{capture:oneTouchCaptureHeader(panel.bundle)}:{url:oneTouchQuery(intent.date,intent.nights,intent.adults)}}catch(e){panel.message=e.message;panel.error=true;render();return}
-  oneTouchDropPreview(panel);panel.review=null;panel.offers=[];busy=true;render();const result=await request('onetouch_search',input);if(epoch!==panel.epoch)return;busy=false;if(!oneTouchCurrent(panel)){controls();return}
-  const matches=row=>fromFile||row.offer.date_from===intent.date&&row.offer.nights===intent.nights&&row.offer.adults===intent.adults&&row.raw.party===intent.adults+'AD'&&!Object.hasOwn(row.raw,'capture_mode');
-  if(result?.ok&&result.version===panel.version&&Array.isArray(result.offers)&&result.offers.length>0&&result.offers.length<=250&&result.offers.every(row=>validOneTouchRow(row)&&matches(row))){panel.offers=result.offers;panel.offset=0;panel.message=fromFile?'Прочитано предложений с сохранённой галереей: '+result.offers.length+'. Время цены и фотографий сохранены отдельно.':'Получено предложений с сайта: '+result.offers.length+'. Проверьте фото и условия выбранного варианта. Цена «от» не подтверждает окончательную стоимость и наличие.';panel.error=false}else{panel.offers=[];panel.message=oneTouchError(result?.ok?{error:'onetouch_source_changed'}:result);panel.error=true}render();
+  if(!oneTouchCurrent(panel)||busy||panel.mode==='file'&&!panel.bundle)return;
+  let input;const fromFile=panel.mode==='file',party=oneTouchPanelParty(panel),revision=panel.searchRevision;
+  if(!party){panel.message='Укажите состав и возраст каждого ребёнка на дату вылета.';panel.error=true;render();return}
+  const intent={date:panel.date,nights:panel.nights,...party};
+  try{input=fromFile?{capture:oneTouchCaptureHeader(panel.bundle)}:{url:oneTouchQuery(intent.date,intent.nights,intent.adults,intent.child_ages)}}catch(e){panel.message=e.message;panel.error=true;render();return}
+  oneTouchDropPreview(panel);panel.review=null;panel.offers=[];busy=true;render();
+  const result=await request('onetouch_search',input);if(epoch!==panel.epoch)return;busy=false;
+  if(!oneTouchCurrent(panel)){controls();return}
+  if(panel.searchRevision!==revision||panel.date!==intent.date||panel.nights!==intent.nights||!sameOneTouchParty(oneTouchPanelParty(panel),intent)){render();return}
+  const matches=row=>row.offer.date_from===intent.date&&row.offer.nights===intent.nights&&sameOneTouchParty(row.offer,intent)&&row.raw.party===oneTouchPartyToken(intent)&&(fromFile||!Object.hasOwn(row.raw,'capture_mode'));
+  if(result?.ok&&result.version===panel.version&&Array.isArray(result.offers)&&result.offers.length>0&&result.offers.length<=250&&result.offers.every(row=>validOneTouchRow(row)&&matches(row))){
+    panel.offers=result.offers;panel.offset=0;
+    panel.message=fromFile?'Прочитано предложений с сохранённой галереей: '+result.offers.length+'. Время цены и фотографий сохранены отдельно.':'Получено предложений с сайта: '+result.offers.length+'. Проверьте фото и условия выбранного варианта. Цена «от» не подтверждает окончательную стоимость и наличие.';panel.error=false;
+  }else{panel.offers=[];panel.message=oneTouchError(result?.ok?{error:'onetouch_source_changed'}:result);panel.error=true}
+  render();
 }
 async function reviewOneTouch(panel,row){
-  if(!oneTouchCurrent(panel)||busy)return;let gallery;const fromFile=!!panel.bundle,input={ticket:row.ticket};
+  if(!oneTouchCurrent(panel)||busy||!panel.offers.includes(row))return;const revision=panel.searchRevision;let gallery;const fromFile=!!panel.bundle,input={ticket:row.ticket};
   try{if(fromFile){gallery=oneTouchGallery(panel.bundle,row.raw);input.gallery_gzip_base64=gallery.html_gzip_base64}}catch(e){panel.message=e.message;panel.error=true;render();return}
-  oneTouchDropPreview(panel);panel.review=null;busy=true;render();const result=await request('onetouch_review',input);if(epoch!==panel.epoch)return;busy=false;if(!oneTouchCurrent(panel)){controls();return}
+  oneTouchDropPreview(panel);panel.review=null;busy=true;render();const result=await request('onetouch_review',input);if(epoch!==panel.epoch)return;busy=false;if(!oneTouchCurrent(panel)){controls();return}if(panel.searchRevision!==revision||!panel.offers.includes(row)){render();return}
   const same=row.offer&&result?.offer&&['hotel','date_from','nights','adults','room','meal','amount','currency','price_qualifier'].every(key=>row.offer[key]===result.offer[key])&&JSON.stringify(row.offer.child_ages)===JSON.stringify(result.offer.child_ages)&&row.raw.hotel_url===result.raw?.hotel_url;
   if(result?.ok&&result.version===panel.version&&validOneTouchRow(result)&&same&&Array.isArray(result.photos)&&result.photos.length>0&&result.photos.length<=3&&(fromFile||result.photos.every(oneTouchSourcePhoto))&&new Set(result.photos).size===result.photos.length){try{
-    if(fromFile){result.localPhotos=await oneTouchLocalPhotos(panel,result,gallery);if(!oneTouchCurrent(panel)){for(const p of result.localPhotos)URL.revokeObjectURL(p.preview);return}}
-    else if(Object.hasOwn(result.raw,'capture_mode')||!oneTouchDirectReference(result.source_reference))throw Error('Источник фотографий не соответствует выбранному поиску.');
+    if(fromFile){result.localPhotos=await oneTouchLocalPhotos(panel,result,gallery);if(!oneTouchCurrent(panel)||panel.searchRevision!==revision||!panel.offers.includes(row)){for(const p of result.localPhotos)URL.revokeObjectURL(p.preview);return}}
+    else if(Object.hasOwn(result.raw,'capture_mode')||!oneTouchDirectReference(result.source_reference,result.offer))throw Error('Источник фотографий не соответствует выбранному поиску.');
     panel.review=result;panel.message=fromFile?'Цена из файла: '+result.raw.capture_price_declared_at+'. Галерея получена: '+result.raw.capture_gallery_observed_at+'. Проверьте минимальную цену и условия.':'Фотографии связаны с выбранным отелем. Проверьте загрузку, минимальную цену и все условия перед сохранением.';panel.error=false;
   }catch(e){panel.message=e.message;panel.error=true}}else{panel.message=oneTouchError(result?.ok?{error:'onetouch_photos_unavailable'}:result);panel.error=true}render();
 }
 async function addOneTouch(panel){
-  if(!oneTouchCurrent(panel)||busy||!panel.review||!$('tsOneTouchConfirm')?.checked||!oneTouchPhotosReady(panel))return;
+  if(!oneTouchCurrent(panel)||busy||!panel.review||!$('tsOneTouchConfirm')?.checked||!oneTouchPhotosReady(panel)||!sameOneTouchParty(panel.review.offer,oneTouchPanelParty(panel)))return;
   let amount;try{const units=priceUnits($('tsOneTouchAmount').value);if(units<=0n)throw Error();amount=String(units/100n)+(units%100n?'.'+String(units%100n).padStart(2,'0'):'')}catch(e){panel.message='Укажите положительную цену с точностью до двух знаков.';panel.error=true;$('tsOneTouchStatus').textContent=panel.message;return}
   const command={kind:'onetouch',operation_id:id(),ticket:panel.review.ticket,confirm_price_from:true,manager_amount:amount,dispatched:false,photo_mode:panel.bundle?'file':'url',...(!panel.bundle?{photo_expected:{source_reference:clone(panel.review.source_reference),offer:clone(panel.review.offer),raw:clone(panel.review.raw),photos:clone(panel.review.photos)}}:{})};if(panel.bundle)oneTouchRememberPhotos(command,panel);pending=command;clearOneTouchCapture();stash();render();return submitOneTouch(command);
 }
