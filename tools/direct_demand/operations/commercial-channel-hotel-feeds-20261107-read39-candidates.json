@@ -1,0 +1,185 @@
+[
+  {
+    "hotel_id": 2575,
+    "logical_id": null,
+    "aliases": [
+      "Rixos Al Mairid Ras Al Khaimah",
+      "RIXOS AL MAIRID RAS AL KHAIMAH (EX. HILTON RAS AL KHAIMAH BEACH RESORT)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 63833,
+    "logical_id": null,
+    "aliases": [
+      "Rixos Premium Saadiyat Island"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 8964,
+    "logical_id": null,
+    "aliases": [
+      "Rixos The Palm Dubai Hotel & Suites"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2651,
+    "logical_id": null,
+    "aliases": [
+      "Rose Rayhaan By Rotana"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2673,
+    "logical_id": null,
+    "aliases": [
+      "Sofitel Dubai Jumeirah Beach"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 64914,
+    "logical_id": null,
+    "aliases": [
+      "Stella Di Mare Dubai Marina"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2688,
+    "logical_id": null,
+    "aliases": [
+      "Towers Rotana"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 13844,
+    "logical_id": null,
+    "aliases": [
+      "Ja Ocean View Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2569,
+    "logical_id": null,
+    "aliases": [
+      "Al Habtoor Grand Resort, Autograph Collection",
+      "AL HABTOOR GRAND RESORT AUTOGRAPH COLLECTION"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 61159,
+    "logical_id": null,
+    "aliases": [
+      "Aloft Palm Jumeirah"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2514,
+    "logical_id": null,
+    "aliases": [
+      "Amwaj Rotana Jumeirah Beach"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 42662,
+    "logical_id": null,
+    "aliases": [
+      "Fairmont Ajman"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 54605,
+    "logical_id": null,
+    "aliases": [
+      "Fairmont Fujairah Beach Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 57684,
+    "logical_id": null,
+    "aliases": [
+      "Wyndham Garden Ajman Corniche"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 80713,
+    "logical_id": null,
+    "aliases": [
+      "Wyndham Residences The Palm"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 32232,
+    "logical_id": null,
+    "aliases": [
+      "Waldorf Astoria Dubai Palm Jumeirah"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 82716,
+    "logical_id": null,
+    "aliases": [
+      "Nh Collection Dubai The Palm"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 4499,
+    "logical_id": null,
+    "aliases": [
+      "Ramada by Wyndham Beach Hotel Ajman"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 2791,
+    "logical_id": null,
+    "aliases": [
+      "Citrus Hikkaduwa",
+      "CITRUS HIKKADUWA (EX. AMAYA REEF)"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  },
+  {
+    "hotel_id": 24492,
+    "logical_id": null,
+    "aliases": [
+      "Citrus Waskaduwa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready"
+  }
+]
