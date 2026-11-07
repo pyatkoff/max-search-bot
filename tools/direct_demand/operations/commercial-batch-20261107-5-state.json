@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-hotel-batch-20261107-5-v1",
+  "state": "SENDER_COMPLETE_FOUR_NEW_PAIRS_FEED_APPEND_PENDING",
+  "run_id": 42369397913,
+  "job_id": 128394191289,
+  "source_commit": "b02b4f36c1fd411e885037ee8c93f2275f091e77",
+  "installed_source": "a9b03a52bb4c4505640eae79541b7d48aa391083",
+  "intent_artifact_id": 13572054411,
+  "result_artifact_id": 13572719303,
+  "result_artifact_zip_sha256": "ac8dcc400a9583ea5d98f6766c26a93481085e96424823abc5188430def1f6a3",
+  "previous_accepted_pairs": 183,
+  "new_full_pairs": 4,
+  "confirmed_full_pairs_total": 187,
+  "goal_pairs": 500,
+  "remaining_to_500": 313,
+  "new_posts": 8,
+  "post_write_attempts": 8,
+  "reused_posts": 0,
+  "all_new_posts_body_photo_button_verified": true,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-wyndham-garden-phuket-kamala-128087-v1",
+      "post_url": "https://t.me/any_toour/198",
+      "text_sha256": "3d9733e00f73b37c9e04df922968d31fca6d5f13d898bcca48f991695ff11301",
+      "photo_sha256": "22c260cebc10aa2d2daafa190947e93851a532b03bff1171a10db912242a6396",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-gural-premier-tekirova-969-v1",
+      "post_url": "https://t.me/any_toour/199",
+      "text_sha256": "581b3b6191e7c186efaefd03a508ee9c9dc7a75b582a8ed45a5bb02eaccad782",
+      "photo_sha256": "3ab98f840559567ba4d806b72706298dcfbdc6f67291834718d47e410cd055e8",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-barut-b-suites-55647-v1",
+      "post_url": "https://t.me/any_toour/200",
+      "text_sha256": "61d4433e6666750dbbadfaf35f689b83237c2a862316deed049a7196d82dd654",
+      "photo_sha256": "2cea9da74028aae0a59cea92efa2f0f299dee16380b016b9aa72ed77481ecdfb",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-khao-lak-marriott-beach-resort-spa-120117-v1",
+      "post_url": "https://t.me/any_toour/201",
+      "text_sha256": "9f42223c0f83c971550e0b7c391b82521f1ea7c190f0d1300c76e176dc27ad53",
+      "photo_sha256": "4db420c763e0277afa74c98f8acd2940a62df158883270d724bdbcde2dc47f1d",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-wyndham-garden-phuket-kamala-128087-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG10xLJScI",
+      "text_sha256": "3d9733e00f73b37c9e04df922968d31fca6d5f13d898bcca48f991695ff11301",
+      "photo_sha256": "22c260cebc10aa2d2daafa190947e93851a532b03bff1171a10db912242a6396",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-gural-premier-tekirova-969-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG10xu2ENI",
+      "text_sha256": "581b3b6191e7c186efaefd03a508ee9c9dc7a75b582a8ed45a5bb02eaccad782",
+      "photo_sha256": "3ab98f840559567ba4d806b72706298dcfbdc6f67291834718d47e410cd055e8",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-barut-b-suites-55647-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG10yTSMl4",
+      "text_sha256": "61d4433e6666750dbbadfaf35f689b83237c2a862316deed049a7196d82dd654",
+      "photo_sha256": "2cea9da74028aae0a59cea92efa2f0f299dee16380b016b9aa72ed77481ecdfb",
+      "body_photo_button_verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-khao-lak-marriott-beach-resort-spa-120117-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG10y3HV_A",
+      "text_sha256": "9f42223c0f83c971550e0b7c391b82521f1ea7c190f0d1300c76e176dc27ad53",
+      "photo_sha256": "4db420c763e0277afa74c98f8acd2940a62df158883270d724bdbcde2dc47f1d",
+      "body_photo_button_verified": true
+    }
+  ],
+  "current_feed_counts": {
+    "telegram": 183,
+    "max": 183,
+    "all": 366
+  },
+  "current_max_native_route_count": 183,
+  "pending_new_route_native_ids": [
+    128087,
+    969,
+    55647,
+    120117
+  ],
+  "sender_operation_closed": true,
+  "unknown_operations": 0,
+  "next_candidate_clearance": {
+    "run_id": 42368822039,
+    "read_at_utc": "2026-11-07T11:35:45Z",
+    "clear_native_ids": [
+      1065,
+      1960,
+      116932,
+      748,
+      247,
+      73974,
+      132002,
+      54193
+    ],
+    "do_not_repeat_read": true
+  },
+  "next_media_held_native_ids": [
+    132002
+  ],
+  "renovation_held_native_ids": [
+    7938,
+    20288,
+    818
+  ],
+  "repeat_policy": "Sender batch5 CLOSED. Finish only new4 routes and feed. Next candidates require exact final media manifest and next-eight-commercial-captions.json; Akra132002 renders rejected, no send.",
+  "mac_touched": false,
+  "prices_and_search_links_replayed": false
+}

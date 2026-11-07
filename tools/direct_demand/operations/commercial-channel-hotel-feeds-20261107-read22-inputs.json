@@ -1,0 +1,30 @@
+[
+  {
+    "hotel_id": 128087,
+    "name": "Wyndham Garden Phuket Kamala",
+    "accepted_first_line": "🌴 Wyndham Garden Phuket Kamala 4★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f/.github/traffic-publish/commercial-batch-20261107-5/128087.png",
+    "image_sha256": "22c260cebc10aa2d2daafa190947e93851a532b03bff1171a10db912242a6396"
+  },
+  {
+    "hotel_id": 969,
+    "name": "Gural Premier Tekirova",
+    "accepted_first_line": "🌿 Gural Premier Tekirova 5★ · Кемер",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f/.github/traffic-publish/commercial-batch-20261107-5/969.png",
+    "image_sha256": "3ab98f840559567ba4d806b72706298dcfbdc6f67291834718d47e410cd055e8"
+  },
+  {
+    "hotel_id": 55647,
+    "name": "Barut B Suites",
+    "accepted_first_line": "🏖 Barut B Suites 4★ · Сиде",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f/.github/traffic-publish/commercial-batch-20261107-5/55647.png",
+    "image_sha256": "2cea9da74028aae0a59cea92efa2f0f299dee16380b016b9aa72ed77481ecdfb"
+  },
+  {
+    "hotel_id": 120117,
+    "name": "Khao Lak Marriott Beach Resort & Spa",
+    "accepted_first_line": "🌴 Khao Lak Marriott Beach Resort & Spa 5★",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/26cf00a1fa1f8401eb3bab6a6581fbf673ae0c6f/.github/traffic-publish/commercial-batch-20261107-5/120117.png",
+    "image_sha256": "4db420c763e0277afa74c98f8acd2940a62df158883270d724bdbcde2dc47f1d"
+  }
+]
