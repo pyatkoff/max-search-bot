@@ -1,0 +1,1233 @@
+{
+  "operation": "commercial-hotel-batch-20261107-33-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 407,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read39",
+        "run_id": 42401865637,
+        "original_read_sha256": "1e7791afbf7fe7ef33712edf38a7ec13d630515a0bb61f22473090300ffcd065",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed15 commercial captions in cutover24 format,45 real source photos and15 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before33/34 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-fifteen-after-407-commercial-release-manifest.json",
+    "sha256": "455fac5d9555bc42929e7356b27692c56d59121c2ce3be7c080257c231c931d8",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/remaining-original-twenty-commercial-captions.json",
+    "caption_sha256": "2e9deecb597952aa82388a8aa46b1044b061f78f46607f6f23141d6ba33796b0",
+    "subset_native_ids": [
+      63833,
+      8964,
+      2651,
+      2673,
+      64914,
+      2688,
+      61159,
+      2514,
+      42662,
+      54605
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "source_held_native_ids": [
+    2575,
+    2569,
+    57684,
+    32232
+  ],
+  "media_held_native_ids": [
+    13844
+  ],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 63833,
+      "logical_id": "commercial-rixos-saadiyat-63833-v1",
+      "aliases": [
+        "Rixos Premium Saadiyat Island"
+      ],
+      "text": "✈️ Туры в Rixos Premium Saadiyat Island с перелётом\n📍 Абу-Даби, ОАЭ.\n\nДля отдыха на Саадияте с просторным номером и балконом.\n\n🛏 Deluxe Garden View 45 м² с видом на сад.\n🍽 Ultra All Inclusive.\n\n✈️ Подберём размещение под ваш состав и рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "fb668690efa6e2fe47f442f280176a2bc54bf8562c97b302b5d607d72581e031",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/63833.png",
+      "photo_sha256": "462f17de6202276161b35c51fb5d564e8aa258174abf265091468d88e4e71c64",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kg/rus/country/uae/abu_dhabi/rixos_premium_saadiyat_island/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-saadiyat-island-76521100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/63833-53126625.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-saadiyat-island-76521102.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 20992,
+        "anytour_id": 2864,
+        "legacy_native_id": 63833,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQrAt0oQ",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_710bbf76c1c94660_run08_c01",
+        "top500_710bbf76c1c94660_run08_c02",
+        "top500_710bbf76c1c94660_run08_c03",
+        "top500_710bbf76c1c94660_run08_c04",
+        "top500_710bbf76c1c94660_run08_c05",
+        "top500_710bbf76c1c94660_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-saadiyat-island-76521100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "afc8cbcb271a48e8994e55c002a8cd9c621f19d8aa79ea1c3b07ca5a468cd543",
+          "source_png_sha256": "8a08cfd3f07d243dfcb6d1699d1b3db9d90785e048ce5388390e4faebc91cfbb",
+          "source_png_bytes": 1240601,
+          "dimensions": [
+            1024,
+            575
+          ],
+          "alt": "Бассейн и территория Rixos Premium Saadiyat Island",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ0aJ8Ic",
+          "canva_asset_dimensions": [
+            1024,
+            575
+          ],
+          "source_png_filename": "rixos-saadiyat-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g28",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/63833-53126625.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "b2ba32ecd08a0ddc146fd98fe49e98932dbe7d63771c01db9afbe9e2ad2df4f5",
+          "source_png_sha256": "c375c7fd066d381e33ab39d724df424c3d721620c859bb7515d3dfa12e6f1b7d",
+          "source_png_bytes": 1891274,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Лобби Rixos Premium Saadiyat Island",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ45RSgw",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "rixos-saadiyat-g28.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g34",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-saadiyat-island-76521102.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8925ce778cbd8445cc71f19286a508f762271019afad040689db73c0cb23d721",
+          "source_png_sha256": "9885f8b21ece5d41249bf45089b55fc35b3bd3c9a5991d9ab4357bc4cc7bd306",
+          "source_png_bytes": 459207,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Теннисный корт Rixos Premium Saadiyat Island",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2FGxOk",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "rixos-saadiyat-g34.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 8964,
+      "logical_id": "commercial-rixos-palm-8964-v1",
+      "aliases": [
+        "Rixos The Palm Dubai Hotel & Suites"
+      ],
+      "text": "✈️ Туры в Rixos The Palm Dubai Hotel & Suites с перелётом\n📍 Дубай, ОАЭ.\n\nДля отдыха на Пальме с просторным номером и собственным пляжем.\n\n🛏 Deluxe Room 53 м².\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж.\n\n✈️ Подберём вид из номера и рассчитаем тур с перелётом для вашей семьи.",
+      "text_sha256": "72886703c7e68429c48bffb7d6ff83ed943287b651bdcf26af0c74ce168330ef",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/8964.png",
+      "photo_sha256": "a8ed7f43543ab16b3ed16a0d494567e0e3da8d0235222b082ccc2b4632437013",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/uae/dubai/rixos_the_palm_dubai_hotel__suites/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-palm-jumeirah-98528500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-palm-jumeirah-70152300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-palm-jumeirah-70152310.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7853,
+        "anytour_id": 1484,
+        "legacy_native_id": 8964,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQtIckmI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_ce500dfb9479b858_run08_c01",
+        "top500_ce500dfb9479b858_run08_c02",
+        "top500_ce500dfb9479b858_run08_c03",
+        "top500_ce500dfb9479b858_run08_c04",
+        "top500_ce500dfb9479b858_run08_c05",
+        "top500_ce500dfb9479b858_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-palm-jumeirah-98528500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "18f1700a283b8902b6a0eba6c5e80e7110c08bbb85919131043a7611601ff6e8",
+          "source_png_sha256": "e0602b137079aca622bacfe9dc53fd55b7f13d7654e0e33ef5f3e26d682e7049",
+          "source_png_bytes": 847332,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Территория и побережье Rixos The Palm Dubai Hotel & Suites",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQzoig08",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-palm-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-palm-jumeirah-70152300.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "845ce9fa04ae8ef1480a196d5adec7068c6bf58f218b6fc0ab449e4cbc7f5819",
+          "source_png_sha256": "9cb65442bf473c9142919307e9ed56c107de11be83dce3baac857dccb8ca0a49",
+          "source_png_bytes": 966988,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Лобби Rixos The Palm Dubai Hotel & Suites",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ15YWv4",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "rixos-palm-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g39",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rixos-palm-jumeirah-70152310.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f68f7056fe37300f73b826df569e43033817309ba6095b0da118b1b297b75312",
+          "source_png_sha256": "8e0f74f5cba64a360e7f8dbfb229e42688f7273d3f4210f3b88c6387c497939b",
+          "source_png_bytes": 1109990,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Детская комната Rixos The Palm Dubai Hotel & Suites",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQxdaLN4",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "rixos-palm-g39.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2651,
+      "logical_id": "commercial-rose-rayhaan-2651-v1",
+      "aliases": [
+        "Rose Rayhaan By Rotana"
+      ],
+      "text": "✈️ Туры в Rose Rayhaan by Rotana с перелётом\n📍 Дубай, ОАЭ.\n\nГородской отдых в Дубае с поездками на пляж Kite.\n\n🛏 Guest Room 28 м² без балкона.\n🚌 Бесплатный автобус к общественному пляжу Kite.\n🍽 Можно выбрать тур с завтраками.\n\n✈️ Подберём питание и рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "0306a65f56d7a0a2fa8eb450af0f2f8e46605f1c1d622b43a28c775426b36dff",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2651.png",
+      "photo_sha256": "308db49764d682cdfead996df6a576cc632eaf036876a202fc2e636edfc7bca3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/uae/dubai/rose_rayhaan_by_rotana/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/rose-rayhaan-rotana-102205350.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/rose-rayhaan-rotana-1022053612.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/rose-rayhaan-rotana-102205351.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7671,
+        "anytour_id": 1094,
+        "legacy_native_id": 2651,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQt3g4Bc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_af07ffc286228f6b_run08_c01",
+        "top500_af07ffc286228f6b_run08_c02",
+        "top500_af07ffc286228f6b_run08_c03",
+        "top500_af07ffc286228f6b_run08_c04",
+        "top500_af07ffc286228f6b_run08_c05",
+        "top500_af07ffc286228f6b_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rose-rayhaan-rotana-102205350.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "94de209438982a6249cf7345ae874a3c102a1f4683f8b874360eabe978347340",
+          "source_png_sha256": "a2a4fe2f4633b1e03986e8fd173ab7f9438b5cc9051e432e44d606de75a183f0",
+          "source_png_bytes": 1339733,
+          "dimensions": [
+            1200,
+            892
+          ],
+          "alt": "Городской отель Rose Rayhaan by Rotana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9Z-qBc",
+          "canva_asset_dimensions": [
+            1200,
+            892
+          ],
+          "source_png_filename": "rose-rayhaan-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g14",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rose-rayhaan-rotana-1022053612.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "336c1ce853628f45ea9e543ac1eabec27296e8d7e3e69cc7fac8600a1375f944",
+          "source_png_sha256": "ee6b9f1a0bfe234e2bd7111d61ce5acd00abac903c5eab0c45cd4dc3568768c6",
+          "source_png_bytes": 934919,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Один из номеров Rose Rayhaan by Rotana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2YVWJk",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "rose-rayhaan-g14.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/rose-rayhaan-rotana-102205351.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "76e89af1ff70c72b9d9d6a3aa45259155cc4ea307e1fe566e073799c038fe8cc",
+          "source_png_sha256": "0ca844bf53f2e32bbdc16f01d82338541904a90c6bcdab35c2875f5e38247513",
+          "source_png_bytes": 1284195,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Бассейн Rose Rayhaan by Rotana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6_i2DY",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "rose-rayhaan-g03.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2673,
+      "logical_id": "commercial-sofitel-jumeirah-2673-v1",
+      "aliases": [
+        "Sofitel Dubai Jumeirah Beach"
+      ],
+      "text": "✈️ Туры в Sofitel Dubai Jumeirah Beach с перелётом\n📍 Дубай, ОАЭ.\n\nПляж через променад и частичный вид на море из номера.\n\n🛏 Superior Room 35 м² с частичным видом на море.\n🏖 Городской песчаный пляж примерно в 30 м через променад.\n\n✈️ Подберём питание и рассчитаем тур с перелётом для вашего состава.",
+      "text_sha256": "b2c2490cb0362e4b305f426efc897b236cc0d20e8bacd697ff429a00b26aabc1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2673.png",
+      "photo_sha256": "5e32fb47367c9b71270c6089823f624be0d4e46701d15a32426217fe94967fa2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/uae/dubai/sofitel_dubai_jumeirah_beach/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-jumeirah-beach-614500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-jumeirah-beach-614514.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-jumeirah-beach-614525.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7934,
+        "anytour_id": 1103,
+        "legacy_native_id": 2673,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQoaVXjA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_69cfc7d03814139d_run08_c01",
+        "top500_69cfc7d03814139d_run08_c02",
+        "top500_69cfc7d03814139d_run08_c03",
+        "top500_69cfc7d03814139d_run08_c04",
+        "top500_69cfc7d03814139d_run08_c05",
+        "top500_69cfc7d03814139d_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-jumeirah-beach-614500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9fb5839d13c4145fcd8c5b2084a2361674e405bbad75abdf09691c9f6c794455",
+          "source_png_sha256": "d00128ff49fa5a2d4deb8ba00c5e83bf836f2f8ca11f57a8fa64168f1c43aa7a",
+          "source_png_bytes": 1009265,
+          "dimensions": [
+            1000,
+            668
+          ],
+          "alt": "Здание у набережной Sofitel Dubai Jumeirah Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ84JE-s",
+          "canva_asset_dimensions": [
+            1000,
+            668
+          ],
+          "source_png_filename": "sofitel-jumeirah-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g11",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-jumeirah-beach-614514.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4687a57ca713c1f837124a41b2269e56b5235c3be77a2c3ad5e4a5a0e939a01d",
+          "source_png_sha256": "ab2c0dacfd9f119232ac1a6e3d1902c3b895e56076d29bd55ef24d44fff132f2",
+          "source_png_bytes": 899533,
+          "dimensions": [
+            1000,
+            667
+          ],
+          "alt": "Лобби Sofitel Dubai Jumeirah Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_gCbmo",
+          "canva_asset_dimensions": [
+            1000,
+            667
+          ],
+          "source_png_filename": "sofitel-jumeirah-g11.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g17",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/sofitel-jumeirah-beach-614525.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e2ad6462e6ffcbcf3af57c46f4150a6094830c920b37d6960db3e41785a71c9d",
+          "source_png_sha256": "950e9b00a9c91002a22a3aec79e622004fd465501ec82d5f5472df36475ef2d0",
+          "source_png_bytes": 918361,
+          "dimensions": [
+            1000,
+            667
+          ],
+          "alt": "Ресторан Sofitel Dubai Jumeirah Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ7bfnmY",
+          "canva_asset_dimensions": [
+            1000,
+            667
+          ],
+          "source_png_filename": "sofitel-jumeirah-g17.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 64914,
+      "logical_id": "commercial-stella-dubai-64914-v1",
+      "aliases": [
+        "Stella Di Mare Dubai Marina"
+      ],
+      "text": "✈️ Туры в Stella Di Mare Dubai Marina с перелётом\n📍 Дубай, ОАЭ.\n\nДля городского отдыха в районе Dubai Marina.\n\n🛏 Deluxe с выбором вида на город или марину.\n🏖 Общественный пляж примерно в 800 м, есть трансфер.\n🍽 Можно выбрать завтраки либо завтраки и ужины.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом.",
+      "text_sha256": "2678944af20746de03bf3f11813244f9cffbede13f54dac8362b2337f69f0939",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/64914.png",
+      "photo_sha256": "e67601344e51338531e6ae405e901d5baeaf172668d870fc37563df4391021f1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/uae/dubai/stella_di_mare_dubai/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/main400/64914.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/stella-di-mare-dubai-marina-6015600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/stella-di-mare-dubai-marina-6015609.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21953,
+        "anytour_id": 2927,
+        "legacy_native_id": 64914,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQsHO2dk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c5141f3af8492dac_run08_c01",
+        "top500_c5141f3af8492dac_run08_c02",
+        "top500_c5141f3af8492dac_run08_c03",
+        "top500_c5141f3af8492dac_run08_c04",
+        "top500_c5141f3af8492dac_run08_c05",
+        "top500_c5141f3af8492dac_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/main400/64914.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a7736ef041ecf34456a09a701e36dcc449026d73f19680695144ed58f498dd10",
+          "source_png_sha256": "9f4b89a9c491918d0a5930cfac68d8d283ab083517c43d27aecfeb718ea0e6e8",
+          "source_png_bytes": 131824,
+          "dimensions": [
+            400,
+            267
+          ],
+          "alt": "Здание отеля Stella Di Mare Dubai Marina",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ-vUvEI",
+          "canva_asset_dimensions": [
+            400,
+            267
+          ],
+          "source_png_filename": "stella-dubai-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/stella-di-mare-dubai-marina-6015600.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "41f80a9b44e176e95fbad5616bf0a0032c42ea2f92f4714ef4a8647947fca24b",
+          "source_png_sha256": "b22383126536e0515ac1fc49c0dadbc06aa71578d5bfff29ea5c0a9929b3843f",
+          "source_png_bytes": 638766,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Один из номеров Stella Di Mare Dubai Marina",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_olMCc",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "stella-dubai-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g45",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/stella-di-mare-dubai-marina-6015609.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "85425f967b93cf1a1780650f624466d60120b2e25442abe7c71df6b3f6edaa1f",
+          "source_png_sha256": "64723249f622a96b47d1db359eb4b1423d0e142d1f94ca8d7e3a44629a550d92",
+          "source_png_bytes": 1014548,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Буфет ресторана Stella Di Mare Dubai Marina",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQzzIWCk",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "stella-dubai-g45.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2688,
+      "logical_id": "commercial-towers-rotana-2688-v1",
+      "aliases": [
+        "Towers Rotana"
+      ],
+      "text": "✈️ Туры в Towers Rotana с перелётом\n📍 Дубай, ОАЭ.\n\nДубай с видом на город и поездками к морю.\n\n🛏 Guest Room 29 м² с видом на город.\n🚌 Бесплатный шаттл к пляжу Kite.\n\n✈️ Подберём подходящий вариант питания и рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "fdf7a7e04d0536476060d9842a252fc31533334c610a84382c9c8cfaa00200fb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2688.png",
+      "photo_sha256": "f4b0ea27a66423980e947ff0de7151dbbd1ef501b687d28b45cb0533145ddcf7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/uae/dubai/towers_rotana/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/towers-rotana-76139600.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/towers-rotana-76802100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/main400/2688.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7673,
+        "anytour_id": 1108,
+        "legacy_native_id": 2688,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ0egD4o",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_16572f3a06a9722d_run08_c01",
+        "top500_16572f3a06a9722d_run08_c02",
+        "top500_16572f3a06a9722d_run08_c03",
+        "top500_16572f3a06a9722d_run08_c04",
+        "top500_16572f3a06a9722d_run08_c05",
+        "top500_16572f3a06a9722d_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/towers-rotana-76139600.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c3e3f165544f1f365fbc5ba46eedd530a8db0e7f72ce40c99ce4d646e27d98fd",
+          "source_png_sha256": "a82ac0d2ff306a799318f5e88aba1155d6873dfc5cce6ffdaac6e9bdcaa21968",
+          "source_png_bytes": 882989,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Вход в отель Towers Rotana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ7JeOeA",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "towers-rotana-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/towers-rotana-76802100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8f6ef7a4beaf7c49228d6aa3d39e5390b298698446fd2548023902710936352b",
+          "source_png_sha256": "55d0194416d209c27b9a633c636639280085dce7a6a39c1cecdcfa40f885490e",
+          "source_png_bytes": 482339,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Towers Rotana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6LrY6c",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "towers-rotana-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/main400/2688.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ab8f5f9de54b45d14b89c878fb11eaaecb2b435222b98535b98a442e0dd06787",
+          "source_png_sha256": "1d8abc41bb03907f68c37a2d9a04adcf73a630cbcbe54c566c50c46a9f8a2d56",
+          "source_png_bytes": 174528,
+          "dimensions": [
+            400,
+            267
+          ],
+          "alt": "Бассейн Towers Rotana",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ-12Qw0",
+          "canva_asset_dimensions": [
+            400,
+            267
+          ],
+          "source_png_filename": "towers-rotana-g01.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 61159,
+      "logical_id": "commercial-aloft-palm-61159-v1",
+      "aliases": [
+        "Aloft Palm Jumeirah"
+      ],
+      "text": "✈️ Туры в Aloft Palm Jumeirah с перелётом\n📍 Дубай, ОАЭ.\n\nОтдых на Пальме с пляжными днями и живой музыкой.\n\n🛏 Aloft Room 27 м² без балкона.\n🏖 Собственный песчаный пляж примерно в 300 м.\n🎶 Живая музыка.\n\n✈️ Подберём номер и питание, рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "6f9e841a09a9ab43c3d57c18e09db8d390773fcd11a706b76c752d6c271b4095",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/61159.png",
+      "photo_sha256": "760d018a460cfca773cbb27308d719a03b34e1a114f42e2d8f88a29cfb2d0b16",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/uae/dubai/aloft_palm_jumeirah/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/aloft-palm-jumeirah-93002100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/aloft-palm-jumeirah-93002110.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/aloft-palm-jumeirah-93002137.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 21367,
+        "anytour_id": 2808,
+        "legacy_native_id": 61159,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQ2LSOv0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_399986f1bb2e9d95_run08_c01",
+        "top500_399986f1bb2e9d95_run08_c02",
+        "top500_399986f1bb2e9d95_run08_c03",
+        "top500_399986f1bb2e9d95_run08_c04",
+        "top500_399986f1bb2e9d95_run08_c05",
+        "top500_399986f1bb2e9d95_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/aloft-palm-jumeirah-93002100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "79698a10a876db2aec4bd743fb08055d3eef85cce18d1494059b2f1b299e92a4",
+          "source_png_sha256": "ce1073b09a6465b4a7fdb55cb4baf8bbe73e2bdc6c65e0ce3435a8d95a55b5c8",
+          "source_png_bytes": 736367,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Здание вечером Aloft Palm Jumeirah",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQw-8f4g",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "aloft-palm-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g12",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/aloft-palm-jumeirah-93002110.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "618adfac919a9366269ed89407fb710494a3d6836c0df23918e3026f0e383c3d",
+          "source_png_sha256": "57a978f2f8f94f678f2f6f04808db9cc1a74172101dacc2dcba6a157775320a4",
+          "source_png_bytes": 612861,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Aloft Palm Jumeirah",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_zJ90Q",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "aloft-palm-g12.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g39",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/aloft-palm-jumeirah-93002137.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "dc71626ac1c8943c25cf888728e8bff0492e802639656595e9e9c8a71894c928",
+          "source_png_sha256": "fbcc4d6ee31964f858518a6577d9f0c3ecb54167999b4326a311319eac512edb",
+          "source_png_bytes": 767303,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Ресторан Aloft Palm Jumeirah",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6ztJTI",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "aloft-palm-g39.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2514,
+      "logical_id": "commercial-amwaj-rotana-2514-v1",
+      "aliases": [
+        "Amwaj Rotana Jumeirah Beach"
+      ],
+      "text": "✈️ Туры в Amwaj Rotana Jumeirah Beach с перелётом\n📍 Дубай, ОАЭ.\n\nПросторный номер с балконом и прогулки к пляжу JBR.\n\n🛏 Sea View Room with Balcony 42 м² с частичным видом на море.\n🏖 Общественный песчаный JBR примерно в пяти минутах пешком.\n\n✈️ Подберём питание и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "799b6d90bb1ae5a8b45c4a74fe28fcbcdf69431cf51c8a7266358f504ed71f0f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/2514.png",
+      "photo_sha256": "b4c5d0c4655653c86e880367ce6c3a08b0a00e2e96917517c50563cf41f08874",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/uae/dubai/amwaj_rotana_jumeirah_beach/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/amwaj-rotana-102203421.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/amwaj-rotana-1022034435.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/amwaj-rotana-1022034312.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7823,
+        "anytour_id": 1044,
+        "legacy_native_id": 2514,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ3AX2bk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_b39434e9ff812e94_run09_c01",
+        "top500_b39434e9ff812e94_run09_c02",
+        "top500_b39434e9ff812e94_run09_c03",
+        "top500_b39434e9ff812e94_run09_c04",
+        "top500_b39434e9ff812e94_run09_c05",
+        "top500_b39434e9ff812e94_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/amwaj-rotana-102203421.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2c8e3e13522b2d56a279635bf5dd204918ef3cd54f4a3eb5b871a9a9023566c5",
+          "source_png_sha256": "07cdc0e27a70bfc299031d758d5b7856dd2ba326f58112ffc46ef18c04cbf356",
+          "source_png_bytes": 999048,
+          "dimensions": [
+            1200,
+            798
+          ],
+          "alt": "Бассейн вечером Amwaj Rotana Jumeirah Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ-R2WjE",
+          "canva_asset_dimensions": [
+            1200,
+            798
+          ],
+          "source_png_filename": "amwaj-rotana-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g37",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/amwaj-rotana-1022034435.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a83e25e8db60ddc821331fb16e2221fcb8d8992c3d6b9c617be7189c81e02c57",
+          "source_png_sha256": "f3bce1bc07494c94a0f4bfaef5b2acd4497494d95db4f34f01bcba8c644f3d19",
+          "source_png_bytes": 914044,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Один из номеров Amwaj Rotana Jumeirah Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_sOsmo",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "amwaj-rotana-g37.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g14",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/amwaj-rotana-1022034312.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "2e396b49373131ec1df708d6bfb1c8d8af73cc41542d62d133ed5d57ab213251",
+          "source_png_sha256": "78de1d30de96e925322f37d266f18d11d70684aeb9bf5db2a5f569402ce94404",
+          "source_png_bytes": 1010796,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Тренажёрный зал Amwaj Rotana Jumeirah Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ9Co5ns",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "amwaj-rotana-g14.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 42662,
+      "logical_id": "commercial-fairmont-ajman-42662-v1",
+      "aliases": [
+        "Fairmont Ajman"
+      ],
+      "text": "✈️ Туры в Fairmont Ajman с перелётом\n📍 Аджман, ОАЭ.\n\nДля отдыха с видом на море и собственным песчаным пляжем.\n\n🛏 Fairmont View Room 42 м² с видом на море.\n🏖 Собственный пляж с песчаным входом в море.\n🍽 Можно выбрать питание All Inclusive.\n\n✈️ Подберём размещение под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "19b19032f54c6315a26e036923a192f68cecd591a0c1dce38e9219702607ff0c",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/42662.png",
+      "photo_sha256": "b1bce29a51a8bf4ccc921a2d456558ac5495fbcee78839b4d045a051e269174c",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/uae/ajman/fairmont_ajman/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-ajman-102608500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-ajman-1026085048.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-ajman-1026085017.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14815,
+        "anytour_id": 2333,
+        "legacy_native_id": 42662,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQ3g2QAg",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e5ac4b7393868fc3_run08_c01",
+        "top500_e5ac4b7393868fc3_run08_c02",
+        "top500_e5ac4b7393868fc3_run08_c03",
+        "top500_e5ac4b7393868fc3_run08_c04",
+        "top500_e5ac4b7393868fc3_run08_c05",
+        "top500_e5ac4b7393868fc3_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-ajman-102608500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c02e1e6b51035534b4b5a5ea8a32a09b81ee114e5886fb47066179d0b622a42e",
+          "source_png_sha256": "8a2789f7cc1ef0781e0081e5fd3da33fbf8321057b3a349ee09355b46f662610",
+          "source_png_bytes": 920988,
+          "dimensions": [
+            1015,
+            768
+          ],
+          "alt": "Здание и побережье Fairmont Ajman",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ_EXfD4",
+          "canva_asset_dimensions": [
+            1015,
+            768
+          ],
+          "source_png_filename": "fairmont-ajman-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g50",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-ajman-1026085048.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "42874f63e8beb672f87c79dd941e28efc69f6d85cae468a9e17c8ea1dfd422e0",
+          "source_png_sha256": "5e95e8078a54fdfc012fa630d1164e6bee7be82a5d425a2a935caeef3fa88d92",
+          "source_png_bytes": 811301,
+          "dimensions": [
+            1024,
+            742
+          ],
+          "alt": "Один из номеров Fairmont Ajman",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ-a1CyE",
+          "canva_asset_dimensions": [
+            1024,
+            742
+          ],
+          "source_png_filename": "fairmont-ajman-g50.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-ajman-1026085017.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4599f52b0a15e770c9d01100194725b832fbb0ebb06f3aa7fac7f066d25d36c5",
+          "source_png_sha256": "b596d74cbeb324e29c26d3b3c19ce747d1ed2a6ad56ca5de17e79713e99a3784",
+          "source_png_bytes": 1143762,
+          "dimensions": [
+            1024,
+            684
+          ],
+          "alt": "Ресторан Fairmont Ajman",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQy0nspM",
+          "canva_asset_dimensions": [
+            1024,
+            684
+          ],
+          "source_png_filename": "fairmont-ajman-g19.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 54605,
+      "logical_id": "commercial-fairmont-fujairah-54605-v1",
+      "aliases": [
+        "Fairmont Fujairah Beach Resort"
+      ],
+      "text": "✈️ Туры в Fairmont Fujairah Beach Resort с перелётом\n📍 Фуджейра, ОАЭ.\n\nДля пляжного отдыха в Фуджейре с просторным номером.\n\n🛏 Fairmont Room 40 м² с частичным видом на море.\n🏖 Собственный песчаный пляж.\n\n✈️ Подберём питание и рассчитаем полную стоимость тура с перелётом для вашей семьи.",
+      "text_sha256": "3a3c45d88ec14edcea48de2dbacc35c27af6b4416cf0d35a82652701e9626183",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2958c6647471019fa419719f03b43821a459acff/.github/traffic-publish/commercial-batch-20261107-33/54605.png",
+      "photo_sha256": "29117557b7b17e56dab5e2f2b2477187cb141204f121e5704050635125be27c1",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/uae/fujairah/fairmont_fujairah_beach_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=2575&legacyHotelIds%5B%5D=63833&legacyHotelIds%5B%5D=8964&legacyHotelIds%5B%5D=2651&legacyHotelIds%5B%5D=2673&legacyHotelIds%5B%5D=64914&legacyHotelIds%5B%5D=2688&legacyHotelIds%5B%5D=13844&legacyHotelIds%5B%5D=2569&legacyHotelIds%5B%5D=61159&legacyHotelIds%5B%5D=2514&legacyHotelIds%5B%5D=42662&legacyHotelIds%5B%5D=54605&legacyHotelIds%5B%5D=57684&legacyHotelIds%5B%5D=80713&legacyHotelIds%5B%5D=32232&legacyHotelIds%5B%5D=82716&legacyHotelIds%5B%5D=4499&legacyHotelIds%5B%5D=2791&legacyHotelIds%5B%5D=24492",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-fujairah-beach-resort-711100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-fujairah-beach-resort-711101.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-fujairah-beach-resort-711124.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14944,
+        "anytour_id": 2560,
+        "legacy_native_id": 54605,
+        "source_file": "remaining-original-twenty-current-catalog.json",
+        "source_sha256": "a69a9738e0a0c3c0cb49b810605be156c21da6ee23d4636e5f60b432dc03e421",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQxX9iiU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_6952ca3bfcecc302_run08_c01",
+        "top500_6952ca3bfcecc302_run08_c02",
+        "top500_6952ca3bfcecc302_run08_c03",
+        "top500_6952ca3bfcecc302_run08_c04",
+        "top500_6952ca3bfcecc302_run08_c05",
+        "top500_6952ca3bfcecc302_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-fujairah-beach-resort-711100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9ada080bc764171c3b73fb386bf668a03280df88840a524faa0c7ea0c2f5064d",
+          "source_png_sha256": "df9dac9f0b98420905a6ff503b314d465da06d0111f899efdce2ffad1a16e254",
+          "source_png_bytes": 638610,
+          "dimensions": [
+            1024,
+            523
+          ],
+          "alt": "Территория у побережья Fairmont Fujairah Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ8HQcFk",
+          "canva_asset_dimensions": [
+            1024,
+            523
+          ],
+          "source_png_filename": "fairmont-fujairah-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-fujairah-beach-resort-711101.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8aebd8fade3bd7d8295e00634d13b76071a2d4112a1389cae2b6df44a2685298",
+          "source_png_sha256": "0b8beccb881ad29d8b2a0a5df70fe4c51be44b667d8b01a37346455db8e76567",
+          "source_png_bytes": 936646,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Лобби Fairmont Fujairah Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ6rczLc",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "fairmont-fujairah-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g26",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/9/fairmont-fujairah-beach-resort-711124.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d5915633e8e2e52aae91c11c24551212c6c36b97979477fd5f37dc1d6fda97f9",
+          "source_png_sha256": "c7a3a7f9ade4b448bbda2adcfcd51c7b1f50306d8db2ecebdc8c240c059a2b0b",
+          "source_png_bytes": 998022,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Ресторан Fairmont Fujairah Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQ2m1mmA",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "fairmont-fujairah-g26.png"
+        }
+      ]
+    }
+  ]
+}
