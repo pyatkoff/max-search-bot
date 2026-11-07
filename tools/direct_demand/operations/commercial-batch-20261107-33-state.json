@@ -34,5 +34,19 @@
   "publication_artifact_id": 13588002972,
   "publication_zip_sha256": "0ac13737828c41f1f3efdd75c5a6335a6bd21b3a531d5d5ed5a01beeb439c3f1",
   "input_artifact_id": 13588362390,
-  "input_zip_sha256": "12e03229d60f446f6a93a6dfc7a17630179aec9412312ba9338fab5ac0951c46"
+  "input_zip_sha256": "12e03229d60f446f6a93a6dfc7a17630179aec9412312ba9338fab5ac0951c46",
+  "full_cycle_closed": true,
+  "no_replay": true,
+  "route_feed_closure": {
+    "logical_total": 422,
+    "read_run": 42408760749,
+    "native_install_run": 42408928484,
+    "feed_run": 42409077695,
+    "feed_rows": [
+      422,
+      422,
+      844
+    ],
+    "previous407_preserved": true
+  }
 }
