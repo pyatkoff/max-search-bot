@@ -1,0 +1,116 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read29",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 1143,
+      "name": "Crystal Paraiso Aqua Collection",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/235",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Qr0HIZo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1143.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 41495,
+      "name": "Liberty Central Nha Trang",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/236",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2QsYTfUM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/41495.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 69261,
+      "name": "Virgo Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/237",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Qs8kYsU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/69261.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1221,
+      "name": "Megasaray Resort Side",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/238",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Qtf1Fdo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1221.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 32342,
+      "name": "Vinpearl Resort & Spa Phu Quoc",
+      "country_id": 16,
+      "region_id": 104,
+      "destination": "Фукуок",
+      "telegram_post_url": "https://t.me/any_toour/239",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2QuDYdKE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/32342.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 64670,
+      "name": "Orbit Resort & Spa",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/240",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2QunfNDE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/64670.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 4095,
+      "name": "Yasaka Saigon Nhatrang",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/241",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2QvL6f7U",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4095.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 13941,
+      "name": "Blue Pearl Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/242",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2QvvlA2g",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/13941.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 4071,
+      "name": "Saigon Mui Ne Resort",
+      "country_id": 16,
+      "region_id": 88,
+      "destination": "Фантьет",
+      "telegram_post_url": "https://t.me/any_toour/243",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2QwTTC2w",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4071.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 9,
+  "scope_hotels": 9,
+  "feed_rows": 9,
+  "deferred_count": 0,
+  "installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083"
+}

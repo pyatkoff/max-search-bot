@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 13:36">
+<yml_catalog date="2026-11-07 13:51">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -3962,6 +3962,168 @@
         <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_1143">
+        <url>https://t.me/any_toour/235</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1143.png</picture>
+        <name>Путевки в Crystal Paraiso Aqua Collection</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_41495">
+        <url>https://t.me/any_toour/236</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/41495.png</picture>
+        <name>Путевки в Liberty Central Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_69261">
+        <url>https://t.me/any_toour/237</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/69261.png</picture>
+        <name>Путевки в Virgo Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_1221">
+        <url>https://t.me/any_toour/238</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1221.png</picture>
+        <name>Путевки в Megasaray Resort Side</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="tg_32342">
+        <url>https://t.me/any_toour/239</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/32342.png</picture>
+        <name>Путевки в Vinpearl Resort &amp; Spa Phu Quoc</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_64670">
+        <url>https://t.me/any_toour/240</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/64670.png</picture>
+        <name>Путевки в Orbit Resort &amp; Spa</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_4095">
+        <url>https://t.me/any_toour/241</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4095.png</picture>
+        <name>Путевки в Yasaka Saigon Nhatrang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_13941">
+        <url>https://t.me/any_toour/242</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/13941.png</picture>
+        <name>Путевки в Blue Pearl Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_4071">
+        <url>https://t.me/any_toour/243</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4071.png</picture>
+        <name>Путевки в Saigon Mui Ne Resort</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
+      </offer>
+      <offer id="max_1143">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMWM0Mjg2Zjk3MTQ4MDU4MGRmZmEyODVmYmNkMDZjZjYiLCJvZmZlcl9pZCI6Im1heF8xMTQzIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1143.png</picture>
+        <name>Туры в Crystal Paraiso Aqua Collection</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="max_41495">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYTRmYzBhNmFkZWI2NjhhNTBlZDM3YWM4NmYwY2FiNzkiLCJvZmZlcl9pZCI6Im1heF80MTQ5NSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/41495.png</picture>
+        <name>Туры в Liberty Central Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_69261">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMmU1NDA2ODY0MzUzOGM3MjAyODlhZjQxNzJlOTEwMDIiLCJvZmZlcl9pZCI6Im1heF82OTI2MSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/69261.png</picture>
+        <name>Туры в Virgo Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_1221">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYWJlM2NjMzEzMDU1MDkwZDZiYjIwZDI2M2VjMGU2ZTYiLCJvZmZlcl9pZCI6Im1heF8xMjIxIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/1221.png</picture>
+        <name>Туры в Megasaray Resort Side</name>
+        <description>Тур с перелётом. Сиде. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Сиде</custom_label_1>
+      </offer>
+      <offer id="max_32342">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODMyZTQ3NGQyMzNlM2ZmOTAzMjY0ZjgwMTc4OTA3MjMiLCJvZmZlcl9pZCI6Im1heF8zMjM0MiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/32342.png</picture>
+        <name>Туры в Vinpearl Resort &amp; Spa Phu Quoc</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="max_64670">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNWE4N2E3NmUyNTAwNmZkNGEzNzllYmFjNDUwZWJkMmIiLCJvZmZlcl9pZCI6Im1heF82NDY3MCJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/64670.png</picture>
+        <name>Туры в Orbit Resort &amp; Spa</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_4095">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMTE0NjI2NTVjMDg2MzNkZDBlZWNkYmU3M2UyMDYwNzYiLCJvZmZlcl9pZCI6Im1heF80MDk1In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4095.png</picture>
+        <name>Туры в Yasaka Saigon Nhatrang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_13941">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfY2ZjZDI2NWY1OTUzOGQxYzAyMTViMjAzMGIzNmU5Y2YiLCJvZmZlcl9pZCI6Im1heF8xMzk0MSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/13941.png</picture>
+        <name>Туры в Blue Pearl Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_4071">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjcyMWJhMzJkZGI0Yjg1ZGExZjQ4ZWM2M2IwODhhMjciLCJvZmZlcl9pZCI6Im1heF80MDcxIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/62e894356a8d4097c1621fdf692ac24088d7ea55/.github/traffic-publish/commercial-batch-20261107-12/4071.png</picture>
+        <name>Туры в Saigon Mui Ne Resort</name>
+        <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Муйне</custom_label_1>
       </offer>
     </offers>
   </shop>
