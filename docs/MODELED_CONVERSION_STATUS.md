@@ -754,6 +754,35 @@ The view reads frozen price basis,7% commission, monetary-policy version and its
 
 API receipt presence, saved upload status, processed state and visit attribution remain separate. Even MATCHED/PROCESSED is not per-event session evidence. The cached all-goal visit report cannot establish that a particular V1 increment reached a visit. This read performs SELECT-only queries, no provider request, poll, capture, upload, queue or conversation mutation.
 
+### Single bounded predictive projection (v1_19)
+
+The predictive scalar selection now executes once. Previously the same profile
+joins, 38-field JSON packet and earlier-reservation sum ran for a size preflight
+and then again for the copied result. The existing newest 201-row goal suffix,
+17-row predictive limit, bindings and descending row order are unchanged.
+
+An outer window sum checks the escaped size of the entire selected result inside
+SQL before any packet can be copied. The inner LIMIT 17 OFFSET 0 retains the
+projection boundary, including under SQLite window rewriting. An admitted result
+still returns only the original packet column. An oversized result returns at
+most 17 SQL NULL sentinels, which remain charged to the shared budget and produce
+explicit budget_headroom. An empty selection remains an available empty result.
+
+The copy allowance is bound after the existing authorization has consumed its
+bytes, retaining the same 8192-byte reserve. Authorization before the one query
+and after its copied result remains mandatory. No large scalar is copied merely
+to discover that the result exceeds its allowance. All later validation,
+arithmetic, comparison groups and difference-first example selection are unchanged.
+
+This removes one duplicate selection and its ordinary before-query authorization;
+it does not guarantee a production duration or availability of every later view.
+The 4000ms input-diagnosis admission gate, optional-view order, final OAuth checks,
+reserves, 64KiB/five-second budget and result/RPC ceilings are unchanged.
+The existing shared SQLite/native MySQL cases check one actual query, original
+result/order, empty selection, NULL-only oversized transfer, post-authorization
+headroom, late revocation and unchanged stored rows. The existing composed
+real-OAuth fixture continues to cover the combined report.
+
 
 ### Monetary continuity when a price disappears
 
@@ -830,7 +859,7 @@ are rejected; refresh the selected report to start a new consistent snapshot.
 
 ## Saved monetary-policy visibility and calculation availability
 
-Reader `saved_semantic_prediction_status_v1_18` exposes
+Reader `saved_semantic_prediction_status_v1_19` exposes
 `saved.deal_value.by_monetary_policy` from the monetary capsules already validated
 in the ordinary core-packet read. Each supported saved version reports its count,
 policy cap and unknown-price base, unknown-price/numeric-value counts, and the
