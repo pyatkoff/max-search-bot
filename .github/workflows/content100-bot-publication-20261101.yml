@@ -1,4 +1,4 @@
-name: Read nineteen new feed bindings and first clearance for twenty candidates
+name: Correct resort and country on 27 existing hotel pairs
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -38,38 +38,73 @@ jobs:
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-      - name: Bind only the nineteen confirmed hotel pairs and their current approved images
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42388284478 > "$evidence/prior-resorts.json"
+          python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert (r["status"],r["conclusion"],r["head_sha"]) == ("completed","success","bbde306ebed3e6cf2edeba7c9f969824f4fc01b1")' "$evidence/prior-resorts.json"
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 42387323343
+          name: commercial-read-existing-hotel-captions-20261107-result
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/prior-registry
+      - name: Bind 54 location-only edits to the exact read-only snapshot
         shell: bash
         run: |
           set -euo pipefail
           test "$GITHUB_RUN_ATTEMPT" = 1
           umask 077
+          python3 -c 'import json,pathlib; root=pathlib.Path("tools/direct_demand/operations"); assert all(json.loads((root/f"commercial-batch-20261107-{n}-state.json").read_text())["state"] == "COMPLETE" for n in (15,16))'
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-          raw=(base/'commercial-channel-hotel-feeds-20261107-read35-inputs.json').read_bytes()
-          assert hashlib.sha256(raw).hexdigest()=='4c633a85b2a74775089b43a4f29687289d0bd39eddfd88161952112dff6ef9b2'
-          rows=json.loads(raw);assert [r['hotel_id'] for r in rows]==[2219,1507,65020,83189,95159,55721,16750,713,341,340,1439,28325,1096,1486,37527,48863,15889,27642,76588]
-          (tmp/'feed-read35-inputs.json').write_bytes(raw)
-          source=(base/'read-commercial-channel-hotel-feeds-20261107-35.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='90fd8fa0f5f676c6c99d157e425faa53b1deddb673a1bcbd82d95d3b41232838'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst FEED_EXPORT_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst FEED_EXPORT_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"
-          candidate_raw=(base/'commercial-channel-hotel-feeds-20261107-read35-candidates.json').read_bytes()
-          assert hashlib.sha256(candidate_raw).hexdigest()=='34a21e18ebe7c2f84ef0c95eb6a6dcf8bd6ae93cf5e0689f3642942a7dcfc2ac'
-          assert len(json.loads(candidate_raw))==20
-          (tmp/'feed-read35-candidates.json').write_bytes(candidate_raw)
-          constants+="\nconst CANDIDATE_INPUT_SHA256='34a21e18ebe7c2f84ef0c95eb6a6dcf8bd6ae93cf5e0689f3642942a7dcfc2ac';\nconst CANDIDATE_INPUT_B64='"+base64.b64encode(candidate_raw).decode()+"';\n"
+          raw=(base/'commercial-existing-hotel-regions-20261107-7-inputs.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()=='4242dbf13846315f3c150e649660f8dbcb69648eff518ea7463a622830bcd4de'
+          inp=json.loads(raw)
+          assert inp['operation']=='commercial-existing-hotel-regions-20261107-7-v1'
+          rows=inp['rows']
+          assert len(rows)==27 and len({r['hotel_id'] for r in rows})==27
+          audit=json.loads((tmp/'prior-registry'/'registry-audit.json').read_text())
+          assert audit['operation']=='commercial-read-existing-hotel-captions-20261107-v1' and audit['ok']
+          assert audit['provider_calls']==audit['post_write_attempts']==0
+          old={(p['hotel_id'],p['platform']):p for p in audit['posts']}
+          assert len(old)==532
+          confirmed=[]
+          for r in rows:
+              heading,location,body=r['old_text'].split('\n',2)
+              assert heading==r['previous_heading'] and location==r['previous_location']
+              if not location:
+                  body='\n'+body
+              assert r['new_text']==heading+'\n'+r['new_location']+'\n'+body
+              for kind in ('old','new'):
+                  assert hashlib.sha256(r[kind+'_text'].encode()).hexdigest()==r[kind+'_text_sha256']
+              assert 0<len(r['new_text'].encode('utf-16-le'))//2<=1024
+              for platform in ('max','telegram'):
+                  p=old.pop((r['hotel_id'],platform))
+                  assert [p['publication_id'],p['version_id']]==inp['exact_ids'][str(r['hotel_id'])][platform]
+                  assert p['caption_sha256']==r['old_text_sha256'] and p['caption']==r['old_text']
+                  assert p['status']=='sent' and p['media_types']==['image'] and p['button_observed_in_snapshot'] and p['button_resolves_to_current_post']
+                  p['logical_id']=r['logical_id']
+                  p['state']=p['status']
+                  p['text_sha256']=p['caption_sha256']
+                  p['source_key']={'max':'max_anytour_msk1','telegram':'tg_anytour_msk'}[platform]
+                  confirmed.append(p)
+          assert len(confirmed)==54
+          bound={'operation':'bound_verified_caption_receipts','ok':True,'new_posts_created':0,'posts':confirmed}
+          payload={'operation':inp['operation'],'button_text':'✈️ Узнать стоимость тура','update_kind':'caption_only','search_link_included':False,'rows':rows,'original_publication_result':bound,'exact_ids':inp['exact_ids']}
+          raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode()
+          (tmp/'caption-correction-input.json').write_bytes(raw)
+          source=(base/'update-existing-hotel-regions-20261107-7-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='18b01a9a79b327fd2414e5bb360b82e6acf7af832120f100798a459999b33425'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='commercial-existing-hotel-regions-20261107-7-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-          print(json.dumps({'operation':'commercial-channel-hotel-feeds-20261107-read35','new_hotels':19,'old161_read':0,'provider_calls':0,'writes':0}))
+          print(json.dumps({'operation':payload['operation'],'prepared_existing_posts':54,'location_only':True,'new_sends':0,'server_calls':0,'copy_quality_user_accepted':False}))
           PYCODE
           php -l "$RUNNER_TEMP/channel-preflight.php"
-      - name: Retain exact new feed binding scope
+      - name: Retain exact caption edit intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261107-read35-inputs
-          path: |
-            ${{ runner.temp }}/feed-read35-inputs.json
-            ${{ runner.temp }}/feed-read35-candidates.json
+          name: commercial-existing-hotel-regions-20261107-7-inputs
+          path: ${{ runner.temp }}/caption-correction-input.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -110,7 +145,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read only the nineteen new current pair bindings
+      - name: Correct the 54 existing location lines and verify retained context
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -120,24 +155,32 @@ jobs:
           umask 077
           ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
           python3 - <<'PY'
-          import pathlib,json,os
+          import pathlib,json,os,hashlib
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
-          print(json.dumps({k:v for k,v in d.items() if k not in ('private_max_bindings','candidate_clearance')},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-channel-hotel-feeds-20261107-read35' and d['ok'] is True
-          assert d['scope_hotels']==d['feed_rows']==d['private_binding_count']==19 and d['deferred_count']==0
-          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
-          assert d['candidate_count']==len(d['candidate_clearance'])==20
-          print(json.dumps({'candidate_clearance':[{'native_hotel_id':r['native_hotel_id'],'clear':r['clear'],'matches':[{'platform':m['platform'],'post_url':m['post_url']} for m in r['matches']]} for r in d['candidate_clearance']]},ensure_ascii=False))
-          assert [r['hotel_id'] for r in d['rows']]==[2219,1507,65020,83189,95159,55721,16750,713,341,340,1439,28325,1096,1486,37527,48863,15889,27642,76588]
-          print('NEW_NINETEEN_CURRENT_FEED_BINDINGS_READ older275_unchanged provider_calls=0 writes=0')
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-existing-hotel-regions-20261107-7-v1' and d['mode']=='update_existing_hotel_captions_no_price_or_search'
+          assert d['ok'] is True and len(d['posts'])==54 and d['post_write_attempts']==54 and d['new_posts_created']==0
+          assert d['price_block_updates']==d['search_link_post_updates']==d['tour_search_calls']==d['price_queries']==0
+          assert d['commercial_text_updates']==54 and d['configuration_write_attempts']==0
+          source=json.loads((tmp/'caption-correction-input.json').read_text())
+          prior={(p['platform'],p['logical_id']):p for p in source['original_publication_result']['posts']}
+          rows={r['logical_id']:r for r in source['rows']}
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==54
+          for p in d['posts']:
+              old=prior[(p['platform'],p['logical_id'])]
+              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','source_key'))
+              assert hashlib.sha256(p['button_url'].encode()).hexdigest()==old['button_url_sha256']
+              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id'] and p['photo_signature']==p['previous_photo_signature']
+              assert p['text_sha256']==rows[p['logical_id']]['new_text_sha256'] and p['body_photo_button_verified'] and p['existing_message_reused'] and p['content_updated']
+          print('EXISTING_27_PAIRS_LOCATIONS_UPDATED same_urls_photos_buttons_tokens=verified new_sends=0 feeds_changed=0 quality_user_accepted=false')
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-channel-hotel-feeds-20261107-read35-result
+          name: commercial-existing-hotel-regions-20261107-7-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn

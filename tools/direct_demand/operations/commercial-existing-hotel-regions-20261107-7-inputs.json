@@ -1,0 +1,628 @@
+{
+  "operation": "commercial-existing-hotel-regions-20261107-7-v1",
+  "rows": [
+    {
+      "hotel_id": 233,
+      "key": "commercial-legacy-region-233-v1",
+      "logical_id": "commercial-legacy-region-233-v1",
+      "old_text": "✈️ Туры в JAZ Casa del Mar Resort с перелётом\n📍 Египет, Хургада\n\nОтель у прогулочной улицы с магазинами и ресторанами.\n\n🏊 Два бассейна для взрослых.\n💦 Для детей есть бассейн с горками.\n🍽 На территории работают рестораны и бары.\n💆 Есть спа и турецкая баня.\n\nВажно при бронировании: у JAZ Casa del Mar Resort категория 4★. JAZ Elite Casa del Mar Beach 5★ работает как отдельный отель.\n\n\n✈️ Вылет: Москва\n📅 30.12.2026 по 08.01.2027, 9 ночей\n👥 2 взрослых\n🛏 Номер: superior pool view room\n🍽 Питание: UAI\n💰 393 136 ₽ за тур\n🕒 Проверено 04.11.2026 22:30 UTC\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=233&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в JAZ Casa del Mar Resort с перелётом\n📍 Хургада, Египет.\n\nОтель у прогулочной улицы с магазинами и ресторанами.\n\n🏊 Два бассейна для взрослых.\n💦 Для детей есть бассейн с горками.\n🍽 На территории работают рестораны и бары.\n💆 Есть спа и турецкая баня.\n\nВажно при бронировании: у JAZ Casa del Mar Resort категория 4★. JAZ Elite Casa del Mar Beach 5★ работает как отдельный отель.\n\n\n✈️ Вылет: Москва\n📅 30.12.2026 по 08.01.2027, 9 ночей\n👥 2 взрослых\n🛏 Номер: superior pool view room\n🍽 Питание: UAI\n💰 393 136 ₽ за тур\n🕒 Проверено 04.11.2026 22:30 UTC\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=233&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "514879257d448d7b675157f2954ea5ae39481d6b050a235a0f6eaae01bf49b59",
+      "new_text_sha256": "d61b5f7221e2a38ebd05bb0b0725b8c19010d8a897f29aeb42577760a0be05a3",
+      "previous_heading": "✈️ Туры в JAZ Casa del Mar Resort с перелётом",
+      "previous_location": "📍 Египет, Хургада",
+      "new_location": "📍 Хургада, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 13872,
+      "key": "commercial-legacy-region-13872-v1",
+      "logical_id": "commercial-legacy-region-13872-v1",
+      "old_text": "✈️ Туры в JAZ Makadina с перелётом\n📍 Египет, Макади Бей\n\nПляжный отель в Мадинат Макади, рядом с магазинами и ресторанами Souk Makadi.\n\n🏖 Собственный песчаный пляж.\n🏊 Два взрослых бассейна и отдельный детский.\n🧸 Детский клуб и игровая площадка.\n🎭 Дневная анимация и вечерние представления.\n\nБольшой аквапарк Makadi Water World находится отдельно от отеля, примерно в 3 км.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=13872&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в JAZ Makadina с перелётом\n📍 Макади-Бей, Египет.\n\nПляжный отель в Мадинат Макади, рядом с магазинами и ресторанами Souk Makadi.\n\n🏖 Собственный песчаный пляж.\n🏊 Два взрослых бассейна и отдельный детский.\n🧸 Детский клуб и игровая площадка.\n🎭 Дневная анимация и вечерние представления.\n\nБольшой аквапарк Makadi Water World находится отдельно от отеля, примерно в 3 км.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=13872&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "2d1e44fc2c60a9fdf5574a75cdc07a47bec07564b9a4cc47a9677ec44b6137ef",
+      "new_text_sha256": "a6baf0f8d54c6097f2fd4235b22a8ef4bfb066ae23c2b9d1d07844b6c132914a",
+      "previous_heading": "✈️ Туры в JAZ Makadina с перелётом",
+      "previous_location": "📍 Египет, Макади Бей",
+      "new_location": "📍 Макади-Бей, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 13873,
+      "key": "commercial-legacy-region-13873-v1",
+      "logical_id": "commercial-legacy-region-13873-v1",
+      "old_text": "✈️ Туры в JAZ Makadi Oasis Resort & Club с перелётом\n📍 Египет, Макади Бей\n\nОтель в Мадинат Макади с невысокими корпусами и бассейнами среди пальм.\n\n🍽 Завтраки, обеды и ужины в Al Hambra проходят по системе «шведский стол».\n🧸 Есть детский клуб Jazy.\n🏖 На пляже работает бар с напитками и закусками.\n🛍 Поблизости находятся магазины и рестораны Souk Makadi.\n\nАквапарк Makadi Water World расположен отдельно. От отеля до него ходит шаттл.\n\n\n✈️ Вылет: Москва\n📅 30.12.2026 по 08.01.2027, 9 ночей\n👥 2 взрослых\n🛏 Номер: superior garden view\n🍽 Питание: AI\n💰 383 750 ₽ за тур\n🕒 Проверено 04.11.2026 20:18 UTC\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=13873&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в JAZ Makadi Oasis Resort & Club с перелётом\n📍 Макади-Бей, Египет.\n\nОтель в Мадинат Макади с невысокими корпусами и бассейнами среди пальм.\n\n🍽 Завтраки, обеды и ужины в Al Hambra проходят по системе «шведский стол».\n🧸 Есть детский клуб Jazy.\n🏖 На пляже работает бар с напитками и закусками.\n🛍 Поблизости находятся магазины и рестораны Souk Makadi.\n\nАквапарк Makadi Water World расположен отдельно. От отеля до него ходит шаттл.\n\n\n✈️ Вылет: Москва\n📅 30.12.2026 по 08.01.2027, 9 ночей\n👥 2 взрослых\n🛏 Номер: superior garden view\n🍽 Питание: AI\n💰 383 750 ₽ за тур\n🕒 Проверено 04.11.2026 20:18 UTC\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=13873&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "e2a51e721f4b91d136a6c4517fd1a63fcd0b5a781b24bc2c926109a14930dfe2",
+      "new_text_sha256": "5b70a5fdb1ee618812dc4d0d0ee619b773481f56b68b75200339bfca9b825866",
+      "previous_heading": "✈️ Туры в JAZ Makadi Oasis Resort & Club с перелётом",
+      "previous_location": "📍 Египет, Макади Бей",
+      "new_location": "📍 Макади-Бей, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 280,
+      "key": "commercial-legacy-region-280-v1",
+      "logical_id": "commercial-legacy-region-280-v1",
+      "old_text": "✈️ Туры в JAZ Makadi Star & Spa с перелётом\n📍 Египет, Макади Бей\n\nОтель для взрослых в Мадинат Макади.\n\n🏊 Есть бассейны, один подогревают зимой.\n🏖 Собственный участок песчаного пляжа.\n🛍 Рядом магазины и рестораны Souk Makadi.\n💆 В Мадинат Макади работает спа Mividaspa.\n\nОтель принимает гостей от 16 лет. До пляжа около 400 метров. Услуги Mividaspa оплачиваются отдельно.\n\n\n✈️ Вылет: Москва\n📅 10.11.2026 по 15.11.2026, 5 ночей\n👥 2 взрослых\n🛏 Номер: royal suite with garden view\n🍽 Питание: AI\n💰 577 124 ₽ за тур\n🕒 Проверено 05.11.2026 06:33 UTC\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=5&from=1&count_people=2&country=1&hotel=280&date_from=2026-11-10&date_till=2026-11-10\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в JAZ Makadi Star & Spa с перелётом\n📍 Макади-Бей, Египет.\n\nОтель для взрослых в Мадинат Макади.\n\n🏊 Есть бассейны, один подогревают зимой.\n🏖 Собственный участок песчаного пляжа.\n🛍 Рядом магазины и рестораны Souk Makadi.\n💆 В Мадинат Макади работает спа Mividaspa.\n\nОтель принимает гостей от 16 лет. До пляжа около 400 метров. Услуги Mividaspa оплачиваются отдельно.\n\n\n✈️ Вылет: Москва\n📅 10.11.2026 по 15.11.2026, 5 ночей\n👥 2 взрослых\n🛏 Номер: royal suite with garden view\n🍽 Питание: AI\n💰 577 124 ₽ за тур\n🕒 Проверено 05.11.2026 06:33 UTC\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=5&from=1&count_people=2&country=1&hotel=280&date_from=2026-11-10&date_till=2026-11-10\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "637b837e99307bfaf86563da24cb72ea49f224fbae45f26cc62f775fe1f8cf49",
+      "new_text_sha256": "092dad97cfeb1bc8f5cba9c6ba7bedae69613c7fb7b9fade11ac3bcadd2fdca9",
+      "previous_heading": "✈️ Туры в JAZ Makadi Star & Spa с перелётом",
+      "previous_location": "📍 Египет, Макади Бей",
+      "new_location": "📍 Макади-Бей, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 456,
+      "key": "commercial-legacy-region-456-v1",
+      "logical_id": "commercial-legacy-region-456-v1",
+      "old_text": "✈️ Туры в JAZ Neo Dar El Madina с перелётом\n📍 Египет, Марса Алам, бухта Корайя\n\nОтель в Мадинат Корайя для семейного отдыха и поездок к рифам Красного моря.\n\n🏖 Гостям доступен песчаный пляж.\n🏊 Взрослый и детский бассейны подогревают зимой.\n🧸 Есть детский клуб и игровая площадка.\n💦 Рядом находится аквапарк Aqua Coraya.\n\nСауна, джакузи и спа Mividaspa находятся в соседнем JAZ Solaya.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=456&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в JAZ Neo Dar El Madina с перелётом\n📍 Марса-Алам (бухта Корайя), Египет.\n\nОтель в Мадинат Корайя для семейного отдыха и поездок к рифам Красного моря.\n\n🏖 Гостям доступен песчаный пляж.\n🏊 Взрослый и детский бассейны подогревают зимой.\n🧸 Есть детский клуб и игровая площадка.\n💦 Рядом находится аквапарк Aqua Coraya.\n\nСауна, джакузи и спа Mividaspa находятся в соседнем JAZ Solaya.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=456&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "797fd761acf906c66660f6acb13d549a8680615ef113d21f38b5f3e8dcfa4fc7",
+      "new_text_sha256": "7d39d852ee7b6dbfbfe1adb6e84662b2743734814c8df7043f2d610fbd93fd71",
+      "previous_heading": "✈️ Туры в JAZ Neo Dar El Madina с перелётом",
+      "previous_location": "📍 Египет, Марса Алам, бухта Корайя",
+      "new_location": "📍 Марса-Алам (бухта Корайя), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 265,
+      "key": "commercial-legacy-region-265-v1",
+      "logical_id": "commercial-legacy-region-265-v1",
+      "old_text": "✈️ Туры в JAZ Lamaya Resort с перелётом\n📍 Египет, Марса Алам, бухта Корайя\n\nСемейный отель у Красного моря в Мадинат Корайя.\n\n🏊 Четыре бассейна, есть детский бассейн с горками.\n🧸 Детский клуб и игровая площадка.\n🤿 В дайвинг центре организуют погружения и выезды к рифам.\n🏋️ Есть тренажёрный зал, проходят занятия йогой и аэробикой.\n\nБольшой аквапарк Aqua Coraya находится за территорией отеля, примерно в 150 метрах.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=265&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в JAZ Lamaya Resort с перелётом\n📍 Марса-Алам (бухта Корайя), Египет.\n\nСемейный отель у Красного моря в Мадинат Корайя.\n\n🏊 Четыре бассейна, есть детский бассейн с горками.\n🧸 Детский клуб и игровая площадка.\n🤿 В дайвинг центре организуют погружения и выезды к рифам.\n🏋️ Есть тренажёрный зал, проходят занятия йогой и аэробикой.\n\nБольшой аквапарк Aqua Coraya находится за территорией отеля, примерно в 150 метрах.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=265&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "78a378d0f22ebc0a69c852e63c989acabf4311e173b714ed4670539326f5b411",
+      "new_text_sha256": "4bd2b44f9f12f61b64a63049558b6b63e6e59c45fdfca89f1841451b14ed8db6",
+      "previous_heading": "✈️ Туры в JAZ Lamaya Resort с перелётом",
+      "previous_location": "📍 Египет, Марса Алам, бухта Корайя",
+      "new_location": "📍 Марса-Алам (бухта Корайя), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 454,
+      "key": "commercial-legacy-region-454-v1",
+      "logical_id": "commercial-legacy-region-454-v1",
+      "old_text": "✈️ Туры в JAZ Solaya с перелётом\n📍 Египет, Марса Алам, бухта Корайя\n\nОтель у моря в Мадинат Корайя. Здесь можно отдыхать на пляже и плавать с маской у рифа.\n\n🏊 Три взрослых бассейна и один детский. Зимой их подогревают.\n🧸 Детский клуб и игровая площадка.\n🎭 Вечерние представления и живая музыка.\n🏋️ Есть тренажёрный зал и дорожка для пробежек у пляжа.\n\nОбычный WiFi ограничен по скорости. Быстрый интернет оплачивается отдельно.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=454&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в JAZ Solaya с перелётом\n📍 Марса-Алам (бухта Корайя), Египет.\n\nОтель у моря в Мадинат Корайя. Здесь можно отдыхать на пляже и плавать с маской у рифа.\n\n🏊 Три взрослых бассейна и один детский. Зимой их подогревают.\n🧸 Детский клуб и игровая площадка.\n🎭 Вечерние представления и живая музыка.\n🏋️ Есть тренажёрный зал и дорожка для пробежек у пляжа.\n\nОбычный WiFi ограничен по скорости. Быстрый интернет оплачивается отдельно.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=454&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "f37b6bd0838acd800416fccd0375e45d33ef20ca9e26f4046422402dec31ee8e",
+      "new_text_sha256": "ef60309b3f9b4b0472d18c289bc09a2b553d6c1d2f693d5dde3f4facee868bb5",
+      "previous_heading": "✈️ Туры в JAZ Solaya с перелётом",
+      "previous_location": "📍 Египет, Марса Алам, бухта Корайя",
+      "new_location": "📍 Марса-Алам (бухта Корайя), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 21475,
+      "key": "commercial-legacy-region-21475-v1",
+      "logical_id": "commercial-legacy-region-21475-v1",
+      "old_text": "✈️ Туры в Baron Palace Sahl Hasheesh с перелётом\n📍 Египет, Сахл Хашиш\n\nОтель с дворцовыми арками и куполами прямо у Красного моря.\n\n🏖 Собственный песчаный пляж длиной 600 метров.\n🏊 Семь бассейнов.\n🍽 Есть итальянский ресторан Bella Vista и ресторан морепродуктов Infinity.\n💆 Спа с турецкой баней и фитнес центр.\n\nЯпонский ресторан Mikado принимает только взрослых. Посещение оплачивается отдельно.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=21475&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в Baron Palace Sahl Hasheesh с перелётом\n📍 Сахль-Хашиш, Египет.\n\nОтель с дворцовыми арками и куполами прямо у Красного моря.\n\n🏖 Собственный песчаный пляж длиной 600 метров.\n🏊 Семь бассейнов.\n🍽 Есть итальянский ресторан Bella Vista и ресторан морепродуктов Infinity.\n💆 Спа с турецкой баней и фитнес центр.\n\nЯпонский ресторан Mikado принимает только взрослых. Посещение оплачивается отдельно.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=21475&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "74dca01cfb23496baa9f70e965073ac419597acfaed593bea2cd3ca4ef338841",
+      "new_text_sha256": "2ae4706d37f7bd75bba90417424b23ff5ce6717b51261a0b93613fbfda95c2be",
+      "previous_heading": "✈️ Туры в Baron Palace Sahl Hasheesh с перелётом",
+      "previous_location": "📍 Египет, Сахл Хашиш",
+      "new_location": "📍 Сахль-Хашиш, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1963,
+      "key": "commercial-legacy-region-1963-v1",
+      "logical_id": "commercial-legacy-region-1963-v1",
+      "old_text": "✈️ Туры в Baron Resort Sharm El Sheikh с перелётом\n📍 Египет, Шарм эль Шейх\n\nОтель у моря для семейного отдыха и снорклинга.\n\n🏖 Собственный пляж.\n🤿 У берега есть коралловый риф.\n🍽 На территории работает Oasis BBQ & Seafood с блюдами на гриле и морепродуктами.\n💆 Есть спа.\n\nОтдельное крыло Lagoon Wing принимает гостей от 16 лет. Для отдыха с детьми нужны номера в основной части отеля.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=1963&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в Baron Resort Sharm El Sheikh с перелётом\n📍 Шарм-эль-Шейх, Египет.\n\nОтель у моря для семейного отдыха и снорклинга.\n\n🏖 Собственный пляж.\n🤿 У берега есть коралловый риф.\n🍽 На территории работает Oasis BBQ & Seafood с блюдами на гриле и морепродуктами.\n💆 Есть спа.\n\nОтдельное крыло Lagoon Wing принимает гостей от 16 лет. Для отдыха с детьми нужны номера в основной части отеля.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=1963&date_from=2026-11-06&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "ede656fa520f41bb70911ca158b946c4a1462443ff1b08ac1dfb2a486aaa76dd",
+      "new_text_sha256": "feaf7f7cee7966f1662ceb43e1b99552444a68f54f7f0eed1e4d1f18b2d58506",
+      "previous_heading": "✈️ Туры в Baron Resort Sharm El Sheikh с перелётом",
+      "previous_location": "📍 Египет, Шарм эль Шейх",
+      "new_location": "📍 Шарм-эль-Шейх, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 469,
+      "key": "commercial-legacy-region-469-v1",
+      "logical_id": "commercial-legacy-region-469-v1",
+      "old_text": "✈️ Туры в Sultan Gardens Resort с перелётом\n📍 Египет, Шарм\n\nУ пляжа есть риф. К нему ведут понтоны.\n\n🏖 На пляже есть зона с анимацией и отдельная зона для спокойного отдыха.\n🛏 В Family Suite две спальни.\n🧸 Клуб для детей от 4 до 12 лет.\n\n\n✈️ Вылет: Москва\n📅 10.12.2026 по 17.12.2026, 7 ночей\n👥 2 взрослых\n🛏 Номер: select garden view room\n🍽 Питание: UAI\n💰 177 189 ₽ за тур\n🕒 Проверено 05.11.2026 00:56 UTC\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в Sultan Gardens Resort с перелётом\n📍 Шарм-эль-Шейх, Египет.\n\nУ пляжа есть риф. К нему ведут понтоны.\n\n🏖 На пляже есть зона с анимацией и отдельная зона для спокойного отдыха.\n🛏 В Family Suite две спальни.\n🧸 Клуб для детей от 4 до 12 лет.\n\n\n✈️ Вылет: Москва\n📅 10.12.2026 по 17.12.2026, 7 ночей\n👥 2 взрослых\n🛏 Номер: select garden view room\n🍽 Питание: UAI\n💰 177 189 ₽ за тур\n🕒 Проверено 05.11.2026 00:56 UTC\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "4b11c37e97a91f7bcd0f7f42396c57a15b73867df24484a6337fe5dcc2cdf1eb",
+      "new_text_sha256": "615239a8a5af7bb3b0c84cc34752885e52fe179e535225c42a11349f88225855",
+      "previous_heading": "✈️ Туры в Sultan Gardens Resort с перелётом",
+      "previous_location": "📍 Египет, Шарм",
+      "new_location": "📍 Шарм-эль-Шейх, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 381,
+      "key": "commercial-legacy-region-381-v1",
+      "logical_id": "commercial-legacy-region-381-v1",
+      "old_text": "✈️ Туры в Rehana Royal Beach Resort Aqua Park & Spa с перелётом\n📍 Египет, Шарм, Набк\n\n🏖 Свой песчаный пляж. У берега кораллы, в море заходят с понтона.\n💦 Бассейны и водные горки.\n🛏 В стандартных номерах есть балкон или терраса.\n\n\n✈️ Вылет: Москва\n📅 12.11.2026 по 21.11.2026, 9 ночей\n👥 2 взрослых\n🛏 Номер: deluxe room\n🍽 Питание: UAI\n💰 232 237 ₽ за тур\n🕒 Проверено 05.11.2026 06:31 UTC\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=9&days_till=9&from=1&count_people=2&country=1&hotel=381&date_from=2026-11-12&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в Rehana Royal Beach Resort Aqua Park & Spa с перелётом\n📍 Шарм-эль-Шейх (Набк), Египет.\n\n🏖 Свой песчаный пляж. У берега кораллы, в море заходят с понтона.\n💦 Бассейны и водные горки.\n🛏 В стандартных номерах есть балкон или терраса.\n\n\n✈️ Вылет: Москва\n📅 12.11.2026 по 21.11.2026, 9 ночей\n👥 2 взрослых\n🛏 Номер: deluxe room\n🍽 Питание: UAI\n💰 232 237 ₽ за тур\n🕒 Проверено 05.11.2026 06:31 UTC\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=9&days_till=9&from=1&count_people=2&country=1&hotel=381&date_from=2026-11-12&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "e683fda3eccaaa0c124516ea9dcdcb7615a43bb94844f30621136e883a5d3ac7",
+      "new_text_sha256": "14940e1b5b4062b092f462557e57d09ed4fc6ba228002909107c42c9366151bc",
+      "previous_heading": "✈️ Туры в Rehana Royal Beach Resort Aqua Park & Spa с перелётом",
+      "previous_location": "📍 Египет, Шарм, Набк",
+      "new_location": "📍 Шарм-эль-Шейх (Набк), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 282,
+      "key": "commercial-legacy-region-282-v1",
+      "logical_id": "commercial-legacy-region-282-v1",
+      "old_text": "✈️ Туры в JAZ Mirabel Club с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n🏊 Открытый бассейн и детский бассейн.\n👧 Детский клуб для ребят от 4 до 12 лет и игровая площадка.\n🍽 Рестораны итальянской, азиатской и восточной кухни.\n\n💡 В Club 160 номеров в двух трёхэтажных корпусах.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=282&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в JAZ Mirabel Club.",
+      "new_text": "✈️ Туры в JAZ Mirabel Club с перелётом\n📍 Шарм-эль-Шейх (Набк-Бей), Египет.\n\n🏊 Открытый бассейн и детский бассейн.\n👧 Детский клуб для ребят от 4 до 12 лет и игровая площадка.\n🍽 Рестораны итальянской, азиатской и восточной кухни.\n\n💡 В Club 160 номеров в двух трёхэтажных корпусах.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=282&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в JAZ Mirabel Club.",
+      "old_text_sha256": "1024fbf5fe0305a9e5619686804b4432b6e60a8422ac930c95c200652e4df737",
+      "new_text_sha256": "af5c18a74930624d362c23cf3ff8b2069307f656682515b3681d8d1ab72830d6",
+      "previous_heading": "✈️ Туры в JAZ Mirabel Club с перелётом",
+      "previous_location": "📍 Набк Бэй, Шарм эль Шейх.",
+      "new_location": "📍 Шарм-эль-Шейх (Набк-Бей), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 165,
+      "key": "commercial-legacy-region-165-v1",
+      "logical_id": "commercial-legacy-region-165-v1",
+      "old_text": "✈️ Туры в Coral Sea Water World с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n💦 Аквапарк с водными горками.\n🏊 Два больших открытых бассейна. Есть подогреваемые бассейны.\n👧 Детский клуб и мини дискотека.\n💪 Тренажёрный зал, спа и джакузи.\n\n💡 В Kids Den у детей отдельная комната с двумя односпальными кроватями.\n\n\n✈️ Вылет: Москва\n📅 13.12.2026 по 21.12.2026, 8 ночей\n👥 2 взрослых\n🛏 Номер: standard garden or pool view room\n🍽 Питание: AI\n💰 180 811 ₽ за тур\n🕒 Проверено 04.11.2026 23:38 UTC\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=165&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Water World.",
+      "new_text": "✈️ Туры в Coral Sea Water World с перелётом\n📍 Шарм-эль-Шейх (Набк-Бей), Египет.\n\n💦 Аквапарк с водными горками.\n🏊 Два больших открытых бассейна. Есть подогреваемые бассейны.\n👧 Детский клуб и мини дискотека.\n💪 Тренажёрный зал, спа и джакузи.\n\n💡 В Kids Den у детей отдельная комната с двумя односпальными кроватями.\n\n\n✈️ Вылет: Москва\n📅 13.12.2026 по 21.12.2026, 8 ночей\n👥 2 взрослых\n🛏 Номер: standard garden or pool view room\n🍽 Питание: AI\n💰 180 811 ₽ за тур\n🕒 Проверено 04.11.2026 23:38 UTC\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=165&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Water World.",
+      "old_text_sha256": "f453e8ac0c2daebad3143ca84164183baa5e0b08018969f0b2eb7c0a3dd2829d",
+      "new_text_sha256": "e8e2a3ae5e6008878ee7446c3383dbfae8e39ee241c53d12418389d09ef3264d",
+      "previous_heading": "✈️ Туры в Coral Sea Water World с перелётом",
+      "previous_location": "📍 Набк Бэй, Шарм эль Шейх.",
+      "new_location": "📍 Шарм-эль-Шейх (Набк-Бей), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 12116,
+      "key": "commercial-legacy-region-12116-v1",
+      "logical_id": "commercial-legacy-region-12116-v1",
+      "old_text": "✈️ Туры в Coral Sea Aqua Club с перелётом\n📍 Набк Бэй, Шарм эль Шейх.\n\n💦 Аквапарк с горками и ленивой рекой.\n🏊 Открытый бассейн.\n💪 Тренажёрный зал, спа и джакузи.\n👨‍👩‍👧‍👦 В Kids Den отдельная детская зона с двумя кроватями.\n\n💡 Игровая зона Playhouse доступна только при бронировании через отдельных туроператоров.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=12116&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Aqua Club.",
+      "new_text": "✈️ Туры в Coral Sea Aqua Club с перелётом\n📍 Шарм-эль-Шейх (Набк-Бей), Египет.\n\n💦 Аквапарк с горками и ленивой рекой.\n🏊 Открытый бассейн.\n💪 Тренажёрный зал, спа и джакузи.\n👨‍👩‍👧‍👦 В Kids Den отдельная детская зона с двумя кроватями.\n\n💡 Игровая зона Playhouse доступна только при бронировании через отдельных туроператоров.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=12116&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Coral Sea Aqua Club.",
+      "old_text_sha256": "9e2873feab2ce38a24907cf6aba5aabd05d6a56be311af2da71c5eec76ebf8ab",
+      "new_text_sha256": "2bd169618b0f3df47c0e30e020aacc0d0694fb29ef3cadd5cc9ad82877a331e3",
+      "previous_heading": "✈️ Туры в Coral Sea Aqua Club с перелётом",
+      "previous_location": "📍 Набк Бэй, Шарм эль Шейх.",
+      "new_location": "📍 Шарм-эль-Шейх (Набк-Бей), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 310,
+      "key": "commercial-legacy-region-310-v1",
+      "logical_id": "commercial-legacy-region-310-v1",
+      "old_text": "✈️ Туры в Pickalbatros Golf Beach Resort с перелётом\n📍 Египет, Шарм\n\nОтель на первой линии с большой зелёной территорией.\n\n🏖 Пляж расположен на нескольких уровнях. В море заходят с понтона.\n🍽 Питание «всё включено».\n🎶 По вечерам проходят шоу и играет музыка.\n\n\n✈️ Вылет: Москва\n📅 10.12.2026 по 17.12.2026, 7 ночей\n👥 2 взрослых\n🛏 Номер: deluxe room with garden view\n🍽 Питание: AI\n💰 201 434 ₽ за тур\n🕒 Проверено 05.11.2026 00:56 UTC\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в Pickalbatros Golf Beach Resort с перелётом\n📍 Шарм-эль-Шейх, Египет.\n\nОтель на первой линии с большой зелёной территорией.\n\n🏖 Пляж расположен на нескольких уровнях. В море заходят с понтона.\n🍽 Питание «всё включено».\n🎶 По вечерам проходят шоу и играет музыка.\n\n\n✈️ Вылет: Москва\n📅 10.12.2026 по 17.12.2026, 7 ночей\n👥 2 взрослых\n🛏 Номер: deluxe room with garden view\n🍽 Питание: AI\n💰 201 434 ₽ за тур\n🕒 Проверено 05.11.2026 00:56 UTC\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "023b7191c410ddaf4e7d526644b5e58552baee526d5beef247d3b01744376fe0",
+      "new_text_sha256": "962bfc58ab0fdb5f6313e49e75c42bd402b821d61c288c7270b7968a02459f4d",
+      "previous_heading": "✈️ Туры в Pickalbatros Golf Beach Resort с перелётом",
+      "previous_location": "📍 Египет, Шарм",
+      "new_location": "📍 Шарм-эль-Шейх, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 67910,
+      "key": "commercial-legacy-region-67910-v1",
+      "logical_id": "commercial-legacy-region-67910-v1",
+      "old_text": "✈️ Туры в Rixos Premium Magawish Suites & Villas с перелётом\n📍 Египет, Хургада\n\nГости живут в сьютах и виллах.\n\n🏖 Свой песчаный пляж длиной около километра.\n🍽 Питание «ультра всё включено».\n🎶 Живая музыка и вечерние шоу.\n\n\n✈️ Вылет: Москва\n📅 12.11.2026 по 17.11.2026, 5 ночей\n👥 2 взрослых\n🛏 Номер: deluxe garden view\n🍽 Питание: UAI\n💰 228 919 ₽ за тур\n🕒 Проверено 05.11.2026 07:55 UTC\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=5&from=1&count_people=2&country=1&hotel=67910&date_from=2026-11-12&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в Rixos Premium Magawish Suites & Villas с перелётом\n📍 Хургада, Египет.\n\nГости живут в сьютах и виллах.\n\n🏖 Свой песчаный пляж длиной около километра.\n🍽 Питание «ультра всё включено».\n🎶 Живая музыка и вечерние шоу.\n\n\n✈️ Вылет: Москва\n📅 12.11.2026 по 17.11.2026, 5 ночей\n👥 2 взрослых\n🛏 Номер: deluxe garden view\n🍽 Питание: UAI\n💰 228 919 ₽ за тур\n🕒 Проверено 05.11.2026 07:55 UTC\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=5&from=1&count_people=2&country=1&hotel=67910&date_from=2026-11-12&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "4ef3f83774ccf39fdb361d975a29ae1438e33b3644d2e72b9863af3453ebaa0a",
+      "new_text_sha256": "69d7585006aec0c36f386fc5c6fe24f44da19be70eac650cdd24ca7b881d6228",
+      "previous_heading": "✈️ Туры в Rixos Premium Magawish Suites & Villas с перелётом",
+      "previous_location": "📍 Египет, Хургада",
+      "new_location": "📍 Хургада, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 68323,
+      "key": "commercial-legacy-region-68323-v1",
+      "logical_id": "commercial-legacy-region-68323-v1",
+      "old_text": "✈️ Туры в SUNRISE Solara Aqua Park Resort с перелётом\n📍 Египет, Хургада\n\n🏖 Свой пляж.\n💦 Бассейны и водные горки.\n🧸 Клуб для детей от 3 до 12 лет.\n🎶 По вечерам живая музыка, шоу и тематические вечеринки.\n\n\n✈️ Вылет: Москва\n📅 12.11.2026 по 17.11.2026, 5 ночей\n👥 2 взрослых\n🛏 Номер: standard room pool view\n🍽 Питание: AI\n💰 165 191 ₽ за тур\n🕒 Проверено 05.11.2026 07:55 UTC\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=5&from=1&count_people=2&country=1&hotel=68323&date_from=2026-11-12&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в SUNRISE Solara Aqua Park Resort с перелётом\n📍 Хургада, Египет.\n\n🏖 Свой пляж.\n💦 Бассейны и водные горки.\n🧸 Клуб для детей от 3 до 12 лет.\n🎶 По вечерам живая музыка, шоу и тематические вечеринки.\n\n\n✈️ Вылет: Москва\n📅 12.11.2026 по 17.11.2026, 5 ночей\n👥 2 взрослых\n🛏 Номер: standard room pool view\n🍽 Питание: AI\n💰 165 191 ₽ за тур\n🕒 Проверено 05.11.2026 07:55 UTC\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=5&from=1&count_people=2&country=1&hotel=68323&date_from=2026-11-12&date_till=2026-11-12\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "36d0f20b9d61765394457fd00236d1db22221a73caf5b3d0d2687be15dece0d0",
+      "new_text_sha256": "ae86b1cf1237cc7e88fb5e3d0b23b383c01ebc254bfe3dc27fb2d9065157f08f",
+      "previous_heading": "✈️ Туры в SUNRISE Solara Aqua Park Resort с перелётом",
+      "previous_location": "📍 Египет, Хургада",
+      "new_location": "📍 Хургада, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1971,
+      "key": "commercial-legacy-region-1971-v1",
+      "logical_id": "commercial-legacy-region-1971-v1",
+      "old_text": "✈️ Туры в Pickalbatros Palace Resort Sharm El Sheikh с перелётом\n📍 Египет, Шарм\n\n🏖 У берега небольшая песчаная лагуна и кораллы. В море заходят с пирса.\n🛏 Есть семейные номера с двумя спальнями.\n🍽 Питание «всё включено».\n🎶 Музыка и шоу.\n\n\n✈️ Вылет: Москва\n📅 10.12.2026 по 17.12.2026, 7 ночей\n👥 2 взрослых\n🛏 Номер: standard garden view\n🍽 Питание: AI\n💰 201 869 ₽ за тур\n🕒 Проверено 05.11.2026 00:56 UTC\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "new_text": "✈️ Туры в Pickalbatros Palace Resort Sharm El Sheikh с перелётом\n📍 Шарм-эль-Шейх, Египет.\n\n🏖 У берега небольшая песчаная лагуна и кораллы. В море заходят с пирса.\n🛏 Есть семейные номера с двумя спальнями.\n🍽 Питание «всё включено».\n🎶 Музыка и шоу.\n\n\n✈️ Вылет: Москва\n📅 10.12.2026 по 17.12.2026, 7 ночей\n👥 2 взрослых\n🛏 Номер: standard garden view\n🍽 Питание: AI\n💰 201 869 ₽ за тур\n🕒 Проверено 05.11.2026 00:56 UTC\n\nНапишите, из какого города хотите лететь, на какие даты и сколько вас человек. Посчитаем стоимость тура.",
+      "old_text_sha256": "16f12842d48b068af04808daa5fa47a5d45db63e78fef1ba805c266aa23d57c0",
+      "new_text_sha256": "b8ca85de41fa5ff03671cb6071c878e1f05814387e9a6a263121498b6633f599",
+      "previous_heading": "✈️ Туры в Pickalbatros Palace Resort Sharm El Sheikh с перелётом",
+      "previous_location": "📍 Египет, Шарм",
+      "new_location": "📍 Шарм-эль-Шейх, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 488,
+      "key": "commercial-legacy-region-488-v1",
+      "logical_id": "commercial-legacy-region-488-v1",
+      "old_text": "✈️ Туры в Three Corners Fayrouz Plaza Beach Resort с перелётом\n📍 Марса Алам, рядом с Порт Галиб.\n\n🏖 Пляж длиной 800 м.\n🏊 Главный бассейн подогревают зимой.\n👧 Детский клуб Trixie и игровая зона.\n💪 Тренажёрный зал.\n\n💡 К зоне купания и коралловому рифу ведёт понтон длиной 368 м.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=488&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Three Corners Fayrouz Plaza.",
+      "new_text": "✈️ Туры в Three Corners Fayrouz Plaza Beach Resort с перелётом\n📍 Марса-Алам (рядом с Порт Галиб), Египет.\n\n🏖 Пляж длиной 800 м.\n🏊 Главный бассейн подогревают зимой.\n👧 Детский клуб Trixie и игровая зона.\n💪 Тренажёрный зал.\n\n💡 К зоне купания и коралловому рифу ведёт понтон длиной 368 м.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=488&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Three Corners Fayrouz Plaza.",
+      "old_text_sha256": "ef7a5c60cb984ea20f9d0ff34652256561e0b8509d08713a051c47ccbc18d4b9",
+      "new_text_sha256": "84144765749db4aec9b55e36714b1d3799609d0b45db6962c68d215ee9a71126",
+      "previous_heading": "✈️ Туры в Three Corners Fayrouz Plaza Beach Resort с перелётом",
+      "previous_location": "📍 Марса Алам, рядом с Порт Галиб.",
+      "new_location": "📍 Марса-Алам (рядом с Порт Галиб), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 98723,
+      "key": "commercial-legacy-region-98723-v1",
+      "logical_id": "commercial-legacy-region-98723-v1",
+      "old_text": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only с перелётом\n📍 Набк, Шарм эль Шейх.\n\n🏊 Четыре бассейна.\n🛏 Номера площадью 52 м². Есть отдельная категория с выходом к бассейну.\n💪 Тренажёрный зал, йога и растяжка.\n\n💡 Курорт для взрослых. Пляж находится отдельно, до него ходит шаттл.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=98723&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cleopatra Luxury Sharm Adults Only.",
+      "new_text": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only с перелётом\n📍 Шарм-эль-Шейх (Набк), Египет.\n\n🏊 Четыре бассейна.\n🛏 Номера площадью 52 м². Есть отдельная категория с выходом к бассейну.\n💪 Тренажёрный зал, йога и растяжка.\n\n💡 Курорт для взрослых. Пляж находится отдельно, до него ходит шаттл.\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=98723&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Cleopatra Luxury Sharm Adults Only.",
+      "old_text_sha256": "622730486686d19843dfb61ec4d3c367209f42483dae875c7b3c2e77626639c0",
+      "new_text_sha256": "8d781c7b1f6e7f3c558448fbc5f65c4eef2ef155aebbae29fb043def1331b441",
+      "previous_heading": "✈️ Туры в Cleopatra Luxury Resort Sharm Adults Only с перелётом",
+      "previous_location": "📍 Набк, Шарм эль Шейх.",
+      "new_location": "📍 Шарм-эль-Шейх (Набк), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 253,
+      "key": "commercial-legacy-region-253-v1",
+      "logical_id": "commercial-legacy-region-253-v1",
+      "old_text": "✈️ Туры в Safir Sharm Waterfalls Resort с перелётом\n📍 Рас Ум эль Сид, Шарм эль Шейх.\n\n🏖 Собственный пляж и причал.\n🏊 Семь бассейнов.\n🎾 Теннисный корт и дайвинг центр.\n🛏 Номера с балконами и видом на море или сад.\n\n💡 Курорт расположен на плато. Рядом торговый район Иль Меркато.\n\n\n✈️ Вылет: Москва\n📅 10.12.2026 по 19.12.2026, 9 ночей\n👥 2 взрослых\n🛏 Номер: standard room with garden view\n🍽 Питание: AI\n💰 187 539 ₽ за тур\n🕒 Проверено 04.11.2026 23:38 UTC\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=253&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Safir Sharm Waterfalls.",
+      "new_text": "✈️ Туры в Safir Sharm Waterfalls Resort с перелётом\n📍 Шарм-эль-Шейх (Рас Ум эль Сид), Египет.\n\n🏖 Собственный пляж и причал.\n🏊 Семь бассейнов.\n🎾 Теннисный корт и дайвинг центр.\n🛏 Номера с балконами и видом на море или сад.\n\n💡 Курорт расположен на плато. Рядом торговый район Иль Меркато.\n\n\n✈️ Вылет: Москва\n📅 10.12.2026 по 19.12.2026, 9 ночей\n👥 2 взрослых\n🛏 Номер: standard room with garden view\n🍽 Питание: AI\n💰 187 539 ₽ за тур\n🕒 Проверено 04.11.2026 23:38 UTC\n\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=1&hotel=253&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Нажмите кнопку, чтобы узнать стоимость тура в Safir Sharm Waterfalls.",
+      "old_text_sha256": "7a7810961cd4785603b24538fdb3c2c1ffeff1b92034afc5b09ce5a824e95de0",
+      "new_text_sha256": "3b8d53cc0bd9750c0a7f2eb9c770a307f648c6954b35908b8dccb5f2c85478d0",
+      "previous_heading": "✈️ Туры в Safir Sharm Waterfalls Resort с перелётом",
+      "previous_location": "📍 Рас Ум эль Сид, Шарм эль Шейх.",
+      "new_location": "📍 Шарм-эль-Шейх (Рас Ум эль Сид), Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1659,
+      "key": "commercial-legacy-region-1659-v1",
+      "logical_id": "commercial-legacy-region-1659-v1",
+      "old_text": "✈️ Туры в TUI BLUE Sarigerme Park с перелётом\n\nТур с перелётом в Сарыгерме, Турция.\n🌿 Сад и территория 140 000 м².\n🏖 Песчаный пляж с участком отеля.\n🏊 Три бассейна.\n🛏 Есть семейные номера.\n\n📌 Отель сезонный. Официальный сезон 2026 завершился 2 ноября.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=1659&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "new_text": "✈️ Туры в TUI BLUE Sarigerme Park с перелётом\n📍 Даламан, Турция.\n\nТур с перелётом в Сарыгерме, Турция.\n🌿 Сад и территория 140 000 м².\n🏖 Песчаный пляж с участком отеля.\n🏊 Три бассейна.\n🛏 Есть семейные номера.\n\n📌 Отель сезонный. Официальный сезон 2026 завершился 2 ноября.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=1659&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "old_text_sha256": "06a4c632da37483387cd22fd67cc4840369846e222649623f15a7ba67ee638b7",
+      "new_text_sha256": "54afd8a81ecd87b700aebd918513c7491ed5b0ec9d65b7377e9166bfd8a9b120",
+      "previous_heading": "✈️ Туры в TUI BLUE Sarigerme Park с перелётом",
+      "previous_location": "",
+      "new_location": "📍 Даламан, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 21695,
+      "key": "commercial-legacy-region-21695-v1",
+      "logical_id": "commercial-legacy-region-21695-v1",
+      "old_text": "✈️ Туры в TUI BLUE Seno с перелётом\n\nТур с перелётом в Сарыгерме, Турция.\n👤 Отель для гостей от 16 лет.\n🏖 Песчаный пляж в бухте.\n🏊 Пять бассейнов, включая инфинити.\n🧖 Спа BLUE Spa.\n\n📌 Территория расположена на склоне. К пляжу есть шаттл.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=21695&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "new_text": "✈️ Туры в TUI BLUE Seno с перелётом\n📍 Даламан, Турция.\n\nТур с перелётом в Сарыгерме, Турция.\n👤 Отель для гостей от 16 лет.\n🏖 Песчаный пляж в бухте.\n🏊 Пять бассейнов, включая инфинити.\n🧖 Спа BLUE Spa.\n\n📌 Территория расположена на склоне. К пляжу есть шаттл.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=21695&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "old_text_sha256": "3422b49638e8617ca38431b79adc02c8a61dad1473ad37c268efcdc4b3f17d63",
+      "new_text_sha256": "eb85a7fad6d1dd94c31722fcd390704eeaf0a170222a14c2d73917dcc8b5c762",
+      "previous_heading": "✈️ Туры в TUI BLUE Seno с перелётом",
+      "previous_location": "",
+      "new_location": "📍 Даламан, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 28668,
+      "key": "commercial-legacy-region-28668-v1",
+      "logical_id": "commercial-legacy-region-28668-v1",
+      "old_text": "✈️ Туры в Rixos Premium Gocek с перелётом\n\nТур с перелётом в Гёджек, регион Фетхие, Турция.\n👤 Отель принимает гостей от 13 лет.\n🏖 Собственный пляж в уединённой бухте.\n🌲 Сосновый лес и сады вокруг комплекса.\n🧖 Спа.\n\n📌 Виллы расположены отдельно от основной территории отеля.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=28668&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "new_text": "✈️ Туры в Rixos Premium Gocek с перелётом\n📍 Фетхие, Турция.\n\nТур с перелётом в Гёджек, регион Фетхие, Турция.\n👤 Отель принимает гостей от 13 лет.\n🏖 Собственный пляж в уединённой бухте.\n🌲 Сосновый лес и сады вокруг комплекса.\n🧖 Спа.\n\n📌 Виллы расположены отдельно от основной территории отеля.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=28668&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "old_text_sha256": "1112e3c4acb656ce4e47a4185f297ac6dbcaaf68c115702f80354e5905d8573f",
+      "new_text_sha256": "dcaa4bfc4ad3067d35dd6d9c618806fc07b7fa9723d36b374d732199194e2b0b",
+      "previous_heading": "✈️ Туры в Rixos Premium Gocek с перелётом",
+      "previous_location": "",
+      "new_location": "📍 Фетхие, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 55205,
+      "key": "commercial-legacy-region-55205-v1",
+      "logical_id": "commercial-legacy-region-55205-v1",
+      "old_text": "✈️ Туры в Eftalia Ocean с перелётом\n\nТур с перелётом в Тюрклер, регион Алания, Турция.\n🏨 Большой комплекс на 682 номера.\n🍽 Главный ресторан и два ресторана à la carte.\n🛏 Есть номера Swim Up с прямым выходом в бассейн.\n\n📌 Размещение с домашними животными не предусмотрено.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=55205&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "new_text": "✈️ Туры в Eftalia Ocean с перелётом\n📍 Аланья, Турция.\n\nТур с перелётом в Тюрклер, регион Алания, Турция.\n🏨 Большой комплекс на 682 номера.\n🍽 Главный ресторан и два ресторана à la carte.\n🛏 Есть номера Swim Up с прямым выходом в бассейн.\n\n📌 Размещение с домашними животными не предусмотрено.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=55205&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "old_text_sha256": "744915d48a93ce271236b4e3d2af2c26af1b455f08fd0ceae6a61f357e9a1caf",
+      "new_text_sha256": "0de7829a9e600e9c6ff152595468db647ab21f8d1af5f4fdcbb12a45e6c045e6",
+      "previous_heading": "✈️ Туры в Eftalia Ocean с перелётом",
+      "previous_location": "",
+      "new_location": "📍 Аланья, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1334,
+      "key": "commercial-legacy-region-1334-v1",
+      "logical_id": "commercial-legacy-region-1334-v1",
+      "old_text": "✈️ Туры в Leodikya Kirman Premium с перелётом\n\nТур с перелётом в Окурджалар, регион Алания, Турция.\n🏖 Пляж длиной 200 метров, песок и галька.\n💦 Аквапарк с пятью горками и детский аквакомплекс.\n🧸 Детский клуб Kichi.\n🛏 Есть семейные номера.\n\n📌 Джакузи на террасе относится к отдельной категории номеров.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=1334&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "new_text": "✈️ Туры в Leodikya Kirman Premium с перелётом\n📍 Аланья, Турция.\n\nТур с перелётом в Окурджалар, регион Алания, Турция.\n🏖 Пляж длиной 200 метров, песок и галька.\n💦 Аквапарк с пятью горками и детский аквакомплекс.\n🧸 Детский клуб Kichi.\n🛏 Есть семейные номера.\n\n📌 Джакузи на террасе относится к отдельной категории номеров.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=1334&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "old_text_sha256": "b76dc2b9e70476fd629d787210beed362b8b230d52fdb70a202799380813261c",
+      "new_text_sha256": "acdd12d55916f9068301c8df8b9bfbf34aa9fcbed0771c831091b937f40f3aaa",
+      "previous_heading": "✈️ Туры в Leodikya Kirman Premium с перелётом",
+      "previous_location": "",
+      "new_location": "📍 Аланья, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1715,
+      "key": "commercial-legacy-region-1715-v1",
+      "logical_id": "commercial-legacy-region-1715-v1",
+      "old_text": "✈️ Туры в Voyage Torba с перелётом\n\nТур с перелётом в Торбу, Бодрум, Турция.\n🏖 Песчаный пляж длиной 300 метров с Голубым флагом.\n💦 Аквапарк и отдельная детская зона с горками.\n🛏 Есть семейные категории номеров.\n\n📌 Прямой выход к бассейну относится к категориям Swim Up.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=1715&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "new_text": "✈️ Туры в Voyage Torba с перелётом\n📍 Бодрум, Турция.\n\nТур с перелётом в Торбу, Бодрум, Турция.\n🏖 Песчаный пляж длиной 300 метров с Голубым флагом.\n💦 Аквапарк и отдельная детская зона с горками.\n🛏 Есть семейные категории номеров.\n\n📌 Прямой выход к бассейну относится к категориям Swim Up.\n\nНапишите даты отдыха и кто едет.\n\n🔎 Подобрать тур:\nhttps://anytour.online/poisk-turov/?days_from=5&days_till=14&from=1&count_people=2&country=4&hotel=1715&date_from=2026-11-06&date_till=2026-11-12\n\n✈️ Узнать стоимость тура",
+      "old_text_sha256": "7cec0a33d1b4cd2a237fc6315943a81b465fa0c2dab89385ed4bde4fccc2cc72",
+      "new_text_sha256": "8c5d42d02784e3296f1c913f28137552f9281eb01c474da18866587a9af63354",
+      "previous_heading": "✈️ Туры в Voyage Torba с перелётом",
+      "previous_location": "",
+      "new_location": "📍 Бодрум, Турция.",
+      "update_text": true
+    }
+  ],
+  "exact_ids": {
+    "233": {
+      "max": [
+        202,
+        856
+      ],
+      "telegram": [
+        192,
+        857
+      ]
+    },
+    "13872": {
+      "max": [
+        203,
+        782
+      ],
+      "telegram": [
+        193,
+        783
+      ]
+    },
+    "13873": {
+      "max": [
+        204,
+        850
+      ],
+      "telegram": [
+        194,
+        851
+      ]
+    },
+    "280": {
+      "max": [
+        205,
+        620
+      ],
+      "telegram": [
+        195,
+        621
+      ]
+    },
+    "456": {
+      "max": [
+        206,
+        762
+      ],
+      "telegram": [
+        196,
+        763
+      ]
+    },
+    "265": {
+      "max": [
+        207,
+        734
+      ],
+      "telegram": [
+        197,
+        735
+      ]
+    },
+    "454": {
+      "max": [
+        208,
+        760
+      ],
+      "telegram": [
+        198,
+        761
+      ]
+    },
+    "21475": {
+      "max": [
+        209,
+        784
+      ],
+      "telegram": [
+        199,
+        785
+      ]
+    },
+    "1963": {
+      "max": [
+        210,
+        768
+      ],
+      "telegram": [
+        200,
+        769
+      ]
+    },
+    "469": {
+      "max": [
+        69,
+        898
+      ],
+      "telegram": [
+        103,
+        899
+      ]
+    },
+    "381": {
+      "max": [
+        71,
+        584
+      ],
+      "telegram": [
+        104,
+        585
+      ]
+    },
+    "282": {
+      "max": [
+        339,
+        742
+      ],
+      "telegram": [
+        335,
+        743
+      ]
+    },
+    "165": {
+      "max": [
+        353,
+        860
+      ],
+      "telegram": [
+        349,
+        861
+      ]
+    },
+    "12116": {
+      "max": [
+        354,
+        776
+      ],
+      "telegram": [
+        350,
+        777
+      ]
+    },
+    "310": {
+      "max": [
+        68,
+        896
+      ],
+      "telegram": [
+        102,
+        897
+      ]
+    },
+    "67910": {
+      "max": [
+        70,
+        696
+      ],
+      "telegram": [
+        101,
+        697
+      ]
+    },
+    "68323": {
+      "max": [
+        72,
+        698
+      ],
+      "telegram": [
+        105,
+        699
+      ]
+    },
+    "1971": {
+      "max": [
+        73,
+        902
+      ],
+      "telegram": [
+        106,
+        903
+      ]
+    },
+    "488": {
+      "max": [
+        362,
+        766
+      ],
+      "telegram": [
+        359,
+        767
+      ]
+    },
+    "98723": {
+      "max": [
+        366,
+        802
+      ],
+      "telegram": [
+        363,
+        803
+      ]
+    },
+    "253": {
+      "max": [
+        375,
+        858
+      ],
+      "telegram": [
+        371,
+        859
+      ]
+    },
+    "1659": {
+      "max": [
+        425,
+        826
+      ],
+      "telegram": [
+        419,
+        827
+      ]
+    },
+    "21695": {
+      "max": [
+        426,
+        836
+      ],
+      "telegram": [
+        420,
+        837
+      ]
+    },
+    "28668": {
+      "max": [
+        427,
+        838
+      ],
+      "telegram": [
+        421,
+        839
+      ]
+    },
+    "55205": {
+      "max": [
+        428,
+        840
+      ],
+      "telegram": [
+        422,
+        841
+      ]
+    },
+    "1334": {
+      "max": [
+        429,
+        820
+      ],
+      "telegram": [
+        423,
+        821
+      ]
+    },
+    "1715": {
+      "max": [
+        430,
+        830
+      ],
+      "telegram": [
+        424,
+        831
+      ]
+    }
+  }
+}
