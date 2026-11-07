@@ -84,6 +84,20 @@ still supports both printed claims: 3,500 RUB and free iPhone X diagnostics.
 The resulting asset name is `appleservice39-iphone-x-3500-reviewed.png`.
 The onboarding catalog and the reviewed cover remain operator inputs.
 
+Add `--posts /path/to/posts.json` from the launch package to verify the exact
+first publication. It checks the pinned post ID, iPhone X and battery context,
+price, supporting catalog rows, reviewed cover and exact customer-facing caption.
+This is an offline check. It reports provider capability separately.
+
+On the launch host, add `--channel-id ID` using the numeric MAX channel ID from
+the provider's update. Supply `APPLESERVICE39_MAX_TOKEN` through the host's
+private configuration. The tool reads the dedicated bot's identity, admin/read/
+edit permissions, and exact active public channel link. It prints a safe receipt
+and exits with status 3 if that read-only verification fails. The tool does not
+load the existing AnyTour config, change a webhook or publish. A positive result
+only proves the channel capabilities. The repair runtime and the manager route
+still require their own verification before publication.
+
 For repair ads, the candidate is the [universal CSV feed](https://yandex.ru/support/direct/ru/feeds/requirements-other-categories#universal),
 with a stable offer ID and a verified offer-page URL. A preview creates no feed
 row, since this example has no verified offer-to-bot landing URL. It does not

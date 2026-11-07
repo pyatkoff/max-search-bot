@@ -10,6 +10,13 @@ return [
         'city' => 'Калининград',
         'source_host' => 'appleservice39.ru',
     ],
+    'pilot' => [
+        'post_id' => 'repair-iphone-x-battery-replacement',
+        'text_sha256' => '775ccab06072ca67d810bfde90fcbb9b59b547257ebc004bbbc23f077f6e3548',
+        'channel_url' => 'https://max.ru/channel_appleservice39ru',
+        'bot_key' => 'id390521129062_bot',
+        'bot_url' => 'https://max.ru/id390521129062_bot',
+    ],
     'reviewed_cover' => [
         'name' => 'appleservice39-iphone-x-3500-reviewed.png',
         'sha256' => 'bd972a093c2d1d3455000484a17405a51a6267e0254404c645044e3a5097fe78',
