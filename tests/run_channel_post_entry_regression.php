@@ -124,8 +124,9 @@ try {
         foreach(['Rixos Premium Seagate','Papillon Zeugma'] as $variant=>$hotel){
             $message=$platform==='max'?'mid.greeting.'.($variant+1):(string)(951+$variant);
             $url=$platform==='max'?'https://max.ru/c/-80095447388179/greeting'.($variant+1):'https://t.me/c/1234567890/'.$message;
+            $caption=$variant===0?"✈️ ".$hotel." 5★\nТур с перелётом":"✈️ Туры в ".$hotel." с перелётом\n📍 Белек, Турция.";
             $named[]=$registry->registerPublication('anytour',$platform,$basePost['bot_key'],$basePost['channel_id'],$message,
-                ['text'=>"✈️ ".$hotel." 5★\nТур с перелётом",'format'=>'native','post_url'=>$url]);
+                ['text'=>$caption,'format'=>'native','post_url'=>$url]);
         }
         $beforeSent=count($sent);$beforeResets=count(MaxSearchApi::$resets);$beforeApplied=count(MaxSearchApi::$needApplications);
         if($platform==='max')cpeStartMax($user,$named[0]['start_payload'],8800+$index);
