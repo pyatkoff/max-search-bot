@@ -1,0 +1,220 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read33",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 1353,
+      "name": "Asteria Family Resort Side",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/272",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2kaKJTuI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1353.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1067,
+      "name": "Catamaran Quality Times",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/273",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2kavEGKY",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1067.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 14135,
+      "name": "Hawaii Resort Phu Quoc",
+      "country_id": 16,
+      "region_id": 104,
+      "destination": "Фукуок",
+      "telegram_post_url": "https://t.me/any_toour/274",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2kbULQgE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/14135.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 90236,
+      "name": "The V Luxury Resort",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/275",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2kb5GDi8",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/90236.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 47470,
+      "name": "The Sol Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/276",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2kccpLM0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/47470.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 27647,
+      "name": "Asteria Bloom Side",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/277",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2kdBJaSY",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/27647.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1512,
+      "name": "Spice Hotel & Spa",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/278",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2kdlITSg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1512.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 75041,
+      "name": "Rubi Platinum Sign",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/279",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2keIrBrw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/75041.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1258,
+      "name": "IC Hotels Green Palace",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/280",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2keteR4o",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2cbfe83d94e56fd545da012e0121244032e023d6/.github/traffic-publish/commercial-batch-20261107-17/1258.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 9,
+  "candidate_count": 20,
+  "read_at_utc": "2026-11-07T15:15:21+00:00",
+  "scope_hotels": 9,
+  "feed_rows": 9,
+  "deferred_count": 0,
+  "installed_sha": "57e5ca2d4e14b2e130e728f5a7e99518f89b4f29",
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 1145,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 37364,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 17669,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1402,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1346,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 120209,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 27652,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1183,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 76515,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1684,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1614,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1228,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1134,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 47027,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1101,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 70233,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 996,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 28581,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1287,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 16794,
+      "clear": true,
+      "matches": []
+    }
+  ]
+}
