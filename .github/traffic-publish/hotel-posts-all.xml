@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 14:07">
+<yml_catalog date="2026-11-07 14:31">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -4286,6 +4286,132 @@
         <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="tg_1294">
+        <url>https://t.me/any_toour/253</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1294.png</picture>
+        <name>Путевки в Nirvana Cosmopolitan</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="tg_975">
+        <url>https://t.me/any_toour/254</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/975.png</picture>
+        <name>Путевки в Nirvana Dolce Vita</name>
+        <description>Тур с перелётом. Текирова. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Текирова</custom_label_1>
+      </offer>
+      <offer id="tg_26530">
+        <url>https://t.me/any_toour/255</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/26530.png</picture>
+        <name>Путевки в Royal Star Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_69116">
+        <url>https://t.me/any_toour/256</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/69116.png</picture>
+        <name>Путевки в Selectum Noa Resort Cam Ranh</name>
+        <description>Тур с перелётом. Камрань. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Камрань</custom_label_1>
+      </offer>
+      <offer id="tg_1588">
+        <url>https://t.me/any_toour/257</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1588.png</picture>
+        <name>Путевки в Kremlin Palace</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="tg_3415">
+        <url>https://t.me/any_toour/258</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/3415.png</picture>
+        <name>Путевки в Royal Holiday Palace</name>
+        <description>Тур с перелётом. Лара. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Лара</custom_label_1>
+      </offer>
+      <offer id="tg_964">
+        <url>https://t.me/any_toour/259</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/964.png</picture>
+        <name>Путевки в Crystal Aura Aqua Collection</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="max_1294">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNmM4OGZkYzExZmI2YjgyY2EwMjQ0MGE0MzgzZTVkZGUiLCJvZmZlcl9pZCI6Im1heF8xMjk0In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1294.png</picture>
+        <name>Туры в Nirvana Cosmopolitan</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="max_975">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfY2MyNzRmYmQxYzZkZTI5ZDUxYjU3ZGI1ZjIwMzRmZGMiLCJvZmZlcl9pZCI6Im1heF85NzUifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/975.png</picture>
+        <name>Туры в Nirvana Dolce Vita</name>
+        <description>Тур с перелётом. Текирова. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Текирова</custom_label_1>
+      </offer>
+      <offer id="max_26530">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzBkMzhmYjdjOGFlMGVlYWU1NWFmMTRlOWNkNTgyYTQiLCJvZmZlcl9pZCI6Im1heF8yNjUzMCJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/26530.png</picture>
+        <name>Туры в Royal Star Beach Resort</name>
+        <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="max_69116">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNmE4ODQyMjBkMTU0MjhjMWM1MmQ3ZDJjNzY5NTY1ZWIiLCJvZmZlcl9pZCI6Im1heF82OTExNiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/69116.png</picture>
+        <name>Туры в Selectum Noa Resort Cam Ranh</name>
+        <description>Тур с перелётом. Камрань. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Камрань</custom_label_1>
+      </offer>
+      <offer id="max_1588">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTQ2YjA2NWYxYjAwOTMyNWIxYmZmYWQ3YzA0YTlkMGUiLCJvZmZlcl9pZCI6Im1heF8xNTg4In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1588.png</picture>
+        <name>Туры в Kremlin Palace</name>
+        <description>Тур с перелётом. Анталья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Анталья</custom_label_1>
+      </offer>
+      <offer id="max_3415">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMTQ1Y2I1MDQxMzg3OTg1YWI5NjMyZTYyNWIxMTgzYzgiLCJvZmZlcl9pZCI6Im1heF8zNDE1In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/3415.png</picture>
+        <name>Туры в Royal Holiday Palace</name>
+        <description>Тур с перелётом. Лара. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Лара</custom_label_1>
+      </offer>
+      <offer id="max_964">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTg0NDc3MmY2NjE4MDEwMTg4MmI2NWE1MTNlNjU0MmUiLCJvZmZlcl9pZCI6Im1heF85NjQifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/964.png</picture>
+        <name>Туры в Crystal Aura Aqua Collection</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
       </offer>
     </offers>
   </shop>

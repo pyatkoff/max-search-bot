@@ -1,0 +1,94 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read31",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 1294,
+      "name": "Nirvana Cosmopolitan",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/253",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Y20DabI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1294.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 975,
+      "name": "Nirvana Dolce Vita",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/254",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Y3Z4EWo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/975.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 26530,
+      "name": "Royal Star Beach Resort",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/255",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Y3-TQtE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/26530.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 69116,
+      "name": "Selectum Noa Resort Cam Ranh",
+      "country_id": 16,
+      "region_id": 700,
+      "destination": "Камрань",
+      "telegram_post_url": "https://t.me/any_toour/256",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Y4jjcAg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/69116.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1588,
+      "name": "Kremlin Palace",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/257",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Y5HpQTQ",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/1588.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 3415,
+      "name": "Royal Holiday Palace",
+      "country_id": 4,
+      "region_id": 20,
+      "destination": "Анталья",
+      "telegram_post_url": "https://t.me/any_toour/258",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Y5seTmY",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/3415.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 964,
+      "name": "Crystal Aura Aqua Collection",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/259",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Y6Q2dxg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/7ec3c38577ccd05347812a4e857fcc0ca8eb6c5d/.github/traffic-publish/commercial-batch-20261107-14/964.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 7,
+  "scope_hotels": 7,
+  "feed_rows": 7,
+  "deferred_count": 0,
+  "installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083"
+}
