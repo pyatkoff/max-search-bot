@@ -172,6 +172,21 @@ function modeledAcquisitionAssertions(PDO $pdo):int
     $tg();$pdo->exec('ALTER TABLE advertising_visit_observations RENAME TO acquisition_unavailable_visits');$r=$read();
     $check(!$r['available']&&$r['reason']==='storage_unavailable'&&$r['platforms']===null,'missing observation storage is unavailable, never zero observed entries');
     $pdo->exec('ALTER TABLE acquisition_unavailable_visits RENAME TO advertising_visit_observations');
+    foreach([[0,false,false],[1,false,true],[1,true,false],[2,true,true]]as[$capacity,$hasEntry,$accepted]){
+        $tg();if($hasEntry)$visit(1,$now-7200);
+        $bounded=new ModeledConversionAcquisitionStatsReader($pdo,static function():void{});
+        $reflection=new ReflectionClass($bounded);
+        // The one native binding row precedes the repository's count receipt.
+        $reflection->getProperty('records')->setValue($bounded,ModeledConversionAcquisitionStatsReader::MAX_RECORDS-$capacity-1);
+        $reflection->getProperty('deadline')->setValue($bounded,microtime(true)+15);
+        $pdo->beginTransaction();$acceptedResult=null;$reason=null;
+        try{$acceptedResult=$reflection->getMethod('entryContext')->invoke($bounded,
+            ['telegram:11'=>['platform'=>'telegram','customer'=>'11','conversation'=>'11','at'=>$now-3600]],$now);}
+        catch(ModeledConversionAcquisitionReadFailure $e){$reason=$e->getMessage();}
+        finally{$pdo->rollBack();}
+        $check($accepted?($reason===null&&$acceptedResult['counts'][$hasEntry?'prior_observed':'no_data']===1):($reason==='record_limit'&&$acceptedResult===null),
+            'count sentinel preserves exact remaining row budget '.$capacity.' with '.($hasEntry?'one entry':'empty history'));
+    }
     $reset();for($id=1000;$id<=1100;$id++){
         $person($id,'telegram');$packet($id,'telegram',$id,[['at'=>$now-3600]],$now-60);
         $visit($id,$now-7200,['external_user_id'=>'900719925474'.$id]);

@@ -291,10 +291,15 @@ final class ModeledConversionAcquisitionStatsReader
         foreach(array_chunk(array_keys($identities),100)as$ids){
             // Numeric PHP array keys are restored to decimal strings, never floats.
             $ids=array_map('strval',$ids);$history=[];
-            $rows=$repository->entryContextCandidates(
+            // The count itself consumes one row. The remaining number is the
+            // sentinel, so an exact fit leaves capacity for that count receipt.
+            $remaining=self::MAX_RECORDS-$this->records;
+            if($remaining<1)throw new ModeledConversionAcquisitionReadFailure('record_limit');
+            $candidates=$repository->entryContextCandidates(
                 ['project_key'=>'anytour','source_key'=>'tgmini','platform'=>'telegram','counter_id'=>'98615635'],
-                $ids,self::MAX_RECORDS+1,fn(string $sql,array $args):array=>$this->rows($sql,$args));
-            foreach($rows as$row){
+                $ids,$remaining,fn(string $sql,array $args):array=>$this->rows($sql,$args));
+            if(!$candidates['complete'])throw new ModeledConversionAcquisitionReadFailure('record_limit');
+            foreach($candidates['rows']as$row){
                 $external=(string)$row['external_user_id'];
                 if(!in_array($external,$ids,true))throw new ModeledConversionAcquisitionReadFailure('source_changed');
                 $visit=self::unix($row['visit_at_unix']);$observed=self::unix($row['observed_at_unix']);$received=self::unix($row['received_at_unix']);
