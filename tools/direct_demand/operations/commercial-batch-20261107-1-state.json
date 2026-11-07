@@ -196,10 +196,12 @@
     "technical_count_is_not_user_acceptance_of_164_ads": true
   },
   "side_star_cover_draft": {
-    "status": "DRAFT_PREVIEW_SHOWN_NOT_COMMITTED_NOT_PUBLISHED",
+    "status": "NOT_APPLIED_DRAFT_PREVIEW_NOT_COMMITTED_NOT_PUBLISHED",
     "design_id": "DAHaKG2_z0k",
     "transaction_id": "4820498910682623885",
-    "preview_sha256": "5030e20388deac17eab023202d85cad5c469df993d783fe6ade6a566cac99208",
+    "preview_file": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/Side_Star_Resort_Commercial_Cover_Draft_v2.png",
+    "library_file_id": "libfile_fde3_f-dc2dca959cec81919804a68ef7293192_839482358a3c8191a38d8cf811d28df4",
+    "source_state_file": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/side-star-cover-draft-state.json",
     "user_approved": false,
     "channel_media_changed": false
   },
