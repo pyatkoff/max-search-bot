@@ -21,7 +21,7 @@ function outcomeReceiptAdd(PDO $p,int $id,string $project='anytour',string $chan
 $root=dirname(__DIR__);$dir=sys_get_temp_dir().'/modeled-outcome-fixture-'.bin2hex(random_bytes(10));
 mkdir($dir,0700);mkdir($dir.'/services',0700);
 try {
-    foreach(['SalesPipelineService.php','ModeledConversionOutcomeReceipt.php','ConversationRecordClock.php','InternalOwnerDialogueScope.php']as$file){
+    foreach(['SalesPipelineService.php','SalesOutcomeTripBinding.php','ModeledConversionOutcomeReceipt.php','ConversationRecordClock.php','InternalOwnerDialogueScope.php']as$file){
         if(!copy($root.'/services/'.$file,$dir.'/services/'.$file))throw new RuntimeException('fixture_copy_failed');
     }
     file_put_contents($dir.'/services/ConversationDb.php',<<<'PHP'
