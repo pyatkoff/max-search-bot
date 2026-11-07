@@ -120,11 +120,15 @@ try {
         $basePost=$publications[$platform];$user=88877100+$index;$chat=$platform==='max'?-$user:$user;
         $known=['city'=>'Москва','country'=>'Египет','adults'=>2,'children'=>0,'nights'=>'5'];
         MaxSearchApi::$needContexts[$chat]=$known;MaxSearchApi::$missingNeeds[$chat]=['date'];
+        $legacyTitle=SourceQualificationPrompt::publicationContext([
+            ...$basePost, 'snapshot'=>['text'=>"✈️ Туры в Papillon Zeugma с перелётом\n📍 Белек, Турция."],
+        ]);
+        cpeCheck('existing flight-suffix heading still resolves the hotel: '.$platform,$legacyTitle['hotel_name']??'','Papillon Zeugma');
         $named=[];
         foreach(['Rixos Premium Seagate','Papillon Zeugma'] as $variant=>$hotel){
             $message=$platform==='max'?'mid.greeting.'.($variant+1):(string)(951+$variant);
             $url=$platform==='max'?'https://max.ru/c/-80095447388179/greeting'.($variant+1):'https://t.me/c/1234567890/'.$message;
-            $caption=$variant===0?"✈️ ".$hotel." 5★\nТур с перелётом":"✈️ Туры в ".$hotel." с перелётом\n📍 Белек, Турция.";
+            $caption=$variant===0?"✈️ ".$hotel." 5★\nТур с перелётом":"✈️ Туры в ".$hotel."\n📍 Белек, Турция.";
             $named[]=$registry->registerPublication('anytour',$platform,$basePost['bot_key'],$basePost['channel_id'],$message,
                 ['text'=>$caption,'format'=>'native','post_url'=>$url]);
         }
