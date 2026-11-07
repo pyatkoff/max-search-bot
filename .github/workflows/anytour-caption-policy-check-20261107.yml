@@ -1,0 +1,20 @@
+name: Verify AnyTour commercial caption format offline
+on:
+  push:
+    branches: [audit/anytour-commercial-heading-validation-20261107]
+    paths: [.github/workflows/anytour-caption-policy-check-20261107.yml]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      CHECK_PHP: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check approved captions and generated PHP without provider calls
+        run: python3 tools/direct_demand/operations/verify-caption-policy-20261107.py
