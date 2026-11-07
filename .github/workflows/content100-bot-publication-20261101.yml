@@ -1,4 +1,4 @@
-name: Replace only the approved Side Star cover on the existing two posts
+name: Read the existing Side Star media operation without another write
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -62,8 +62,8 @@ jobs:
           assert len(selected)==2 and {r['version_id'] for r in selected}=={929,932} and all(r['text_sha256']==media['text_sha256'] for r in selected)
           payload={'operation':media['operation'],'media':media,'prior_result':receipt}
           raw=json.dumps(payload,ensure_ascii=False,separators=(',',':')).encode();(tmp/'side-star-media-input.json').write_bytes(raw)
-          source=(base/'update-existing-side-star-media-20261107-template.php').read_text()
-          assert hashlib.sha256(source.encode()).hexdigest()=='2c5bdc09890f6112994603013c43cbbe433d514e1fb482463fbd5a0584515209'
+          source=(base/'read-side-star-media-original-receipt-20261107-template.php').read_text()
+          assert hashlib.sha256(source.encode()).hexdigest()=='71800121e0c0f1d3c2c36d8128e7a2ddf01a6a80129eda12557efd894a40fa48'
           constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_MEDIA_OPERATION='commercial-side-star-media-20261107-1-v1';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
           assert source.count('declare(strict_types=1);')==1
           (tmp/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
@@ -73,7 +73,7 @@ jobs:
       - name: Retain exact approved media intent before provider access
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-side-star-media-20261107-1-inputs
+          name: commercial-side-star-media-20261107-1-read1-inputs
           path: ${{ runner.temp }}/side-star-media-input.json
           retention-days: 14
           if-no-files-found: error
@@ -115,7 +115,7 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Replace only Side Star media and verify the retained caption button and token
+      - name: Read the original receipt and current MAX state once without retry
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -128,25 +128,17 @@ jobs:
           import pathlib,json,os
           tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
           d=json.loads((tmp/'channel-preflight.json').read_text().splitlines()[-1])
-          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-          assert d['operation']=='commercial-side-star-media-20261107-1-v1' and d['mode']=='replace_exact_side_star_cover_on_existing_two_posts'
-          assert d['ok'] is True and d['media_updates']==2 and len(d['posts'])==2 and d['new_posts_created']==0 and d['media_edit_attempts']==2
-          assert d['caption_edits']==d['tour_search_calls']==d['price_queries']==0
-          source=json.loads((tmp/'side-star-media-input.json').read_text());prior={p['platform']:p for p in source['prior_result']['posts'] if p['logical_id']=='commercial-side-star-resort-1095-v1'}
-          for p in d['posts']:
-              old=prior[p['platform']]
-              assert all(p[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','source_key','text_sha256'))
-              assert p['previous_version_id']==old['version_id'] and p['version_id']!=old['version_id']
-              assert p['previous_photo_signature']==old['photo_signature'] and p['photo_signature']!=old['photo_signature']
-              assert p['photo_sha256']==source['media']['photo_sha256'] and p['caption_unchanged'] and p['body_photo_button_verified'] and p['existing_message_reused']
-          print('SIDE_STAR_TWO_EXISTING_MEDIA_UPDATED caption_button_token_url=preserved new_posts=0 other_hotels_changed=0')
+          print(json.dumps({k:d[k] for k in ('operation','mode','ok','provider_writes','registry_writes','new_posts_created','error','max_readback_summary','next_candidate_registry_clearance') if k in d},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-side-star-media-20261107-1-read1' and d['ok'] is True
+          assert d['provider_writes']==d['registry_writes']==d['new_posts_created']==0
+          print('SIDE_STAR_ORIGINAL_RECEIPT_AND_CURRENT_STATE_READ_NO_WRITE')
           PY
           test "${probe_status:-0}" = 0
       - name: Retain bounded route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-side-star-media-20261107-1-result
+          name: commercial-side-star-media-20261107-1-read1-result
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
