@@ -1,0 +1,77 @@
+{
+  "operation": "commercial-hotel-batch-20261107-1-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Publish the existing accepted Rubi, Rox and Side Star ready subset in both current AnyTour channels toward 500+ pairs.",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_logical_materials": 161,
+  "baseline_observed_at": "2026-11-06T05:24:00Z",
+  "baseline_is_historical": true,
+  "selection_source": "both",
+  "material_source_issue": "https://github.com/pyatkoff/max-search-bot/issues/1142#issuecomment-6690186171",
+  "media_reused_unchanged": true,
+  "caption_change": "Only surrounded em dashes removed to satisfy existing sender validation; facts unchanged.",
+  "rows": [
+    {
+      "hotel_id": 27426,
+      "text": "🏨 Rubi Platinum Spa Resort & Suites 5★\n\nПо описанию ANEX:\n\n🏖 Пляж с песчаными и каменистыми участками, есть пирс.\n🍽 Platinum AI с выбранными местными и импортными напитками. Рестораны à la carte и обслуживание в номере за дополнительную плату.\n🛏 Номера Deluxe 32 м².\n👨‍👩‍👧‍👦 Family Suite 57 м²: две спальни с дверью и две ванные комнаты.\n\nНапишите город вылета, даты поездки и сколько вас человек.",
+      "text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
+      "photo_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "aliases": [
+        "Rubi Platinum Spa Resort & Suites"
+      ],
+      "sources": [
+        "https://www.anextour.com.ua/hotel/8401/rubi-platinum-spa-resort-suites/"
+      ],
+      "origin": "both",
+      "anex_id": 8401,
+      "anytour_id": 5537,
+      "logical_id": "commercial-rubi-platinum-27426-v1",
+      "hotel": "Rubi Platinum Spa Resort & Suites",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15b82fe07291dd7eae0f6902d7b1ee4eb3436626/.github/traffic-publish/commercial-batch-20261107-1/27426.png"
+    },
+    {
+      "hotel_id": 1216,
+      "text": "🏨 Rox Resort\n\nПо официальному описанию отеля:\n\n🛏 Honeymoon 28 м², Deluxe 54 м². Есть и категория Junior Suite.\n🎉 В программе заявлены анимация и пляжные вечеринки.\n🗓 Отель заявляет работу круглый год. Режим отдельных услуг и программу на ваши даты уточним при подборе.\n\nНапишите город вылета, даты поездки и сколько вас человек.",
+      "text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
+      "photo_sha256": "6b719c1dc25fe7905d7b310c7b30d637f3a0a342a89eacebe4d647dd81fd76f6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "aliases": [
+        "Rox Resort",
+        "Rox Resort Hotel"
+      ],
+      "sources": [
+        "https://roxresorthotel.com/en/en-general-information/",
+        "https://roxresorthotel.com/en/en-beach/"
+      ],
+      "origin": "both",
+      "anex_id": 8595,
+      "anytour_id": 548,
+      "logical_id": "commercial-rox-resort-1216-v1",
+      "hotel": "Rox Resort",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15b82fe07291dd7eae0f6902d7b1ee4eb3436626/.github/traffic-publish/commercial-batch-20261107-1/1216.png"
+    },
+    {
+      "hotel_id": 1095,
+      "text": "🏨 Side Star Resort\n\nПо официальному описанию отеля:\n\n🛏 Suite 60 м² в главном корпусе: две спальни с дверью и гостиная.\n🍽 В Divan Bistro заявлен ночной буфет с ограниченным выбором блюд с 21:00 до 07:00. Обслуживание в номере оплачивается отдельно.\n✨ Частичная реновация 2024 года затронула номера, лобби, ресторанные зоны и крытый бассейн.\n\nНапишите город вылета, даты поездки и сколько вас человек.",
+      "text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
+      "photo_sha256": "0eda6e380dc296edf411c5888d6002d32016c40cd99263ba815b261c7e8f4731",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "aliases": [
+        "Side Star Resort",
+        "SIDE STAR RESORT (EX. VERA CLUB LINDITA)",
+        "VERA CLUB LINDITA"
+      ],
+      "sources": [
+        "https://www.sidestarhotels.com/resort/tr",
+        "https://www.sidestarhotels.com/storage/website-factsheets/August2026/EpM53l8IH6B0gQZ8h7x9.pdf"
+      ],
+      "origin": "both",
+      "anex_id": 8476,
+      "anytour_id": 7434,
+      "logical_id": "commercial-side-star-resort-1095-v1",
+      "hotel": "Side Star Resort",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/15b82fe07291dd7eae0f6902d7b1ee4eb3436626/.github/traffic-publish/commercial-batch-20261107-1/1095.png"
+    }
+  ]
+}

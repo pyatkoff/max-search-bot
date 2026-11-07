@@ -1,4 +1,4 @@
-name: Read genuinely unread retained facts and photoDetails for exact TOP500 native8208
+name: Publish three approved AnyTour hotels in both channels
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,9 +10,7 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 0e57de3a6a06cc46b97ff10777c9821818b03af1
-  EXPECTED_PROFILE_READER_SHA256: 922e42a82124c3793af6ab53bde034620687a41c3e526e7d4cae3478670eec0d
-  EXPECTED_CATALOG_CONNECTOR_SHA256: 8bafffffb952007d19e075cd7bbc976b70eba296d6334446bdd4840fdb787ac5
+  EXPECTED_PRODUCTION_SHA: c21ee260e70b8f879e6f788405186ea9dab11543
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -23,10 +21,7 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-          sparse-checkout: |
-            tools/direct_demand/operations
-          sparse-checkout-cone-mode: true
-      - name: Verify exact current publishing source and original TOP500 membership revision
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -36,58 +31,35 @@ jobs:
           evidence="$RUNNER_TEMP/commercial-source-evidence"
           mkdir -p "$evidence"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42168413861 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/42168413861/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42168885555 > "$evidence/tls_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42353354646 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42353354646/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42353811651 > "$evidence/tls_run.json"
           gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-          gh api repos/pyatkoff/poisk-turov-test/git/ref/heads/main > "$RUNNER_TEMP/profile-top500-main.json"
-          python3 - <<'PY'
-          import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'profile-top500-main.json').read_text())
-          assert d['object']['sha']=='64fa44201d77d8b6ea2abd4f9580deb7cf2b9d4d','CANONICAL_TOP500_MEMBERSHIP_SOURCE_CHANGED'
-          print('CANONICAL_TOP500_SOURCE_OK server_calls=0')
-          PY
-      - name: Require same-source successful production diagnostics
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Prepare this exact approved three-hotel batch
+        shell: bash
         run: |
           set -euo pipefail
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42168885444 > "$RUNNER_TEMP/profile-diagnostics-run.json"
+          umask 077
           python3 - <<'PY'
-          import json,os,pathlib
-          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'profile-diagnostics-run.json').read_text())
-          assert d['head_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['path']=='.github/workflows/publish-conversation-diagnostics.yml'
-          assert d['status']=='completed' and d['conclusion']=='success'
-          print('SAME_SOURCE_PRODUCTION_DIAGNOSTICS_OK server_calls=0')
+          import hashlib,json,os,pathlib
+          base=pathlib.Path('tools/direct_demand/operations')
+          assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='216e1b5ce439a3c68553c4925cac1a499a16d9f3433b2a13c1b15e07574adbdf'
+          approval=json.loads((base/'commercial-batch-20261107-1-approval.json').read_text())
+          assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert approval['operation']=='commercial-hotel-batch-20261107-1-v1' and len(approval['hotel_ids'])==3
           PY
-      - uses: actions/download-artifact@v4
-        with:
-          name: commercial-top500-internal-base-20261106-8208-metadata1
-          github-token: ${{ github.token }}
-          repository: pyatkoff/max-search-bot
-          run-id: 42166900411
-          path: ${{ runner.temp }}/original-8208
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring
-      - name: Bind the new fields to the existing native gallery witness and validate only new cases
-        run: |
-          set -euo pipefail
-          python3 -m py_compile tools/direct_demand/operations/prepare-top500-internal-base-20261106-8208-profile1.py tools/direct_demand/operations/run-top500-internal-base-20261106-8208-profile1.py
-          python3 tools/direct_demand/operations/prepare-top500-internal-base-20261106-8208-profile1.py
-          php -l "$RUNNER_TEMP/top500-profile.php"
-          ANYTOUR_TOP500_PROFILE_NEW_CASES=1 php "$RUNNER_TEMP/top500-profile.php"
-      - name: Retain the exact private one-property input before server or rights access
+          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261107-1-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261107-1-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+      - name: Retain exact approved inputs before any channel write
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-top500-internal-base-20261106-8208-profile1-input
+          name: commercial-batch-20261107-1-inputs
           path: |
-            ${{ runner.temp }}/top500-profile-input.private.json
-            ${{ runner.temp }}/top500-profile.php
+            tools/direct_demand/operations/commercial-batch-20261107-1-manifest.json
+            tools/direct_demand/operations/commercial-batch-20261107-1-approval.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -128,21 +100,37 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read only the new normalized fields under current native country2 proof
+      - name: Publish the exact three approved hotel posts with canonical buttons and no duplicates
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
         run: |
           set -euo pipefail
           umask 077
-          python3 tools/direct_demand/operations/run-top500-internal-base-20261106-8208-profile1.py
-      - uses: actions/upload-artifact@v4
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import pathlib,json,os
+          lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
+          d=json.loads(lines[-1])
+          print(json.dumps(d,ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-hotel-batch-20261107-1-v1' and d['mode']=='publish_approved_commercial_batch'
+          assert d['ok'] is True and len(d['posts'])==6
+          assert d['post_write_attempts']<=6 and d['new_posts']<=6
+          assert len({(p['platform'],p['logical_id']) for p in d['posts']})==6
+          assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Retain bounded route evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-top500-internal-base-20261106-8208-profile1-result
-          path: |
-            ${{ runner.temp }}/top500-profile-input.private.json
-            ${{ runner.temp }}/top500-profile-readback.private.json
-            ${{ runner.temp }}/top500-profile-summary.json
+          name: commercial-batch-20261107-1-publication
+          path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
+      - name: Remove ephemeral connection and script files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
+
