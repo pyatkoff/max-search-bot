@@ -119,6 +119,55 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $check('value read returns no identities upload IDs arbitrary cached text or source markers',!str_contains($json,'PRIVATE_REPORT_MUST_NOT_LEAVE')&&!str_contains($json,'PRIVATE_LEDGER_CLIENT_ID')&&!str_contains($json,'"501"')&&!str_contains($json,'"502"')&&!str_contains($json,'8800000123'));
     $r=forecastV1Read($p);
     $check('repeated private read causes no queue or saved-profile mutation',$before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $check('legacy successful tick has an explicit null recorded failure',array_key_exists('last_recorded_failure',$d)&&$d['last_recorded_failure']===null);
+    $saveFailureReceipt=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?,last_tick_unix=?");
+    $failureSnapshot=static fn():array=>[
+        $p->query('SELECT * FROM modeled_conversion_value_export_settings ORDER BY project_key')->fetchAll(PDO::FETCH_ASSOC),
+        $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),forecastV1Rows($p)];
+    $failureReadOnly=true;
+    $readFailure=static function(array $savedReceipt,mixed $lastTick)use($p,$saveFailureReceipt,$failureSnapshot,&$failureReadOnly):array{
+        $saveFailureReceipt->execute([json_encode($savedReceipt,JSON_THROW_ON_ERROR),$lastTick]);
+        $saved=$failureSnapshot();$read=forecastV1Read($p);$failureReadOnly=$failureReadOnly&&$saved===$failureSnapshot();return $read;
+    };
+    $failure=['tick_at_unix'=>$now-120,'phase'=>'upload','category'=>'transport_not_sent'];
+    $withFailure=$receipt;$withFailure['last_recorded_failure']=$failure+[
+        'message'=>'PRIVATE_TICK_MESSAGE_MUST_NOT_LEAVE','client_id'=>'PRIVATE_TICK_ID_MUST_NOT_LEAVE',
+        'response'=>['body'=>'PRIVATE_TICK_RESPONSE_MUST_NOT_LEAVE']];
+    $r=$readFailure($withFailure,$now-60);$d=$r['value_delivery'];
+    $check('healthy current tick retains an older sanitized failure without becoming a current error',
+        $d['available']&&$d['last_tick_errors']===0&&$d['last_tick_at']===gmdate('Y-m-d\TH:i:s\Z',$now-60)
+        &&$d['last_recorded_failure']===['tick_at'=>gmdate('Y-m-d\TH:i:s\Z',$now-120),'phase'=>'upload','category'=>'transport_not_sent']
+        &&$d['reserved_value_rub']===8333.0);
+    $check('recorded failure is explicitly historical',$d['interpretation']['last_recorded_failure_is_historical']===true);
+    $check('failure projection drops all arbitrary private exception and provider fields',!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_TICK_'));
+    $legacyFailure=$receipt;$legacyFailure['errors']=1;$d=$readFailure($legacyFailure,$now-60)['value_delivery'];
+    $check('legacy tick error count cannot fabricate a failure category',$d['last_tick_errors']===1&&$d['last_recorded_failure']===null);
+    foreach(['activation'=>$act,'last_tick'=>$now-60]as$boundary=>$at){
+        $withFailure['last_recorded_failure']=array_replace($failure,['tick_at_unix'=>$at]);
+        $d=$readFailure($withFailure,$now-60)['value_delivery'];
+        $check('recorded failure accepts inclusive '.$boundary.' boundary',
+            $d['last_recorded_failure']===['tick_at'=>gmdate('Y-m-d\TH:i:s\Z',$at),'phase'=>'upload','category'=>'transport_not_sent']);
+    }
+    $invalidFailures=['null_record'=>null,'scalar_record'=>'PRIVATE_TICK_INVALID_RECORD','missing_time'=>['phase'=>'upload','category'=>'transport_not_sent']];
+    foreach(['numeric_string'=>(string)($now-120),'fractional'=>$now-120.5,'boolean'=>true,'null_time'=>null,
+        'pre_activation'=>$act-1,'future'=>$now+3600,'after_last_tick'=>$now-30]as$reason=>$at)
+        $invalidFailures[$reason]=array_replace($failure,['tick_at_unix'=>$at]);
+    foreach(['phase'=>'UPLOAD','category'=>'PRIVATE_TICK_UNKNOWN_CATEGORY']as$field=>$value)
+        $invalidFailures['unknown_'.$field]=array_replace($failure,[$field=>$value]);
+    foreach($invalidFailures as$reason=>$invalid){
+        $withFailure['last_recorded_failure']=$invalid;$read=$readFailure($withFailure,$now-60);$d=$read['value_delivery'];
+        $check('invalid recorded failure '.$reason.' stays null without hiding the ledger',
+            $d['available']&&$d['last_recorded_failure']===null&&$d['last_tick_errors']===0&&$d['reserved_value_rub']===8333.0
+            &&!str_contains(json_encode($read,JSON_THROW_ON_ERROR),'PRIVATE_TICK_'));
+    }
+    $withFailure['last_recorded_failure']=$failure;
+    foreach(['missing'=>null,'pre_activation'=>$act-1,'future'=>$now+3600]as$reason=>$lastTick){
+        $d=$readFailure($withFailure,$lastTick)['value_delivery'];
+        $check('invalid last tick '.$reason.' cannot validate a historical failure',
+            $d['available']&&$d['last_tick_at']===null&&$d['last_recorded_failure']===null);
+    }
+    $check('failure status reads never mutate saved settings ledger or profiles',$failureReadOnly);
+    $saveFailureReceipt->execute([json_encode($receipt,JSON_THROW_ON_ERROR),$now]);
     $audit=['version'=>'retained_priced_base_v1','checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
         'goal_rows_scanned'=>1001,'complete'=>false,'unprocessed_candidates'=>0,
         'actions'=>['voided'=>['events'=>1001,'removed_rub'=>100100000]],
