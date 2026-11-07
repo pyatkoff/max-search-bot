@@ -1331,7 +1331,7 @@ async function setupOutcomeTripNative(page,{width=430,binding=null,available=tru
  page.on('pageerror',error=>errors.push(error.message));
  await page.setViewportSize({width,height:900});
  await page.route('**/*',route=>{
-  if(route.request().url()==='https://outcome-trip.invalid/')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><body class="manager2"><main id="leadCard" class="leadCard"></main><textarea id="replyText">Несохранённый ответ туристу</textarea></body>'});
+  if(route.request().url()==='https://outcome-trip.invalid/')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><head><meta charset="utf-8"></head><body class="manager2"><main id="leadCard" class="leadCard"></main><textarea id="replyText">Несохранённый ответ туристу</textarea></body>'});
   unexpected.push(route.request().url());return route.abort();
  });
  if(reload)await page.reload();else await page.goto('https://outcome-trip.invalid/');
