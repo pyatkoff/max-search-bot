@@ -89,4 +89,39 @@ final class AdvertisingVisitRepository
         $q->execute([...array_values($scope), $externalUserId]);
         return $q->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * Complete bounded candidates for an existing read-only report, not attribution.
+     * Its query callback owns the shared transaction, authorization and row/time/byte
+     * budget. Limit is a sentinel: reaching it returns no partial candidates.
+     */
+    public function entryContextCandidates(array $scope,array $externalUserIds,int $limit,callable $read):array
+    {
+        $scope=AdvertisingVisitContract::scope($scope);
+        if(!$externalUserIds||count($externalUserIds)>100||$limit<1||$limit>50001)
+            throw new InvalidArgumentException('advertising_visit_entry_context_input');
+        foreach($externalUserIds as$id)if(!is_string($id)||preg_match('/\A[1-9][0-9]{0,31}\z/D',$id)!==1)
+            throw new InvalidArgumentException('advertising_visit_entry_context_identity');
+        $where=[];$args=[];
+        foreach($scope as$key=>$value){$where[]='v.'.$key.'=? AND HEX(v.'.$key.')=HEX(?)';array_push($args,$value,$value);}
+        $marks=implode(',',array_fill(0,count($externalUserIds),'?'));
+        // The persisted feed owner authenticates identity. Raw client IDs or click
+        // hints in a profile, start payload or unverified capture are not substitutes.
+        $where[]="v.external_user_id IN ($marks) AND v.identity_status='verified' AND HEX(v.identity_status)=HEX('verified')";
+        array_push($args,...$externalUserIds);
+        // Count a bounded identity-index prefix before the costlier conflict
+        // projection. A history that cannot fit must not spend its SQL budget
+        // evaluating one correlated visit-owner check for every rejected row.
+        $count=$read('SELECT COUNT(*) AS candidate_count FROM (SELECT 1 FROM advertising_visit_observations v WHERE '
+            .implode(' AND ',$where).' LIMIT '.$limit.') bounded_candidates',$args);
+        if((int)$count[0]['candidate_count']>=$limit)return ['complete'=>false,'rows'=>[]];
+        $same=[];foreach(array_keys($scope)as$key)$same[]='x.'.$key.'=v.'.$key.' AND HEX(x.'.$key.')=HEX(v.'.$key.')';
+        $conflict='EXISTS(SELECT 1 FROM advertising_visit_observations x WHERE '.implode(' AND ',$same)
+            ." AND x.visit_id=v.visit_id AND HEX(x.visit_id)=HEX(v.visit_id) AND x.identity_status='verified'"
+            ." AND HEX(x.identity_status)=HEX('verified') AND HEX(x.external_user_id)<>HEX(v.external_user_id))";
+        $rows=$read('SELECT v.external_user_id,v.client_id,v.visit_at_unix,v.observed_at_unix,v.received_at_unix,'
+            .$conflict.' AS identity_conflict FROM advertising_visit_observations v WHERE '.implode(' AND ',$where)
+            .' LIMIT '.$limit,$args);
+        return ['complete'=>true,'rows'=>$rows];
+    }
 }

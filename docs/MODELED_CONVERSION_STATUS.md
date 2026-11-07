@@ -602,6 +602,32 @@ unavailable pending the owner's later Bitrix access. This is a missing source,
 not zero subscribers, zero conversion or zero elapsed time. A verified tgmini
 visit and bot start remain different facts and never become a join proxy.
 
+The same aggregate page separately describes Telegram Mini App entry context for
+that inquiry cohort. It reads only imported `tgmini` observations from counter
+`98615635`, with verified native identity matching the exact conversation of the
+earliest admitted journal message. The four exclusive categories are: an entry
+observed no later than that message with one distinct ClientID; ambiguous prior
+ClientIDs or identity; only later entries; and no qualifying data. Repeated entries
+with the same ClientID do not prove a unique visit. Original entry time is compared
+with the journal message time, never profile freeze or conversion export time.
+Both clocks have whole-second precision: equality means “not later”, not strict
+causal order. Imported observations available at report time may describe an older
+entry; this is a retrospective as-of view, not the information known to the model
+when the customer wrote. No lower-bound attribution window or ad-click claim is
+introduced.
+
+Unverified or out-of-scope captures and raw IDs supplied in profiles/start hints
+cannot manufacture entry context. A saved Mini App observation is not proof of an
+earlier external website session, subscription, human identity or advertising
+causality. No data does not mean bot traffic or no visits. MAX receives no entry
+counts: user-to-ClientID mapping alone cannot establish a preceding website entry,
+and this report does not perform tracker lookups. No raw message, customer, visit,
+ClientID or YCLID is added to the response. Existing administrator access is unchanged.
+Entry queries share the same read transaction and authorization/time/row/byte budget,
+in batches of at most 100 identities. They do not sample the newest entries: missing
+storage, invalid accepted clocks or an incomplete bounded history make the report
+visibly unavailable rather than yielding misleading counts.
+
 Coverage is valid unambiguous join/inquiry pairs divided by all eligible inquiry
 people in that platform's cohort. It is NOT the fraction of all subscribers who
 contacted the agency. Median, nearest-rank p90 and duration bins use valid pairs

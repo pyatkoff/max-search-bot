@@ -9,10 +9,13 @@ function modeledAcquisitionViewFixture(string $scenario='ready'):array
     $bins=['under_1h'=>1,'from_1h_to_1d'=>1,'from_1d_to_7d'=>1,'from_7d_to_30d'=>1,'over_30d'=>1];
     $excluded=['join_missing'=>3,'join_after_inquiry'=>1,'join_ambiguous'=>2,'identity_ambiguous'=>1,'membership_unavailable'=>0];
     $max=['inquiries'=>12,'valid_pairs'=>5,'coverage_pct'=>41.6667,'median_seconds'=>90000,'p90_seconds'=>3000000,
-        'bins'=>$bins,'excluded'=>$excluded,'membership_status'=>'saved_max_events_only'];
+        'bins'=>$bins,'excluded'=>$excluded,'membership_status'=>'saved_max_events_only',
+        'entry_context'=>['status'=>'not_supported','basis'=>'max_identity_mapping_not_visit','counts'=>null]];
     $telegram=['inquiries'=>9,'valid_pairs'=>0,'coverage_pct'=>null,'median_seconds'=>null,'p90_seconds'=>null,
         'bins'=>array_fill_keys(array_keys($bins),0),'excluded'=>array_replace(array_fill_keys(array_keys($excluded),0),['membership_unavailable'=>9]),
-        'membership_status'=>'unavailable_pending_bitrix'];
+        'membership_status'=>'unavailable_pending_bitrix',
+        'entry_context'=>['status'=>'available','basis'=>'verified_tgmini_identity_observation',
+            'counts'=>['prior_observed'=>4,'ambiguous'=>2,'late_only'=>1,'no_data'=>2]]];
     $input=['date'=>'2026-11-04','period'=>30,'platform'=>'all'];
     $page=['schema_version'=>1,'available'=>true,'reason'=>null,'as_of'=>'2026-11-04T10:20:30Z',
         'meaning'=>'first_observed_substantive_inquiry_not_first_ever','rule_version'=>'saved_substantive_interest_v1',
@@ -28,6 +31,7 @@ function modeledAcquisitionViewFixture(string $scenario='ready'):array
         $page['platforms'][$key]['coverage_pct']=null;$page['platforms'][$key]['median_seconds']=null;
         $page['platforms'][$key]['p90_seconds']=null;$page['platforms'][$key]['bins']=array_fill_keys(array_keys($bins),0);
         $page['platforms'][$key]['excluded']=array_fill_keys(array_keys($excluded),0);
+        if($key==='telegram')$page['platforms'][$key]['entry_context']['counts']=array_fill_keys(array_keys($telegram['entry_context']['counts']),0);
     }
     if($scenario==='unknown'){
         $page['platforms']['max']['valid_pairs']=0;$page['platforms']['max']['coverage_pct']=0.0;
