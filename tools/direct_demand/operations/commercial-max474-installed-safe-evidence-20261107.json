@@ -1,0 +1,43 @@
+{
+  "run_id": 42414946554,
+  "job_id": 128530894232,
+  "source_commit": "22a0995746813cc0f15ee9027e86fe2589f2360c",
+  "candidate_artifact_id": 13590004837,
+  "candidate_zip_sha256": "b31559367f2dbc030ac1bc1fff9e76742da5e18c5a5b7fd92190d071067967df",
+  "intent_artifact_id": 13591036904,
+  "intent_zip_sha256": "6574591938cdb42d75e841aa1c42dbc70c193f3e3c99d8445131bbc4cea72e83",
+  "result_artifact_id": 13590019735,
+  "result_zip_sha256": "6d4b5325b795919be1dbb38c642eb506549657fdbe6b416924dd57ee67b045f0",
+  "result_sha256": "e05ee62654552fd32bab059e6eaba058e7f2c460e922179ff522622edc774653",
+  "evidence_basis": "Original completed workflow log and original result artifact; no repeated native reads",
+  "result": {
+    "candidate_module_sha256": "a8d43b78f2b0d2fc4a64b717760a9b9abee5483e170cf0d2a90602c0cb4ee161",
+    "changed_files": [
+      "anytour-hotel-feed-routes-v474-20261107-40.private.php",
+      "anytour-hotel-feed-context.php"
+    ],
+    "checks": {
+      "counter_config_matches": true,
+      "db_writes": 0,
+      "exact_total_routes": 474,
+      "message_sends": 0,
+      "natural_signed_user_launch_verified": false,
+      "new_native_routes_verified": 16,
+      "ok": true,
+      "previous458_rows_identical": true,
+      "private_projection_http_status": 404,
+      "project_active": true,
+      "provider_calls": 0,
+      "required_post_fields_ready": true,
+      "save_calls": 0
+    },
+    "db_writes": 0,
+    "feed_writes": 0,
+    "message_sends": 0,
+    "ok": true,
+    "operation": "commercial-max474-private-route-extension-20261107-40-install1",
+    "previous_module_sha256": "6ae9bfcaf859948a39b0de79e155668c753acc5b49055634dbeaae9eb1566b8f",
+    "provider_calls": 0,
+    "state": "INSTALLED_AND_NATIVE_VERIFIED"
+  }
+}

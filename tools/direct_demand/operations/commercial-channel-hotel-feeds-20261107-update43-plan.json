@@ -1,0 +1,82 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update43",
+  "state": "PREPARED_CONFIRMED_MAX474_INSTALL",
+  "new_hotel_ids": [
+    466,
+    124,
+    1962,
+    91404,
+    134,
+    71147,
+    71259,
+    117935,
+    81154,
+    36451,
+    36453,
+    70032,
+    28509,
+    57082,
+    64672,
+    80605
+  ],
+  "previous_rows": [
+    458,
+    458,
+    916
+  ],
+  "target_rows": [
+    474,
+    474,
+    948
+  ],
+  "previous458_offer_blocks_identical": true,
+  "max_route_install_run": 42414946554,
+  "max_route_install_commit": "22a0995746813cc0f15ee9027e86fe2589f2360c",
+  "new16_binding_run": 42414757039,
+  "new16_binding_artifact": 13590328382,
+  "approved_destination_labels": {
+    "466": "Макади Бей",
+    "124": "Шарм-эль-Шейх",
+    "1962": "Шарм-эль-Шейх",
+    "91404": "Шарм-эль-Шейх",
+    "134": "Шарм-эль-Шейх",
+    "71147": "Шарм-эль-Шейх",
+    "71259": "Нячанг",
+    "117935": "Нячанг",
+    "81154": "Нячанг",
+    "36451": "Нячанг",
+    "36453": "Доклет",
+    "70032": "Нячанг",
+    "28509": "Нячанг",
+    "57082": "Нячанг",
+    "64672": "Нячанг",
+    "80605": "Нячанг"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 304734,
+      "sha256": "e7fdbc55b4626fe9fe6037c429f45fcf4ae214755261ad4ac84824618dd4bf64",
+      "rows": 474,
+      "expected_previous_sha256": "f4a5655d7078854136bb7827945ee960a811ba813034b0ff87fb439749d8c6ff"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 381202,
+      "sha256": "d87ecc2911b43fc05b6890ffac9fb4772ed2a0abcc96f6818f6d0c258b82182b",
+      "rows": 474,
+      "expected_previous_sha256": "1cbc23f86c7e3b00ef432cd509cc693e50e6f98c57da41757bd271f342375a0e"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 685563,
+      "sha256": "a03117ee13b2e8d830d37b7d9550ed804ecb193af2cf1616edec5fae4aed568e",
+      "rows": 948,
+      "expected_previous_sha256": "a038ac1bd742ed9a81a8f3baef60de700f3bbb367fb3d195a89519ddbc11c9d8"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

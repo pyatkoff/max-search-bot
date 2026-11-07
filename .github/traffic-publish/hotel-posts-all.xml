@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 20:54">
+<yml_catalog date="2026-11-07 21:16">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -8246,6 +8246,294 @@
         <description>Тур с перелётом. Хургада. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Хургада</custom_label_1>
+      </offer>
+      <offer id="tg_466">
+        <url>https://t.me/any_toour/473</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/466.png</picture>
+        <name>Путевки в Stella Beach Resort &amp; Spa Makadi Bay</name>
+        <description>Тур с перелётом. Макади Бей. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Макади Бей</custom_label_1>
+      </offer>
+      <offer id="tg_124">
+        <url>https://t.me/any_toour/474</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/124.png</picture>
+        <name>Путевки в Amwaj Oyoun Hotel &amp; Resort</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_1962">
+        <url>https://t.me/any_toour/475</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/1962.png</picture>
+        <name>Путевки в Baron Palms Resort</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_91404">
+        <url>https://t.me/any_toour/476</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/91404.png</picture>
+        <name>Путевки в Swissotel Sharm El Sheikh Managed By Rixos</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_134">
+        <url>https://t.me/any_toour/477</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/134.png</picture>
+        <name>Путевки в Albatros Sharm Resort</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_71147">
+        <url>https://t.me/any_toour/478</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/71147.png</picture>
+        <name>Путевки в Parrotel Lagoon Resort</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_71259">
+        <url>https://t.me/any_toour/479</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/71259.png</picture>
+        <name>Путевки в Alibu Resort Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_117935">
+        <url>https://t.me/any_toour/480</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/117935.png</picture>
+        <name>Путевки в Avari Boutique Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_81154">
+        <url>https://t.me/any_toour/481</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/81154.png</picture>
+        <name>Путевки в December Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_36451">
+        <url>https://t.me/any_toour/482</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/36451.png</picture>
+        <name>Путевки в Edele Hotel Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_36453">
+        <url>https://t.me/any_toour/483</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/36453.png</picture>
+        <name>Путевки в GM Doc Let Beach Resort</name>
+        <description>Тур с перелётом. Доклет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Доклет</custom_label_1>
+      </offer>
+      <offer id="tg_70032">
+        <url>https://t.me/any_toour/484</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/70032.png</picture>
+        <name>Путевки в Gonsala Nha Trang Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_28509">
+        <url>https://t.me/any_toour/485</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/28509.png</picture>
+        <name>Путевки в Green World Hotel Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_57082">
+        <url>https://t.me/any_toour/486</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/57082.png</picture>
+        <name>Путевки в ibis Styles Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_64672">
+        <url>https://t.me/any_toour/487</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/64672.png</picture>
+        <name>Путевки в Maple Hotel &amp; Apartment</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_80605">
+        <url>https://t.me/any_toour/488</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/80605.png</picture>
+        <name>Путевки в Miracle Luxury Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_466">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfODUzNjNmYmVhZTlkNzU5M2RlNWQ2ODI5MDgwYjVjZTciLCJvZmZlcl9pZCI6Im1heF80NjYifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/466.png</picture>
+        <name>Туры в Stella Beach Resort &amp; Spa Makadi Bay</name>
+        <description>Тур с перелётом. Макади Бей. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Макади Бей</custom_label_1>
+      </offer>
+      <offer id="max_124">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMTNlN2I4ZjlmY2YzYmE2YTA1ODk2MTUyNmQ4NzIyZDgiLCJvZmZlcl9pZCI6Im1heF8xMjQifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/124.png</picture>
+        <name>Туры в Amwaj Oyoun Hotel &amp; Resort</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="max_1962">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMGE5MGM2MmVjZmVjZDI4MzUzMjg0MWJkMTM0MTFiNGIiLCJvZmZlcl9pZCI6Im1heF8xOTYyIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/1962.png</picture>
+        <name>Туры в Baron Palms Resort</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="max_91404">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNGZmZWVlY2E5YTEwOGUwNjI0MjZkNGYxNTc2YzUxNGYiLCJvZmZlcl9pZCI6Im1heF85MTQwNCJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/91404.png</picture>
+        <name>Туры в Swissotel Sharm El Sheikh Managed By Rixos</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="max_134">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZWRlZDgwMmUyZjM5YTk0Mzc1OTlhZTkwMDcyZDI1NWEiLCJvZmZlcl9pZCI6Im1heF8xMzQifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/134.png</picture>
+        <name>Туры в Albatros Sharm Resort</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="max_71147">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYzdlMDgxNTA2ZDJlYzdkNDhlNzY1MzIxYWQyYWMxYjAiLCJvZmZlcl9pZCI6Im1heF83MTE0NyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/71147.png</picture>
+        <name>Туры в Parrotel Lagoon Resort</name>
+        <description>Тур с перелётом. Шарм-эль-Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм-эль-Шейх</custom_label_1>
+      </offer>
+      <offer id="max_71259">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZmY1ZGZhMDJiZDkxYzQxMWY2NDljYjJiYWRlYTAxOTIiLCJvZmZlcl9pZCI6Im1heF83MTI1OSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/71259.png</picture>
+        <name>Туры в Alibu Resort Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_117935">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMmMzOGIxMzVmMGUwYzBiNjkxMmIyOTFhNGMyZmQ5MTAiLCJvZmZlcl9pZCI6Im1heF8xMTc5MzUifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/117935.png</picture>
+        <name>Туры в Avari Boutique Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_81154">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzkzNjNhZWZmOWMzNmEwOTRlNDMzMTgxNzcyOTJmZmIiLCJvZmZlcl9pZCI6Im1heF84MTE1NCJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/81154.png</picture>
+        <name>Туры в December Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_36451">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzBkODg2OTE1ZjAzMGJmOWY4NWE4NmJjYWYxZWU5ODYiLCJvZmZlcl9pZCI6Im1heF8zNjQ1MSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-39/36451.png</picture>
+        <name>Туры в Edele Hotel Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_36453">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfM2Q5NTNiM2JiYTE5NDliMWM4NGIwYWUyOTYzMDQ2MGEiLCJvZmZlcl9pZCI6Im1heF8zNjQ1MyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/36453.png</picture>
+        <name>Туры в GM Doc Let Beach Resort</name>
+        <description>Тур с перелётом. Доклет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Доклет</custom_label_1>
+      </offer>
+      <offer id="max_70032">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDkxZGVmZGI3YzY3MTczMjcxMjY4ZWYzY2VmNWJhMWMiLCJvZmZlcl9pZCI6Im1heF83MDAzMiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/70032.png</picture>
+        <name>Туры в Gonsala Nha Trang Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_28509">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfY2Y4OTRiMTU1MDQ3MjQ1NWU1NWJlZGZiM2FmMDM4NWQiLCJvZmZlcl9pZCI6Im1heF8yODUwOSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/28509.png</picture>
+        <name>Туры в Green World Hotel Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_57082">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTY2OWY3OGQ3MjQ2OGY4NGQzZWU5NjE4MDE0OGQ2YjMiLCJvZmZlcl9pZCI6Im1heF81NzA4MiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/57082.png</picture>
+        <name>Туры в ibis Styles Nha Trang</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_64672">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTgwYWI3OTllMjczMGExYzZjODM1OGQxZTBiYzI5NWIiLCJvZmZlcl9pZCI6Im1heF82NDY3MiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/64672.png</picture>
+        <name>Туры в Maple Hotel &amp; Apartment</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_80605">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZjczNGQwYjM1NmU1MTI2NDZjY2ZiYjYxYzk2OTYwZTciLCJvZmZlcl9pZCI6Im1heF84MDYwNSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/b52fe1cd4fe6a8a00dd0b0da763da632868513d8/.github/traffic-publish/commercial-batch-20261107-40/80605.png</picture>
+        <name>Туры в Miracle Luxury Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
       </offer>
     </offers>
   </shop>
