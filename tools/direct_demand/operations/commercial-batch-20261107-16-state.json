@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-16-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "SENDER_CONFIRMED_PENDING_GROUP_ROUTE_FEED",
   "native_hotel_ids": [
     108167,
     63674,
@@ -12,5 +12,55 @@
   "manifest_sha256": "d9c66b7aa96ac25141bdd8333107554486513116858333cea1a71858d2385c99",
   "asset_commit": "e7e41dfc528f9000aa589760675d18b7cbe816fb",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "sender_run_id": 42383195558,
+  "sender_job_id": 128434986548,
+  "sender_commit": "5cdb6bc54efcf2641d6a79a55f831d8cfc02af70",
+  "new_posts": 6,
+  "post_write_attempts": 6,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13578332548,
+  "result_zip_sha256": "b9170d4f2a00a370b66d9529579c759e2891999947da6852b688485fa0313ef7",
+  "private_receipt_sha256": "7c1faa081373dc3255cd62f48d399d81f8b87b5ec5388b357212d2b063d37090",
+  "full_pairs_after": 257,
+  "group_target_full_pairs": 257,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-asteria-mui-ne-108167-v1",
+      "post_url": "https://t.me/any_toour/269",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-radisson-phu-quoc-63674-v1",
+      "post_url": "https://t.me/any_toour/270",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-adalya-elite-lara-47025-v1",
+      "post_url": "https://t.me/any_toour/271",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-asteria-mui-ne-108167-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2erK-Lj0",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-radisson-phu-quoc-63674-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2erwGCro",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-adalya-elite-lara-47025-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2esUuLcc",
+      "verified": true
+    }
+  ]
 }

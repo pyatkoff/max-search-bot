@@ -1,0 +1,183 @@
+[
+  {
+    "hotel_id": 2219,
+    "logical_id": null,
+    "aliases": [
+      "My Home Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 1507,
+    "logical_id": null,
+    "aliases": [
+      "Sirene Belek Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 65020,
+    "logical_id": null,
+    "aliases": [
+      "Costabella Resort Nha Trang",
+      "COSTABELLA RESORT NHA TRANG (EX. DIAMOND BAY CONDOTEL RESORT)",
+      "DIAMOND BAY CONDOTEL RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 83189,
+    "logical_id": null,
+    "aliases": [
+      "The Time Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 95159,
+    "logical_id": null,
+    "aliases": [
+      "Phuket Kata Resotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 55721,
+    "logical_id": null,
+    "aliases": [
+      "TND Hotel (Ex. Cicilia Nha Trang Hotel)",
+      "TND HOTEL (EX. CICILIA)",
+      "TND Hotel",
+      "Cicilia Nha Trang Hotel",
+      "CICILIA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 16750,
+    "logical_id": null,
+    "aliases": [
+      "Dendro Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 713,
+    "logical_id": null,
+    "aliases": [
+      "Naithonburi Beach Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 341,
+    "logical_id": null,
+    "aliases": [
+      "Nubian Village"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 340,
+    "logical_id": null,
+    "aliases": [
+      "Nubian Island"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 1439,
+    "logical_id": null,
+    "aliases": [
+      "Rai Premium Tekirova( Ex. Queens Park Tekirova )",
+      "RAI PREMIUM TEKIROVA (EX. QUEENS PARK TEKIROVA)",
+      "RAI PREMIUM TEKIROVA",
+      "QUEENS PARK TEKIROVA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 28325,
+    "logical_id": null,
+    "aliases": [
+      "Quattro Beach Resort & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 1096,
+    "logical_id": null,
+    "aliases": [
+      "Club Hotel Phaselis Rose"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 1486,
+    "logical_id": null,
+    "aliases": [
+      "Selcukhan Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 37527,
+    "logical_id": null,
+    "aliases": [
+      "Kimeros Park Holiday Village"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 48863,
+    "logical_id": null,
+    "aliases": [
+      "Sensitive Premium Resort & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 15889,
+    "logical_id": null,
+    "aliases": [
+      "Grand Park Lara"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 27642,
+    "logical_id": null,
+    "aliases": [
+      "Aska Lara Resort&spa",
+      "ASKA LARA RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  },
+  {
+    "hotel_id": 76588,
+    "logical_id": null,
+    "aliases": [
+      "LIU Resorts"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after120_first_clearance"
+  }
+]
