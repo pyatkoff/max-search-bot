@@ -1,0 +1,1239 @@
+{
+  "operation": "commercial-hotel-batch-20261107-41-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 474,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read43",
+        "run_id": 42410067722,
+        "original_read_sha256": "4b1a22cbc32777208d59a93e91a05f22647096025ffdd483afbf3c415b125a13",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed19 commercial captions in cutover39 short-title format,57 real source photos and19 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before41/42 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-nineteen-after-474-commercial-release-manifest.json",
+    "sha256": "07bdd6196a1b447d0e8df1253dd02628faeead617f23c423f4c4e401a8f84539",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/additional-sixth20-commercial-captions.json",
+    "caption_sha256": "ae3db181efcfca3ca1ed41c00643967fae2561e63ff6095b458716845e9ae9f0",
+    "subset_native_ids": [
+      70033,
+      57652,
+      57650,
+      23766,
+      4078,
+      24778,
+      4054,
+      14133,
+      4074,
+      4079
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "63a932bdf56b9e958369911fe522a77ddb1d141bcde5ce10ade4f59ee8a9093b",
+  "source_held_native_ids": [
+    65254
+  ],
+  "media_held_native_ids": [],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    },
+    {
+      "native_hotel_id": 319,
+      "public_url": "https://max.ru/channel_anytour/AaF1Ae28ZNw"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 70033,
+      "logical_id": "commercial-nalicas-nha-trang-70033-v1",
+      "aliases": [
+        "Nalicas Nha Trang Hotel",
+        "NALICAS HOTEL"
+      ],
+      "text": "✈️ Туры в Nalicas Nha Trang Hotel\n📍 Нячанг, Вьетнам.\n\nГородской отдых в Нячанге с прогулками к морю.\n\n🛏 Deluxe 23 м² с окном, морским видом и двумя отдельными кроватями.\n🍽 Подберём вариант тура с завтраками.\n🏖 Общественный пляж через дорогу.\n\n✈️ Подберём размещение и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "5cf25453e49ae3c17e5c4646c7450f68a5438453d8e209adcb2ed09ffdf31fd6",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/70033.png",
+      "photo_sha256": "453eb01153570befda87ddb79d3ec5a6cf5e79571b76ae3784548ca5255a973d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/nalicas_hotel_nha_trang/",
+        "https://nalicasnhatranghotel.com/rooms-1-1-rcategory.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/70033-56817121.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/70033-56816811.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/70033-56817226.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 28078,
+        "anytour_id": 3139,
+        "legacy_native_id": 70033,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaRJOKSvo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_aed58afef9a8c1e5_run07_c01",
+        "top500_aed58afef9a8c1e5_run07_c02",
+        "top500_aed58afef9a8c1e5_run07_c04",
+        "HOTEL-VN-MASS-20261025T201851Z-C56"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/70033-56817121.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fc5c33fa1d685f61ff67d7c4b43b32ee70f9123176c6093a07359b53a4558850",
+          "source_png_sha256": "439b588bdf1057768f6973cb12772e9145a695a4d2d22b2e2ecc8f2530dbf563",
+          "source_png_bytes": 1218885,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Лобби Nalicas Nha Trang Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHVjNbE",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "nalicas-nha-trang-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g13",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/70033-56816811.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7520ee6ee1b7823b990233aa69ca8880720544d7e6d52b07393678345d73837e",
+          "source_png_sha256": "10e8940b72eb9dc9fb7763ffebddfcf67fac8299153efda19042032af7af273e",
+          "source_png_bytes": 826159,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Номер с двумя отдельными кроватями и окном Nalicas",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRJnh0Xk",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "nalicas-nha-trang-g13.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g27",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/70033-56817226.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "91636c80fca66e7575170219804e777605afee491b14d445a3789af87be96a5b",
+          "source_png_sha256": "85e4dc8a48560a9ae616c01b5e26ae8a46835561932cf97b132c3d858c725ac8",
+          "source_png_bytes": 427292,
+          "dimensions": [
+            750,
+            500
+          ],
+          "alt": "Детали номера Nalicas Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRA0pDTk",
+          "canva_asset_dimensions": [
+            750,
+            500
+          ],
+          "source_png_filename": "nalicas-nha-trang-g27.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 57652,
+      "logical_id": "commercial-queen-ann-57652-v1",
+      "aliases": [
+        "Queen Ann Nha Trang Hotel",
+        "QUEEN ANN NHA TRANG"
+      ],
+      "text": "✈️ Туры в Queen Ann Nha Trang Hotel\n📍 Нячанг, Вьетнам.\n\nПляжные дни и городской отдых в Нячанге.\n\n🛏 Deluxe City View 32 м² с видом на город.\n🍽 Подберём тур с завтраками.\n🏖 Пляжная зона отеля в 100 м через дорогу.\n🚶 От остановки трансфера до входа нужно пройти пешком.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером на ваши даты.",
+      "text_sha256": "f1a809471ddb38f741e4533595013f511dd49bbbf14968a2493664415a208af5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/57652.png",
+      "photo_sha256": "880545e8ec5b4bc06f5028026c9de60616eb1a466a44fc6d3b7c0ab2ea132bb6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/queen_ann_nha_trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/queen-ann-nha-trang-57944700.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/queen-ann-nha-trang-57944713.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/queen-ann-nha-trang-57944737.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 18611,
+        "anytour_id": 2665,
+        "legacy_native_id": 57652,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaRLFls_E",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_3a10340f717c4235_run07r_c01",
+        "top500_3a10340f717c4235_run07r_c02",
+        "top500_3a10340f717c4235_run07r_c03",
+        "top500_3a10340f717c4235_run07r_c04",
+        "top500_3a10340f717c4235_run07r_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/queen-ann-nha-trang-57944700.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3d60656294ac971331df6f3088b16b1e2c8dffa272659853316fc9e26048157e",
+          "source_png_sha256": "4dc6923e049592901f4aec8ad9d403d5a215f77b13cd3008cdee86a42ef08812",
+          "source_png_bytes": 557574,
+          "dimensions": [
+            1024,
+            599
+          ],
+          "alt": "Queen Ann Nha Trang у моря",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRPhTBDA",
+          "canva_asset_dimensions": [
+            1024,
+            599
+          ],
+          "source_png_filename": "queen-ann-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/queen-ann-nha-trang-57944713.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5ff6a0b2b808d805234b8d20f9f00c5564da45d10c8278c22bb02b709ee8bf99",
+          "source_png_sha256": "7852e6e92e3ee65385ffb1995acaa30e1936616544655e8b15d31075f816eaa6",
+          "source_png_bytes": 943534,
+          "dimensions": [
+            1024,
+            692
+          ],
+          "alt": "Лобби Queen Ann Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRBj35ZQ",
+          "canva_asset_dimensions": [
+            1024,
+            692
+          ],
+          "source_png_filename": "queen-ann-g15.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g39",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/queen-ann-nha-trang-57944737.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e6e4ba46a39fea7060983807f31bdca453848e41f1353556c755851b0ac0fc2d",
+          "source_png_sha256": "ac7068a3ebcb16132e92fcaaf873a4209c3c560ed677846a273d7af19ef5561f",
+          "source_png_bytes": 668073,
+          "dimensions": [
+            1024,
+            646
+          ],
+          "alt": "Ресторан Queen Ann Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRH8fyvg",
+          "canva_asset_dimensions": [
+            1024,
+            646
+          ],
+          "source_png_filename": "queen-ann-g39.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 57650,
+      "logical_id": "commercial-red-sun-57650-v1",
+      "aliases": [
+        "Red Sun Nha Trang Hotel",
+        "RED SUN NHA TRANG"
+      ],
+      "text": "✈️ Туры в Red Sun Nha Trang Hotel\n📍 Нячанг, Вьетнам.\n\nНячанг для двоих с пляжем неподалёку.\n\n🛏 Superior 25 м² для одного или двух гостей.\n🍽 Подберём вариант с завтраками.\n🏖 До общественного пляжа около 150 м через дорогу.\n🚶 От парковки трансфера до отеля нужно пройти пешком.\n\n✈️ Рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "0ca6817035e54e16c2b50c95168f8a9bc2bde37023e543160aba9ca740c0e416",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/57650.png",
+      "photo_sha256": "1e1213f06e2ffd931d95a171324f6fe7f964ad9748fe52e54505ef7b74dffc78",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/vietnam/nhatrang/red_sun_nhatrang_hotel/",
+        "https://redsunnhatranghotel.com/room/superior-room/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/red-sun-nha-trang-30892304.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/red-sun-nha-trang-30892336.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/red-sun-nha-trang-30892344.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 17439,
+        "anytour_id": 2664,
+        "legacy_native_id": 57650,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRInV87Y",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_2e4491df5d1318f4_run08_c01",
+        "top500_2e4491df5d1318f4_run08_c02",
+        "top500_2e4491df5d1318f4_run08_c04",
+        "top500_2e4491df5d1318f4_run08_c06",
+        "top500_2e4491df5d1318f4_crit51_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/red-sun-nha-trang-30892304.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8d6cfa380a4aca764d1eafee469d7589495bfae7f9950ebc898c1e6cc99d5ed0",
+          "source_png_sha256": "dbaa3e5d834700afed80228a4a85c009817b436c6d6e8f6baab75e16f4d8f09d",
+          "source_png_bytes": 1037830,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Red Sun Nha Trang Hotel вечером",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRO0iM5w",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "red-sun-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g38",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/red-sun-nha-trang-30892336.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d7064c864cb0d31d4c54d4db01660a4c756c0b6289aabe1d53d2bda2e6f0aed4",
+          "source_png_sha256": "8e925449eef1a4e20038e27065c048aeab14802bef08e7e11b9bd69bf825d956",
+          "source_png_bytes": 620571,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Номер Red Sun Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRNDZJ4w",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "red-sun-g38.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g45",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/red-sun-nha-trang-30892344.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "049b00a2dfe8d3a2398eb781d066c66a0e25d66278a92fc3551152962874296d",
+          "source_png_sha256": "6c151d099825cc93511ec90063650a2d6cb8486bc638f1c59cf4c51e654f99f4",
+          "source_png_bytes": 1058504,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Стойка регистрации Red Sun Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRESeQyk",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "red-sun-g45.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 23766,
+      "logical_id": "commercial-sea-light-23766-v1",
+      "aliases": [
+        "Sea Light Hotel",
+        "SEA LIGHT"
+      ],
+      "text": "✈️ Туры в Sea Light Hotel\n📍 Нячанг, Вьетнам.\n\nДля отпуска вдвоём в Нячанге.\n\n🛏 Двухместный Standard с одной большой или двумя отдельными кроватями.\n🍽 Подберём вариант тура с завтраками.\n🏖 Общественный песчаный пляж в 150 м через дорогу.\n\n✈️ Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "14cacb6055d3391f8eca938ac36fe3792b2b7caa29919d3947e5400701bf8a42",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/23766.png",
+      "photo_sha256": "9467e298327bc43e05c164dd41f029988a56295c81e3b0a7a54bb39897df1530",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.bgoperator.ru/price.shtml?action=shw&code=102610278798&flt=100410419078&flt2=100510397373&tid=26",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-light-102304300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-light-31303.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-light-31302.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5747,
+        "anytour_id": 1950,
+        "legacy_native_id": 23766,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaRMVHaD0",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_3b5568261872e560_run08_c01",
+        "top500_3b5568261872e560_run08_c02",
+        "top500_3b5568261872e560_run08_c03",
+        "top500_3b5568261872e560_run08_c04",
+        "top500_3b5568261872e560_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-light-102304300.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5129261b661ae3af87deffe40d4910eb71bda04052bf2a1cab7058ca65d609e0",
+          "source_png_sha256": "7467e7748b0cc774dc0d4b2ca6507ad73b6b3670787ed8ed37b22947456413e1",
+          "source_png_bytes": 1053457,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Лобби Sea Light Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRBXpT1k",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "sea-light-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-light-31303.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "47173b6eb9a2ab331a3cba54472aeb7028ce0b0f64e14af5e67f29418e5cdf28",
+          "source_png_sha256": "1f7d16a2950c41e7857ca623637e43b3fa5c86b9e7e7239ab83d30505636009a",
+          "source_png_bytes": 671859,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Номер Sea Light Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRFxTR9o",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "sea-light-g02.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g22",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sea-light-31302.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d7b2c4ca0f81db098d2e6f74119df913ec1f1b16e6cf59f72ad0ec06f22019e3",
+          "source_png_sha256": "eb5f6177cffb4bf00966f14c77e7b54fbc5061145e263c6d0d7c8fa838c19f67",
+          "source_png_bytes": 1059922,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан Sea Light Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHx2O9E",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "sea-light-g22.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 4078,
+      "logical_id": "commercial-starlet-nha-trang-4078-v1",
+      "aliases": [
+        "Starlet Hotel",
+        "STARLET"
+      ],
+      "text": "✈️ Туры в Starlet Hotel\n📍 Нячанг, Вьетнам.\n\nНячанг для пляжных дней и вечерних прогулок.\n\n🛏 Двухместный Superior.\n🍽 Подберём вариант тура с завтраками.\n🏖 До общественного пляжа нужно перейти дорогу. Лежаки и зонты платные.\n🌃 Ночной рынок, бары и рестораны в пешей доступности.\n\n✈️ Рассчитаем тур с перелётом для вашей пары.",
+      "text_sha256": "3d11a647478b969b4f8ecf9c8bbf5f624d9cdad435e34b7057e9af64a1125dcc",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4078.png",
+      "photo_sha256": "ebb073ab0e5cf9003dc5ce1011cb539975972a63bc6008e639133d85bbf34221",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/starlet_hotel/",
+        "https://www.coral.ge/en/hotels/vietnam/starlet-hotel-nha-trang/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/starlet-hotel-2108400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/starlet-hotel-2108430.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/starlet-hotel-2108416.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5633,
+        "anytour_id": 1246,
+        "legacy_native_id": 4078,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaRNNMGSU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_2c82c7059d77cf57_run08_c01",
+        "top500_2c82c7059d77cf57_run08_c02",
+        "top500_2c82c7059d77cf57_run08_c03",
+        "top500_2c82c7059d77cf57_run08_c05",
+        "HOTEL-VN-MASS-20261025T201851Z-C03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/starlet-hotel-2108400.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ab41e3a5567f460640ac583245b72dbe206fdab12dda67f86e2f7f56d1ac8cee",
+          "source_png_sha256": "3ecdaa5ade02739863e6f754700022e2683efffee8a0992387f655c980f6ff98",
+          "source_png_bytes": 405729,
+          "dimensions": [
+            640,
+            402
+          ],
+          "alt": "Вход в Starlet Hotel Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRIK5CkE",
+          "canva_asset_dimensions": [
+            640,
+            402
+          ],
+          "source_png_filename": "starlet-nha-trang-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g29",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/starlet-hotel-2108430.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e9a4344ec62c1bc2988ef7b163d5b552ca55a597c43695f66bd142bfbd5470e8",
+          "source_png_sha256": "39f529eea22aeb13c8e1b66f50ea75474861884f8d5cf5abbea0745e2a86b3a8",
+          "source_png_bytes": 529220,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Номер Starlet Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRHTlwrk",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "starlet-nha-trang-g29.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g17",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/starlet-hotel-2108416.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "86935c9d6cab7faf01cf818bea23692e912a60445ff249819b91933f73557247",
+          "source_png_sha256": "1540b4638c91c491b37c1a13a53f71e60bd4e53ee3467f203c9510f380b53204",
+          "source_png_bytes": 729816,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Ресторан Starlet Hotel Nha Trang",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRDPmGt0",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "starlet-nha-trang-g17.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 24778,
+      "logical_id": "commercial-aroma-muine-24778-v1",
+      "aliases": [
+        "Aroma Beach Resort & Spa Muine",
+        "AROMA BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Aroma Beach Resort & Spa\n📍 Муйне, Вьетнам.\n\nДля отдыха вдвоём у песчаного пляжа.\n\n🛏 Aroma Superior Garden View площадью от 37 до 39 м².\n🍽 Подберём вариант тура с завтраками.\n🏖 Песчаный пляж. Лежаки, зонты и пляжные полотенца включены.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "7aef159dc4268e7dab448923c6068e06ade82b1d505a7321117c500628b78761",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/24778.png",
+      "photo_sha256": "197de53dbcbd904ba7ebde74a19eefaa885fe5e2a529cadd1cb4a534bdbe34ee",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/vietnam/fantet/aroma_beach_resort_spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/aroma-beach-resort-spa-45424902.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/aroma-beach-resort-spa-45424900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/aroma-beach-resort-spa-45424910.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5820,
+        "anytour_id": 1965,
+        "legacy_native_id": 24778,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRBAuiHU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_a7862dee236c55bf_run08_c01",
+        "top500_a7862dee236c55bf_run08_c02",
+        "top500_a7862dee236c55bf_run08_c03",
+        "top500_a7862dee236c55bf_run08_c04",
+        "top500_a7862dee236c55bf_run08_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/aroma-beach-resort-spa-45424902.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "785a007aa602f7a6c72e3bdd1c3f13cc9e2a7f7c90000ae55633f36ce6ae70cf",
+          "source_png_sha256": "7216d17c95ac647dec37b3574ae8f722bc55e6835e41aa431bbbf3d4a50d89f9",
+          "source_png_bytes": 2042939,
+          "dimensions": [
+            1200,
+            900
+          ],
+          "alt": "Территория Aroma Beach Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRLfFJ-4",
+          "canva_asset_dimensions": [
+            1200,
+            900
+          ],
+          "source_png_filename": "aroma-muine-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/aroma-beach-resort-spa-45424900.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "709b3c1375c89e6cce232f95a53ddd3db1b70ebe501fa3df62144cc5a5ea1cbd",
+          "source_png_sha256": "b6937633c896ce93dd06fc0a04c19706315758c75cd7a277c0f0dec8058876c3",
+          "source_png_bytes": 2438845,
+          "dimensions": [
+            1200,
+            900
+          ],
+          "alt": "Корпус Aroma Beach Resort в саду",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRGj-ivo",
+          "canva_asset_dimensions": [
+            1200,
+            900
+          ],
+          "source_png_filename": "aroma-muine-g01.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g11",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/aroma-beach-resort-spa-45424910.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c821ebb83d411ece974ffc0068abcf1a0d5e18e46ee07372e4d211bf876abd0f",
+          "source_png_sha256": "bc848e2aa49e7dfb477f5a8ac36e46190e8844969ee9a3cfb465809683e4195a",
+          "source_png_bytes": 1229028,
+          "dimensions": [
+            1200,
+            900
+          ],
+          "alt": "Детская игровая зона Aroma Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRE3D8WY",
+          "canva_asset_dimensions": [
+            1200,
+            900
+          ],
+          "source_png_filename": "aroma-muine-g11.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 4054,
+      "logical_id": "commercial-muine-century-4054-v1",
+      "aliases": [
+        "Muine Century Beach Resort & Spa (Ex. Muine De Century Beach)",
+        "MUINE DE CENTURY BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Muine Century Beach Resort & Spa\n📍 Муйне, Вьетнам.\n\nОтдых вдвоём у собственного пляжа в Муйне.\n\n🛏 Superior 25 м² с видом на сад. Терраса общая на несколько номеров.\n🍽 Подберём вариант с завтраками.\n🏖 Собственный пляж, лежаки, зонты и полотенца включены.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером.",
+      "text_sha256": "4e0658d388227f1d2acd8c005e3a452038ed55836ff602733799f186613b4e71",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4054.png",
+      "photo_sha256": "afb651c8a8a3491dd76190e33864e9c70df32e6c560a3f1877f477792000d46d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/vietnam/fantet/muine_century_beach_resort_spa/",
+        "https://muinecentury.vn/en/phong-nghi/superior-room-2/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/mui-ne-de-century-beach-resort-spa-16706200.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/mui-ne-de-century-beach-resort-spa-16706201.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/mui-ne-de-century-beach-resort-spa-16706244.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5580,
+        "anytour_id": 1231,
+        "legacy_native_id": 4054,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRGb_LUw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_edc5ffa176ed7f43_run08_c01",
+        "top500_edc5ffa176ed7f43_run08_c02",
+        "top500_edc5ffa176ed7f43_run08_c03",
+        "top500_edc5ffa176ed7f43_run08_c04",
+        "top500_edc5ffa176ed7f43_run08_c06",
+        "top500_edc5ffa176ed7f43_crit51_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/mui-ne-de-century-beach-resort-spa-16706200.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d44cdc36a9c42457486e62dcdb24dce323376424a96e617313b5ca37fe283413",
+          "source_png_sha256": "59f4f7c51af5ff40100cbd4ca76d174464277e6fe16c20fe6533aefa9373e4e7",
+          "source_png_bytes": 1387979,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Бассейн Muine Century Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRK_sY1Q",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "muine-century-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/mui-ne-de-century-beach-resort-spa-16706201.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "41f05b1e47afcdcb29bf628a5659eb9c25143e176ac3c3ece6e9830ca52f496e",
+          "source_png_sha256": "32f2afeefb7d97d1cc74a80a872ce82da27f831198182dcbe44a90dfe18adaa6",
+          "source_png_bytes": 926521,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Пляж Muine Century Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRCkUv_A",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "muine-century-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g42",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/mui-ne-de-century-beach-resort-spa-16706244.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "394947de145d16aac3ab7f073c5a64d509894ab9b512efb179f9253f635cf0e8",
+          "source_png_sha256": "8950c1eb42245800a633fb9e732b2986867f2c0ec7553e3cf7fc66a7f1adb095",
+          "source_png_bytes": 1411125,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Сад и игровая площадка Muine Century",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRPYAltc",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "muine-century-g42.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 14133,
+      "logical_id": "commercial-oriental-pearl-14133-v1",
+      "aliases": [
+        "Oriental Pearl Resort (Hoang Ngoc)",
+        "HOANG NGOC BEACH RESORT (ORIENTAL PEARL)"
+      ],
+      "text": "✈️ Туры в Oriental Pearl Resort (Hoang Ngoc)\n📍 Муйне, Вьетнам.\n\nДля отпуска вдвоём у моря в Муйне.\n\n🛏 Superior 30 м² для двоих.\n🍽 Подберём вариант с завтраками, полупансионом или полным пансионом.\n🏖 Собственный пляж. Лежаки и зонты включены.\n\n✈️ Рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "0ef71d26f48315f26410cc1145fd9d92f6d7b207746930533cfdc755ef26ad49",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/14133.png",
+      "photo_sha256": "355a21b18b47c5dde837255a55723be890f682daa0bdb305be589c73fa14f0bb",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/vietnam/fantet/hoang_ngoc_beach_resort/",
+        "https://hoangngocbeachresort.com.vn/en/Superior.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/oriental-pearl-hoang-ngoc-2910300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/oriental-pearl-hoang-ngoc-2910344.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/oriental-pearl-hoang-ngoc-2910312.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5585,
+        "anytour_id": 1714,
+        "legacy_native_id": 14133,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaRNLN-3s",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_fd6faab04031697f_run08_c01",
+        "top500_fd6faab04031697f_run08_c02",
+        "top500_fd6faab04031697f_run08_c04",
+        "top500_fd6faab04031697f_run08r_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/oriental-pearl-hoang-ngoc-2910300.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3497db25c48f90ea749fe417a3e09d04b5badb38b302f2e3f23ad6ad0e81fd83",
+          "source_png_sha256": "fdde8e260d59d7eab985bf9dcbde236629964d14e30b0dd8ae3e0eb68886b6b8",
+          "source_png_bytes": 1263423,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн Oriental Pearl Hoang Ngoc Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRLQiKz0",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "oriental-pearl-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g44",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/oriental-pearl-hoang-ngoc-2910344.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "941ac9e371c7d791f6d49f8c33b40e654493d6ebd616e6c3bc8ebc4ee01db1a5",
+          "source_png_sha256": "5acfb0bb88e5699eadff0aaa27d65ca806b403a16026b7abde1f70d0cff7aab4",
+          "source_png_bytes": 493412,
+          "dimensions": [
+            1024,
+            672
+          ],
+          "alt": "Номер Oriental Pearl Hoang Ngoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRKuD_Jg",
+          "canva_asset_dimensions": [
+            1024,
+            672
+          ],
+          "source_png_filename": "oriental-pearl-g44.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g12",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/oriental-pearl-hoang-ngoc-2910312.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3247f2b48ed20d90e65cef9daf49ab6aec5972a8eefe4c4fcbb8da1b207723f9",
+          "source_png_sha256": "1f5f3638b8f230abb320726a2b16fed95c07c6b507d4313653b8e894ef8dc381",
+          "source_png_bytes": 785404,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Пляж Oriental Pearl Hoang Ngoc",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRKj9ucs",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "oriental-pearl-g12.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 4074,
+      "logical_id": "commercial-seahorse-muine-4074-v1",
+      "aliases": [
+        "Seahorse Resort",
+        "SEAHORSE RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Seahorse Resort\n📍 Муйне, Вьетнам.\n\nОтдых вдвоём в Муйне с живой музыкой по вечерам.\n\n🛏 Deluxe Garden View 32 м²: балкон и вид на сад.\n🍽 Подберём вариант с завтраками.\n🏖 Первая линия, пляжные лежаки, зонты и полотенца включены.\n\n✈️ Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "abf318507a3fd939b42e24cda0e44da7632eb8b2e7a4b8fe861d5b5886cb76e7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4074.png",
+      "photo_sha256": "d6f96c47bd8cececa7ed410fc8f0b9c0d33f9830cd85967ed21e52656d4c97c4",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fantet/seahorse_resort_spa/",
+        "https://www.seahorseresortvn.com/en/deluxe-garden-view-room/room",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/4074-9429501.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/4074-9429813.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/4074-9431148.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5597,
+        "anytour_id": 1243,
+        "legacy_native_id": 4074,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaROM0KuI",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_86a3b86a414481ae_run08_c01",
+        "top500_86a3b86a414481ae_run08_c02",
+        "top500_86a3b86a414481ae_run08_c04",
+        "top500_86a3b86a414481ae_run08_c05",
+        "top500_86a3b86a414481ae_crit51_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/4074-9429501.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "fea7571564a96ce1166e640ac05fc81e40c952cab65af1ca8b3d2bd1894fd412",
+          "source_png_sha256": "66a160f32d92585006fac51e4fae20088695167f9da4d1eb86ad04941db701a3",
+          "source_png_bytes": 1466375,
+          "dimensions": [
+            1051,
+            696
+          ],
+          "alt": "Тропический сад Seahorse Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRJ6hRwU",
+          "canva_asset_dimensions": [
+            1051,
+            696
+          ],
+          "source_png_filename": "seahorse-muine-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g15",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/4074-9429813.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d6c591675fb67c6169787f55f2698a0a03fd822a283a2aef5eb09c4838d96b4a",
+          "source_png_sha256": "fe7a3c2669b313f142a870f6e500d8fe889ed6b8ae914c4d826601d6fc5f01be",
+          "source_png_bytes": 1080745,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Номер с балконом Seahorse Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRGFPTv4",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "seahorse-muine-g15.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g49",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/4074-9431148.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8fd8bb628a91a7279d8ed784e3d63b2a049b363b565d92f5413c9d8750ff92cc",
+          "source_png_sha256": "3d6b649d75a60ccfd42c8f8b4f0bdd394247b32a05cd6494b2d6edbd8ca92d7c",
+          "source_png_bytes": 999534,
+          "dimensions": [
+            1200,
+            794
+          ],
+          "alt": "Бассейн Seahorse Resort вечером",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaREXWFSo",
+          "canva_asset_dimensions": [
+            1200,
+            794
+          ],
+          "source_png_filename": "seahorse-muine-g49.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 4079,
+      "logical_id": "commercial-sunny-beach-4079-v1",
+      "aliases": [
+        "Sunny Beach Resort",
+        "SUNNY BEACH RESORT & SPA"
+      ],
+      "text": "✈️ Туры в Sunny Beach Resort\n📍 Муйне, Вьетнам.\n\nДля пляжного отпуска вдвоём в Муйне.\n\n🛏 Deluxe Cozy 28 м² с видом на город или сад.\n🍽 Подберём вариант с завтраками.\n🏖 Собственный пляж на первой линии. Лежаки, зонты и полотенца включены.\n\n✈️ Рассчитаем полную стоимость тура с перелётом, включая обязательные доплаты на ваши даты.",
+      "text_sha256": "b352f59e5f534dfb894913af36994839b799d659a186e77f2776bc6a069e6ceb",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/815ad5340bbef75452af6d8bec9525eb49e3a6d1/.github/traffic-publish/commercial-batch-20261107-41/4079.png",
+      "photo_sha256": "b2eabe85c8ce4a61c640ccfed8cf80308b6653c6b8bdf3bbaa64fed214862381",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/fantet/sunny_beach_vietn/",
+        "https://www.tez-tour.com/hotel.html?id=213967",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70033&legacyHotelIds%5B%5D=57652&legacyHotelIds%5B%5D=57650&legacyHotelIds%5B%5D=23766&legacyHotelIds%5B%5D=4078&legacyHotelIds%5B%5D=24778&legacyHotelIds%5B%5D=4054&legacyHotelIds%5B%5D=14133&legacyHotelIds%5B%5D=4074&legacyHotelIds%5B%5D=4079&legacyHotelIds%5B%5D=80915&legacyHotelIds%5B%5D=65254&legacyHotelIds%5B%5D=22791&legacyHotelIds%5B%5D=57064&legacyHotelIds%5B%5D=57039&legacyHotelIds%5B%5D=65266&legacyHotelIds%5B%5D=116934&legacyHotelIds%5B%5D=681&legacyHotelIds%5B%5D=8008&legacyHotelIds%5B%5D=119046",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/sunny-beach-resort-8427000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/sunny-beach-resort-8427001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/sunny-beach-resort-8427044.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5600,
+        "anytour_id": 1247,
+        "legacy_native_id": 4079,
+        "source_file": "additional-sixth20-current-catalog.json",
+        "source_sha256": "83ada31830c6547f1de012206ba22e0daefe408de91b27b2af352b6000219454",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaREzq-As",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_0fe5b354136f2860_run08_c01",
+        "top500_0fe5b354136f2860_run08_c02",
+        "top500_0fe5b354136f2860_run08_c03",
+        "top500_0fe5b354136f2860_run08_c04",
+        "top500_0fe5b354136f2860_run08_c06",
+        "top500_0fe5b354136f2860_run08r_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sunny-beach-resort-8427000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "23ffaf61eed995f7b399698677ec16c41b84a0af43c7f340075d7046e0fb23c3",
+          "source_png_sha256": "1f4a09c3ff870eaa0f0b4f3f2b318440aa0c1a91917c024669c9db210dc41d17",
+          "source_png_bytes": 1035107,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн Sunny Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRPjdYCA",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sunny-beach-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sunny-beach-resort-8427001.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5a2f2bb3893981db1254c23cd0416930f701a66123226f37545d07cc25b538fe",
+          "source_png_sha256": "3815e6310aa7e3f41f74dd9b6a5077141236bac10954730c7031b021a3954dbb",
+          "source_png_bytes": 1212337,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Территория Sunny Beach Resort у моря",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaROdevsk",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sunny-beach-g03.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g43",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/16/sunny-beach-resort-8427044.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c2079e916fa004dbd734fb8dbe6879695aef1fad95116d3fa67ce05b0b089e37",
+          "source_png_sha256": "b0e100cd4f56593afc9cfdab1e732dc57c1019bf9c32c246bfc1e7146f611df5",
+          "source_png_bytes": 571952,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Детская игровая зона Sunny Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaRG15lZg",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sunny-beach-g43.png"
+        }
+      ]
+    }
+  ]
+}
