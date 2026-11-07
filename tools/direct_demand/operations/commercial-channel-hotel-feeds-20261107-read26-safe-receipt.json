@@ -1,0 +1,180 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read26",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 66555,
+      "name": "Best Western Premier Sonasea Phu Quoc Resort",
+      "country_id": 16,
+      "region_id": 104,
+      "destination": "Фукуок",
+      "telegram_post_url": "https://t.me/any_toour/215",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2GEpLHjw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/66555.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 110289,
+      "name": "Club Privé by Rixos Sharm El Sheikh",
+      "country_id": 1,
+      "region_id": 6,
+      "destination": "Шарм-эль-Шейх",
+      "telegram_post_url": "https://t.me/any_toour/216",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2GFMuUmw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/110289.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 513,
+      "name": "Naama Bay Hotel & Resort",
+      "country_id": 1,
+      "region_id": 6,
+      "destination": "Шарм-эль-Шейх",
+      "telegram_post_url": "https://t.me/any_toour/217",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2GFxpMCA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/513.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 103731,
+      "name": "Comodo Nha Trang Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/218",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2GGU0fgw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/103731.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 800,
+      "name": "Sugar Marina Resort Art Karon Beach",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/219",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2GG5XH2I",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/800.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 3452,
+      "name": "Liberty Hotels Lykia",
+      "country_id": 4,
+      "region_id": 27,
+      "destination": "Фетхие",
+      "telegram_post_url": "https://t.me/any_toour/220",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2GHc8bvM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/42ad8b8dc207ceea63d5d9357aaa6936ea32c557/.github/traffic-publish/commercial-batch-20261107-9/3452.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 6,
+  "candidate_count": 18,
+  "read_at_utc": "2026-11-07T13:02:23+00:00",
+  "scope_hotels": 6,
+  "feed_rows": 6,
+  "deferred_count": 0,
+  "installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083",
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 1143,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 41495,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 69261,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1221,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 32342,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 64670,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 4095,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 13941,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 4071,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 41149,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 54592,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 57217,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 4432,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 82606,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1337,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 380,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1257,
+      "clear": true,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 82567,
+      "clear": true,
+      "matches": []
+    }
+  ],
+  "run_id": 42375078643,
+  "artifact_id": 13575392112,
+  "artifact_zip_sha256": "620eee33448f862dcc7051fe941194cda4ed3e662f96fa9f0bc40e6cee29cb5d"
+}
