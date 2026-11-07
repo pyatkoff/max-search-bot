@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation": "commercial-hotel-batch-20261107-1-v1",
-  "state": "CLOSED_CAPTIONS_CORRECTED_TECHNICALLY_CONFIRMED_QUALITY_NOT_USER_ACCEPTED_MASS_PUBLICATION_PAUSED",
+  "state": "CLOSED_EXISTING_CAPTIONS_CTA_REPEAT_REMOVED_QUALITY_NOT_USER_ACCEPTED_MASS_PUBLICATION_PAUSED",
   "run_id": 42354637509,
   "job_id": 128349918360,
   "source_commit": "7859e13b013712008364a56f6d4d2375117b04a1",
@@ -26,11 +26,13 @@
       "message_id": "176",
       "post_url": "https://t.me/any_toour/176",
       "state": "sent",
-      "text_sha256": "bd5f212b49f1c3a679d6a46e2f82a1cf0142a7cb969f0f80f35b00d1175a056f",
+      "text_sha256": "ab452d66a7fde4de312a1c1017befd25124d46030cb5b4226e63ed22cbfd52a1",
       "photo_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
       "body_photo_button_verified": true,
       "original_text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
-      "caption_corrected": true
+      "caption_corrected": true,
+      "previous_editorial_text_sha256": "bd5f212b49f1c3a679d6a46e2f82a1cf0142a7cb969f0f80f35b00d1175a056f",
+      "cta_repeat_removed": true
     },
     {
       "hotel_id": 1216,
@@ -39,11 +41,13 @@
       "message_id": "177",
       "post_url": "https://t.me/any_toour/177",
       "state": "sent",
-      "text_sha256": "c3bedefb5f12c2c8485973ae88cb325dbb818504bf65fea2402867064adbfc20",
+      "text_sha256": "1e21443110889687079c5bb16fd8b68f069cb0c545f3284ef206284a3ef64e05",
       "photo_sha256": "6b719c1dc25fe7905d7b310c7b30d637f3a0a342a89eacebe4d647dd81fd76f6",
       "body_photo_button_verified": true,
       "original_text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
-      "caption_corrected": true
+      "caption_corrected": true,
+      "previous_editorial_text_sha256": "c3bedefb5f12c2c8485973ae88cb325dbb818504bf65fea2402867064adbfc20",
+      "cta_repeat_removed": true
     },
     {
       "hotel_id": 1095,
@@ -52,11 +56,13 @@
       "message_id": "178",
       "post_url": "https://t.me/any_toour/178",
       "state": "sent",
-      "text_sha256": "3aa4a5dec4f07b227d1ddfda82cf39c925939e669bb0d2ef63fa5462dede1270",
+      "text_sha256": "b9835538a3ac268c97257375988a96681242a5173d75e8b137dc18306a976e45",
       "photo_sha256": "0eda6e380dc296edf411c5888d6002d32016c40cd99263ba815b261c7e8f4731",
       "body_photo_button_verified": true,
       "original_text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
-      "caption_corrected": true
+      "caption_corrected": true,
+      "previous_editorial_text_sha256": "3aa4a5dec4f07b227d1ddfda82cf39c925939e669bb0d2ef63fa5462dede1270",
+      "cta_repeat_removed": true
     },
     {
       "hotel_id": 27426,
@@ -65,11 +71,13 @@
       "message_id": "mid.ffffb6caf0606fed01a1b5136b30229e",
       "post_url": "https://max.ru/channel_anytour/AaG1E2swIp4",
       "state": "sent",
-      "text_sha256": "bd5f212b49f1c3a679d6a46e2f82a1cf0142a7cb969f0f80f35b00d1175a056f",
+      "text_sha256": "ab452d66a7fde4de312a1c1017befd25124d46030cb5b4226e63ed22cbfd52a1",
       "photo_sha256": "a009f3bd73128d4c2c8a82c675bf86e999723e6e50b7fe44902f3fdfb1372b00",
       "body_photo_button_verified": true,
       "original_text_sha256": "0ce8e552046acc14b189034c3b7515003fabd579d04386d62c21659fc4248d9f",
-      "caption_corrected": true
+      "caption_corrected": true,
+      "previous_editorial_text_sha256": "bd5f212b49f1c3a679d6a46e2f82a1cf0142a7cb969f0f80f35b00d1175a056f",
+      "cta_repeat_removed": true
     },
     {
       "hotel_id": 1216,
@@ -78,11 +86,13 @@
       "message_id": "mid.ffffb6caf0606fed01a1b513740f4812",
       "post_url": "https://max.ru/channel_anytour/AaG1E3QPSBI",
       "state": "sent",
-      "text_sha256": "c3bedefb5f12c2c8485973ae88cb325dbb818504bf65fea2402867064adbfc20",
+      "text_sha256": "1e21443110889687079c5bb16fd8b68f069cb0c545f3284ef206284a3ef64e05",
       "photo_sha256": "6b719c1dc25fe7905d7b310c7b30d637f3a0a342a89eacebe4d647dd81fd76f6",
       "body_photo_button_verified": true,
       "original_text_sha256": "b1906ebbab6fda197dae1091ce497e4df139768175ba2f7ffc2be7f5ed4545b5",
-      "caption_corrected": true
+      "caption_corrected": true,
+      "previous_editorial_text_sha256": "c3bedefb5f12c2c8485973ae88cb325dbb818504bf65fea2402867064adbfc20",
+      "cta_repeat_removed": true
     },
     {
       "hotel_id": 1095,
@@ -91,11 +101,13 @@
       "message_id": "mid.ffffb6caf0606fed01a1b5137d007a23",
       "post_url": "https://max.ru/channel_anytour/AaG1E30AeiM",
       "state": "sent",
-      "text_sha256": "3aa4a5dec4f07b227d1ddfda82cf39c925939e669bb0d2ef63fa5462dede1270",
+      "text_sha256": "b9835538a3ac268c97257375988a96681242a5173d75e8b137dc18306a976e45",
       "photo_sha256": "0eda6e380dc296edf411c5888d6002d32016c40cd99263ba815b261c7e8f4731",
       "body_photo_button_verified": true,
       "original_text_sha256": "ce1bffd040439cc7e9fd1c27cba2365ea17fe4dcb5404d81fa663d9f3f1939f9",
-      "caption_corrected": true
+      "caption_corrected": true,
+      "previous_editorial_text_sha256": "3aa4a5dec4f07b227d1ddfda82cf39c925939e669bb0d2ef63fa5462dede1270",
+      "cta_repeat_removed": true
     }
   ],
   "private_registry_ids_and_versions_in_original_result_artifact": true,
@@ -190,10 +202,12 @@
     ],
     "prohibited_customer_copy": [
       "Research labels such as «по официальному описанию» or «заявлено»",
-      "Incidental paid-room-service conditions replacing the commercial offer"
+      "Incidental paid-room-service conditions replacing the commercial offer",
+      "Повтор инструкции кнопки строкой «Нажмите…» в тексте"
     ],
     "rule": "Factual accuracy does not by itself establish commercial readiness.",
-    "technical_count_is_not_user_acceptance_of_164_ads": true
+    "technical_count_is_not_user_acceptance_of_164_ads": true,
+    "button_copy_rule": "Действие «Узнать стоимость тура» пишем на кнопке; в тексте не повторяем «Нажмите…»."
   },
   "side_star_cover_draft": {
     "status": "NOT_APPLIED_DRAFT_PREVIEW_NOT_COMMITTED_NOT_PUBLISHED",
@@ -215,5 +229,67 @@
       "commercial format user review pending"
     ],
     "not_counted_as_new_pairs": true
-  }
+  },
+  "cta_repeat_removal": {
+    "operation": "commercial-hotel-caption-cta-dedup-20261107-1-v1",
+    "state": "CLOSED_SIX_EXISTING_CAPTIONS_EXACT_FINAL_LINE_REMOVAL_VERIFIED",
+    "run_id": 42357448787,
+    "job_id": 128358546615,
+    "source_commit": "287bebf28cee6337b10e736a9fdf2905541467f8",
+    "installed_source": "42921afec01af4d88a931f548e3442db76248f87",
+    "completed_at_utc": "2026-11-07T08:55:13Z",
+    "intent_artifact": 13568133342,
+    "result_artifact": 13567684670,
+    "intent_saved_before_edit": true,
+    "baseline_operation": "commercial-hotel-caption-correction-20261107-1-v1",
+    "baseline_versions": [
+      921,
+      922,
+      923,
+      924,
+      925,
+      926
+    ],
+    "new_versions": [
+      927,
+      928,
+      929,
+      930,
+      931,
+      932
+    ],
+    "removed_suffix": "\n👇 Нажмите «Узнать стоимость тура».",
+    "removed_utf16_units_per_caption": 36,
+    "commercial_text_updates": 6,
+    "post_write_attempts": 6,
+    "new_posts_created": 0,
+    "retained_offer_text": true,
+    "button_text": "✈️ Узнать стоимость тура",
+    "photos_changed": 0,
+    "button_urls_changed": 0,
+    "post_urls_changed": 0,
+    "start_tokens_changed": 0,
+    "all_six_existing_messages_readback_verified": true,
+    "price_queries": 0,
+    "tour_search_calls": 0,
+    "feed_writes": 0,
+    "max_route_writes": 0,
+    "new_text_hashes": [
+      {
+        "hotel_id": 27426,
+        "sha256": "ab452d66a7fde4de312a1c1017befd25124d46030cb5b4226e63ed22cbfd52a1"
+      },
+      {
+        "hotel_id": 1216,
+        "sha256": "1e21443110889687079c5bb16fd8b68f069cb0c545f3284ef206284a3ef64e05"
+      },
+      {
+        "hotel_id": 1095,
+        "sha256": "b9835538a3ac268c97257375988a96681242a5173d75e8b137dc18306a976e45"
+      }
+    ],
+    "private_registry_contexts_in_result_artifact": true,
+    "repeat_policy": "Closed confirmed new action; do not replay this edit or the prior consumed correction for reporting."
+  },
+  "cta_repeat_removal_operation_closed": true
 }
