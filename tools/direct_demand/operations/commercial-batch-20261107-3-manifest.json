@@ -1,0 +1,266 @@
+{
+  "operation": "commercial-hotel-batch-20261107-3-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 168,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "read_at_utc": "2026-11-07T10:47:57+00:00",
+    "run_id": 42365443417,
+    "ids": [
+      1352,
+      37360,
+      1035,
+      45199,
+      613,
+      24909
+    ],
+    "all_clear": true,
+    "same_clearance_not_replayed": true
+  },
+  "media_approval_basis": "Existing mass-release mandate in accepted style and latest user instruction давай дальше. All final covers shown in chat.",
+  "rows": [
+    {
+      "hotel_id": 1352,
+      "logical_id": "commercial-sherwood-exclusive-kemer-1352-v1",
+      "aliases": [
+        "Sherwood Exclusive Kemer",
+        "SHERWOOD EXCLUSIVE KEMER (EX. SHERWOOD CLUB, MAJESTY CLUB)"
+      ],
+      "text": "🌿 Sherwood Exclusive Kemer 5★\n\nПляжный отдых в Кемере с отдельными спальнями для всей семьи.\n\n🏖 Первая линия и собственный пляж протяжённостью 450 м.\n🛏 Family Suite 60 м²: две спальни с дверью и два санузла.\n💧 Для любителей воды есть номера Swim Up с прямым доступом к бассейну.\n🎶 Вечерняя программа, живая музыка и дискотека.\n\n✈️ Подберём подходящий номер в Sherwood Exclusive Kemer и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "be331dea4ade938f45e411e12c0f14dbcaf846c6210154f3d61bc837bcb88a35",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/1352.png",
+      "photo_sha256": "3aa966029d0c4ff35b100e47a046f7d9e60ad728950d3b3e5f0ea99db1985db6",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/md/rus/country/turkey/kemer/sherwood_exclusive_kemer/",
+        "https://media.joinup.travel/storage/hotel/50919/files_en/SEK_Factsheet_Summer_2026_EN.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1352&legacyHotelIds%5B%5D=37360&legacyHotelIds%5B%5D=1035&legacyHotelIds%5B%5D=45199&legacyHotelIds%5B%5D=613&legacyHotelIds%5B%5D=24909",
+        "https://www.sherwoodhotels.com.tr/en/our-hotels/sherwood-exclusive-kemer/"
+      ],
+      "identity_binding": {
+        "anex_id": 19042,
+        "anytour_id": 632,
+        "legacy_native_id": 1352,
+        "source_file": "next-six-current-catalog.json",
+        "source_sha256": "b4158895b6f54ef456302eb53410578de68a26cf580f82117db27018339d822c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaOtfyhEo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_61aa36c73088001e_run06_c04",
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c11",
+        "HOTEL-TR-MANUAL-20261025T194938Z-BASE06_c13",
+        "top500_61aa36c73088001e_run06_c05"
+      ]
+    },
+    {
+      "hotel_id": 37360,
+      "logical_id": "commercial-sueno-hotels-deluxe-belek-37360-v1",
+      "aliases": [
+        "Sueno Hotels Deluxe Belek",
+        "SUENO HOTELS DELUXE BELEK"
+      ],
+      "text": "🏖 Sueno Hotels Deluxe Belek 5★\n\nМоре, песчаный пляж и просторные номера для семейного отдыха в Белеке.\n\n🌊 Первая линия, собственный пляж и песчаный вход в море.\n💧 Большой основной бассейн площадью 7000 м².\n🛏 Deluxe Room 45 м² или Deluxe Suite 70 м² с гостиной и отдельной спальней.\n\n✈️ Подберём размещение под ваш состав и рассчитаем тур в Sueno Hotels Deluxe Belek с перелётом на ваши даты.",
+      "text_sha256": "35d7afa95c522d003552e58016a23d85face5d3c5aaa556f7cbdf1df73d7ecf4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/37360.png",
+      "photo_sha256": "ae7fd28fcc3f0d2c5d88e84ea47a72439582439011f406a15eb04f4d2e7c6e0d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/belek/sueno_hotels_deluxe_belek/",
+        "https://deluxe.sueno.com.tr/en/plaj-havuz-en/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1352&legacyHotelIds%5B%5D=37360&legacyHotelIds%5B%5D=1035&legacyHotelIds%5B%5D=45199&legacyHotelIds%5B%5D=613&legacyHotelIds%5B%5D=24909"
+      ],
+      "identity_binding": {
+        "anex_id": 8496,
+        "anytour_id": 2235,
+        "legacy_native_id": 37360,
+        "source_file": "next-six-current-catalog.json",
+        "source_sha256": "b4158895b6f54ef456302eb53410578de68a26cf580f82117db27018339d822c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaOua2_ZU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_933364613421e891_c03",
+        "top500_933364613421e891_c04",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c34"
+      ]
+    },
+    {
+      "hotel_id": 1035,
+      "logical_id": "commercial-lara-barut-collection-1035-v1",
+      "aliases": [
+        "Lara Barut Collection",
+        "LARA BARUT COLLECTION"
+      ],
+      "text": "🌿 Lara Barut Collection 5★ · Анталья\n\nСемейный отпуск на первой линии: у взрослых и детей своё пространство.\n\n🛏 Deluxe Family Suite от 65 до 73 м²: две спальни, две ванные комнаты и балкон.\n💧 Deluxe Family Swim Up Suite от 90 до 95 м²: две спальни и терраса с прямым выходом к бассейну.\n🏖 Собственный пляж с песком и галькой.\n\n✈️ Подберём семейный номер в Lara Barut Collection и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f49b6c5f5a10ca96c79877b73e234fd8a93deaef89e8fa4c4ed18a44e10abc46",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/1035.png",
+      "photo_sha256": "d47b382ac55eea1210887120f14c06989fc2efba16f116e48d0a9389aec661cc",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/md/rus/country/turkey/antaliya/lara_barut_collection/",
+        "https://kompastour.com/by/rus/country/turkey/antaliya/lara_barut_collection/",
+        "https://barutlara.com/en/accommodation/deluxe-family-suite",
+        "https://barutlara.com/en/accommodation/deluxe-family-swim-up-suite",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1352&legacyHotelIds%5B%5D=37360&legacyHotelIds%5B%5D=1035&legacyHotelIds%5B%5D=45199&legacyHotelIds%5B%5D=613&legacyHotelIds%5B%5D=24909"
+      ],
+      "identity_binding": {
+        "anex_id": 26289,
+        "anytour_id": 457,
+        "legacy_native_id": 1035,
+        "source_file": "next-six-current-catalog.json",
+        "source_sha256": "b4158895b6f54ef456302eb53410578de68a26cf580f82117db27018339d822c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaOgCqTVU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_8ecb2a550aa9e493_run05_c04",
+        "top500_8ecb2a550aa9e493_run05audit_c04",
+        "HOTEL-TR-MANUAL-20261025T205516Z-BASE09_c21",
+        "HOTEL-TR-MANUAL-20261025T205516Z-BASE09_c23"
+      ]
+    },
+    {
+      "hotel_id": 45199,
+      "logical_id": "commercial-side-star-park-45199-v1",
+      "aliases": [
+        "Side Star Park",
+        "SIDE STAR PARK"
+      ],
+      "text": "🏖 Side Star Park 5★ · Сиде\n\nПесчаный пляж и отдельные спальни для семейного отпуска.\n\n🌊 Пляж в 150 м от отеля, через дорогу. Вход в море песчаный.\n🛏 Family 30 м²: две спальни с дверью между ними.\n🎶 Живая музыка, турецкие вечера и дискотека в отдельные дни.\n\n✈️ Подберём номер и тур в Side Star Park с перелётом и питанием «всё включено» на ваши даты. Рассчитаем стоимость на ваш состав.",
+      "text_sha256": "bac05006899b1557818d09e9e4c2a00f6ea8c7926dd8e17f409c9a59064de7e4",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/45199.png",
+      "photo_sha256": "fc1eb2e0e018033a6757b69f9ef684a1fbee5d63f5def58e47468f05e4b06fee",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/uz/rus/country/turkey/side/side_star_park/",
+        "https://kompastour.com/md/rus/country/turkey/side/side_star_park/",
+        "https://www.sidestarhotels.com/park/tr/activity/kumsal-and-havuzlar",
+        "https://www.sidestarhotels.com/park/tr"
+      ],
+      "identity_binding": {
+        "anex_id": 11094,
+        "anytour_id": 5751,
+        "legacy_native_id": 45199,
+        "source_file": "next-six-current-catalog.json",
+        "source_sha256": "b4158895b6f54ef456302eb53410578de68a26cf580f82117db27018339d822c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaOichg1c",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_23137756f7a33dea_demand16_c01",
+        "top500_23137756f7a33dea_run05_c02",
+        "top500_23137756f7a33dea_run05_c03",
+        "top500_23137756f7a33dea_run05audit_c05"
+      ]
+    },
+    {
+      "hotel_id": 613,
+      "logical_id": "commercial-andaman-embrace-patong-613-v1",
+      "aliases": [
+        "Andaman Embrace Patong",
+        "ANDAMAN EMBRACE PATONG"
+      ],
+      "text": "🌴 Andaman Embrace Patong 4★ · Пхукет\n\nДля тех, кто сочетает пляж с городскими прогулками.\n\n🏖 Песчаный пляж Патонг примерно в 250 м от отеля.\n💧 Pool Access в Premier Wing: прямой доступ к бассейну.\n🛏 Для семьи есть Two Bedroom Embrace Suite 110 м² с двумя спальнями.\n🌇 Above Five Sky Bar на шестом этаже.\n\n✈️ Подберём подходящий корпус и номер в Andaman Embrace Patong. Рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "07623d31ecc82753dbfb25bfe5942edcca17a5ce783bc527cb10c45d1ee68d63",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/613.png",
+      "photo_sha256": "c573d69505e5c42d3c68f08a9d6f4b90338738fde29efcdc6d027044a637dd77",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/andaman_embrace_patong/",
+        "https://www.andamanembrace.com/",
+        "https://www.andamanembrace.com/restaurant/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1352&legacyHotelIds%5B%5D=37360&legacyHotelIds%5B%5D=1035&legacyHotelIds%5B%5D=45199&legacyHotelIds%5B%5D=613&legacyHotelIds%5B%5D=24909"
+      ],
+      "identity_binding": {
+        "anex_id": 7967,
+        "anytour_id": 279,
+        "legacy_native_id": 613,
+        "source_file": "next-six-current-catalog.json",
+        "source_sha256": "b4158895b6f54ef456302eb53410578de68a26cf580f82117db27018339d822c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "canva_design_id": "DAHaOtemPao",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_4c50c8bccf26f3d6_run07_c04",
+        "country61_TH_20261025T185433Z_manual_c16",
+        "country61_TH_20261025T185433Z_manual_c17",
+        "country61_TH_20261025T204503Z_mass_c07"
+      ]
+    },
+    {
+      "hotel_id": 24909,
+      "logical_id": "commercial-graceland-khao-lak-beach-resort-24909-v1",
+      "aliases": [
+        "Graceland Khao Lak Beach Resort",
+        "GRACELAND KHAO LAK BEACH RESORT (EX. SENTIDO GRACELAND KHAO LAK RESORT & SPA)"
+      ],
+      "text": "🌴 Graceland Khao Lak Beach Resort 5★\n\nПляжный отдых в зелени с выбором номера у бассейна.\n\n🏖 Песчаный пляж у территории со взрослыми деревьями.\n💧 Два протяжённых бассейна у лагуны с зонами джакузи.\n🛏 Deluxe 45 м²: Pool View с видом на бассейн или Pool Access с прямым доступом к воде.\n👨‍👩‍👧 Для большой семьи есть Beachfront Two Bedroom Pool Villa: две спальни, гостиная и личный бассейн.\n\n✈️ Подберём номер или виллу в Graceland Khao Lak и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "ca154b2803f96075d0455dd3c876528212046dbf87de35b22efec0981c9d2454",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/24909.png",
+      "photo_sha256": "097f788c8f6891e4c012e7de8bc3f855a114ef3b061ed03621a9d25000eb403b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/khao_lak/graceland_khaolak_resort/",
+        "https://www.gracelandkhaolak.com/",
+        "https://www.gracelandkhaolak.com/pool-villa/beachfront-2-bedroom-pool-villa",
+        "https://www.gracelandkhaolak.com/fun",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1352&legacyHotelIds%5B%5D=37360&legacyHotelIds%5B%5D=1035&legacyHotelIds%5B%5D=45199&legacyHotelIds%5B%5D=613&legacyHotelIds%5B%5D=24909",
+        "https://www.gracelandkhaolak.com/rooms"
+      ],
+      "identity_binding": {
+        "anex_id": 5757,
+        "anytour_id": 1970,
+        "legacy_native_id": 24909,
+        "source_file": "next-six-current-catalog.json",
+        "source_sha256": "b4158895b6f54ef456302eb53410578de68a26cf580f82117db27018339d822c",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "canva_design_id": "DAHaOoleipo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261025T183609Z_manual_c22",
+        "country61_TH_20261025T214500Z_mass_c08",
+        "top500_7c9ff85433d4343f_run07_c03",
+        "country61_TH_20261025T202149Z_mass_c20"
+      ]
+    }
+  ]
+}

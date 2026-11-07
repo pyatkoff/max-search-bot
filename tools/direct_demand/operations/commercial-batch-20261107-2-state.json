@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "operation": "commercial-hotel-batch-20261107-2-v1",
-  "state": "SENDER_COMPLETE_NEW_FOUR_PAIRS_FEED_APPEND_PENDING",
+  "state": "COMPLETE_FOUR_NEW_PAIRS_WITH_NATIVE_ROUTES_AND_PUBLIC_FEEDS",
   "run_id": 42365170429,
   "job_id": 128381597803,
   "source_commit": "5dd68ff5ffd8d3d0396fd029ce7e3da683efbf4f",
@@ -84,20 +84,76 @@
     }
   ],
   "current_feed_counts": {
-    "telegram": 164,
-    "max": 164,
-    "all": 328
+    "telegram": 168,
+    "max": 168,
+    "all": 336
   },
-  "current_max_native_route_count": 164,
-  "pending_new_route_native_ids": [
-    24462,
-    43236,
-    101694,
-    2469
-  ],
+  "current_max_native_route_count": 168,
+  "pending_new_route_native_ids": [],
   "sender_operation_closed": true,
   "unknown_operations": 0,
-  "repeat_policy": "Do not replay this sender or the completed trio; finish only the new4 add-only routes/feed.",
+  "repeat_policy": "Sender, route install and feed publish/readback are all CLOSED. Do not replay. Continue only a concretely prepared unique next packet.",
   "mac_touched": false,
-  "prices_and_search_links_replayed": false
+  "prices_and_search_links_replayed": false,
+  "route_extension": {
+    "run_id": 42366046299,
+    "job_id": 128384221129,
+    "result_artifact_id": 13572115426,
+    "source_commit": "cc7629fc34aa3aa85733ca8b544f5ab580ba842b",
+    "state": "INSTALLED_AND_NATIVE_VERIFIED",
+    "previous_count": 164,
+    "current_count": 168,
+    "new_native_verified": 4,
+    "previous164_rows_identical": true,
+    "preconnection_stop_run": 42365643870,
+    "preconnection_stop_reason": "main advanced before install; no server connection or mutation"
+  },
+  "feed_extension": {
+    "run_id": 42366296474,
+    "job_id": 128384978541,
+    "result_artifact_id": 13571464614,
+    "state": "PUBLISHED_AND_PUBLIC_READBACK_VERIFIED",
+    "previous_counts": [
+      164,
+      164,
+      328
+    ],
+    "current_counts": [
+      168,
+      168,
+      336
+    ],
+    "public_gets": 3,
+    "previous164_offer_blocks_identical": true,
+    "sun_siyam_public_destination": "Пасикуда",
+    "files": [
+      {
+        "bytes": 108727,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-telegram.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "rows": 168,
+        "sha256": "10cdcc4913b0bc3ef220d8fa5bc5ab0a0c3e5b52548c3b9b4352314ac518e42d"
+      },
+      {
+        "bytes": 137010,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-max.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "rows": 168,
+        "sha256": "f2e487c4ed29e9764feb9f6bdb4518c7bf8543fdbd96dfc3f9873f4bea2b2a83"
+      },
+      {
+        "bytes": 245364,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-all.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "rows": 336,
+        "sha256": "758b49bdbdb72abefb1289984f64fade457597f863bd8992d439499e90c992ac"
+      }
+    ]
+  }
 }
