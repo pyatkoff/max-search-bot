@@ -1,0 +1,200 @@
+[
+  {
+    "hotel_id": 1465,
+    "logical_id": null,
+    "aliases": [
+      "RUBI HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 1015,
+    "logical_id": null,
+    "aliases": [
+      "ARCANUS HOTELS SORGUN (EX. ARCANUS SIDE RESORT)",
+      "ARCANUS HOTELS SORGUN",
+      "ARCANUS SIDE RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 1649,
+    "logical_id": null,
+    "aliases": [
+      "GRAND YAZICI CLUB MARMARIS PALACE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 28448,
+    "logical_id": null,
+    "aliases": [
+      "LA BLANCHE ISLAND BODRUM"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 1716,
+    "logical_id": null,
+    "aliases": [
+      "SELECTUM COLOURS BODRUM (EX. ASTERIA BODRUM RESORT)",
+      "SELECTUM COLOURS BODRUM",
+      "ASTERIA BODRUM RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 7985,
+    "logical_id": null,
+    "aliases": [
+      "KATA SILVER SAND"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 81358,
+    "logical_id": null,
+    "aliases": [
+      "GLOW MIRA KARON BEACH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 61760,
+    "logical_id": null,
+    "aliases": [
+      "SAADIYAT ROTANA RESORT & VILLAS"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 30095,
+    "logical_id": null,
+    "aliases": [
+      "СОЧИ ПАРК ОТЕЛЬ"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 28327,
+    "logical_id": null,
+    "aliases": [
+      "NIRVANA MEDITERRANEAN EXCELLENCE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 1236,
+    "logical_id": null,
+    "aliases": [
+      "PRESTIGE ALANYA (EX.EUPHORIA COMFORT BEACH ALANYA)",
+      "PRESTIGE ALANYA",
+      "EUPHORIA COMFORT BEACH ALANYA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 1029,
+    "logical_id": null,
+    "aliases": [
+      "CRYSTAL TAT BEACH PEARL COLLECTION (EX. CRYSTAL TAT BEACH GOLF RESORT & SPA)",
+      "CRYSTAL TAT BEACH PEARL COLLECTION",
+      "CRYSTAL TAT BEACH GOLF RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 1331,
+    "logical_id": null,
+    "aliases": [
+      "CRYSTAL PRESTIGE PEARL COLLECTION (EX. CRYSTAL PRESTIGE ELITE HOTEL)",
+      "CRYSTAL PRESTIGE PEARL COLLECTION",
+      "CRYSTAL PRESTIGE ELITE HOTEL"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 81578,
+    "logical_id": null,
+    "aliases": [
+      "ARCANUS HOTELS TRENDLINE SIDE (EX. ARCANUS TRENDLINE RESORT)",
+      "ARCANUS HOTELS TRENDLINE SIDE",
+      "ARCANUS TRENDLINE RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 1591,
+    "logical_id": null,
+    "aliases": [
+      "TUI BLUE XANTHE (EX. THE XANTHE RESORT & SPA)",
+      "TUI BLUE XANTHE",
+      "THE XANTHE RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 364,
+    "logical_id": null,
+    "aliases": [
+      "V HOTEL SHARM EL SHEIKH (EX. PYRAMISA BEACH RESORT SHARM EL SHEIKH)",
+      "V HOTEL SHARM EL SHEIKH",
+      "PYRAMISA BEACH RESORT SHARM EL SHEIKH"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 24898,
+    "logical_id": null,
+    "aliases": [
+      "MELISSA KATA BEACH RESORT (EX. PUDING HOLIDAY WORLD KATA)",
+      "MELISSA KATA BEACH RESORT",
+      "PUDING HOLIDAY WORLD KATA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 77625,
+    "logical_id": null,
+    "aliases": [
+      "ARALIYA BEACH RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 2810,
+    "logical_id": null,
+    "aliases": [
+      "HIKKA TRANZ BY CINNAMON"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  },
+  {
+    "hotel_id": 1585,
+    "logical_id": null,
+    "aliases": [
+      "A GOOD LIFE UTOPIA FAMILY RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_twenty_after200_first_clearance_exact_typed_ids_not_release_ready"
+  }
+]
