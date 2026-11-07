@@ -1,0 +1,993 @@
+{
+  "operation": "commercial-hotel-batch-20261107-28-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 362,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read36",
+        "original_read_sha256": "0c0e578680c4e4ceb41d5385bbce12c8de230295b89e3a98a5be863ecbfaaee0",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed18 commercial captions in cutover24 format,54 real source photos and18 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before27/28 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-eighteen-after-352-commercial-release-manifest.json",
+    "sha256": "13d2f8c64cd49b86dc23ac4684221e173b40ccf4c9e8df3cab2937cbb0a09b11",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-eighteen-reviewed-after-200-commercial-captions.json",
+    "caption_sha256": "46c6c21ee1e0eb4a78d94e92b0a17cdc5a3fd411b0b5e1bff6dde00b9dc0db45",
+    "subset_native_ids": [
+      1029,
+      1331,
+      81578,
+      1591,
+      24898,
+      77625,
+      2810,
+      1585
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "source_held_native_ids": [
+    81358
+  ],
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 1029,
+      "logical_id": "commercial-crystal-tat-1029-v1",
+      "aliases": [
+        "Crystal Tat Beach Pearl Collection",
+        "CRYSTAL TAT BEACH PEARL COLLECTION (EX. CRYSTAL TAT BEACH GOLF RESORT & SPA)"
+      ],
+      "text": "✈️ Туры в Crystal Tat Beach Pearl Collection с перелётом\n📍 Белек, Турция.\n\nДля семейного отпуска у песчаного пляжа Белека.\n\n🛏 Family 31 м² с двумя спальнями и одной ванной комнатой.\n🏖 Первая линия, песчаный пляж.\n🍽 Ultimate All Inclusive.\n\n✈️ Подберём номер под возраст детей и рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "d79643eb649f428213cc98a3ffb5e57e304d9093c3c9be2061244a693b1f60e7",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/1029.png",
+      "photo_sha256": "8cd2cdb115ca4ebf16c05e7fcba5e97bd46e03927f8e7ddf1da23c87f430e475",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://b2ccdn.coraltravel.ee/content/CRYSTAL%20TAT%20BEACH%20-%20FACT%20SHEET%202026%20-%20EN.pdf",
+        "https://kompastour.com/by/rus/country/turkey/belek/crystal_tat_beach_golf_resort__spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1465&legacyHotelIds%5B%5D=1015&legacyHotelIds%5B%5D=1649&legacyHotelIds%5B%5D=28448&legacyHotelIds%5B%5D=1716&legacyHotelIds%5B%5D=7985&legacyHotelIds%5B%5D=81358&legacyHotelIds%5B%5D=61760&legacyHotelIds%5B%5D=30095&legacyHotelIds%5B%5D=28327&legacyHotelIds%5B%5D=1236&legacyHotelIds%5B%5D=1029&legacyHotelIds%5B%5D=1331&legacyHotelIds%5B%5D=81578&legacyHotelIds%5B%5D=1591&legacyHotelIds%5B%5D=364&legacyHotelIds%5B%5D=24898&legacyHotelIds%5B%5D=77625&legacyHotelIds%5B%5D=2810&legacyHotelIds%5B%5D=1585",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/barcelo-tat-beach-golf-resort-99324400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/barcelo-tat-beach-golf-resort-99324423.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/barcelo-tat-beach-golf-resort-99324450.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15126,
+        "anytour_id": 453,
+        "legacy_native_id": 1029,
+        "source_file": "next-twenty-after-200-current-catalog.json",
+        "source_sha256": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQVfriQo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_1fe042a7ad57bb0d_mass38_c01",
+        "top500_1fe042a7ad57bb0d_run04_c01",
+        "top500_1fe042a7ad57bb0d_run04_c02",
+        "top500_1fe042a7ad57bb0d_run04_c04"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barcelo-tat-beach-golf-resort-99324400.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ceb060f21ce9911aaa222df4b7e0e3ed02519c3880015cda07492b189c674478",
+          "source_png_sha256": "4864e9df0b82ecdc3e9d19119c4ed98757279482d73d2a98270149e6236bdf30",
+          "source_png_bytes": 1183075,
+          "dimensions": [
+            1024,
+            576
+          ],
+          "alt": "Территория Crystal Tat Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQStueTI",
+          "canva_asset_dimensions": [
+            1024,
+            576
+          ],
+          "source_png_filename": "crystal-tat-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g25",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barcelo-tat-beach-golf-resort-99324423.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "19c9db5e597ca79bee7b0e2e35fa248c19e9204ddc3bf97eb91edcee674250a1",
+          "source_png_sha256": "d65099473a2998e23cac806c99815f68658a1947b6678cc71e3fefa2d68a2ec3",
+          "source_png_bytes": 702355,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Песчаный пляж Crystal Tat Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQXPdaFU",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "crystal-tat-g25.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g52",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/barcelo-tat-beach-golf-resort-99324450.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4de60db2051eacde5c26f4a8177c94c88939096fd58d8c544f7deb6a8787ec40",
+          "source_png_sha256": "51f7a91e35db8f7be34f00f817e3d7af9cfb591741207b489203b8b7436e7572",
+          "source_png_bytes": 546439,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Лобби Crystal Tat Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQZ7l1Uc",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "crystal-tat-g52.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1331,
+      "logical_id": "commercial-crystal-prestige-1331-v1",
+      "aliases": [
+        "Crystal Prestige Pearl Collection",
+        "CRYSTAL PRESTIGE PEARL COLLECTION (EX. CRYSTAL PRESTIGE ELITE HOTEL)"
+      ],
+      "text": "✈️ Туры в Crystal Prestige Pearl Collection с перелётом\n📍 Гойнюк, Турция.\n\nДля отпуска с пляжными днями, музыкой и вечерними развлечениями.\n\n🛏 Standard 34 м².\n🍽 Ultra All Inclusive.\n🎶 Живая музыка, караоке и дискотека.\n🏖 До пляжа около 200 м, дорога проходит по мосту.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "fdcb97cef9e2d215ee4b3cf2e6394bc7e0bf56eedde7110131111ecbb0d258d0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/1331.png",
+      "photo_sha256": "fe8872bb8b9fda2072e9d2b8138189839a7c42a82437e92ae00f8f32d6e0f9c3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/by/rus/country/turkey/kemer/amara_prestige/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1465&legacyHotelIds%5B%5D=1015&legacyHotelIds%5B%5D=1649&legacyHotelIds%5B%5D=28448&legacyHotelIds%5B%5D=1716&legacyHotelIds%5B%5D=7985&legacyHotelIds%5B%5D=81358&legacyHotelIds%5B%5D=61760&legacyHotelIds%5B%5D=30095&legacyHotelIds%5B%5D=28327&legacyHotelIds%5B%5D=1236&legacyHotelIds%5B%5D=1029&legacyHotelIds%5B%5D=1331&legacyHotelIds%5B%5D=81578&legacyHotelIds%5B%5D=1591&legacyHotelIds%5B%5D=364&legacyHotelIds%5B%5D=24898&legacyHotelIds%5B%5D=77625&legacyHotelIds%5B%5D=2810&legacyHotelIds%5B%5D=1585",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/le-chateu-de-prestige-46000400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/le-chateu-de-prestige-46000430.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/le-chateu-de-prestige-46025211.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 18810,
+        "anytour_id": 615,
+        "legacy_native_id": 1331,
+        "source_file": "next-twenty-after-200-current-catalog.json",
+        "source_sha256": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQVB_-ag",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_6571cf8381e22724_context13_c02",
+        "top500_6571cf8381e22724_run04_c01",
+        "top500_6571cf8381e22724_run04_c02",
+        "top500_6571cf8381e22724_run04_c03",
+        "top500_6571cf8381e22724_run04_c04"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/le-chateu-de-prestige-46000400.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e619ac6846cd772cbdd8f26cedd1cc43d5ba73a79e90b174ec94f25c07ae5589",
+          "source_png_sha256": "dcd00dc4ddf8958bf4f09512eda0d0e6ae3079efa9de483fb14fe12abf80065e",
+          "source_png_bytes": 1940890,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Территория Crystal Prestige",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQTO7FbA",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "crystal-prestige-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g33",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/le-chateu-de-prestige-46000430.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "de1c25ed5620d079c3ba60cb6c0546b6ab757c6c2c776ce5363e33bf20513982",
+          "source_png_sha256": "21376fa36ea356b046a1168591d401bad41d6d84aa84b469de24336672517f55",
+          "source_png_bytes": 1914645,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Пляж Crystal Prestige",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQbbt1Cc",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "crystal-prestige-g33.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g58",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/le-chateu-de-prestige-46025211.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "70639ffba1fbd7506420be641d8d85c15f92da779788d037b56f5b9c33385a14",
+          "source_png_sha256": "188b9917684091f546941480b3c2737f603378bc8e9c3ec73127254bc56721da",
+          "source_png_bytes": 1091366,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Бар Crystal Prestige",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQeZo_f0",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "crystal-prestige-g58.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 81578,
+      "logical_id": "commercial-arcanus-trendline-81578-v1",
+      "aliases": [
+        "Arcanus Hotels Trendline Side",
+        "ARCANUS HOTELS TRENDLINE SIDE (EX. ARCANUS TRENDLINE RESORT)"
+      ],
+      "text": "✈️ Туры в Arcanus Hotels Trendline Side с перелётом\n📍 Сиде, Турция.\n\nОтпуск в Сиде с номером под ваши планы: от Standard до Family и Swim up.\n\n🛏 Сравним доступные категории и подберём размещение под ваш состав.\n🍽 Проверим варианты питания в выбранном туре.\n\n✈️ Рассчитаем полную стоимость с перелётом на нужные даты.",
+      "text_sha256": "7d8e792615aa0c6761d3016b17344efbca6f66a34dbd05e866b449e5ec7f1733",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/81578.png",
+      "photo_sha256": "fcdfda1e80a6fa2a9d2dfb3ec7d7ec8e31934513d6e698b8b97afd208d22e117",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://joinup.md/media/2022/11/TRENDLINE_EN_FACTSHEET.pdf",
+        "https://cop31.coraltravel.com/hotels/turkey/arcanus-hotels-trendline-side-side/",
+        "https://www.arcanushotelstrendlineside.com/en",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1465&legacyHotelIds%5B%5D=1015&legacyHotelIds%5B%5D=1649&legacyHotelIds%5B%5D=28448&legacyHotelIds%5B%5D=1716&legacyHotelIds%5B%5D=7985&legacyHotelIds%5B%5D=81358&legacyHotelIds%5B%5D=61760&legacyHotelIds%5B%5D=30095&legacyHotelIds%5B%5D=28327&legacyHotelIds%5B%5D=1236&legacyHotelIds%5B%5D=1029&legacyHotelIds%5B%5D=1331&legacyHotelIds%5B%5D=81578&legacyHotelIds%5B%5D=1591&legacyHotelIds%5B%5D=364&legacyHotelIds%5B%5D=24898&legacyHotelIds%5B%5D=77625&legacyHotelIds%5B%5D=2810&legacyHotelIds%5B%5D=1585",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arcanus-trendline-resort-side-91532000.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arcanus-trendline-resort-side-91532001.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arcanus-trendline-resort-side-91532025.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 34804,
+        "anytour_id": 3507,
+        "legacy_native_id": 81578,
+        "source_file": "next-twenty-after-200-current-catalog.json",
+        "source_sha256": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQabPjHA",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_5e8ad7f0bf3a3ce7_run04_c01",
+        "top500_5e8ad7f0bf3a3ce7_run04_c02",
+        "top500_5e8ad7f0bf3a3ce7_run04_c04",
+        "top500_5e8ad7f0bf3a3ce7_gap50_1_c3"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/arcanus-trendline-resort-side-91532000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "62b94ed0c83fa31e7f29d00f12dfcefd093aed79e877dd2d8e4e26b84b69c8de",
+          "source_png_sha256": "6aaf37535024c8be6441acb65cf43437a0ca974abaaa21e03a2ae2bfe3a304d2",
+          "source_png_bytes": 1169296,
+          "dimensions": [
+            1024,
+            682
+          ],
+          "alt": "Территория Arcanus Hotels Trendline Side",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQZ0ScZg",
+          "canva_asset_dimensions": [
+            1024,
+            682
+          ],
+          "source_png_filename": "arcanus-trendline-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/arcanus-trendline-resort-side-91532001.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "82fd160dd3db18aaecd8423b1ac65b67e2b6073b474afe834a96822de87a8e54",
+          "source_png_sha256": "9504101a2ea73b47e9a1b5a840fe974891f8914764e54b0cac7fdd15f14ad7ac",
+          "source_png_bytes": 455834,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Arcanus Hotels Trendline Side",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQWAxig8",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "arcanus-trendline-g02.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g26",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/arcanus-trendline-resort-side-91532025.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6fc08a7203456e3279f29151c48de78fe5234a4cf716d0e0fec9c53acd5d4b3b",
+          "source_png_sha256": "28de440dac7469b18a6648da3c8928441e0c66327c465fb19b2a9767709f6437",
+          "source_png_bytes": 550931,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Детская игровая зона Arcanus Hotels Trendline Side",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQplEznM",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "arcanus-trendline-g26.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1591,
+      "logical_id": "commercial-xanthe-1591-v1",
+      "aliases": [
+        "Tui Blue Xanthe",
+        "TUI BLUE XANTHE (EX. THE XANTHE RESORT & SPA)"
+      ],
+      "text": "✈️ Туры в TUI Blue Xanthe с перелётом\n📍 Сиде, Турция.\n\nДля семейного отпуска с отдельными спальнями и вечерними шоу.\n\n🛏 Family Two Bedrooms 35 м² с двумя спальнями.\n🍽 All Inclusive.\n🏖 Собственный песчаный пляж.\n🎶 Вечерняя анимация, шоу и живая музыка.\n\n✈️ Подберём удобный корпус и рассчитаем тур с перелётом на вашу семью.",
+      "text_sha256": "fbc01d3f17dcb6db16867c52e9d1a00370f5a0351ef68aae4b24592cb8a129c3",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/1591.png",
+      "photo_sha256": "7662fa261348d59afc6377b17c88df4494682c183ec37ed0aed0c42fade9c8da",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.nl/tui-blue-xanthe-50949322/?msockid=1a93f38bed8566f51a14e517ec016742",
+        "https://www.tui-blue.com/en/en/hotels/tui-blue-xanthe/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1465&legacyHotelIds%5B%5D=1015&legacyHotelIds%5B%5D=1649&legacyHotelIds%5B%5D=28448&legacyHotelIds%5B%5D=1716&legacyHotelIds%5B%5D=7985&legacyHotelIds%5B%5D=81358&legacyHotelIds%5B%5D=61760&legacyHotelIds%5B%5D=30095&legacyHotelIds%5B%5D=28327&legacyHotelIds%5B%5D=1236&legacyHotelIds%5B%5D=1029&legacyHotelIds%5B%5D=1331&legacyHotelIds%5B%5D=81578&legacyHotelIds%5B%5D=1591&legacyHotelIds%5B%5D=364&legacyHotelIds%5B%5D=24898&legacyHotelIds%5B%5D=77625&legacyHotelIds%5B%5D=2810&legacyHotelIds%5B%5D=1585",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1591-2914100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1591-2914109.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1591-2914139.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 9014,
+        "anytour_id": 770,
+        "legacy_native_id": 1591,
+        "source_file": "next-twenty-after-200-current-catalog.json",
+        "source_sha256": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQSyISuE",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_86bc02fd06693b03_run06_c01",
+        "top500_86bc02fd06693b03_run06_c02",
+        "top500_86bc02fd06693b03_run06_c04",
+        "top500_86bc02fd06693b03_run06_c05",
+        "top500_86bc02fd06693b03_run06_c06",
+        "top500_86bc02fd06693b03_run06audit_c03"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1591-2914100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4480f2685bf5556368b2ae2e6c6af47fd22fb0ea4a536495f3f90cf93e03ec59",
+          "source_png_sha256": "555cf6f4d9f35b972828ff2c21a555fa5ba79fd5ff44216224b2f51aedc9617b",
+          "source_png_bytes": 1317198,
+          "dimensions": [
+            1200,
+            692
+          ],
+          "alt": "Основной корпус и бассейн TUI Blue Xanthe",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQk-pSdc",
+          "canva_asset_dimensions": [
+            1200,
+            692
+          ],
+          "source_png_filename": "xanthe-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g11",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1591-2914109.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e86443cc8ef7c6971ce044b19e7b1b3c3b498e46aa92baaea05bb8d5b0f5ab07",
+          "source_png_sha256": "a444a482313a2d125a5218b4f053edc5db15437ce19667d091886f71407a20b7",
+          "source_png_bytes": 1370318,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Детская игровая площадка TUI Blue Xanthe",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQS9AQ8Q",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "xanthe-g11.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g37",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1591-2914139.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4c5304edf1cebdd81ad957a355f291b1cec5194a9702b7e33f4411c92904041a",
+          "source_png_sha256": "aa325d5117168b87110c7e8467604c59d2bc66ab05fe6ff1c4d4eed837aa0a32",
+          "source_png_bytes": 589687,
+          "dimensions": [
+            940,
+            705
+          ],
+          "alt": "Ресторан TUI Blue Xanthe",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQh8HaM4",
+          "canva_asset_dimensions": [
+            940,
+            705
+          ],
+          "source_png_filename": "xanthe-g37.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 24898,
+      "logical_id": "commercial-melissa-kata-24898-v1",
+      "aliases": [
+        "Melissa Kata Beach Resort",
+        "MELISSA KATA BEACH RESORT (EX. PUDING HOLIDAY WORLD KATA)"
+      ],
+      "text": "✈️ Туры в Melissa Kata Beach Resort с перелётом\n📍 Ката, Пхукет, Таиланд.\n\nДля отпуска на Кате с пляжными днями и прогулками по Пхукету.\n\n🏖 Общественный пляж, путь к нему проходит через дорогу.\n🍴 В отеле есть ресторан.\n🏨 Корпуса без лифтов.\n\n✈️ Подберём корпус, номер и питание под ваши планы, рассчитаем тур с перелётом.",
+      "text_sha256": "1e0629228e632a447d4861952f1ff230af72529e1b3d37c472829576c87d5d5f",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/24898.png",
+      "photo_sha256": "959681310c3221e0ce978cc0cee97fd1c417c5fc6c071aec73f5f85a8a7a1d18",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.coral.ge/en/hotels/thailand/melissa-kata-beach-resort-phuket/",
+        "https://pegast.ru/hotel/thailand/phuket/phuket/melissa-kata-beach-resort-300291275",
+        "https://intourist.ru/info/thailand/puket/kata-boljshaya/hotel/melissa-kata-beach-resort",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1465&legacyHotelIds%5B%5D=1015&legacyHotelIds%5B%5D=1649&legacyHotelIds%5B%5D=28448&legacyHotelIds%5B%5D=1716&legacyHotelIds%5B%5D=7985&legacyHotelIds%5B%5D=81358&legacyHotelIds%5B%5D=61760&legacyHotelIds%5B%5D=30095&legacyHotelIds%5B%5D=28327&legacyHotelIds%5B%5D=1236&legacyHotelIds%5B%5D=1029&legacyHotelIds%5B%5D=1331&legacyHotelIds%5B%5D=81578&legacyHotelIds%5B%5D=1591&legacyHotelIds%5B%5D=364&legacyHotelIds%5B%5D=24898&legacyHotelIds%5B%5D=77625&legacyHotelIds%5B%5D=2810&legacyHotelIds%5B%5D=1585",
+        "https://static.tourvisor.ru/hotel_pics/main400/24898.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/natalie-resort-43275006.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/natalie-resort-43275027.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 19066,
+        "anytour_id": 1968,
+        "legacy_native_id": 24898,
+        "source_file": "next-twenty-after-200-current-catalog.json",
+        "source_sha256": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 3,
+      "display_category": true,
+      "canva_design_id": "DAHaQbNUB5U",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e5054c3974d2525b_mass39_c01",
+        "top500_e5054c3974d2525b_mass39_c02",
+        "top500_e5054c3974d2525b_run06_c01",
+        "top500_e5054c3974d2525b_run06_c03",
+        "top500_e5054c3974d2525b_run06_c04"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/main400/24898.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "387af0f8cbca4149fb96d53526b31973ddffa4ad86708141d8672423dddb43af",
+          "source_png_sha256": "3367d5325560a55c63550fb8440e0a856ac473aff5ee1eea21535ab0545947dd",
+          "source_png_bytes": 191986,
+          "dimensions": [
+            400,
+            267
+          ],
+          "alt": "Melissa Kata Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQfKaVSc",
+          "canva_asset_dimensions": [
+            400,
+            267
+          ],
+          "source_png_filename": "melissa-kata-g01.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g07",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/natalie-resort-43275006.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9cfd4af6bcce71d25e6f5f58cacd75cedfbf6873e91f2af4351646d23c637ce2",
+          "source_png_sha256": "f6b6cb075e993180b59f624d54be7c1bfd48246616bf5d2d5c071d9ebe30b2f6",
+          "source_png_bytes": 480138,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Один из номеров Melissa Kata Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQotTSEQ",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "melissa-kata-g07.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g27",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/2/natalie-resort-43275027.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ed49a227a50a98bff73d20cbb8b2a48144948829b9decf7780e25b4d8400d208",
+          "source_png_sha256": "928c24b8388b35f9fb447226a0a4914b811fcb90e55d63e23a33c0dd40236e9b",
+          "source_png_bytes": 1179883,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Ресторан Melissa Kata Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQmfdB0I",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "melissa-kata-g27.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 77625,
+      "logical_id": "commercial-araliya-beach-77625-v1",
+      "aliases": [
+        "Araliya Beach Resort & Spa"
+      ],
+      "text": "✈️ Туры в Araliya Beach Resort & Spa с перелётом\n📍 Унаватуна, Шри-Ланка.\n\nДля тропического отпуска с пляжными днями и вечерними выходами.\n\n🏖 Пляж примерно в 50 м от отеля.\n🍽 Варианты питания от завтраков до All Inclusive.\n🌅 Beach Club и Sky Lounge.\n\n✈️ Подберём подходящую категорию номера и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "9ad7e0d8dbc04f49c3a4076fa2d0baaaa746ae974016d930d338a812e5f74ea8",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/77625.png",
+      "photo_sha256": "1cc269d16c22927aa13aec0af567a572e4d7e1bd141523a5a1dc6e983a6bdb7f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/srilanka/unawatuna/araliya_beach_resort_spa/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1465&legacyHotelIds%5B%5D=1015&legacyHotelIds%5B%5D=1649&legacyHotelIds%5B%5D=28448&legacyHotelIds%5B%5D=1716&legacyHotelIds%5B%5D=7985&legacyHotelIds%5B%5D=81358&legacyHotelIds%5B%5D=61760&legacyHotelIds%5B%5D=30095&legacyHotelIds%5B%5D=28327&legacyHotelIds%5B%5D=1236&legacyHotelIds%5B%5D=1029&legacyHotelIds%5B%5D=1331&legacyHotelIds%5B%5D=81578&legacyHotelIds%5B%5D=1591&legacyHotelIds%5B%5D=364&legacyHotelIds%5B%5D=24898&legacyHotelIds%5B%5D=77625&legacyHotelIds%5B%5D=2810&legacyHotelIds%5B%5D=1585",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/araliya-beach-resort-spa-102505100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/araliya-beach-resort-spa-1025051120.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/araliya-beach-resort-spa-102505107.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 31454,
+        "anytour_id": 3362,
+        "legacy_native_id": 77625,
+        "source_file": "next-twenty-after-200-current-catalog.json",
+        "source_sha256": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQZhSA6E",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_48fe4c9f580de231_run09_c01",
+        "top500_48fe4c9f580de231_run09_c02",
+        "top500_48fe4c9f580de231_run09_c04",
+        "top500_48fe4c9f580de231_run09_c05",
+        "top500_48fe4c9f580de231_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/araliya-beach-resort-spa-102505100.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0c9e3d609557a8a75ba9b45042cee565bc02f5efb0782bcfcda9774fa0c7eb51",
+          "source_png_sha256": "d8bbd2ad0fe2d0126cf4d9fe3adc686ef425ea9a34023a74f33b332aea730093",
+          "source_png_bytes": 751212,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "alt": "Araliya Beach Resort & Spa у океана",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQgzYmMI",
+          "canva_asset_dimensions": [
+            1000,
+            666
+          ],
+          "source_png_filename": "araliya-beach-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g22",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/araliya-beach-resort-spa-1025051120.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f142c25a1dfbf7bd4bc1d94bdef19298405872e555fe071c45c52824afc35003",
+          "source_png_sha256": "86819add85b9987919f820b7ee4b4610dcadef767faa9e5f86d40ed295faab7e",
+          "source_png_bytes": 596566,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Один из номеров Araliya Beach Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQnbBPC0",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "araliya-beach-g22.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g09",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/araliya-beach-resort-spa-102505107.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d6270d30853b39e57c3f81505f0300814c2d80778c41761fc37cf894b282cd01",
+          "source_png_sha256": "040016c46eae1faa6c7a38ade5585a1bb23610f76822d7ceb5040e6edf92ab29",
+          "source_png_bytes": 1204286,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Бар Araliya Beach Resort & Spa",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQuU31Yw",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "araliya-beach-g09.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 2810,
+      "logical_id": "commercial-hikka-tranz-2810-v1",
+      "aliases": [
+        "Hikka Tranz By Cinnamon"
+      ],
+      "text": "✈️ Туры в Hikka Tranz by Cinnamon с перелётом\n📍 Хиккадува, Шри-Ланка.\n\nДля пляжного отпуска в Хиккадуве с вечерней программой.\n\n🛏 Superior 37 м².\n🏖 Муниципальный песчаный пляж примерно в 10 м. Лежаков и зонтов на пляже нет.\n🍽 Питание на выбор: от завтраков до All Inclusive.\n🎶 Вечерние развлечения.\n\n✈️ Подберём номер под ваш состав и рассчитаем тур с перелётом.",
+      "text_sha256": "0efb85cda01d103b03d5a71641ecbe4f3e1e844ff5b6a39116281c08f1b54274",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/2810.png",
+      "photo_sha256": "a498f1ab0208869f691fb12f663bca53bef2c3a4223bf7135d55f8355a6ef32d",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://new.kompastour.com/kz/rus/country/srilanka/hikkaduwa/hikka_tranz_by_cinnamon/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1465&legacyHotelIds%5B%5D=1015&legacyHotelIds%5B%5D=1649&legacyHotelIds%5B%5D=28448&legacyHotelIds%5B%5D=1716&legacyHotelIds%5B%5D=7985&legacyHotelIds%5B%5D=81358&legacyHotelIds%5B%5D=61760&legacyHotelIds%5B%5D=30095&legacyHotelIds%5B%5D=28327&legacyHotelIds%5B%5D=1236&legacyHotelIds%5B%5D=1029&legacyHotelIds%5B%5D=1331&legacyHotelIds%5B%5D=81578&legacyHotelIds%5B%5D=1591&legacyHotelIds%5B%5D=364&legacyHotelIds%5B%5D=24898&legacyHotelIds%5B%5D=77625&legacyHotelIds%5B%5D=2810&legacyHotelIds%5B%5D=1585",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-gardens-hotel-102208131.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-gardens-hotel-102208137.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-gardens-hotel-1022081311.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 10869,
+        "anytour_id": 1121,
+        "legacy_native_id": 2810,
+        "source_file": "next-twenty-after-200-current-catalog.json",
+        "source_sha256": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQf9yH-E",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_aff8993da0af689a_run09_c01",
+        "top500_aff8993da0af689a_run09_c02",
+        "top500_aff8993da0af689a_run09_c03",
+        "top500_aff8993da0af689a_run09_c04",
+        "top500_aff8993da0af689a_run09_c05",
+        "top500_aff8993da0af689a_run09_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g03",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-gardens-hotel-102208131.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ee64d2d789c307689eba0f1ab2407ea8a38334b7a74c873dd3b91c73c867075a",
+          "source_png_sha256": "ae8d21ef3ed5f12b12553bb0a19292073f418c2e816c37bd2d9efede273bf373",
+          "source_png_bytes": 901535,
+          "dimensions": [
+            1024,
+            639
+          ],
+          "alt": "Hikka Tranz by Cinnamon у океана",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQcY_CXA",
+          "canva_asset_dimensions": [
+            1024,
+            639
+          ],
+          "source_png_filename": "hikka-tranz-g03.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g09",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-gardens-hotel-102208137.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "ccaa045ceed8d6ad96f61d3dcffbae01cf9385100cac2085b899a84461f4e71a",
+          "source_png_sha256": "aafcc83b685a81573251a61180dda52c8e2c4c3971a3a924eea1d18d626379c6",
+          "source_png_bytes": 689762,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Бассейн Hikka Tranz by Cinnamon вечером",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQmNi1VM",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "hikka-tranz-g09.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g13",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/12/coral-gardens-hotel-1022081311.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "4d5d71338a143d63d7175d653dd75e2b6ef4eb4f470dbc57864f94b70757026f",
+          "source_png_sha256": "1e3cb9aab875093c8ba974c4b1505d98d6db358e585cac189fc7afca62a6b3ef",
+          "source_png_bytes": 1097682,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Ресторан Hikka Tranz by Cinnamon",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQvQakJM",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "hikka-tranz-g13.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1585,
+      "logical_id": "commercial-good-life-utopia-1585-v1",
+      "aliases": [
+        "A Good Life Utopia Family Resort"
+      ],
+      "text": "✈️ Туры в A Good Life Utopia Family Resort с перелётом\n📍 Окурджалар, Турция.\n\nДля отпуска, в котором море рядом.\n\n🛏 Standard от 24 до 28 м².\n🏖 Первая линия и выход к собственному пляжу.\n\n✈️ Подберём номер и питание под ваш состав, рассчитаем полную стоимость тура с перелётом.",
+      "text_sha256": "1a292f8aeaba139f3115297b74baeda326c1c63b1949b33452b149c00d902767",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/be1a3842b0e8585e8fed424473c20f678fcfbc17/.github/traffic-publish/commercial-batch-20261107-28/1585.png",
+      "photo_sha256": "8a2cee0aebfc03c0ee965def28bff2e884791a36154921b15ee56c56d8463613",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://cdn.utopiahotels.com/assets/pdf/ufr/factsheet/en.pdf",
+        "https://joinup.md/ru/hotel/59059",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1465&legacyHotelIds%5B%5D=1015&legacyHotelIds%5B%5D=1649&legacyHotelIds%5B%5D=28448&legacyHotelIds%5B%5D=1716&legacyHotelIds%5B%5D=7985&legacyHotelIds%5B%5D=81358&legacyHotelIds%5B%5D=61760&legacyHotelIds%5B%5D=30095&legacyHotelIds%5B%5D=28327&legacyHotelIds%5B%5D=1236&legacyHotelIds%5B%5D=1029&legacyHotelIds%5B%5D=1331&legacyHotelIds%5B%5D=81578&legacyHotelIds%5B%5D=1591&legacyHotelIds%5B%5D=364&legacyHotelIds%5B%5D=24898&legacyHotelIds%5B%5D=77625&legacyHotelIds%5B%5D=2810&legacyHotelIds%5B%5D=1585",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/water-planet-24659709.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/water-planet-24659752.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/water-planet-24659714.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8541,
+        "anytour_id": 764,
+        "legacy_native_id": 1585,
+        "source_file": "next-twenty-after-200-current-catalog.json",
+        "source_sha256": "46eddb4b8896df9f2657d16e2f8a371f33a1d6490a6109a930eb459f645a76be",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQcE618A",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_2db07515713e838b_run04_c01",
+        "top500_2db07515713e838b_run04_c02",
+        "top500_2db07515713e838b_run04_c03",
+        "top500_2db07515713e838b_gap50_1_c3"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/water-planet-24659709.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "432707a15bde9b2f905fc49fede97d71bfd9f580409c1661fc793b056fe39900",
+          "source_png_sha256": "9a1e3ed8a022d044c00b09b46a0e56bae055c2a241409ad61d8eb5e414edd2b5",
+          "source_png_bytes": 1021750,
+          "dimensions": [
+            1024,
+            767
+          ],
+          "alt": "A Good Life Utopia Family Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQduc1MI",
+          "canva_asset_dimensions": [
+            1024,
+            767
+          ],
+          "source_png_filename": "good-life-utopia-g02.png"
+        },
+        {
+          "role": "detail_left",
+          "label": "g55",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/water-planet-24659752.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "5d28802ad3897d8ac4d07d365673b44e9bc1dcd79b2564d8e4a7a0a0846d6ab5",
+          "source_png_sha256": "1226b4a59ef5159cd27f0f973a0b1149b7cf3691e7db5648b9b21aa260d5ff06",
+          "source_png_bytes": 531379,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Номер A Good Life Utopia Family Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQY-QtaE",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "good-life-utopia-g55.png"
+        },
+        {
+          "role": "detail_right",
+          "label": "g17",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/water-planet-24659714.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "74d29e05797bb0b98e9dba0bcb88f45dfe9495908f54964d2bdaf1ad6b3decf8",
+          "source_png_sha256": "3790c11e408d490961391f170e2f8cf8d06bbb1b7e623c11c8d5b26f391b2dfb",
+          "source_png_bytes": 549895,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Буфет A Good Life Utopia Family Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQjs6vAw",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "good-life-utopia-g17.png"
+        }
+      ]
+    }
+  ]
+}

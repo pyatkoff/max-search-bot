@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-27-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     1465,
     1015,
@@ -20,5 +20,14 @@
   "asset_commit": "be1a3842b0e8585e8fed424473c20f678fcfbc17",
   "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "run_id": 42401340486,
+  "job_id": 128489549258,
+  "terminal_result": "SUCCESS",
+  "new_complete_pairs": 10,
+  "new_posts": 20,
+  "receipt_artifact_id": 13586005132,
+  "receipt_sha256": "5068173786ea3a8df24532d947a79f1ced2561bb675d50a7ebd7c11966cceff8",
+  "all_body_photo_button_verified": true,
+  "operation_consumed_do_not_replay": true
 }
