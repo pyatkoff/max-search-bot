@@ -1,0 +1,37 @@
+[
+  {
+    "hotel_id": 21847,
+    "name": "Vogue Hotel Supreme Bodrum",
+    "accepted_first_line": "🎡 Vogue Hotel Supreme Bodrum 5★ · Бодрум",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/21847.png",
+    "image_sha256": "e4f8d7681fcb56a6f17e772cfdb65cc2f6373a6179e10f8c1fc802b66723738c"
+  },
+  {
+    "hotel_id": 302,
+    "name": "Lotus Bay Beach Resort",
+    "accepted_first_line": "🏖 Lotus Bay Beach Resort · Сафага",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/302.png",
+    "image_sha256": "f1ce34004a2556943bab8cba707ceccac3a7595247e8cd0b814d533073731386"
+  },
+  {
+    "hotel_id": 512,
+    "name": "Tropitel Dahab Oasis",
+    "accepted_first_line": "🐠 Tropitel Dahab Oasis 4★ · Дахаб",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/512.png",
+    "image_sha256": "4a4114ccf9e24153b423ad073d43b7c07533ef5d9ef553f2d8a326e1cda77395"
+  },
+  {
+    "hotel_id": 107938,
+    "name": "The Marin Phuket",
+    "accepted_first_line": "🌴 The Marin Phuket 5★ · Камала",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/107938.png",
+    "image_sha256": "97059f03fd79454011fa04fec09ea956c5072d7a804cdda1ba4dfbf88807ff8a"
+  },
+  {
+    "hotel_id": 15871,
+    "name": "Crystal Sunset Pearl Collection",
+    "accepted_first_line": "🌅 Crystal Sunset Pearl Collection 5★ · Сиде",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/eab5ccc52231707f20cc4640cf94e9b0598d970c/.github/traffic-publish/commercial-batch-20261107-10/15871.png",
+    "image_sha256": "7f0fa72d66b5ef4d69d570212ee8c08a3d5fed25c9ec7f28351aba492ab74dfe"
+  }
+]

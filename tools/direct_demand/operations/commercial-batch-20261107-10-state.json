@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-10-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "POSTS_CONFIRMED_ROUTES_PENDING",
   "native_hotel_ids": [
     21847,
     302,
@@ -14,5 +14,80 @@
   "manifest_sha256": "c7721a5ba0d0250874185cd4fb7887c3a7001e6ad8841af9f57adae18b19c3ab",
   "asset_commit": "eab5ccc52231707f20cc4640cf94e9b0598d970c",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "full_pairs_after": 211,
+  "sender_run_id": 42375728394,
+  "sender_job_id": 128412783879,
+  "sender_commit": "008bb173ba40c4b51dfbf2b4aab285b21efbefd2",
+  "new_posts": 10,
+  "post_write_attempts": 10,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13575588004,
+  "result_zip_sha256": "c83f6519d829f4b11db4e977508c1e421707b0ccd0246cc5638b2253ffa257b4",
+  "private_receipt_sha256": "48eaebd471158a9f36bcc12fd8762eeed88bbe2bfe0003ee33e7aa856945e744",
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-vogue-bodrum-21847-v1",
+      "post_url": "https://t.me/any_toour/221",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-lotus-bay-302-v1",
+      "post_url": "https://t.me/any_toour/222",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-tropitel-dahab-512-v1",
+      "post_url": "https://t.me/any_toour/223",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-marin-phuket-107938-v1",
+      "post_url": "https://t.me/any_toour/224",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-crystal-sunset-15871-v1",
+      "post_url": "https://t.me/any_toour/225",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-vogue-bodrum-21847-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Il-5O-o",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-lotus-bay-302-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2ImjgQGM",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-tropitel-dahab-512-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2InKkR7c",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-marin-phuket-107938-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Inu8czM",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-crystal-sunset-15871-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2IoR8C5g",
+      "verified": true
+    }
+  ],
+  "routes": "PENDING",
+  "feeds": "PENDING_ADD_ONLY_206_TO_211"
 }

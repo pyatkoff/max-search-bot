@@ -1,0 +1,185 @@
+[
+  {
+    "hotel_id": 1294,
+    "logical_id": null,
+    "aliases": [
+      "Nirvana Cosmopolitan"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 975,
+    "logical_id": null,
+    "aliases": [
+      "Nirvana Dolce Vita"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 26530,
+    "logical_id": null,
+    "aliases": [
+      "Royal Star Beach Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 57066,
+    "logical_id": null,
+    "aliases": [
+      "Duyen Ha Resort Cam Ranh"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 69116,
+    "logical_id": null,
+    "aliases": [
+      "Selectum Noa Resort Cam Ranh"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 2015,
+    "logical_id": null,
+    "aliases": [
+      "Diamond Cottage Resort & Spa"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 1588,
+    "logical_id": null,
+    "aliases": [
+      "Kremlin Palace",
+      "KREMLIN PALACE (EX. ASTERIA KREMLIN PALACE)",
+      "ASTERIA KREMLIN PALACE"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 21817,
+    "logical_id": null,
+    "aliases": [
+      "Asteria Collection Side (ex Amara Family & Labranda Excelsior)",
+      "ASTERIA COLLECTION SIDE (EX.AMARA FAMILY RESORT)",
+      "ASTERIA COLLECTION SIDE",
+      "AMARA FAMILY RESORT"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 3415,
+    "logical_id": null,
+    "aliases": [
+      "Royal Holiday Palace"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 964,
+    "logical_id": null,
+    "aliases": [
+      "Crystal Aura Aqua Collection",
+      "CRYSTAL AURA AQUA COLLECTION (EX. CRYSTAL AURA BEACH RESORT & SPA)",
+      "CRYSTAL AURA BEACH RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 1026,
+    "logical_id": null,
+    "aliases": [
+      "Baia Lara Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 4091,
+    "logical_id": null,
+    "aliases": [
+      "Vinpearl Resort Nha Trang"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 1350,
+    "logical_id": null,
+    "aliases": [
+      "Asteria Family Resort Belek (Ex.Aquaworld Belek)",
+      "ASTERIA FAMILY RESORT BELEK (EX. AQUAWORLD BELEK)",
+      "Asteria Family Resort Belek",
+      "Aquaworld Belek"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 1140,
+    "logical_id": null,
+    "aliases": [
+      "Crystal De Luxe Comfort Collection",
+      "CRYSTAL DE LUXE COMFORT COLLECTION (EX. CRYSTAL DE LUXE RESORT & SPA)",
+      "CRYSTAL DE LUXE RESORT & SPA"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 1203,
+    "logical_id": null,
+    "aliases": [
+      "Goldcity Hotel"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 55828,
+    "logical_id": null,
+    "aliases": [
+      "Selectum Luxury Resort Belek"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 108167,
+    "logical_id": null,
+    "aliases": [
+      "Asteria Mui Ne Resort"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 63674,
+    "logical_id": null,
+    "aliases": [
+      "Radisson Blu Resort Phu Quoc"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  },
+  {
+    "hotel_id": 47025,
+    "logical_id": null,
+    "aliases": [
+      "Adalya Elite Lara"
+    ],
+    "expected_text_sha256": null,
+    "scope": "next_nineteen_after_eighty_first_clearance"
+  }
+]
