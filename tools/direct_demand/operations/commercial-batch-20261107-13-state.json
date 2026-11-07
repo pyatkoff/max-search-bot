@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-13-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     41149,
     54592,
@@ -18,5 +18,214 @@
   "manifest_sha256": "aff8778e4bbd8866794ee2660ee7f8f63f2be358f7399e6d4981b951c0f8695d",
   "asset_commit": "02a76c623390941795cb51362ad1476f003b0384",
   "sender_replay_allowed": false,
-  "unknown": 0
+  "unknown": 0,
+  "full_pairs_after": 238,
+  "sender_run_id": 42379665102,
+  "sender_job_id": 128424415259,
+  "sender_commit": "31bfe870d9846e5f3c727949bdee8f3b9a465140",
+  "new_posts": 18,
+  "post_write_attempts": 18,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13577132132,
+  "result_zip_sha256": "8528b93209bb1840463d9956e04d21e5ba020c2617b5d5775a8409bd3764c43e",
+  "private_receipt_sha256": "1e9cf5a098aaca6d2b0118f90c6f7906b8ddce045779b6678d6b6922b71941a8",
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-vinpearl-nha-trang-bay-41149-v1",
+      "post_url": "https://t.me/any_toour/244",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-granada-belek-54592-v1",
+      "post_url": "https://t.me/any_toour/245",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-wyndham-grand-57217-v1",
+      "post_url": "https://t.me/any_toour/246",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-barcelo-coconut-4432-v1",
+      "post_url": "https://t.me/any_toour/247",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-lonicera-world-82606-v1",
+      "post_url": "https://t.me/any_toour/248",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-limak-atlantis-1337-v1",
+      "post_url": "https://t.me/any_toour/249",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-rehana-sharm-380-v1",
+      "post_url": "https://t.me/any_toour/250",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-bellis-1257-v1",
+      "post_url": "https://t.me/any_toour/251",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-phuket-emerald-82567-v1",
+      "post_url": "https://t.me/any_toour/252",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-vinpearl-nha-trang-bay-41149-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2UgefHN8",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-granada-belek-54592-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2UhCtBYs",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-wyndham-grand-57217-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2UhmGEHA",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-barcelo-coconut-4432-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2UiL7KvI",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-lonicera-world-82606-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2UiwBBps",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-limak-atlantis-1337-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2UjUkPMg",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-rehana-sharm-380-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2Uj4pQ0w",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-bellis-1257-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2UkeBZHY",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-phuket-emerald-82567-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2UlCIP10",
+      "verified": true
+    }
+  ],
+  "routes": {
+    "logical_hotels": 238,
+    "new_routes_verified": 9,
+    "previous229_rows_identical": true,
+    "run_id": 42380027977,
+    "commit": "0ef0f21ae3a78e624612c9d7ff3a8ff02250d82f",
+    "result_artifact_id": 13577820332
+  },
+  "feeds": {
+    "run_id": 42380145556,
+    "job_id": 128425852733,
+    "commit": "f21119c9ba9a830594544676d7fd616161fadca0",
+    "result_artifact_id": 13577646038,
+    "receipt_sha256": "0d7e913b7c38ecf68fb9f27e59427eb939ac84df7882a9f925e1704f862e373a",
+    "rows": [
+      238,
+      238,
+      476
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous229_offer_blocks_identical": true
+  },
+  "feed_binding_read_run": 42379881031,
+  "feed_binding_read_artifact": 13577181948,
+  "goal_remaining_to_500": 262,
+  "own_active_workflow": 0,
+  "completed_at_utc": "2026-11-07T14:08:28Z",
+  "pending_groups": {
+    "matches60to80": {
+      "published": 18,
+      "remaining_native_ids": [],
+      "root_copy_reviewed": 18,
+      "all18_photo_selections_accepted_by_root": true,
+      "final_release_manifest_required": true,
+      "first_clearance_read": 26,
+      "first_clearance_run": 42375078643,
+      "clearance_not_replayed": true,
+      "state": "ALL_EIGHTEEN_APPROVED_MATERIALS_PUBLISHED_TWO_OTHER_HOTELS_HELD"
+    },
+    "matches80to100": {
+      "drafts": 19,
+      "root_retained_claim_review_complete": true,
+      "raw_png": 171,
+      "room_specific_media_pending_native_ids": [
+        57066,
+        2015
+      ],
+      "first_clearance_read": 27,
+      "first_clearance_run": 42375960417,
+      "held_native_id": 32339,
+      "final_release_manifest_required": true,
+      "exact_room_media_delivered_native_ids": [
+        57066,
+        2015
+      ],
+      "exact_room_media_root_visual_acceptance_pending": true
+    },
+    "matches100to120": {
+      "retained_claims": 228,
+      "typed_identities": 20,
+      "current_catalog_sha256": "5395c805c93254da9ac194977f5d8243b812107f4fb44cafe156c1d21285b489",
+      "drafts": 18,
+      "raw_png": 153,
+      "contact_sheets": 17,
+      "held_native_ids": [
+        74036,
+        213
+      ],
+      "media_pending_native_ids": [
+        75041
+      ],
+      "registry_clearance": "ALL_EIGHTEEN_CLEAR_FIRST_READ30",
+      "final_release_manifest_required": true,
+      "first_clearance_read": 30,
+      "first_clearance_run": 42379881031,
+      "read_at_utc": "2026-11-07T14:05:11+00:00",
+      "clearance_not_replayed": true
+    },
+    "matches120to140": {
+      "state": "READ_ONLY_PREPARATION_AUTHORIZED_NOT_STARTED",
+      "final_release_manifest_required": true
+    }
+  }
 }
