@@ -1,0 +1,247 @@
+{
+  "operation": "commercial-existing-headings-20261107-13-v1",
+  "rows": [
+    {
+      "hotel_id": 1313,
+      "key": "commercial-loceanica-1313-v1",
+      "logical_id": "commercial-loceanica-1313-v1",
+      "prior_batch": 23,
+      "old_text": "🌴 L'oceanica Beach Resort 5★ · Кемер\n\nДля семейного отпуска в пляжный сезон.\n\n🛏 Family от 35 до 43 м².\n🎨 В основном корпусе мини клуб для детей от 4 до 12 лет.\n🍽 Ultra All Inclusive.\n🏖 Пляж примерно в 100 м через дорогу.\n\nОтель работает сезонно. В основном корпусе есть номера без балкона; Annex выбирается отдельно.\n\n✈️ Подберём корпус и номер, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в L'oceanica Beach Resort с перелётом\n📍 Кемер, Турция.\n\nДля семейного отпуска в пляжный сезон.\n\n🛏 Family от 35 до 43 м².\n🎨 В основном корпусе мини клуб для детей от 4 до 12 лет.\n🍽 Ultra All Inclusive.\n🏖 Пляж примерно в 100 м через дорогу.\n\nОтель работает сезонно. В основном корпусе есть номера без балкона; Annex выбирается отдельно.\n\n✈️ Подберём корпус и номер, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "37336d0c4ea1d4a03bbdc902468b930f3d1ba77c1b78ddca4553810570714fe6",
+      "new_text_sha256": "665aa819be58251e31a5c2f30f2ee22483e6ee0556c52346cb2b5082cafac24a",
+      "previous_heading": "🌴 L'oceanica Beach Resort 5★ · Кемер",
+      "new_heading": "✈️ Туры в L'oceanica Beach Resort с перелётом",
+      "new_location": "📍 Кемер, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1293,
+      "key": "commercial-crystal-centro-1293-v1",
+      "logical_id": "commercial-crystal-centro-1293-v1",
+      "prior_batch": 23,
+      "old_text": "💦 Crystal Centro Pearl Collection 5★ · Лара\n\nДля семейного отпуска с отдельными спальнями и водными развлечениями.\n\n🛏 Family 35 м²: две спальни с дверью.\n🎨 Детский Crispy Kids World.\n💦 Бассейны и аквапарки для взрослых и детей.\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж на первой линии.\n\nУсловия детских развлечений проверим под возраст детей и даты.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "new_text": "✈️ Туры в Crystal Centro Pearl Collection с перелётом\n📍 Лара, Турция.\n\nДля семейного отпуска с отдельными спальнями и водными развлечениями.\n\n🛏 Family 35 м²: две спальни с дверью.\n🎨 Детский Crispy Kids World.\n💦 Бассейны и аквапарки для взрослых и детей.\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж на первой линии.\n\nУсловия детских развлечений проверим под возраст детей и даты.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "old_text_sha256": "e044aeca4aa5e12c4c90430f99d5b2823d11dcd7c5e7801f85f9b96d0d57ba34",
+      "new_text_sha256": "66659393b2b82bd6d7bf5b650518726b03e8e99bcacb20d87e135531fbf83109",
+      "previous_heading": "💦 Crystal Centro Pearl Collection 5★ · Лара",
+      "new_heading": "✈️ Туры в Crystal Centro Pearl Collection с перелётом",
+      "new_location": "📍 Лара, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 37168,
+      "key": "commercial-litore-37168-v1",
+      "logical_id": "commercial-litore-37168-v1",
+      "prior_batch": 23,
+      "old_text": "🌊 Litore Resort Hotel & Spa 5★ · Окурджалар\n\nДля семейного отпуска с отдельными спальнями и видом на море.\n\n🛏 Family Sea View 54 м²: две спальни.\n🍽 Ultra All Inclusive с основными буфетами, закусками и ночным перекусом.\n🏖 Собственный пляж с песком и галькой, пляжный шаттл.\n\nОтель расположен на холме. Состав размещения проверим под вашу семью.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером.",
+      "new_text": "✈️ Туры в Litore Resort Hotel & Spa с перелётом\n📍 Окурджалар, Турция.\n\nДля семейного отпуска с отдельными спальнями и видом на море.\n\n🛏 Family Sea View 54 м²: две спальни.\n🍽 Ultra All Inclusive с основными буфетами, закусками и ночным перекусом.\n🏖 Собственный пляж с песком и галькой, пляжный шаттл.\n\nОтель расположен на холме. Состав размещения проверим под вашу семью.\n\n✈️ Рассчитаем тур с перелётом и подходящим номером.",
+      "old_text_sha256": "8500574fe0aba78f333fbd3fbaed32a2336c7378ffa77d571066b03f0fd8cfd4",
+      "new_text_sha256": "e676d74794b9374237fb0d5c13cfc35a6a4b773248e795277562783d0eee06ff",
+      "previous_heading": "🌊 Litore Resort Hotel & Spa 5★ · Окурджалар",
+      "new_heading": "✈️ Туры в Litore Resort Hotel & Spa с перелётом",
+      "new_location": "📍 Окурджалар, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 69184,
+      "key": "commercial-lonicera-premium-69184-v1",
+      "logical_id": "commercial-lonicera-premium-69184-v1",
+      "prior_batch": 23,
+      "old_text": "🌴 Lonicera Premium · Аланья\n\nДля семейного отпуска с детским клубом и песчаным пляжем.\n\n🛏 Standard 33 м² с двуспальной или двумя отдельными кроватями и софой.\n🎨 Детский клуб от 4 до 12 лет, площадка и мини диско.\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж на первой линии.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом.",
+      "new_text": "✈️ Туры в Lonicera Premium с перелётом\n📍 Аланья, Турция.\n\nДля семейного отпуска с детским клубом и песчаным пляжем.\n\n🛏 Standard 33 м² с двуспальной или двумя отдельными кроватями и софой.\n🎨 Детский клуб от 4 до 12 лет, площадка и мини диско.\n🍽 Ultra All Inclusive.\n🏖 Собственный песчаный пляж на первой линии.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом.",
+      "old_text_sha256": "5bc1d17b32689b08193d966f812f518f629a0c4c96bfeeb678f03c498ba5c72e",
+      "new_text_sha256": "01843ffd608119deaf57e0311c0f468ea9164dd190f2b7bf8daf4a2948d26eee",
+      "previous_heading": "🌴 Lonicera Premium · Аланья",
+      "new_heading": "✈️ Туры в Lonicera Premium с перелётом",
+      "new_location": "📍 Аланья, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 9303,
+      "key": "commercial-sundia-oludeniz-9303-v1",
+      "logical_id": "commercial-sundia-oludeniz-9303-v1",
+      "prior_batch": 23,
+      "old_text": "🌴 Sundia By Liberty Oludeniz 4★ · Олюдениз\n\nДля отдыха с прогулками к морю и выбором бассейнов.\n\n🛏 Компактный номер Superior 18 м².\n🏊 Основной, детский и тихий бассейны.\n🍽 All Inclusive.\n🏖 К пляжной зоне Бельджекиз можно дойти пешком.\n\nЛежаки и зонты на пляже оплачиваются отдельно.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Sundia By Liberty Oludeniz с перелётом\n📍 Олюдениз, Турция.\n\nДля отдыха с прогулками к морю и выбором бассейнов.\n\n🛏 Компактный номер Superior 18 м².\n🏊 Основной, детский и тихий бассейны.\n🍽 All Inclusive.\n🏖 К пляжной зоне Бельджекиз можно дойти пешком.\n\nЛежаки и зонты на пляже оплачиваются отдельно.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "dd221fa4abb75840e6eff8cea5398f103dc30cf254ff0413e0a0666fc800f099",
+      "new_text_sha256": "79e2ca4b0ce6b7bfe63060c3a714d22dc77a77ad77e1a2f4c1465bdd7baf9b74",
+      "previous_heading": "🌴 Sundia By Liberty Oludeniz 4★ · Олюдениз",
+      "new_heading": "✈️ Туры в Sundia By Liberty Oludeniz с перелётом",
+      "new_location": "📍 Олюдениз, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 59563,
+      "key": "commercial-prestige-garden-59563-v1",
+      "logical_id": "commercial-prestige-garden-59563-v1",
+      "prior_batch": 23,
+      "old_text": "💦 Prestige Garden Hotel · Мармарис\n\nДля семейного отпуска с отдельным местом для отдыха в номере.\n\n🛏 Family 35 м²: спальня и гостиная с диваном.\n💦 Открытый бассейн и водные горки.\n🍽 All Inclusive.\n🏖 Муниципальный пляж рядом с отелем.\n\nЛежаки и зонты на пляже платные. Условия горок уточним под возраст детей.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "new_text": "✈️ Туры в Prestige Garden Hotel с перелётом\n📍 Мармарис, Турция.\n\nДля семейного отпуска с отдельным местом для отдыха в номере.\n\n🛏 Family 35 м²: спальня и гостиная с диваном.\n💦 Открытый бассейн и водные горки.\n🍽 All Inclusive.\n🏖 Муниципальный пляж рядом с отелем.\n\nЛежаки и зонты на пляже платные. Условия горок уточним под возраст детей.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом.",
+      "old_text_sha256": "de53d377920b354d82af425cd3b9873e926908a18acd4db0caaf6d030e201238",
+      "new_text_sha256": "e641bae465fdf4078e22d249b6200037531df39d5f4120f0413ba44721dc242f",
+      "previous_heading": "💦 Prestige Garden Hotel · Мармарис",
+      "new_heading": "✈️ Туры в Prestige Garden Hotel с перелётом",
+      "new_location": "📍 Мармарис, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 74032,
+      "key": "commercial-serano-club-74032-v1",
+      "logical_id": "commercial-serano-club-74032-v1",
+      "prior_batch": 23,
+      "old_text": "💦 Serano Club Resort 4★ · Шарм эль Шейх\n\nДля семейного отпуска с просторным номером и аквапарком.\n\n🛏 Family Suite Pool View 52 м²: две спальни с дверью, двуспальная и две отдельные кровати.\n💦 Бесплатный доступ в аквапарк соседнего Serano Aqua Park Resort.\n🍽 All Inclusive.\n\nМинимальный рост для горок 120 см. Пляж находится через дорогу.\n\n✈️ Подберём размещение под вашу семью и рассчитаем тур с перелётом.",
+      "new_text": "✈️ Туры в Serano Club Resort с перелётом\n📍 Шарм-эль-Шейх, Египет.\n\nДля семейного отпуска с просторным номером и аквапарком.\n\n🛏 Family Suite Pool View 52 м²: две спальни с дверью, двуспальная и две отдельные кровати.\n💦 Бесплатный доступ в аквапарк соседнего Serano Aqua Park Resort.\n🍽 All Inclusive.\n\nМинимальный рост для горок 120 см. Пляж находится через дорогу.\n\n✈️ Подберём размещение под вашу семью и рассчитаем тур с перелётом.",
+      "old_text_sha256": "2768b39a2423fb78735ca551014f869f6e3da63b2ec98b83337b5215a9ddd1b5",
+      "new_text_sha256": "a74d30243db653aae8c736956f829b3a1d2b024f35a5bef77951daa54124eec2",
+      "previous_heading": "💦 Serano Club Resort 4★ · Шарм эль Шейх",
+      "new_heading": "✈️ Туры в Serano Club Resort с перелётом",
+      "new_location": "📍 Шарм-эль-Шейх, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1521,
+      "key": "commercial-sultan-side-1521-v1",
+      "logical_id": "commercial-sultan-side-1521-v1",
+      "prior_batch": 23,
+      "old_text": "🌴 Sultan Of Side 5★ · Сиде\n\nДля отдыха с бассейнами и прогулками к морю.\n\n🛏 Двухместный Land View от 31 до 35 м² с балконом: двуспальная или две отдельные кровати.\n🏊 Бассейны на территории.\n🍽 All Inclusive.\n🏖 Собственный пляж в пешей доступности от отеля.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Sultan Of Side с перелётом\n📍 Сиде, Турция.\n\nДля отдыха с бассейнами и прогулками к морю.\n\n🛏 Двухместный Land View от 31 до 35 м² с балконом: двуспальная или две отдельные кровати.\n🏊 Бассейны на территории.\n🍽 All Inclusive.\n🏖 Собственный пляж в пешей доступности от отеля.\n\n✈️ Подберём подходящий номер и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "e3d5a4ebb72b911578b29f4e34d21c0f498d949179cc74e42cb2ef0c815c356a",
+      "new_text_sha256": "11f05f56a30453b367f21e9afaec2edcff081341182bf016c4f48dbcc541b276",
+      "previous_heading": "🌴 Sultan Of Side 5★ · Сиде",
+      "new_heading": "✈️ Туры в Sultan Of Side с перелётом",
+      "new_location": "📍 Сиде, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 123374,
+      "key": "commercial-regnum-crown-123374-v1",
+      "logical_id": "commercial-regnum-crown-123374-v1",
+      "prior_batch": 23,
+      "old_text": "✨ Regnum The Crown 5★ · Белек\n\nДля отдыха с просторным сьютом и вечерними развлечениями.\n\n🛏 Seascape Suite 110 м².\n🍽 Luxury All Inclusive.\n🏖 Собственная пляжная зона на первой линии.\n🎶 Тематические вечеринки и живая музыка.\n\nЗона Seven Rooftop для гостей от 18 лет. Пляжный сервис сезонный.\n\n✈️ Подберём сьют под ваш состав и рассчитаем тур с перелётом.",
+      "new_text": "✈️ Туры в Regnum The Crown с перелётом\n📍 Белек, Турция.\n\nДля отдыха с просторным сьютом и вечерними развлечениями.\n\n🛏 Seascape Suite 110 м².\n🍽 Luxury All Inclusive.\n🏖 Собственная пляжная зона на первой линии.\n🎶 Тематические вечеринки и живая музыка.\n\nЗона Seven Rooftop для гостей от 18 лет. Пляжный сервис сезонный.\n\n✈️ Подберём сьют под ваш состав и рассчитаем тур с перелётом.",
+      "old_text_sha256": "f61ca0b8f30e8134a00f7e60524338d08f4791ffe9e68919694d9e517f1321a4",
+      "new_text_sha256": "3df54898d735226e463c8ecf5ec6bf5335698763ed28259e3b38064afcd917b7",
+      "previous_heading": "✨ Regnum The Crown 5★ · Белек",
+      "new_heading": "✈️ Туры в Regnum The Crown с перелётом",
+      "new_location": "📍 Белек, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 15879,
+      "key": "commercial-belazur-15879-v1",
+      "logical_id": "commercial-belazur-15879-v1",
+      "prior_batch": 23,
+      "old_text": "🌴 Belazur Kirman Signature 5★ · Белек\n\nДля семейного отпуска с отдельными спальнями у моря.\n\n🛏 Family 39 м²: две спальни с соединяющей дверью, двуспальная и две отдельные кровати.\n🏖 Собственный пляж на первой линии.\n🍽 Ultra All Inclusive.\n🎶 Живая музыка и дискотека в отдельные дни.\n\nПирс работает сезонно: даты проверим перед бронированием.\n\n✈️ Подберём размещение под вашу семью и рассчитаем тур с перелётом.",
+      "new_text": "✈️ Туры в Belazur Kirman Signature с перелётом\n📍 Белек, Турция.\n\nДля семейного отпуска с отдельными спальнями у моря.\n\n🛏 Family 39 м²: две спальни с соединяющей дверью, двуспальная и две отдельные кровати.\n🏖 Собственный пляж на первой линии.\n🍽 Ultra All Inclusive.\n🎶 Живая музыка и дискотека в отдельные дни.\n\nПирс работает сезонно: даты проверим перед бронированием.\n\n✈️ Подберём размещение под вашу семью и рассчитаем тур с перелётом.",
+      "old_text_sha256": "f036b27df40bc77108ef0804f61f84bc4f3447edfa299a063c20b47e414559ad",
+      "new_text_sha256": "024500f9f805eb5b68c6ace3d019d6275d8d6a3ac2361ac876e91554a221d28e",
+      "previous_heading": "🌴 Belazur Kirman Signature 5★ · Белек",
+      "new_heading": "✈️ Туры в Belazur Kirman Signature с перелётом",
+      "new_location": "📍 Белек, Турция.",
+      "update_text": true
+    }
+  ],
+  "exact_ids": {
+    "1313": {
+      "telegram": [
+        759,
+        1781
+      ],
+      "max": [
+        769,
+        1791
+      ]
+    },
+    "1293": {
+      "telegram": [
+        760,
+        1782
+      ],
+      "max": [
+        770,
+        1792
+      ]
+    },
+    "37168": {
+      "telegram": [
+        761,
+        1783
+      ],
+      "max": [
+        771,
+        1793
+      ]
+    },
+    "69184": {
+      "telegram": [
+        762,
+        1784
+      ],
+      "max": [
+        772,
+        1794
+      ]
+    },
+    "9303": {
+      "telegram": [
+        763,
+        1785
+      ],
+      "max": [
+        773,
+        1795
+      ]
+    },
+    "59563": {
+      "telegram": [
+        764,
+        1786
+      ],
+      "max": [
+        774,
+        1796
+      ]
+    },
+    "74032": {
+      "telegram": [
+        765,
+        1787
+      ],
+      "max": [
+        775,
+        1797
+      ]
+    },
+    "1521": {
+      "telegram": [
+        766,
+        1788
+      ],
+      "max": [
+        776,
+        1798
+      ]
+    },
+    "123374": {
+      "telegram": [
+        767,
+        1789
+      ],
+      "max": [
+        777,
+        1799
+      ]
+    },
+    "15879": {
+      "telegram": [
+        768,
+        1790
+      ],
+      "max": [
+        778,
+        1800
+      ]
+    }
+  }
+}
