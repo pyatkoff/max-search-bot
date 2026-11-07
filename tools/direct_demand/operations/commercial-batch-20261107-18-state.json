@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-18-v1",
-  "state": "PREPARED_NOT_SENT",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     66496,
     981,
@@ -28,5 +28,246 @@
     "sender_invoked": false,
     "replay_run": false
   },
-  "expected_source_sha": "6d193b7740dc212b92b1893041f0a1047b179635"
+  "expected_source_sha": "6d193b7740dc212b92b1893041f0a1047b179635",
+  "sender_run_id": 42388373910,
+  "sender_job_id": 128451291197,
+  "sender_commit": "e9d9643deb305edf49e223923cd4680f9dc316e7",
+  "new_posts": 18,
+  "post_write_attempts": 18,
+  "reused": 0,
+  "all_body_photo_button_verified": true,
+  "result_artifact_id": 13580981019,
+  "result_zip_sha256": "9709df21ef6cd955b65f9dd1ce07b798408eb93a06c222b4af5cf2e3c7950a9d",
+  "private_receipt_sha256": "8dedccb645e41e5b0e51f2ce2606e585391d8858ef56e36c63fa40dbeb80f8d8",
+  "full_pairs_after": 275,
+  "posts": [
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-art-nest-66496-v1",
+      "post_url": "https://t.me/any_toour/281",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-ananas-981-v1",
+      "post_url": "https://t.me/any_toour/282",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-seaside-boutique-128508-v1",
+      "post_url": "https://t.me/any_toour/283",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-praha-45516-v1",
+      "post_url": "https://t.me/any_toour/284",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-dobedan-world-1429-v1",
+      "post_url": "https://t.me/any_toour/285",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-royal-garden-15905-v1",
+      "post_url": "https://t.me/any_toour/286",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-diamond-bay-hotel-50624-v1",
+      "post_url": "https://t.me/any_toour/287",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-ca-ty-58473-v1",
+      "post_url": "https://t.me/any_toour/288",
+      "verified": true
+    },
+    {
+      "platform": "telegram",
+      "logical_id": "commercial-ocean-star-4060-v1",
+      "post_url": "https://t.me/any_toour/289",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-art-nest-66496-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uPxHOv8",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-ananas-981-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uQWeQJk",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-seaside-boutique-128508-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uQ6rQzE",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-praha-45516-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uRe1Bk4",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-dobedan-world-1429-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uSDVTtY",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-royal-garden-15905-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uSoXDfs",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-diamond-bay-hotel-50624-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uTMTGXU",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-ca-ty-58473-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uTyWUmg",
+      "verified": true
+    },
+    {
+      "platform": "max",
+      "logical_id": "commercial-ocean-star-4060-v1",
+      "post_url": "https://max.ru/channel_anytour/AaG2uUXhS08",
+      "verified": true
+    }
+  ],
+  "routes": {
+    "logical_hotels": 275,
+    "new_routes_verified": 9,
+    "previous266_rows_identical": true,
+    "run_id": 42389191356,
+    "commit": "1a415016d4a87e51e6663d6f2a1d22143267abe3",
+    "result_artifact_id": 13580054341
+  },
+  "feeds": {
+    "run_id": 42389742699,
+    "job_id": 128454618303,
+    "commit": "1f5b915db36902377891b0bd09df88c29e53a20f",
+    "result_artifact_id": 13580972716,
+    "receipt_sha256": "4e754fb63393c287807c87332b527f7d999664a04b3d72370cedc53ee2597b54",
+    "rows": [
+      275,
+      275,
+      550
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous266_offer_blocks_identical": true
+  },
+  "feed_binding_read_run": 42388903377,
+  "feed_binding_read_artifact": 13581035926,
+  "goal_remaining_to_500": 225,
+  "own_active_workflow": 0,
+  "completed_at_utc": "2026-11-07T16:08:34Z",
+  "publishing_source": {
+    "sha": "6d193b7740dc212b92b1893041f0a1047b179635",
+    "deploy_run": 42387774695,
+    "strict_tls_run": 42388210320,
+    "accepted_publishing_blobs_unchanged": 21
+  },
+  "pending_groups": {
+    "matches100to120": {
+      "published": 18,
+      "held_native_ids": [
+        74036,
+        213
+      ]
+    },
+    "matches120to140": {
+      "ready": 19,
+      "first_registry_clearance_read": 32,
+      "final_manifest_sha256": "fc6f81be0484600879961c212e5dba79e54c137a8c6b1a74c01dd354e88298d2",
+      "caption_sha256": "692ce3cc2437839b38d55abe3c9a1b4bb9c56c0765514e3b128784c16e970fb8",
+      "authorized_split": [
+        10,
+        9
+      ],
+      "held_native_ids": [
+        107940
+      ],
+      "sender_invoked": false
+    },
+    "matches140to160": {
+      "root_reviewed_drafts": 20,
+      "first_registry_clearance_read": 33,
+      "clear_native_count": 20,
+      "all_source_photo_selections_root_accepted": true,
+      "final_release_manifest_required": true
+    },
+    "matches160to180": {
+      "retained_claims": 207,
+      "typed_identities": 20,
+      "drafts": 18,
+      "raw_png": 153,
+      "contact_sheets": 17,
+      "first_registry_clearance_read": 34,
+      "first_registry_clearance_run": 42388903377,
+      "clear_native_count": 18,
+      "held_native_ids": [
+        1569,
+        59114
+      ],
+      "no_stars_draft_native_ids": [
+        69184,
+        59563,
+        28159
+      ],
+      "pending_media_native_ids": [
+        1014,
+        69184,
+        15879,
+        1141
+      ],
+      "final_release_manifest_required": true
+    },
+    "matches180to200": {
+      "state": "AUTHORIZED_RETAINED_FIRST_PREPARATION_NOT_STARTED",
+      "final_release_manifest_required": true
+    },
+    "additional147": {
+      "local_file": "quality_revision/additional147-retained-identity-candidates.json",
+      "sha256": "e7c24fadcc6204b39a3450b8703716b3f34cdc08c0f399439651b0475d9da202",
+      "typed_rows": 147,
+      "root_accepted_retained_associations": 9,
+      "pending_root_identity_review": 138,
+      "hints_only": 127,
+      "typed_catalog_for_accepted9_once": true,
+      "first_registry_clearance_not_performed": true,
+      "send_ready": 0
+    }
+  },
+  "external_caption_edits_observed": {
+    "owner_not_attributed": true,
+    "counts_unchanged": true,
+    "latest_confirmed_run": 42386440627,
+    "confirmed_21_pair_edits": 42,
+    "new_posts": 0,
+    "body_photo_button_verified": 42,
+    "preserve_foreign_branch_files": true,
+    "heading_changes_not_new_pairs": true
+  },
+  "shared_workflow_concurrency": "anytour-authorized-channel-publication; cancel-in-progress:false; no cancellation of other writers"
 }

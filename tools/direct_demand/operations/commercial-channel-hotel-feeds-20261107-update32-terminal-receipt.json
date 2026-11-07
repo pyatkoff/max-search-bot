@@ -1,0 +1,82 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update32",
+  "run_id": 42389742699,
+  "job_id": 128454618303,
+  "source_commit": "1f5b915db36902377891b0bd09df88c29e53a20f",
+  "result_artifact_id": 13580972716,
+  "result_zip_sha256": "36b0d7538dd79fdddbb28d1986a0a57bf9168744e435fc5fd2a8d2e56d6e3d99",
+  "intent_artifact_id": 13580778486,
+  "writer_result": {
+    "operation": "commercial-channel-hotel-feeds-20261107-update32",
+    "mode": "publish_three_static_public_direct_yml_feeds",
+    "ok": true,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0,
+    "files": [
+      {
+        "name": "hotel-posts-telegram.xml",
+        "bytes": 177322,
+        "sha256": "64d621e68153848435dcc743e5de818c47f5e666f239a19b7af7481f5ab82fbb",
+        "rows": 275,
+        "write_action": "replace",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml"
+      },
+      {
+        "name": "hotel-posts-max.xml",
+        "bytes": 222463,
+        "sha256": "07b862d596b32e081afb45f86a73198bf9d78b7e6d9ffad560e26b213e67548a",
+        "rows": 275,
+        "write_action": "replace",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml"
+      },
+      {
+        "name": "hotel-posts-all.xml",
+        "bytes": 399412,
+        "sha256": "cbf48e13f087e54a0dc57a48a3f51ed8d7e63e07362fe6b004fcc27afc7c6efb",
+        "rows": 550,
+        "write_action": "replace",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml"
+      }
+    ]
+  },
+  "public_readback": {
+    "db_writes": 0,
+    "files": [
+      {
+        "bytes": 177322,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-telegram.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "rows": 275,
+        "sha256": "64d621e68153848435dcc743e5de818c47f5e666f239a19b7af7481f5ab82fbb"
+      },
+      {
+        "bytes": 222463,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-max.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "rows": 275,
+        "sha256": "07b862d596b32e081afb45f86a73198bf9d78b7e6d9ffad560e26b213e67548a"
+      },
+      {
+        "bytes": 399412,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-all.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "rows": 550,
+        "sha256": "cbf48e13f087e54a0dc57a48a3f51ed8d7e63e07362fe6b004fcc27afc7c6efb"
+      }
+    ],
+    "message_sends": 0,
+    "ok": true,
+    "operation": "commercial-channel-hotel-feeds-20261107-update32-public-readback",
+    "provider_calls": 0,
+    "public_gets": 3
+  },
+  "previous266_offer_blocks_identical": true,
+  "source": "Original terminal artifact; no repeated writes or public GETs"
+}
