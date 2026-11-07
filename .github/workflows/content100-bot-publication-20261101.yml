@@ -49,7 +49,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           run-id: 42364064916
-          name: commercial-side-star-media-20261107-1-result
+          name: commercial-side-star-media-20261107-1-finish1-result
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/prior-side-star
       - name: Bind the heading edits to four existing messages and their latest verified receipts
