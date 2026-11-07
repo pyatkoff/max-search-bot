@@ -1,0 +1,84 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update42",
+  "state": "PREPARED_CONFIRMED_MAX458_INSTALL",
+  "new_hotel_ids": [
+    54621,
+    1579,
+    1218,
+    52925,
+    49083,
+    42928,
+    1712,
+    1647,
+    109655,
+    108942,
+    59116,
+    9260,
+    106,
+    114,
+    1959,
+    288,
+    415
+  ],
+  "previous_rows": [
+    441,
+    441,
+    882
+  ],
+  "target_rows": [
+    458,
+    458,
+    916
+  ],
+  "previous441_offer_blocks_identical": true,
+  "max_route_install_run": 42413159483,
+  "max_route_install_commit": "11ede6f0d47ae8024c016bab0fff0e49a992fb0b",
+  "new17_binding_run": 42412950055,
+  "new17_binding_artifact": 13590471228,
+  "approved_destination_labels": {
+    "54621": "Аланья",
+    "1579": "Аланья",
+    "1218": "Аланья",
+    "52925": "Сиде",
+    "49083": "Белек",
+    "42928": "Сиде",
+    "1712": "Мармарис",
+    "1647": "Мармарис",
+    "109655": "Фетхие",
+    "108942": "Бодрум",
+    "59116": "Бодрум",
+    "9260": "Кушадасы",
+    "106": "Хургада",
+    "114": "Хургада",
+    "1959": "Хургада",
+    "288": "Хургада",
+    "415": "Хургада"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 294333,
+      "sha256": "f4a5655d7078854136bb7827945ee960a811ba813034b0ff87fb439749d8c6ff",
+      "rows": 458,
+      "expected_previous_sha256": "df683249875108f0e5bce45ccb53441435e9a8d46478dbebaa2eb2d1695df989"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 368278,
+      "sha256": "1cbc23f86c7e3b00ef432cd509cc693e50e6f98c57da41757bd271f342375a0e",
+      "rows": 458,
+      "expected_previous_sha256": "ed41c37d547a6663077097a8a5c01d5a7be36988be4568e6bcb45c830dd2fdb3"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 662238,
+      "sha256": "a038ac1bd742ed9a81a8f3baef60de700f3bbb367fb3d195a89519ddbc11c9d8",
+      "rows": 916,
+      "expected_previous_sha256": "fcb199632e01eb5587794fdbf1b4e76c063369ed121ffd4b290da735f989a30e"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

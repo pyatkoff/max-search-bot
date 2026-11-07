@@ -1,0 +1,459 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read44",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 54621,
+      "name": "Green Garden Resort & Spa",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/456",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3r_LKHY0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/54621.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1579,
+      "name": "Orange County Alanya",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/457",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sASuY_8",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/1579.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1218,
+      "name": "Grand Kaptan",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/458",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sBaidtM",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/1218.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 52925,
+      "name": "Bosphorus Sorgun",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/459",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sCGXdt4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/52925.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 49083,
+      "name": "The Land of Legends Kingdom",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/460",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sCxXSZw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/49083.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 42928,
+      "name": "Diamond Premium Hotel & Spa",
+      "country_id": 4,
+      "region_id": 23,
+      "destination": "Сиде",
+      "telegram_post_url": "https://t.me/any_toour/461",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sDdBOVQ",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/42928.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1712,
+      "name": "Turunc Resort",
+      "country_id": 4,
+      "region_id": 26,
+      "destination": "Мармарис",
+      "telegram_post_url": "https://t.me/any_toour/462",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sEI_Nok",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/1712.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1647,
+      "name": "Grand Yazici Club Turban",
+      "country_id": 4,
+      "region_id": 26,
+      "destination": "Мармарис",
+      "telegram_post_url": "https://t.me/any_toour/463",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sEw2PZk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/1647.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 109655,
+      "name": "Liberty Signa",
+      "country_id": 4,
+      "region_id": 27,
+      "destination": "Фетхие",
+      "telegram_post_url": "https://t.me/any_toour/464",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sFUqKWc",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/109655.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 108942,
+      "name": "Maxx Royal Bodrum",
+      "country_id": 4,
+      "region_id": 24,
+      "destination": "Бодрум",
+      "telegram_post_url": "https://t.me/any_toour/465",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sF4JRBU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-37/108942.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 59116,
+      "name": "Lujo Bodrum",
+      "country_id": 4,
+      "region_id": 24,
+      "destination": "Бодрум",
+      "telegram_post_url": "https://t.me/any_toour/466",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3smo9N-w",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/59116.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 9260,
+      "name": "Flora Garden Ephesus",
+      "country_id": 4,
+      "region_id": 154,
+      "destination": "Кушадасы",
+      "telegram_post_url": "https://t.me/any_toour/467",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3snMbUEw",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/9260.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 106,
+      "name": "Aladdin Beach Resort",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/468",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3snxOWfo",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/106.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 114,
+      "name": "Ali Baba Palace",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/469",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3soUIZh0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/114.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1959,
+      "name": "AMC Royal Hotel & Spa",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/470",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3so3_deE",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/1959.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 288,
+      "name": "King Tut Aqua Park Beach Resort",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/471",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3spagCP4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/288.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 415,
+      "name": "Seagull Beach Resort",
+      "country_id": 1,
+      "region_id": 5,
+      "destination": "Хургада",
+      "telegram_post_url": "https://t.me/any_toour/472",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3sp-8SoU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/c928026b0a74061876e910ffa1fc672557c37cc5/.github/traffic-publish/commercial-batch-20261107-38/415.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 17,
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 22660,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Sunsuri Phuket",
+        "SUNSURI PHUKET RESORT"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 817,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Thavorn Beach Village Resort & Spa",
+        "THAVORN BEACH VILLAGE & SPA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 2559,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Fujairah Rotana Resort & Spa",
+        "FUJAIRAH ROTANA RESORT & SPA AL AQAH BEACH"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 73055,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Address Fujairah Beach Resort",
+        "ADDRESS BEACH RESORT FUJAIRAH"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 43060,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Golden Tulip Media Hotel",
+        "GOLDEN TULIP MEDIA (EX. GOLDEN TULIP AL THANYAH)"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 2536,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Coral Beach Resort Sharjah",
+        "CORAL BEACH RESORT"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 50869,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Riu Sri Lanka",
+        "RIU SRI LANKA AHUNGALLA"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 51238,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Radisson Blu Galle",
+        "RADISSON BLU RESORT GALLE"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 70030,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Utopia Beach Club"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 1555,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Doubletree By Hilton Antalya Kemer"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 1690,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Mirage World"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 28704,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Selectum Collection Bodrum",
+        "SELECTUM COLLECTION BODRUM (EX. KAIRABA BODRUM IMPERIAL)"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 1699,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Yasmin Bodrum Resort",
+        "YASMIN BODRUM RESORT (EX. PALOMA YASMIN RESORT)"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 1702,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Rixos Premium Bodrum"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 82545,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Ell Lounge Spa & Hotel"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 70048,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Marina Gallery Resort - KACHA - Kalim Bay",
+        "MARINA GALLERY RESORT KACHA KALIM BAY"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    },
+    {
+      "native_hotel_id": 5389,
+      "scope": "additional_seventh8_and_original_reserve9_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+      "logical_id": null,
+      "aliases": [
+        "Coral Sands"
+      ],
+      "clear": true,
+      "limit_reached": false,
+      "matched_entry_count": 0
+    }
+  ],
+  "candidate_count": 17,
+  "read_at_utc": "2026-11-07T20:50:55+00:00",
+  "scope_hotels": 17,
+  "feed_rows": 17,
+  "deferred_count": 0,
+  "installed_sha": "e3ef9591402da618e7b22fe4a8f4eb2291c4d10c",
+  "original_evidence": {
+    "run_id": 42412950055,
+    "job_id": 128524797124,
+    "commit": "53776d3be191be804823a99c79d9bfff4377dc03",
+    "artifact_id": 13590471228,
+    "zip_sha256": "5fee942cff415d71f58c2f943aee203f62cca9f2aa2b179707a2c44218c5092c",
+    "input_artifact_id": 13590690715,
+    "input_zip_sha256": "1be0441f6a510c244b03c62815b25568269435c48ed2393088157d2ca7ba6222",
+    "private_receipt_sha256": "4816aed76338f77710327615a0b39806f823796654d32d22bd14392219cc7da3",
+    "status": "CONSUMED_FIRST_CLEARANCE_SUCCESS",
+    "pre_server_attempts": [
+      {
+        "run_id": 42411317555,
+        "job_id": 128519892859,
+        "commit": "15b6fa45c767177eb7258a8999b17f0d9388ad63",
+        "failed_phase": "Bind only exact inputs before server connection",
+        "reason": "Stale preflight count20 versus exact candidate list17",
+        "server_steps": "SKIPPED",
+        "registry_queries": 0,
+        "provider_calls": 0,
+        "message_sends": 0,
+        "artifacts": [],
+        "first_clearance_consumed": false,
+        "corrected_commit": "cc1191095b59f09c4e1a3ef57cbf1ca18557325e"
+      },
+      {
+        "run_id": 42411496854,
+        "job_id": 128520415800,
+        "commit": "cc1191095b59f09c4e1a3ef57cbf1ca18557325e",
+        "failed_phase": "Verify exact approved source",
+        "reason": "approved_source_not_current",
+        "server_steps": "SKIPPED",
+        "registry_queries": 0,
+        "provider_calls": 0,
+        "message_sends": 0,
+        "artifacts": [],
+        "first_clearance_consumed": false
+      },
+      {
+        "run_id": 42412424022,
+        "job_id": 128523229955,
+        "commit": "982a5c693d5f2eca5daf4d23403e9f082317514b",
+        "failed_phase": "Verify exact approved source",
+        "reason": "approved_source_not_current after ROOT-approved223938source",
+        "server_steps": "SKIPPED",
+        "registry_queries": 0,
+        "provider_calls": 0,
+        "message_sends": 0,
+        "artifacts": [],
+        "first_clearance_consumed": false
+      }
+    ]
+  }
+}
