@@ -1,0 +1,1231 @@
+{
+  "operation": "commercial-hotel-batch-20261107-26-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 342,
+  "selection_source": "Original ANEX TOP500 explicitly matched to accepted retained hotel knowledge and canonical native links",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read35",
+        "run_id": 42390967846,
+        "read_at_utc": "2026-11-07T16:22:59+00:00",
+        "original_read_sha256": "9904f020e001b5b5a9ecc79011ca41802bc4410cf294e25981af3265ebc1c0d5",
+        "atomic_sender_preflight_still_required": true,
+        "parrotel365_generic_brand_match_resolved_without_changing_guards": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Parent personally reviewed20 commercial captions in cutover24 format,60 real source photos and20 final actual600x600 PNGs; all Canva transactions committed. This exact parent manifest is awaiting root SHA approval before25/26 sends.",
+  "parent_exact_final_manifest": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-twenty-after-332-commercial-release-manifest.json",
+    "sha256": "1d2aea32873b08200ea922043bba30c0689a2313b983977858d054d18c15f628",
+    "caption_path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/quality_revision/next-twenty-reviewed-after-180-commercial-captions.json",
+    "caption_sha256": "7ccd4914b446c4f86472431c021fb699d0d0bf01f326826ef69b26ee0ffd27fb",
+    "subset_native_ids": [
+      28779,
+      37396,
+      9419,
+      365,
+      1494,
+      1456,
+      990,
+      3434,
+      1474,
+      1292
+    ],
+    "within_sender_max10": true,
+    "root_exact_sha_approval_received": true
+  },
+  "current_prepare_sha256": "da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a",
+  "generic_alias_resolution": {
+    "native_hotel_id": 365,
+    "removed_standalone_alias": "RADISSON BLU RESORT",
+    "distinguishing_full_aliases_preserved": true,
+    "guards_unchanged": true,
+    "prior_read35_preserved_without_replay": true
+  },
+  "excluded_existing": [
+    {
+      "native_hotel_id": 496,
+      "public_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0"
+    },
+    {
+      "native_hotel_id": 364,
+      "public_url": "https://max.ru/channel_anytour/AaF1AghILVI"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 28779,
+      "logical_id": "commercial-dream-family-28779-v1",
+      "aliases": [
+        "Dream Family Club",
+        "DREAM FAMILY CLUB (EX. PRIME)"
+      ],
+      "text": "✈️ Туры в Dream Family Club с перелётом\n📍 Сиде, Турция.\n\nДля семейного отдыха с отдельной гостиной.\n\n🛏 Family 35 м²: спальня и гостиная, разделённые дверью.\n🍽 All Inclusive.\n🎶 Музыка и дискотека.\n🏖 Собственный песчаный пляж примерно в 350 м, через дорогу.\n\n✈️ Подберём номер под состав гостей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "0993cb12d586bf9989d45f26fd870a7e28828c57df2a6fa918948515709db215",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/28779.png",
+      "photo_sha256": "53a593247c97f7186701163978d6d292c47f8e031aca47f1592d5cd9a0108847",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/side/dream_family_club/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/28779-95241500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/28779-95250701.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/28779-95248102.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 13990,
+        "anytour_id": 5575,
+        "legacy_native_id": 28779,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQWJIOX4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_6609bc2d49227017_run05_c02",
+        "top500_6609bc2d49227017_run05_c03",
+        "top500_6609bc2d49227017_run05_c04",
+        "top500_6609bc2d49227017_run05audit_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/28779-95241500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "f63b637bfaa8d661f1cc4efd044b19c28834700ff582630979a88b99a1241282",
+          "source_png_sha256": "dd9f32551b6197bd10b2ec7adf7bd77f984896314e305231a915e751311b29e0",
+          "source_png_bytes": 962034,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Бассейн и корпуса Dream Family Club",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQUU13Zw",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "dream-family-g02.png"
+        },
+        {
+          "role": "room",
+          "label": "g19",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/28779-95250701.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "aca4bcb36e367e3742b1a3af1134166f7536b0c9d6f43ab5a42fac5d49f44556",
+          "source_png_sha256": "3e04c1debe7039d7ddea09bfbb593ef8356a1edd6b797c11f32ca6d2778f5502",
+          "source_png_bytes": 669889,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Гостиная и спальня Dream Family Club",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQSJL0dk",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "dream-family-g19.png"
+        },
+        {
+          "role": "detail",
+          "label": "g09",
+          "source_set": "initial",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/28779-95248102.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "8c31e9980e6cadef41eab2dc82caa2404a5392fcec2ecff3539d08e3ae6988f5",
+          "source_png_sha256": "406f1268c8fbc10fc645b1336055fae766aa1b3e5e9a1e69e8fe20cb03dd120c",
+          "source_png_bytes": 1681077,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Водная игровая зона Dream Family Club",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQZg1tmk",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "dream-family-g09.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 37396,
+      "logical_id": "commercial-orka-lotus-37396-v1",
+      "aliases": [
+        "Orka Lotus Beach"
+      ],
+      "text": "✈️ Туры в Orka Lotus Beach с перелётом\n📍 Ичмелер, Турция.\n\nДля отдыха вдвоём с длинным пляжем и вечерними шоу.\n\n🛏 Двухместный Land View от 26 до 30 м².\n🏖 Собственный песчаный пляж длиной около 650 м, через дорогу.\n🍽 Ultra All Inclusive.\n🎭 Вечерние шоу.\n\n✈️ Подберём категорию и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "847aa159fcde341e82e95cefccc79ad932d68bcc72b714ed15d1ea50e5f4e353",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/37396.png",
+      "photo_sha256": "53520a0f55dbea76d4505555b604f3cd6cb39dd97792652b1c9333a969bada94",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.dertour.de/hotel/orka-lotus-beach-11NgyF",
+        "https://kompastour.com/kg/kir/country/turkey/marmaris/orka_lotus_beach/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://kompastour.com/useruploads/hotels/hotel_7fa20fdb2a.jpg",
+        "https://kompastour.com/useruploads/hotels_room/room_3c429f1a2d.jpg",
+        "https://kompastour.com/useruploads/hotels/hotel_4e2efaab6c.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 26434,
+        "anytour_id": 5657,
+        "legacy_native_id": 37396,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQRXL23o",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_9f45b2273d83bd24_run12_c01",
+        "top500_9f45b2273d83bd24_run12_c02",
+        "top500_9f45b2273d83bd24_run06_c02",
+        "top500_9f45b2273d83bd24_run06_c04",
+        "top500_9f45b2273d83bd24_run06_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "h02",
+          "source_set": "extra",
+          "source_url": "https://kompastour.com/useruploads/hotels/hotel_7fa20fdb2a.jpg",
+          "source_page": "https://kompastour.com/kg/kir/country/turkey/marmaris/orka_lotus_beach/",
+          "source_page_sha256": "3d0404709047127c8b4d371033fa68936a201eae89b26b930be4d8ff6f5d2dc9",
+          "publisher_category_caption": "Orka Lotus Beach 5*",
+          "raw_sha256": "45ce838e8b5791142758809c0268413c0b9e5ac9fdcd317d5fdca904c87a4bd9",
+          "source_png_sha256": "ba3abdd5594548ffa058d2bcfcfd0ee143cfc03bbdb8b0960a28617ef32334db",
+          "source_png_bytes": 1001533,
+          "dimensions": [
+            1000,
+            674
+          ],
+          "alt": "Территория и побережье Orka Lotus Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQdhfmbY",
+          "canva_asset_dimensions": [
+            1000,
+            674
+          ],
+          "source_png_filename": "orka-lotus-h02.png"
+        },
+        {
+          "role": "room",
+          "label": "r01",
+          "source_set": "extra",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_3c429f1a2d.jpg",
+          "source_page": "https://kompastour.com/kg/kir/country/turkey/marmaris/orka_lotus_beach/",
+          "source_page_sha256": "3d0404709047127c8b4d371033fa68936a201eae89b26b930be4d8ff6f5d2dc9",
+          "publisher_category_caption": "Standard Land View/ Side Sea View/ Sea View, Orka Lotus Beach 5*",
+          "raw_sha256": "d5b9361b248124bf20da4b89fac18aa746b432dd934c8c90e6119a0b137b77d4",
+          "source_png_sha256": "25272279f78a3461e6eefcbf16a0d020001bfc46d44e3667f75a310e5e6cb6a7",
+          "source_png_bytes": 350769,
+          "dimensions": [
+            1000,
+            495
+          ],
+          "alt": "Номер Standard Orka Lotus Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQX3M7vI",
+          "canva_asset_dimensions": [
+            1000,
+            495
+          ],
+          "source_png_filename": "orka-lotus-r01.png"
+        },
+        {
+          "role": "detail",
+          "label": "h07",
+          "source_set": "extra",
+          "source_url": "https://kompastour.com/useruploads/hotels/hotel_4e2efaab6c.jpg",
+          "source_page": "https://kompastour.com/kg/kir/country/turkey/marmaris/orka_lotus_beach/",
+          "source_page_sha256": "3d0404709047127c8b4d371033fa68936a201eae89b26b930be4d8ff6f5d2dc9",
+          "publisher_category_caption": "Orka Lotus Beach 5*",
+          "raw_sha256": "94161cd8acab892000ddde806f49246a18f6c5c70ca05a1eb4aeb3d7105d76b0",
+          "source_png_sha256": "958d02cab04983867ae0be0a435040c025a8953fd5e8dac05f162c8e13607527",
+          "source_png_bytes": 777121,
+          "dimensions": [
+            1000,
+            673
+          ],
+          "alt": "Главный ресторан Orka Lotus Beach",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQZ_QjzA",
+          "canva_asset_dimensions": [
+            1000,
+            673
+          ],
+          "source_png_filename": "orka-lotus-h07.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 9419,
+      "logical_id": "commercial-aqua-fantasy-9419-v1",
+      "aliases": [
+        "Aqua Fantasy Aquapark Hotel & Spa"
+      ],
+      "text": "✈️ Туры в Aqua Fantasy Aquapark Hotel & Spa с перелётом\n📍 Кушадасы, Турция.\n\nДля семейного отпуска с аквапарком и морем рядом.\n\n🛏 Family 35 м² с раздвижной дверью.\n💦 Вход в аквапарк включён.\n🏖 Собственный пляж примерно в 100 м.\n🍽 All Inclusive.\n\nМинимальный рост для горок зависит от аттракциона: 120 или 140 см. Еда и напитки в аквапарке платные.\n\n✈️ Подберём даты с учётом сезона аквапарка и рассчитаем тур с перелётом.",
+      "text_sha256": "f9f7331c816690503414fe0b48ceabc50d55860880b2802bb0cd570c2a0f1d30",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/9419.png",
+      "photo_sha256": "37369a6eea292b3624e93d59ad396b0e421e88042bd3433885ffcc777d8baf99",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.nl/aqua-fantasy-50976995/?msockid=069e51c51e86639d1f36470b1f07621b",
+        "https://hotel.aquafantasy.com/en/rooms",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aqua-fantasy-aquapark-hotel-spa-102304460.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aqua-fantasy-aquapark-hotel-spa-1023044825.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/aqua-fantasy-aquapark-hotel-spa-102304479.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 19280,
+        "anytour_id": 1564,
+        "legacy_native_id": 9419,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQUAQ3sw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_13b8bdc1f44b381b_run06_c01",
+        "top500_13b8bdc1f44b381b_run06_c02",
+        "top500_13b8bdc1f44b381b_run06_c03",
+        "top500_13b8bdc1f44b381b_run06_c04",
+        "top500_13b8bdc1f44b381b_run06_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/aqua-fantasy-aquapark-hotel-spa-102304460.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "cf27b3fb512e87640a521708c8d3e5451a3d7a49ee441907f8352c1fd00daa2a",
+          "source_png_sha256": "a48313c2c8c2a7728fb23fc2309be9f9edd470ba5257b7172b200975e0796bac",
+          "source_png_bytes": 1958786,
+          "dimensions": [
+            1200,
+            792
+          ],
+          "alt": "Аквапарк Aqua Fantasy",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQSG_3L0",
+          "canva_asset_dimensions": [
+            1200,
+            792
+          ],
+          "source_png_filename": "aqua-fantasy-g01.png"
+        },
+        {
+          "role": "room",
+          "label": "g26",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/aqua-fantasy-aquapark-hotel-spa-1023044825.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "025dd84cd88dc454af0e354fd85705ac3eda482eb38866c00e1f1171c9d9190c",
+          "source_png_sha256": "4aae5b36acacc427e17049d65c30e7ad675ae497d81dfc34669cd123d2ac2188",
+          "source_png_bytes": 944595,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Номер Aqua Fantasy",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQZmQNgQ",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "aqua-fantasy-g26.png"
+        },
+        {
+          "role": "detail",
+          "label": "g10",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/aqua-fantasy-aquapark-hotel-spa-102304479.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "6c0774d8d56f01dc9c86dd19446a02b3d1832d33bd050774376cce156caf7e6e",
+          "source_png_sha256": "d8bf85e294fe14cd0da4c90ddc1097a8abe5307fa2217ab4642c94ee8898c56b",
+          "source_png_bytes": 1088975,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан Aqua Fantasy",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQesMF6E",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "aqua-fantasy-g10.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 365,
+      "logical_id": "commercial-parrotel-beach-365-v1",
+      "aliases": [
+        "Parrotel Beach Resort",
+        "Parrotel Beach Resort (Ex. Radisson Blu Resort Sharm El Sheikh)",
+        "PARROTEL BEACH RESORT (EX. RADISSON BLU RESORT)",
+        "Radisson Blu Resort Sharm El Sheikh"
+      ],
+      "text": "✈️ Туры в Parrotel Beach Resort с перелётом\n📍 Набк Бей, Египет.\n\nДля отдыха у моря с живой музыкой по вечерам.\n\n🛏 Standard 36 м².\n🏖 Собственный пляж на первой линии.\n🌊 Коралловый вход в море с понтона.\n🍽 All Inclusive.\n\nДля захода в море рекомендуется коралловая обувь.\n\n✈️ Подберём расположение номера и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "68ae2e1891fdb1d566921c962287325d92f68738ef791f854faf0c4471e53035",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/365.png",
+      "photo_sha256": "8aab4b5437e0f79bc743e6de5f0eddf937b9f2766ed92a7515520f810ddcc442",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ua/rus/country/egypt/sharm/parrotel_beach_resort/",
+        "https://www.tui.com/hotels/parrotel-beach-resort-26426/hotelinformation/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/radisson-blu-102102591.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/radisson-blu-1021030023.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/1/radisson-blu-1021030013.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 485,
+        "anytour_id": 154,
+        "legacy_native_id": 365,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": false,
+      "canva_design_id": "DAHaQVuHsRc",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_66aa25b3dfed292d_c02",
+        "top500_66aa25b3dfed292d_c03",
+        "top500_66aa25b3dfed292d_c04",
+        "top500_66aa25b3dfed292d_c05",
+        "top500_66aa25b3dfed292d_mass37_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/radisson-blu-102102591.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "9edc33c126e5373350b0449efb6e77ab7e2a1ce76bd1a5fa99d6be95cda9a78f",
+          "source_png_sha256": "0ad035e1d35a3f6225f7567bbb7a3ea09d8aadce2ec58de3879882c0066bc192",
+          "source_png_bytes": 1320891,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Бассейн и территория Parrotel Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQTLMDBU",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "parrotel-beach-g02.png"
+        },
+        {
+          "role": "room",
+          "label": "g24",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/radisson-blu-1021030023.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "44eb24537036924117d4c268725723db54cb3d5d942f9b09c1a983b9bb2c2e69",
+          "source_png_sha256": "f61dbb2e4e715e14807bc47c4764335c820887daede9356fb97f26956b8021b0",
+          "source_png_bytes": 954235,
+          "dimensions": [
+            1200,
+            801
+          ],
+          "alt": "Номер Parrotel Beach Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQa1RLUo",
+          "canva_asset_dimensions": [
+            1200,
+            801
+          ],
+          "source_png_filename": "parrotel-beach-g24.png"
+        },
+        {
+          "role": "detail",
+          "label": "g14",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/1/radisson-blu-1021030013.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "a6569d85923b44bdf183ba2e8a123e14ce153c58f5f9cbbe87a9909017fa477b",
+          "source_png_sha256": "31173452f0bf81fbb4da277e013074bf0ddad544855f253e7126a773a69f7ccc",
+          "source_png_bytes": 1590153,
+          "dimensions": [
+            1200,
+            799
+          ],
+          "alt": "Ресторан Parrotel Beach Resort с видом на море",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQeu9Z7Y",
+          "canva_asset_dimensions": [
+            1200,
+            799
+          ],
+          "source_png_filename": "parrotel-beach-g14.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1494,
+      "logical_id": "commercial-rixos-downtown-1494-v1",
+      "aliases": [
+        "Rixos Downtown Antalya - The Land of Legends Free Access",
+        "RIXOS DOWNTOWN ANTALYA THE LAND OF LEGENDS FREE ACCESS"
+      ],
+      "text": "✈️ Туры в Rixos Downtown Antalya с перелётом\n📍 Анталья, Турция.\n\nДля городского отдыха с пляжными днями и живой музыкой.\n\n🛏 Standard 32 м².\n🍽 All Inclusive.\n🎹 Живая музыка, DJ и пианист в лобби баре.\n🏖 Зона на общественном галечном пляже примерно в 300 м, через дорогу. Пеший путь проходит через лифт; также есть шаттл к Aruna Beach.\n\n✈️ Подберём категорию и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "abd3a7c794aa778ac31d2385d4f11e05b35f3cd5bc287ae53f03696d5d0c1d15",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/1494.png",
+      "photo_sha256": "40cfc72b3953e059a2be2568bfb76d69c01a758fdfd69b5e9a720a4a43b1d455",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://allinclusive-collection.com/hotel/rixos-downtown-antalya/",
+        "https://kompastour.com/kz/rus/country/turkey/antaliya/rixos_downtown_antalya/",
+        "https://www.tui.nl/rixos-downtown-antalya-509772260/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sheraton-voyager-67746901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sheraton-voyager-67746944.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/sheraton-voyager-67759711.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8374,
+        "anytour_id": 707,
+        "legacy_native_id": 1494,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQTs7CP8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_67195a2c9c14f408_run03_c01",
+        "top500_67195a2c9c14f408_c04",
+        "top500_67195a2c9c14f408_mass39_c02",
+        "top500_67195a2c9c14f408_mass39_c01"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g02",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/sheraton-voyager-67746901.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "3c1f40cc6aa994cba7ac4d120ac073545c689b289a694c1cc1cc2dfec4aeb733",
+          "source_png_sha256": "1ad8f7b813c8f5cdc9ee63c5224a07f8c789aa2f61d2bd8bdeb7f83c0c9300cf",
+          "source_png_bytes": 1422029,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Главный вход Rixos Downtown Antalya",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQciF6U0",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-downtown-g02.png"
+        },
+        {
+          "role": "room",
+          "label": "g45",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/sheraton-voyager-67746944.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "08bdf23f207409d8b0994de0536a165abf685b1d8833798b21ed0b6eab1a7f00",
+          "source_png_sha256": "eeee1cc947fbc95d38cd493361bfc305e31f16344f0bbfdf2f409323b79cd79c",
+          "source_png_bytes": 704874,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Номер Rixos Downtown Antalya",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQUrT95c",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-downtown-g45.png"
+        },
+        {
+          "role": "detail",
+          "label": "g71",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/sheraton-voyager-67759711.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "dffc84f467ca2e2b2056eec6651b56e54da12e07d5547de9ed08e0be6e37b758",
+          "source_png_sha256": "a5ad72beb8050463ee6f050432f387d00ba69df80f4033c5c07207b7d8079781",
+          "source_png_bytes": 1114482,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "alt": "Лобби Rixos Downtown Antalya",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQV6iNuo",
+          "canva_asset_dimensions": [
+            1024,
+            768
+          ],
+          "source_png_filename": "rixos-downtown-g71.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1456,
+      "logical_id": "commercial-sealife-kemer-1456-v1",
+      "aliases": [
+        "Sealife Kemer Resort",
+        "SEALIFE KEMER RESORT (EX. SEALIFE ROSE RESIDENCE)"
+      ],
+      "text": "✈️ Туры в Sealife Kemer Resort с перелётом\n📍 Кемер, Турция.\n\nДля отдыха вдвоём на первой линии.\n\n🛏 Компактный Standard Double 20 м² с балконом.\n🌅 Варианты вида на море, горы или окрестности.\n🏖 Собственный пляж рядом с отелем.\n🍽 Ultra All Inclusive.\n\n✈️ Подберём точную категорию и вид, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "f49e3a0ecd848a912331f4460c3d2003a4e4eec7aeb98fbaef6697e80ea8b3c5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/1456.png",
+      "photo_sha256": "4b329908a21c1892cc8572b4a5a423f388590fc7f7e80a6147b63b2bbd3f9c41",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/kemer/sealife_kemer_resort_hotel/",
+        "https://kemer.sealifehotels.com/tr/room-detail/standard-double-room-738",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rose-residence-beach-hotel-31481900.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rose-residence-beach-hotel-31481901.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/rose-residence-beach-hotel-31481942.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 29288,
+        "anytour_id": 689,
+        "legacy_native_id": 1456,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQcw0S0Y",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_27c98856ac909cc8_c02",
+        "top500_27c98856ac909cc8_c04",
+        "top500_27c98856ac909cc8_run10_c01",
+        "top500_27c98856ac909cc8_run10_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rose-residence-beach-hotel-31481900.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "201614a144b56940fd05afb764315b58f044eea04bdc09bdb210d8c8d55d6292",
+          "source_png_sha256": "72ad7c0c4ed416bac7327956216d80b27d6fe4e2cad98e8e37d0da8bf7b7bd2f",
+          "source_png_bytes": 812255,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Главный вход Sealife Kemer Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQTVfOgk",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sealife-kemer-g01.png"
+        },
+        {
+          "role": "room",
+          "label": "g02",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rose-residence-beach-hotel-31481901.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0d94f271478be70107f7d57a839ec8b42ce3dce54624d171e2b68491d02a6f43",
+          "source_png_sha256": "56aa852afcf5df655d82f3c5fb3872707ba16c833642f0ae7ee8c6926eba38ed",
+          "source_png_bytes": 558172,
+          "dimensions": [
+            1024,
+            677
+          ],
+          "alt": "Номер Sealife Kemer Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQRw1jsw",
+          "canva_asset_dimensions": [
+            1024,
+            677
+          ],
+          "source_png_filename": "sealife-kemer-g02.png"
+        },
+        {
+          "role": "detail",
+          "label": "g43",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/rose-residence-beach-hotel-31481942.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "c246ec024977ebe9e6bffcfaf064bbc38ad07dd223e431f777bebdafda706051",
+          "source_png_sha256": "1b868f5895b7a86415d477f7756485ca00a42be196be4e97f6363ecc37b85e77",
+          "source_png_bytes": 681090,
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бар и лобби Sealife Kemer Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQQ0HHU0",
+          "canva_asset_dimensions": [
+            1024,
+            683
+          ],
+          "source_png_filename": "sealife-kemer-g43.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 990,
+      "logical_id": "commercial-arabella-world-990-v1",
+      "aliases": [
+        "Arabella World Hotel"
+      ],
+      "text": "✈️ Туры в Arabella World Hotel с перелётом\n📍 Авсаллар, Турция.\n\nДля семейного отпуска с двухуровневым размещением.\n\n🛏 Family Duplex 40 м² на двух этажах.\n🍽 All Inclusive.\n🎶 Турецкая ночь в программе развлечений.\n🎬 Кинотеатр 3D на территории.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "aec321159aad80f91702525240e75b0b8bbefd9dbd8661b9c5ae2f443bf04a90",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/990.png",
+      "photo_sha256": "fc31fd190af6aedb24b7790ae73b6ca979d31b644789da8160823e7fc6a93b39",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/az/rus/country/turkey/alanya/arabella_world_hotel/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/990-48816000.jpg",
+        "https://kompastour.com/useruploads/hotels_room/room_7783c00321.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/arabella-world-hotel-48828500.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8225,
+        "anytour_id": 428,
+        "legacy_native_id": 990,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaQXp8N_Q",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_2db400ec6266711d_context13_c01",
+        "top500_2db400ec6266711d_context13_c03",
+        "top500_2db400ec6266711d_run04_c02"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/990-48816000.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "71c660d55f6e9a762af92e0fab23f7718e85e8caf8af957eec920b928fc8265f",
+          "source_png_sha256": "bad898c2b5bb0cbab47dc3f8c0e226d1f3b288f7b666f77df41fb8e012e0835c",
+          "source_png_bytes": 1348609,
+          "dimensions": [
+            1024,
+            759
+          ],
+          "alt": "Бассейн и корпуса Arabella World Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQdanhvE",
+          "canva_asset_dimensions": [
+            1024,
+            759
+          ],
+          "source_png_filename": "arabella-world-g01.png"
+        },
+        {
+          "role": "room",
+          "label": "r02",
+          "source_set": "extra",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_7783c00321.jpg",
+          "source_page": "https://kompastour.com/az/rus/country/turkey/alanya/arabella_world_hotel/",
+          "source_page_sha256": "a7ba2c5774545cc8e93f91c43e84c41c12a43c98e5b2a8c5b3059c312da79515",
+          "publisher_category_caption": "Family Duplex, Arabella World Hotel 4*",
+          "raw_sha256": "2fa5ade0d42c74cbe1cc76a17475b8574db2ad7b04d46f2304b944491fe19446",
+          "source_png_sha256": "a68caff87eae5107401b94a7061843e72d8fd77810af7cbca55cc0d97439289c",
+          "source_png_bytes": 509616,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "alt": "Спальня номера Family Duplex Arabella World Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQaEwA4Y",
+          "canva_asset_dimensions": [
+            1000,
+            666
+          ],
+          "source_png_filename": "arabella-world-r02.png"
+        },
+        {
+          "role": "detail",
+          "label": "g03",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/arabella-world-hotel-48828500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "e206ea5b962283964335f51454942f4d1579b722971edffb7973491be3c73d32",
+          "source_png_sha256": "c457196430d1ff64ffd96393e889c41dea0f68006507d334cdc6d72871d0f66a",
+          "source_png_bytes": 803828,
+          "dimensions": [
+            1024,
+            621
+          ],
+          "alt": "Ресторан Arabella World Hotel",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQdhZlRo",
+          "canva_asset_dimensions": [
+            1024,
+            621
+          ],
+          "source_png_filename": "arabella-world-g03.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 3434,
+      "logical_id": "commercial-diamond-excellence-3434-v1",
+      "aliases": [
+        "Diamond Excellence Resort & Spa",
+        "DIAMOND EXCELLENCE RESORT & SPA (EX. CRYSTAL PALACE LUXURY)"
+      ],
+      "text": "✈️ Туры в Diamond Excellence Resort & Spa с перелётом\n📍 Сиде, Турция.\n\nДля романтического пляжного отпуска.\n\n🛏 Honeymoon Sea View 39 м² с видом на море.\n🏖 Собственный песчаный пляж длиной около 190 м.\n\n✈️ Подберём питание и условия на ваши даты, рассчитаем тур с перелётом.",
+      "text_sha256": "3689b0abbbcb4d8134c550309cd946305aadb8628de4f7e708241f7eb7ef5e05",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/3434.png",
+      "photo_sha256": "aa5d5d467b874202f02eadcea4129cac43776cc63da746b9301b1fcddaa5218f",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/turkey/side/crystal_palace_luxury_resort_spa/",
+        "https://b2ccdn.coraltravel.ee/content/Diamond-Excellence-Fact-Sheet-Consept-ENG-2025.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-palace-luxury-resort-spa-102210120.jpg",
+        "https://kompastour.com/useruploads/hotels_room/room_6bc21fecb6.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-palace-luxury-resort-spa-1022101216.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 40613,
+        "anytour_id": 1208,
+        "legacy_native_id": 3434,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQaoxgm4",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e7b7433c7096f85f_run05_c03",
+        "top500_e7b7433c7096f85f_run05_c04",
+        "top500_e7b7433c7096f85f_run05_c05",
+        "top500_e7b7433c7096f85f_run05audit_c06"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-palace-luxury-resort-spa-102210120.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "687c859f61fe2b20503263f3821af9cdebbf7f2393e4523399cd346bb101140b",
+          "source_png_sha256": "b1e7102ed1ba9cd6c6e2c5cd1c27485fc8b2c2a906308ec7db97549bb6e15c04",
+          "source_png_bytes": 1773178,
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Территория Diamond Excellence Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQSVW5WU",
+          "canva_asset_dimensions": [
+            1200,
+            675
+          ],
+          "source_png_filename": "diamond-excellence-g01.png"
+        },
+        {
+          "role": "room",
+          "label": "r01",
+          "source_set": "extra",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_6bc21fecb6.jpg",
+          "source_page": "https://kompastour.com/kz/rus/country/turkey/side/crystal_palace_luxury_resort_spa/",
+          "source_page_sha256": "b1dcad32d2830d44124ef2bf005021c079a5d4e3d3c809354d48f2bef36ab45e",
+          "publisher_category_caption": "Honeymoon Room Sea View, Diamond Excellence Resort (ex.Crystal palace) 5*",
+          "raw_sha256": "1025873d60fd8ac42af2f1baf6e7887024085c18f656a7942e9a7c19043be2fb",
+          "source_png_sha256": "ea2f6d065ea3048090672f5e8b887d88c69a1c30cc85733d83d0e1ffd6de1306",
+          "source_png_bytes": 800364,
+          "dimensions": [
+            1000,
+            666
+          ],
+          "alt": "Номер Honeymoon Sea View Diamond Excellence Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQcUvAcg",
+          "canva_asset_dimensions": [
+            1000,
+            666
+          ],
+          "source_png_filename": "diamond-excellence-r01.png"
+        },
+        {
+          "role": "detail",
+          "label": "g17",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-palace-luxury-resort-spa-1022101216.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "7e9417456d723f85ffb727011beef653c37afbbabfd922a5b4c3a257788745dc",
+          "source_png_sha256": "aa4c7526f58ecd740196df49a42306722d2ca6262147758d901b23ebcf0fad5d",
+          "source_png_bytes": 1728298,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Ресторан Diamond Excellence Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQRY_SPg",
+          "canva_asset_dimensions": [
+            1200,
+            800
+          ],
+          "source_png_filename": "diamond-excellence-g17.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1474,
+      "logical_id": "commercial-saturn-palace-1474-v1",
+      "aliases": [
+        "Saturn Palace Resort"
+      ],
+      "text": "✈️ Туры в Saturn Palace Resort с перелётом\n📍 Лара, Турция.\n\nДля отдыха вдвоём с песчаным пляжем у отеля.\n\n🛏 Двухместная категория Standard Land View.\n🏖 Собственный песчаный пляж.\n🍽 Вариант питания All Inclusive.\n🎶 Дискотека для вечернего отдыха.\n\n✈️ Подберём категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "0cdd95936cbdc0eea26ba84a47970fcbdb94ef51a83131e6b9a18fb88064450d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/1474.png",
+      "photo_sha256": "58c18e8c678fc39ae5387eab29aab13a24853c1e6aeb6d20835fce1ef89bddd2",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.corendon.nl/turkije/turkse-riviera/antalya/lara/saturn-palace",
+        "https://www.tui.com/hotels/saturn-palace-resort-80452/hotelinformation/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://pics.tui.com/pics/pics1600x1200/tui/0/01f9fbbf-25ff-4718-b16c-99a0fd7018f7.jpg",
+        "https://pics.tui.com/pics/pics1600x1200/tui/2/2e5600a6-1537-4bc4-9903-296e0594112c.jpg",
+        "https://pics.tui.com/pics/pics1600x1200/tui/6/6180ad5e-1b35-4f01-a41f-bee9d9abfea2.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 12901,
+        "anytour_id": 7463,
+        "legacy_native_id": 1474,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQaOxMpw",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_dd39e6c81fe3342c_run05_c03",
+        "top500_dd39e6c81fe3342c_run05_c04",
+        "top500_dd39e6c81fe3342c_run05audit_c02",
+        "top500_dd39e6c81fe3342c_run05audit_c04"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "h01",
+          "source_set": "extra",
+          "source_url": "https://pics.tui.com/pics/pics1600x1200/tui/0/01f9fbbf-25ff-4718-b16c-99a0fd7018f7.jpg",
+          "source_page": "https://www.tui.com/hotels/saturn-palace-resort-80452/hotelinformation/",
+          "source_page_sha256": "ded1a330dc910fcc90e4c948575218d0d586165d7ef40744427ab702bf80ef12",
+          "publisher_category_caption": "Exterior view; exact TUI Saturn Palace gallery",
+          "raw_sha256": "44476d950373a587f310367987b8f3bfdeb69cca130498e3318305813d2ef31b",
+          "source_png_sha256": "5aadeb21fcf8bbf3a63fe7b935c1a04fb965f4e9a6d0591e39867156f1a80239",
+          "source_png_bytes": 2778971,
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "alt": "Пляж и пирс Saturn Palace Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQf1xScM",
+          "canva_asset_dimensions": [
+            1600,
+            1200
+          ],
+          "source_png_filename": "saturn-palace-h01.png"
+        },
+        {
+          "role": "room",
+          "label": "r02",
+          "source_set": "extra",
+          "source_url": "https://pics.tui.com/pics/pics1600x1200/tui/2/2e5600a6-1537-4bc4-9903-296e0594112c.jpg",
+          "source_page": "https://www.tui.com/hotels/saturn-palace-resort-80452/hotelinformation/",
+          "source_page_sha256": "ded1a330dc910fcc90e4c948575218d0d586165d7ef40744427ab702bf80ef12",
+          "publisher_category_caption": "Double Standard Land View DZX1; following heading of same TUI room card",
+          "raw_sha256": "606dfdc2a887f6bbbbc8a3e294f3f3f50766b405044046ee31b951f99b0ffd82",
+          "source_png_sha256": "ae309718d36d33ee8e9e73ec16122cb3cd3b0abe08c5252fe405db03524e8691",
+          "source_png_bytes": 1760895,
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "alt": "Номер Double Standard Land View Saturn Palace Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQe7TqgU",
+          "canva_asset_dimensions": [
+            1600,
+            1200
+          ],
+          "source_png_filename": "saturn-palace-r02.png"
+        },
+        {
+          "role": "detail",
+          "label": "d01",
+          "source_set": "extra",
+          "source_url": "https://pics.tui.com/pics/pics1600x1200/tui/6/6180ad5e-1b35-4f01-a41f-bee9d9abfea2.jpg",
+          "source_page": "https://www.tui.com/hotels/saturn-palace-resort-80452/hotelinformation/",
+          "source_page_sha256": "ded1a330dc910fcc90e4c948575218d0d586165d7ef40744427ab702bf80ef12",
+          "publisher_category_caption": "Hauptrestaurant; exact TUI Saturn Palace gallery",
+          "raw_sha256": "16c2029f276a55953cdc9e51e86ba3096f84201fb2923a860a6920f980cdbf48",
+          "source_png_sha256": "db8002b3756912051f44b7f857322560b83544bce33db573dc711e66027a62dd",
+          "source_png_bytes": 2506280,
+          "dimensions": [
+            1600,
+            1200
+          ],
+          "alt": "Главный ресторан Saturn Palace Resort",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQQkwMiA",
+          "canva_asset_dimensions": [
+            1600,
+            1200
+          ],
+          "source_png_filename": "saturn-palace-d01.png"
+        }
+      ]
+    },
+    {
+      "hotel_id": 1292,
+      "logical_id": "commercial-kempinski-dome-1292-v1",
+      "aliases": [
+        "Kempinski Hotel The Dome"
+      ],
+      "text": "✈️ Туры в Kempinski Hotel The Dome с перелётом\n📍 Белек, Турция.\n\nДля отпуска с просторным номером и песчаным входом в море.\n\n🛏 Superior Land View 38 м².\n🏖 Собственный пляж примерно в 150 м от основного здания.\n🍽 Luxury All Inclusive.\n🎶 Живая музыка, караоке и дискотека.\n\n✈️ Подберём категорию и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "8c6159755d277742ac2df8f1ee99de70f3c49dd874c64e676d2c219de5b43138",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02af187c96b175d5712771e3a69858f30f9eab99/.github/traffic-publish/commercial-batch-20261107-26/1292.png",
+      "photo_sha256": "7c33f14985a129a155a8427c6b950c892fcc2a1e76ab21124c9c5c7ea21c9694",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.kempinski.com/en/hotel-the-dome",
+        "https://kompastour.com/md/rus/country/turkey/belek/kempinski_hotel_the_dome/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=28326&legacyHotelIds%5B%5D=961&legacyHotelIds%5B%5D=1105&legacyHotelIds%5B%5D=1433&legacyHotelIds%5B%5D=1246&legacyHotelIds%5B%5D=1070&legacyHotelIds%5B%5D=28512&legacyHotelIds%5B%5D=78905&legacyHotelIds%5B%5D=1273&legacyHotelIds%5B%5D=88750&legacyHotelIds%5B%5D=28779&legacyHotelIds%5B%5D=37396&legacyHotelIds%5B%5D=9419&legacyHotelIds%5B%5D=365&legacyHotelIds%5B%5D=1494&legacyHotelIds%5B%5D=1456&legacyHotelIds%5B%5D=990&legacyHotelIds%5B%5D=3434&legacyHotelIds%5B%5D=1474&legacyHotelIds%5B%5D=1292",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/1292-1213401.jpg",
+        "https://kompastour.com/useruploads/hotels_room/room_c90dfd00c9.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/kempinski-hotel-the-dome-1213500.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8675,
+        "anytour_id": 595,
+        "legacy_native_id": 1292,
+        "source_file": "next-twenty-after-180-current-catalog.json",
+        "source_sha256": "a9778ac60d71bd50f4c59d13814ad8fe75966b318572e1a232abfb3d0880ae85",
+        "binding": "Typed TOP ANEX record and explicit canonical links.legacyHotelId to anytourHotelId to items.id; no numeric equivalence or array order"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaQb8TsNo",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_cf4b9d938b0794f3_run06_c02",
+        "top500_cf4b9d938b0794f3_run06audit_c03",
+        "top500_cf4b9d938b0794f3_run06audit_c04",
+        "top500_cf4b9d938b0794f3_run06audit_c05"
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "label": "g01",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/1292-1213401.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "0254470b0aaf02012cd079d37618b6aa3522cce5cb04172b893e17c89f7a7b95",
+          "source_png_sha256": "34d4d6fed09c93fba76e06da141ce07c2067ccdd223cfd19ceb4f753c3027628",
+          "source_png_bytes": 1357004,
+          "dimensions": [
+            1117,
+            628
+          ],
+          "alt": "Территория Kempinski Hotel The Dome",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQbwV1uQ",
+          "canva_asset_dimensions": [
+            1117,
+            628
+          ],
+          "source_png_filename": "kempinski-dome-g01.png"
+        },
+        {
+          "role": "room",
+          "label": "r01",
+          "source_set": "extra",
+          "source_url": "https://kompastour.com/useruploads/hotels_room/room_c90dfd00c9.jpg",
+          "source_page": "https://kompastour.com/md/rus/country/turkey/belek/kempinski_hotel_the_dome/",
+          "source_page_sha256": "e727f50dbbc2c5dc9c4d7f53ce7bda6533e3b9fe868ea17a48b7d1b48ffafbee",
+          "publisher_category_caption": "Superior Room Land View, Kempinski The Dome 5*",
+          "raw_sha256": "2da91c0e04ab3da73ee0fd31521c22b26b79ad3d8e84460816f324916d7a21a4",
+          "source_png_sha256": "694f72176c80563809cd73cc74c3112938c18808e250987bf1d9e729903796aa",
+          "source_png_bytes": 866151,
+          "dimensions": [
+            1000,
+            731
+          ],
+          "alt": "Номер Superior Land View Kempinski Hotel The Dome",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQc1tnnc",
+          "canva_asset_dimensions": [
+            1000,
+            731
+          ],
+          "source_png_filename": "kempinski-dome-r01.png"
+        },
+        {
+          "role": "detail",
+          "label": "g02",
+          "source_set": "resolved",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/kempinski-hotel-the-dome-1213500.jpg",
+          "source_page": null,
+          "source_page_sha256": null,
+          "publisher_category_caption": null,
+          "raw_sha256": "d5197733e2a998db6078fd814485d7f9200d66ce7cab788ac29c8aeec66ee5f7",
+          "source_png_sha256": "1ec4d926d24e8258b507d0d61e0a72c44ecc29ffee893c88a1b8cc95d0d465f3",
+          "source_png_bytes": 1432780,
+          "dimensions": [
+            1144,
+            763
+          ],
+          "alt": "Ресторан Kempinski Hotel The Dome",
+          "parent_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "canva_asset_id": "MAHaQevzIjA",
+          "canva_asset_dimensions": [
+            1144,
+            763
+          ],
+          "source_png_filename": "kempinski-dome-g02.png"
+        }
+      ]
+    }
+  ]
+}

@@ -48,19 +48,19 @@ jobs:
           import hashlib,json,os,pathlib
           base=pathlib.Path('tools/direct_demand/operations')
           assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='da8b544b6afed654e1e9e3df6a6b24ff3ee13cb8e184bf6d24e9e9d48dc5ef6a'
-          approval=json.loads((base/'commercial-batch-20261107-25-approval.json').read_text())
+          approval=json.loads((base/'commercial-batch-20261107-26-approval.json').read_text())
           assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert approval['operation']=='commercial-hotel-batch-20261107-25-v1' and len(approval['hotel_ids'])==10
+          assert approval['operation']=='commercial-hotel-batch-20261107-26-v1' and len(approval['hotel_ids'])==10
           PY
-          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261107-25-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261107-25-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
+          python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261107-26-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261107-26-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
           php -l "$RUNNER_TEMP/channel-preflight.php"
       - name: Retain exact approved inputs before any channel write
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261107-25-inputs
+          name: commercial-batch-20261107-26-inputs
           path: |
-            tools/direct_demand/operations/commercial-batch-20261107-25-manifest.json
-            tools/direct_demand/operations/commercial-batch-20261107-25-approval.json
+            tools/direct_demand/operations/commercial-batch-20261107-26-manifest.json
+            tools/direct_demand/operations/commercial-batch-20261107-26-approval.json
           retention-days: 14
           if-no-files-found: error
       - name: Prepare existing server connection
@@ -116,7 +116,7 @@ jobs:
           d=json.loads(lines[-1])
           print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
           print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']} for p in d.get('posts',[])]},ensure_ascii=False))
-          assert d['operation']=='commercial-hotel-batch-20261107-25-v1' and d['mode']=='publish_approved_commercial_batch'
+          assert d['operation']=='commercial-hotel-batch-20261107-26-v1' and d['mode']=='publish_approved_commercial_batch'
           assert d['ok'] is True and len(d['posts'])==20
           assert d['post_write_attempts']<=20 and d['new_posts']<=20
           assert len({(p['platform'],p['logical_id']) for p in d['posts']})==20
@@ -127,7 +127,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: commercial-batch-20261107-25-publication
+          name: commercial-batch-20261107-26-publication
           path: ${{ runner.temp }}/channel-preflight.json
           retention-days: 14
           if-no-files-found: warn
