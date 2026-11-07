@@ -70,11 +70,21 @@ final class ModeledConversionDeliveryHealth
             $out['profile_tick_at']=self::at($profileAt);
             if($profileEnabled&&$now-($profileAt??$activation)>900)$flags[]='profile_tick_stale';
             if($profileEnabled&&$profileError!==null&&($profileAt===null||$profileError>$profileAt))$flags[]='profile_tick_errors';
-            $scope="project_key='anytour' AND counter_id='98615635' AND transport_target=? AND value_contract=?";
-            $exists=static fn(string $c):string=>'EXISTS(SELECT 1 FROM max_channel_conversion_outbox WHERE '.$scope.' AND '.$c.')';
+            $scope="o.project_key='anytour' AND o.counter_id='98615635' AND o.transport_target=? AND o.value_contract=?";
+            $exists=static fn(string $c):string=>'EXISTS(SELECT 1 FROM max_channel_conversion_outbox o WHERE '.$scope.' AND '.$c.')';
+            // A price-continuity void is retained as failed for idempotency, not rejected by the API.
+            // Require its matching audit and absence of every upload trace; incomplete evidence still alerts.
+            $failed="state='failed' AND NOT EXISTS(SELECT 1 FROM modeled_conversion_price_audit a"
+                ." WHERE a.outbox_id=o.id AND HEX(a.action)=HEX('voided')"
+                ." AND a.original_value_rub>0 AND a.applied_value_rub=0"
+                ." AND HEX(o.state)=HEX('failed') AND HEX(o.last_error)=HEX('price_loss_reconciled')"
+                ." AND o.value_rub=0 AND o.attempts=0 AND o.upload_id IS NULL"
+                ." AND COALESCE(HEX(o.upload_status),'')='' AND COALESCE(HEX(o.claim_token),'')=''"
+                ." AND o.claimed_at_unix IS NULL AND o.value_api_accepted_at_unix IS NULL"
+                ." AND o.value_processed_at_unix IS NULL AND o.value_receipt_basis IS NULL)";
             $sql='SELECT '.$exists("state='ready' AND value_ready_at_unix IS NOT NULL AND value_ready_at_unix<=? AND next_attempt_unix<=?").' AS ready_queue_stale,'
                 .$exists("state IN ('uploading','unknown') AND claimed_at_unix IS NOT NULL AND claimed_at_unix<=?").' AS upload_outcome_unknown,'
-                .$exists("state='failed'").' AS api_row_rejected,'
+                .$exists($failed).' AS api_row_rejected,'
                 .$exists('(value_ready_at_unix>? OR value_api_accepted_at_unix>? OR value_processed_at_unix>? OR claimed_at_unix>?)').' AS invalid_clock';
             $rows=$query($sql,[self::TARGET,self::CONTRACT,$now-600,$now-600,self::TARGET,self::CONTRACT,$now-900,
                 self::TARGET,self::CONTRACT,self::TARGET,self::CONTRACT,$now+60,$now+60,$now+60,$now+60]);
