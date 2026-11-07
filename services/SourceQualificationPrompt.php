@@ -25,7 +25,7 @@ final class SourceQualificationPrompt
         foreach ([(string)($snapshot['title'] ?? ''), $first] as $heading) {
             $name = trim(html_entity_decode(strip_tags($heading), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
             $name = preg_replace('/\\A[^\\p{L}\\p{N}]+/u', '', $name) ?? '';
-            $name = preg_replace('/\\AТуры в (.+) с перел[её]том\\z/u', '$1', $name) ?? '';
+            $name = preg_replace('/\\AТуры в (.+?)(?: с перел[её]том)?\\z/u', '$1', $name) ?? '';
             $name = preg_replace('/\\s*[1-5]\\s*[★⭐*](?:[^\\p{L}\\p{N}]*)\\z/u', '', $name) ?? '';
             $name = preg_replace('/\\s*[\\x{1F1E6}-\\x{1F1FF}]{2}\\s*\\z/u', '', $name) ?? '';
             $name = trim($name);
