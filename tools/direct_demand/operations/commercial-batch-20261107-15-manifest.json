@@ -1,0 +1,431 @@
+{
+  "operation": "commercial-hotel-batch-20261107-15-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue distinct complete MAX and Telegram hotel pairs to500+",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 245,
+  "selection_source": "Original ANEX TOP500 explicitly matched to retained hotel knowledge and current native catalogue",
+  "current_registry_clearance": {
+    "references": [
+      {
+        "read_only_clearance": "read27",
+        "run_id": 42375960417,
+        "job_id": 128413461226,
+        "read_at_utc": "2026-11-07T13:13:39Z",
+        "private_receipt_sha256": "c04345764643b1e3a5e5449f41a0a080e7246c3d031842973f77d9394be0a281",
+        "atomic_sender_preflight_still_required": true
+      }
+    ],
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "media_approval_basis": "Existing mass-release mandate and latest instruction давай дальше. Final selected covers shown in chat and reviewed before commit.",
+  "parent_exact_final_subset": {
+    "path": "/workspace/scratch/0778b7cef00b/hotel_mass_release/operations/batch15-exact-parent-subset-manifest.json",
+    "sha256": "6952540edb573452b28b6dd6ea91e4015fb6438da82917420984256f5d89df97",
+    "full_parent_manifest_sha256": "26bfed0bcc5470b676e70a46135246bdb3ad9c2c671e1774c4006d7aa7e6adb7",
+    "full_parent_caption_sha256": "2c1b5434fcde6bf1aabaf037cb54a11bbd6a8e22424052bb2f959b8e733a6cce",
+    "split_max10_preserved": true
+  },
+  "excluded_existing": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Preserve existing post; no new post for this hotel"
+    }
+  ],
+  "rows": [
+    {
+      "hotel_id": 57066,
+      "logical_id": "commercial-duyen-ha-57066-v1",
+      "aliases": [
+        "Duyen Ha Resort Cam Ranh"
+      ],
+      "text": "🏡 Duyen Ha Resort Cam Ranh 5★ · Камрань\n\nДля отдыха вдвоём в вилле с собственным бассейном.\n\n💧 Villa 1 Bedroom Pool 106 м² с личным бассейном.\n🛏 Кровать King для двух взрослых.\n🏖 Собственный пляж рядом с отелем.\n🎾 Теннисные корты и тренажёрный зал на территории.\n\nВ этой категории полуоткрытая ванная комната.\n\n✈️ Подберём виллу и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "215ef98e7a961f43859f3ac30792f27661b3655a367135de77bdfb16fff2aba5",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/57066.png",
+      "photo_sha256": "5e79a1cffc8e779f2dd262e816fba7205e05b92c05bf2b12625c45a1bc8c8eae",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/ge/rus/country/vietnam/nhatrang/duyen_ha_resort_camranh/",
+        "https://duyenharesorts.com/villa",
+        "https://duyenharesorts.com/let-us-entertain-you",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/duyen-ha-resort-cam-ranh-43084000.jpg",
+        "https://duyenharesorts.com/Data/Sites/1/News/105/duyen-ha-resort-villa-1-(3).jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/duyen-ha-resort-cam-ranh-43073510.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 16190,
+        "anytour_id": 2641,
+        "legacy_native_id": 57066,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPnYxkkU",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-VN-MASS-20261025T211157Z-C06",
+        "top500_b54e80351cbadbbf_run06_c04",
+        "HOTEL-VN-MASS-20261025T211157Z-C10"
+      ]
+    },
+    {
+      "hotel_id": 2015,
+      "logical_id": "commercial-diamond-cottage-2015-v1",
+      "aliases": [
+        "Diamond Cottage Resort & Spa"
+      ],
+      "text": "🌴 Diamond Cottage Resort & Spa 4★ · Пхукет\n\nДля тех, кто хочет чередовать пляжи Карон и Ката.\n\n🛏 Deluxe Pool View 40 м² с балконом и видом на бассейн.\n🏖 До Карона около 300 м, до Каты около 450 м.\n🍽 В Manow Bistro есть тайская и международная кухня, места в зале и на открытом воздухе.\n\nОтель расположен на склоне: перепады высоты важно учесть при выборе номера.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "b9a37f12f9d9870ac715d25618289b30d92106a325f6c8b42944625d6fea5e5d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/2015.png",
+      "photo_sha256": "8dbc5de14ccb4c4c8193cfc30e980f60bdc0f36d9926c5c16295b3f6fce6e234",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/diamond_cottage_resort_spa/",
+        "https://whitesandbluesea.com/diamondcottageresortandspa/accommodation/",
+        "https://whitesandbluesea.com/diamondcottageresortandspa/restaurant/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/diamond-cottage-resort-spa-2224609.jpg",
+        "https://whitesandbluesea.com/wp-content/uploads/2026/07/075A8460.webp",
+        "https://static.tourvisor.ru/hotel_pics/verybig/2/diamond-cottage-resort-spa-2224617.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 7928,
+        "anytour_id": 888,
+        "legacy_native_id": 2015,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 4,
+      "display_category": true,
+      "canva_design_id": "DAHaPsrvfEk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "country61_TH_20261025T193417Z_mass_c32",
+        "top500_b18b59a1db9c13ba_run07_c04",
+        "country61_TH_20261025T211312Z_mass_c16",
+        "top500_b18b59a1db9c13ba_run07_c06"
+      ]
+    },
+    {
+      "hotel_id": 21817,
+      "logical_id": "commercial-asteria-collection-21817-v1",
+      "aliases": [
+        "ASTERIA COLLECTION SIDE (EX.AMARA FAMILY RESORT)",
+        "Asteria Collection Side",
+        "AMARA FAMILY RESORT"
+      ],
+      "text": "🏖 Asteria Collection Side 5★ · Сиде\n\nДля пляжного отдыха с дневными занятиями и вечерней программой.\n\n🛏 Hotel Superior 32 м² с балконом.\n🌊 Собственный пляж.\n🏐 Пляжный волейбол.\n🎶 Дневные и вечерние развлекательные программы.\n\nРасположение корпуса и путь к пляжу уточним при подборе.\n\n✈️ Подберём номер с удобным расположением и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a83a00fcfdb7c69816b3df249381067bec15fc0138b5b06da010d8b0e8134941",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/21817.png",
+      "photo_sha256": "7c42214934346f46c0ef8baead4a42e9e8e89ded0410f630b7bb33470efbd863",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://collectionside.asteriahotels.com/en",
+        "https://www.tui.com/hotels/asteria-collection-side-1445540/hotelinformation/",
+        "https://www.almaholidays.net/holidays/holidays_turkey/view/hotel?hid=185230&oid=84817",
+        "https://collectionside.asteriahotels.com/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://content.anexapps.com/v1/asteria-collection-side/61f69f18a75a474aaac86ba7909adb27.webp",
+        "https://content.anexapps.com/v1/asteria-collection-side/8e366be4f83c4b43823b50d579baafc9.webp",
+        "https://content.anexapps.com/v1/asteria-collection-side/6e4b3dc6e7204b0ab10479df77b2f3ee.webp"
+      ],
+      "identity_binding": {
+        "anex_id": 40027,
+        "anytour_id": 1886,
+        "legacy_native_id": 21817,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPtXZa_M",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_e5928a512ab82c9b_enrich05_20261019_c01",
+        "top500_e5928a512ab82c9b_run10_c03",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c07",
+        "top500_e5928a512ab82c9b_c03"
+      ]
+    },
+    {
+      "hotel_id": 1026,
+      "logical_id": "commercial-baia-lara-1026-v1",
+      "aliases": [
+        "Baia Lara Hotel"
+      ],
+      "text": "🏖 Baia Lara Hotel 5★ · Лара\n\nДля семейного отдыха на песчаном побережье.\n\n🛏 Family 45 м²: две комнаты с дверью и одна ванная.\n🌊 Собственный песчаный пляж.\n🎨 Детский клуб для детей от 4 до 12 лет.\n🎶 Дискотека на территории.\n\nВ Family у одной комнаты обычный балкон, у второй французский. Работу детского клуба уточним на ваши даты.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "bb31f72ed9633bba6a0005bb6fede1a275c81155f0219a1d195dfa04ba966d97",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/1026.png",
+      "photo_sha256": "6b02dad2b64c84a88b795ee0eb1aefec9a426718ace4ac7c9008462fdff53ca3",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/uz/rus/country/turkey/antaliya/baia_lara_hotel/",
+        "https://media.joinup.travel/storage/hotel/30913/files_en/BAIA-LARA---ENG-FACT-SHEET-AND-2026-SUMMER-CONCEPT.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/baia-lara-hotel-59290120.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/baia-lara-hotel-59290136.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/baia-lara-hotel-59290128.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8880,
+        "anytour_id": 451,
+        "legacy_native_id": 1026,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPoOJJ7c",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c37",
+        "top500_a553f03ed5e16ad3_run05audit_c04",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c40",
+        "top500_a553f03ed5e16ad3_run05audit_c05"
+      ]
+    },
+    {
+      "hotel_id": 4091,
+      "logical_id": "commercial-vinpearl-nha-trang-4091-v1",
+      "aliases": [
+        "Vinpearl Resort Nha Trang"
+      ],
+      "text": "🏝 Vinpearl Resort Nha Trang 5★ · Хон Тре\n\nДля островного отдыха с пляжными днями и вечерней музыкой.\n\n🛏 Deluxe 32 м² с одной большой или двумя отдельными кроватями.\n🏖 Собственный песчаный пляж.\n🎶 Живая музыка.\n🚤 На остров добираются катером или канатной дорогой.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "47174a6e5ff65f2efbdd7305d30342b8f91f4f90ffc71743c6bdabf4ade09bfe",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/4091.png",
+      "photo_sha256": "8e23b6c5b8919e1b4e5cfaac89405c8dec06d8cd0417f4c74782547012915b04",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/vinpearl_resort_nha_trang/",
+        "https://vinpearl.com/en/vinpearl-resort-nha-trang",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-resort-spa-57067102.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-resort-spa-57067137.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/16/vinpearl-resort-spa-57067118.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 5555,
+        "anytour_id": 1254,
+        "legacy_native_id": 4091,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPomTync",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_c071dfa3913838e3_run08r_c01",
+        "top500_c071dfa3913838e3_run06_c04",
+        "top500_c071dfa3913838e3_run06_c05",
+        "country61_VN_20261021_73_efeb913e_c01",
+        "top500_c071dfa3913838e3_demand15_c01"
+      ]
+    },
+    {
+      "hotel_id": 1350,
+      "logical_id": "commercial-asteria-family-belek-1350-v1",
+      "aliases": [
+        "Asteria Family Resort Belek (Ex.Aquaworld Belek)",
+        "ASTERIA FAMILY RESORT BELEK (EX. AQUAWORLD BELEK)",
+        "Asteria Family Resort Belek",
+        "Aquaworld Belek"
+      ],
+      "text": "🌿 Asteria Family Resort Belek 5★ · Белек\n\nДля семьи, которой нужны отдельные пространства и занятия на территории.\n\n🛏 Nature Family 32 м² с двумя комнатами.\n🏖 Собственный пляж.\n🏋️ Тренажёрный зал.\n🏐 Волейбол, баскетбол и настольный теннис.\n\nУсловия пользования лежаками и зонтами уточним на ваши даты.\n\n✈️ Подберём корпус, номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d02a7477a861f163332bc703ee53c9df676343a2b6cde5d1dd4b5d374bd6d835",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/1350.png",
+      "photo_sha256": "2ca8ae54cd142803b75b605d5fe29c7253f538f3b2bd493a355df81f859fe1c7",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.tui.nl/asteria-family-resort-belek-509792793/",
+        "https://www.dertour.de/hotel/asteria-family-resort-belek-1116Qw",
+        "https://familyresortbelek.asteriahotels.com/en",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/magic-life-water-world-imperial-81903300.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/magic-life-water-world-imperial-81903312.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/magic-life-water-world-imperial-81903348.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 39872,
+        "anytour_id": 630,
+        "legacy_native_id": 1350,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPsEldx8",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_2a4fdeba5653ce48_c01",
+        "top500_2a4fdeba5653ce48_c02",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c13",
+        "top500_2a4fdeba5653ce48_mass32_c01"
+      ]
+    },
+    {
+      "hotel_id": 1140,
+      "logical_id": "commercial-crystal-de-luxe-1140-v1",
+      "aliases": [
+        "Crystal De Luxe Comfort Collection",
+        "CRYSTAL DE LUXE COMFORT COLLECTION (EX. CRYSTAL DE LUXE RESORT & SPA)",
+        "CRYSTAL DE LUXE RESORT & SPA"
+      ],
+      "text": "🌿 Crystal De Luxe Comfort Collection 5★ · Кемер\n\nДля семьи или компании, которой нужны простор и отдельные спальни.\n\n🛏 Sultan Suite 75 м²: две спальни, гостиная и две ванные.\n🏖 Собственный галечный пляж.\n🎨 Mini Club для детей от 4 до 12 лет.\n🧖 Хаммам и сауна на территории.\n\nМаршрут к пляжу уточним при подборе.\n\n✈️ Подберём категорию под состав гостей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d059f5ef62a7799452be29d7dfe18b4dd32683a6f4fef13469cd7cfd94d35e5a",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/1140.png",
+      "photo_sha256": "4438628a4f9b5151ee61fcd4919b57c654d2dc128a577ca34c2e6da1a13619df",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://b2ccdn.coraltravel.ee/content/CRYSTAL%20DE%20LUXE%20-%20FACT%20SHEET%202026%20-%20EN.pdf",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-de-luxe-resort-spa-69348400.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-de-luxe-resort-spa-69348401.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/crystal-de-luxe-resort-spa-69348422.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 15121,
+        "anytour_id": 511,
+        "legacy_native_id": 1140,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaProEgtk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c09",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c15",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c13",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c11"
+      ]
+    },
+    {
+      "hotel_id": 1203,
+      "logical_id": "commercial-goldcity-1203-v1",
+      "aliases": [
+        "Goldcity Hotel"
+      ],
+      "text": "🏡 Goldcity Hotel 5★ · Аланья\n\nДля тех, кому важны просторное размещение и своя кухонная зона.\n\n🛏 Family Room 102 м² с двумя спальнями, до 3 гостей.\n🛋 Отдельная гостиная для отдыха вместе.\n🍽 Кухонная зона в номере.\n🏖 Собственная пляжная территория.\n\nПляж примерно в 4 км и отделён дорогой. Трансфер уточним на ваши даты.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты и состав гостей.",
+      "text_sha256": "a845e3a7517ebda28203aa00e2a191ac4df7baa2cd87d3faf51d9e15ac0f8ce1",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/1203.png",
+      "photo_sha256": "634edb11a808dba4c72be4a0b12b520ae0f85fdb4cdf1ec9ffb1bc349eb3a61b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://goldcityhotel.com.tr/room/family-room/",
+        "https://goldcityhotel.com.tr/plaj/",
+        "https://www.corendon.nl/turkije/turkse-riviera/alanya/mahmutlar/gold-city-hotel",
+        "https://www.coral.ge/en/hotels/turkey/goldcity-hotel-alanya/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gold-city-hotel-82834800.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gold-city-hotel-82843815.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/gold-city-hotel-82843800.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 8585,
+        "anytour_id": 543,
+        "legacy_native_id": 1203,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPkIEZ-s",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_82e9250ed735bdb5_demand17_c01",
+        "top500_82e9250ed735bdb5_c02",
+        "top500_82e9250ed735bdb5_enrich20261020_c01",
+        "top500_82e9250ed735bdb5_mass31_c02"
+      ]
+    },
+    {
+      "hotel_id": 55828,
+      "logical_id": "commercial-selectum-luxury-55828-v1",
+      "aliases": [
+        "Selectum Luxury Resort Belek"
+      ],
+      "text": "🌴 Selectum Luxury Resort Belek 5★ · Белек\n\nДля семейного отдыха с отдельным детским пространством и занятиями по возрасту.\n\n🛏 Family от 37 до 43 м²: детская комната за раздвижной дверью.\n🏖 Собственный песчаный пляж на первой линии.\n🎨 Puppies World: программы для детей от 4 до 12 лет и подростков от 13 лет.\n🎶 Живая музыка и дискотека.\n\nВ низкий сезон пирс закрывается.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d6d7e0df52a8e98dbfb4a5de442744160e49d20c5f40054fdb4efa080277950e",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/e7e41dfc528f9000aa589760675d18b7cbe816fb/.github/traffic-publish/commercial-batch-20261107-15/55828.png",
+      "photo_sha256": "94bfb6a7b86d3a4c967904b4badc83d35284dd37517d59cc085852a03c552aa8",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://luxuryresortbelek.selectumhotels.com/en/kids",
+        "https://kompastour.com/ua/rus/country/turkey/belek/selectum_luxury_resort/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=1294&legacyHotelIds%5B%5D=975&legacyHotelIds%5B%5D=26530&legacyHotelIds%5B%5D=57066&legacyHotelIds%5B%5D=69116&legacyHotelIds%5B%5D=2015&legacyHotelIds%5B%5D=1588&legacyHotelIds%5B%5D=21817&legacyHotelIds%5B%5D=3415&legacyHotelIds%5B%5D=964&legacyHotelIds%5B%5D=1026&legacyHotelIds%5B%5D=4091&legacyHotelIds%5B%5D=1350&legacyHotelIds%5B%5D=1140&legacyHotelIds%5B%5D=1203&legacyHotelIds%5B%5D=55828&legacyHotelIds%5B%5D=108167&legacyHotelIds%5B%5D=63674&legacyHotelIds%5B%5D=47025&legacyHotelIds%5B%5D=32339",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-luxury-resort-belek-32707500.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-luxury-resort-belek-32710959.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/selectum-luxury-resort-belek-32710905.jpg"
+      ],
+      "identity_binding": {
+        "anex_id": 14970,
+        "anytour_id": 2586,
+        "legacy_native_id": 55828,
+        "source_file": "next-twenty-after-eighty-current-catalog.json",
+        "source_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+        "binding": "accepted explicit ANEX match and returned AnyTour native link; no array-position or numeric cross-catalog equality"
+      },
+      "category": 5,
+      "display_category": true,
+      "canva_design_id": "DAHaPp7iqHk",
+      "canva_committed": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "accepted_claim_ids": [
+        "top500_493c0efb55198cbb_c03",
+        "top500_493c0efb55198cbb_c04",
+        "top500_493c0efb55198cbb_enrich20261020_c01",
+        "top500_493c0efb55198cbb_c05"
+      ]
+    }
+  ]
+}

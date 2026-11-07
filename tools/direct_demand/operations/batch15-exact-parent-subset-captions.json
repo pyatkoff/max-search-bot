@@ -1,0 +1,341 @@
+{
+  "status": "READY_REVIEWED_CAPTIONS",
+  "hotels": [
+    {
+      "hotel_key": "top500_b54e80351cbadbbf",
+      "name": "Duyen Ha Resort Cam Ranh",
+      "native_hotel_id": 57066,
+      "anex_hotel_id": 16190,
+      "anytour_hotel_id": 2641,
+      "current_catalog_name": "DUYEN HA RESORT CAM RANH",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-VN-MASS-20261025T211157Z-C06",
+        "top500_b54e80351cbadbbf_run06_c04",
+        "HOTEL-VN-MASS-20261025T211157Z-C10"
+      ],
+      "source_urls": [
+        "https://kompastour.com/ge/rus/country/vietnam/nhatrang/duyen_ha_resort_camranh/",
+        "https://duyenharesorts.com/villa",
+        "https://duyenharesorts.com/let-us-entertain-you"
+      ],
+      "text": "🏡 Duyen Ha Resort Cam Ranh 5★ · Камрань\n\nДля отдыха вдвоём в вилле с собственным бассейном.\n\n💧 Villa 1 Bedroom Pool 106 м² с личным бассейном.\n🛏 Кровать King для двух взрослых.\n🏖 Собственный пляж рядом с отелем.\n🎾 Теннисные корты и тренажёрный зал на территории.\n\nВ этой категории полуоткрытая ванная комната.\n\n✈️ Подберём виллу и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "215ef98e7a961f43859f3ac30792f27661b3655a367135de77bdfb16fff2aba5",
+      "utf16_units": 385,
+      "notes": [
+        "Private pool applies only to Villa1BedroomPool106, not Garden. Semi-open bath retained. Fitness/tennis presence does not imply all included with BB. Historical shuttle schedules are not current promises; no Eastin rebrand inference.",
+        "Root reviewed exact retained claims and limitations; natural commercial copy preserves category, access and seasonal scope."
+      ],
+      "slug": "duyen-ha",
+      "label": "DUYEN HA RESORT CAM RANH 5★",
+      "source_ids": [
+        "HOTEL-VN-MASS-20261025T211157Z-S04",
+        "top500_b54e80351cbadbbf_run06_s01",
+        "HOTEL-VN-MASS-20261025T211157Z-S05"
+      ]
+    },
+    {
+      "hotel_key": "top500_b18b59a1db9c13ba",
+      "name": "Diamond Cottage Resort & Spa",
+      "native_hotel_id": 2015,
+      "anex_hotel_id": 7928,
+      "anytour_hotel_id": 888,
+      "current_catalog_name": "DIAMOND COTTAGE RESORT & SPA",
+      "category": 4,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "country61_TH_20261025T193417Z_mass_c32",
+        "top500_b18b59a1db9c13ba_run07_c04",
+        "country61_TH_20261025T211312Z_mass_c16",
+        "top500_b18b59a1db9c13ba_run07_c06"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/thailand/phuket/diamond_cottage_resort_spa/",
+        "https://whitesandbluesea.com/diamondcottageresortandspa/accommodation/",
+        "https://whitesandbluesea.com/diamondcottageresortandspa/restaurant/"
+      ],
+      "text": "🌴 Diamond Cottage Resort & Spa 4★ · Пхукет\n\nДля тех, кто хочет чередовать пляжи Карон и Ката.\n\n🛏 Deluxe Pool View 40 м² с балконом и видом на бассейн.\n🏖 До Карона около 300 м, до Каты около 450 м.\n🍽 В Manow Bistro есть тайская и международная кухня, места в зале и на открытом воздухе.\n\nОтель расположен на склоне: перепады высоты важно учесть при выборе номера.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "b9a37f12f9d9870ac715d25618289b30d92106a325f6c8b42944625d6fea5e5d",
+      "utf16_units": 442,
+      "notes": [
+        "DeluxePoolView40 is not ambiguous Superior30/40. No BountyBar reopening assertion or complete accessible route from lift presence. PoolAccess uses common pool; Cottage does not inherit private-pool icon. Capacity conflicts remain outside copy.",
+        "Root reviewed exact retained claims and limitations; natural commercial copy preserves category, access and seasonal scope."
+      ],
+      "slug": "diamond-cottage",
+      "label": "DIAMOND COTTAGE RESORT 4★",
+      "source_ids": [
+        "country61_TH_20261025T193417Z_mass_s11",
+        "top500_b18b59a1db9c13ba_run07_s01",
+        "country61_TH_20261025T211312Z_mass_s05"
+      ]
+    },
+    {
+      "hotel_key": "top500_e5928a512ab82c9b",
+      "name": "Asteria Collection Side (ex Amara Family & Labranda Excelsior)",
+      "native_hotel_id": 21817,
+      "anex_hotel_id": 40027,
+      "anytour_hotel_id": 1886,
+      "current_catalog_name": "ASTERIA COLLECTION SIDE (EX.AMARA FAMILY RESORT)",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_e5928a512ab82c9b_enrich05_20261019_c01",
+        "top500_e5928a512ab82c9b_run10_c03",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c07",
+        "top500_e5928a512ab82c9b_c03"
+      ],
+      "source_urls": [
+        "https://collectionside.asteriahotels.com/en",
+        "https://www.tui.com/hotels/asteria-collection-side-1445540/hotelinformation/",
+        "https://www.almaholidays.net/holidays/holidays_turkey/view/hotel?hid=185230&oid=84817",
+        "https://collectionside.asteriahotels.com/"
+      ],
+      "text": "🏖 Asteria Collection Side 5★ · Сиде\n\nДля пляжного отдыха с дневными занятиями и вечерней программой.\n\n🛏 Hotel Superior 32 м² с балконом.\n🌊 Собственный пляж.\n🏐 Пляжный волейбол.\n🎶 Дневные и вечерние развлекательные программы.\n\nРасположение корпуса и путь к пляжу уточним при подборе.\n\n✈️ Подберём номер с удобным расположением и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "a83a00fcfdb7c69816b3df249381067bec15fc0138b5b06da010d8b0e8134941",
+      "utf16_units": 373,
+      "notes": [
+        "Official beachfront conflicts with operator150–200m, so neither first line nor exact distance promised. HotelSuperior32 has ordinary balcony; Family34/Standard24 can have French balcony. Fitness18 applies only to gym. No unsupported merge with AmaraFamily/LabrandaExcelsior.",
+        "Beachfront versus150–200m remains unresolved; no first-line or exact route promise."
+      ],
+      "slug": "asteria-collection",
+      "label": "ASTERIA COLLECTION SIDE 5★",
+      "source_ids": [
+        "top500_e5928a512ab82c9b_enrich05_20261019_s01",
+        "top500_e5928a512ab82c9b_run10_s01",
+        "top500_e5928a512ab82c9b_mass39_s01",
+        "top500_e5928a512ab82c9b_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_a553f03ed5e16ad3",
+      "name": "Baia Lara Hotel",
+      "native_hotel_id": 1026,
+      "anex_hotel_id": 8880,
+      "anytour_hotel_id": 451,
+      "current_catalog_name": "BAIA LARA HOTEL",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c37",
+        "top500_a553f03ed5e16ad3_run05audit_c04",
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_c40",
+        "top500_a553f03ed5e16ad3_run05audit_c05"
+      ],
+      "source_urls": [
+        "https://kompastour.com/uz/rus/country/turkey/antaliya/baia_lara_hotel/",
+        "https://media.joinup.travel/storage/hotel/30913/files_en/BAIA-LARA---ENG-FACT-SHEET-AND-2026-SUMMER-CONCEPT.pdf"
+      ],
+      "text": "🏖 Baia Lara Hotel 5★ · Лара\n\nДля семейного отдыха на песчаном побережье.\n\n🛏 Family 45 м²: две комнаты с дверью и одна ванная.\n🌊 Собственный песчаный пляж.\n🎨 Детский клуб для детей от 4 до 12 лет.\n🎶 Дискотека на территории.\n\nВ Family у одной комнаты обычный балкон, у второй французский. Работу детского клуба уточним на ваши даты.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "bb31f72ed9633bba6a0005bb6fede1a275c81155f0219a1d195dfa04ba966d97",
+      "utf16_units": 414,
+      "notes": [
+        "Two rooms with door does not add unrecorded adult/child capacity. FamilyLakeHouse shared-pool access is from one room only, not applied to this45m² category. Indoor heating conflicting; no winter heat promise or unresolved FamilySuite mapping.",
+        "Root reviewed exact retained claims and limitations; natural commercial copy preserves category, access and seasonal scope."
+      ],
+      "slug": "baia-lara",
+      "label": "BAIA LARA HOTEL 5★",
+      "source_ids": [
+        "HOTEL-TR-MANUAL-20261025T214829Z-BASE08_s10",
+        "top500_a553f03ed5e16ad3_run05audit_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_c071dfa3913838e3",
+      "name": "Vinpearl Resort Nha Trang",
+      "native_hotel_id": 4091,
+      "anex_hotel_id": 5555,
+      "anytour_hotel_id": 1254,
+      "current_catalog_name": "VINPEARL RESORT NHA TRANG",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_c071dfa3913838e3_run08r_c01",
+        "top500_c071dfa3913838e3_run06_c04",
+        "top500_c071dfa3913838e3_run06_c05",
+        "country61_VN_20261021_73_efeb913e_c01",
+        "top500_c071dfa3913838e3_demand15_c01"
+      ],
+      "source_urls": [
+        "https://kompastour.com/kz/rus/country/vietnam/nhatrang/vinpearl_resort_nha_trang/",
+        "https://vinpearl.com/en/vinpearl-resort-nha-trang"
+      ],
+      "text": "🏝 Vinpearl Resort Nha Trang 5★ · Хон Тре\n\nДля островного отдыха с пляжными днями и вечерней музыкой.\n\n🛏 Deluxe 32 м² с одной большой или двумя отдельными кроватями.\n🏖 Собственный песчаный пляж.\n🎶 Живая музыка.\n🚤 На остров добираются катером или канатной дорогой.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "47174a6e5ff65f2efbdd7305d30342b8f91f4f90ffc71743c6bdabf4ade09bfe",
+      "utf16_units": 338,
+      "notes": [
+        "Exact VinpearlResortNhaTrang, not NhaTrangBay. Transport/buggy does not imply park admission, free city transfer or24h boat/cable service. No villa benefits generalized to Deluxe; dining cuisine conflict omitted.",
+        "No park admission promoted; free buggy source does not establish ticket inclusions."
+      ],
+      "slug": "vinpearl-nha-trang",
+      "label": "VINPEARL RESORT NHA TRANG 5★",
+      "source_ids": [
+        "top500_c071dfa3913838e3_run06_s01",
+        "country61_VN_20261021_73_efeb913e_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_2a4fdeba5653ce48",
+      "name": "Asteria Family Resort Belek (Ex.Aquaworld Belek)",
+      "native_hotel_id": 1350,
+      "anex_hotel_id": 39872,
+      "anytour_hotel_id": 630,
+      "current_catalog_name": "ASTERIA FAMILY RESORT BELEK (EX. AQUAWORLD BELEK)",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_2a4fdeba5653ce48_c01",
+        "top500_2a4fdeba5653ce48_c02",
+        "HOTEL-TR-CONTINUOUS-20261027-CE6AFF53F1F0-08_c13",
+        "top500_2a4fdeba5653ce48_mass32_c01"
+      ],
+      "source_urls": [
+        "https://www.tui.nl/asteria-family-resort-belek-509792793/",
+        "https://www.dertour.de/hotel/asteria-family-resort-belek-1116Qw",
+        "https://familyresortbelek.asteriahotels.com/en"
+      ],
+      "text": "🌿 Asteria Family Resort Belek 5★ · Белек\n\nДля семьи, которой нужны отдельные пространства и занятия на территории.\n\n🛏 Nature Family 32 м² с двумя комнатами.\n🏖 Собственный пляж.\n🏋️ Тренажёрный зал.\n🏐 Волейбол, баскетбол и настольный теннис.\n\nУсловия пользования лежаками и зонтами уточним на ваши даты.\n\n✈️ Подберём корпус, номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d02a7477a861f163332bc703ee53c9df676343a2b6cde5d1dd4b5d374bd6d835",
+      "utf16_units": 385,
+      "notes": [
+        "NatureFamily32 two rooms retained without invented connecting door/occupancy; not AquaSuite bedroom plus living. Beach-equipment free vs paid source conflict stays unresolved and is not universally promised either way. Sports list has2026 concept horizon; no future winter full programme/inclusion guarantee. Exact beach route unknown.",
+        "Unresolved free/paid operator descriptions are not treated as proven tariff variation."
+      ],
+      "slug": "asteria-family-belek",
+      "label": "ASTERIA FAMILY BELEK 5★",
+      "source_ids": [
+        "top500_2a4fdeba5653ce48_s01",
+        "top500_2a4fdeba5653ce48_run11_s01",
+        "top500_2a4fdeba5653ce48_mass32_s02"
+      ]
+    },
+    {
+      "hotel_key": "top500_5e5726ba7c711c91",
+      "name": "Crystal De Luxe Comfort Collection",
+      "native_hotel_id": 1140,
+      "anex_hotel_id": 15121,
+      "anytour_hotel_id": 511,
+      "current_catalog_name": "CRYSTAL DE LUXE COMFORT COLLECTION (EX. CRYSTAL DE LUXE RESORT & SPA)",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c09",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c15",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c13",
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_c11"
+      ],
+      "source_urls": [
+        "https://b2ccdn.coraltravel.ee/content/CRYSTAL%20DE%20LUXE%20-%20FACT%20SHEET%202026%20-%20EN.pdf"
+      ],
+      "text": "🌿 Crystal De Luxe Comfort Collection 5★ · Кемер\n\nДля семьи или компании, которой нужны простор и отдельные спальни.\n\n🛏 Sultan Suite 75 м²: две спальни, гостиная и две ванные.\n🏖 Собственный галечный пляж.\n🎨 Mini Club для детей от 4 до 12 лет.\n🧖 Хаммам и сауна на территории.\n\nМаршрут к пляжу уточним при подборе.\n\n✈️ Подберём категорию под состав гостей и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d059f5ef62a7799452be29d7dfe18b4dd32683a6f4fef13469cd7cfd94d35e5a",
+      "utf16_units": 400,
+      "notes": [
+        "SultanSuite75 distinct from Family40, whose one bedroom has no window; no Family room offered in copy. Beach distances70/75/180/200m conflict and exact road-crossing route not established, so neither first-line nor exact distance claim. No indoor heating or free SPA-treatment guarantee.",
+        "No invented exact distance or road-crossing method."
+      ],
+      "slug": "crystal-de-luxe",
+      "label": "CRYSTAL DE LUXE 5★",
+      "source_ids": [
+        "HOTEL-TR-MANUAL-20261025T202223Z-BASE09_s03"
+      ]
+    },
+    {
+      "hotel_key": "top500_82e9250ed735bdb5",
+      "name": "Goldcity Hotel",
+      "native_hotel_id": 1203,
+      "anex_hotel_id": 8585,
+      "anytour_hotel_id": 543,
+      "current_catalog_name": "GOLDCITY HOTEL",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_82e9250ed735bdb5_demand17_c01",
+        "top500_82e9250ed735bdb5_c02",
+        "top500_82e9250ed735bdb5_enrich20261020_c01",
+        "top500_82e9250ed735bdb5_mass31_c02"
+      ],
+      "source_urls": [
+        "https://goldcityhotel.com.tr/room/family-room/",
+        "https://goldcityhotel.com.tr/plaj/",
+        "https://www.corendon.nl/turkije/turkse-riviera/alanya/mahmutlar/gold-city-hotel",
+        "https://www.coral.ge/en/hotels/turkey/goldcity-hotel-alanya/"
+      ],
+      "text": "🏡 Goldcity Hotel 5★ · Аланья\n\nДля тех, кому важны просторное размещение и своя кухонная зона.\n\n🛏 Family Room 102 м² с двумя спальнями, до 3 гостей.\n🛋 Отдельная гостиная для отдыха вместе.\n🍽 Кухонная зона в номере.\n🏖 Собственная пляжная территория.\n\nПляж примерно в 4 км и отделён дорогой. Трансфер уточним на ваши даты.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты и состав гостей.",
+      "text_sha256": "a845e3a7517ebda28203aa00e2a191ac4df7baa2cd87d3faf51d9e15ac0f8ce1",
+      "utf16_units": 411,
+      "notes": [
+        "FamilyRoom102 max3Guests is not inferred as4 from beds. Beach4km retained without future shuttle frequency promise. PremiumAnnex is remote with limited-seat shuttle; its route is not generalized to all buildings. Sports/SPA2026concept ended31Oct, so winter programme/free privileges omitted.",
+        "Published max3 retained despite four visible bed places;road and4km not omitted."
+      ],
+      "slug": "goldcity",
+      "label": "GOLDCITY HOTEL 5★",
+      "source_ids": [
+        "top500_82e9250ed735bdb5_demand17_s01",
+        "top500_82e9250ed735bdb5_s01",
+        "top500_82e9250ed735bdb5_enrich20261020_s01",
+        "top500_82e9250ed735bdb5_mass31_s01"
+      ]
+    },
+    {
+      "hotel_key": "top500_493c0efb55198cbb",
+      "name": "Selectum Luxury Resort Belek",
+      "native_hotel_id": 55828,
+      "anex_hotel_id": 14970,
+      "anytour_hotel_id": 2586,
+      "current_catalog_name": "SELECTUM LUXURY RESORT BELEK",
+      "category": 5,
+      "display_category": true,
+      "current_catalog_sha256": "405d9c27e9b4a23c1b98235a298b9e10cba8da2517b2f4f65768f94210aaf7ec",
+      "editorial_status": "PARENT_REVIEWED_COMMERCIAL_COPY_AND_COVER_FINAL",
+      "specific_hold": null,
+      "source_claim_ids": [
+        "top500_493c0efb55198cbb_c03",
+        "top500_493c0efb55198cbb_c04",
+        "top500_493c0efb55198cbb_enrich20261020_c01",
+        "top500_493c0efb55198cbb_c05"
+      ],
+      "source_urls": [
+        "https://luxuryresortbelek.selectumhotels.com/en/kids",
+        "https://kompastour.com/ua/rus/country/turkey/belek/selectum_luxury_resort/"
+      ],
+      "text": "🌴 Selectum Luxury Resort Belek 5★ · Белек\n\nДля семейного отдыха с отдельным детским пространством и занятиями по возрасту.\n\n🛏 Family от 37 до 43 м²: детская комната за раздвижной дверью.\n🏖 Собственный песчаный пляж на первой линии.\n🎨 Puppies World: программы для детей от 4 до 12 лет и подростков от 13 лет.\n🎶 Живая музыка и дискотека.\n\nВ низкий сезон пирс закрывается.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "d6d7e0df52a8e98dbfb4a5de442744160e49d20c5f40054fdb4efa080277950e",
+      "utf16_units": 445,
+      "notes": [
+        "Family37–43 retains sliding door; unverified child ages/occupancy not inferred from clubs. Beach50m is distance,250m is length, not merged. Summer shows not guaranteed in winter; lunapark age/height/season unknown omitted. No all-restaurants/free cabana promise.",
+        "Root reviewed exact retained claims and limitations; natural commercial copy preserves category, access and seasonal scope."
+      ],
+      "slug": "selectum-luxury",
+      "label": "SELECTUM LUXURY BELEK 5★",
+      "source_ids": [
+        "top500_493c0efb55198cbb_s01",
+        "top500_493c0efb55198cbb_enrich20261020_s01"
+      ]
+    }
+  ]
+}
