@@ -1,6 +1,6 @@
 {
   "operation": "commercial-hotel-batch-20261107-16-v1",
-  "state": "SENDER_CONFIRMED_PENDING_GROUP_ROUTE_FEED",
+  "state": "COMPLETE",
   "native_hotel_ids": [
     108167,
     63674,
@@ -62,5 +62,116 @@
       "post_url": "https://max.ru/channel_anytour/AaG2esUuLcc",
       "verified": true
     }
-  ]
+  ],
+  "routes": {
+    "logical_hotels": 257,
+    "new_routes_verified": 12,
+    "previous245_rows_identical": true,
+    "run_id": 42383972029,
+    "commit": "b785dcb47b110ff06619227ba9d1724bf91fb940",
+    "result_artifact_id": 13578922347
+  },
+  "feeds": {
+    "run_id": 42384104620,
+    "job_id": 128437744304,
+    "commit": "2cc734f51d215fbfa3225d1d987b1ada120c8cbe",
+    "result_artifact_id": 13579240730,
+    "receipt_sha256": "696775501f455d52055715b9485ac9d58ea9de7282abd07f887d7538e4f6d731",
+    "rows": [
+      257,
+      257,
+      514
+    ],
+    "public_http": [
+      200,
+      200,
+      200
+    ],
+    "exact_published_bytes": true,
+    "previous245_offer_blocks_identical": true
+  },
+  "feed_binding_read_run": 42383798277,
+  "feed_binding_read_artifact": 13578837078,
+  "full_pairs_after_group": 257,
+  "goal_remaining_to_500": 243,
+  "own_active_workflow": 0,
+  "completed_at_utc": "2026-11-07T14:59:09Z",
+  "pending_groups": {
+    "matches80to100": {
+      "published": 19,
+      "remaining_native_ids": [],
+      "held_native_id": 32339,
+      "first_clearance_read": 27,
+      "clearance_not_replayed": true,
+      "final_root_manifest_applied": true,
+      "asteria_public_name": "Asteria Collection Side",
+      "asteria_labranda_alias_excluded": true
+    },
+    "matches100to120": {
+      "drafts": 18,
+      "first_clearance_read": 30,
+      "first_clearance_run": 42379881031,
+      "clearance_not_replayed": true,
+      "held_native_ids": [
+        74036,
+        213
+      ],
+      "sign_official_media_delivered": true,
+      "dobedan_room_root_accepted": true,
+      "royal_garden_photo_root_accepted_exact_area_not_claimed": true,
+      "artnest_horizontal_pool_media_delivered": true,
+      "final_release_manifest_required": true
+    },
+    "matches120to140": {
+      "retained_claims": 263,
+      "typed_identities": 20,
+      "current_catalog_sha256": "b27656521614f83d3d3d9ce9b8c8e8350a8ea586f7c777d6bc121313dcf9c4f4",
+      "root_reviewed_drafts": 19,
+      "raw_png": 153,
+      "contact_sheets": 17,
+      "held_native_ids": [
+        107940
+      ],
+      "official_supplement_native_ids": [
+        28325,
+        76588
+      ],
+      "first_registry_clearance_read": 32,
+      "first_registry_clearance_run": 42383798277,
+      "clear_native_ids": [
+        2219,
+        1507,
+        65020,
+        83189,
+        95159,
+        55721,
+        16750,
+        713,
+        341,
+        340,
+        1439,
+        28325,
+        1096,
+        1486,
+        37527,
+        48863,
+        15889,
+        27642,
+        76588
+      ],
+      "room_media_pending_native_ids": [
+        55721,
+        16750
+      ],
+      "final_release_manifest_required": true
+    },
+    "matches140to160": {
+      "state": "RETAINED_AND_TYPED_CATALOG_SAVED_DRAFTS_MEDIA_PENDING",
+      "retained_claims": 254,
+      "typed_identities": 20,
+      "current_catalog_sha256": "945889f91fd9b9d2afd18d90b88a6daa514ebca0826dfe44cbd21a78250a8b29",
+      "first_clearance_pending": true,
+      "final_release_manifest_required": true
+    }
+  }
 }
