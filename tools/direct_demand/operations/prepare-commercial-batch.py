@@ -15,7 +15,7 @@ READY='REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED'
 HEX64=re.compile(r'[a-f0-9]{64}\Z')
 OPERATION=re.compile(r'commercial-hotel-batch-([0-9]{8})-([1-9][0-9]*)-v[1-9][0-9]*')
 # Already-approved operations retain their exact input and validation policy.
-CAPTION_FORMAT_CUTOVER=(20261107,23)
+CAPTION_FORMAT_CUTOVER=(20261107,24)
 CAPTION_TITLE=re.compile(r'✈️ Туры в \S(?:.*\S)? с перелётом')
 CAPTION_LOCATION=re.compile(r'📍 \S(?:.*\S)?, [^\W\d_]+(?:[ -][^\W\d_]+)*\.')
 CAPTION_DASH=re.compile(r'[-\u2010-\u2015\u2212]')

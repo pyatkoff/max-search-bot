@@ -28,7 +28,7 @@ manifest=json.loads(legacy_raw)
 base=copy.deepcopy(manifest)
 sample=base['rows'][0]
 base['rows']=[sample]
-base['operation']='commercial-hotel-batch-20261107-23-v1'
+base['operation']='commercial-hotel-batch-20261107-24-v1'
 approval={**legacy_approval,'operation':base['operation'],'hotel_ids':[sample['hotel_id']]}
 def prepare(text):
     sample['text']=text

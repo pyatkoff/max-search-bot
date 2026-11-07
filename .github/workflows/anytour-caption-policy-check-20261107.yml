@@ -2,7 +2,10 @@ name: Verify AnyTour commercial caption format offline
 on:
   push:
     branches: [audit/anytour-commercial-heading-validation-20261107]
-    paths: [.github/workflows/anytour-caption-policy-check-20261107.yml]
+    paths:
+      - .github/workflows/anytour-caption-policy-check-20261107.yml
+      - tools/direct_demand/operations/prepare-commercial-batch.py
+      - tools/direct_demand/operations/verify-caption-policy-20261107.py
 permissions:
   contents: read
 jobs:
