@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 21:44">
+<yml_catalog date="2026-11-07 21:54">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -4441,6 +4441,87 @@
         <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>telegram</custom_label_0>
         <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="tg_817">
+        <url>https://t.me/any_toour/508</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/817.png</picture>
+        <name>Путевки в Thavorn Beach Village Resort &amp; Spa</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="tg_2559">
+        <url>https://t.me/any_toour/509</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/2559.png</picture>
+        <name>Путевки в Fujairah Rotana Resort &amp; Spa</name>
+        <description>Тур с перелётом. Фуджейра. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фуджейра</custom_label_1>
+      </offer>
+      <offer id="tg_73055">
+        <url>https://t.me/any_toour/510</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/73055.png</picture>
+        <name>Путевки в Address Fujairah Beach Resort</name>
+        <description>Тур с перелётом. Фуджейра. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фуджейра</custom_label_1>
+      </offer>
+      <offer id="tg_43060">
+        <url>https://t.me/any_toour/511</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/43060.png</picture>
+        <name>Путевки в Golden Tulip Media Hotel</name>
+        <description>Тур с перелётом. Дубай. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Дубай</custom_label_1>
+      </offer>
+      <offer id="tg_2536">
+        <url>https://t.me/any_toour/512</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/2536.png</picture>
+        <name>Путевки в Coral Beach Resort Sharjah</name>
+        <description>Тур с перелётом. Шарджа. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарджа</custom_label_1>
+      </offer>
+      <offer id="tg_50869">
+        <url>https://t.me/any_toour/513</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/50869.png</picture>
+        <name>Путевки в Riu Sri Lanka</name>
+        <description>Тур с перелётом. Ахунгалла. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Ахунгалла</custom_label_1>
+      </offer>
+      <offer id="tg_51238">
+        <url>https://t.me/any_toour/514</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/51238.png</picture>
+        <name>Путевки в Radisson Blu Galle</name>
+        <description>Тур с перелётом. Галле. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Галле</custom_label_1>
+      </offer>
+      <offer id="tg_1702">
+        <url>https://t.me/any_toour/515</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/1702.png</picture>
+        <name>Путевки в Rixos Premium Bodrum</name>
+        <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Бодрум</custom_label_1>
+      </offer>
+      <offer id="tg_5389">
+        <url>https://t.me/any_toour/516</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/5389.png</picture>
+        <name>Путевки в Coral Sands</name>
+        <description>Тур с перелётом. Хиккадува. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хиккадува</custom_label_1>
       </offer>
     </offers>
   </shop>

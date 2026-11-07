@@ -1,0 +1,68 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-update45",
+  "state": "PREPARED_CONFIRMED_MAX502_INSTALL",
+  "new_hotel_ids": [
+    817,
+    2559,
+    73055,
+    43060,
+    2536,
+    50869,
+    51238,
+    1702,
+    5389
+  ],
+  "previous_rows": [
+    493,
+    493,
+    986
+  ],
+  "target_rows": [
+    502,
+    502,
+    1004
+  ],
+  "previous493_offer_blocks_identical": true,
+  "max_route_install_run": 42417997926,
+  "max_route_install_commit": "e02b6420b54439b7549802e003a2ffd17306e6cc",
+  "new9_binding_run": 42417837690,
+  "new9_binding_artifact": 13591768358,
+  "approved_destination_labels": {
+    "817": "Пхукет",
+    "2559": "Фуджейра",
+    "73055": "Фуджейра",
+    "43060": "Дубай",
+    "2536": "Шарджа",
+    "50869": "Ахунгалла",
+    "51238": "Галле",
+    "1702": "Бодрум",
+    "5389": "Хиккадува"
+  },
+  "destination_basis": "Exact accepted location from published caption: old first line or current second line; no new property facts",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 322720,
+      "sha256": "bb2d498a0c7a95e013d4f6451ae24cacaaee8afee7dd3c11450440fa7512384d",
+      "rows": 502,
+      "expected_previous_sha256": "e0878382ac18b0cd5a04b2e8d39ade1e0bd62324011584356626eb98a6de1791"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 403603,
+      "sha256": "bb2ae7fdeaad03630d38d648ef25997ff7c02710d0b929c891bc07271c281cfd",
+      "rows": 502,
+      "expected_previous_sha256": "c99223560eb0a09474441a70cc7715cc8f475fe68bf3a334f95fe25282d42ef6"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 725950,
+      "sha256": "868f3d95e311e6d3cb61d925437df2b132a85aae4089e88e26c3fe1643d87c1c",
+      "rows": 1004,
+      "expected_previous_sha256": "54a43efb31d96d9ac55dcac432acde10b47f78f9cea299c6faec2dc8cdd632f9"
+    }
+  ],
+  "provider_calls": 0,
+  "db_writes": 0,
+  "message_sends": 0
+}

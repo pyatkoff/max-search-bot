@@ -1,0 +1,131 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read47",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 817,
+      "name": "Thavorn Beach Village Resort & Spa",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/508",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_X-cRf0",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/817.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2559,
+      "name": "Fujairah Rotana Resort & Spa",
+      "country_id": 9,
+      "region_id": 47,
+      "destination": "Фуджейра",
+      "telegram_post_url": "https://t.me/any_toour/509",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_YiLGwU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/2559.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 73055,
+      "name": "Address Fujairah Beach Resort",
+      "country_id": 9,
+      "region_id": 47,
+      "destination": "Фуджейра",
+      "telegram_post_url": "https://t.me/any_toour/510",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_ZHsUtQ",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/73055.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 43060,
+      "name": "Golden Tulip Media Hotel",
+      "country_id": 9,
+      "region_id": 45,
+      "destination": "Дубай",
+      "telegram_post_url": "https://t.me/any_toour/511",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_Zs4Nek",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/43060.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 2536,
+      "name": "Coral Beach Resort Sharjah",
+      "country_id": 9,
+      "region_id": 48,
+      "destination": "Шарджа",
+      "telegram_post_url": "https://t.me/any_toour/512",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_aRGZWk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/2536.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 50869,
+      "name": "Riu Sri Lanka",
+      "country_id": 12,
+      "region_id": 594,
+      "destination": "Хиккадува",
+      "telegram_post_url": "https://t.me/any_toour/513",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_az3K-k",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/50869.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 51238,
+      "name": "Radisson Blu Galle",
+      "country_id": 12,
+      "region_id": 590,
+      "destination": "Галле",
+      "telegram_post_url": "https://t.me/any_toour/514",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_bXhU2Q",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/51238.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1702,
+      "name": "Rixos Premium Bodrum",
+      "country_id": 4,
+      "region_id": 24,
+      "destination": "Бодрум",
+      "telegram_post_url": "https://t.me/any_toour/515",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_b_Ecj8",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/1702.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 5389,
+      "name": "Coral Sands",
+      "country_id": 12,
+      "region_id": 594,
+      "destination": "Хиккадува",
+      "telegram_post_url": "https://t.me/any_toour/516",
+      "max_post_url": "https://max.ru/channel_anytour/AaG3_ci5XaI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/6f43e835a389ea25c29faeee19430ff473b1af99/.github/traffic-publish/commercial-batch-20261107-43/5389.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 9,
+  "candidate_clearance": [],
+  "candidate_count": 0,
+  "read_at_utc": "2026-11-07T21:52:14+00:00",
+  "scope_hotels": 9,
+  "feed_rows": 9,
+  "deferred_count": 0,
+  "installed_sha": "840287a325da73df049a0dce8ee0b1f51aaacc10",
+  "original_evidence": {
+    "run_id": 42417837690,
+    "job_id": 128539660310,
+    "commit": "4532c7d2468adc4db25b438c8baeee2542be76f8",
+    "artifact_id": 13591768358,
+    "zip_sha256": "bb88213bc2ab23c166678d8896ce54da63a8cd63531670d8ef2c3f2b40a28604",
+    "input_artifact_id": 13591338929,
+    "input_zip_sha256": "232a4cc26253dd2271c0eb7bd49b4742654797c3abf617281570cb7bff8adfcd",
+    "private_receipt_sha256": "d71a771e76ecd84512ecc8cc915c4fe8f22cbcc71e0ac5decd040a8b3f0031e6",
+    "status": "CONSUMED_BOUNDED_BINDING_READ_SUCCESS",
+    "candidate_queries": 0
+  }
+}
