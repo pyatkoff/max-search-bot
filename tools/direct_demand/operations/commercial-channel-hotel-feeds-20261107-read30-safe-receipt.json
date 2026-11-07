@@ -1,0 +1,236 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261107-read30",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 41149,
+      "name": "Vinpearl Resort & Spa Nha Trang Bay",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/244",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2UgefHN8",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/41149.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 54592,
+      "name": "Granada Luxury Belek",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/245",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2UhCtBYs",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/54592.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 57217,
+      "name": "Wyndham Grand Phu Quoc",
+      "country_id": 16,
+      "region_id": 104,
+      "destination": "Фукуок",
+      "telegram_post_url": "https://t.me/any_toour/246",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2UhmGEHA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/57217.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 4432,
+      "name": "Barcelo Coconut Island",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/247",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2UiL7KvI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/4432.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 82606,
+      "name": "Lonicera World Hotel",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/248",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2UiwBBps",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82606.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1337,
+      "name": "Limak Atlantis De Luxe",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/249",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2UjUkPMg",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1337.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 380,
+      "name": "Rehana Sharm Resort",
+      "country_id": 1,
+      "region_id": 6,
+      "destination": "Шарм-эль-Шейх",
+      "telegram_post_url": "https://t.me/any_toour/250",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2Uj4pQ0w",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/380.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1257,
+      "name": "Bellis Deluxe Hotel",
+      "country_id": 4,
+      "region_id": 21,
+      "destination": "Белек",
+      "telegram_post_url": "https://t.me/any_toour/251",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2UkeBZHY",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1257.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 82567,
+      "name": "Phuket Emerald Beach Resort",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/252",
+      "max_post_url": "https://max.ru/channel_anytour/AaG2UlCIP10",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82567.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 9,
+  "candidate_count": 18,
+  "read_at_utc": "2026-11-07T14:05:11+00:00",
+  "scope_hotels": 9,
+  "feed_rows": 9,
+  "deferred_count": 0,
+  "installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083",
+  "candidate_clearance": [
+    {
+      "native_hotel_id": 1353,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1067,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 66496,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 14135,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 981,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 90236,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 47470,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 27647,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1512,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 75041,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1258,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 128508,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 45516,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 1429,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 15905,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 50624,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 58473,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    },
+    {
+      "native_hotel_id": 4060,
+      "clear": true,
+      "limit_reached": false,
+      "matches": []
+    }
+  ],
+  "evidence": {
+    "run_id": 42379881031,
+    "job_id": 128425055414,
+    "artifact_id": 13577181948,
+    "artifact_zip_sha256": "2e0fd0219d06c3e33113b9939f64908998c12a2b9beb325325d3405bf2f67a78",
+    "commit": "7488d2ada745452e266d4d478da36a4c7cd61bc6",
+    "private_receipt_sha256": "f9500ae391ab7d12102a9bf4a5584081c9328bc58ae40db6acab8c96e3a96bd4"
+  }
+}

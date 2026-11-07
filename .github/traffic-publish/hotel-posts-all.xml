@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 13:51">
+<yml_catalog date="2026-11-07 14:07">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -4124,6 +4124,168 @@
         <description>Тур с перелётом. Муйне. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Муйне</custom_label_1>
+      </offer>
+      <offer id="tg_41149">
+        <url>https://t.me/any_toour/244</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/41149.png</picture>
+        <name>Путевки в Vinpearl Resort &amp; Spa Nha Trang Bay</name>
+        <description>Тур с перелётом. Хон Тре. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Хон Тре</custom_label_1>
+      </offer>
+      <offer id="tg_54592">
+        <url>https://t.me/any_toour/245</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/54592.png</picture>
+        <name>Путевки в Granada Luxury Belek</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_57217">
+        <url>https://t.me/any_toour/246</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/57217.png</picture>
+        <name>Путевки в Wyndham Grand Phu Quoc</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="tg_4432">
+        <url>https://t.me/any_toour/247</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/4432.png</picture>
+        <name>Путевки в Barcelo Coconut Island</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="tg_82606">
+        <url>https://t.me/any_toour/248</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82606.png</picture>
+        <name>Путевки в Lonicera World Hotel</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_1337">
+        <url>https://t.me/any_toour/249</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1337.png</picture>
+        <name>Путевки в Limak Atlantis De Luxe</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_380">
+        <url>https://t.me/any_toour/250</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/380.png</picture>
+        <name>Путевки в Rehana Sharm Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="tg_1257">
+        <url>https://t.me/any_toour/251</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1257.png</picture>
+        <name>Путевки в Bellis Deluxe Hotel</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="tg_82567">
+        <url>https://t.me/any_toour/252</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82567.png</picture>
+        <name>Путевки в Phuket Emerald Beach Resort</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="max_41149">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfZTIxMDAzODY4MGNkZGE4NWQ2NDMwYTY2NGQzZTQxMjUiLCJvZmZlcl9pZCI6Im1heF80MTE0OSJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/41149.png</picture>
+        <name>Туры в Vinpearl Resort &amp; Spa Nha Trang Bay</name>
+        <description>Тур с перелётом. Хон Тре. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Хон Тре</custom_label_1>
+      </offer>
+      <offer id="max_54592">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTZkNzJmMmFlNGJiZDEyODcyNzEwMWMzZmM4NTkwYTQiLCJvZmZlcl9pZCI6Im1heF81NDU5MiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/54592.png</picture>
+        <name>Туры в Granada Luxury Belek</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="max_57217">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNTE2ZDZhMDRhMjZjMDNlMWEyNWNiOWIxODg4ZmY3MWQiLCJvZmZlcl9pZCI6Im1heF81NzIxNyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/57217.png</picture>
+        <name>Туры в Wyndham Grand Phu Quoc</name>
+        <description>Тур с перелётом. Фукуок. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Фукуок</custom_label_1>
+      </offer>
+      <offer id="max_4432">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOGJkMTUxY2Y0MGIwMjMxZDljNzVjYjc2NzgxNjYyN2EiLCJvZmZlcl9pZCI6Im1heF80NDMyIn0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/4432.png</picture>
+        <name>Туры в Barcelo Coconut Island</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="max_82606">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDhhMTI2ZjdjNjc0ZDJhOTRiZWE2Mjk0MDQyMDcxYTYiLCJvZmZlcl9pZCI6Im1heF84MjYwNiJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82606.png</picture>
+        <name>Туры в Lonicera World Hotel</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="max_1337">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOTBhNzUzNjJmNjI5MDM0Y2U5MTY0N2YwYTEyNTZlYjUiLCJvZmZlcl9pZCI6Im1heF8xMzM3In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1337.png</picture>
+        <name>Туры в Limak Atlantis De Luxe</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="max_380">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfOGMwNTgxOTQ3ZjkyMzYzNzJhMWFkZmU4ZjNmNzZiMmEiLCJvZmZlcl9pZCI6Im1heF8zODAifQ</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/380.png</picture>
+        <name>Туры в Rehana Sharm Resort</name>
+        <description>Тур с перелётом. Шарм эль Шейх. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Шарм эль Шейх</custom_label_1>
+      </offer>
+      <offer id="max_1257">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMzQyNThkMWIyZGQ0NGJjOThmMTI2ZWIxNmQ4YmVlY2YiLCJvZmZlcl9pZCI6Im1heF8xMjU3In0</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/1257.png</picture>
+        <name>Туры в Bellis Deluxe Hotel</name>
+        <description>Тур с перелётом. Белек. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Белек</custom_label_1>
+      </offer>
+      <offer id="max_82567">
+        <url>https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMjVmMjU0OWY2MzIxNGE4OTQzZWVjMGIwZTk0YjY5NDkiLCJvZmZlcl9pZCI6Im1heF84MjU2NyJ9</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/02a76c623390941795cb51362ad1476f003b0384/.github/traffic-publish/commercial-batch-20261107-13/82567.png</picture>
+        <name>Туры в Phuket Emerald Beach Resort</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
       </offer>
     </offers>
   </shop>
