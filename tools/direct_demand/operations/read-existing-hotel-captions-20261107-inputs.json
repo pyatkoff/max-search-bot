@@ -1,0 +1,1867 @@
+{
+  "operation": "commercial-read-existing-hotel-captions-20261107-v1",
+  "rows": [
+    {
+      "hotel_id": 241,
+      "max_url": "https://max.ru/channel_anytour/AaGa3GMLV1E",
+      "max_publication_id": 115,
+      "telegram_url": "https://t.me/any_toour/21",
+      "telegram_message_id": 21
+    },
+    {
+      "hotel_id": 240,
+      "max_url": "https://max.ru/channel_anytour/AaGa3G0Ba0I",
+      "max_publication_id": 116,
+      "telegram_url": "https://t.me/any_toour/22",
+      "telegram_message_id": 22
+    },
+    {
+      "hotel_id": 268,
+      "max_url": "https://max.ru/channel_anytour/AaGa3Hb2aNA",
+      "max_publication_id": 117,
+      "telegram_url": "https://t.me/any_toour/23",
+      "telegram_message_id": 23
+    },
+    {
+      "hotel_id": 12111,
+      "max_url": "https://max.ru/channel_anytour/AaGa-JTILig",
+      "max_publication_id": 121,
+      "telegram_url": "https://t.me/any_toour/24",
+      "telegram_message_id": 24
+    },
+    {
+      "hotel_id": 1981,
+      "max_url": "https://max.ru/channel_anytour/AaGa-J63PEo",
+      "max_publication_id": 122,
+      "telegram_url": "https://t.me/any_toour/25",
+      "telegram_message_id": 25
+    },
+    {
+      "hotel_id": 28666,
+      "max_url": "https://max.ru/channel_anytour/AaGa-Ki6FG0",
+      "max_publication_id": 123,
+      "telegram_url": "https://t.me/any_toour/26",
+      "telegram_message_id": 26
+    },
+    {
+      "hotel_id": 46672,
+      "max_url": "https://max.ru/channel_anytour/AaGbPGTLPAI",
+      "max_publication_id": 127,
+      "telegram_url": "https://t.me/any_toour/27",
+      "telegram_message_id": 27
+    },
+    {
+      "hotel_id": 109900,
+      "max_url": "https://max.ru/channel_anytour/AaGbPG9QBVI",
+      "max_publication_id": 128,
+      "telegram_url": "https://t.me/any_toour/28",
+      "telegram_message_id": 28
+    },
+    {
+      "hotel_id": 111129,
+      "max_url": "https://max.ru/channel_anytour/AaGbPHjzPRg",
+      "max_publication_id": 129,
+      "telegram_url": "https://t.me/any_toour/29",
+      "telegram_message_id": 29
+    },
+    {
+      "hotel_id": 111045,
+      "max_url": "https://max.ru/channel_anytour/AaGbWS7jGsU",
+      "max_publication_id": 133,
+      "telegram_url": "https://t.me/any_toour/30",
+      "telegram_message_id": 30
+    },
+    {
+      "hotel_id": 1077,
+      "max_url": "https://max.ru/channel_anytour/AaGbWTjVf-Y",
+      "max_publication_id": 134,
+      "telegram_url": "https://t.me/any_toour/31",
+      "telegram_message_id": 31
+    },
+    {
+      "hotel_id": 1146,
+      "max_url": "https://max.ru/channel_anytour/AaGbWUKzSyY",
+      "max_publication_id": 135,
+      "telegram_url": "https://t.me/any_toour/32",
+      "telegram_message_id": 32
+    },
+    {
+      "hotel_id": 9374,
+      "max_url": "https://max.ru/channel_anytour/AaGbng1eNs0",
+      "max_publication_id": 139,
+      "telegram_url": "https://t.me/any_toour/33",
+      "telegram_message_id": 33
+    },
+    {
+      "hotel_id": 498,
+      "max_url": "https://max.ru/channel_anytour/AaGbnheCU9w",
+      "max_publication_id": 140,
+      "telegram_url": "https://t.me/any_toour/34",
+      "telegram_message_id": 34
+    },
+    {
+      "hotel_id": 157359,
+      "max_url": "https://max.ru/channel_anytour/AaGbniGlG9w",
+      "max_publication_id": 141,
+      "telegram_url": "https://t.me/any_toour/35",
+      "telegram_message_id": 35
+    },
+    {
+      "hotel_id": 482,
+      "max_url": "https://max.ru/channel_anytour/AaGb6MRjHEM",
+      "max_publication_id": 145,
+      "telegram_url": "https://t.me/any_toour/36",
+      "telegram_message_id": 36
+    },
+    {
+      "hotel_id": 476,
+      "max_url": "https://max.ru/channel_anytour/AaGb6M5sOTU",
+      "max_publication_id": 146,
+      "telegram_url": "https://t.me/any_toour/37",
+      "telegram_message_id": 37
+    },
+    {
+      "hotel_id": 81173,
+      "max_url": "https://max.ru/channel_anytour/AaGb6NgvJvM",
+      "max_publication_id": 147,
+      "telegram_url": "https://t.me/any_toour/38",
+      "telegram_message_id": 38
+    },
+    {
+      "hotel_id": 9373,
+      "max_url": "https://max.ru/channel_anytour/AaGcCWXVRrY",
+      "max_publication_id": 156,
+      "telegram_url": "https://t.me/any_toour/39",
+      "telegram_message_id": 39
+    },
+    {
+      "hotel_id": 32577,
+      "max_url": "https://max.ru/channel_anytour/AaGcCXAYYwg",
+      "max_publication_id": 157,
+      "telegram_url": "https://t.me/any_toour/40",
+      "telegram_message_id": 40
+    },
+    {
+      "hotel_id": 4191,
+      "max_url": "https://max.ru/channel_anytour/AaGcCXoMBpM",
+      "max_publication_id": 158,
+      "telegram_url": "https://t.me/any_toour/41",
+      "telegram_message_id": 41
+    },
+    {
+      "hotel_id": 416,
+      "max_url": "https://max.ru/channel_anytour/AaGck-F7KJ4",
+      "max_publication_id": 168,
+      "telegram_url": "https://t.me/any_toour/42",
+      "telegram_message_id": 42
+    },
+    {
+      "hotel_id": 12112,
+      "max_url": "https://max.ru/channel_anytour/AaGck-ufUS0",
+      "max_publication_id": 169,
+      "telegram_url": "https://t.me/any_toour/43",
+      "telegram_message_id": 43
+    },
+    {
+      "hotel_id": 478,
+      "max_url": "https://max.ru/channel_anytour/AaGck_VyAZM",
+      "max_publication_id": 170,
+      "telegram_url": "https://t.me/any_toour/44",
+      "telegram_message_id": 44
+    },
+    {
+      "hotel_id": 77914,
+      "max_url": "https://max.ru/channel_anytour/AaGc6ZyuFlA",
+      "max_publication_id": 181,
+      "telegram_url": "https://t.me/any_toour/45",
+      "telegram_message_id": 45
+    },
+    {
+      "hotel_id": 237,
+      "max_url": "https://max.ru/channel_anytour/AaGc6aZ6D-s",
+      "max_publication_id": 182,
+      "telegram_url": "https://t.me/any_toour/46",
+      "telegram_message_id": 46
+    },
+    {
+      "hotel_id": 32575,
+      "max_url": "https://max.ru/channel_anytour/AaGc6bA5buw",
+      "max_publication_id": 183,
+      "telegram_url": "https://t.me/any_toour/47",
+      "telegram_message_id": 47
+    },
+    {
+      "hotel_id": 112914,
+      "max_url": "https://max.ru/channel_anytour/AaGc6bnrGPE",
+      "max_publication_id": 184,
+      "telegram_url": "https://t.me/any_toour/48",
+      "telegram_message_id": 48
+    },
+    {
+      "hotel_id": 64895,
+      "max_url": "https://max.ru/channel_anytour/AaGc6cPhfeQ",
+      "max_publication_id": 185,
+      "telegram_url": "https://t.me/any_toour/49",
+      "telegram_message_id": 49
+    },
+    {
+      "hotel_id": 262,
+      "max_url": "https://max.ru/channel_anytour/AaGc6c3UfW4",
+      "max_publication_id": 186,
+      "telegram_url": "https://t.me/any_toour/50",
+      "telegram_message_id": 50
+    },
+    {
+      "hotel_id": 12117,
+      "max_url": "https://max.ru/channel_anytour/AaGc6ddcado",
+      "max_publication_id": 187,
+      "telegram_url": "https://t.me/any_toour/51",
+      "telegram_message_id": 51
+    },
+    {
+      "hotel_id": 12119,
+      "max_url": "https://max.ru/channel_anytour/AaGc6eEdZ9U",
+      "max_publication_id": 188,
+      "telegram_url": "https://t.me/any_toour/52",
+      "telegram_message_id": 52
+    },
+    {
+      "hotel_id": 26044,
+      "max_url": "https://max.ru/channel_anytour/AaGc6erBIjc",
+      "max_publication_id": 189,
+      "telegram_url": "https://t.me/any_toour/53",
+      "telegram_message_id": 53
+    },
+    {
+      "hotel_id": 66150,
+      "max_url": "https://max.ru/channel_anytour/AaGc6fSGB3c",
+      "max_publication_id": 190,
+      "telegram_url": "https://t.me/any_toour/54",
+      "telegram_message_id": 54
+    },
+    {
+      "hotel_id": 232,
+      "max_url": "https://max.ru/channel_anytour/AaGdPOgkYvU",
+      "max_publication_id": 201,
+      "telegram_url": "https://t.me/any_toour/55",
+      "telegram_message_id": 55
+    },
+    {
+      "hotel_id": 233,
+      "max_url": "https://max.ru/channel_anytour/AaGdPPHyfR0",
+      "max_publication_id": 202,
+      "telegram_url": "https://t.me/any_toour/56",
+      "telegram_message_id": 56
+    },
+    {
+      "hotel_id": 13872,
+      "max_url": "https://max.ru/channel_anytour/AaGdPPvxQRQ",
+      "max_publication_id": 203,
+      "telegram_url": "https://t.me/any_toour/57",
+      "telegram_message_id": 57
+    },
+    {
+      "hotel_id": 13873,
+      "max_url": "https://max.ru/channel_anytour/AaGdPQXeYgY",
+      "max_publication_id": 204,
+      "telegram_url": "https://t.me/any_toour/58",
+      "telegram_message_id": 58
+    },
+    {
+      "hotel_id": 280,
+      "max_url": "https://max.ru/channel_anytour/AaGdPQ-jO1I",
+      "max_publication_id": 205,
+      "telegram_url": "https://t.me/any_toour/59",
+      "telegram_message_id": 59
+    },
+    {
+      "hotel_id": 456,
+      "max_url": "https://max.ru/channel_anytour/AaGdPRlhGzs",
+      "max_publication_id": 206,
+      "telegram_url": "https://t.me/any_toour/60",
+      "telegram_message_id": 60
+    },
+    {
+      "hotel_id": 265,
+      "max_url": "https://max.ru/channel_anytour/AaGdPSMVMqc",
+      "max_publication_id": 207,
+      "telegram_url": "https://t.me/any_toour/61",
+      "telegram_message_id": 61
+    },
+    {
+      "hotel_id": 454,
+      "max_url": "https://max.ru/channel_anytour/AaGdPS0HPCo",
+      "max_publication_id": 208,
+      "telegram_url": "https://t.me/any_toour/62",
+      "telegram_message_id": 62
+    },
+    {
+      "hotel_id": 21475,
+      "max_url": "https://max.ru/channel_anytour/AaGdPTaZQts",
+      "max_publication_id": 209,
+      "telegram_url": "https://t.me/any_toour/63",
+      "telegram_message_id": 63
+    },
+    {
+      "hotel_id": 1963,
+      "max_url": "https://max.ru/channel_anytour/AaGdPUBAMI8",
+      "max_publication_id": 210,
+      "telegram_url": "https://t.me/any_toour/64",
+      "telegram_message_id": 64
+    },
+    {
+      "hotel_id": 358,
+      "max_url": "https://max.ru/channel_anytour/AaGd4bFlag4",
+      "max_publication_id": 215,
+      "telegram_url": "https://t.me/any_toour/65",
+      "telegram_message_id": 65
+    },
+    {
+      "hotel_id": 37668,
+      "max_url": "https://max.ru/channel_anytour/AaGd4buFOdw",
+      "max_publication_id": 216,
+      "telegram_url": "https://t.me/any_toour/66",
+      "telegram_message_id": 66
+    },
+    {
+      "hotel_id": 174,
+      "max_url": "https://max.ru/channel_anytour/AaGd4cUkZFY",
+      "max_publication_id": 217,
+      "telegram_url": "https://t.me/any_toour/67",
+      "telegram_message_id": 67
+    },
+    {
+      "hotel_id": 55574,
+      "max_url": "https://max.ru/channel_anytour/AaGd4c7dGwc",
+      "max_publication_id": 218,
+      "telegram_url": "https://t.me/any_toour/68",
+      "telegram_message_id": 68
+    },
+    {
+      "hotel_id": 383,
+      "max_url": "https://max.ru/channel_anytour/AaGd_x9bEBA",
+      "max_publication_id": 221,
+      "telegram_url": "https://t.me/any_toour/69",
+      "telegram_message_id": 69
+    },
+    {
+      "hotel_id": 108090,
+      "max_url": "https://max.ru/channel_anytour/AaGd_yj7K2Y",
+      "max_publication_id": 222,
+      "telegram_url": "https://t.me/any_toour/70",
+      "telegram_message_id": 70
+    },
+    {
+      "hotel_id": 150,
+      "max_url": "https://max.ru/channel_anytour/AaGeHm38ACE",
+      "max_publication_id": 233,
+      "telegram_url": "https://t.me/any_toour/71",
+      "telegram_message_id": 71
+    },
+    {
+      "hotel_id": 172,
+      "max_url": "https://max.ru/channel_anytour/AaGeHnfcJ9s",
+      "max_publication_id": 234,
+      "telegram_url": "https://t.me/any_toour/72",
+      "telegram_message_id": 72
+    },
+    {
+      "hotel_id": 275,
+      "max_url": "https://max.ru/channel_anytour/AaGeHoHUT8w",
+      "max_publication_id": 235,
+      "telegram_url": "https://t.me/any_toour/73",
+      "telegram_message_id": 73
+    },
+    {
+      "hotel_id": 173,
+      "max_url": "https://max.ru/channel_anytour/AaGeHovGaCQ",
+      "max_publication_id": 236,
+      "telegram_url": "https://t.me/any_toour/74",
+      "telegram_message_id": 74
+    },
+    {
+      "hotel_id": 110,
+      "max_url": "https://max.ru/channel_anytour/AaGeHpWbLtA",
+      "max_publication_id": 237,
+      "telegram_url": "https://t.me/any_toour/75",
+      "telegram_message_id": 75
+    },
+    {
+      "hotel_id": 57028,
+      "max_url": "https://max.ru/channel_anytour/AaGeHp92NlE",
+      "max_publication_id": 238,
+      "telegram_url": "https://t.me/any_toour/76",
+      "telegram_message_id": 76
+    },
+    {
+      "hotel_id": 125,
+      "max_url": "https://max.ru/channel_anytour/AaGeHqk9YVc",
+      "max_publication_id": 239,
+      "telegram_url": "https://t.me/any_toour/77",
+      "telegram_message_id": 77
+    },
+    {
+      "hotel_id": 132,
+      "max_url": "https://max.ru/channel_anytour/AaGeHrVUSL0",
+      "max_publication_id": 240,
+      "telegram_url": "https://t.me/any_toour/78",
+      "telegram_message_id": 78
+    },
+    {
+      "hotel_id": 178,
+      "max_url": "https://max.ru/channel_anytour/AaGeHr8-UCw",
+      "max_publication_id": 241,
+      "telegram_url": "https://t.me/any_toour/79",
+      "telegram_message_id": 79
+    },
+    {
+      "hotel_id": 371,
+      "max_url": "https://max.ru/channel_anytour/AaGeHsjldCE",
+      "max_publication_id": 242,
+      "telegram_url": "https://t.me/any_toour/80",
+      "telegram_message_id": 80
+    },
+    {
+      "hotel_id": 389,
+      "max_url": "https://max.ru/channel_anytour/AaGePCsUN8U",
+      "max_publication_id": 253,
+      "telegram_url": "https://t.me/any_toour/81",
+      "telegram_message_id": 81
+    },
+    {
+      "hotel_id": 109,
+      "max_url": "https://max.ru/channel_anytour/AaGePDTZCUk",
+      "max_publication_id": 254,
+      "telegram_url": "https://t.me/any_toour/82",
+      "telegram_message_id": 82
+    },
+    {
+      "hotel_id": 293,
+      "max_url": "https://max.ru/channel_anytour/AaGePD60KYU",
+      "max_publication_id": 255,
+      "telegram_url": "https://t.me/any_toour/83",
+      "telegram_message_id": 83
+    },
+    {
+      "hotel_id": 107965,
+      "max_url": "https://max.ru/channel_anytour/AaGePEiAVwQ",
+      "max_publication_id": 256,
+      "telegram_url": "https://t.me/any_toour/84",
+      "telegram_message_id": 84
+    },
+    {
+      "hotel_id": 393,
+      "max_url": "https://max.ru/channel_anytour/AaGePFLGSr0",
+      "max_publication_id": 257,
+      "telegram_url": "https://t.me/any_toour/85",
+      "telegram_message_id": 85
+    },
+    {
+      "hotel_id": 78898,
+      "max_url": "https://max.ru/channel_anytour/AaGePFyOTCg",
+      "max_publication_id": 258,
+      "telegram_url": "https://t.me/any_toour/86",
+      "telegram_message_id": 86
+    },
+    {
+      "hotel_id": 83105,
+      "max_url": "https://max.ru/channel_anytour/AaGePGaqRfA",
+      "max_publication_id": 259,
+      "telegram_url": "https://t.me/any_toour/87",
+      "telegram_message_id": 87
+    },
+    {
+      "hotel_id": 69155,
+      "max_url": "https://max.ru/channel_anytour/AaGePHAgePE",
+      "max_publication_id": 260,
+      "telegram_url": "https://t.me/any_toour/88",
+      "telegram_message_id": 88
+    },
+    {
+      "hotel_id": 69409,
+      "max_url": "https://max.ru/channel_anytour/AaGePHnuApk",
+      "max_publication_id": 261,
+      "telegram_url": "https://t.me/any_toour/89",
+      "telegram_message_id": 89
+    },
+    {
+      "hotel_id": 263,
+      "max_url": "https://max.ru/channel_anytour/AaGePIPBMYk",
+      "max_publication_id": 262,
+      "telegram_url": "https://t.me/any_toour/90",
+      "telegram_message_id": 90
+    },
+    {
+      "hotel_id": 43204,
+      "max_url": "https://max.ru/channel_anytour/AaGeYQXUTJs",
+      "max_publication_id": 267,
+      "telegram_url": "https://t.me/any_toour/91",
+      "telegram_message_id": 91
+    },
+    {
+      "hotel_id": 13870,
+      "max_url": "https://max.ru/channel_anytour/AaGeYQ9sC-o",
+      "max_publication_id": 268,
+      "telegram_url": "https://t.me/any_toour/92",
+      "telegram_message_id": 92
+    },
+    {
+      "hotel_id": 1983,
+      "max_url": "https://max.ru/channel_anytour/AaGeYRkIc6E",
+      "max_publication_id": 269,
+      "telegram_url": "https://t.me/any_toour/93",
+      "telegram_message_id": 93
+    },
+    {
+      "hotel_id": 111801,
+      "max_url": "https://max.ru/channel_anytour/AaGeYSK7AH0",
+      "max_publication_id": 270,
+      "telegram_url": "https://t.me/any_toour/94",
+      "telegram_message_id": 94
+    },
+    {
+      "hotel_id": 287,
+      "max_url": "https://max.ru/channel_anytour/AaGeijVYf9w",
+      "max_publication_id": 279,
+      "telegram_url": "https://t.me/any_toour/95",
+      "telegram_message_id": 95
+    },
+    {
+      "hotel_id": 435,
+      "max_url": "https://max.ru/channel_anytour/AaGeij7eOTo",
+      "max_publication_id": 280,
+      "telegram_url": "https://t.me/any_toour/96",
+      "telegram_message_id": 96
+    },
+    {
+      "hotel_id": 109149,
+      "max_url": "https://max.ru/channel_anytour/AaGeikjzceE",
+      "max_publication_id": 281,
+      "telegram_url": "https://t.me/any_toour/97",
+      "telegram_message_id": 97
+    },
+    {
+      "hotel_id": 79059,
+      "max_url": "https://max.ru/channel_anytour/AaGeilKiHDY",
+      "max_publication_id": 282,
+      "telegram_url": "https://t.me/any_toour/98",
+      "telegram_message_id": 98
+    },
+    {
+      "hotel_id": 56092,
+      "max_url": "https://max.ru/channel_anytour/AaGeilyCad0",
+      "max_publication_id": 283,
+      "telegram_url": "https://t.me/any_toour/99",
+      "telegram_message_id": 99
+    },
+    {
+      "hotel_id": 115918,
+      "max_url": "https://max.ru/channel_anytour/AaGeimaBEmc",
+      "max_publication_id": 284,
+      "telegram_url": "https://t.me/any_toour/100",
+      "telegram_message_id": 100
+    },
+    {
+      "hotel_id": 269,
+      "max_url": "https://max.ru/channel_anytour/AaGeinA7LaI",
+      "max_publication_id": 285,
+      "telegram_url": "https://t.me/any_toour/101",
+      "telegram_message_id": 101
+    },
+    {
+      "hotel_id": 80964,
+      "max_url": "https://max.ru/channel_anytour/AaGeinoRLSQ",
+      "max_publication_id": 286,
+      "telegram_url": "https://t.me/any_toour/102",
+      "telegram_message_id": 102
+    },
+    {
+      "hotel_id": 264,
+      "max_url": "https://max.ru/channel_anytour/AaGgW95NR9s",
+      "max_publication_id": 295,
+      "telegram_url": "https://t.me/any_toour/103",
+      "telegram_message_id": 103
+    },
+    {
+      "hotel_id": 73342,
+      "max_url": "https://max.ru/channel_anytour/AaGgW-hKRzw",
+      "max_publication_id": 296,
+      "telegram_url": "https://t.me/any_toour/104",
+      "telegram_message_id": 104
+    },
+    {
+      "hotel_id": 278,
+      "max_url": "https://max.ru/channel_anytour/AaGgW_MKZBk",
+      "max_publication_id": 297,
+      "telegram_url": "https://t.me/any_toour/105",
+      "telegram_message_id": 105
+    },
+    {
+      "hotel_id": 246,
+      "max_url": "https://max.ru/channel_anytour/AaGgW_zLBIc",
+      "max_publication_id": 298,
+      "telegram_url": "https://t.me/any_toour/106",
+      "telegram_message_id": 106
+    },
+    {
+      "hotel_id": 245,
+      "max_url": "https://max.ru/channel_anytour/AaGgXAZ5Tak",
+      "max_publication_id": 299,
+      "telegram_url": "https://t.me/any_toour/107",
+      "telegram_message_id": 107
+    },
+    {
+      "hotel_id": 13869,
+      "max_url": "https://max.ru/channel_anytour/AaGgXBBBOgA",
+      "max_publication_id": 300,
+      "telegram_url": "https://t.me/any_toour/108",
+      "telegram_message_id": 108
+    },
+    {
+      "hotel_id": 267,
+      "max_url": "https://max.ru/channel_anytour/AaGgXBr6OgI",
+      "max_publication_id": 301,
+      "telegram_url": "https://t.me/any_toour/109",
+      "telegram_message_id": 109
+    },
+    {
+      "hotel_id": 12114,
+      "max_url": "https://max.ru/channel_anytour/AaGgXCTyDEg",
+      "max_publication_id": 302,
+      "telegram_url": "https://t.me/any_toour/110",
+      "telegram_message_id": 110
+    },
+    {
+      "hotel_id": 384,
+      "max_url": "https://max.ru/channel_anytour/AaGgkHXqIM0",
+      "max_publication_id": 306,
+      "telegram_url": "https://t.me/any_toour/111",
+      "telegram_message_id": 111
+    },
+    {
+      "hotel_id": 281,
+      "max_url": "https://max.ru/channel_anytour/AaGgkH_KGNw",
+      "max_publication_id": 307,
+      "telegram_url": "https://t.me/any_toour/112",
+      "telegram_message_id": 112
+    },
+    {
+      "hotel_id": 75725,
+      "max_url": "https://max.ru/channel_anytour/AaGgkInWb2E",
+      "max_publication_id": 308,
+      "telegram_url": "https://t.me/any_toour/113",
+      "telegram_message_id": 113
+    },
+    {
+      "hotel_id": 249,
+      "max_url": "https://max.ru/channel_anytour/AaGg3NUaRFA",
+      "max_publication_id": 315,
+      "telegram_url": "https://t.me/any_toour/114",
+      "telegram_message_id": 114
+    },
+    {
+      "hotel_id": 315,
+      "max_url": "https://max.ru/channel_anytour/AaGg3N8BQdQ",
+      "max_publication_id": 316,
+      "telegram_url": "https://t.me/any_toour/115",
+      "telegram_message_id": 115
+    },
+    {
+      "hotel_id": 465,
+      "max_url": "https://max.ru/channel_anytour/AaGg3OiTOJ4",
+      "max_publication_id": 317,
+      "telegram_url": "https://t.me/any_toour/116",
+      "telegram_message_id": 116
+    },
+    {
+      "hotel_id": 272,
+      "max_url": "https://max.ru/channel_anytour/AaGg3PJKAB8",
+      "max_publication_id": 318,
+      "telegram_url": "https://t.me/any_toour/117",
+      "telegram_message_id": 117
+    },
+    {
+      "hotel_id": 260,
+      "max_url": "https://max.ru/channel_anytour/AaGg3Pv9dF8",
+      "max_publication_id": 319,
+      "telegram_url": "https://t.me/any_toour/118",
+      "telegram_message_id": 118
+    },
+    {
+      "hotel_id": 273,
+      "max_url": "https://max.ru/channel_anytour/AaGg3QWNRxc",
+      "max_publication_id": 320,
+      "telegram_url": "https://t.me/any_toour/119",
+      "telegram_message_id": 119
+    },
+    {
+      "hotel_id": 469,
+      "max_url": "https://max.ru/channel_anytour/AaF5iOO-R8w",
+      "max_publication_id": 69,
+      "telegram_url": "https://t.me/any_toour/12",
+      "telegram_message_id": 12
+    },
+    {
+      "hotel_id": 381,
+      "max_url": "https://max.ru/channel_anytour/AaF5iPYSJTA",
+      "max_publication_id": 71,
+      "telegram_url": "https://t.me/any_toour/13",
+      "telegram_message_id": 13
+    },
+    {
+      "hotel_id": 408,
+      "max_url": "https://max.ru/channel_anytour/AaGhJ7JODvU",
+      "max_publication_id": 324,
+      "telegram_url": "https://t.me/any_toour/120",
+      "telegram_message_id": 120
+    },
+    {
+      "hotel_id": 441,
+      "max_url": "https://max.ru/channel_anytour/AaGhSGS2Sy4",
+      "max_publication_id": 326,
+      "telegram_url": "https://t.me/any_toour/121",
+      "telegram_message_id": 121
+    },
+    {
+      "hotel_id": 21477,
+      "max_url": "https://max.ru/channel_anytour/AaGheEQaaTs",
+      "max_publication_id": 329,
+      "telegram_url": "https://t.me/any_toour/122",
+      "telegram_message_id": 122
+    },
+    {
+      "hotel_id": 60589,
+      "max_url": "https://max.ru/channel_anytour/AaGheE3NWPA",
+      "max_publication_id": 330,
+      "telegram_url": "https://t.me/any_toour/123",
+      "telegram_message_id": 123
+    },
+    {
+      "hotel_id": 328,
+      "max_url": "https://max.ru/channel_anytour/AaGh9vEJfqU",
+      "max_publication_id": 334,
+      "telegram_url": "https://t.me/any_toour/124",
+      "telegram_message_id": 124
+    },
+    {
+      "hotel_id": 282,
+      "max_url": "https://max.ru/channel_anytour/AaGiIcOYXpU",
+      "max_publication_id": 339,
+      "telegram_url": "https://t.me/any_toour/125",
+      "telegram_message_id": 125
+    },
+    {
+      "hotel_id": 235,
+      "max_url": "https://max.ru/channel_anytour/AaGiIc2caEQ",
+      "max_publication_id": 340,
+      "telegram_url": "https://t.me/any_toour/126",
+      "telegram_message_id": 126
+    },
+    {
+      "hotel_id": 382,
+      "max_url": "https://max.ru/channel_anytour/AaGiIddbVWk",
+      "max_publication_id": 341,
+      "telegram_url": "https://t.me/any_toour/127",
+      "telegram_message_id": 127
+    },
+    {
+      "hotel_id": 250,
+      "max_url": "https://max.ru/channel_anytour/AaGiIeE0Lts",
+      "max_publication_id": 342,
+      "telegram_url": "https://t.me/any_toour/128",
+      "telegram_message_id": 128
+    },
+    {
+      "hotel_id": 464,
+      "max_url": "https://max.ru/channel_anytour/AaGiW44QeSI",
+      "max_publication_id": 345,
+      "telegram_url": "https://t.me/any_toour/129",
+      "telegram_message_id": 129
+    },
+    {
+      "hotel_id": 103021,
+      "max_url": "https://max.ru/channel_anytour/AaGiW5fUUg0",
+      "max_publication_id": 346,
+      "telegram_url": "https://t.me/any_toour/130",
+      "telegram_message_id": 130
+    },
+    {
+      "hotel_id": 129,
+      "max_url": "https://max.ru/channel_anytour/AaGihSzeSiA",
+      "max_publication_id": 348,
+      "telegram_url": "https://t.me/any_toour/131",
+      "telegram_message_id": 131
+    },
+    {
+      "hotel_id": 165,
+      "max_url": "https://max.ru/channel_anytour/AaGishvPGJA",
+      "max_publication_id": 353,
+      "telegram_url": "https://t.me/any_toour/132",
+      "telegram_message_id": 132
+    },
+    {
+      "hotel_id": 12116,
+      "max_url": "https://max.ru/channel_anytour/AaGisiXvJds",
+      "max_publication_id": 354,
+      "telegram_url": "https://t.me/any_toour/133",
+      "telegram_message_id": 133
+    },
+    {
+      "hotel_id": 111,
+      "max_url": "https://max.ru/channel_anytour/AaGisi-ve3Q",
+      "max_publication_id": 355,
+      "telegram_url": "https://t.me/any_toour/134",
+      "telegram_message_id": 134
+    },
+    {
+      "hotel_id": 163,
+      "max_url": "https://max.ru/channel_anytour/AaGisjnCN7c",
+      "max_publication_id": 356,
+      "telegram_url": "https://t.me/any_toour/135",
+      "telegram_message_id": 135
+    },
+    {
+      "hotel_id": 310,
+      "max_url": "https://max.ru/channel_anytour/AaF5iNrwGdY",
+      "max_publication_id": 68,
+      "telegram_url": "https://t.me/any_toour/11",
+      "telegram_message_id": 11
+    },
+    {
+      "hotel_id": 67910,
+      "max_url": "https://max.ru/channel_anytour/AaF5iOyMXHU",
+      "max_publication_id": 70,
+      "telegram_url": "https://t.me/any_toour/10",
+      "telegram_message_id": 10
+    },
+    {
+      "hotel_id": 68323,
+      "max_url": "https://max.ru/channel_anytour/AaF5iP7mCB0",
+      "max_publication_id": 72,
+      "telegram_url": "https://t.me/any_toour/14",
+      "telegram_message_id": 14
+    },
+    {
+      "hotel_id": 1971,
+      "max_url": "https://max.ru/channel_anytour/AaF5iQf-GJ4",
+      "max_publication_id": 73,
+      "telegram_url": "https://t.me/any_toour/15",
+      "telegram_message_id": 15
+    },
+    {
+      "hotel_id": 56091,
+      "max_url": "https://max.ru/channel_anytour/AaGi7ekZJf4",
+      "max_publication_id": 360,
+      "telegram_url": "https://t.me/any_toour/136",
+      "telegram_message_id": 136
+    },
+    {
+      "hotel_id": 103124,
+      "max_url": "https://max.ru/channel_anytour/AaGi7fLNILc",
+      "max_publication_id": 361,
+      "telegram_url": "https://t.me/any_toour/137",
+      "telegram_message_id": 137
+    },
+    {
+      "hotel_id": 488,
+      "max_url": "https://max.ru/channel_anytour/AaGi7fyyXBA",
+      "max_publication_id": 362,
+      "telegram_url": "https://t.me/any_toour/138",
+      "telegram_message_id": 138
+    },
+    {
+      "hotel_id": 98723,
+      "max_url": "https://max.ru/channel_anytour/AaGjHFTqWDo",
+      "max_publication_id": 366,
+      "telegram_url": "https://t.me/any_toour/139",
+      "telegram_message_id": 139
+    },
+    {
+      "hotel_id": 139,
+      "max_url": "https://max.ru/channel_anytour/AaGjHF7dGOQ",
+      "max_publication_id": 367,
+      "telegram_url": "https://t.me/any_toour/140",
+      "telegram_message_id": 140
+    },
+    {
+      "hotel_id": 342,
+      "max_url": "https://max.ru/channel_anytour/AaGjHGjBODk",
+      "max_publication_id": 368,
+      "telegram_url": "https://t.me/any_toour/141",
+      "telegram_message_id": 141
+    },
+    {
+      "hotel_id": 1291,
+      "max_url": "https://max.ru/channel_anytour/AaGjSZmnI2w",
+      "max_publication_id": 373,
+      "telegram_url": "https://t.me/any_toour/142",
+      "telegram_message_id": 142
+    },
+    {
+      "hotel_id": 15869,
+      "max_url": "https://max.ru/channel_anytour/AaGjSaPBcNU",
+      "max_publication_id": 374,
+      "telegram_url": "https://t.me/any_toour/143",
+      "telegram_message_id": 143
+    },
+    {
+      "hotel_id": 253,
+      "max_url": "https://max.ru/channel_anytour/AaGjSa3TJ40",
+      "max_publication_id": 375,
+      "telegram_url": "https://t.me/any_toour/144",
+      "telegram_message_id": 144
+    },
+    {
+      "hotel_id": 75377,
+      "max_url": "https://max.ru/channel_anytour/AaGjSbf0FXs",
+      "max_publication_id": 376,
+      "telegram_url": "https://t.me/any_toour/145",
+      "telegram_message_id": 145
+    },
+    {
+      "hotel_id": 74503,
+      "max_url": "https://max.ru/channel_anytour/AaGjdIJ3D9s",
+      "max_publication_id": 379,
+      "telegram_url": "https://t.me/any_toour/146",
+      "telegram_message_id": 146
+    },
+    {
+      "hotel_id": 1582,
+      "max_url": "https://max.ru/channel_anytour/AaGjdIwhKPk",
+      "max_publication_id": 380,
+      "telegram_url": "https://t.me/any_toour/147",
+      "telegram_message_id": 147
+    },
+    {
+      "hotel_id": 1449,
+      "max_url": "https://max.ru/channel_anytour/AaGjniTUaqA",
+      "max_publication_id": 387,
+      "telegram_url": "https://t.me/any_toour/148",
+      "telegram_message_id": 148
+    },
+    {
+      "hotel_id": 1453,
+      "max_url": "https://max.ru/channel_anytour/AaGjni6yLtM",
+      "max_publication_id": 388,
+      "telegram_url": "https://t.me/any_toour/149",
+      "telegram_message_id": 149
+    },
+    {
+      "hotel_id": 9432,
+      "max_url": "https://max.ru/channel_anytour/AaGjnjiiMnM",
+      "max_publication_id": 389,
+      "telegram_url": "https://t.me/any_toour/150",
+      "telegram_message_id": 150
+    },
+    {
+      "hotel_id": 1451,
+      "max_url": "https://max.ru/channel_anytour/AaGjnkJTK1U",
+      "max_publication_id": 390,
+      "telegram_url": "https://t.me/any_toour/151",
+      "telegram_message_id": 151
+    },
+    {
+      "hotel_id": 1151,
+      "max_url": "https://max.ru/channel_anytour/AaGjnkw2DwE",
+      "max_publication_id": 391,
+      "telegram_url": "https://t.me/any_toour/152",
+      "telegram_message_id": 152
+    },
+    {
+      "hotel_id": 1583,
+      "max_url": "https://max.ru/channel_anytour/AaGjnlYMF6c",
+      "max_publication_id": 392,
+      "telegram_url": "https://t.me/any_toour/153",
+      "telegram_message_id": 153
+    },
+    {
+      "hotel_id": 1379,
+      "max_url": "https://max.ru/channel_anytour/AaGjuHn3Xps",
+      "max_publication_id": 398,
+      "telegram_url": "https://t.me/any_toour/154",
+      "telegram_message_id": 154
+    },
+    {
+      "hotel_id": 1133,
+      "max_url": "https://max.ru/channel_anytour/AaGjuIOyGyI",
+      "max_publication_id": 399,
+      "telegram_url": "https://t.me/any_toour/155",
+      "telegram_message_id": 155
+    },
+    {
+      "hotel_id": 27316,
+      "max_url": "https://max.ru/channel_anytour/AaGjuI2pXao",
+      "max_publication_id": 400,
+      "telegram_url": "https://t.me/any_toour/156",
+      "telegram_message_id": 156
+    },
+    {
+      "hotel_id": 1559,
+      "max_url": "https://max.ru/channel_anytour/AaGjuJd4ON4",
+      "max_publication_id": 401,
+      "telegram_url": "https://t.me/any_toour/157",
+      "telegram_message_id": 157
+    },
+    {
+      "hotel_id": 3405,
+      "max_url": "https://max.ru/channel_anytour/AaGjuKF0FLE",
+      "max_publication_id": 402,
+      "telegram_url": "https://t.me/any_toour/158",
+      "telegram_message_id": 158
+    },
+    {
+      "hotel_id": 1417,
+      "max_url": "https://max.ru/channel_anytour/AaGj5sgZdbc",
+      "max_publication_id": 405,
+      "telegram_url": "https://t.me/any_toour/159",
+      "telegram_message_id": 159
+    },
+    {
+      "hotel_id": 1348,
+      "max_url": "https://max.ru/channel_anytour/AaGj5tI6HDg",
+      "max_publication_id": 406,
+      "telegram_url": "https://t.me/any_toour/160",
+      "telegram_message_id": 160
+    },
+    {
+      "hotel_id": 1199,
+      "max_url": "https://max.ru/channel_anytour/AaGlZGZhNVE",
+      "max_publication_id": 409,
+      "telegram_url": "https://t.me/any_toour/161",
+      "telegram_message_id": 161
+    },
+    {
+      "hotel_id": 1464,
+      "max_url": "https://max.ru/channel_anytour/AaGlZHE1b30",
+      "max_publication_id": 410,
+      "telegram_url": "https://t.me/any_toour/162",
+      "telegram_message_id": 162
+    },
+    {
+      "hotel_id": 9322,
+      "max_url": "https://max.ru/channel_anytour/AaGll1jFUrM",
+      "max_publication_id": 413,
+      "telegram_url": "https://t.me/any_toour/163",
+      "telegram_message_id": 163
+    },
+    {
+      "hotel_id": 1672,
+      "max_url": "https://max.ru/channel_anytour/AaGll2IjOh8",
+      "max_publication_id": 414,
+      "telegram_url": "https://t.me/any_toour/164",
+      "telegram_message_id": 164
+    },
+    {
+      "hotel_id": 1659,
+      "max_url": "https://max.ru/channel_anytour/AaGmKBZxbs0",
+      "max_publication_id": 425,
+      "telegram_url": "https://t.me/any_toour/165",
+      "telegram_message_id": 165
+    },
+    {
+      "hotel_id": 21695,
+      "max_url": "https://max.ru/channel_anytour/AaGmKB_hHaM",
+      "max_publication_id": 426,
+      "telegram_url": "https://t.me/any_toour/166",
+      "telegram_message_id": 166
+    },
+    {
+      "hotel_id": 28668,
+      "max_url": "https://max.ru/channel_anytour/AaGmKCmVex4",
+      "max_publication_id": 427,
+      "telegram_url": "https://t.me/any_toour/167",
+      "telegram_message_id": 167
+    },
+    {
+      "hotel_id": 55205,
+      "max_url": "https://max.ru/channel_anytour/AaGmKDLzROI",
+      "max_publication_id": 428,
+      "telegram_url": "https://t.me/any_toour/168",
+      "telegram_message_id": 168
+    },
+    {
+      "hotel_id": 1334,
+      "max_url": "https://max.ru/channel_anytour/AaGmKDyXAvs",
+      "max_publication_id": 429,
+      "telegram_url": "https://t.me/any_toour/169",
+      "telegram_message_id": 169
+    },
+    {
+      "hotel_id": 1715,
+      "max_url": "https://max.ru/channel_anytour/AaGmKEX_bMI",
+      "max_publication_id": 430,
+      "telegram_url": "https://t.me/any_toour/170",
+      "telegram_message_id": 170
+    },
+    {
+      "hotel_id": 1543,
+      "max_url": "https://max.ru/channel_anytour/AaGnaRwbHSk",
+      "max_publication_id": 432,
+      "telegram_url": "https://t.me/any_toour/171",
+      "telegram_message_id": 171
+    },
+    {
+      "hotel_id": 17480,
+      "max_url": "https://max.ru/channel_anytour/AaGoWHxLOEA",
+      "max_publication_id": 435,
+      "telegram_url": "https://t.me/any_toour/172",
+      "telegram_message_id": 172
+    },
+    {
+      "hotel_id": 1100,
+      "max_url": "https://max.ru/channel_anytour/AaGoWIVFK9M",
+      "max_publication_id": 436,
+      "telegram_url": "https://t.me/any_toour/173",
+      "telegram_message_id": 173
+    },
+    {
+      "hotel_id": 1422,
+      "max_url": "https://max.ru/channel_anytour/AaGpu8hXB30",
+      "max_publication_id": 438,
+      "telegram_url": "https://t.me/any_toour/174",
+      "telegram_message_id": 174
+    },
+    {
+      "hotel_id": 78251,
+      "max_url": "https://max.ru/channel_anytour/AaGqB-1VeqQ",
+      "max_publication_id": 440,
+      "telegram_url": "https://t.me/any_toour/175",
+      "telegram_message_id": 175
+    },
+    {
+      "hotel_id": 27426,
+      "max_url": "https://max.ru/channel_anytour/AaG1E2swIp4",
+      "max_publication_id": 456,
+      "telegram_url": "https://t.me/any_toour/176",
+      "telegram_message_id": 176
+    },
+    {
+      "hotel_id": 1216,
+      "max_url": "https://max.ru/channel_anytour/AaG1E3QPSBI",
+      "max_publication_id": 457,
+      "telegram_url": "https://t.me/any_toour/177",
+      "telegram_message_id": 177
+    },
+    {
+      "hotel_id": 1095,
+      "max_url": "https://max.ru/channel_anytour/AaG1E30AeiM",
+      "max_publication_id": 458,
+      "telegram_url": "https://t.me/any_toour/178",
+      "telegram_message_id": 178
+    },
+    {
+      "hotel_id": 24462,
+      "max_url": "https://max.ru/channel_anytour/AaG1m_VxebE",
+      "max_publication_id": 463,
+      "telegram_url": "https://t.me/any_toour/179",
+      "telegram_message_id": 179
+    },
+    {
+      "hotel_id": 43236,
+      "max_url": "https://max.ru/channel_anytour/AaG1m_6ZIkM",
+      "max_publication_id": 464,
+      "telegram_url": "https://t.me/any_toour/180",
+      "telegram_message_id": 180
+    },
+    {
+      "hotel_id": 101694,
+      "max_url": "https://max.ru/channel_anytour/AaG1nAdWK9U",
+      "max_publication_id": 465,
+      "telegram_url": "https://t.me/any_toour/181",
+      "telegram_message_id": 181
+    },
+    {
+      "hotel_id": 2469,
+      "max_url": "https://max.ru/channel_anytour/AaG1nBBkPwY",
+      "max_publication_id": 466,
+      "telegram_url": "https://t.me/any_toour/182",
+      "telegram_message_id": 182
+    },
+    {
+      "hotel_id": 1352,
+      "max_url": "https://max.ru/channel_anytour/AaG1rpnTEFI",
+      "max_publication_id": 473,
+      "telegram_url": "https://t.me/any_toour/183",
+      "telegram_message_id": 183
+    },
+    {
+      "hotel_id": 37360,
+      "max_url": "https://max.ru/channel_anytour/AaG1rqKAe2o",
+      "max_publication_id": 474,
+      "telegram_url": "https://t.me/any_toour/184",
+      "telegram_message_id": 184
+    },
+    {
+      "hotel_id": 1035,
+      "max_url": "https://max.ru/channel_anytour/AaG1rqt1DKU",
+      "max_publication_id": 475,
+      "telegram_url": "https://t.me/any_toour/185",
+      "telegram_message_id": 185
+    },
+    {
+      "hotel_id": 45199,
+      "max_url": "https://max.ru/channel_anytour/AaG1rrR-DFE",
+      "max_publication_id": 476,
+      "telegram_url": "https://t.me/any_toour/186",
+      "telegram_message_id": 186
+    },
+    {
+      "hotel_id": 613,
+      "max_url": "https://max.ru/channel_anytour/AaG1rr1TAlI",
+      "max_publication_id": 477,
+      "telegram_url": "https://t.me/any_toour/187",
+      "telegram_message_id": 187
+    },
+    {
+      "hotel_id": 24909,
+      "max_url": "https://max.ru/channel_anytour/AaG1rsYqb1E",
+      "max_publication_id": 478,
+      "telegram_url": "https://t.me/any_toour/188",
+      "telegram_message_id": 188
+    },
+    {
+      "hotel_id": 1074,
+      "max_url": "https://max.ru/channel_anytour/AaG1yNfoLas",
+      "max_publication_id": 488,
+      "telegram_url": "https://t.me/any_toour/189",
+      "telegram_message_id": 189
+    },
+    {
+      "hotel_id": 108146,
+      "max_url": "https://max.ru/channel_anytour/AaG1yOCiXr4",
+      "max_publication_id": 489,
+      "telegram_url": "https://t.me/any_toour/190",
+      "telegram_message_id": 190
+    },
+    {
+      "hotel_id": 1362,
+      "max_url": "https://max.ru/channel_anytour/AaG1yOmXEko",
+      "max_publication_id": 490,
+      "telegram_url": "https://t.me/any_toour/191",
+      "telegram_message_id": 191
+    },
+    {
+      "hotel_id": 68984,
+      "max_url": "https://max.ru/channel_anytour/AaG1yPKiXNI",
+      "max_publication_id": 491,
+      "telegram_url": "https://t.me/any_toour/192",
+      "telegram_message_id": 192
+    },
+    {
+      "hotel_id": 703,
+      "max_url": "https://max.ru/channel_anytour/AaG1yPuGEJA",
+      "max_publication_id": 492,
+      "telegram_url": "https://t.me/any_toour/193",
+      "telegram_message_id": 193
+    },
+    {
+      "hotel_id": 118475,
+      "max_url": "https://max.ru/channel_anytour/AaG1yQSfbMc",
+      "max_publication_id": 493,
+      "telegram_url": "https://t.me/any_toour/194",
+      "telegram_message_id": 194
+    },
+    {
+      "hotel_id": 462,
+      "max_url": "https://max.ru/channel_anytour/AaG1yQ2XJb8",
+      "max_publication_id": 494,
+      "telegram_url": "https://t.me/any_toour/195",
+      "telegram_message_id": 195
+    },
+    {
+      "hotel_id": 2050,
+      "max_url": "https://max.ru/channel_anytour/AaG1yRaEb7g",
+      "max_publication_id": 495,
+      "telegram_url": "https://t.me/any_toour/196",
+      "telegram_message_id": 196
+    },
+    {
+      "hotel_id": 1354,
+      "max_url": "https://max.ru/channel_anytour/AaG1yR92cnk",
+      "max_publication_id": 496,
+      "telegram_url": "https://t.me/any_toour/197",
+      "telegram_message_id": 197
+    },
+    {
+      "hotel_id": 128087,
+      "max_url": "https://max.ru/channel_anytour/AaG10xLJScI",
+      "max_publication_id": 501,
+      "telegram_url": "https://t.me/any_toour/198",
+      "telegram_message_id": 198
+    },
+    {
+      "hotel_id": 969,
+      "max_url": "https://max.ru/channel_anytour/AaG10xu2ENI",
+      "max_publication_id": 502,
+      "telegram_url": "https://t.me/any_toour/199",
+      "telegram_message_id": 199
+    },
+    {
+      "hotel_id": 55647,
+      "max_url": "https://max.ru/channel_anytour/AaG10yTSMl4",
+      "max_publication_id": 503,
+      "telegram_url": "https://t.me/any_toour/200",
+      "telegram_message_id": 200
+    },
+    {
+      "hotel_id": 120117,
+      "max_url": "https://max.ru/channel_anytour/AaG10y3HV_A",
+      "max_publication_id": 504,
+      "telegram_url": "https://t.me/any_toour/201",
+      "telegram_message_id": 201
+    },
+    {
+      "hotel_id": 1065,
+      "max_url": "https://max.ru/channel_anytour/AaG15pBCV-0",
+      "max_publication_id": 512,
+      "telegram_url": "https://t.me/any_toour/202",
+      "telegram_message_id": 202
+    },
+    {
+      "hotel_id": 1960,
+      "max_url": "https://max.ru/channel_anytour/AaG15pkYUZs",
+      "max_publication_id": 513,
+      "telegram_url": "https://t.me/any_toour/203",
+      "telegram_message_id": 203
+    },
+    {
+      "hotel_id": 116932,
+      "max_url": "https://max.ru/channel_anytour/AaG15qI5McY",
+      "max_publication_id": 514,
+      "telegram_url": "https://t.me/any_toour/204",
+      "telegram_message_id": 204
+    },
+    {
+      "hotel_id": 748,
+      "max_url": "https://max.ru/channel_anytour/AaG15qstL0Y",
+      "max_publication_id": 515,
+      "telegram_url": "https://t.me/any_toour/205",
+      "telegram_message_id": 205
+    },
+    {
+      "hotel_id": 247,
+      "max_url": "https://max.ru/channel_anytour/AaG15rQbQH0",
+      "max_publication_id": 516,
+      "telegram_url": "https://t.me/any_toour/206",
+      "telegram_message_id": 206
+    },
+    {
+      "hotel_id": 73974,
+      "max_url": "https://max.ru/channel_anytour/AaG15r05E18",
+      "max_publication_id": 517,
+      "telegram_url": "https://t.me/any_toour/207",
+      "telegram_message_id": 207
+    },
+    {
+      "hotel_id": 54193,
+      "max_url": "https://max.ru/channel_anytour/AaG15sYgRhQ",
+      "max_publication_id": 518,
+      "telegram_url": "https://t.me/any_toour/208",
+      "telegram_message_id": 208
+    },
+    {
+      "hotel_id": 140,
+      "max_url": "https://max.ru/channel_anytour/AaG1_36xOug",
+      "max_publication_id": 525,
+      "telegram_url": "https://t.me/any_toour/209",
+      "telegram_message_id": 209
+    },
+    {
+      "hotel_id": 8053,
+      "max_url": "https://max.ru/channel_anytour/AaG1_4eqKhU",
+      "max_publication_id": 526,
+      "telegram_url": "https://t.me/any_toour/210",
+      "telegram_message_id": 210
+    },
+    {
+      "hotel_id": 58987,
+      "max_url": "https://max.ru/channel_anytour/AaG1_5CKV6I",
+      "max_publication_id": 527,
+      "telegram_url": "https://t.me/any_toour/211",
+      "telegram_message_id": 211
+    },
+    {
+      "hotel_id": 1033,
+      "max_url": "https://max.ru/channel_anytour/AaG1_5mHIhM",
+      "max_publication_id": 528,
+      "telegram_url": "https://t.me/any_toour/212",
+      "telegram_message_id": 212
+    },
+    {
+      "hotel_id": 386,
+      "max_url": "https://max.ru/channel_anytour/AaG1_6LVUx8",
+      "max_publication_id": 529,
+      "telegram_url": "https://t.me/any_toour/213",
+      "telegram_message_id": 213
+    },
+    {
+      "hotel_id": 33313,
+      "max_url": "https://max.ru/channel_anytour/AaG1_6u7De8",
+      "max_publication_id": 530,
+      "telegram_url": "https://t.me/any_toour/214",
+      "telegram_message_id": 214
+    },
+    {
+      "hotel_id": 66555,
+      "max_url": "https://max.ru/channel_anytour/AaG2GEpLHjw",
+      "max_publication_id": 537,
+      "telegram_url": "https://t.me/any_toour/215",
+      "telegram_message_id": 215
+    },
+    {
+      "hotel_id": 110289,
+      "max_url": "https://max.ru/channel_anytour/AaG2GFMuUmw",
+      "max_publication_id": 538,
+      "telegram_url": "https://t.me/any_toour/216",
+      "telegram_message_id": 216
+    },
+    {
+      "hotel_id": 513,
+      "max_url": "https://max.ru/channel_anytour/AaG2GFxpMCA",
+      "max_publication_id": 539,
+      "telegram_url": "https://t.me/any_toour/217",
+      "telegram_message_id": 217
+    },
+    {
+      "hotel_id": 103731,
+      "max_url": "https://max.ru/channel_anytour/AaG2GGU0fgw",
+      "max_publication_id": 540,
+      "telegram_url": "https://t.me/any_toour/218",
+      "telegram_message_id": 218
+    },
+    {
+      "hotel_id": 800,
+      "max_url": "https://max.ru/channel_anytour/AaG2GG5XH2I",
+      "max_publication_id": 541,
+      "telegram_url": "https://t.me/any_toour/219",
+      "telegram_message_id": 219
+    },
+    {
+      "hotel_id": 3452,
+      "max_url": "https://max.ru/channel_anytour/AaG2GHc8bvM",
+      "max_publication_id": 542,
+      "telegram_url": "https://t.me/any_toour/220",
+      "telegram_message_id": 220
+    },
+    {
+      "hotel_id": 21847,
+      "max_url": "https://max.ru/channel_anytour/AaG2Il-5O-o",
+      "max_publication_id": 548,
+      "telegram_url": "https://t.me/any_toour/221",
+      "telegram_message_id": 221
+    },
+    {
+      "hotel_id": 302,
+      "max_url": "https://max.ru/channel_anytour/AaG2ImjgQGM",
+      "max_publication_id": 549,
+      "telegram_url": "https://t.me/any_toour/222",
+      "telegram_message_id": 222
+    },
+    {
+      "hotel_id": 512,
+      "max_url": "https://max.ru/channel_anytour/AaG2InKkR7c",
+      "max_publication_id": 550,
+      "telegram_url": "https://t.me/any_toour/223",
+      "telegram_message_id": 223
+    },
+    {
+      "hotel_id": 107938,
+      "max_url": "https://max.ru/channel_anytour/AaG2Inu8czM",
+      "max_publication_id": 551,
+      "telegram_url": "https://t.me/any_toour/224",
+      "telegram_message_id": 224
+    },
+    {
+      "hotel_id": 15871,
+      "max_url": "https://max.ru/channel_anytour/AaG2IoR8C5g",
+      "max_publication_id": 552,
+      "telegram_url": "https://t.me/any_toour/225",
+      "telegram_message_id": 225
+    },
+    {
+      "hotel_id": 129161,
+      "max_url": "https://max.ru/channel_anytour/AaG2NOx8OsU",
+      "max_publication_id": 562,
+      "telegram_url": "https://t.me/any_toour/226",
+      "telegram_message_id": 226
+    },
+    {
+      "hotel_id": 65877,
+      "max_url": "https://max.ru/channel_anytour/AaG2NPXdL0M",
+      "max_publication_id": 563,
+      "telegram_url": "https://t.me/any_toour/227",
+      "telegram_message_id": 227
+    },
+    {
+      "hotel_id": 20971,
+      "max_url": "https://max.ru/channel_anytour/AaG2NP8EKh8",
+      "max_publication_id": 564,
+      "telegram_url": "https://t.me/any_toour/228",
+      "telegram_message_id": 228
+    },
+    {
+      "hotel_id": 1653,
+      "max_url": "https://max.ru/channel_anytour/AaG2NQglLYU",
+      "max_publication_id": 565,
+      "telegram_url": "https://t.me/any_toour/229",
+      "telegram_message_id": 229
+    },
+    {
+      "hotel_id": 501,
+      "max_url": "https://max.ru/channel_anytour/AaG2NREhRiI",
+      "max_publication_id": 566,
+      "telegram_url": "https://t.me/any_toour/230",
+      "telegram_message_id": 230
+    },
+    {
+      "hotel_id": 502,
+      "max_url": "https://max.ru/channel_anytour/AaG2NRo2PGw",
+      "max_publication_id": 567,
+      "telegram_url": "https://t.me/any_toour/231",
+      "telegram_message_id": 231
+    },
+    {
+      "hotel_id": 95165,
+      "max_url": "https://max.ru/channel_anytour/AaG2NSMTA2o",
+      "max_publication_id": 568,
+      "telegram_url": "https://t.me/any_toour/232",
+      "telegram_message_id": 232
+    },
+    {
+      "hotel_id": 50659,
+      "max_url": "https://max.ru/channel_anytour/AaG2NSvqN7Q",
+      "max_publication_id": 569,
+      "telegram_url": "https://t.me/any_toour/233",
+      "telegram_message_id": 233
+    },
+    {
+      "hotel_id": 79071,
+      "max_url": "https://max.ru/channel_anytour/AaG2NTS1FAE",
+      "max_publication_id": 570,
+      "telegram_url": "https://t.me/any_toour/234",
+      "telegram_message_id": 234
+    },
+    {
+      "hotel_id": 1143,
+      "max_url": "https://max.ru/channel_anytour/AaG2Qr0HIZo",
+      "max_publication_id": 580,
+      "telegram_url": "https://t.me/any_toour/235",
+      "telegram_message_id": 235
+    },
+    {
+      "hotel_id": 41495,
+      "max_url": "https://max.ru/channel_anytour/AaG2QsYTfUM",
+      "max_publication_id": 581,
+      "telegram_url": "https://t.me/any_toour/236",
+      "telegram_message_id": 236
+    },
+    {
+      "hotel_id": 69261,
+      "max_url": "https://max.ru/channel_anytour/AaG2Qs8kYsU",
+      "max_publication_id": 582,
+      "telegram_url": "https://t.me/any_toour/237",
+      "telegram_message_id": 237
+    },
+    {
+      "hotel_id": 1221,
+      "max_url": "https://max.ru/channel_anytour/AaG2Qtf1Fdo",
+      "max_publication_id": 583,
+      "telegram_url": "https://t.me/any_toour/238",
+      "telegram_message_id": 238
+    },
+    {
+      "hotel_id": 32342,
+      "max_url": "https://max.ru/channel_anytour/AaG2QuDYdKE",
+      "max_publication_id": 584,
+      "telegram_url": "https://t.me/any_toour/239",
+      "telegram_message_id": 239
+    },
+    {
+      "hotel_id": 64670,
+      "max_url": "https://max.ru/channel_anytour/AaG2QunfNDE",
+      "max_publication_id": 585,
+      "telegram_url": "https://t.me/any_toour/240",
+      "telegram_message_id": 240
+    },
+    {
+      "hotel_id": 4095,
+      "max_url": "https://max.ru/channel_anytour/AaG2QvL6f7U",
+      "max_publication_id": 586,
+      "telegram_url": "https://t.me/any_toour/241",
+      "telegram_message_id": 241
+    },
+    {
+      "hotel_id": 13941,
+      "max_url": "https://max.ru/channel_anytour/AaG2QvvlA2g",
+      "max_publication_id": 587,
+      "telegram_url": "https://t.me/any_toour/242",
+      "telegram_message_id": 242
+    },
+    {
+      "hotel_id": 4071,
+      "max_url": "https://max.ru/channel_anytour/AaG2QwTTC2w",
+      "max_publication_id": 588,
+      "telegram_url": "https://t.me/any_toour/243",
+      "telegram_message_id": 243
+    },
+    {
+      "hotel_id": 41149,
+      "max_url": "https://max.ru/channel_anytour/AaG2UgefHN8",
+      "max_publication_id": 598,
+      "telegram_url": "https://t.me/any_toour/244",
+      "telegram_message_id": 244
+    },
+    {
+      "hotel_id": 54592,
+      "max_url": "https://max.ru/channel_anytour/AaG2UhCtBYs",
+      "max_publication_id": 599,
+      "telegram_url": "https://t.me/any_toour/245",
+      "telegram_message_id": 245
+    },
+    {
+      "hotel_id": 57217,
+      "max_url": "https://max.ru/channel_anytour/AaG2UhmGEHA",
+      "max_publication_id": 600,
+      "telegram_url": "https://t.me/any_toour/246",
+      "telegram_message_id": 246
+    },
+    {
+      "hotel_id": 4432,
+      "max_url": "https://max.ru/channel_anytour/AaG2UiL7KvI",
+      "max_publication_id": 601,
+      "telegram_url": "https://t.me/any_toour/247",
+      "telegram_message_id": 247
+    },
+    {
+      "hotel_id": 82606,
+      "max_url": "https://max.ru/channel_anytour/AaG2UiwBBps",
+      "max_publication_id": 602,
+      "telegram_url": "https://t.me/any_toour/248",
+      "telegram_message_id": 248
+    },
+    {
+      "hotel_id": 1337,
+      "max_url": "https://max.ru/channel_anytour/AaG2UjUkPMg",
+      "max_publication_id": 603,
+      "telegram_url": "https://t.me/any_toour/249",
+      "telegram_message_id": 249
+    },
+    {
+      "hotel_id": 380,
+      "max_url": "https://max.ru/channel_anytour/AaG2Uj4pQ0w",
+      "max_publication_id": 604,
+      "telegram_url": "https://t.me/any_toour/250",
+      "telegram_message_id": 250
+    },
+    {
+      "hotel_id": 1257,
+      "max_url": "https://max.ru/channel_anytour/AaG2UkeBZHY",
+      "max_publication_id": 605,
+      "telegram_url": "https://t.me/any_toour/251",
+      "telegram_message_id": 251
+    },
+    {
+      "hotel_id": 82567,
+      "max_url": "https://max.ru/channel_anytour/AaG2UlCIP10",
+      "max_publication_id": 606,
+      "telegram_url": "https://t.me/any_toour/252",
+      "telegram_message_id": 252
+    },
+    {
+      "hotel_id": 1294,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y20DabI",
+      "max_publication_id": 614,
+      "telegram_url": "https://t.me/any_toour/253",
+      "telegram_message_id": 253
+    },
+    {
+      "hotel_id": 975,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y3Z4EWo",
+      "max_publication_id": 615,
+      "telegram_url": "https://t.me/any_toour/254",
+      "telegram_message_id": 254
+    },
+    {
+      "hotel_id": 26530,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y3-TQtE",
+      "max_publication_id": 616,
+      "telegram_url": "https://t.me/any_toour/255",
+      "telegram_message_id": 255
+    },
+    {
+      "hotel_id": 69116,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y4jjcAg",
+      "max_publication_id": 617,
+      "telegram_url": "https://t.me/any_toour/256",
+      "telegram_message_id": 256
+    },
+    {
+      "hotel_id": 1588,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y5HpQTQ",
+      "max_publication_id": 618,
+      "telegram_url": "https://t.me/any_toour/257",
+      "telegram_message_id": 257
+    },
+    {
+      "hotel_id": 3415,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y5seTmY",
+      "max_publication_id": 619,
+      "telegram_url": "https://t.me/any_toour/258",
+      "telegram_message_id": 258
+    },
+    {
+      "hotel_id": 964,
+      "max_url": "https://max.ru/channel_anytour/AaG2Y6Q2dxg",
+      "max_publication_id": 620,
+      "telegram_url": "https://t.me/any_toour/259",
+      "telegram_message_id": 259
+    },
+    {
+      "hotel_id": 57066,
+      "telegram_message_id": 260,
+      "telegram_url": "https://t.me/any_toour/260",
+      "max_publication_id": 630,
+      "max_url": "https://max.ru/channel_anytour/AaG2d_XzI9M"
+    },
+    {
+      "hotel_id": 2015,
+      "telegram_message_id": 261,
+      "telegram_url": "https://t.me/any_toour/261",
+      "max_publication_id": 631,
+      "max_url": "https://max.ru/channel_anytour/AaG2d_94R6M"
+    },
+    {
+      "hotel_id": 21817,
+      "telegram_message_id": 262,
+      "telegram_url": "https://t.me/any_toour/262",
+      "max_publication_id": 632,
+      "max_url": "https://max.ru/channel_anytour/AaG2eAiYDj0"
+    },
+    {
+      "hotel_id": 1026,
+      "telegram_message_id": 263,
+      "telegram_url": "https://t.me/any_toour/263",
+      "max_publication_id": 633,
+      "max_url": "https://max.ru/channel_anytour/AaG2eBHEQpo"
+    },
+    {
+      "hotel_id": 4091,
+      "telegram_message_id": 264,
+      "telegram_url": "https://t.me/any_toour/264",
+      "max_publication_id": 634,
+      "max_url": "https://max.ru/channel_anytour/AaG2eBrpNlk"
+    },
+    {
+      "hotel_id": 1350,
+      "telegram_message_id": 265,
+      "telegram_url": "https://t.me/any_toour/265",
+      "max_publication_id": 635,
+      "max_url": "https://max.ru/channel_anytour/AaG2eCRtcfE"
+    },
+    {
+      "hotel_id": 1140,
+      "telegram_message_id": 266,
+      "telegram_url": "https://t.me/any_toour/266",
+      "max_publication_id": 636,
+      "max_url": "https://max.ru/channel_anytour/AaG2eC1wANs"
+    },
+    {
+      "hotel_id": 1203,
+      "telegram_message_id": 267,
+      "telegram_url": "https://t.me/any_toour/267",
+      "max_publication_id": 637,
+      "max_url": "https://max.ru/channel_anytour/AaG2eDarJWo"
+    },
+    {
+      "hotel_id": 55828,
+      "telegram_message_id": 268,
+      "telegram_url": "https://t.me/any_toour/268",
+      "max_publication_id": 638,
+      "max_url": "https://max.ru/channel_anytour/AaG2eD-BQRg"
+    },
+    {
+      "hotel_id": 108167,
+      "telegram_message_id": 269,
+      "telegram_url": "https://t.me/any_toour/269",
+      "max_publication_id": 642,
+      "max_url": "https://max.ru/channel_anytour/AaG2erK-Lj0"
+    },
+    {
+      "hotel_id": 63674,
+      "telegram_message_id": 270,
+      "telegram_url": "https://t.me/any_toour/270",
+      "max_publication_id": 643,
+      "max_url": "https://max.ru/channel_anytour/AaG2erwGCro"
+    },
+    {
+      "hotel_id": 47025,
+      "telegram_message_id": 271,
+      "telegram_url": "https://t.me/any_toour/271",
+      "max_publication_id": 644,
+      "max_url": "https://max.ru/channel_anytour/AaG2esUuLcc"
+    },
+    {
+      "hotel_id": 1353,
+      "telegram_message_id": 272,
+      "telegram_url": "https://t.me/any_toour/272",
+      "max_publication_id": 654,
+      "max_url": "https://max.ru/channel_anytour/AaG2kaKJTuI"
+    },
+    {
+      "hotel_id": 1067,
+      "telegram_message_id": 273,
+      "telegram_url": "https://t.me/any_toour/273",
+      "max_publication_id": 655,
+      "max_url": "https://max.ru/channel_anytour/AaG2kavEGKY"
+    },
+    {
+      "hotel_id": 14135,
+      "telegram_message_id": 274,
+      "telegram_url": "https://t.me/any_toour/274",
+      "max_publication_id": 656,
+      "max_url": "https://max.ru/channel_anytour/AaG2kbULQgE"
+    },
+    {
+      "hotel_id": 90236,
+      "telegram_message_id": 275,
+      "telegram_url": "https://t.me/any_toour/275",
+      "max_publication_id": 657,
+      "max_url": "https://max.ru/channel_anytour/AaG2kb5GDi8"
+    },
+    {
+      "hotel_id": 47470,
+      "telegram_message_id": 276,
+      "telegram_url": "https://t.me/any_toour/276",
+      "max_publication_id": 658,
+      "max_url": "https://max.ru/channel_anytour/AaG2kccpLM0"
+    },
+    {
+      "hotel_id": 27647,
+      "telegram_message_id": 277,
+      "telegram_url": "https://t.me/any_toour/277",
+      "max_publication_id": 659,
+      "max_url": "https://max.ru/channel_anytour/AaG2kdBJaSY"
+    },
+    {
+      "hotel_id": 1512,
+      "telegram_message_id": 278,
+      "telegram_url": "https://t.me/any_toour/278",
+      "max_publication_id": 660,
+      "max_url": "https://max.ru/channel_anytour/AaG2kdlITSg"
+    },
+    {
+      "hotel_id": 75041,
+      "telegram_message_id": 279,
+      "telegram_url": "https://t.me/any_toour/279",
+      "max_publication_id": 661,
+      "max_url": "https://max.ru/channel_anytour/AaG2keIrBrw"
+    },
+    {
+      "hotel_id": 1258,
+      "telegram_message_id": 280,
+      "telegram_url": "https://t.me/any_toour/280",
+      "max_publication_id": 662,
+      "max_url": "https://max.ru/channel_anytour/AaG2keteR4o"
+    }
+  ]
+}

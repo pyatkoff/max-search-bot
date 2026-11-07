@@ -1,0 +1,1132 @@
+{
+  "operation": "commercial-existing-headings-20261107-5-v1",
+  "rows": [
+    {
+      "hotel_id": 66555,
+      "key": "commercial-sonasea-66555-v1",
+      "logical_id": "commercial-sonasea-66555-v1",
+      "prior_batch": 9,
+      "old_text": "🌴 Best Western Premier Sonasea Phu Quoc Resort 5★\n\nДля семейного отпуска на Фукуоке с просторным номером и лагунными бассейнами.\n\n🏖 Собственный пляж длиной 130 м.\n🛏 Executive Suite 2 Bed Room Sea View 73 м²: две спальни, отдельная гостиная и балкон.\n💧 Лагунные бассейны протянулись по территории на 300 м.\n🏋️ Тренажёрный зал с кардио и силовыми тренажёрами.\n\n✈️ Подберём номер и питание, рассчитаем тур в Sonasea Resort с перелётом на ваши даты и состав семьи.",
+      "new_text": "✈️ Туры в Best Western Premier Sonasea Phu Quoc Resort с перелётом\n📍 Фукуок, Вьетнам.\n\nДля семейного отпуска на Фукуоке с просторным номером и лагунными бассейнами.\n\n🏖 Собственный пляж длиной 130 м.\n🛏 Executive Suite 2 Bed Room Sea View 73 м²: две спальни, отдельная гостиная и балкон.\n💧 Лагунные бассейны протянулись по территории на 300 м.\n🏋️ Тренажёрный зал с кардио и силовыми тренажёрами.\n\n✈️ Подберём номер и питание, рассчитаем тур в Sonasea Resort с перелётом на ваши даты и состав семьи.",
+      "old_text_sha256": "7acd480211d3a03a0290e040506e0fc8c5a33716e8d728db104aea3210072c8a",
+      "new_text_sha256": "25f15efe85670398fb75de8222c8674b73f12104caed2454aee89dca4cb9ca1e",
+      "previous_heading": "🌴 Best Western Premier Sonasea Phu Quoc Resort 5★",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Best Western Premier Sonasea Phu Quoc Resort с перелётом",
+      "new_location": "📍 Фукуок, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 110289,
+      "key": "commercial-club-prive-sharm-110289-v1",
+      "logical_id": "commercial-club-prive-sharm-110289-v1",
+      "prior_batch": 9,
+      "old_text": "🏝 Club Privé by Rixos Sharm El Sheikh 5★\n\nВилла для отдыха большой семьёй: свои спальни, кухня и бассейн.\n\n🛏 Villa Privé 285 м²: три спальни, гостиная и четыре ванные.\n💧 Собственный бассейн у виллы.\n🍳 Кухня с плитой, духовкой, микроволновкой и холодильником.\n🏖 Собственный песчаный пляж и понтон.\n\nПитание организовано в Rixos Radamis.\n\n✈️ Подберём виллу под ваш состав и рассчитаем тур с перелётом на нужные даты.",
+      "new_text": "✈️ Туры в Club Privé by Rixos Sharm El Sheikh с перелётом\n📍 Шарм-эль-Шейх, Египет.\n\nВилла для отдыха большой семьёй: свои спальни, кухня и бассейн.\n\n🛏 Villa Privé 285 м²: три спальни, гостиная и четыре ванные.\n💧 Собственный бассейн у виллы.\n🍳 Кухня с плитой, духовкой, микроволновкой и холодильником.\n🏖 Собственный песчаный пляж и понтон.\n\nПитание организовано в Rixos Radamis.\n\n✈️ Подберём виллу под ваш состав и рассчитаем тур с перелётом на нужные даты.",
+      "old_text_sha256": "dcd6475e01d1691b11bae1eb043c490423dec12dc752f19263548a1ca800f3f3",
+      "new_text_sha256": "575723e2e7f424aeedc63ec863b2d057c1139ebdb9e4878498de462139534f19",
+      "previous_heading": "🏝 Club Privé by Rixos Sharm El Sheikh 5★",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Club Privé by Rixos Sharm El Sheikh с перелётом",
+      "new_location": "📍 Шарм-эль-Шейх, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 513,
+      "key": "commercial-naama-bay-513-v1",
+      "logical_id": "commercial-naama-bay-513-v1",
+      "prior_batch": 9,
+      "old_text": "🌴 Naama Bay Hotel & Resort 5★ · Шарм эль Шейх\n\nПляжный отдых в Наама Бей с бассейнами и горками.\n\n🏖 Песчаный пляж примерно в 150 м, через дорогу.\n💧 Четыре открытых бассейна; три взрослые и три детские горки.\n🛏 Superior 45 м² в корпусе Executive в зоне Resort.\n🎨 Детский клуб для возраста от 4 до 12 лет.\n\nЗона Resort расположена на возвышенности.\n\n✈️ Поможем выбрать корпус и номер, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Naama Bay Hotel & Resort с перелётом\n📍 Шарм-эль-Шейх, Египет.\n\nПляжный отдых в Наама Бей с бассейнами и горками.\n\n🏖 Песчаный пляж примерно в 150 м, через дорогу.\n💧 Четыре открытых бассейна; три взрослые и три детские горки.\n🛏 Superior 45 м² в корпусе Executive в зоне Resort.\n🎨 Детский клуб для возраста от 4 до 12 лет.\n\nЗона Resort расположена на возвышенности.\n\n✈️ Поможем выбрать корпус и номер, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "398d6d51343ccee1c03f2b564b21b85079800e01113daaf85762803541d40ff8",
+      "new_text_sha256": "9e2abe98380bdf82e6591fe2cf78cd4f8b8f6a01e5bb0341369132dde1879ca1",
+      "previous_heading": "🌴 Naama Bay Hotel & Resort 5★ · Шарм эль Шейх",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Naama Bay Hotel & Resort с перелётом",
+      "new_location": "📍 Шарм-эль-Шейх, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 103731,
+      "key": "commercial-comodo-103731-v1",
+      "logical_id": "commercial-comodo-103731-v1",
+      "prior_batch": 9,
+      "old_text": "🌊 Comodo Nha Trang Hotel 5★ · Нячанг\n\nДля городского отпуска с морским видом и собственным балконом у номера.\n\n🏖 Пляж примерно в 50 м, через дорогу.\n🛏 Premier Deluxe Ocean View: от 35 до 40 м², балкон и вид на море.\n💧 Бассейн с баром и тренажёрный зал на 27 этаже.\n\n✈️ Подберём категорию с нужным видом и питание. Рассчитаем тур в Comodo с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Comodo Nha Trang Hotel с перелётом\n📍 Нячанг, Вьетнам.\n\nДля городского отпуска с морским видом и собственным балконом у номера.\n\n🏖 Пляж примерно в 50 м, через дорогу.\n🛏 Premier Deluxe Ocean View: от 35 до 40 м², балкон и вид на море.\n💧 Бассейн с баром и тренажёрный зал на 27 этаже.\n\n✈️ Подберём категорию с нужным видом и питание. Рассчитаем тур в Comodo с перелётом на ваши даты.",
+      "old_text_sha256": "45816c21ecc05979c3e3304ef958081ce8d311bf02dbecb00b835ac85dfcd7cc",
+      "new_text_sha256": "54c970fa670cb9c1d5fda3ddc5f9006ba276c249912f7a2f1c0d9ee59d36c2fd",
+      "previous_heading": "🌊 Comodo Nha Trang Hotel 5★ · Нячанг",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Comodo Nha Trang Hotel с перелётом",
+      "new_location": "📍 Нячанг, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 800,
+      "key": "commercial-sugar-art-800-v1",
+      "logical_id": "commercial-sugar-art-800-v1",
+      "prior_batch": 9,
+      "old_text": "🎨 Sugar Marina Resort Art Karon Beach 4★ · Пхукет\n\nКарон для семейной поездки: номер с выходом к бассейну и место для детских игр.\n\n🛏 Family Pool Access 45 м²: кровать King, двухъярусная кровать и прямой выход к бассейну.\n🏖 Общественный пляж Карон, вторая линия.\n🎈 В детском клубе есть игровая зона с шариками.\n\nКлуб для детей от 4 до 12 лет, с присутствием родителей.\n\n✈️ Подберём семейную категорию и питание, рассчитаем тур с перелётом.",
+      "new_text": "✈️ Туры в Sugar Marina Resort Art Karon Beach с перелётом\n📍 Пхукет, Таиланд.\n\nКарон для семейной поездки: номер с выходом к бассейну и место для детских игр.\n\n🛏 Family Pool Access 45 м²: кровать King, двухъярусная кровать и прямой выход к бассейну.\n🏖 Общественный пляж Карон, вторая линия.\n🎈 В детском клубе есть игровая зона с шариками.\n\nКлуб для детей от 4 до 12 лет, с присутствием родителей.\n\n✈️ Подберём семейную категорию и питание, рассчитаем тур с перелётом.",
+      "old_text_sha256": "ccc14aa025621ed2dd809e70a846246b8c67c5c5dea11b3b9281ac949ce98bc3",
+      "new_text_sha256": "af43e48cbc276b5d12b7e2dded012f97e6654d122fdcaf7673fe2708bbb1cf27",
+      "previous_heading": "🎨 Sugar Marina Resort Art Karon Beach 4★ · Пхукет",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Sugar Marina Resort Art Karon Beach с перелётом",
+      "new_location": "📍 Пхукет, Таиланд.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 3452,
+      "key": "commercial-liberty-lykia-3452-v1",
+      "logical_id": "commercial-liberty-lykia-3452-v1",
+      "prior_batch": 9,
+      "old_text": "🌿 Liberty Hotels Lykia 5★ · Фетхие\n\nМоре, детская лагуна и занятия для детей разных возрастов.\n\n🏖 Собственный пляж длиной 650 м: песок и галька, отдельная детская лагуна.\n🎨 Libby & Berty для детей от 3 до 12 лет.\n🍼 Baby Club для малышей от 6 до 36 месяцев. Вечерние занятия проходят вместе с семьёй.\n\nНа территории есть подъёмы и спуски.\n\n✈️ Подберём корпус и номер под вашу семью, рассчитаем тур с перелётом на нужные даты.",
+      "new_text": "✈️ Туры в Liberty Hotels Lykia с перелётом\n📍 Фетхие, Турция.\n\nМоре, детская лагуна и занятия для детей разных возрастов.\n\n🏖 Собственный пляж длиной 650 м: песок и галька, отдельная детская лагуна.\n🎨 Libby & Berty для детей от 3 до 12 лет.\n🍼 Baby Club для малышей от 6 до 36 месяцев. Вечерние занятия проходят вместе с семьёй.\n\nНа территории есть подъёмы и спуски.\n\n✈️ Подберём корпус и номер под вашу семью, рассчитаем тур с перелётом на нужные даты.",
+      "old_text_sha256": "38e6ae48e3d39a93cfa48cd2793f74b6384e483f84ce50c1c8f555390778ace6",
+      "new_text_sha256": "9c28646f9cc51d04db2e8304994cf58889f3cd83f4a514e58af4ab56c1203e67",
+      "previous_heading": "🌿 Liberty Hotels Lykia 5★ · Фетхие",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Liberty Hotels Lykia с перелётом",
+      "new_location": "📍 Фетхие, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 21847,
+      "key": "commercial-vogue-bodrum-21847-v1",
+      "logical_id": "commercial-vogue-bodrum-21847-v1",
+      "prior_batch": 10,
+      "old_text": "🎡 Vogue Hotel Supreme Bodrum 5★ · Бодрум\n\nСемейный отпуск с отдельными спальнями и развлечениями Candyland.\n\n🛏 Family Suite Sea View 75 м² в главном корпусе: две соединённые спальни и большой балкон с видом на море.\n🎢 Candyland: аттракционы, колесо обозрения и аквапарк.\n🏖 Собственный пляж с песком и галькой.\n\nРабота парков зависит от погоды.\n\n✈️ Подберём семейную категорию и уточним условия посещения парков. Рассчитаем тур с перелётом.",
+      "new_text": "✈️ Туры в Vogue Hotel Supreme Bodrum с перелётом\n📍 Бодрум, Турция.\n\nСемейный отпуск с отдельными спальнями и развлечениями Candyland.\n\n🛏 Family Suite Sea View 75 м² в главном корпусе: две соединённые спальни и большой балкон с видом на море.\n🎢 Candyland: аттракционы, колесо обозрения и аквапарк.\n🏖 Собственный пляж с песком и галькой.\n\nРабота парков зависит от погоды.\n\n✈️ Подберём семейную категорию и уточним условия посещения парков. Рассчитаем тур с перелётом.",
+      "old_text_sha256": "5bddc7668a50be012aebcd1715d1d4026d3d0419c65b76205a51b287d3bdcd6d",
+      "new_text_sha256": "9b5f9a875885471c21da20dd19fb5b3191b17f596fa169433ee5cb00dbc953be",
+      "previous_heading": "🎡 Vogue Hotel Supreme Bodrum 5★ · Бодрум",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Vogue Hotel Supreme Bodrum с перелётом",
+      "new_location": "📍 Бодрум, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 302,
+      "key": "commercial-lotus-bay-302-v1",
+      "logical_id": "commercial-lotus-bay-302-v1",
+      "prior_batch": 10,
+      "old_text": "🏖 Lotus Bay Beach Resort · Сафага\n\nДля отпуска у песчаного пляжа в Сафаге.\n\n🌊 Первая линия и собственный песчаный пляж длиной 350 м.\n🛏 Двухместная категория с видом на море: от 30 до 35 м², балкон или терраса.\n💧 Два взрослых открытых бассейна.\n\n✈️ Подберём номер и питание в Lotus Bay, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Lotus Bay Beach Resort с перелётом\n📍 Сафага, Египет.\n\nДля отпуска у песчаного пляжа в Сафаге.\n\n🌊 Первая линия и собственный песчаный пляж длиной 350 м.\n🛏 Двухместная категория с видом на море: от 30 до 35 м², балкон или терраса.\n💧 Два взрослых открытых бассейна.\n\n✈️ Подберём номер и питание в Lotus Bay, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "0091c9e923aa085eebd08cad2a2bfba5cc6d479935235c1ed6addad633756f85",
+      "new_text_sha256": "f362855bd14917f08b9f8df0b84d24f210c429281d2f816c00eb7fa62479aa28",
+      "previous_heading": "🏖 Lotus Bay Beach Resort · Сафага",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Lotus Bay Beach Resort с перелётом",
+      "new_location": "📍 Сафага, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 512,
+      "key": "commercial-tropitel-dahab-512-v1",
+      "logical_id": "commercial-tropitel-dahab-512-v1",
+      "prior_batch": 10,
+      "old_text": "🐠 Tropitel Dahab Oasis 4★ · Дахаб\n\nДля отпуска у кораллового берега и моря.\n\n🌊 Каменистый коралловый пляж; вход в море только с понтона.\n🛏 Standard с двуспальной или двумя отдельными кроватями.\n📍 Отель на Blue Hole Road, в 8 км от центра Дахаба.\n\nДля купания пригодится специальная обувь.\n\n✈️ Подберём номер и подходящий план питания. Рассчитаем тур в Tropitel с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Tropitel Dahab Oasis с перелётом\n📍 Дахаб, Египет.\n\nДля отпуска у кораллового берега и моря.\n\n🌊 Каменистый коралловый пляж; вход в море только с понтона.\n🛏 Standard с двуспальной или двумя отдельными кроватями.\n📍 Отель на Blue Hole Road, в 8 км от центра Дахаба.\n\nДля купания пригодится специальная обувь.\n\n✈️ Подберём номер и подходящий план питания. Рассчитаем тур в Tropitel с перелётом на ваши даты.",
+      "old_text_sha256": "7d8996cc6790b9e3af1da1d19a54ee980ca50734eb2a666f6a3a145f6287b9e0",
+      "new_text_sha256": "efd11a54e0cdb4d241118ad42719c8e4dde82d553abb83e0f073b33de2fdb51c",
+      "previous_heading": "🐠 Tropitel Dahab Oasis 4★ · Дахаб",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Tropitel Dahab Oasis с перелётом",
+      "new_location": "📍 Дахаб, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 107938,
+      "key": "commercial-marin-phuket-107938-v1",
+      "logical_id": "commercial-marin-phuket-107938-v1",
+      "prior_batch": 10,
+      "old_text": "🌴 The Marin Phuket 5★ · Камала\n\nДве спальни и собственная кухня для семейного отпуска на Пхукете.\n\n🛏 Two Bedroom Suite 70 м²: две спальни, два санузла, гостиная и балкон.\n🍳 У этой категории кухня с плитой, микроволновкой и холодильником.\n💧 Четыре бассейна, включая бассейн на крыше.\n🏖 До пляжа Камала от 400 до 500 м.\n\n✈️ Подберём категорию под вашу семью и рассчитаем тур в The Marin с перелётом на нужные даты.",
+      "new_text": "✈️ Туры в The Marin Phuket с перелётом\n📍 Камала, Таиланд.\n\nДве спальни и собственная кухня для семейного отпуска на Пхукете.\n\n🛏 Two Bedroom Suite 70 м²: две спальни, два санузла, гостиная и балкон.\n🍳 У этой категории кухня с плитой, микроволновкой и холодильником.\n💧 Четыре бассейна, включая бассейн на крыше.\n🏖 До пляжа Камала от 400 до 500 м.\n\n✈️ Подберём категорию под вашу семью и рассчитаем тур в The Marin с перелётом на нужные даты.",
+      "old_text_sha256": "5f46410719014d70037350d73791ca16326e3224b7cd45f9ff1f5aca56f33ef4",
+      "new_text_sha256": "7842bcfd8386632df918bf1ef8bd6b73e7d6679fe2e48d776423680ead29a211",
+      "previous_heading": "🌴 The Marin Phuket 5★ · Камала",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в The Marin Phuket с перелётом",
+      "new_location": "📍 Камала, Таиланд.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 15871,
+      "key": "commercial-crystal-sunset-15871-v1",
+      "logical_id": "commercial-crystal-sunset-15871-v1",
+      "prior_batch": 10,
+      "old_text": "🌅 Crystal Sunset Pearl Collection 5★ · Сиде\n\nСемейный отпуск в Сиде с двумя спальнями и детским клубом.\n\n🛏 Family от 40 до 44 м²: две спальни с межкомнатной дверью.\n🏖 Пляж примерно в 400 м от отеля.\n🎨 Детский клуб для возраста от 4 до 12 лет.\n\n✈️ Подберём семейный номер с подходящим видом и рассчитаем тур в Crystal Sunset с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Crystal Sunset Pearl Collection с перелётом\n📍 Сиде, Турция.\n\nСемейный отпуск в Сиде с двумя спальнями и детским клубом.\n\n🛏 Family от 40 до 44 м²: две спальни с межкомнатной дверью.\n🏖 Пляж примерно в 400 м от отеля.\n🎨 Детский клуб для возраста от 4 до 12 лет.\n\n✈️ Подберём семейный номер с подходящим видом и рассчитаем тур в Crystal Sunset с перелётом на ваши даты.",
+      "old_text_sha256": "a54dda37a5ce0471dfee25b85b092c70d9808c2e2f17273b87982bea349845db",
+      "new_text_sha256": "711a2394e8d1e41e7d08d8d4b170657035ee99236ff525980568dfec926d00bf",
+      "previous_heading": "🌅 Crystal Sunset Pearl Collection 5★ · Сиде",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Crystal Sunset Pearl Collection с перелётом",
+      "new_location": "📍 Сиде, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 129161,
+      "key": "commercial-rewaya-129161-v1",
+      "logical_id": "commercial-rewaya-129161-v1",
+      "prior_batch": 11,
+      "old_text": "🌊 Rewaya Majestic Resort 5★ · Хургада\n\nПляжный отпуск с просторным базовым номером.\n\n🏖 Первая линия, собственный пляж длиной 150 м.\n🛏 Standard 48 м²: двуспальная или две отдельные кровати, балкон или терраса.\n🎶 Дневные и вечерние программы, дискотека.\n\n✈️ Подберём номер и питание в Rewaya, рассчитаем тур с перелётом на ваши даты и состав семьи.",
+      "new_text": "✈️ Туры в Rewaya Majestic Resort с перелётом\n📍 Хургада, Египет.\n\nПляжный отпуск с просторным базовым номером.\n\n🏖 Первая линия, собственный пляж длиной 150 м.\n🛏 Standard 48 м²: двуспальная или две отдельные кровати, балкон или терраса.\n🎶 Дневные и вечерние программы, дискотека.\n\n✈️ Подберём номер и питание в Rewaya, рассчитаем тур с перелётом на ваши даты и состав семьи.",
+      "old_text_sha256": "965b695af98832291b13a032330b28d352b348cc0910821227632922f7d3edeb",
+      "new_text_sha256": "bd67db84d6d9af0bb0a722745e3ae6fe88bf9faa13abc8acaa28f5e2daf389fa",
+      "previous_heading": "🌊 Rewaya Majestic Resort 5★ · Хургада",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Rewaya Majestic Resort с перелётом",
+      "new_location": "📍 Хургада, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 65877,
+      "key": "commercial-vesna-65877-v1",
+      "logical_id": "commercial-vesna-65877-v1",
+      "prior_batch": 11,
+      "old_text": "🌊 Vesna Hotel 5★ · Нячанг\n\nДля поездки в Нячанг втроём или большой семьёй.\n\n🏖 Пляж примерно в 50 м, через дорогу.\n🛏 Deluxe Triple и Premier Triple: три отдельные кровати.\n👨‍👩‍👧‍👦 Family Duplex: два уровня и две отдельные спальни.\n\n✈️ Подберём категорию и вид из номера, рассчитаем тур в Vesna с перелётом на ваши даты и состав.",
+      "new_text": "✈️ Туры в Vesna Hotel с перелётом\n📍 Нячанг, Вьетнам.\n\nДля поездки в Нячанг втроём или большой семьёй.\n\n🏖 Пляж примерно в 50 м, через дорогу.\n🛏 Deluxe Triple и Premier Triple: три отдельные кровати.\n👨‍👩‍👧‍👦 Family Duplex: два уровня и две отдельные спальни.\n\n✈️ Подберём категорию и вид из номера, рассчитаем тур в Vesna с перелётом на ваши даты и состав.",
+      "old_text_sha256": "d65956a77973df500323a9149ce73d5cdca456da6468e58c20559cf7f5d4ead1",
+      "new_text_sha256": "374977b405ee7b086902925fcee7156cfe6a4e8071fb956d9d84dd2f6a721125",
+      "previous_heading": "🌊 Vesna Hotel 5★ · Нячанг",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Vesna Hotel с перелётом",
+      "new_location": "📍 Нячанг, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 20971,
+      "key": "commercial-sugar-nautical-20971-v1",
+      "logical_id": "commercial-sugar-nautical-20971-v1",
+      "prior_batch": 11,
+      "old_text": "⛵ Sugar Marina Resort Nautical Kata Beach 4★ · Пхукет\n\nНомер с выходом к бассейну для отдыха на Кате.\n\n🛏 Deluxe Pool Access 32 м²: собственная терраса и прямой выход к бассейну.\n🏖 До общественного пляжа Ката около 650 м, с переходом через дорогу.\n👜 В номерах есть пляжная сумка, коврик и полотенце.\n🏋️ Тренажёрный зал на территории.\n\n✈️ Подберём категорию и питание в Nautical, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Sugar Marina Resort Nautical Kata Beach с перелётом\n📍 Пхукет, Таиланд.\n\nНомер с выходом к бассейну для отдыха на Кате.\n\n🛏 Deluxe Pool Access 32 м²: собственная терраса и прямой выход к бассейну.\n🏖 До общественного пляжа Ката около 650 м, с переходом через дорогу.\n👜 В номерах есть пляжная сумка, коврик и полотенце.\n🏋️ Тренажёрный зал на территории.\n\n✈️ Подберём категорию и питание в Nautical, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "34bbffe017845e4af1072b12907a2aeb8f1764a3d53087750c5d114ffb56de32",
+      "new_text_sha256": "4f48bb549a77b40d264ff28743105e8cc0b2a0d3730f2a35e8899bae768b7ac4",
+      "previous_heading": "⛵ Sugar Marina Resort Nautical Kata Beach 4★ · Пхукет",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Sugar Marina Resort Nautical Kata Beach с перелётом",
+      "new_location": "📍 Пхукет, Таиланд.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1653,
+      "key": "commercial-hilton-dalaman-1653-v1",
+      "logical_id": "commercial-hilton-dalaman-1653-v1",
+      "prior_batch": 11,
+      "old_text": "🌿 Hilton Dalaman Sarigerme Resort & Spa 5★ · Сарыгерме\n\nДля семейного отпуска с большим пляжем и клубами по возрастам.\n\n🏖 Собственный пляж длиной 650 м.\n🛏 Guest Room 36 м² в главном здании.\n🎨 Carpi для детей от 3 до 10 лет, приученных к туалету.\n🎮 Youngster для возраста от 10 до 15 лет, по регистрации.\n\n✈️ Подберём номер под вашу семью и рассчитаем тур с перелётом на нужные даты.",
+      "new_text": "✈️ Туры в Hilton Dalaman Sarigerme Resort & Spa с перелётом\n📍 Сарыгерме, Турция.\n\nДля семейного отпуска с большим пляжем и клубами по возрастам.\n\n🏖 Собственный пляж длиной 650 м.\n🛏 Guest Room 36 м² в главном здании.\n🎨 Carpi для детей от 3 до 10 лет, приученных к туалету.\n🎮 Youngster для возраста от 10 до 15 лет, по регистрации.\n\n✈️ Подберём номер под вашу семью и рассчитаем тур с перелётом на нужные даты.",
+      "old_text_sha256": "2411fb82b4ff3fcd9860368bcbd965a7cb7d942d5648b1d2db28c2bd33c8ef15",
+      "new_text_sha256": "271c22c9e631f7244329d4dcd61e3e0b9d53d59cd50f945eb0be9acdeb13b9c9",
+      "previous_heading": "🌿 Hilton Dalaman Sarigerme Resort & Spa 5★ · Сарыгерме",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Hilton Dalaman Sarigerme Resort & Spa с перелётом",
+      "new_location": "📍 Сарыгерме, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 501,
+      "key": "commercial-empire-beach-501-v1",
+      "logical_id": "commercial-empire-beach-501-v1",
+      "prior_batch": 11,
+      "old_text": "🏖 Empire Beach Aqua Park 3★ · Хургада\n\nМоре рядом с корпусом и бассейны на территории.\n\n🌊 Собственный пляж примерно в 20 м от корпуса.\n🛏 Standard 25 м², балкон или терраса.\n💧 Три бассейна.\n🎨 Детский клуб для возраста от 4 до 11 лет.\n\n✈️ Подберём номер и питание в Empire Beach, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Empire Beach Aqua Park с перелётом\n📍 Хургада, Египет.\n\nМоре рядом с корпусом и бассейны на территории.\n\n🌊 Собственный пляж примерно в 20 м от корпуса.\n🛏 Standard 25 м², балкон или терраса.\n💧 Три бассейна.\n🎨 Детский клуб для возраста от 4 до 11 лет.\n\n✈️ Подберём номер и питание в Empire Beach, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "229c8ebdaf0dba175285483a801506ff64113c045aa6ac061cf7cd759453250a",
+      "new_text_sha256": "3c8e462b68904f533fdf81ac8be0c481a009d254f4e563b1009f80640bc7c515",
+      "previous_heading": "🏖 Empire Beach Aqua Park 3★ · Хургада",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Empire Beach Aqua Park с перелётом",
+      "new_location": "📍 Хургада, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 502,
+      "key": "commercial-empire-hotel-502-v1",
+      "logical_id": "commercial-empire-hotel-502-v1",
+      "prior_batch": 11,
+      "old_text": "💦 Empire Hotel Aqua Park 3★ · Хургада\n\nДля отпуска с бассейнами и водными горками.\n\n🛏 Standard от 26 до 28 м²: одна спальня, балкон или терраса.\n💧 Взрослый и детский бассейны.\n🎢 Три взрослые горки.\n🏖 До пляжа около 500 м, через дорогу.\n\nЕда и напитки на пляже оплачиваются отдельно.\n\n✈️ Подберём номер и питание в Empire Hotel, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Empire Hotel Aqua Park с перелётом\n📍 Хургада, Египет.\n\nДля отпуска с бассейнами и водными горками.\n\n🛏 Standard от 26 до 28 м²: одна спальня, балкон или терраса.\n💧 Взрослый и детский бассейны.\n🎢 Три взрослые горки.\n🏖 До пляжа около 500 м, через дорогу.\n\nЕда и напитки на пляже оплачиваются отдельно.\n\n✈️ Подберём номер и питание в Empire Hotel, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "16fc98a8195765778d2757dcfe4a2864e28bed27ed98fd4fa1b520ef857fe072",
+      "new_text_sha256": "9ebfeffd7e9cd13a7643e2c2894165875a044afcf2743ce9e101d68e13d1621d",
+      "previous_heading": "💦 Empire Hotel Aqua Park 3★ · Хургада",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Empire Hotel Aqua Park с перелётом",
+      "new_location": "📍 Хургада, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 95165,
+      "key": "commercial-annova-95165-v1",
+      "logical_id": "commercial-annova-95165-v1",
+      "prior_batch": 11,
+      "old_text": "🌇 Annova Nha Trang Hotel 5★ · Нячанг\n\nДля семейной поездки с просторным номером и удобствами для длительного отдыха.\n\n🛏 Family Club Suite 60 м²: отдельные жилые зоны, две ванные, кухня и стиральная машина.\n💧 Взрослый и детский бассейны на 6 этаже.\n🏖 До общественного пляжа от 100 до 200 м, через дорогу.\n\n✈️ Подберём категорию под вашу семью и рассчитаем тур в Annova с перелётом на нужные даты.",
+      "new_text": "✈️ Туры в Annova Nha Trang Hotel с перелётом\n📍 Нячанг, Вьетнам.\n\nДля семейной поездки с просторным номером и удобствами для длительного отдыха.\n\n🛏 Family Club Suite 60 м²: отдельные жилые зоны, две ванные, кухня и стиральная машина.\n💧 Взрослый и детский бассейны на 6 этаже.\n🏖 До общественного пляжа от 100 до 200 м, через дорогу.\n\n✈️ Подберём категорию под вашу семью и рассчитаем тур в Annova с перелётом на нужные даты.",
+      "old_text_sha256": "487852ca1f121b43b522a358ffd7c4e4c463b241e7b584617bfcf8ed625dee9f",
+      "new_text_sha256": "4352d3150ab197bd69f88f14cb27585f4b68f71a546185ec353b969a201c2c3e",
+      "previous_heading": "🌇 Annova Nha Trang Hotel 5★ · Нячанг",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Annova Nha Trang Hotel с перелётом",
+      "new_location": "📍 Нячанг, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 50659,
+      "key": "commercial-sheraton-phu-quoc-50659-v1",
+      "logical_id": "commercial-sheraton-phu-quoc-50659-v1",
+      "prior_batch": 11,
+      "old_text": "🌴 Sheraton Phu Quoc Long Beach Resort 5★ · Фукуок\n\nПляжный отдых с бассейнами и выбором ресторанов.\n\n🏖 Собственный пляж рядом с отелем.\n💧 Основной и детский бассейны, джакузи на открытом воздухе.\n🍝 Il Tramonto с итальянской кухней, The Sands Bar & Grill с морепродуктами.\n🌿 Собственные сад и пасека.\n\n✈️ Подберём номер и питание в Sheraton, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Sheraton Phu Quoc Long Beach Resort с перелётом\n📍 Фукуок, Вьетнам.\n\nПляжный отдых с бассейнами и выбором ресторанов.\n\n🏖 Собственный пляж рядом с отелем.\n💧 Основной и детский бассейны, джакузи на открытом воздухе.\n🍝 Il Tramonto с итальянской кухней, The Sands Bar & Grill с морепродуктами.\n🌿 Собственные сад и пасека.\n\n✈️ Подберём номер и питание в Sheraton, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "af8d9e84a55cc9936152f9494db8abada84c18f37d0422c811af06658873ed0a",
+      "new_text_sha256": "9718cac525c2a517ad8d1740d1f0ea7505b9f917ab4572ddfe0dbac23d4f2231",
+      "previous_heading": "🌴 Sheraton Phu Quoc Long Beach Resort 5★ · Фукуок",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Sheraton Phu Quoc Long Beach Resort с перелётом",
+      "new_location": "📍 Фукуок, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 79071,
+      "key": "commercial-wyndham-grandworld-79071-v1",
+      "logical_id": "commercial-wyndham-grandworld-79071-v1",
+      "prior_batch": 11,
+      "old_text": "🌴 Wyndham Garden Grandworld Phu Quoc 4★ · Фукуок\n\nДля семейного отпуска с соединёнными номерами и большой зоной бассейнов.\n\n🛏 Family Connecting: два Superior со смежной дверью.\n💧 Зона бассейнов почти 1 000 м² со взрослой и детской частями.\n🏖 До пляжа Бай Дай около 400 м.\n🏋️ Тренажёрный зал на территории.\n\n✈️ Подберём семейную категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Wyndham Garden Grandworld Phu Quoc с перелётом\n📍 Фукуок, Вьетнам.\n\nДля семейного отпуска с соединёнными номерами и большой зоной бассейнов.\n\n🛏 Family Connecting: два Superior со смежной дверью.\n💧 Зона бассейнов почти 1 000 м² со взрослой и детской частями.\n🏖 До пляжа Бай Дай около 400 м.\n🏋️ Тренажёрный зал на территории.\n\n✈️ Подберём семейную категорию и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "16fc090496c94a8594e12f10f2c3bd8b0d8788b569475bb00f542a4d43334f78",
+      "new_text_sha256": "a1ae2bebbfd424fd9ba2253e74365a012f359e45a7a83ffebfc6d6df6cd14f5f",
+      "previous_heading": "🌴 Wyndham Garden Grandworld Phu Quoc 4★ · Фукуок",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Wyndham Garden Grandworld Phu Quoc с перелётом",
+      "new_location": "📍 Фукуок, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1143,
+      "key": "commercial-crystal-paraiso-1143-v1",
+      "logical_id": "commercial-crystal-paraiso-1143-v1",
+      "prior_batch": 12,
+      "old_text": "💦 Crystal Paraiso Aqua Collection 5★ · Белек\n\nСемейный отдых с двумя спальнями и водными развлечениями.\n\n🛏 Family 42 м²: две спальни и одна ванная.\n🎨 Детский клуб для детей от 4 до 12 лет.\n💧 Отдельный Relax Pool для гостей от 16 лет.\n🎢 Водные горки работают по сезону и погоде.\n\nДо пляжа около 400 м, дорожка огибает озеро.\n\n✈️ Подберём семейный номер и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Crystal Paraiso Aqua Collection с перелётом\n📍 Белек, Турция.\n\nСемейный отдых с двумя спальнями и водными развлечениями.\n\n🛏 Family 42 м²: две спальни и одна ванная.\n🎨 Детский клуб для детей от 4 до 12 лет.\n💧 Отдельный Relax Pool для гостей от 16 лет.\n🎢 Водные горки работают по сезону и погоде.\n\nДо пляжа около 400 м, дорожка огибает озеро.\n\n✈️ Подберём семейный номер и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "d65ff37e586c21c256166f02ae2877b77b51da486f48cda451d32e6ac2cf6a2b",
+      "new_text_sha256": "625c3bdea264b07527ed1cb154d86b8e8a1d027b285fa92d3fe8bb23d8147bac",
+      "previous_heading": "💦 Crystal Paraiso Aqua Collection 5★ · Белек",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Crystal Paraiso Aqua Collection с перелётом",
+      "new_location": "📍 Белек, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 41495,
+      "key": "commercial-liberty-central-41495-v1",
+      "logical_id": "commercial-liberty-central-41495-v1",
+      "prior_batch": 12,
+      "old_text": "🌆 Liberty Central Nha Trang 4★ · Нячанг\n\nДля пляжных дней и вечеров над городом.\n\n🛏 Deluxe 27 м²: вид на город, двуспальная кровать или две отдельные.\n💧 Открытый и детский бассейны на 4 этаже.\n🍹 Above Sky Bar на 21 этаже.\n🍽 В Central Restaurant есть вьетнамская и западная кухня.\n\nДо пляжа около 200 м через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Liberty Central Nha Trang с перелётом\n📍 Нячанг, Вьетнам.\n\nДля пляжных дней и вечеров над городом.\n\n🛏 Deluxe 27 м²: вид на город, двуспальная кровать или две отдельные.\n💧 Открытый и детский бассейны на 4 этаже.\n🍹 Above Sky Bar на 21 этаже.\n🍽 В Central Restaurant есть вьетнамская и западная кухня.\n\nДо пляжа около 200 м через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "bc6aafa5a334959bfba95c967da6c10224006407df0b4e2e4627681cf8c15edd",
+      "new_text_sha256": "463def0268ce7fe0d22ff4ba148255b8361c01ec923ef016d24366f7e1ce0062",
+      "previous_heading": "🌆 Liberty Central Nha Trang 4★ · Нячанг",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Liberty Central Nha Trang с перелётом",
+      "new_location": "📍 Нячанг, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 69261,
+      "key": "commercial-virgo-69261-v1",
+      "logical_id": "commercial-virgo-69261-v1",
+      "prior_batch": 12,
+      "old_text": "🌃 Virgo Hotel 5★ · Нячанг\n\nДля тех, кто хочет совместить городские прогулки и отдых у моря.\n\n🛏 Superior 38 м² с балконом в сторону города и рабочей зоной.\n💧 Бассейн с видом на город.\n🏋️ Тренажёрный зал для занятий в отпуске.\n\nПляж муниципальный. Вид на море зависит от выбранной категории номера.\n\n✈️ Подберём номер под ваши пожелания и рассчитаем тур с перелётом на даты поездки.",
+      "new_text": "✈️ Туры в Virgo Hotel с перелётом\n📍 Нячанг, Вьетнам.\n\nДля тех, кто хочет совместить городские прогулки и отдых у моря.\n\n🛏 Superior 38 м² с балконом в сторону города и рабочей зоной.\n💧 Бассейн с видом на город.\n🏋️ Тренажёрный зал для занятий в отпуске.\n\nПляж муниципальный. Вид на море зависит от выбранной категории номера.\n\n✈️ Подберём номер под ваши пожелания и рассчитаем тур с перелётом на даты поездки.",
+      "old_text_sha256": "2dcd675bb3e74748dba7b5382a104f521dca9134d8561017334822323d1c0663",
+      "new_text_sha256": "0aa9a3fdb92e4e1a1f620789a28480fea95b4d37215ddef7dd5eecf521526380",
+      "previous_heading": "🌃 Virgo Hotel 5★ · Нячанг",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Virgo Hotel с перелётом",
+      "new_location": "📍 Нячанг, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1221,
+      "key": "commercial-megasaray-side-1221-v1",
+      "logical_id": "commercial-megasaray-side-1221-v1",
+      "prior_batch": 12,
+      "old_text": "🌿 Megasaray Resort Side 5★ · Сиде\n\nДля семейного отпуска с отдельными спальнями и песчаным пляжем.\n\n🛏 Junior Family 37 м²: две спальни и балкон.\n🏖 Собственный песчаный Megabeach в пешей доступности.\n💦 Детский бассейн с двумя горками.\n\nОтель на второй линии. Работу детского клуба и горок уточним на ваши даты.\n\n✈️ Подберём категорию под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Megasaray Resort Side с перелётом\n📍 Сиде, Турция.\n\nДля семейного отпуска с отдельными спальнями и песчаным пляжем.\n\n🛏 Junior Family 37 м²: две спальни и балкон.\n🏖 Собственный песчаный Megabeach в пешей доступности.\n💦 Детский бассейн с двумя горками.\n\nОтель на второй линии. Работу детского клуба и горок уточним на ваши даты.\n\n✈️ Подберём категорию под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "dfd99ddd2c5d7c7165f5eb25be933e8dc1cd8bb3a613850da6fa588919458ac6",
+      "new_text_sha256": "1c1e13623491e5c79037243075bcf69012a98749497cd916114b191099f63981",
+      "previous_heading": "🌿 Megasaray Resort Side 5★ · Сиде",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Megasaray Resort Side с перелётом",
+      "new_location": "📍 Сиде, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 32342,
+      "key": "commercial-vinpearl-phu-quoc-32342-v1",
+      "logical_id": "commercial-vinpearl-phu-quoc-32342-v1",
+      "prior_batch": 12,
+      "old_text": "🏝 Vinpearl Resort & Spa Phu Quoc 5★ · Фукуок\n\nДля семьи или компании, которой нужен выбор между номером и виллой.\n\n🛏 Deluxe 46 м² с двуспальной или двумя отдельными кроватями.\n💧 Открытый бассейн почти 5 000 м².\n🏡 Villa 3 Bedroom 340 м² с собственным бассейном.\n🏖 Пляж рядом с отелем.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Vinpearl Resort & Spa Phu Quoc с перелётом\n📍 Фукуок, Вьетнам.\n\nДля семьи или компании, которой нужен выбор между номером и виллой.\n\n🛏 Deluxe 46 м² с двуспальной или двумя отдельными кроватями.\n💧 Открытый бассейн почти 5 000 м².\n🏡 Villa 3 Bedroom 340 м² с собственным бассейном.\n🏖 Пляж рядом с отелем.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "e7e4bc9acb809a384258745651dcf124a6dc7783d0254d582f41704e6cbfc666",
+      "new_text_sha256": "a835a30b174e1b7cc1451eee3f1a8699e694a2503c5e90d03d127bf39bc79053",
+      "previous_heading": "🏝 Vinpearl Resort & Spa Phu Quoc 5★ · Фукуок",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Vinpearl Resort & Spa Phu Quoc с перелётом",
+      "new_location": "📍 Фукуок, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 64670,
+      "key": "commercial-orbit-64670-v1",
+      "logical_id": "commercial-orbit-64670-v1",
+      "prior_batch": 12,
+      "old_text": "🌴 Orbit Resort & Spa 4★ · Нячанг\n\nДля отдыха в районе Ан Вьен, вдали от городского центра.\n\n🛏 Superior with Balcony 32 м²: двуспальная или две отдельные кровати и собственный балкон.\n💧 Бассейн на территории.\n🏋️ Зал с тренажёрами и свободными весами.\n\nДо центра около 7 км. Муниципальный пляж примерно в 450 м через дорогу.\n\n✈️ Подберём номер и питание в Orbit, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Orbit Resort & Spa с перелётом\n📍 Нячанг, Вьетнам.\n\nДля отдыха в районе Ан Вьен, вдали от городского центра.\n\n🛏 Superior with Balcony 32 м²: двуспальная или две отдельные кровати и собственный балкон.\n💧 Бассейн на территории.\n🏋️ Зал с тренажёрами и свободными весами.\n\nДо центра около 7 км. Муниципальный пляж примерно в 450 м через дорогу.\n\n✈️ Подберём номер и питание в Orbit, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "ced1fe0e9c77f367af72feac55e50e1e55bff7814b7a7cf220d2cdbfd550531d",
+      "new_text_sha256": "8f01304d70fd579b57223c07384b7a22b92daeb8a8e2c1decb45499ccd7c6a8b",
+      "previous_heading": "🌴 Orbit Resort & Spa 4★ · Нячанг",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Orbit Resort & Spa с перелётом",
+      "new_location": "📍 Нячанг, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 4095,
+      "key": "commercial-yasaka-4095-v1",
+      "logical_id": "commercial-yasaka-4095-v1",
+      "prior_batch": 12,
+      "old_text": "🌊 Yasaka Saigon Nhatrang 4★ · Нячанг\n\nДля пляжных дней и знакомства с вьетнамской кухней.\n\n🛏 Deluxe 35 м² с двуспальной или двумя отдельными кроватями.\n🏖 Пляжная зона примерно в 30 м от отеля.\n🍽 Red Onion на 11 этаже: вьетнамские и международные блюда.\n🌿 Food Court в саду.\n\nК морю нужно перейти дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур в Yasaka с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Yasaka Saigon Nhatrang с перелётом\n📍 Нячанг, Вьетнам.\n\nДля пляжных дней и знакомства с вьетнамской кухней.\n\n🛏 Deluxe 35 м² с двуспальной или двумя отдельными кроватями.\n🏖 Пляжная зона примерно в 30 м от отеля.\n🍽 Red Onion на 11 этаже: вьетнамские и международные блюда.\n🌿 Food Court в саду.\n\nК морю нужно перейти дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур в Yasaka с перелётом на ваши даты.",
+      "old_text_sha256": "3d58e5ffc35b2a35b21c62acec7d1519eeb1205183d66a568d0e03dd2a90ac79",
+      "new_text_sha256": "b92acfa532cd06bda44b68943c231be789db933fb951b0fcd17498b9a34c7514",
+      "previous_heading": "🌊 Yasaka Saigon Nhatrang 4★ · Нячанг",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Yasaka Saigon Nhatrang с перелётом",
+      "new_location": "📍 Нячанг, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 13941,
+      "key": "commercial-blue-pearl-13941-v1",
+      "logical_id": "commercial-blue-pearl-13941-v1",
+      "prior_batch": 12,
+      "old_text": "🌅 Blue Pearl Hotel 3★ · Нячанг\n\nДля пары, которой хочется встречать утро на своём балконе у моря.\n\n🛏 Suite 35 м² с морским видом, балконом, двуспальной кроватью и диваном.\n💧 Бассейн с террасой на крыше, на 14 этаже.\n🏖 До пляжа около 50 м.\n\nМежду отелем и пляжем проходит дорога.\n\n✈️ Подберём категорию и питание в Blue Pearl, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Blue Pearl Hotel с перелётом\n📍 Нячанг, Вьетнам.\n\nДля пары, которой хочется встречать утро на своём балконе у моря.\n\n🛏 Suite 35 м² с морским видом, балконом, двуспальной кроватью и диваном.\n💧 Бассейн с террасой на крыше, на 14 этаже.\n🏖 До пляжа около 50 м.\n\nМежду отелем и пляжем проходит дорога.\n\n✈️ Подберём категорию и питание в Blue Pearl, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "1d040aa069bc4cd1610e3e1057d5b738eaf89bd99a3b49e0d9a99739636fc464",
+      "new_text_sha256": "cb7b539811c1d8d11beaacd4df4956b31b91c2709775a5fa5c4fffaff61f396c",
+      "previous_heading": "🌅 Blue Pearl Hotel 3★ · Нячанг",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Blue Pearl Hotel с перелётом",
+      "new_location": "📍 Нячанг, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 4071,
+      "key": "commercial-saigon-mui-ne-4071-v1",
+      "logical_id": "commercial-saigon-mui-ne-4071-v1",
+      "prior_batch": 12,
+      "old_text": "🏖 Saigon Mui Ne Resort 4★ · Муйне\n\nДля семьи, которой нужны отдельные спальни и пляжный отдых.\n\n🛏 Standard Family Across Street 45 м²: две спальни, двуспальная и две отдельные кровати.\n🌊 Основная территория выходит к собственному пляжу.\n🍹 Wind Charm Bar на территории.\n\nНомера этой категории находятся через дорогу, без балкона и вида на море.\n\n✈️ Подберём размещение с удобным расположением и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Saigon Mui Ne Resort с перелётом\n📍 Муйне, Вьетнам.\n\nДля семьи, которой нужны отдельные спальни и пляжный отдых.\n\n🛏 Standard Family Across Street 45 м²: две спальни, двуспальная и две отдельные кровати.\n🌊 Основная территория выходит к собственному пляжу.\n🍹 Wind Charm Bar на территории.\n\nНомера этой категории находятся через дорогу, без балкона и вида на море.\n\n✈️ Подберём размещение с удобным расположением и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "1410bb28fbf8ba5c74fd99391f05f835a33e6bdb05784f862ceae72b382b0e3b",
+      "new_text_sha256": "e9c3e23283ee6ccee078315b1f5a436bde5296f4ed0db1501cb71977311de257",
+      "previous_heading": "🏖 Saigon Mui Ne Resort 4★ · Муйне",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Saigon Mui Ne Resort с перелётом",
+      "new_location": "📍 Муйне, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 41149,
+      "key": "commercial-vinpearl-nha-trang-bay-41149-v1",
+      "logical_id": "commercial-vinpearl-nha-trang-bay-41149-v1",
+      "prior_batch": 13,
+      "old_text": "🏝 Vinpearl Resort & Spa Nha Trang Bay 5★ · Хон Тре\n\nОстровной отпуск с выбором между номером и виллой для семьи.\n\n🛏 Deluxe 45 м² с двуспальной или двумя отдельными кроватями.\n🏡 Villa 2 Bedroom Beachfront 230 м²: две спальни, гостиная и собственный бассейн.\n🏖 Собственный песчаный пляж через дорогу.\n\nБилеты в VinWonders зависят от выбранного пакета.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Vinpearl Resort & Spa Nha Trang Bay с перелётом\n📍 Хон Тре, Вьетнам.\n\nОстровной отпуск с выбором между номером и виллой для семьи.\n\n🛏 Deluxe 45 м² с двуспальной или двумя отдельными кроватями.\n🏡 Villa 2 Bedroom Beachfront 230 м²: две спальни, гостиная и собственный бассейн.\n🏖 Собственный песчаный пляж через дорогу.\n\nБилеты в VinWonders зависят от выбранного пакета.\n\n✈️ Подберём размещение и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "a63bfcb93d6dfe189cc2753dd15bdd066a0c6088feda48c53b6d5b6e85b6b38f",
+      "new_text_sha256": "890809ae0f66dd02a7824f7f79a30201885da436a8ec4ce2aa6e970932cb6092",
+      "previous_heading": "🏝 Vinpearl Resort & Spa Nha Trang Bay 5★ · Хон Тре",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Vinpearl Resort & Spa Nha Trang Bay с перелётом",
+      "new_location": "📍 Хон Тре, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 54592,
+      "key": "commercial-granada-belek-54592-v1",
+      "logical_id": "commercial-granada-belek-54592-v1",
+      "prior_batch": 13,
+      "old_text": "💦 Granada Luxury Belek 5★ · Белек\n\nДля семейного отпуска с бассейнами и вечерней программой.\n\n🛏 Family 38 м²: две спальни с дверью, балкон, двуспальная и две отдельные кровати.\n💧 Крытые бассейны с пресной и солёной водой.\n🎶 Живая музыка и дискотека.\n\nЗимняя концепция 2026/27 не включает доступ на частный пляж.\n\n✈️ Подберём номер и сезон отдыха, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Granada Luxury Belek с перелётом\n📍 Белек, Турция.\n\nДля семейного отпуска с бассейнами и вечерней программой.\n\n🛏 Family 38 м²: две спальни с дверью, балкон, двуспальная и две отдельные кровати.\n💧 Крытые бассейны с пресной и солёной водой.\n🎶 Живая музыка и дискотека.\n\nЗимняя концепция 2026/27 не включает доступ на частный пляж.\n\n✈️ Подберём номер и сезон отдыха, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "050a5b9983c6b86f9d26a94943323b8c4130b26a081749d0e925efac7d35e1e3",
+      "new_text_sha256": "dda75293f4ac82d9f4493ca44a7cf43791818dcfb15c6f3eb9925a4c252c95cb",
+      "previous_heading": "💦 Granada Luxury Belek 5★ · Белек",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Granada Luxury Belek с перелётом",
+      "new_location": "📍 Белек, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 57217,
+      "key": "commercial-wyndham-grand-57217-v1",
+      "logical_id": "commercial-wyndham-grand-57217-v1",
+      "prior_batch": 13,
+      "old_text": "🏝 Wyndham Grand Phu Quoc 5★ · Фукуок\n\nДля отпуска у моря с просторным номером и развлечениями.\n\n🛏 Deluxe 42 м²: балкон и двуспальная или две отдельные кровати.\n🏖 Собственный пляж рядом с отелем.\n🎨 Детский клуб и игровые занятия.\n🎶 В Brew Bar есть живая музыка и караоке.\n\nВид из Deluxe зависит от категории: сад, бассейн или море.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Wyndham Grand Phu Quoc с перелётом\n📍 Фукуок, Вьетнам.\n\nДля отпуска у моря с просторным номером и развлечениями.\n\n🛏 Deluxe 42 м²: балкон и двуспальная или две отдельные кровати.\n🏖 Собственный пляж рядом с отелем.\n🎨 Детский клуб и игровые занятия.\n🎶 В Brew Bar есть живая музыка и караоке.\n\nВид из Deluxe зависит от категории: сад, бассейн или море.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "c6110a212f6f33bae1fc61900b7f29264e1a45eed376f7983bb5ad2cbc9a4a08",
+      "new_text_sha256": "d5961fabd975d7634a730d308220e0a692be39f5e1b1fcf881d6f41b692c236a",
+      "previous_heading": "🏝 Wyndham Grand Phu Quoc 5★ · Фукуок",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Wyndham Grand Phu Quoc с перелётом",
+      "new_location": "📍 Фукуок, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 4432,
+      "key": "commercial-barcelo-coconut-4432-v1",
+      "logical_id": "commercial-barcelo-coconut-4432-v1",
+      "prior_batch": 13,
+      "old_text": "🏝 Barcelo Coconut Island 5★ · Пхукет\n\nДля островного отдыха в собственной вилле.\n\n🏡 Lux 2 Bedroom Sea View Pool Villa: две спальни и собственный бассейн.\n🏖 Частный пляж на Coconut Island.\n🍽 Kabang: тайская кухня. Kucina: пицца на дровах и паста.\n🏋️ Йога и зал для тренировок на территории.\n\nНа остров добираются только лодкой, трансфер работает по расписанию.\n\n✈️ Подберём виллу и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Barcelo Coconut Island с перелётом\n📍 Пхукет, Таиланд.\n\nДля островного отдыха в собственной вилле.\n\n🏡 Lux 2 Bedroom Sea View Pool Villa: две спальни и собственный бассейн.\n🏖 Частный пляж на Coconut Island.\n🍽 Kabang: тайская кухня. Kucina: пицца на дровах и паста.\n🏋️ Йога и зал для тренировок на территории.\n\nНа остров добираются только лодкой, трансфер работает по расписанию.\n\n✈️ Подберём виллу и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "f4834b3b380c8dbd5dad9f28e6a81e3c5421afec581f558d0c4d8032894085fc",
+      "new_text_sha256": "1a17600fec5cab4760aed86302040524577ca17ff04a738e79fe3e0aa8e6a23a",
+      "previous_heading": "🏝 Barcelo Coconut Island 5★ · Пхукет",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Barcelo Coconut Island с перелётом",
+      "new_location": "📍 Пхукет, Таиланд.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 82606,
+      "key": "commercial-lonicera-world-82606-v1",
+      "logical_id": "commercial-lonicera-world-82606-v1",
+      "prior_batch": 13,
+      "old_text": "🏖 Lonicera World Hotel 4★ · Аланья\n\nДля семейного отпуска на песчаном побережье.\n\n🌊 Первая линия и мелководный песчаный пляж.\n🛏 World Standard 24 м² с балконом.\n👨‍👩‍👧 Family 44 м² для семейного размещения.\n🍽 Собственные рестораны World: Aspera и Beach.\n\nУ Family есть варианты с одной комнатой и с двумя: нужный подбирается отдельно.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Lonicera World Hotel с перелётом\n📍 Аланья, Турция.\n\nДля семейного отпуска на песчаном побережье.\n\n🌊 Первая линия и мелководный песчаный пляж.\n🛏 World Standard 24 м² с балконом.\n👨‍👩‍👧 Family 44 м² для семейного размещения.\n🍽 Собственные рестораны World: Aspera и Beach.\n\nУ Family есть варианты с одной комнатой и с двумя: нужный подбирается отдельно.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "3e8ad49706f6e4e3b7d69d812bbeab81c9dc8e961d1667c3ab8f8678631c062f",
+      "new_text_sha256": "2760f3c97fd81be5a3ff461170ec43cbe9f150807418bda47181fefafdd81e2d",
+      "previous_heading": "🏖 Lonicera World Hotel 4★ · Аланья",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Lonicera World Hotel с перелётом",
+      "new_location": "📍 Аланья, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1337,
+      "key": "commercial-limak-atlantis-1337-v1",
+      "logical_id": "commercial-limak-atlantis-1337-v1",
+      "prior_batch": 13,
+      "old_text": "🌊 Limak Atlantis De Luxe 5★ · Белек\n\nСемейный отдых на первой линии с программами для детей и подростков.\n\n🛏 Standard 30 м²: двуспальная или две отдельные кровати и раскладной диван.\n🎨 Kids Club для детей от 4 до 12 лет.\n🎮 Отдельный Teen Club для подростков от 13 до 17 лет.\n🎶 Живая музыка и дискотека.\n\nНа пляже песок и мелкая галька.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Limak Atlantis De Luxe с перелётом\n📍 Белек, Турция.\n\nСемейный отдых на первой линии с программами для детей и подростков.\n\n🛏 Standard 30 м²: двуспальная или две отдельные кровати и раскладной диван.\n🎨 Kids Club для детей от 4 до 12 лет.\n🎮 Отдельный Teen Club для подростков от 13 до 17 лет.\n🎶 Живая музыка и дискотека.\n\nНа пляже песок и мелкая галька.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "653be0865c957be88a3ae0497328a7070821a88eb2011f0841f2739377c3c387",
+      "new_text_sha256": "7e656d20eb6a2dcb6be45192874e582c29ab14e61dad78299717a5c2ed7469e2",
+      "previous_heading": "🌊 Limak Atlantis De Luxe 5★ · Белек",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Limak Atlantis De Luxe с перелётом",
+      "new_location": "📍 Белек, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 380,
+      "key": "commercial-rehana-sharm-380-v1",
+      "logical_id": "commercial-rehana-sharm-380-v1",
+      "prior_batch": 13,
+      "old_text": "🐠 Rehana Sharm Resort 4★ · Набк Бей\n\nДля семейного отпуска с отдельными спальнями и вечерней программой.\n\n🛏 Family Suite 55 м²: две спальни с дверью.\n🌊 К выделенной пляжной зоне ведёт подземный проход; вход коралловый, для плавания есть понтон.\n🎶 Вечерняя программа и дискотека Sombrero.\n\nОстальная инфраструктура соседнего Rehana Royal недоступна.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты и состав семьи.",
+      "new_text": "✈️ Туры в Rehana Sharm Resort с перелётом\n📍 Набк-Бей, Египет.\n\nДля семейного отпуска с отдельными спальнями и вечерней программой.\n\n🛏 Family Suite 55 м²: две спальни с дверью.\n🌊 К выделенной пляжной зоне ведёт подземный проход; вход коралловый, для плавания есть понтон.\n🎶 Вечерняя программа и дискотека Sombrero.\n\nОстальная инфраструктура соседнего Rehana Royal недоступна.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты и состав семьи.",
+      "old_text_sha256": "56980a46c8e12c460e6d99b0e24605cc9c929597799ec166c81e39aa88c2b8ef",
+      "new_text_sha256": "4d74845287d1df9e9adc2829b5cfcdb9e5cf6b69c39e64267e7832f0b695c26e",
+      "previous_heading": "🐠 Rehana Sharm Resort 4★ · Набк Бей",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Rehana Sharm Resort с перелётом",
+      "new_location": "📍 Набк-Бей, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1257,
+      "key": "commercial-bellis-1257-v1",
+      "logical_id": "commercial-bellis-1257-v1",
+      "prior_batch": 13,
+      "old_text": "🌿 Bellis Deluxe Hotel 5★ · Белек\n\nДля семейного отдыха с двумя спальнями и водными развлечениями.\n\n🛏 Family Room 45 м² в главном здании: две спальни, одна ванная и боковой вид на море.\n💦 Аквапарки для взрослых и детей. Режим работы уточним на даты поездки.\n🎶 Живая музыка и дискотека.\n🏖 Песчаный пляж на первой линии; у входа есть галька.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Bellis Deluxe Hotel с перелётом\n📍 Белек, Турция.\n\nДля семейного отдыха с двумя спальнями и водными развлечениями.\n\n🛏 Family Room 45 м² в главном здании: две спальни, одна ванная и боковой вид на море.\n💦 Аквапарки для взрослых и детей. Режим работы уточним на даты поездки.\n🎶 Живая музыка и дискотека.\n🏖 Песчаный пляж на первой линии; у входа есть галька.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "cad3970ad0c454751c8905b319a7abcfcf02c2cbb7b8ffb23cb9c617b7f48e9b",
+      "new_text_sha256": "7250b012458e3f646f52be8f3731f9e5efb8fbe651a3ff07524cf548a0061841",
+      "previous_heading": "🌿 Bellis Deluxe Hotel 5★ · Белек",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Bellis Deluxe Hotel с перелётом",
+      "new_location": "📍 Белек, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 82567,
+      "key": "commercial-phuket-emerald-82567-v1",
+      "logical_id": "commercial-phuket-emerald-82567-v1",
+      "prior_batch": 13,
+      "old_text": "💦 Phuket Emerald Beach Resort 5★ · Карон\n\nДля семейного отпуска с просторным номером и детскими водными развлечениями.\n\n🛏 Grand Family Pool View 108 м²: две спальни и два санузла.\n💧 Детская водная зона Emerald Adventure.\n🎨 Детский клуб с бассейном из шариков.\n🏋️ Тренажёрный зал на территории.\n\nДо пляжа Карон около 200 м через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Phuket Emerald Beach Resort с перелётом\n📍 Карон, Таиланд.\n\nДля семейного отпуска с просторным номером и детскими водными развлечениями.\n\n🛏 Grand Family Pool View 108 м²: две спальни и два санузла.\n💧 Детская водная зона Emerald Adventure.\n🎨 Детский клуб с бассейном из шариков.\n🏋️ Тренажёрный зал на территории.\n\nДо пляжа Карон около 200 м через дорогу.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "89eab3256d72deccaaec15e3ac4f3052f77139f3d4cc167909fc268346bff272",
+      "new_text_sha256": "2ee314d19a2ebfa87e69bc935f064dad49cd5caeb7c9b999063c6bace90140a8",
+      "previous_heading": "💦 Phuket Emerald Beach Resort 5★ · Карон",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Phuket Emerald Beach Resort с перелётом",
+      "new_location": "📍 Карон, Таиланд.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1294,
+      "key": "commercial-nirvana-cosmopolitan-1294-v1",
+      "logical_id": "commercial-nirvana-cosmopolitan-1294-v1",
+      "prior_batch": 14,
+      "old_text": "🌴 Nirvana Cosmopolitan 5★ · Анталья\n\nДля семейного отпуска с отдельным местом для отдыха и вечерними развлечениями.\n\n🛏 Family 56 м²: спальня и гостиная.\n🏖 Собственный пляж на первой линии.\n🎨 Mini Club для детей от 4 до 7 лет, Junior Club от 8 до 12 лет.\n🎶 Живая музыка и вечерние шоу.\n\nВ Baby Club дети от 0 до 3 лет находятся с родителями.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Nirvana Cosmopolitan с перелётом\n📍 Анталья, Турция.\n\nДля семейного отпуска с отдельным местом для отдыха и вечерними развлечениями.\n\n🛏 Family 56 м²: спальня и гостиная.\n🏖 Собственный пляж на первой линии.\n🎨 Mini Club для детей от 4 до 7 лет, Junior Club от 8 до 12 лет.\n🎶 Живая музыка и вечерние шоу.\n\nВ Baby Club дети от 0 до 3 лет находятся с родителями.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "9e813a86ffdcc0c2ee63ee66eafb497e695e04e4932c9a825ba30cb1c4783d3b",
+      "new_text_sha256": "99f999e3deb970a79aaa47465dbaccf2824a2bb4c5e61258158246b4b394218c",
+      "previous_heading": "🌴 Nirvana Cosmopolitan 5★ · Анталья",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Nirvana Cosmopolitan с перелётом",
+      "new_location": "📍 Анталья, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 975,
+      "key": "commercial-nirvana-dolce-vita-975-v1",
+      "logical_id": "commercial-nirvana-dolce-vita-975-v1",
+      "prior_batch": 14,
+      "old_text": "🌿 Nirvana Dolce Vita 5★ · Текирова\n\nДля семьи, которой нужны две отдельные спальни и занятия для детей разного возраста.\n\n🛏 Deluxe Family 72 м² в Venezia: две спальни с дверью.\n🏖 Собственный пляж на первой линии.\n🎨 Детские группы от 4 до 7 и от 8 до 12 лет, Teen Club от 13 до 16 лет.\n🎶 Живая музыка и тематические вечеринки.\n\nУ входа в море есть камни. Программу детских клубов уточним на даты поездки.\n\n✈️ Подберём размещение под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Nirvana Dolce Vita с перелётом\n📍 Текирова, Турция.\n\nДля семьи, которой нужны две отдельные спальни и занятия для детей разного возраста.\n\n🛏 Deluxe Family 72 м² в Venezia: две спальни с дверью.\n🏖 Собственный пляж на первой линии.\n🎨 Детские группы от 4 до 7 и от 8 до 12 лет, Teen Club от 13 до 16 лет.\n🎶 Живая музыка и тематические вечеринки.\n\nУ входа в море есть камни. Программу детских клубов уточним на даты поездки.\n\n✈️ Подберём размещение под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "4b004e7093a79526ec58a612a8865452dc1d83135a52881fc9d2925d3a012064",
+      "new_text_sha256": "8526b5cf0bfa87d7a9ecb4c5689206fc43883c1b292355fe2e78bed941688ecf",
+      "previous_heading": "🌿 Nirvana Dolce Vita 5★ · Текирова",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Nirvana Dolce Vita с перелётом",
+      "new_location": "📍 Текирова, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 26530,
+      "key": "commercial-royal-star-beach-26530-v1",
+      "logical_id": "commercial-royal-star-beach-26530-v1",
+      "prior_batch": 14,
+      "old_text": "🏖 Royal Star Beach Resort 4★ · Хургада\n\nДля пары, которой нужен городской отдых рядом с собственным пляжем.\n\n🛏 Standard 26 м² с балконом или террасой.\n🌊 Собственный песчаный пляж.\n🍽 В Aquila шведский стол и тематические ужины.\n📍 Расположение в районе Эль Дахар.\n\nВид из Standard зависит от выбранной категории.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Royal Star Beach Resort с перелётом\n📍 Хургада, Египет.\n\nДля пары, которой нужен городской отдых рядом с собственным пляжем.\n\n🛏 Standard 26 м² с балконом или террасой.\n🌊 Собственный песчаный пляж.\n🍽 В Aquila шведский стол и тематические ужины.\n📍 Расположение в районе Эль Дахар.\n\nВид из Standard зависит от выбранной категории.\n\n✈️ Подберём номер и питание, рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "ba6c74a1c4923f7f478699249a2f0651e88a15a3d1e77002e3d7e347dc3e4e9e",
+      "new_text_sha256": "52eb37b985b3ef459ae8b43562df610bc3058a9ed045125643011e8ae190e462",
+      "previous_heading": "🏖 Royal Star Beach Resort 4★ · Хургада",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Royal Star Beach Resort с перелётом",
+      "new_location": "📍 Хургада, Египет.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 69116,
+      "key": "commercial-selectum-noa-69116-v1",
+      "logical_id": "commercial-selectum-noa-69116-v1",
+      "prior_batch": 14,
+      "old_text": "💦 Selectum Noa Resort Cam Ranh 5★ · Камрань\n\nДля семейного отпуска с просторным номером и водными развлечениями.\n\n🛏 Premier Deluxe 46 м² с балконом.\n🏖 Собственный пляж протяжённостью 400 м.\n🎨 Selecto Kids для детей от 4 до 12 лет.\n🎢 В аквапарке есть взрослые горки и детская водная зона.\n\nДоступ к конкретным горкам зависит от возрастных и ростовых условий.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Selectum Noa Resort Cam Ranh с перелётом\n📍 Камрань, Вьетнам.\n\nДля семейного отпуска с просторным номером и водными развлечениями.\n\n🛏 Premier Deluxe 46 м² с балконом.\n🏖 Собственный пляж протяжённостью 400 м.\n🎨 Selecto Kids для детей от 4 до 12 лет.\n🎢 В аквапарке есть взрослые горки и детская водная зона.\n\nДоступ к конкретным горкам зависит от возрастных и ростовых условий.\n\n✈️ Подберём номер под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "86b905b278ec989b7f1f051126f401d75ea01467c9e905062a087eff1432462b",
+      "new_text_sha256": "71e5db167822d42c7a3c257fc1607a7960c63836640ecc24453c47fa777e220c",
+      "previous_heading": "💦 Selectum Noa Resort Cam Ranh 5★ · Камрань",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Selectum Noa Resort Cam Ranh с перелётом",
+      "new_location": "📍 Камрань, Вьетнам.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 1588,
+      "key": "commercial-kremlin-palace-1588-v1",
+      "logical_id": "commercial-kremlin-palace-1588-v1",
+      "prior_batch": 14,
+      "old_text": "🎶 Kremlin Palace 5★ · Анталья\n\nДля семейного отпуска с пляжными днями и занятиями на территории.\n\n🏖 Собственный песчаный пляж на первой линии.\n🎨 В Kids & Youth Club есть творческие занятия, кулинария и минидиско.\n🏹 Стрельба из лука, минифутбол и волейбол.\n🎵 Живая музыка и дискотека.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Kremlin Palace с перелётом\n📍 Анталья, Турция.\n\nДля семейного отпуска с пляжными днями и занятиями на территории.\n\n🏖 Собственный песчаный пляж на первой линии.\n🎨 В Kids & Youth Club есть творческие занятия, кулинария и минидиско.\n🏹 Стрельба из лука, минифутбол и волейбол.\n🎵 Живая музыка и дискотека.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "1c15d96192566f0494300a5e74e7caa8f5ee91d00ac8d6150d2f0f06f6576f7b",
+      "new_text_sha256": "9f14222741a2a0d4f3e95faf1ec805b7ddfdaee2726f567f95d13c05028daa68",
+      "previous_heading": "🎶 Kremlin Palace 5★ · Анталья",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Kremlin Palace с перелётом",
+      "new_location": "📍 Анталья, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 3415,
+      "key": "commercial-royal-holiday-3415-v1",
+      "logical_id": "commercial-royal-holiday-3415-v1",
+      "prior_batch": 14,
+      "old_text": "🌊 Royal Holiday Palace 5★ · Лара\n\nДля семьи, которой нужны отдельные спальни и отдых у моря.\n\n🛏 Family Connection 60 м²: две спальни с дверью и одна ванная.\n🏖 Собственный пляж на первой линии.\n🎨 Mini Club для детей от 4 до 12 лет.\n🎶 Живая музыка в отдельные дни и дискотека.\n\nНа пляже песок и галька, есть пирс.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Royal Holiday Palace с перелётом\n📍 Лара, Турция.\n\nДля семьи, которой нужны отдельные спальни и отдых у моря.\n\n🛏 Family Connection 60 м²: две спальни с дверью и одна ванная.\n🏖 Собственный пляж на первой линии.\n🎨 Mini Club для детей от 4 до 12 лет.\n🎶 Живая музыка в отдельные дни и дискотека.\n\nНа пляже песок и галька, есть пирс.\n\n✈️ Подберём категорию под состав семьи и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "7deb21634cda81953c7151886051297f3ab1a09de1db5ae51dfc9699fbb0596e",
+      "new_text_sha256": "a94ab29a88e0d9993fa640a3bfcdb2da51d939c425cd71bf517b5a46d9a3b95a",
+      "previous_heading": "🌊 Royal Holiday Palace 5★ · Лара",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Royal Holiday Palace с перелётом",
+      "new_location": "📍 Лара, Турция.",
+      "update_text": true
+    },
+    {
+      "hotel_id": 964,
+      "key": "commercial-crystal-aura-964-v1",
+      "logical_id": "commercial-crystal-aura-964-v1",
+      "prior_batch": 14,
+      "old_text": "💦 Crystal Aura Aqua Collection 5★ · Кемер\n\nДля семейного отдыха с отдельными спальнями и водными развлечениями.\n\n🛏 Family Land View 34 м²: две спальни и одна ванная.\n🏖 Собственный пляж с песком и мелкой галькой.\n🎨 Mini Club для детей от 4 до 12 лет.\n🎢 Водные горки доступны с 10 лет при росте от 120 см.\n\nРаботу горок и детского клуба уточним на даты поездки.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "new_text": "✈️ Туры в Crystal Aura Aqua Collection с перелётом\n📍 Кемер, Турция.\n\nДля семейного отдыха с отдельными спальнями и водными развлечениями.\n\n🛏 Family Land View 34 м²: две спальни и одна ванная.\n🏖 Собственный пляж с песком и мелкой галькой.\n🎨 Mini Club для детей от 4 до 12 лет.\n🎢 Водные горки доступны с 10 лет при росте от 120 см.\n\nРаботу горок и детского клуба уточним на даты поездки.\n\n✈️ Подберём номер под возраст детей и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "c33a8bcacc4a7e25893d6d234bd1a6ac695df9ebcf68a9def0a512d667b28ee4",
+      "new_text_sha256": "f3f17aead3e2c10639b14d07fc17517e7d9c42e92915ca080e29fac4fabd6dd7",
+      "previous_heading": "💦 Crystal Aura Aqua Collection 5★ · Кемер",
+      "previous_location": null,
+      "new_heading": "✈️ Туры в Crystal Aura Aqua Collection с перелётом",
+      "new_location": "📍 Кемер, Турция.",
+      "update_text": true
+    }
+  ],
+  "exact_ids": {
+    "66555": {
+      "telegram": [
+        531,
+        1007
+      ],
+      "max": [
+        537,
+        1013
+      ]
+    },
+    "110289": {
+      "telegram": [
+        532,
+        1008
+      ],
+      "max": [
+        538,
+        1014
+      ]
+    },
+    "513": {
+      "telegram": [
+        533,
+        1009
+      ],
+      "max": [
+        539,
+        1015
+      ]
+    },
+    "103731": {
+      "telegram": [
+        534,
+        1010
+      ],
+      "max": [
+        540,
+        1016
+      ]
+    },
+    "800": {
+      "telegram": [
+        535,
+        1011
+      ],
+      "max": [
+        541,
+        1017
+      ]
+    },
+    "3452": {
+      "telegram": [
+        536,
+        1012
+      ],
+      "max": [
+        542,
+        1018
+      ]
+    },
+    "21847": {
+      "telegram": [
+        543,
+        1019
+      ],
+      "max": [
+        548,
+        1024
+      ]
+    },
+    "302": {
+      "telegram": [
+        544,
+        1020
+      ],
+      "max": [
+        549,
+        1025
+      ]
+    },
+    "512": {
+      "telegram": [
+        545,
+        1021
+      ],
+      "max": [
+        550,
+        1026
+      ]
+    },
+    "107938": {
+      "telegram": [
+        546,
+        1022
+      ],
+      "max": [
+        551,
+        1027
+      ]
+    },
+    "15871": {
+      "telegram": [
+        547,
+        1023
+      ],
+      "max": [
+        552,
+        1028
+      ]
+    },
+    "129161": {
+      "telegram": [
+        553,
+        1029
+      ],
+      "max": [
+        562,
+        1038
+      ]
+    },
+    "65877": {
+      "telegram": [
+        554,
+        1030
+      ],
+      "max": [
+        563,
+        1039
+      ]
+    },
+    "20971": {
+      "telegram": [
+        555,
+        1031
+      ],
+      "max": [
+        564,
+        1040
+      ]
+    },
+    "1653": {
+      "telegram": [
+        556,
+        1032
+      ],
+      "max": [
+        565,
+        1041
+      ]
+    },
+    "501": {
+      "telegram": [
+        557,
+        1033
+      ],
+      "max": [
+        566,
+        1042
+      ]
+    },
+    "502": {
+      "telegram": [
+        558,
+        1034
+      ],
+      "max": [
+        567,
+        1043
+      ]
+    },
+    "95165": {
+      "telegram": [
+        559,
+        1035
+      ],
+      "max": [
+        568,
+        1044
+      ]
+    },
+    "50659": {
+      "telegram": [
+        560,
+        1036
+      ],
+      "max": [
+        569,
+        1045
+      ]
+    },
+    "79071": {
+      "telegram": [
+        561,
+        1037
+      ],
+      "max": [
+        570,
+        1046
+      ]
+    },
+    "1143": {
+      "telegram": [
+        571,
+        1047
+      ],
+      "max": [
+        580,
+        1056
+      ]
+    },
+    "41495": {
+      "telegram": [
+        572,
+        1048
+      ],
+      "max": [
+        581,
+        1057
+      ]
+    },
+    "69261": {
+      "telegram": [
+        573,
+        1049
+      ],
+      "max": [
+        582,
+        1058
+      ]
+    },
+    "1221": {
+      "telegram": [
+        574,
+        1050
+      ],
+      "max": [
+        583,
+        1059
+      ]
+    },
+    "32342": {
+      "telegram": [
+        575,
+        1051
+      ],
+      "max": [
+        584,
+        1060
+      ]
+    },
+    "64670": {
+      "telegram": [
+        576,
+        1052
+      ],
+      "max": [
+        585,
+        1061
+      ]
+    },
+    "4095": {
+      "telegram": [
+        577,
+        1053
+      ],
+      "max": [
+        586,
+        1062
+      ]
+    },
+    "13941": {
+      "telegram": [
+        578,
+        1054
+      ],
+      "max": [
+        587,
+        1063
+      ]
+    },
+    "4071": {
+      "telegram": [
+        579,
+        1055
+      ],
+      "max": [
+        588,
+        1064
+      ]
+    },
+    "41149": {
+      "telegram": [
+        589,
+        1065
+      ],
+      "max": [
+        598,
+        1074
+      ]
+    },
+    "54592": {
+      "telegram": [
+        590,
+        1066
+      ],
+      "max": [
+        599,
+        1075
+      ]
+    },
+    "57217": {
+      "telegram": [
+        591,
+        1067
+      ],
+      "max": [
+        600,
+        1076
+      ]
+    },
+    "4432": {
+      "telegram": [
+        592,
+        1068
+      ],
+      "max": [
+        601,
+        1077
+      ]
+    },
+    "82606": {
+      "telegram": [
+        593,
+        1069
+      ],
+      "max": [
+        602,
+        1078
+      ]
+    },
+    "1337": {
+      "telegram": [
+        594,
+        1070
+      ],
+      "max": [
+        603,
+        1079
+      ]
+    },
+    "380": {
+      "telegram": [
+        595,
+        1071
+      ],
+      "max": [
+        604,
+        1080
+      ]
+    },
+    "1257": {
+      "telegram": [
+        596,
+        1072
+      ],
+      "max": [
+        605,
+        1081
+      ]
+    },
+    "82567": {
+      "telegram": [
+        597,
+        1073
+      ],
+      "max": [
+        606,
+        1082
+      ]
+    },
+    "1294": {
+      "telegram": [
+        607,
+        1083
+      ],
+      "max": [
+        614,
+        1090
+      ]
+    },
+    "975": {
+      "telegram": [
+        608,
+        1084
+      ],
+      "max": [
+        615,
+        1091
+      ]
+    },
+    "26530": {
+      "telegram": [
+        609,
+        1085
+      ],
+      "max": [
+        616,
+        1092
+      ]
+    },
+    "69116": {
+      "telegram": [
+        610,
+        1086
+      ],
+      "max": [
+        617,
+        1093
+      ]
+    },
+    "1588": {
+      "telegram": [
+        611,
+        1087
+      ],
+      "max": [
+        618,
+        1094
+      ]
+    },
+    "3415": {
+      "telegram": [
+        612,
+        1088
+      ],
+      "max": [
+        619,
+        1095
+      ]
+    },
+    "964": {
+      "telegram": [
+        613,
+        1089
+      ],
+      "max": [
+        620,
+        1096
+      ]
+    }
+  }
+}
