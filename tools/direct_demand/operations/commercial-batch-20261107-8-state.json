@@ -1,0 +1,238 @@
+{
+  "operation": "commercial-hotel-batch-20261107-8-v1",
+  "state": "COMPLETE_PUBLISHED_ROUTED_AND_FEED_CONFIRMED",
+  "baseline_full_pairs": 194,
+  "new_full_pairs": 6,
+  "current_full_pairs": 200,
+  "goal_minimum": 500,
+  "remaining_to_500": 300,
+  "sender": {
+    "commit": "2ec43ff980eee77fcbdd9a47b841dc22ef26d39f",
+    "run_id": 42372918570,
+    "job_id": 128404547333,
+    "conclusion": "success",
+    "intent_artifact_id": 13574332994,
+    "result_artifact_id": 13574283201,
+    "result_zip_sha256": "cb34cbe63d467035b993e5971941b236455cde8c9b8325f09d34d129f3cedc3d",
+    "new_posts": 12,
+    "post_write_attempts": 12,
+    "reused": 0
+  },
+  "new_hotels": [
+    {
+      "hotel_id": 140,
+      "logical_id": "commercial-golden-beach-resort-ex-movie-gate-140-v1",
+      "text_sha256": "6f7177b357f6aca7c58fe3db39cb2156f48fd3cc1cef3d6f9a765f92a068a9f8",
+      "photo_sha256": "4ab4dc288494051bf1915646cd98281e331268023c30431e709ea43b313ef07b",
+      "posts": [
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/209",
+          "message_id": "209",
+          "version_id": 995,
+          "body_photo_button_verified": true
+        },
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG1_36xOug",
+          "message_id": "mid.ffffb6caf0606fed01a1b5ff7eb13ae8",
+          "version_id": 1001,
+          "body_photo_button_verified": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 8053,
+      "logical_id": "commercial-novotel-phuket-vintage-park-8053-v1",
+      "text_sha256": "4c6b493dd24a5c09e2afa5e22e2635201922d62ae06b4b66149ba9720a7d1b83",
+      "photo_sha256": "05af188e6da7ed2581bc1b0a60f0215955bc209bcbac61dd4aa90946b96051de",
+      "posts": [
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/210",
+          "message_id": "210",
+          "version_id": 996,
+          "body_photo_button_verified": true
+        },
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG1_4eqKhU",
+          "message_id": "mid.ffffb6caf0606fed01a1b5ff87aa2a15",
+          "version_id": 1002,
+          "body_photo_button_verified": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 58987,
+      "logical_id": "commercial-seashells-phu-quoc-hotel-spa-58987-v1",
+      "text_sha256": "f0a44e1c682c4fc96432487e1135aa6cfc4bd2580793afbf66f7cdba56bd7643",
+      "photo_sha256": "0754e4cb72ed347c447fcf0f1aab72f452ac0847185302b455c0d5dcf7470be2",
+      "posts": [
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/211",
+          "message_id": "211",
+          "version_id": 997,
+          "body_photo_button_verified": true
+        },
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG1_5CKV6I",
+          "message_id": "mid.ffffb6caf0606fed01a1b5ff908a57a2",
+          "version_id": 1003,
+          "body_photo_button_verified": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 1033,
+      "logical_id": "commercial-barut-hemera-1033-v1",
+      "text_sha256": "3450d060c144f4e8c7c52df843e2ed62d313cb6d6897d8190abcc629a76bd2da",
+      "photo_sha256": "49bf2df875f6b5883f5111950cbd29e9630f9742d856130da30523f2a6bea778",
+      "posts": [
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/212",
+          "message_id": "212",
+          "version_id": 998,
+          "body_photo_button_verified": true
+        },
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG1_5mHIhM",
+          "message_id": "mid.ffffb6caf0606fed01a1b5ff99872213",
+          "version_id": 1004,
+          "body_photo_button_verified": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 386,
+      "logical_id": "commercial-monte-carlo-sharm-resort-spa-aqua-park-386-v1",
+      "text_sha256": "d94fbd0651150519f36836f137b4c9532f3dc0aac4995fc8826fe4e284b923b4",
+      "photo_sha256": "3ac56c3a8edabb1edf577b81f0ba4412a91bbdaaabab34a85dd9cd678894a174",
+      "posts": [
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/213",
+          "message_id": "213",
+          "version_id": 999,
+          "body_photo_button_verified": true
+        },
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG1_6LVUx8",
+          "message_id": "mid.ffffb6caf0606fed01a1b5ffa2d5531f",
+          "version_id": 1005,
+          "body_photo_button_verified": true
+        }
+      ]
+    },
+    {
+      "hotel_id": 33313,
+      "logical_id": "commercial-sugar-marina-resort-surf-kata-beach-33313-v1",
+      "text_sha256": "22e71bb4d68f0fea5d8552f13bcf9b450bf6e9e1f0776a3c31b6f5ec0249cffd",
+      "photo_sha256": "e674b162417328f704e45149e63b8517214c2e870d4a0c9a22dd201e20ac9b3a",
+      "posts": [
+        {
+          "platform": "telegram",
+          "post_url": "https://t.me/any_toour/214",
+          "message_id": "214",
+          "version_id": 1000,
+          "body_photo_button_verified": true
+        },
+        {
+          "platform": "max",
+          "post_url": "https://max.ru/channel_anytour/AaG1_6u7De8",
+          "message_id": "mid.ffffb6caf0606fed01a1b5ffabbb0def",
+          "version_id": 1006,
+          "body_photo_button_verified": true
+        }
+      ]
+    }
+  ],
+  "excluded_existing_remal": [
+    {
+      "hotel_id": 496,
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+      "reason": "Existing sent current hotel publication; preserve and do not duplicate"
+    }
+  ],
+  "prior_zero_send_stop": {
+    "operation": "commercial-hotel-batch-20261107-7-v1",
+    "run_id": 42372476858,
+    "new_posts": 0,
+    "post_write_attempts": 0,
+    "state": "CLOSED_PREFLIGHT_NO_SEND_NO_REPLAY"
+  },
+  "unknown_outcomes": 0,
+  "open_transaction": false,
+  "next19_registry_read": {
+    "run_id": 42372696111,
+    "at": "2026-11-07T12:29:43+00:00",
+    "all_clear": true,
+    "no_duplicate_clearance": true
+  },
+  "commercial_rule": "Cost inquiry action only on canonical button; no repeated imperative CTA in caption.",
+  "native_routes": {
+    "total": 200,
+    "new_verified": 6,
+    "run_id": 42373201547,
+    "job_id": 128405377415,
+    "result_artifact_id": 13574841285,
+    "commit": "1b970bff09d1689cb9f16f374957f2d86d53ce21",
+    "previous194_rows_identical": true,
+    "private_projection_http_status": 404,
+    "natural_signed_user_launch_verified": false
+  },
+  "feeds": {
+    "rows": [
+      200,
+      200,
+      400
+    ],
+    "run_id": 42373307984,
+    "job_id": 128405696204,
+    "result_artifact_id": 13573734409,
+    "previous194_offer_blocks_identical": true,
+    "http200_exact_bytes_verified": true,
+    "files": [
+      {
+        "bytes": 129238,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-telegram.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-telegram.xml",
+        "rows": 200,
+        "sha256": "daa9405633c9bdcc5cc4eebc309c23bef9f39b0012f519a6db5d84c03917d7c4"
+      },
+      {
+        "bytes": 162561,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-max.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-max.xml",
+        "rows": 200,
+        "sha256": "b63749cb45cd5f6616718e9f34af5ac34d86dabc31e6b4430e053aa5c1677fb6"
+      },
+      {
+        "bytes": 291426,
+        "exact_published_bytes": true,
+        "http": 200,
+        "name": "hotel-posts-all.xml",
+        "public_url": "https://app.anytoour.ru/feed/hotel-posts-all.xml",
+        "rows": 400,
+        "sha256": "6c047df47660c51910b3c3dd1a6df91f27f61d394844d6410808744d9abfe32c"
+      }
+    ]
+  },
+  "next19_media": {
+    "manifest": "quality_revision/next-twenty-after-forty-media-preparation.json",
+    "decoded_images": 183,
+    "contact_sheets": 19,
+    "visual_selection_and_canva_pending": true
+  },
+  "closed_at_utc": "2026-11-07T12:37:44Z"
+}

@@ -1,0 +1,29 @@
+{
+  "operation": "commercial-hotel-batch-20261107-7-v1",
+  "state": "CLOSED_PREFLIGHT_NO_SEND_NO_REPLAY",
+  "run_id": 42372476858,
+  "job_id": 128403264361,
+  "commit": "238d581f5d2336fef791abbf222664cce9643208",
+  "post_write_attempts": 0,
+  "new_posts": 0,
+  "unknown_outcomes": 0,
+  "error": "hotel_already_in_registry_no_duplicate",
+  "result_artifact_id": 13574251427,
+  "result_zip_sha256": "0bc7545541080e7c16052b21af5748995a0edf0980ffc13754b2716a26b34b93",
+  "matched_existing": {
+    "hotel_id": 496,
+    "platform": "max",
+    "post_url": "https://max.ru/channel_anytour/AaF1AfZ8WV0",
+    "state": "sent",
+    "preserved": true
+  },
+  "successor_operation": "commercial-hotel-batch-20261107-8-v1",
+  "successor_scope": [
+    140,
+    8053,
+    58987,
+    1033,
+    386,
+    33313
+  ]
+}
