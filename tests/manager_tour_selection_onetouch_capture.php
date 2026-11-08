@@ -239,4 +239,27 @@ capReject(fn()=>directPrivate('readPolicy',$initial.'&AGES=0%2C8%2C17','html'),'
 capReject(fn()=>directPrivate('readPolicy',str_replace('AGES=0%2C8%2C17','AGES=0%2C8',$initial),'html'),'INITIAL count mismatch refused');
 
 
+// Changed city alone must flow through admission, fresh form and signed quote.
+foreach(['6059','10260','11725'] as $departure){
+    $city=syntheticOneTouchSource(2,[8],$departure);$html=directNativeForm($city['query']);
+    capCheck(str_contains(directPrivate('formContext',$html,$city['query'])['form'],'value="'.$departure.'"'),'fresh form preserves requested native city '.$departure);
+    $initialQuery=array_intersect_key($city['query'],array_flip(['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM','NIGHTS_TILL','ADULT','CHILD','AGES','CURRENCY']));
+    $initial='https://b2b.onetouch.travel/search_tour?'.http_build_query($initialQuery,'','&',PHP_QUERY_RFC3986);
+    capCheck(directPrivate('readPolicy',$initial,'html')['host']==='b2b.onetouch.travel','same bounded INITIAL policy admits actual city '.$departure);
+    $received=gmdate('Y-m-d\TH:i:s\Z');
+    $result=ManagerTourSelectionOneTouchIntake::search(2,1,$key,['url'=>$city['url']],static fn($url):array=>['url'=>$city['url'],'response'=>$city['response'],'form'=>$city['form'],'observed_at'=>$received]);
+    capCheck($result['ok']&&$result['offers'][0]['source_reference']['url']===$city['url'],'browser gets exact source city reference '.$departure);
+    $ticket=ManagerTourSelectionOneTouchIntake::open($result['offers'][0]['ticket'],$key,2,1,'quote');
+    capCheck($ticket['observation']['keys']['departure']===$departure&&$ticket['observation']['url']===$city['url'],'signed ticket retains exact departure '.$departure);
+    $file=$capture;$file['url']=$city['url'];$file['public_controls']['TOWNFROMINC']['value']=$departure;$file['prices_gzip_base64']=base64_encode(gzencode($city['response']));$file['prices_sha256']=hash('sha256',$city['response']);
+    capCheck(ManagerTourSelectionOneTouchCapture::read($file,$now)['quotes'][0]['keys']['departure']===$departure,'file retains literal native city and declared original observation '.$departure);
+}
+$city=syntheticOneTouchSource(2,[8],'6059');$moscow=syntheticOneTouchSource(2,[8]);$received=gmdate('Y-m-d\TH:i:s\Z');
+$bad=ManagerTourSelectionOneTouchIntake::search(2,1,$key,['url'=>$city['url']],static fn($url):array=>['url'=>$moscow['url'],'response'=>$moscow['response'],'form'=>$moscow['form'],'observed_at'=>$received]);
+capCheck(($bad['ok']??false)===false,'another city actual URL cannot satisfy identical date party price and claim');
+$badForm=directNativeForm($city['query']);$badForm=str_replace('name="TOWNFROMINC"','name="TOWNFROMINC" disabled',$badForm);
+capReject(fn()=>directPrivate('formContext',$badForm,$city['query']),'disabled requested city stops before PRICES');
+$badFile=$capture;$badFile['public_controls']['TOWNFROMINC']['value']='6059';
+capReject(fn()=>ManagerTourSelectionOneTouchCapture::read($badFile,$now),'file city metadata cannot relabel unchanged source URL');
+
 echo json_encode(['checks'=>$passed,'syntheticOnly'=>true,'network'=>0,'imports'=>0,'operatorFareTTLAsserted'=>false],JSON_THROW_ON_ERROR)."\n";

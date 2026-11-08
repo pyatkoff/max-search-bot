@@ -144,4 +144,16 @@ storeCheck(array_slice($prior,0,count($familyStart))===$familyStart,'entire pre-
 foreach($before as $table=>$rows)storeCheck($p->query('SELECT * FROM '.$table)->fetchAll()===$rows,'family tests leave conversations messages events and reads unchanged '.$table);
 
 
+// Same opaque claim/fare from another city cannot mutate the old operation or selection.
+$city=syntheticOneTouchSource(2,[8],'6059');
+$readCity=ManagerTourSelectionOneTouchIntake::search(8,1,$key,['url'=>$city['url']],static fn($url):array=>['url'=>$city['url'],'response'=>$city['response'],'form'=>$city['form'],'observed_at'=>gmdate('Y-m-d\TH:i:s\Z')]);
+$readyCity=ManagerTourSelectionOneTouchIntake::review(8,1,$key,['ticket'=>$readCity['offers'][0]['ticket']],static fn($url):string=>$city['hotel']);
+storeCheck($readyCity['ok']&&str_contains($readyCity['source_reference']['url'],'TOWNFROMINC=6059'),'ready preview keeps a distinct city on same claim and fare');
+$cityPrior=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];$cityOps=(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
+$sameClaim=ManagerTourSelectionService::importOneTouch(8,1,$key,['operation_id'=>'fixture-city-same-claim-0001','ticket'=>$readyCity['ticket'],'confirm_price_from'=>true,'manager_amount'=>'145000']);
+storeCheck(($sameClaim['error']??'')==='ambiguous_offer'&&ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$cityPrior&&(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$cityOps,'different city same opaque claim never overwrites appends or writes a receipt');
+$wrongCity=$familyCommands['8'];$wrongCity['ticket']=$readyCity['ticket'];$cityMismatch=ManagerTourSelectionService::importOneTouch(8,1,$key,$wrongCity,true);
+storeCheck(($cityMismatch['error']??'')==='operation_mismatch'&&ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$cityPrior,'different city cannot reconcile original operation');
+storeCheck(array_slice($cityPrior,0,count($familyStart))===$familyStart,'BG OneTouch and all prior source conditions preserved across city cases');
+
 echo json_encode(['checks'=>$count,'database'=>'sqlite::memory:','realDatabase'=>false,'network'=>0,'realImports'=>0],JSON_THROW_ON_ERROR)."\n";

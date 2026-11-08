@@ -95,4 +95,32 @@ onetouchCheck(ManagerTourSelectionImportDraft::fingerprint($eightSource,false)!=
 $twins=$familyQuotes['8,8'];$twins['offer']['child_ages']=[8,8];onetouchCheck(ManagerTourSelectionImportDraft::normalize($twins)['offer']['child_ages']===[8,8],'equal ages never collapse');
 
 
+// New departure identity risk; all fares, hotels and photographs remain synthetic.
+foreach(array_keys(ManagerTourSelectionOneTouchSource::DEPARTURES) as $departure){
+    $city=syntheticOneTouchSource(2,[8],(string)$departure);
+    $quote=ManagerTourSelectionOneTouchSource::parse($city['response'],$city['url'],$city['form'],'2077-01-01T00:00:00Z')[0];
+    onetouchCheck($quote['keys']['departure']===(string)$departure&&$quote['url']===$city['url'],'query fresh control row and identity bind native city '.$departure);
+    onetouchCheck($quote['offer']['amount']==='123456.78'&&$quote['offer']['child_ages']===[8]&&ManagerTourSelectionImportDraft::normalize($quote)!==null,'city change never scales price or changes requested ages '.$departure);
+}
+foreach(['0','999999','02','2,6059','','-1'] as $departure){$query=$f['query'];$query['TOWNFROMINC']=$departure;onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::query($urlFor($query)),'unadmitted or malformed native city '.$departure);}
+$city=syntheticOneTouchSource(2,[],'6059');
+onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse($f['response'],$city['url'],$city['form'],'2077-01-01T00:00:00Z'),'equal price and claim from another city row rejected');
+$town='<select name="TOWNFROMINC"><option value="6059" selected>Synthetic City</option></select>';
+foreach([
+    str_replace($town,'',$city['form']),$city['form'].$town,
+    str_replace($town,str_replace('value="6059"','value="2"',$town),$city['form']),
+    str_replace($town,str_replace('<select ','<select disabled ',$town),$city['form']),
+    str_replace($town,str_replace('<select ','<select multiple ',$town),$city['form']),
+    str_replace($town,str_replace(' selected',' selected disabled',$town),$city['form']),
+    str_replace($town,'<select name="TOWNFROMINC"><option value="6059" selected>A</option><option value="6059">B</option></select>',$city['form']),
+    str_replace($town,'<select name="TOWNFROMINC"><optgroup disabled><option value="6059" selected>A</option></optgroup></select>',$city['form']),
+    str_replace($town,'<fieldset disabled>'.$town.'</fieldset>',$city['form']),
+    str_replace($town,'<fieldset disabled><legend>First</legend><legend>'.$town.'</legend></fieldset>',$city['form'])
+] as $i=>$form)onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse($city['response'],$city['url'],$form,'2077-01-01T00:00:00Z'),'selected departure must be unique enabled and exact '.$i);
+$legend=str_replace($town,'<fieldset disabled><legend>'.$town.'</legend></fieldset>',$city['form']);
+onetouchCheck(ManagerTourSelectionOneTouchSource::parse($city['response'],$city['url'],$legend,'2077-01-01T00:00:00Z')[0]['keys']['departure']==='6059','native first legend exception preserved for city');
+$moscow=ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize(ManagerTourSelectionOneTouchSource::parse($f['response'],$f['url'],$f['form'],'2077-01-01T00:00:00Z')[0]));
+$otherCity=ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize(ManagerTourSelectionOneTouchSource::parse($city['response'],$city['url'],$city['form'],'2077-01-01T00:00:00Z')[0]));
+onetouchCheck(ManagerTourSelectionImportDraft::fingerprint($moscow,false)!==ManagerTourSelectionImportDraft::fingerprint($otherCity,false),'same hotel claim price and party cannot collapse different departures');
+
 echo 'OneTouch synthetic source: '.$passed." checks passed; no network or selection writes.\n";
