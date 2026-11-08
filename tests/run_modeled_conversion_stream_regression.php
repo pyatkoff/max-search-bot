@@ -766,6 +766,7 @@ function modeledWizardProfileAssertions(PDO $p,callable $check):void
         $lookup=$p->prepare('SELECT id FROM modeled_conversion_stream_versions WHERE source_kind=? AND source_id=? AND version_no=1');
         $lookup->execute(['message',$inputId]);$inputRef='journal:'.$lookup->fetchColumn();
         $lookup->execute(['event',(string)$raw['id']]);$receiptRef='journal:'.$lookup->fetchColumn();
+        $lookup->closeCursor();
         $check('wizard continuity actual journal and Python expose only the admitted binding',
             $receipt['profiles_written']===1&&$later['wizard_applications']===['version'=>'admitted_wizard_applications_v1',
                 'receipts'=>[['receipt_ref'=>$receiptRef,'input_ref'=>$inputRef]]]);
