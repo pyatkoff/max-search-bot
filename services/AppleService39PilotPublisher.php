@@ -18,6 +18,7 @@ final class AppleService39PilotPublisher
     private string $botUserId = '';
     private $provenance;
     private $pause;
+    private array $readbackDiagnostics = [];
 
     public function __construct(PDO $pdo, AppleService39PilotManifest $manifest, string $channelId,
         callable $provenance, ?callable $wire = null, ?callable $pause = null)
@@ -34,6 +35,7 @@ final class AppleService39PilotPublisher
     public function run(string $operation): array
     {
         self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile'], true), 'unsupported_pilot_operation');
+        $this->readbackDiagnostics = [];
         $binding = $this->preflight();
         $this->store->assertBinding($binding);
         if ($operation === 'inspect') return $this->report('inspected');
@@ -263,12 +265,17 @@ final class AppleService39PilotPublisher
             if (!in_array($row['state'], ['write_started','unknown'], true)) continue;
             if (in_array($row['operation'], ['create','links'], true) && is_string($row['external_message_id']) && $row['external_message_id'] !== '') {
                 $post = $this->manifest->post($row['post_key']);
+                $response = null; $readback = null;
                 try {
-                    $readback = self::read($this->transport->message($row['external_message_id']));
+                    $response = $this->transport->message($row['external_message_id']);
+                    $readback = self::read($response);
                     $url = $this->verifyMessage($readback, $row['external_message_id'], $row['request']['body'], $post);
                     $this->store->rememberMessage($row, $row['external_message_id'], $url);
                     $this->store->finish($row, 'verified', ['readback'=>true]);
-                } catch (Throwable $ignored) { /* Preserve the durable hold. */ }
+                } catch (Throwable $error) {
+                    // Diagnose only the exact recorded MID; never retry or adopt a post.
+                    $this->readbackDiagnostics[] = $this->readbackDiagnostic($row, $response, $readback, $error);
+                }
             } elseif ($row['operation'] === 'pin') {
                 try {
                     $this->verifiedPosts(true);
@@ -329,6 +336,29 @@ final class AppleService39PilotPublisher
         } catch (Throwable $ignored) { /* The committed write_started claim still holds. */ }
     }
 
+    /** Bounded predicate evidence only: no provider body, token, text or foreign URL. */
+    private function readbackDiagnostic(array $row, ?array $response, ?array $message, Throwable $error): array
+    {
+        $reasons = ['provider_read_unknown','post_readback_mismatch','post_attachment_mismatch',
+            'post_image_mismatch','post_button_mismatch','native_post_url_required'];
+        $reason = in_array($error->getMessage(), $reasons, true) ? $error->getMessage() : 'readback_unclassified';
+        $url = $message['url'] ?? null; $parts = is_string($url) ? parse_url($url) : false;
+        $safeUrl = $parts && ($parts['scheme'] ?? '') === 'https' && ($parts['host'] ?? '') === 'max.ru'
+            && !isset($parts['user']) && !isset($parts['pass']) && !isset($parts['port']) && !isset($parts['query']) && !isset($parts['fragment'])
+            && (preg_match('~\\A/channel_appleservice39ru/[A-Za-z0-9_.-]{1,191}\\z~D', (string)($parts['path'] ?? ''))
+                || preg_match('~\\A/c/(-?[1-9][0-9]{0,18})/[A-Za-z0-9_.-]{1,191}\\z~D', (string)($parts['path'] ?? ''), $match)
+                    && ltrim($match[1], '-') === ltrim($this->channelId, '-'));
+        return ['post_id'=>$row['post_key'],'operation'=>$row['operation'],'message_id'=>$row['external_message_id'],
+            'reason'=>$reason,'http'=>(int)($response['http'] ?? 0),'transport_error'=>!empty($response['transport_error']),
+            'message_envelope'=>is_array($response['data']['message'] ?? null),
+            'identity_matches'=>$message !== null && $this->messageIdentity($message),
+            'mid_matches'=>($message['body']['mid'] ?? null) === $row['external_message_id'],
+            'text_matches'=>($message['body']['text'] ?? null) === ($row['request']['body']['text'] ?? null),
+            'url_present'=>is_string($url) && $url !== '',
+            'url_matches_policy'=>is_string($url) && self::publicUrl($url, $this->channelId),
+            'observed_own_url'=>$safeUrl ? $url : null];
+    }
+
     private function report(string $state): array
     {
         $rows = []; $held = 0;
@@ -341,7 +371,8 @@ final class AppleService39PilotPublisher
         return ['ok'=>$held === 0,'state'=>$held === 0 ? $state : 'held','campaign'=>AppleService39PilotManifest::CAMPAIGN,
             'project_key'=>AppleService39PilotManifest::PROJECT,'bot_key'=>AppleService39PilotManifest::BOT,
             'channel_id'=>$this->channelId,'channel_url'=>AppleService39PilotManifest::CHANNEL,
-            'manifest_sha256'=>$this->manifest->sha256(),'post_count'=>24,'held_operations'=>$held,'operations'=>$rows];
+            'manifest_sha256'=>$this->manifest->sha256(),'post_count'=>24,'held_operations'=>$held,'operations'=>$rows,
+            'readback_diagnostics'=>$this->readbackDiagnostics];
     }
 
     private static function connectionHash(ProjectMaxConnection $connection): string
