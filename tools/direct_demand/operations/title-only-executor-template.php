@@ -347,6 +347,71 @@ function currentPublication($registry, array $row, array $target, string $channe
     return $p;
 }
 
+/** A separate, newly authorized content revision inside the existing once-only editor. */
+function isApprovedCaptionQuality(array $payload): bool
+{
+    return ($payload['update_kind'] ?? '') === 'approved_existing_caption_quality_revision';
+}
+
+function captionQualityScope(array $payload): void
+{
+    need(isApprovedCaptionQuality($payload)
+        && ($payload['quality_cohort_sha256'] ?? '') === 'ef5e14d2aba7f4b412acfcfd71967ae986d2876d7e3ba14361119cff62b815fd'
+        && ($payload['quality_authorization'] ?? '') === 'user_20261108_accepted_content_quality_followup'
+        && ($payload['blocked_operation_not_resumed'] ?? '') === 'commercial-hotel-caption-review6706115450-20261107-1-v1',
+        'approved_quality_revision_scope_changed');
+    $prefix = 'commercial-content-quality-20261108-cohort159';
+    $index = $payload['batch_index'] ?? null;
+    $rows = $payload['rows'] ?? [];
+    if (($payload['batch_kind'] ?? '') === 'canary') {
+        need($index === 0 && ($payload['operation'] ?? '') === $prefix.'-canary-v1'
+            && count($rows) === 8 && ($payload['predecessor'] ?? null) === null,
+            'quality_canary_scope_changed');
+        $pairs = [];
+        foreach ($rows as $row) $pairs[] = $row['hotel_id'].':'.$row['platform'];
+        sort($pairs);
+        $expected = ['1352:max','1352:telegram','1074:max','1074:telegram','462:max','462:telegram','1659:max','1659:telegram'];
+        sort($expected);
+        need($pairs === $expected, 'quality_canary_hotels_changed');
+    } else {
+        need(($payload['batch_kind'] ?? '') === 'batch' && is_int($index) && $index >= 1 && $index <= 7
+            && ($payload['operation'] ?? '') === $prefix.sprintf('-batch%03d-v1', $index)
+            && count($rows) === ($index === 7 ? 10 : 50), 'quality_batch_scope_changed');
+        $previous = $prefix.($index === 1 ? '-canary-v1' : sprintf('-batch%03d-v1', $index - 1));
+        need(($payload['predecessor']['operation'] ?? '') === $previous
+            && preg_match('/\A[a-f0-9]{64}\z/D', (string)($payload['predecessor']['manifest_sha256'] ?? '')) === 1,
+            'quality_predecessor_changed');
+        foreach ($rows as $row) {
+            need(!in_array($row['hotel_id'], [1352,1074,462,1659], true), 'quality_canary_repeated');
+        }
+    }
+}
+
+/** Approved copy uses a bold unchanged heading and plain, escaped body on both providers. */
+function captionQualityProviderText(string $platform, string $oldText, string $newText): array
+{
+    need(in_array($platform, ['max','telegram'], true)
+        && mb_check_encoding($oldText, 'UTF-8') && mb_check_encoding($newText, 'UTF-8'),
+        'quality_text_or_platform_invalid');
+    $old = explode("\n", $oldText, 2);
+    $new = explode("\n", $newText, 2);
+    need(count($old) === 2 && count($new) === 2 && $old[0] === $new[0]
+        && str_starts_with($new[0], '✈️ Туры в ') && !str_contains($new[0], 'с перел')
+        && $oldText !== $newText && !str_contains($newText, "\r")
+        && strlen(mb_convert_encoding($newText, 'UTF-16LE', 'UTF-8')) / 2 <= 1024,
+        'quality_unchanged_short_heading_required');
+    need(!str_contains($newText, 'https://anytour.online/poisk-turov/')
+        && !str_contains($newText, '🕒 Проверено') && !str_contains($newText, '✈️ Вылет:')
+        && !str_contains($newText, 'Нажмите'), 'quality_legacy_block_remaining');
+    $length = intdiv(strlen(mb_convert_encoding($new[0], 'UTF-16LE', 'UTF-8')), 2);
+    $markup = $platform === 'max'
+        ? [['type'=>'strong','from'=>0,'length'=>$length]]
+        : [['type'=>'bold','offset'=>0,'length'=>$length]];
+    return ['markup'=>$markup, 'max_html'=>$platform === 'max'
+        ? '<b>'.htmlspecialchars($new[0], ENT_QUOTES, 'UTF-8').'</b>'."\n".htmlspecialchars($new[1], ENT_QUOTES, 'UTF-8')
+        : null];
+}
+
 function validateManifest(array $payload): array
 {
     need(($payload['schema_version'] ?? null) === 1
@@ -354,7 +419,7 @@ function validateManifest(array $payload): array
         && preg_match('/\Acommercial-[a-z0-9-]{1,115}-v1\z/D', APPROVED_UPDATE_OPERATION) === 1,
         'exact_title_operation_changed');
     need(($payload['expected_installed_sha'] ?? null) === EXPECTED_INSTALLED_SHA
-        && ($payload['update_kind'] ?? null) === 'first_line_flight_suffix_only'
+        && (($payload['update_kind'] ?? null) === 'first_line_flight_suffix_only' || isApprovedCaptionQuality($payload))
         && ($payload['button_text'] ?? null) === '✈️ Узнать стоимость тура'
         && ($payload['throttle_microseconds'] ?? null) === 3200000, 'title_only_scope_changed');
     $source = $payload['snapshot'] ?? [];
@@ -391,12 +456,17 @@ function validateManifest(array $payload): array
         need(is_string($row['old_text'] ?? null) && is_string($row['new_text'] ?? null)
             && hash('sha256', $row['old_text']) === $row['old_text_sha256']
             && hash('sha256', $row['new_text']) === $row['new_text_sha256']
-            && shortenedText($row['old_text']) === $row['new_text']
+            && (isApprovedCaptionQuality($payload) || shortenedText($row['old_text']) === $row['new_text'])
             && strlen(mb_convert_encoding($row['new_text'], 'UTF-16LE', 'UTF-8')) / 2 <= 1024,
             'only_terminal_first_line_suffix_allowed');
         need(is_string($row['photo_signature'] ?? null)
             && preg_match('/\A'.preg_quote($platform, '/').':[A-Za-z0-9_-]+\z/D', $row['photo_signature']) === 1
             && is_bool($row['button_observed_in_snapshot'] ?? null), 'bound_photo_or_observation_missing');
+    }
+    if (isApprovedCaptionQuality($payload)) {
+        captionQualityScope($payload);
+        foreach ($rows as $row) captionQualityProviderText($row['platform'], $row['old_text'], $row['new_text']);
+        return $rows;
     }
     $index = $payload['batch_index'] ?? null;
     need(is_int($index) && $index >= 0 && $index <= 916, 'batch_index_invalid');
@@ -456,6 +526,8 @@ try {
     $payload = json_decode($inputRaw, true, 128, JSON_THROW_ON_ERROR);
     need(is_array($payload), 'invalid_manifest');
     $rows = validateManifest($payload);
+    $quality = isApprovedCaptionQuality($payload);
+    if ($quality) $out['mode'] = 'approved_existing_caption_quality_revision';
     ob_start();
     try {
         require getcwd().'/config.php';
@@ -530,7 +602,8 @@ try {
         need(is_array($before['markup'] ?? null), 'current_native_markup_unavailable');
         $plan['old_markup'] = $before['markup'];
         $plan['old_forward_context'] = $before['metadata']['link'] ?? null;
-        $format = shortTitleProviderText($platform, $row['old_text'], $row['new_text'], $plan['old_markup']);
+        $format = $quality ? captionQualityProviderText($platform, $row['old_text'], $row['new_text'])
+            : shortTitleProviderText($platform, $row['old_text'], $row['new_text'], $plan['old_markup']);
         $plan['new_markup'] = $format['markup']; $plan['max_html'] = $format['max_html'];
         $plans[] = $plan;
     }
@@ -647,14 +720,14 @@ try {
             'existing_message_reused' => true, 'existing_token_resolves_to_current_version' => true];
         $state['posts'][$key]['state'] = 'confirmed'; $state['posts'][$key]['receipt'] = $receipt;
         durable($lock, $state); $out['posts'][] = $receipt;
-        echo jsonValue(['progress' => 'existing_title_shortened', 'platform' => $platform,
+        echo jsonValue(['progress' => $quality ? 'existing_caption_quality_revised' : 'existing_title_shortened', 'platform' => $platform,
             'publication_id' => $plan['publication_id'], 'post_url' => $plan['post_url']]), PHP_EOL;
         flush(); usleep(3200000);
     }
     $state['complete'] = true; durable($lock, $state);
     $out['ok'] = true; $out['installed_sha'] = EXPECTED_INSTALLED_SHA;
     $out['manifest_sha256'] = APPROVED_MANIFEST_SHA256;
-    $out['title_updates'] = count($out['posts']); unset($out['current']);
+    $out[$quality ? 'caption_updates' : 'title_updates'] = count($out['posts']); unset($out['current']);
 } catch (Throwable $error) {
     $reason = $error->getMessage();
     $out['error'] = preg_match('/\A[a-z][a-z0-9_]{1,100}\z/D', $reason) === 1 ? $reason : 'bounded_title_update_failed';
