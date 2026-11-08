@@ -783,6 +783,57 @@ result/order, empty selection, NULL-only oversized transfer, post-authorization
 headroom, late revocation and unchanged stored rows. The existing composed
 real-OAuth fixture continues to cover the combined report.
 
+### One core projection and private budget checkpoints (v1_20)
+
+The core body query now builds its four selected JSON parts once in a bounded
+derived projection. Its existing project, primary-key, ID-fence and valid-JSON
+predicates remain inside `LIMIT 1 OFFSET 0`; the outer query applies both the
+exact recorded-size and 49152-byte guards to the projected aliases. The same
+four columns, parameter order, PHP type/actual-size checks, query count,
+authorization calls and selected-byte accounting remain unchanged. The complete
+source document is never copied by this query. This removes repeated construction
+inside one statement; it does not establish a production duration or guarantee
+that the optional diagnosis will be admitted.
+
+The existing private report includes `read_budget.remaining_ms` with exactly
+eight fixed checkpoints. Each is the integer milliseconds remaining in the SAME
+shared five-second budget, obtained from the existing budget clock:
+
+| Checkpoint | Point in this read |
+| --- | --- |
+| `reader_entry` | Before the reader's initial authorization |
+| `state` | After the state query and its authorization |
+| `metadata` | After source hashes and the bounded metadata query |
+| `visit_receipt` | After the optional saved visit-reconciliation receipt |
+| `first_profile` | After the initial pass that copies at most one core packet |
+| `value_delivery` | After the value-delivery section, before diagnosis admission |
+| `optional_views` | After diagnosis, timing, daily, linkage and external-monitor sections |
+| `remaining_profiles` | After the remaining bounded core-profile pass |
+
+The fixed basis is `shared_budget_v1`; these are shared execution-budget
+checkpoints, not request or provider latency.
+The entry reading includes budget already spent on canonical bootstrap, bearer
+and dispatcher/adapter checks. Differences between adjacent checkpoints include
+all authorization, query and validation work within that phase; they do not
+isolate SQL time or OAuth time. The last point precedes response compaction and
+final reader/adapter/dispatcher authorization, so it is not endpoint latency.
+Rounded readings from separate requests are not a controlled benchmark.
+
+When an optional view is omitted for `time_headroom`, its result additionally
+returns `minimum_required_ms` and `remaining_ms` from the exact same clock reading
+used for admission. Input diagnosis still requires at least 4000ms; equality is
+admitted. A denial happens before its query starts and is not evidence that the
+diagnosis SQL was slow. Other omission reasons retain their existing meaning.
+
+These fields are attached only to the normal authorized result before its
+existing response-size bounding. Access revocation and global deadline failures
+still prevent release. There is no extra SQL query, provider call, persistent
+metric, transcript/identifier, log, new tool or caller-selected probe. All
+64KiB/five-second/result/RPC limits, byte reserves, row caps and optional-section
+order remain unchanged. The shared regression exercises the actual generated
+body SQL and its size guards, the SQLite projection evaluation count, fixed
+checkpoint fields and both sides of the unchanged diagnosis admission boundary.
+
 
 ### Monetary continuity when a price disappears
 
@@ -859,7 +910,7 @@ are rejected; refresh the selected report to start a new consistent snapshot.
 
 ## Saved monetary-policy visibility and calculation availability
 
-Reader `saved_semantic_prediction_status_v1_19` exposes
+Reader `saved_semantic_prediction_status_v1_20` exposes
 `saved.deal_value.by_monetary_policy` from the monetary capsules already validated
 in the ordinary core-packet read. Each supported saved version reports its count,
 policy cap and unknown-price base, unknown-price/numeric-value counts, and the

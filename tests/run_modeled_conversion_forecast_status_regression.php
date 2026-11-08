@@ -15,27 +15,36 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public static int $predictiveExecutions=0;
     public static array $predictiveCopies=[];
     public static array $predictiveStatements=[];
+    public static bool $observeCore=false;
+    public static array $coreStatements=[];
+    public static array $coreCopies=[];
+    public static int $diagnosisExecutions=0;
     private array $predictiveBindings=[];
     protected function __construct(){}
     public function bindValue(string|int $param,mixed $value,int $type=PDO::PARAM_STR):bool
     {
         $ok=parent::bindValue($param,$value,$type);
-        if(self::$observePredictive)$this->predictiveBindings[$param]=[$value,$type];
+        if(self::$observePredictive||self::$observeCore)$this->predictiveBindings[$param]=[$value,$type];
         return $ok;
     }
     public function execute(?array $params=null):bool
     {
+        if(self::$observeCore)foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,12)as$frame)
+            if(($frame['class']??null)===ModeledConversionInputDiagnosisReader::class){self::$diagnosisExecutions++;break;}
         $ok=parent::execute($params);
         if(self::$observePredictive){
             self::$predictiveExecutions++;
             self::$predictiveStatements[]=['sql'=>$this->queryString,'bindings'=>$this->predictiveBindings];
         }
+        if(self::$observeCore&&str_contains($this->queryString,' AS prediction_json,'))
+            self::$coreStatements[]=['sql'=>$this->queryString,'bindings'=>$this->predictiveBindings];
         return $ok;
     }
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
     {
         $rows=parent::fetchAll($mode,...$args);
         if(self::$observePredictive)self::$predictiveCopies[]=$rows;
+        if(self::$observeCore&&str_contains($this->queryString,' AS prediction_json,'))self::$coreCopies[]=$rows;
         if(str_contains($this->queryString,' AS reserved_rub'))self::$valueCopied=true;
         if(str_contains($this->queryString,' AS prediction_json,'))self::$copied=true;
         if(str_contains($this->queryString,' AS namespace_matches')&&is_callable(self::$afterMetadata)){
@@ -255,6 +264,80 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $check('missing value storage preserves the independent forecast result',$r['available']&&$r['value_delivery']['available']===false&&$r['value_delivery']['reason']==='storage_unavailable');
 }
 
+/** Reuse the existing one-profile fixture; all probes are SELECTs on its unchanged saved rows. */
+function forecastCoreProjectionBudgetAssertions(PDO $p,callable $check,array $expected):void
+{
+    $snapshot=static fn():array=>[forecastV1Rows($p),$p->query('SELECT * FROM modeled_conversion_profiles_state ORDER BY project_key')->fetchAll(PDO::FETCH_ASSOC)];
+    $before=$snapshot();
+    $capture=static function(ModeledConversionStatusBudget $budget,?callable $authorize=null)use($p):array{
+        $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+        ForecastV1ObservedStatement::$observeCore=true;ForecastV1ObservedStatement::$coreStatements=[];
+        ForecastV1ObservedStatement::$coreCopies=[];ForecastV1ObservedStatement::$diagnosisExecutions=0;
+        try{
+            $result=forecastV1Read($p,$authorize,$budget);
+            return [$result,ForecastV1ObservedStatement::$coreStatements,ForecastV1ObservedStatement::$coreCopies,
+                ForecastV1ObservedStatement::$diagnosisExecutions];
+        }finally{ForecastV1ObservedStatement::$observeCore=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    };
+    $replay=static function(string $sql,array $bindings)use($p):array{
+        $q=$p->prepare($sql);
+        foreach($bindings as$parameter=>[$value,$type])$q->bindValue($parameter,$value,$type);
+        $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();return $rows;
+    };
+    $checkpoints=['reader_entry','state','metadata','visit_receipt','first_profile','value_delivery','optional_views','remaining_profiles'];
+    $basis='shared_budget_v1';
+    $budget=new ModeledConversionStatusBudget(0.0,static fn():float=>0.0);
+    [$normal,$statements,$copies,$diagnosisQueries]=$capture($budget);
+    $statement=$statements[0];$body=$copies[0];
+    $check('core packet replay preserves all four returned fields and frozen checkpoints preserve the original read limits',
+        count($statements)===1&&count($copies)===1&&count($body)===1
+        &&array_keys($body[0])===['prediction_json','followup_json','deal_json','binding_json']
+        &&$replay($statement['sql'],$statement['bindings'])===$body
+        &&$normal['saved']===$expected['saved']&&$normal['window']===$expected['window']
+        &&$normal['input_coverage']===$expected['input_coverage']&&$snapshot()===$before
+        &&$normal['read_budget']===['basis'=>$basis,'remaining_ms'=>array_fill_keys($checkpoints,5000)]
+        &&$normal['saved_input_diagnosis']['available']===true&&$diagnosisQueries>0
+        &&$normal['limits']['max_selected_bytes']===65536&&$normal['limits']['max_execution_seconds']===5
+        &&$budget->remainingBytes()>=8192);
+    $size=(int)$statement['bindings'][4][0];
+    $changedSize=$statement['bindings'];$changedSize[4][0]=$size+1;
+    $tooSmall=$statement['bindings'];$tooSmall[5][0]=$size-1;
+    $check('both core packet size guards reject the selected row before any four-field result is copied',
+        $replay($statement['sql'],$changedSize)===[]&&$replay($statement['sql'],$tooSmall)===[]&&$snapshot()===$before);
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'){
+        // Instrument the actual scalar, preserving JSON subtypes of the surrounding binding object.
+        $evaluations=0;
+        $p->sqliteCreateFunction('forecast_core_scalar_probe',static function(mixed $value)use(&$evaluations):mixed{
+            $evaluations++;return $value;
+        },1,PDO::SQLITE_DETERMINISTIC);
+        $scalar="JSON_EXTRACT(profile_json,'$.access_status')";
+        $probeSql=str_replace($scalar,'forecast_core_scalar_probe('.$scalar.')',$statement['sql'],$instrumented);
+        $probeRows=$replay($probeSql,$statement['bindings']);
+        $check('SQLite materializes the core binding once for both size guards and the returned packet',
+            $instrumented>0&&$evaluations===1&&$probeRows===$body&&$snapshot()===$before);
+    }
+    // Bootstrap consumed 250ms; only the first authorization advances this controlled clock by one second.
+    $clock=0.25;$advanced=false;
+    $timedBudget=new ModeledConversionStatusBudget(0.0,static function()use(&$clock):float{return $clock;});
+    [$timed,,,$timedDiagnosisQueries]=$capture($timedBudget,static function()use(&$clock,&$advanced):void{
+        if(!$advanced){$clock+=1.0;$advanced=true;}
+    });
+    $remaining=array_fill_keys($checkpoints,3750);$remaining['reader_entry']=4750;
+    $check('time headroom reports the pre-gate shared remainder and skips diagnosis SQL after authorization consumes time',
+        $advanced&&$timed['read_budget']===['basis'=>$basis,'remaining_ms'=>$remaining]
+        &&$timed['saved_input_diagnosis']===['available'=>false,'reason'=>'time_headroom','minimum_required_ms'=>4000,'remaining_ms'=>3750]
+        &&$timedDiagnosisQueries===0&&$timed['saved']===$normal['saved']&&$timed['input_coverage']===$normal['input_coverage']
+        &&$timed['model_calls']===0&&$timed['conversion_uploads']===0&&$timedBudget->remainingBytes()>=8192&&$snapshot()===$before);
+    $boundaryBudget=new ModeledConversionStatusBudget(0.0,static fn():float=>1.0);
+    [$boundary,,,$boundaryDiagnosisQueries]=$capture($boundaryBudget);
+    $check('the unchanged four-second diagnosis boundary admits the real reader without changing saved rows',
+        $boundary['read_budget']===['basis'=>$basis,'remaining_ms'=>array_fill_keys($checkpoints,4000)]
+        &&$boundary['saved_input_diagnosis']['available']===true&&$boundaryDiagnosisQueries>0
+        &&$boundary['saved_input_diagnosis']===$normal['saved_input_diagnosis']&&$boundary['saved']===$normal['saved']
+        &&$boundaryBudget->remainingBytes()>=8192&&$snapshot()===$before);
+}
+
 function forecastV1Assertions(PDO $p,callable $check):void
 {
     $projection=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
@@ -326,6 +409,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
         $injected&&$authChecks>4&&$bounded['saved']['prospective_estimates']===1
         &&$bounded['saved_input_diagnosis']===['available'=>false,'reason'=>'budget_headroom']
         &&$guardBudget->remainingBytes()>4096&&forecastV1Rows($p)===$rowsBeforeBudget);
+    forecastCoreProjectionBudgetAssertions($p,$check,$bounded);
 
     forecastV1Schema($p);
     $descriptive=forecastV1Packet(messages:[

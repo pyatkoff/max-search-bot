@@ -14,7 +14,7 @@ require_once __DIR__.'/ModeledConversionVisitProof.php';
 /** Launch readback of current V1 derived blocks only. Never reads a transcript or runs processing. */
 final class ModeledConversionForecastStatusReader
 {
-    public const VERSION='saved_semantic_prediction_status_v1_19';
+    public const VERSION='saved_semantic_prediction_status_v1_20';
     public const METADATA_LIMIT=20;
     public const PROFILE_LIMIT=4;
     public const PROFILE_BYTES=49152;
@@ -31,15 +31,20 @@ final class ModeledConversionForecastStatusReader
 
     public function read():array
     {
+        $entryRemaining=$this->budget->remainingMilliseconds();
         $this->auth();
         if($this->pdo->inTransaction())return $this->unavailable('outer_transaction');
         try{
             $this->copied=0;$out=$this->emptyResult();
+            $out['read_budget']=['basis'=>'shared_budget_v1',
+                'remaining_ms'=>['reader_entry'=>$entryRemaining]];
             $out['state']=$this->state();
+            $out['read_budget']['remaining_ms']['state']=$this->budget->remainingMilliseconds();
             $model=hash_file('sha256',__DIR__.'/ModeledConversionSemanticPrediction.php');
             $processor=hash_file('sha256',__DIR__.'/ModeledConversionProfiles.php');
             if(!is_string($model)||!is_string($processor))return $this->unavailable('source_unavailable');
             $parts=$this->parts();$sum=implode('+',array_map(fn(string $s):string=>'COALESCE('.$this->length($s).',0)',array_values($parts)));
+            $bodyBytes=implode('+',array_map(fn(string $name):string=>'COALESCE('.$this->length($name).',0)',array_keys($parts)));
             $bytes='CASE WHEN JSON_VALID(profile_json) THEN '.$sum.' ELSE 0 END';
             $matches='CASE WHEN JSON_VALID(profile_json) THEN CASE WHEN '
                 .$this->scalar('semantic_prediction.version').'=? AND '.$this->scalar('semantic_prediction.model_sha256').'=?'
@@ -50,10 +55,11 @@ final class ModeledConversionForecastStatusReader
                 .' FROM (SELECT id,platform,customer_key,conversation_id,journal_cursor,observed_at_unix,profile_json'
                 .' FROM modeled_conversion_profile_versions WHERE project_key=? AND platform IN (?,?) ORDER BY id DESC LIMIT '.self::METADATA_LIMIT.') v ORDER BY id DESC',
                 ['semantic_purchase_heuristic_v1',$model,$processor,'anytour','max','telegram']);
+            $out['read_budget']['remaining_ms']['metadata']=$this->budget->remainingMilliseconds();
             $out['window']['metadata_rows']=count($meta);$out['window']['metadata_limit_reached']=count($meta)===self::METADATA_LIMIT;
             $fence=$meta?(string)$meta[0]['id']:'0';$scopes=[];
             $next=0;
-            $readProfiles=function(int $limit)use(&$out,&$scopes,&$next,$meta,$parts,$bytes,$fence,$model,$processor):void{
+            $readProfiles=function(int $limit)use(&$out,&$scopes,&$next,$meta,$parts,$bodyBytes,$fence,$model,$processor):void{
                 for(;$next<count($meta);$next++){
                     // Validate one core packet before diagnostics; inspect remaining candidates only with spare budget.
                     if($limit<self::PROFILE_LIMIT&&$out['window']['profile_rows_read']>=$limit)break;
@@ -73,8 +79,11 @@ final class ModeledConversionForecastStatusReader
                     }
                     $columns=[];
                     foreach($parts as$name=>$sql)$columns[]='CASE WHEN JSON_VALID(profile_json) THEN '.$sql.' ELSE NULL END AS '.$name;
-                    $body=$this->query('SELECT '.implode(',',$columns).' FROM modeled_conversion_profile_versions WHERE project_key=?'
-                        .' AND id=? AND id<=? AND '.$bytes.'=? AND '.$bytes.'<=? AND JSON_VALID(profile_json) LIMIT 1',
+                    // Materialize the four parts once; both pre-copy size guards reuse their bounded aliases.
+                    $body=$this->query('SELECT '.implode(',',array_keys($parts)).' FROM (SELECT '.implode(',',$columns)
+                        .' FROM modeled_conversion_profile_versions WHERE project_key=? AND id=? AND id<=?'
+                        .' AND JSON_VALID(profile_json) LIMIT 1 OFFSET 0) core_packet'
+                        .' WHERE '.$bodyBytes.'=? AND '.$bodyBytes.'<=? LIMIT 1',
                         ['anytour',(string)$row['id'],$fence,$size,self::PROFILE_BYTES]);
                     $actual=0;
                     if(count($body)===1)foreach(array_keys($parts)as$name){
@@ -165,8 +174,11 @@ final class ModeledConversionForecastStatusReader
                 }
             };
             $out['visit_delivery_check']=$this->optionalRead(fn():array=>ModeledConversionVisitProof::privateSummary(time(),$this->budget));
+            $out['read_budget']['remaining_ms']['visit_receipt']=$this->budget->remainingMilliseconds();
             $readProfiles(1);
+            $out['read_budget']['remaining_ms']['first_profile']=$this->budget->remainingMilliseconds();
             $out['value_delivery']=$this->optionalRead(fn():array=>(new ModeledConversionValueDeliveryReader($this->pdo,$this->authorize,$this->budget))->read(time()));
+            $out['read_budget']['remaining_ms']['value_delivery']=$this->budget->remainingMilliseconds();
             $activation=$out['value_delivery']['activated_at']??null;
             $activation=is_string($activation)?strtotime($activation):false;
             $out['saved_input_diagnosis']=$this->optionalRead(fn():array=>(new ModeledConversionInputDiagnosisReader($this->pdo,$this->authorize,$this->budget))->read($activation===false?null:$activation),4000);
@@ -176,7 +188,9 @@ final class ModeledConversionForecastStatusReader
             // This bounded reader already owns an 8KiB admission gate; do not reserve that headroom twice.
             $out['telegram_linkage']=(new ModeledConversionTelegramLinkageReader($this->pdo,$this->authorize,$this->budget))->read(time());
             $out['external_monitor']=$this->optionalRead(fn():array=>ModeledConversionDeliveryHealth::externalStatus($this->budget,$this->authorize,time()));
+            $out['read_budget']['remaining_ms']['optional_views']=$this->budget->remainingMilliseconds();
             $readProfiles(self::PROFILE_LIMIT);
+            $out['read_budget']['remaining_ms']['remaining_profiles']=$this->budget->remainingMilliseconds();
             $out['window']['selected_document_bytes']=$this->copied;
             $out['saved']['distinct_inspected_scopes']=$out['saved']['valid_v1_versions'];
             $out['confirmation']=$out['saved']['prospective_estimates']>0?'saved_prospective_estimates':
@@ -210,7 +224,9 @@ final class ModeledConversionForecastStatusReader
     /** Resource omission is explicit; access denial and the shared deadline still fail closed. */
     private function optionalRead(callable $read,int $minimumMilliseconds=0):array
     {
-        if($this->budget->remainingMilliseconds()<$minimumMilliseconds)return ['available'=>false,'reason'=>'time_headroom'];
+        $remaining=$this->budget->remainingMilliseconds();
+        if($remaining<$minimumMilliseconds)return ['available'=>false,'reason'=>'time_headroom',
+            'minimum_required_ms'=>$minimumMilliseconds,'remaining_ms'=>$remaining];
         if($this->budget->remainingBytes()<self::OPTIONAL_RESERVE+4096)
             return ['available'=>false,'reason'=>'budget_headroom'];
         try{return $this->budget->withReservedBytes(self::OPTIONAL_RESERVE,$read);}
