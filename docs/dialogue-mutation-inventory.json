@@ -156,9 +156,9 @@
       "path": "services/DialogueView.php",
       "receiver": "MaxSearchApi",
       "method": "setStatus",
-      "occurrences": 3,
+      "occurrences": 4,
       "classification": "transition",
-      "rationale": "Successful standard or manager-contact view delivery advances to the presented state. Source qualification enters AI mode before sending its question so a later reply cannot remain behind an older check surface; saved trip values are retained."
+      "rationale": "Successful standard or manager-contact view delivery advances to the presented state. Source qualification enters AI mode before sending its question so a later reply cannot remain behind an older check surface; saved trip values are retained. An empty specialized source entry also receives its canonical start boundary before AI mode, without resetting existing state."
     },
     {
       "path": "services/ExistingWizardStepApplicationService.php",

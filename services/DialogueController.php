@@ -5,6 +5,7 @@ require_once __DIR__ . '/DialogueView.php';
 require_once __DIR__ . '/PostTourService.php';
 require_once __DIR__ . '/DiagnosticLogger.php';
 require_once __DIR__ . '/EditFlowService.php';
+require_once __DIR__ . '/NeedProgressionService.php';
 require_once __DIR__ . '/../services/DepartureCityResolver.php';
 require_once __DIR__ . '/../services/DestinationAreaResolver.php';
 require_once __DIR__ . '/../services/DestinationResolver.php';
@@ -106,7 +107,12 @@ class DialogueController
         }
         if ($status == MaxSearchApi::$statusAi || !$status || $status == MaxSearchApi::$statusStart) {
             if (AiBudgetHandler::handle($chatId, $text)) return true;
-            DepartureCityResolver::resolveAndStore($chatId, $text);
+            $missing = MaxSearchApi::getAiMissingFields($chatId);
+            $departure = DepartureCityResolver::resolveAndStore($chatId, $text, ($missing[0] ?? '') === 'city');
+            if (!empty($departure['field_answer'])) {
+                NeedProgressionService::advance($chatId);
+                return true;
+            }
             DestinationAreaResolver::resolveAndStore($chatId, $text);
             DestinationResolver::resolveAndStore($chatId, $text);
 

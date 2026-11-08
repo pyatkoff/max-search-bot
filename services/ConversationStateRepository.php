@@ -204,6 +204,13 @@ class ConversationStateRepository
         return $result;
     }
 
+    /** Only a source lifecycle owner may repair the known empty-first-AI origin. */
+    public static function restoreSourceStartBoundary($chatId, int $startStatus, int $aiStatus, int $checkStatus, array $valueStatuses): bool
+    {
+        if (!RuntimeStorage::usesMysql()) return false;
+        return MysqlDialogueStateRepository::restoreSourceStartBoundary($chatId, $startStatus, $aiStatus, $checkStatus, $valueStatuses);
+    }
+
     /** Versioned metadata is attached to the existing start row, never a wizard status. */
     public static function contextMetadataSnapshot($chatId, int $startStatus = 64): array
     {

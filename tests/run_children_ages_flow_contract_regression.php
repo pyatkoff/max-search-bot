@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
+require_once $root . '/services/ChildAgesParser.php';
+require_once $root . '/services/ChildAgeValueContract.php';
 $contract = json_decode((string)file_get_contents($root . '/docs/children-ages-flow-contract.json'), true);
 $callback = (string)file_get_contents($root . '/actions/callbacks/WizardCallbackAction.php');
 $handler = (string)file_get_contents($root . '/handlers/StateMessageHandler.php');
@@ -57,6 +59,49 @@ childrenAgesContractCheck('back transitions preserve children and age structure'
 childrenAgesContractCheck('tourists edit owns adults children and ages together', strpos($edit, "case 'tourists': return [MaxSearchApi::\$statusAdults, MaxSearchApi::\$statusChild, MaxSearchApi::\$statusAge];") !== false);
 
 childrenAgesContractCheck('child callback and free-text ages both check application', !empty($contract['children']['current_application_result_is_checked']) && !empty($contract['child_ages']['current_application_result_is_checked']) && !empty($contract['migration_readiness']['child_age_message']['runtime_migration_completed']));
+
+// Synthetic parser-to-storage examples. A shared age is explicit evidence for
+// each already known child, never permission to infer or replace the party.
+$sharedAgeCases = [
+    ['plural child age', 'Детям по 7 лет.', 2, [7, 7]],
+    ['both children without repeated unit', 'Обоим по 9', 2, [9, 9]],
+    ['both girls', 'Обеим по 6 лет', 2, [6, 6]],
+    ['each of three known children', 'Каждому 5 лет', 3, [5, 5, 5]],
+    ['explicit child noun', 'Каждому ребёнку 4 года', 2, [4, 4]],
+    ['shared zero age is preserved', 'Детям по 0 лет', 2, [0, 0]],
+    ['compound infant age stays one child', '1 год 11 месяцев', 1, [1]],
+    ['mixed explicit units stay distinct', '5 лет, 7 месяцев', 2, [5, 0]],
+    ['ordinary two-age list remains a list', '1 12 лет', 2, [1, 12]],
+];
+foreach ($sharedAgeCases as [$label, $text, $count, $expected]) {
+    $actual = ChildAgesParser::parse($text, $count);
+    childrenAgesContractCheck($label . ' resolves exact ages', $actual === $expected);
+    childrenAgesContractCheck($label . ' retains comma-space storage',
+        is_array($actual) && ChildAgeValueContract::toStorage($actual, $count) === implode(', ', $expected));
+}
+
+foreach ([
+    ['a single number never fills two ages', '7', 2],
+    ['no child count is invented', 'Обоим по 7', 0],
+    ['both contradicts one saved child', 'Обоим по 7', 1],
+    ['both cannot fill three children', 'Обоим по 7', 3],
+    ['plural children contradicts one saved child', 'Детям по 7 лет', 1],
+    ['age range remains ambiguous', 'Детям по 7-9 лет', 2],
+    ['age alternative remains ambiguous', 'Обоим по 7 или 9 лет', 2],
+    ['different ages are not a shared-age answer', 'Детям по 7 и 9 лет', 2],
+    ['negation is not affirmative age evidence', 'Не обоим по 7 лет', 2],
+    ['future age is not current age', 'Обоим будет по 7 лет', 2],
+    ['approximate age needs clarification', 'Каждому почти 7 лет', 2],
+    ['night count is not an age', 'Обоим по 7 ночей', 2],
+    ['shared months are not guessed as years', 'Обоим по 7 месяцев', 2],
+    ['out of range shared age stays invalid', 'Детям по 18 лет', 2],
+    ['negative shared age stays invalid', 'Каждому -1 год', 2],
+    ['additional trip facts are not swallowed', 'Детям по 7 лет, вылет 12 декабря', 2],
+    ['compound infant age cannot invent a second child', '1 год 11 месяцев', 2],
+    ['count-first shorthand is not one child age', '1 12 лет', 1],
+] as [$label, $text, $count]) {
+    childrenAgesContractCheck($label, ChildAgesParser::parse($text, $count) === null);
+}
 
 echo "\n--------------------------\n";
 echo $failed === 0 ? "CHILDREN/AGES FLOW CONTRACT: OK\n" : "CHILDREN/AGES FLOW CONTRACT: FAIL ({$failed})\n";

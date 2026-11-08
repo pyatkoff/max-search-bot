@@ -124,6 +124,10 @@ try {
         $basePost=$publications[$platform];$user=88877100+$index;$chat=$platform==='max'?-$user:$user;
         $known=['city'=>'Москва','country'=>'Египет','adults'=>2,'children'=>0,'nights'=>'5'];
         MaxSearchApi::$needContexts[$chat]=$known;MaxSearchApi::$missingNeeds[$chat]=['date'];
+        $legacyTitle=SourceQualificationPrompt::publicationContext([
+            ...$basePost, 'snapshot'=>['text'=>"✈️ Туры в Papillon Zeugma с перелётом\n📍 Белек, Турция."],
+        ]);
+        cpeCheck('existing flight-suffix heading still resolves the hotel: '.$platform,$legacyTitle['hotel_name']??'','Papillon Zeugma');
         $named=[];
         foreach(['Rixos Premium Seagate','Papillon Zeugma'] as $variant=>$hotel){
             $message=$platform==='max'?'mid.greeting.'.($variant+1):(string)(951+$variant);

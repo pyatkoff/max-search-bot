@@ -11,10 +11,31 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public static bool $copied=false;
     public static bool $valueCopied=false;
     public static mixed $afterMetadata=null;
+    public static bool $observePredictive=false;
+    public static int $predictiveExecutions=0;
+    public static array $predictiveCopies=[];
+    public static array $predictiveStatements=[];
+    private array $predictiveBindings=[];
     protected function __construct(){}
+    public function bindValue(string|int $param,mixed $value,int $type=PDO::PARAM_STR):bool
+    {
+        $ok=parent::bindValue($param,$value,$type);
+        if(self::$observePredictive)$this->predictiveBindings[$param]=[$value,$type];
+        return $ok;
+    }
+    public function execute(?array $params=null):bool
+    {
+        $ok=parent::execute($params);
+        if(self::$observePredictive){
+            self::$predictiveExecutions++;
+            self::$predictiveStatements[]=['sql'=>$this->queryString,'bindings'=>$this->predictiveBindings];
+        }
+        return $ok;
+    }
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
     {
         $rows=parent::fetchAll($mode,...$args);
+        if(self::$observePredictive)self::$predictiveCopies[]=$rows;
         if(str_contains($this->queryString,' AS reserved_rub'))self::$valueCopied=true;
         if(str_contains($this->queryString,' AS prediction_json,'))self::$copied=true;
         if(str_contains($this->queryString,' AS namespace_matches')&&is_callable(self::$afterMetadata)){
@@ -856,6 +877,29 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,profile_json TEXT)");
     $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),platform VARCHAR(16),conversation_id BIGINT,value_profile_id BIGINT,value_stage VARCHAR(40),value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),event_unix BIGINT,claimed_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,upload_id VARCHAR(40),client_id VARCHAR(40))");
     $now=time();
+    // Observe actual executions and copies only during this reader call, without matching SQL text.
+    $observe=static function(callable $read)use($p):array{
+        $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+        ForecastV1ObservedStatement::$observePredictive=true;
+        ForecastV1ObservedStatement::$predictiveExecutions=0;ForecastV1ObservedStatement::$predictiveCopies=[];
+        ForecastV1ObservedStatement::$predictiveStatements=[];
+        try{return $read();}
+        finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    };
+    $transferFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $onlyNullPackets=static function(array $copies):bool{
+        if(count($copies)!==1||count($copies[0])<1||count($copies[0])>17)return false;
+        foreach($copies[0]as$row)if($row!==['packet'=>null])return false;
+        return true;
+    };
+    $emptyBudget=new ModeledConversionStatusBudget();
+    $empty=$observe(static fn():array=>(new ModeledConversionValueDeliveryReader($p,static function():void{},$emptyBudget))->predictiveV1($now));
+    $check('an empty predictive suffix remains available with zero totals after one empty scalar copy',
+        ForecastV1ObservedStatement::$predictiveExecutions===1&&ForecastV1ObservedStatement::$predictiveCopies===[[]]
+        &&$empty['available']===true&&$empty['events']===0&&$empty['conversations']===0&&$empty['value_rub']===0
+        &&$empty['window']['inspected_predictive_rows']===0&&$empty['window']['complete_within_goal_suffix']===true
+        &&$empty['examples']===[]&&$emptyBudget->remainingBytes()>=8192);
     $profile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,'770001',?,?,?)");
     $row=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     $put=static function(int $id,string $platform,int $scope,?float $prob,?int $price,?int $full,int $delta,string $state,string $status,array $money=[],array $semantic=[])use($profile,$row,$now):void{
@@ -937,10 +981,39 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         !str_contains($json,'PRIVATE_')&&!str_contains($json,'770001')&&!str_contains($json,'990001')
         &&!str_contains($json,'value_profile_id')&&!str_contains($json,'conversation_id'));
     $read();$check('repeated predictive inspection leaves every profile and outbox row byte identical',$before===$snapshot());
+    $observed=$observe($read);$packets=[];
+    foreach(ForecastV1ObservedStatement::$predictiveCopies[0]??[]as$copy)$packets[]=json_decode($copy['packet']??'null',true,16,JSON_THROW_ON_ERROR);
+    $check('one predictive statement preserves the exact scalar result newest order and original rows',
+        ForecastV1ObservedStatement::$predictiveExecutions===1&&count(ForecastV1ObservedStatement::$predictiveCopies)===1
+        &&array_column($packets,0)===[6,5,4,3,2]&&array_map('count',$packets)===[38,38,38,38,38]
+        &&$observed===$r&&$before===$snapshot());
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'){
+        // Probe one existing scalar in the actual generated statement; keep every binding and result unchanged.
+        $statement=ForecastV1ObservedStatement::$predictiveStatements[0];$evaluations=0;
+        $p->sqliteCreateFunction('forecast_scalar_probe',static function(mixed $id)use(&$evaluations):mixed{
+            $evaluations++;return $id;
+        },1,PDO::SQLITE_DETERMINISTIC);
+        $probeSql=str_replace('JSON_ARRAY(o.id,','JSON_ARRAY(forecast_scalar_probe(o.id),',$statement['sql'],$instrumented);
+        $probe=$p->prepare($probeSql);
+        foreach($statement['bindings']as$parameter=>[$value,$type])$probe->bindValue($parameter,$value,$type);
+        $probe->execute();$probeRows=$probe->fetchAll(PDO::FETCH_ASSOC);$probe->closeCursor();
+        $check('SQLite materializes each predictive packet once while returning identical scalar bytes',
+            $instrumented===1&&$evaluations===5&&$probeRows===ForecastV1ObservedStatement::$predictiveCopies[0]
+            &&$before===$snapshot());
+    }
     $calls=0;$revoked=false;
     try{(new ModeledConversionValueDeliveryReader($p,static function()use(&$calls):void{if(++$calls>=2)throw new DomainException('revoked');},new ModeledConversionStatusBudget()))->predictiveV1($now);}
     catch(DomainException $ignored){$revoked=true;}
     $check('authorization revoked after the scalar read prevents predictive release',$revoked);
+    $copyRevoked=false;
+    try{$observe(static fn():array=>(new ModeledConversionValueDeliveryReader($p,static function():void{
+        if(ForecastV1ObservedStatement::$predictiveCopies!==[])throw new DomainException('revoked_after_predictive_copy');
+    },new ModeledConversionStatusBudget()))->predictiveV1($now));}
+    catch(DomainException $ignored){$copyRevoked=true;}
+    $copied=ForecastV1ObservedStatement::$predictiveCopies;
+    $check('revocation after the actual predictive packet copy prevents release and leaves saved rows unchanged',
+        $copyRevoked&&ForecastV1ObservedStatement::$predictiveExecutions===1&&count($copied)===1&&count($copied[0])===5
+        &&is_string($copied[0][0]['packet']??null)&&$before===$snapshot());
     $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(50000);
     $limited=(new ModeledConversionValueDeliveryReader($p,static function():void{},$budget))->predictiveV1($now);
     $check('predictive optional read preserves the existing shared authorization headroom',$limited===['available'=>false,'reason'=>'budget_headroom']);
@@ -1050,9 +1123,28 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         &&array_sum($r['stage_comparison_counts'])===$r['events']&&$r['events']>count($r['examples']));
     $p->prepare("UPDATE modeled_conversion_profile_versions SET profile_json=JSON_SET(profile_json,'$.semantic_prediction.reasons',JSON_ARRAY(?))")->execute([str_repeat('я',600)]);
     $tight=new ModeledConversionStatusBudget();$tight->consumeBytes(40000);
-    $bounded=(new ModeledConversionValueDeliveryReader($p,static function():void{},$tight))->predictiveV1($now);
+    $multibyteBefore=$snapshot();$tightBefore=$tight->remainingBytes();
+    $bounded=$observe(static fn():array=>(new ModeledConversionValueDeliveryReader($p,static function():void{},$tight))->predictiveV1($now));
     $check('oversized multibyte scalar detail is preflighted before copying and retains authorization bytes',
         $bounded===['available'=>false,'reason'=>'budget_headroom']&&$tight->remainingBytes()>=8192);
+    $copied=ForecastV1ObservedStatement::$predictiveCopies;
+    $copyBytes=strlen(json_encode($copied[0]??[],$transferFlags));
+    $check('oversized multibyte detail copies only bounded null packets in one statement and charges those exact bytes',
+        ForecastV1ObservedStatement::$predictiveExecutions===1&&$onlyNullPackets($copied)
+        &&$tightBefore-$tight->remainingBytes()===$copyBytes&&$copyBytes<=512&&$multibyteBefore===$snapshot());
+    $postAuthBudget=new ModeledConversionStatusBudget();$authSpent=false;
+    $postAuth=$observe(static function()use($p,$postAuthBudget,&$authSpent,$now):array{
+        return (new ModeledConversionValueDeliveryReader($p,static function()use($postAuthBudget,&$authSpent):void{
+            if(!$authSpent){$postAuthBudget->consumeBytes(40000);$authSpent=true;}
+        },$postAuthBudget))->predictiveV1($now);
+    });
+    $copied=ForecastV1ObservedStatement::$predictiveCopies;
+    $copyBytes=strlen(json_encode($copied[0]??[],$transferFlags));
+    $check('the scalar transfer gate uses the remaining budget after authorization consumes bytes',
+        $authSpent&&$postAuth===['available'=>false,'reason'=>'budget_headroom']
+        &&ForecastV1ObservedStatement::$predictiveExecutions===1&&$onlyNullPackets($copied)
+        &&65536-$postAuthBudget->remainingBytes()===40000+$copyBytes&&$postAuthBudget->remainingBytes()>=8192
+        &&$multibyteBefore===$snapshot());
 
     // Each synthetic stage case starts after the unchanged suffix/budget fixtures above.
     $stageReadOnly=true;

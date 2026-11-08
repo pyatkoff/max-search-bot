@@ -17,6 +17,13 @@ class ChildAgesParser
             return self::parseExplicitMonthAges($lower, $childrenCount);
         }
 
+        // Repeat a year age only when the reply explicitly assigns it to every
+        // known child. Keep these phrases out of generic numeric extraction:
+        // "обоим" must not silently become one age when the saved count is one.
+        if (preg_match('/(?<![\p{L}])(?:обоим|обеим|каждому)(?![\p{L}])|(?<![\p{L}])детям\s+по(?![\p{L}])/ui', $lower)) {
+            return self::parseSharedAge($lower, $childrenCount);
+        }
+
         // A pair written as a date/range is ambiguous in the age step. Keep the
         // resolver fail-closed rather than silently turning "5-7" or "05.07"
         // into two child ages. Natural age phrasing such as "5 и 12" remains
@@ -32,6 +39,23 @@ class ChildAgesParser
 
         return $ages;
     }
+
+    /** A complete shared-age answer never changes the known child count. */
+    private static function parseSharedAge(string $text, int $childrenCount): ?array
+    {
+        if (preg_match('/\A(?:обоим|обеим)\s+по\s+(\d{1,2})(?:\s*(?:лет|года?))?\z/ui', $text, $match)) {
+            if ($childrenCount !== 2) return null;
+        } elseif (preg_match('/\Aдетям\s+по\s+(\d{1,2})\s*(?:лет|года?)\z/ui', $text, $match)) {
+            if ($childrenCount < 2) return null;
+        } elseif (!preg_match('/\Aкаждому(?:\s+реб[её]нку)?\s+(\d{1,2})\s*(?:лет|года?)\z/ui', $text, $match)) {
+            return null;
+        }
+
+        $age = (int)$match[1];
+        if ($age < 0 || $age > 17) return null;
+        return array_fill(0, $childrenCount, $age);
+    }
+
     /** Month-bearing replies require explicit units for every child. */
     private static function parseExplicitMonthAges(string $text, int $childrenCount): ?array
     {

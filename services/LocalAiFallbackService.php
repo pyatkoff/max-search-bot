@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/AdultsParser.php';
+require_once __DIR__ . '/NeedValueResolver.php';
 
 class LocalAiFallbackService
 {
@@ -106,12 +107,8 @@ class LocalAiFallbackService
         $children = array_key_exists('children', $params)
             ? (int)$params['children']
             : (int)($current['children'] ?? 0);
-        if ($children === 1 && preg_match('/\b(?:реб[её]нок|реб[её]нка)\b[^\d]{0,24}(\d{1,2})\s*(?:лет|год(?:а)?)\b/ui', $userText, $m)) {
-            $age = (int)$m[1];
-            if ($age >= 0 && $age <= 17) {
-                $params['child_ages'] = [$age];
-            }
-        }
+        $childAges = self::explicitChildAges($userText, $children);
+        if ($childAges !== null) $params['child_ages'] = $childAges;
 
         if (preg_match('/(?:на\s+)?недел(?:ю|ьку)/ui', $userText)) {
             $params['nights'] = '7';
@@ -137,6 +134,44 @@ class LocalAiFallbackService
     {
         return in_array('country', $missingBefore, true)
             && in_array('country', $missingAfter, true);
+    }
+
+    private static function explicitChildAges(string $text, int $children): ?array
+    {
+        if ($children < 1 || $children > 3) return null;
+
+        // Isolate an age clause tied to children before using the canonical
+        // scalar parser. Dates, adult/child counts and nights elsewhere in a
+        // rich request must never become child ages.
+        $year = '(?:лет|года?)';
+        $month = '(?:месяц(?:а|ев)?|мес\.?)(?!\p{L})';
+        $separator = '(?:\s*[,;]\s*|\s+и\s+|\s+)';
+        $yearAge = '[0-9]{1,2}\s*'.$year.'(?!\p{L})(?:\s*(?:и\s+)?[0-9]{1,3}\s*'.$month.')?';
+        $explicitAge = '(?:'.$yearAge.'|[0-9]{1,3}\s*'.$month.')';
+        $ages = '(?:(?:'.$explicitAge.'|[0-9]{1,2})'.$separator.')*'.$explicitAge;
+        $plain = '(?:реб[её]н(?:ок|ка|ку|ков)|дет(?:и|ей|ям))(?!\p{L})'
+            .'\s*(?:[,:(]\s*)?(?:(?:в\s+возрасте|возраст(?:ом)?)\s*[:—-]?\s*)?'.$ages;
+        $shared = '(?:(?:обоим|обеим|детям)\s+по|каждому(?:\s+реб[её]нку)?)'
+            .'\s+[0-9]{1,2}\s*'.$year;
+        $pattern = '/(?<!\p{L})(?:'.$shared.'|'.$plain.')(?![\p{L}0-9])'
+            .'(?!\s*(?:или|либо)(?!\p{L}))'
+            .'(?!\s*(?:[,;]|и(?!\p{L}))\s*[0-9]{1,2}\s*(?:'.$year.'|[,;]|$))/ui';
+        if (preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE) !== 1) return null;
+
+        [$clause, $offset] = $matches[0][0];
+        $prefix = substr($text, 0, $offset);
+        $suffix = substr($text, $offset + strlen($clause));
+        $remaining = $prefix.' '.$suffix;
+        if (preg_match('/(?:^|[^\p{L}])(?:не|нет|почти|около|примерно|обоим|обеим|каждому)(?:\s+[0-3])?\s*$/ui', $prefix)
+            || preg_match('/(?<![0-9])[0-9]{1,3}\s*(?:'.$year.'|'.$month.')(?!\p{L})/ui', $remaining)
+            || preg_match('/(?<!\p{L})не\s*[0-9]{1,2}(?![0-9])(?:\s*'.$year.')?\s*[,;]?\s*а\s*(?:по\s+)?[0-9]{1,2}(?![0-9])/ui', $suffix)) return null;
+
+        // Preserve "по/обоим/каждому" for the shared-age policy. A trailing
+        // question or comment is not part of that complete scalar answer.
+        $resolved = NeedValueResolver::resolve('child_ages', $clause, ['children'=>$children]);
+        return !empty($resolved['recognized']) && is_array($resolved['value'] ?? null)
+            ? $resolved['value']
+            : null;
     }
 
     private static function lower(string $value): string
