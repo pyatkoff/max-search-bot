@@ -9,6 +9,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const zlib = require('node:zlib');
 const {spawnSync} = require('node:child_process');
+const {performance} = require('node:perf_hooks');
 
 const REPOSITORY = 'pyatkoff/max-search-bot';
 const API_ROOT = '/repos/' + REPOSITORY;
@@ -421,11 +422,11 @@ async function requirePublicationStep(api,run,r,recordDigest,producerAttempt,clo
       &&Number.isSafeInteger(steps[0].number)&&steps[0].number<terminal[0].number,'terminal_step_unconfirmed');
   }
 }
-async function authenticatePublication(api,location,{closed=false,diagnosticsHead=null}={}) {
+async function authenticatePublication(api,location,{closed=false,diagnosticsHead=null,metadataWait=null}={}) {
   const {record}=location,{release:r}=validateRelease(record);
   let producer=r.phase==='pending_closure'?r.release:r.closure,run;
   if(r.phase==='pending_closure'&&r.kind==='installed'){
-    const completed=await deploymentProof(api,installationReceipt(record));run=completed.run;
+    const completed=await deploymentProof(api,installationReceipt(record),{metadataWait});run=completed.run;
     producer={run_id:r.release.run_id,run_attempt:completed.publicationAttempt};
   }else{
     run=await api('GET',API_ROOT+'/actions/runs/'+producer.run_id);
@@ -474,22 +475,24 @@ async function responseBytes(response,limit) {
 }
 function makeReadApi(token,fetchImpl=globalThis.fetch) {
   requireValue(typeof token==='string'&&token.length>0&&typeof fetchImpl==='function','missing_capability');
-  const request=async(url,headers,redirect='error',limit=MAX_API)=>{
+  const request=async(url,headers,redirect='error',limit=MAX_API,signal=null)=>{
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+    const abort=()=>controller.abort();
+    if(signal){if(signal.aborted)abort();else signal.addEventListener('abort',abort,{once:true});}
     try{
       const response=await fetchImpl(url,{method:'GET',redirect,signal:controller.signal,headers});
       if(redirect==='manual'&&[301,302,303,307,308].includes(response.status))return response;
       requireValue(response.ok,'api_http_'+(Number.isInteger(response.status)?response.status:'unknown'));
       return await responseBytes(response,limit);
     }catch(e){if(e instanceof Refusal)throw e;throw new Refusal('transport_failed');}
-    finally{clearTimeout(timer);}
+    finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
   };
   const headers=raw=>({Authorization:'Bearer '+token,Accept:raw?'application/vnd.github.raw+json':'application/vnd.github+json',
     'X-GitHub-Api-Version':'2022-11-28'});
-  const api=async(method,p,body,raw=false)=>{
+  const api=async(method,p,body,raw=false,signal=null)=>{
     requireValue(method==='GET'&&body===undefined&&typeof p==='string'&&p.startsWith(API_ROOT+'/')
       &&!/[\r\n\\#]/.test(p),'invalid_read_request');
-    return parseJson(await request('https://api.github.com'+p,headers(raw)),MAX_API);
+    return parseJson(await request('https://api.github.com'+p,headers(raw),'error',MAX_API,signal),MAX_API);
   };
   api.artifact=async meta=>{
     requireValue(positive(meta?.id),'invalid_artifact');
@@ -526,8 +529,61 @@ async function sourceContext(env,event,api,expectedWorkflow=null) {
   requireValue(run.status==='in_progress','workflow_not_active');
   return {...c,run};
 }
-async function deploymentProof(api,receipt,{completed=true,admitting=false}={}) {
-  const run=await api('GET',API_ROOT+'/actions/runs/'+receipt.run_id);
+function installationStepResult(close,job,name) {
+  try{return close.stepResult(job,name);}
+  catch(error){
+    // This pure shared reader has one typed refusal. Do not echo an arbitrary
+    // transport error's code or turn it into metadata that may be retried.
+    if(error instanceof Error&&error.constructor.name==='Refusal'&&error.code==='incomplete_job_steps')
+      throw new Refusal('incomplete_job_steps');
+    throw error;
+  }
+}
+function installedMetadataWait(api,c,parent,{sleep,now,startedAt}) {
+  if(parent.event!=='push'||parent.run_attempt!==1)return null;
+  let remaining=2,waited=false,identity=null,timer=null;
+  const controller=new AbortController();
+  const elapsed=()=>now()-startedAt;
+  const check=()=>{if(waited)requireValue(elapsed()>=0&&elapsed()<30000,'deployment_metadata_deadline');};
+  const bounded=async action=>{
+    check();
+    if(!waited)return action();
+    clearTimeout(timer);timer=setTimeout(()=>controller.abort(),30000-elapsed());
+    let abort;
+    const expired=new Promise((_,reject)=>{
+      abort=()=>reject(new Refusal('deployment_metadata_deadline'));
+      if(controller.signal.aborted)abort();else controller.signal.addEventListener('abort',abort,{once:true});
+    });
+    try{const result=await Promise.race([expired,action()]);check();return result;}
+    finally{controller.signal.removeEventListener('abort',abort);}
+  };
+  const read=(method,p,body,raw=false)=>bounded(()=>api(method,p,body,raw,waited?controller.signal:null));
+  return {
+    check,api:read,close(){clearTimeout(timer);},
+    bind(run,jobs){
+      requireValue(String(run.id)===String(parent.id)&&run.run_attempt===1
+        &&run.event===parent.event&&run.head_sha===c.sha,'deployment_metadata_changed');
+      const current=jobs.map(j=>({id:j.id,name:j.name,run_id:j.run_id,head_sha:j.head_sha}));
+      requireValue(current.every(j=>positive(j.id)),'installation_job_unconfirmed');
+      if(identity===null)identity=current;
+      else requireValue(same(identity,current),'deployment_metadata_changed');
+    },
+    async retry(){
+      requireValue(remaining>0&&elapsed()>=0&&elapsed()+10000<30000,'deployment_metadata_deadline');
+      remaining--;waited=true;await bounded(()=>sleep(10000));
+      requireValue((await read('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
+    }
+  };
+}
+async function deploymentProof(api,receipt,{completed=true,admitting=false,metadataWait=null}={}) {
+  requireValue(!metadataWait||(completed&&!admitting),'invalid_metadata_wait');
+  const close=require('./release_slot_close');
+  let run;
+  while(true){
+  metadataWait?.check();
+  run=await api('GET',API_ROOT+'/actions/runs/'+receipt.run_id);
+  metadataWait?.check();
+  if(metadataWait)requireValue(run?.run_attempt===1,'deployment_metadata_changed');
   requireValue([1,2].includes(run?.run_attempt),'invalid_deployment_attempt');
   runIdentity(run,{id:receipt.run_id,attempt:run.run_attempt,head:receipt.sha,workflow:DEPLOY,
     completed,event:run.event});
@@ -538,23 +594,35 @@ async function deploymentProof(api,receipt,{completed=true,admitting=false}={}) 
     // remains usable only when its original job metadata proves real execution.
     const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+run.id+'/attempts/1/jobs?per_page=100'),
       'jobs','incomplete_installation_jobs');
-    const close=require('./release_slot_close');
+    metadataWait?.check();
+    const required=[];
     for(const name of [...close.INSTALL_JOBS,'verify']){
       const matches=jobs.filter(j=>j.name===name);
       requireValue(matches.length===1&&matches[0].run_id===run.id&&matches[0].head_sha===receipt.sha
         &&matches[0].status==='completed'&&matches[0].conclusion==='success','installation_job_unconfirmed');
+      required.push(matches[0]);
     }
+    metadataWait?.bind(run,required);
     const deployment=jobs.find(j=>j.name==='deploy'),verification=jobs.find(j=>j.name==='verify');
-    for(const name of ['Build exact deployment bundle','Sync canonical production checkout',
+    const steps=['Build exact deployment bundle','Sync canonical production checkout',
       'Apply database migrations and fence the old hotel contour','Reconcile canonical MAX webhook ownership',
-      'Ensure Metrika offline uploader cron','Apply profile and retain exact diagnostic snapshot'])
-      requireValue(close.stepResult(deployment,name)==='success','installation_not_performed');
-    for(const key of ['check','download','status'])requireValue(close.stepResult(verification,close.VERIFY_STEPS[key])==='success',
-      'verification_not_performed');
+      'Ensure Metrika offline uploader cron','Apply profile and retain exact diagnostic snapshot']
+      .map(name=>[deployment,name,'installation_not_performed'])
+      .concat(['check','download','status'].map(key=>[verification,close.VERIFY_STEPS[key],'verification_not_performed']));
+    let pending=false;
+    for(const [job,name,failure]of steps){
+      const rows=Array.isArray(job.steps)?job.steps.filter(s=>s?.name===name):[];
+      if(metadataWait&&rows.length===1&&rows[0].status==='in_progress'&&rows[0].conclusion===null)pending=true;
+      else requireValue(installationStepResult(close,job,name)==='success',failure);
+    }
+    // Inspect every required row first: pending never hides a failed, missing,
+    // duplicate or unknown step. The same budget is shared with publication.
+    if(pending){await metadataWait.retry();continue;}
     return {run,attempt:1,publicationAttempt:1};
   }
+  break;
+  }
   requireValue(run.event==='push','manual_recovery_forbidden');
-  const close=require('./release_slot_close');
   const get=p=>api('GET',API_ROOT+p),c={sha:receipt.sha,deploy:Number(receipt.run_id)};
   const first=await get('/actions/runs/'+receipt.run_id+'/attempts/1');
   const history=await get('/actions/runs/'+receipt.run_id+'/jobs?filter=all&per_page=100');
@@ -801,7 +869,8 @@ async function finalResolution(api,c,location,result) {
   requireValue((await api('GET',API_ROOT+'/git/ref/heads/main'))?.object?.sha===c.sha,'main_changed');
   return result;
 }
-async function resolveConsumer({env,event,api}) {
+async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms)),now=()=>performance.now()}) {
+  const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');
   if(c.event==='push'){
@@ -825,7 +894,12 @@ async function resolveConsumer({env,event,api}) {
   const receipt=installationReceipt(location.record);
   if(!location.record.repository_release){
     requireValue(receipt.sha===c.sha&&String(receipt.run_id)===String(parent.id),'installation_source_mismatch');
-    await deploymentProof(api,receipt);return finalResolution(api,c,location,resolution(c.sha,c.sha,'installed'));
+    const metadataWait=installedMetadataWait(api,c,parent,{sleep,now,startedAt});
+    const proofApi=metadataWait?.api||api;
+    try{
+      await deploymentProof(proofApi,receipt,{metadataWait});
+      return await finalResolution(proofApi,c,location,resolution(c.sha,c.sha,'installed'));
+    }finally{metadataWait?.close();}
   }
   const r=validateRelease(location.record).release;
   requireValue(r.repository_sha===c.sha&&r.release.run_id===String(parent.id),'superseded_deployment_result');
@@ -833,8 +907,12 @@ async function resolveConsumer({env,event,api}) {
     requireValue(parent.run_attempt===1&&r.release.run_attempt===1,'unchanged_recovery_forbidden');
     await verifyUnchanged(api,location);return finalResolution(api,c,location,resolution(c.sha,r.application_sha,r.kind,false));
   }
-  await deploymentProof(api,receipt);await authenticatePublication(api,location);
-  return finalResolution(api,c,location,resolution(c.sha,c.sha,'installed'));
+  const metadataWait=installedMetadataWait(api,c,parent,{sleep,now,startedAt});
+  const proofApi=metadataWait?.api||api;
+  try{
+    await deploymentProof(proofApi,receipt,{metadataWait});await authenticatePublication(proofApi,location,{metadataWait});
+    return await finalResolution(proofApi,c,location,resolution(c.sha,c.sha,'installed'));
+  }finally{metadataWait?.close();}
 }
 async function resolveEditor({env,event,api,repositorySha,applicationSha}) {
   const c=await sourceContext(env,event,api,HOST);

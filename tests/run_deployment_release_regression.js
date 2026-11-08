@@ -13,6 +13,7 @@ function equal(a,b,message){assert.deepEqual(a&&typeof a==='object'?copy(a):a,b&
 async function refuses(fn,code,message){
   let error;try{await fn();}catch(e){error=e;}
   assert.equal(error?.code,code,message||code);assertions++;
+  return error;
 }
 const copy=R.clone,T='2026-11-06T06:00:00Z',H=x=>crypto.createHash('sha1').update(x).digest('hex');
 const D=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -427,6 +428,149 @@ async function consumerCases(f,a,r){
   closeRun.status='in_progress';closeRun.conclusion=null;
 }
 
+function metadataConsumer({legacy=false,event='workflow_run',parentEvent='push'}={}){
+  const a='a'.repeat(40),f=fixture(a,legacy?receipt(a):installed(a));
+  f.wave.parent.event=parentEvent;
+  const workflow=R.PREFIX+(event==='schedule'?'modeled-conversion-monitor.yml':'max-production-health.yml');
+  const run=f.wave.wave.find(x=>x.path===workflow);run.status='in_progress';run.conclusion=null;run.event=event;
+  let clock=0,onSleep=null;const delays=[];
+  const options={api:f.api,env:consumerEnv(run,workflow,event,'inspect'),
+    event:{repository:{full_name:R.REPOSITORY},action:'completed',workflow_run:copy(f.wave.parent),schedule:'2-59/5 * * * *'},
+    now:()=>clock,sleep:async ms=>{delays.push(ms);clock+=ms;if(onSleep)await onSleep(delays.length);}};
+  return {f,options,delays,resolve:()=>R.resolveConsumer(options),
+    set onSleep(value){onSleep=value;},set clock(value){clock=value;},
+    get reads(){return f.calls.filter(c=>c.path.endsWith('/attempts/1/jobs?per_page=100')).length;},
+    job:name=>f.jobs.get(f.wave.parent.id).find(j=>j.name===name),
+    pending(name=INSTALL_EXECUTION.at(-1),jobName='deploy'){
+      const row=f.jobs.get(f.wave.parent.id).find(j=>j.name===jobName).steps.find(s=>s.name===name);
+      row.status='in_progress';row.conclusion=null;row.completed_at=null;return row;
+    }};
+}
+function completeMetadata(row){row.status='completed';row.conclusion='success';row.completed_at=T;}
+async function metadataWaitCases(){
+  let h=metadataConsumer(),result=await h.resolve();
+  equal(result,{repository_sha:'a'.repeat(40),application_sha:'a'.repeat(40),kind:'installed',perform_actions:true,ready:true},
+    'confirmed original installation resolves without changing authority');
+  equal(h.delays,[],'consistent metadata never waits');equal(h.reads,3,'existing two proofs and publication read stay unchanged');
+  equal(h.f.calls.every(c=>c.method==='GET'),true,'original consumer remains read-only before credentials');
+
+  for(const legacy of [false,true]){
+    h=metadataConsumer({legacy});const row=h.pending();h.onSleep=()=>completeMetadata(row);
+    equal((await h.resolve()).ready,true,'same original '+(legacy?'legacy':'versioned')+' installation can settle metadata');
+    equal(h.delays,[10000],'one pending observation causes exactly one bounded wait');
+    equal(h.reads,legacy?2:4,'settlement adds only one proof snapshot');
+    equal(h.f.calls.every(c=>c.method==='GET'),true,'settlement performs no provider action or state mutation');
+  }
+
+  h=metadataConsumer();let snapshots=0;
+  h.f.hook=({path:p})=>{
+    if(!p.endsWith('/attempts/1/jobs?per_page=100'))return;
+    const jobs=copy(h.f.jobs.get(h.f.wave.parent.id));snapshots++;
+    if([1,3].includes(snapshots))Object.assign(jobs.find(j=>j.name==='deploy').steps.at(-1),{status:'in_progress',conclusion:null});
+    return {total_count:jobs.length,jobs};
+  };
+  equal((await h.resolve()).ready,true,'both original proof readers share metadata grace');
+  equal(h.delays,[10000,10000],'two proof readers share at most two waits');equal(h.reads,5,'two waits add exactly two snapshots');
+
+  h=metadataConsumer();snapshots=0;
+  h.f.hook=({path:p})=>{
+    if(!p.endsWith('/attempts/1/jobs?per_page=100'))return;
+    const jobs=copy(h.f.jobs.get(h.f.wave.parent.id));snapshots++;
+    if([1,2,4].includes(snapshots))Object.assign(jobs.find(j=>j.name==='deploy').steps.at(-1),{status:'in_progress',conclusion:null});
+    return {total_count:jobs.length,jobs};
+  };
+  await refuses(()=>h.resolve(),'deployment_metadata_deadline','nested publication cannot reset the reread budget');
+  equal(h.delays,[10000,10000],'exhausted shared budget never waits a third time');equal(h.reads,4,'no third extra snapshot after exhaustion');
+
+  h=metadataConsumer();snapshots=0;
+  h.f.hook=({path:p})=>{
+    if(!p.endsWith('/attempts/1/jobs?per_page=100'))return;
+    const jobs=copy(h.f.jobs.get(h.f.wave.parent.id));snapshots++;
+    if([1,3].includes(snapshots))Object.assign(jobs.find(j=>j.name==='deploy').steps.at(-1),{status:'in_progress',conclusion:null});
+    if(snapshots===2)h.clock=25000;
+    return {total_count:jobs.length,jobs};
+  };
+  await refuses(()=>h.resolve(),'deployment_metadata_deadline','second proof also keeps the original clock deadline');
+  equal(h.delays,[10000],'remaining five seconds cannot admit another ten-second wait');
+
+  h=metadataConsumer();h.pending();
+  await refuses(()=>h.resolve(),'deployment_metadata_deadline','permanently pending steps stop after bounded observation');
+  equal(h.delays,[10000,10000],'permanent pending cannot poll indefinitely');equal(h.reads,3,'permanent pending reads at most three snapshots');
+
+  const invalid=[
+    ['failed step',x=>x.job('deploy').steps.at(-1).conclusion='failure','installation_not_performed'],
+    ['skipped step',x=>x.job('deploy').steps.at(-1).conclusion='skipped','installation_not_performed'],
+    ['cancelled step',x=>x.job('deploy').steps.at(-1).conclusion='cancelled','incomplete_job_steps'],
+    ['missing step',x=>x.job('deploy').steps.pop(),'incomplete_job_steps'],
+    ['duplicate step',x=>x.job('deploy').steps.push(copy(x.job('deploy').steps.at(-1))),'incomplete_job_steps'],
+    ['unknown status',x=>Object.assign(x.job('deploy').steps.at(-1),{status:'waiting',conclusion:null}),'incomplete_job_steps'],
+    ['queued status',x=>Object.assign(x.job('deploy').steps.at(-1),{status:'queued',conclusion:null}),'incomplete_job_steps'],
+    ['contradictory status',x=>Object.assign(x.job('deploy').steps.at(-1),{status:'in_progress',conclusion:'success'}),'incomplete_job_steps'],
+    ['failed verification',x=>x.job('verify').steps[0].conclusion='failure','verification_not_performed'],
+    ['missing verification',x=>x.job('verify').steps.shift(),'incomplete_job_steps'],
+    ['missing step array',x=>x.job('verify').steps=null,'incomplete_job_steps'],
+    ['pending job',x=>Object.assign(x.job('verify'),{status:'in_progress',conclusion:null}),'installation_job_unconfirmed'],
+    ['failed job',x=>x.job('verify').conclusion='failure','installation_job_unconfirmed'],
+    ['foreign job SHA',x=>x.job('verify').head_sha='b'.repeat(40),'installation_job_unconfirmed'],
+    ['duplicate job name',x=>x.f.jobs.get(x.f.wave.parent.id).push({...copy(x.job('verify')),id:99999}),'installation_job_unconfirmed'],
+    ['duplicate job id',x=>x.job('verify').id=x.job('deploy').id,'incomplete_installation_jobs'],
+  ];
+  for(const [name,change,code]of invalid){
+    h=metadataConsumer();h.pending(INSTALL_EXECUTION[0]);change(h);
+    const error=await refuses(()=>h.resolve(),code,'pending never masks '+name);
+    equal(error instanceof R.Refusal,true,'known '+name+' refusal keeps a safe local reason');
+    equal(h.delays,[],name+' fails before any wait');equal(h.reads,1,name+' is never retried');
+  }
+
+  const drift=[
+    ['main',x=>{x.f.main='b'.repeat(40);},'main_changed'],
+    ['attempt',x=>{x.f.wave.parent.run_attempt=2;},'deployment_metadata_changed'],
+    ['run SHA',x=>{x.f.wave.parent.head_sha='b'.repeat(40);},'untrusted_workflow_run'],
+    ['run event',x=>{x.f.wave.parent.event='workflow_dispatch';},'deployment_metadata_changed'],
+    ['run failure',x=>{x.f.wave.parent.conclusion='failure';},'producer_not_successful'],
+    ['job identity',x=>{x.job('deploy').id+=10000;},'deployment_metadata_changed'],
+    ['result record',x=>{const record=copy(x.f.record);record.reported_at='2026-11-06T06:00:01Z';x.f.putRecord(record);},'deployment_result_changed'],
+  ];
+  for(const [name,change,code]of drift){
+    h=metadataConsumer();const row=h.pending();h.onSleep=()=>{completeMetadata(row);change(h);};
+    await refuses(()=>h.resolve(),code,'metadata settlement cannot adopt changed '+name);
+    equal(h.delays,[10000],name+' drift never requests another wait');
+    equal(h.f.calls.every(c=>c.method==='GET'),true,name+' drift cannot authorize a mutation');
+  }
+
+  for(const code of ['api_http_403','api_http_429','api_http_500','transport_failed','invalid_json']){
+    h=metadataConsumer();h.pending();snapshots=0;
+    h.f.hook=({path:p})=>{if(p.endsWith('/attempts/1/jobs?per_page=100')&&++snapshots===2)throw new R.Refusal(code);};
+    await refuses(()=>h.resolve(),code,'API failure is not pending metadata: '+code);
+    equal(h.delays,[10000],code+' stops on the first API error');equal(h.reads,2,code+' response is not retried');
+  }
+  h=metadataConsumer();const foreign=Object.assign(new Error('SYNTHETIC_PRIVATE_DETAIL'),{code:'SYNTHETIC_PRIVATE_CODE'});
+  h.f.hook=({path:p})=>{if(p.endsWith('/attempts/1/jobs?per_page=100'))throw foreign;};
+  const unexpected=await refuses(()=>h.resolve(),foreign.code);
+  equal(unexpected instanceof R.Refusal,false,'foreign API errors do not acquire a printable trusted reason');equal(h.delays,[],'foreign errors do not retry');
+
+  for(const options of [{legacy:true,event:'workflow_dispatch'},{legacy:true,event:'schedule'},{legacy:true,parentEvent:'workflow_dispatch'}]){
+    h=metadataConsumer(options);h.pending();
+    await refuses(()=>h.resolve(),'incomplete_job_steps','manual/scheduled authority has no metadata grace');
+    equal(h.delays,[],'metadata grace is reserved for the original push consumer');equal(h.reads,1,'no other consumer repeats a snapshot');
+  }
+  for(const options of [{completed:false},{admitting:true}]){
+    h=metadataConsumer();h.pending();
+    const error=await refuses(()=>R.deploymentProof(h.f.api,receipt('a'.repeat(40)),options),'incomplete_job_steps');
+    equal(error instanceof R.Refusal,true,'shared step refusal is normalized without granting admission grace');equal(h.reads,1,'admission does not await metadata');
+  }
+
+  h=metadataConsumer();const pending=h.pending();h.onSleep=()=>{completeMetadata(pending);h.clock=29990;};
+  let signal;
+  const base=h.options.api;
+  h.options.api=(method,p,body,raw,abort)=>{
+    if(h.delays.length&&p.endsWith('/git/ref/heads/main')){signal=abort;return new Promise(()=>{});}
+    return base(method,p,body,raw);
+  };
+  await refuses(()=>h.resolve(),'deployment_metadata_deadline','an unsettled API read is bounded by the remaining consumer deadline');
+  equal(signal?.aborted,true,'expired metadata read receives cancellation');equal(h.delays,[10000],'deadline expiry never retries an unsettled API read');
+}
+
 async function failureBoundaries(){
   const a='a'.repeat(40);
   let f=fixture(a),out=await C.closeRelease({...f.options(),prepare:true});
@@ -491,7 +635,7 @@ async function transportBoundaries(){
   await refuses(()=>writer('PATCH',R.API_ROOT+'/git/refs/heads/diagnostics',{sha:'a'.repeat(40),force:true}),'invalid_write_target');
   await refuses(()=>writer('POST',R.API_ROOT+'/actions/workflows/deploy.yml/dispatches',{ref:'main'}),'invalid_write_target');
 }
-async function main(){await pureValidation();await gitBridge();await failureBoundaries();await transportBoundaries();
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await transportBoundaries();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
