@@ -599,6 +599,7 @@ function modeledHandoffProfileAssertions(PDO $p,callable $check):void
         &&$paid['prediction_followup']['status']!=='observed'
         &&$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
     modeledObservationalProfileAssertions($p,$check);
+    modeledWizardProfileAssertions($p,$check);
 }
 
 /** Real emitOnce envelopes pass through the existing source journal and immutable profile writer. */
@@ -677,6 +678,142 @@ function modeledObservationalProfileAssertions(PDO $p,callable $check):void
         $check('fixture queue contains only the explicit local calls',
             $queued===array_map(static fn(string $target):array=>['9011',$target],$targets));
     }finally{$connection->setValue(null,$previousConnection);}
+}
+
+/** Both SQLite and the existing native MySQL helper execute the actual wizard producer chain. */
+function modeledWizardProfileAssertions(PDO $p,callable $check):void
+{
+    if(!defined('MAX_SEARCH_RUNTIME_STORAGE'))define('MAX_SEARCH_RUNTIME_STORAGE','mysql');
+    foreach(['HOST','NAME','USER','PASS']as$name)if(!defined('CONVERSATION_DB_'.$name))define('CONVERSATION_DB_'.$name,'synthetic');
+    // Only the legacy status configuration is a fixture; persistence and receipt owners are real.
+    if(!class_exists('MaxSearchApi',false)){
+        class MaxSearchApi {public static $HL=1;public static $statusStart=64;public static $statusAdults=67;public static $statusChild=68;}
+    }
+    require_once dirname(__DIR__).'/services/ExistingWizardStepApplicationService.php';
+    require_once dirname(__DIR__).'/services/ConversationRecorder.php';
+    require_once dirname(__DIR__).'/services/SourceHandlingService.php';
+    require_once dirname(__DIR__).'/services/ModeledConversionValueContract.php';
+    $check('wizard continuity actual fixture uses the canonical PDO storage',RuntimeStorage::usesMysql());
+    modeledStreamSchema($p);modeledProfileSchema($p);
+    $mysql=$p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql';
+    $id=$mysql?'BIGINT PRIMARY KEY AUTO_INCREMENT':'INTEGER PRIMARY KEY AUTOINCREMENT';
+    $p->exec('ALTER TABLE customer_channels ADD external_chat_id VARCHAR(40)');
+    $p->exec('ALTER TABLE customer_channels ADD username VARCHAR(80)');
+    foreach(['source_id BIGINT','status VARCHAR(32) DEFAULT \'ai\'','external_chat_id VARCHAR(40)','last_message_at DATETIME']as$column)
+        $p->exec('ALTER TABLE conversations ADD '.$column);
+    $p->exec("UPDATE conversations SET source_id=1,external_chat_id='9011' WHERE id=11");
+    $p->exec("UPDATE conversations SET source_id=2,external_chat_id='9010' WHERE id=10");
+    $p->exec('DROP TABLE messages');$p->exec('DROP TABLE conversation_events');
+    $p->exec('CREATE TABLE messages(id '.$id.',conversation_id BIGINT,direction VARCHAR(16),sender_type VARCHAR(16),sender_id VARCHAR(40),channel VARCHAR(16),external_message_id VARCHAR(80),text MEDIUMTEXT,metadata_json MEDIUMTEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    $p->exec('CREATE TABLE conversation_events(id '.$id.',conversation_id BIGINT,event_type VARCHAR(64),actor_type VARCHAR(16),payload_json TEXT,created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
+    $p->exec('CREATE TABLE projects(id BIGINT PRIMARY KEY,project_key VARCHAR(40),is_active INT)');
+    $p->exec("INSERT INTO projects VALUES(1,'anytour',1)");
+    $p->exec('CREATE TABLE conversation_sources(id BIGINT PRIMARY KEY,project_id BIGINT,source_key VARCHAR(80),is_active INT)');
+    $p->exec("INSERT INTO conversation_sources VALUES(1,1,'max:default',1),(2,1,'telegram:default',1)");
+    $p->exec('CREATE TABLE runtime_dialogue_state(id '.$id.',project_key VARCHAR(40),chat_id VARCHAR(40),status_id INT,value_text TEXT,message_id VARCHAR(80))');
+    $insert=$p->prepare('INSERT INTO runtime_dialogue_state(project_key,chat_id,status_id,value_text,message_id) VALUES(?,?,?,?,?)');
+    foreach(['9011','9010']as$chat)foreach([MaxSearchApi::$statusStart,MaxSearchApi::$statusAdults,MaxSearchApi::$statusChild]as$status)
+        $insert->execute(['anytour',$chat,$status,'','']);
+    $restore=[];
+    foreach([[ConversationDb::class,'pdo',$p],[ProjectConfig::class,'config',['id'=>'anytour']],
+        [RoutingAccessService::class,'schemaReady',true],[ProjectAccessService::class,'schemaReady',true],
+        [ConversationRecorder::class,'wizardInput',null],[ConversationRecorder::class,'wizardReceipts',[]],
+        [ConversationRecorder::class,'wizardReceiptReason','input_unavailable']]as[$class,$property,$value]){
+        $reflection=new ReflectionProperty($class,$property);$restore[]=[$reflection,$reflection->getValue()];$reflection->setValue(null,$value);
+    }
+    $fetch=$p->getAttribute(PDO::ATTR_DEFAULT_FETCH_MODE);$p->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,PDO::FETCH_ASSOC);
+    if(!$mysql)$p->sqliteCreateFunction('NOW',static fn():string=>gmdate('Y-m-d H:i:s'));
+    try{
+        $started=time()-2;$source=new ModeledConversionStream($p);$profiles=new ModeledConversionProfiles($p);$source->start($started);$profiles->start();
+        $incoming=['platform'=>'max','type'=>'message','source_key'=>'max:default',
+            'user'=>['external_user_id'=>'9011','chat_id'=>'9011']];
+        $check('wizard continuity actual recorder accepts the request and short field answer',
+            ConversationRecorder::inbound($incoming+['message_id'=>'fixture-request','text'=>'Подберите тур в Турцию на 7 ночей.'])
+            &&ConversationRecorder::inbound($incoming+['message_id'=>'fixture-adults','text'=>'2']));
+        $inputId=(string)$p->query("SELECT id FROM messages WHERE external_message_id='fixture-adults'")->fetchColumn();
+        $source->tick(time());$profiles->tick(time());$baseline=modeledProfileLatest($p);
+        $prediction=$baseline['semantic_prediction'];
+        $firstId=(int)$p->query("SELECT id FROM modeled_conversion_profile_versions WHERE conversation_id='11' ORDER BY id LIMIT 1")->fetchColumn();
+        $firstJson=$p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn();
+        $check('wizard continuity actual baseline retains a meaningful request before application',
+            $prediction['status']==='predicted'&&$prediction['stage']==='concrete_request'
+            &&$prediction['current_customer_turn_count']===2&&$prediction['features']['meaningful_customer_turns']===1
+            &&$baseline['wizard_applications']['receipts']===[]);
+        $check('wizard continuity actual existing step writes one canonical receipt',
+            ExistingWizardStepApplicationService::apply('9011',MaxSearchApi::$statusAdults,'2',true)
+            &&ConversationRecorder::wizardReceiptReason()==='recorded'
+            &&$p->query("SELECT value_text FROM runtime_dialogue_state WHERE chat_id='9011' AND status_id=".(int)MaxSearchApi::$statusAdults)->fetchColumn()==='2'
+            &&(int)$p->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()===1);
+        $raw=$p->query('SELECT id,payload_json FROM conversation_events')->fetch();
+        $payload=json_decode($raw['payload_json'],true,32,JSON_THROW_ON_ERROR);
+        $check('wizard continuity actual receipt binds the exact persisted short input',
+            $payload['input_message_id']===$inputId&&$payload['input_kind']==='message'
+            &&$payload['input_text_sha256']===hash('sha256','2')&&$payload['field']==='adults'&&$payload['storage_value']==='2'
+            &&ConversationRecordClock::read($raw['payload_json'])!==null);
+        $source->tick(time());
+        $check('wizard continuity actual followup uses the canonical AI recorder',
+            ConversationRecorder::outboundForConversation(11,'max','Уточните даты поездки.'));
+        $source->tick(time());
+        // Invoke only the existing receipt producer; no handoff, delivery or manager action is run.
+        $recordChoice=new ReflectionMethod(SourceHandlingService::class,'recordChoice');
+        $recordChoice->invoke(null,'max','9011','manager','source_needs_complete');
+        $completion=$p->query("SELECT payload_json FROM conversation_events WHERE event_type='source_handling_choice'")->fetchColumn();
+        $completionPayload=is_string($completion)?json_decode($completion,true,32,JSON_THROW_ON_ERROR):[];
+        $completionClock=is_string($completion)?ConversationRecordClock::read($completion):null;unset($completionPayload['_recorded_clock']);
+        $check('wizard continuity actual source completion uses the canonical producer',
+            $completionPayload===['choice'=>'manager','reason'=>'source_needs_complete']&&$completionClock!==null);
+        $source->tick(time());$receipt=$profiles->tick(time());$later=modeledProfileLatest($p);$current=$later['semantic_prediction'];
+        $lookup=$p->prepare('SELECT id FROM modeled_conversion_stream_versions WHERE source_kind=? AND source_id=? AND version_no=1');
+        $lookup->execute(['message',$inputId]);$inputRef='journal:'.$lookup->fetchColumn();
+        $lookup->execute(['event',(string)$raw['id']]);$receiptRef='journal:'.$lookup->fetchColumn();
+        $check('wizard continuity actual journal and Python expose only the admitted binding',
+            $receipt['profiles_written']===1&&$later['wizard_applications']===['version'=>'admitted_wizard_applications_v1',
+                'receipts'=>[['receipt_ref'=>$receiptRef,'input_ref'=>$inputRef]]]);
+        $check('wizard continuity actual profile preserves anchor stage probability and criteria',
+            $current['status']==='predicted'&&$current['current_request_anchor']===$prediction['current_request_anchor']
+            &&$current['stage']===$prediction['stage']&&$current['estimated_probability']===$prediction['estimated_probability']
+            &&$current['base_probability']===$prediction['base_probability']&&$current['features']===$prediction['features']
+            &&$current['current_customer_turn_count']===2&&$current['outcome_observations']===[]
+            &&$later['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+            &&$later['contextual_signals']['goal_counts']['payment_self_report']===0
+            &&$later['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===1);
+        $beforeMoney=ModeledConversionDealValue::saved($baseline);$afterMoney=ModeledConversionDealValue::saved($later);
+        $beforeCandidate=ModeledConversionValueContract::candidate($baseline,$baseline['subject'],$started,time());
+        $afterCandidate=ModeledConversionValueContract::candidate($later,$later['subject'],$started,time());
+        $bothCandidates=$beforeCandidate!==null&&$afterCandidate!==null;
+        if($bothCandidates){unset($beforeCandidate['event_unix'],$afterCandidate['event_unix']);}
+        $check('wizard continuity actual monetary candidate matches the receipt-free request',
+            $beforeMoney!==null&&$afterMoney!==null&&$beforeMoney['status']==='estimated'&&$afterMoney['status']==='estimated'
+            &&$afterMoney['version']===$beforeMoney['version']&&$afterMoney['commission_rate']===$beforeMoney['commission_rate']
+            &&$afterMoney['full_value_base_rub']===$beforeMoney['full_value_base_rub']&&$afterMoney['value_rub']===$beforeMoney['value_rub']
+            &&$afterMoney['value_rub']>0&&$bothCandidates&&$beforeCandidate===$afterCandidate);
+        $check('wizard continuity actual missing step emits no successful receipt',
+            ExistingWizardStepApplicationService::apply('9011',999,'2',true)===false
+            &&(int)$p->query('SELECT COUNT(*) FROM conversation_events')->fetchColumn()===2);
+        $short=['platform'=>'telegram','type'=>'message','source_key'=>'telegram:default','message_id'=>'fixture-short-only',
+            'user'=>['external_user_id'=>'9010','chat_id'=>'9010'],'text'=>'2'];
+        $check('wizard continuity actual isolated short answer is saved by the same owners',
+            ConversationRecorder::inbound($short)&&ExistingWizardStepApplicationService::apply('9010',MaxSearchApi::$statusAdults,'2',true));
+        $source->tick(time());$profiles->tick(time());$shortProfile=modeledProfileLatest($p,'10');
+        $check('wizard continuity actual short answer alone cannot create a request or monetary candidate',
+            $shortProfile['semantic_prediction']['status']==='insufficient_context'
+            &&$shortProfile['semantic_prediction']['current_request_anchor']===null
+            &&ModeledConversionValueContract::candidate($shortProfile,$shortProfile['subject'],$started,time())===null);
+        $callback=$incoming;$callback['type']='callback';$callback['callback_id']='fixture-children';$callback['callback_data']='child_0';
+        $check('wizard continuity actual button keeps its saved field but has no admitted text',
+            ConversationRecorder::inbound($callback)&&ExistingWizardStepApplicationService::apply('9011',MaxSearchApi::$statusChild,'0',true));
+        $source->tick(time());$profiles->tick(time());$buttonProfile=modeledProfileLatest($p);
+        $check('wizard continuity actual callback cannot bridge customer meaning',
+            $buttonProfile['profile']['party']['children']['value']===0
+            &&$buttonProfile['semantic_prediction']['status']==='insufficient_context'
+            &&$buttonProfile['semantic_prediction']['current_request_anchor']===null);
+        $check('wizard continuity actual profile bytes remain immutable',
+            $p->query('SELECT profile_json FROM modeled_conversion_profile_versions WHERE id='.$firstId)->fetchColumn()===$firstJson);
+    }finally{
+        foreach(array_reverse($restore)as[$reflection,$value])$reflection->setValue(null,$value);
+        $p->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE,$fetch);
+        foreach(['runtime_dialogue_state','conversation_sources','projects']as$table)$p->exec('DROP TABLE '.$table);
+    }
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){

@@ -30,6 +30,109 @@ function modeledEarlyFixture(array $messages):array
     return [$case,$wrapper,$document];
 }
 function modeledEarlyRun(array $messages):array{return ModeledConversionEarlyForecast::freeze(...modeledEarlyFixture($messages));}
+
+/** Synthetic canonical input/receipt; real producer admission is exercised by the stream suite. */
+function modeledWizardFixture(array $between=[],array $after=[]):array
+{
+    $parts=modeledEarlyFixture([['text'=>'Подберите тур в Турцию на 7 ночей, 2 взрослых.'],
+        ...$between,['text'=>'saved wizard value','admitted'=>false],...$after]);
+    $receiptId=(string)(count($between)+2);$text=$parts[0]['rows'][count($parts[0]['rows'])-1]['snapshot']['payload']['text'];
+    foreach($parts[0]['rows']as&$row){
+        if(!in_array($row['journal_id'],['1',$receiptId],true))continue;
+        $at=$row['snapshot']['source_created_at_unix'];
+        $row['snapshot']['source_timestamp_basis']='canonical_recording_unix_v1';
+        if($row['journal_id']==='1'){
+            $row['snapshot']['payload']=['direction'=>'inbound','sender_type'=>'customer','text'=>$text,
+                'metadata_json'=>json_encode(ConversationRecordClock::stamp(['type'=>'message'],$at),JSON_THROW_ON_ERROR)];
+        }else{
+            $row['source_kind']=$row['snapshot']['source_kind']='event';
+            $row['snapshot']['payload']=['event_type'=>'wizard_value_applied','actor_type'=>'system',
+                'payload_json'=>json_encode(ConversationRecordClock::stamp(['version'=>1,
+                    'origin'=>'existing_wizard_step_application','input_message_id'=>'1','input_kind'=>'message',
+                    'input_text_sha256'=>hash('sha256',$text),'field'=>'adults','storage_value'=>'2'],$at),JSON_THROW_ON_ERROR)];
+        }
+    }
+    unset($row);
+    $parts[1]['wizard_applications']=['version'=>'admitted_wizard_applications_v1',
+        'receipts'=>[['receipt_ref'=>'journal:'.$receiptId,'input_ref'=>'journal:1']]];
+    return $parts;
+}
+
+function modeledWizardAssertions(callable $check):void
+{
+    $parts=modeledWizardFixture();$clean=$parts;
+    $clean[0]['rows']=[$clean[0]['rows'][1]];$clean[1]['wizard_applications']['receipts']=[];
+    $before=ModeledConversionEarlyForecast::freeze(...$clean);$after=ModeledConversionEarlyForecast::freeze(...$parts);
+    $a=$before['semantic_prediction'];$b=$after['semantic_prediction'];
+    $check('wizard continuity preserves the same admitted request without adding customer meaning',
+        $a['status']==='predicted'&&$b['status']===$a['status']
+        &&$b['current_request_anchor']===$a['current_request_anchor']&&$b['stage']===$a['stage']
+        &&$b['estimated_probability']===$a['estimated_probability']&&$b['base_probability']===$a['base_probability']
+        &&$b['current_customer_turn_count']===$a['current_customer_turn_count']&&$b['features']===$a['features']
+        &&$b['outcome_observations']===[]
+        &&$after['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===0);
+    $p=ModeledConversionEarlyForecast::freeze(...modeledWizardFixture([], [['text'=>'Да']]));
+    $check('wizard continuity does not turn a later bare confirmation into agency or payment intent',
+        $p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
+        &&$p['contextual_signals']['goal_counts']['payment_self_report']===0
+        &&$p['semantic_prediction']['outcome_observations']===[]);
+    $mutations=[
+        'unknown event'=>static function(array &$p,array &$e,array &$m,array &$data):void{$e['snapshot']['payload']['event_type']='unknown_fixture_event';},
+        'edited receipt'=>static function(array &$p,array &$e,array &$m,array &$data):void{$e['source_version_no']=2;},
+        'edited input'=>static function(array &$p,array &$e,array &$m,array &$data):void{$m['source_version_no']=2;},
+        'foreign receipt'=>static function(array &$p,array &$e,array &$m,array &$data):void{$e['snapshot']['conversation_id']='99';},
+        'hash mismatch'=>static function(array &$p,array &$e,array &$m,array &$data):void{$data['input_text_sha256']=str_repeat('0',64);},
+        'invalid canonical clock'=>static function(array &$p,array &$e,array &$m,array &$data):void{$data['_recorded_clock']['unix']++;},
+        'missing canonical input clock'=>static function(array &$p,array &$e,array &$m,array &$data):void{$m['snapshot']['payload']['metadata_json']='{"type":"message"}';},
+        'unselected receipt'=>static function(array &$p,array &$e,array &$m,array &$data):void{$p[1]['wizard_applications']['receipts']=[];},
+        'wrong input binding'=>static function(array &$p,array &$e,array &$m,array &$data):void{$p[1]['wizard_applications']['receipts'][0]['input_ref']='journal:2';},
+        'callback only'=>static function(array &$p,array &$e,array &$m,array &$data):void{
+            $data['input_kind']='callback';$meta=json_decode($m['snapshot']['payload']['metadata_json'],true,512,JSON_THROW_ON_ERROR);
+            $meta['type']='callback';$m['snapshot']['payload']['metadata_json']=json_encode($meta,JSON_THROW_ON_ERROR);
+            $p[1]['profile']['observation_input']['evidence']=[];
+        },
+    ];
+    foreach($mutations as$name=>$mutate){
+        $changed=$parts;$event=&$changed[0]['rows'][0];$input=&$changed[0]['rows'][1];
+        $data=json_decode($event['snapshot']['payload']['payload_json'],true,512,JSON_THROW_ON_ERROR);
+        $mutate($changed,$event,$input,$data);$event['snapshot']['payload']['payload_json']=json_encode($data,JSON_THROW_ON_ERROR);
+        unset($event,$input);$p=ModeledConversionEarlyForecast::freeze(...$changed);
+        $check('wizard continuity rejects '.$name,
+            $p['semantic_prediction']['status']==='insufficient_context'
+            &&$p['semantic_prediction']['current_request_anchor']===null
+            &&$p['semantic_prediction']['estimated_probability']===null);
+    }
+    $missing=$parts;$missing[0]['rows']=[$missing[0]['rows'][0]];
+    $missing[1]['profile']['observation_input']['evidence']=[];
+    $p=ModeledConversionEarlyForecast::freeze(...$missing);
+    $check('wizard continuity cannot reconstruct a missing customer input',
+        $p['semantic_prediction']['current_request_anchor']===null&&$p['semantic_prediction']['status']==='insufficient_context');
+    foreach([false,true]as$newRequest){
+        $between=[['text'=>'unavailable source','admitted'=>false]];
+        if($newRequest)$between[]=['text'=>'Подберите тур в Египет на 10 ночей.'];
+        $p=ModeledConversionEarlyForecast::freeze(...modeledWizardFixture($between));
+        $check('wizard continuity cannot revive an old input after a real barrier'.($newRequest?' and a new request':''),
+            $p['semantic_prediction']['status']==='insufficient_context'
+            &&$p['semantic_prediction']['current_request_anchor']===null
+            &&$p['semantic_prediction']['estimated_probability']===null);
+    }
+    $duplicate=$parts;$row=$duplicate[0]['rows'][0];$row['journal_id']=$row['source_id']=$row['snapshot']['source_id']='3';
+    $row['snapshot']['source_created_at_unix']++;$row['observed_at_unix']++;
+    $payload=json_decode($row['snapshot']['payload']['payload_json'],true,512,JSON_THROW_ON_ERROR);$payload['_recorded_clock']['unix']++;
+    $row['snapshot']['payload']['payload_json']=json_encode($payload,JSON_THROW_ON_ERROR);$duplicate[0]['rows'][]=$row;
+    foreach([1,2]as$i)$duplicate[$i]['journal_cursor']=$duplicate[$i]['source_fence_journal_id']='3';
+    $p=ModeledConversionEarlyForecast::freeze(...$duplicate);
+    $check('wizard continuity leaves an unselected identical duplicate as a barrier',
+        $p['semantic_prediction']['status']==='insufficient_context'&&$p['semantic_prediction']['current_request_anchor']===null);
+    $stale=$parts;$event=&$stale[0]['rows'][0];$event['snapshot']['source_created_at_unix']+=86401;$event['observed_at_unix']+=86401;
+    $payload=json_decode($event['snapshot']['payload']['payload_json'],true,512,JSON_THROW_ON_ERROR);$payload['_recorded_clock']['unix']+=86401;
+    $event['snapshot']['payload']['payload_json']=json_encode($payload,JSON_THROW_ON_ERROR);unset($event);
+    $cutoff=gmdate('Y-m-d\TH:i:s\Z',1793003000+86401);
+    $stale[1]['profile']['prediction_at']=$stale[1]['profile']['observation_input']['prediction_at']=$stale[2]['requested_at']=$cutoff;
+    $p=ModeledConversionEarlyForecast::freeze(...$stale);
+    $check('wizard continuity does not bridge a customer anchor older than 24 hours',
+        $p['semantic_prediction']['status']==='insufficient_context'&&$p['semantic_prediction']['current_request_anchor']===null);
+}
 /** Full synthetic admitted request + canonical producer receipts + later text. */
 function modeledOfferFixture(string $reaction,array $between=[],string $query='Подберите тур в Турцию',array $after=[]):array
 {
@@ -250,6 +353,7 @@ function modeledObservationalEventAssertions(callable $check):void
 function modeledEarlyAssertions(callable $check):void
 {
     modeledObservationalEventAssertions($check);
+    modeledWizardAssertions($check);
     $p=modeledEarlyRun([['text'=>'Подберите тур для семьи.'],
         ['text'=>'Выбрали отель Fixture Bay, давайте начнем оформлять бронь.']]);
     $check('selected accommodation commitment reaches the frozen live readiness packet without claiming payment',
@@ -329,6 +433,7 @@ function modeledEarlyAssertions(callable $check):void
     foreach([['manager_message','manager',['channel'=>'telegram','project_key'=>'anytour']],
         ['manager_taken','manager',[]],['manager_request','ai',$handoffSummary],
         ['manager_request_deferred','ai',$handoffSummary],['waiting_manager','customer',$handoffSummary],
+        ['source_handling_choice','system',['choice'=>'manager','reason'=>'source_needs_complete']],
         ['manager_request','system',['source'=>'source_policy','manager_available'=>false,'within_working_hours'=>false]]]as[$type,$actor,$payload]){
         $p=ModeledConversionEarlyForecast::freeze(...modeledServiceEventFixture($type,$actor,$payload));
         $check('canonical service receipt preserves only the preceding customer request '.$type.' '.$actor,
@@ -337,6 +442,26 @@ function modeledEarlyAssertions(callable $check):void
             &&$p['semantic_prediction']['outcome_observations']===[]
             &&$p['contextual_signals']['goal_counts']['agency_purchase_intent']===0
             &&$p['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===1);
+    }
+    foreach(['other reason','handoff back','customer choice','extra keys','actor','edited','missing clock']as$kind){
+        $parts=modeledServiceEventFixture('source_handling_choice','system',['choice'=>'manager','reason'=>'source_needs_complete']);
+        foreach($parts[0]['rows']as&$row)if($row['journal_id']==='2'){
+            if($kind==='edited')$row['source_version_no']=2;
+            elseif($kind==='actor')$row['snapshot']['payload']['actor_type']='customer';
+            else{
+                $payload=json_decode($row['snapshot']['payload']['payload_json'],true,32,JSON_THROW_ON_ERROR);
+                if($kind==='other reason')$payload['reason']='source_needs_first';
+                elseif($kind==='handoff back'){$payload['choice']='ai';$payload['reason']='handoff_back';}
+                elseif($kind==='customer choice')$payload['reason']='customer_choice';
+                elseif($kind==='extra keys')$payload['customer_confirmed']=true;
+                else unset($payload['_recorded_clock']);
+                $row['snapshot']['payload']['payload_json']=json_encode($payload,JSON_THROW_ON_ERROR);
+            }
+        }
+        unset($row);$p=ModeledConversionEarlyForecast::freeze(...$parts);
+        $check('source completion continuity rejects '.$kind,
+            $p['semantic_prediction']['estimated_probability']===null&&$p['semantic_prediction']['current_request_anchor']===null
+            &&$p['contextual_signals']['coverage']['prediction_source_continuity']['preserved_handoff_receipts']===0);
     }
     foreach(['edited','scope','source_id','role','event_type','channel','project','extra_payload','missing_clock','wrong_clock']as$kind){
         $parts=modeledServiceEventFixture();

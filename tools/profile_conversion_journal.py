@@ -371,7 +371,13 @@ def profile(document, extracted_at):
         # A denied current scope has no usable facts, even when older snapshots still exist.
         base.require(not case["access_denied"] or not result["prediction_features"]["facts"], "denied_scope_facts")
         journey = offer_journey(offer_events, scope, omitted)
-        wrapper = {"subject": case["subject"], "profile": result, "offer_journey": journey, "source_references": refs,
+        # Only the already admitted earliest application per input/field can preserve
+        # continuity. Do not project values or include rejected/duplicate receipts.
+        wizard_bindings = {"version": "admitted_wizard_applications_v1", "receipts": [
+            {"receipt_ref": application["receipt"]["id"], "input_ref": application["message_id"]}
+            for application in applications]}
+        wrapper = {"subject": case["subject"], "profile": result, "offer_journey": journey,
+                       "wizard_applications": wizard_bindings, "source_references": refs,
                        "adapter": {"version": VERSION, "sha256": ADAPTER_SHA},
                        "journal_cursor": document["journal_cursor"], "source_fence_journal_id": information_fence,
                        "access_status": "denied" if case["access_denied"] else "allowed",
