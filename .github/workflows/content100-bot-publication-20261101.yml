@@ -1,4 +1,4 @@
-name: Read confirmed 882 titles and the last 34 untouched targets
+name: Read final title remainder against reviewed installed source
 permissions:
   contents: read
   actions: read
@@ -75,7 +75,7 @@ jobs:
         expected={42448247156:'modeled-conversion-value-export.yml',42448247086:'max-production-health.yml',42448247084:'telegram-production-health.yml',42448247150:'live-session-diagnostics.yml',42448247075:'modeled-conversion-monitor.yml',42448247122:'tour-selection-host.yml',42448247117:'publish-conversation-diagnostics.yml'}
         for rid,name in expected.items():
             r=json.loads((t/f'gate-{rid}.json').read_text());assert r['id']==rid and r['head_sha']==sha and r['path']=='.github/workflows/'+name and r['status']=='completed' and r['conclusion']=='success'
-        print('ORIGINAL_CURRENT_SOURCE_GATES_ACCEPTED unchanged_publishing_blobs=21 no_checks_dispatched=1')
+        print('ORIGINAL_CURRENT_SOURCE_GATES_ACCEPTED reviewed_publishing_blobs=22 no_checks_dispatched=1')
         PY
     - name: Prepare existing server connection
       env:
@@ -163,3 +163,4 @@ jobs:
       if: always()
       shell: bash
       run: rm -rf "$RUNNER_TEMP/short-title-private" "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+
