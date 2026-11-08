@@ -10,7 +10,7 @@ from pathlib import Path
 import stat
 import zipfile
 
-MANIFEST_SHA256 = "9c76f3ab819c037723fc1c73e01c6bbe1a04f8162719044f4c482d9e936c67aa"
+MANIFEST_SHA256 = "d08fd01b421e7cef975c390994311a10ea275610d97b05526bb8e548b4bd434c"
 TEMPLATE_SHA256 = "84bac9d5b2d48fb92c290a622d863d2044938def55db080d6517d7e1290da495"
 OPERATION = "commercial-hotel-caption-review6706115450-20261107-1-v1"
 HOTEL_IDS = [1352, 1074, 462]
@@ -50,7 +50,8 @@ def original_receipt(path, source):
 
 
 def prepare(manifest, template, headings_zip, read_zip):
-    need(manifest.get("execution_block") is None, "prior_operation_requires_reconciliation")
+    block = manifest.get("execution_block")
+    need(block is None, "prior_operation_is_non_replayable" if (block or {}).get("reconciliation", {}).get("ok") is True else "prior_operation_requires_reconciliation")
     need(manifest["operation"] == OPERATION and manifest["status"] == "PREPARED_NOT_EXECUTED"
          and manifest["expected_existing_messages"] == 6
          and manifest["update_kind"] == "caption_only"

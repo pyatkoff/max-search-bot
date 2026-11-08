@@ -216,7 +216,7 @@
     "fresh_runtime_preflight_performed": false
   },
   "execution_block": {
-    "state": "BLOCKED_PRIOR_OPERATION_REQUIRES_RECONCILIATION",
+    "state": "RECONCILED_NO_EDIT_INTENT_NON_REPLAYABLE_ID",
     "operation": "commercial-hotel-caption-review6706115450-20261107-1-v1",
     "original_run_id": 42433350408,
     "original_job_id": 128586848537,
@@ -228,6 +228,29 @@
     "result_posts": 0,
     "do_not_replay": true,
     "fresh_runtime_source_requires_revalidation_after_other_installation": true,
-    "private_journal_read_performed": false
+    "private_journal_read_performed": true,
+    "reconciliation": {
+      "ok": true,
+      "run_id": 42439007397,
+      "job_id": 128604000116,
+      "run_attempt": 1,
+      "reader_commit": "ff6dff8ed3fdf1fa1e1b0b5b6118c4bd0bf579a9",
+      "safe_result_artifact_id": 13601010542,
+      "safe_result_artifact_digest": "sha256:ad95c4900180865c2c59d17cd50b88a7c6473d07f3a4da3e52033ec8bd092f04",
+      "observed_at_utc": "2026-11-08T02:33:31Z",
+      "outcome": "ORIGINAL_JOURNAL_CONFIRMS_NO_CONFIGURATION_OR_POST_EDIT_INTENT",
+      "journal_records": 1,
+      "journal_bytes": 179,
+      "journal_sha256": "8e703f0d578da2568bf36add113cb59771746eb9f78aacee48b80077dfea5808",
+      "original_manifest_binding_matches": true,
+      "all_records_empty_configs_and_posts": true,
+      "journal_unchanged_during_read": true,
+      "file_writes": 0,
+      "database_calls": 0,
+      "provider_calls": 0,
+      "post_write_attempts": 0,
+      "used_operation_id_reusable": false,
+      "no_replay_remains_required": true
+    }
   }
 }
