@@ -108,7 +108,7 @@ try {
     $copy=SourceQualificationPrompt::text(['date','adults','children'],'Rixos Premium Seagate');
     cpeCheck('new hotel asks dates and explicit party',str_contains($copy,'Rixos Premium Seagate')&&str_contains($copy,'Когда планируете отдых?')&&!str_contains($copy,'Сколько взрослых и детей'),true);
     $copy=SourceQualificationPrompt::text(['country'],'Side Star Resort');
-    cpeCheck('hotel post does not ask destination again',!str_contains($copy,'Куда хотите')&&str_contains($copy,'Что хотите уточнить'),true);
+    cpeCheck('unresolved country stays actionable after hotel choice',str_contains($copy,'Уточните страну поездки')&&!str_contains($copy,'Что хотите уточнить'),true);
     $copy=SourceQualificationPrompt::text(['date'],'Rixos Premium Seagate');
     cpeCheck('known party is not asked again',str_contains($copy,'взросл')||str_contains($copy,'дет'),false);
     $copy=SourceQualificationPrompt::text(['adults','children'],'Rixos Premium Seagate');
@@ -141,7 +141,7 @@ try {
         else cpeStartTelegram($user,$named[0]['start_payload'],$dispatcher,$messenger,8800+$index);
         $text=$sent[$beforeSent]['payload']['text']??'';
         cpeCheck('actual current post names hotel before entry ledger write: '.$platform,str_contains($text,'Rixos Premium Seagate'),true);
-        cpeCheck('current entry asks only missing date: '.$platform,str_contains($text,'Когда планируете отдых?')&&!str_contains($text,'взросл')&&!str_contains($text,'дет'),true);
+        cpeCheck('current hotel entry asks intent before trip details: '.$platform,str_contains($text,'или подобрать другой отель?')&&!str_contains($text,'Когда планируете')&&!str_contains($text,'взросл'),true);
         cpeCheck('post dates and party do not mutate tourist needs: '.$platform,[MaxSearchApi::$needContexts[$chat],count(MaxSearchApi::$needApplications),count(MaxSearchApi::$resets)],[$known,$beforeApplied,$beforeResets]);
         $afterFirst=count($sent);
         if($platform==='max')cpeStartMax($user,$named[0]['start_payload'],8810+$index);
@@ -159,6 +159,150 @@ try {
         cpeCheck('assigned or waiting hotel entry keeps quiet: '.$platform,count($sent),$ownedSent);
         cpeCheck('contextual greeting never queues manager prematurely: '.$platform,cpeEventCount((int)$conversation['id'],'manager_request'),0);
     }
+
+    // Hotel choice is persisted independently of the source and canonical trip values.
+    require_once dirname(__DIR__).'/services/ManagerHandoffEventContextService.php';
+    require_once dirname(__DIR__).'/services/ManagerCallbackPresentationService.php';
+    foreach(['max','telegram'] as $index=>$platform){
+        $basePost=$publications[$platform];
+        $post=$registry->registerPublication('anytour',$platform,$basePost['bot_key'],$basePost['channel_id'],
+            $platform==='max'?'mid.intent.fixture':'989',
+            ['text'=>"🏖 Side Star Resort 5★ | Турция, Сиде\nМосква, 7 ночей, рекламная цена.",'format'=>'native']);
+        foreach(['same','other'] as $choiceIndex=>$choice){
+            $user=88878100+$index*10+$choiceIndex;$chat=$platform==='max'?-$user:$user;
+            $needs=['city'=>'Казань','adults'=>2,'children'=>0,'nights'=>'9','date'=>'10.01.2027','budget'=>['max'=>200000,'currency'=>'RUB']];
+            if($choice==='same')$needs['country']='Турция';
+            MaxSearchApi::$needContexts[$chat]=$needs;MaxSearchApi::$missingNeeds[$chat]=$choice==='same'?['date']:['country'];
+            $sentBefore=count($sent);
+            if($platform==='max')cpeStartMax($user,$post['start_payload'],8900+$index*10+$choiceIndex);
+            else cpeStartTelegram($user,$post['start_payload'],$dispatcher,$messenger,8900+$index*10+$choiceIndex);
+            $c=cpeConversation($platform,$user);$id=(int)$c['id'];
+            $state=SourceHotelIntentService::current($id);$buttons=SourceHotelIntentService::buttons($state);
+            $markup=$sent[$sentBefore]['payload']['reply_markup']??null;
+            $markup=is_string($markup)?json_decode($markup,true):$markup;
+            $transportButtons=$sent[$sentBefore]['payload']['buttons']??$markup['inline_keyboard']??[];
+            cpeCheck('two actual transport choices: '.$platform.'/'.$choice,array_column(array_merge(...$transportButtons),'text'),['В этот отель','Подобрать другой']);
+            cpeCheck('entry remains unconfirmed: '.$platform.'/'.$choice,SourceHotelIntentService::projection($id)['status']??null,'unconfirmed');
+            $payload=$buttons[$choice==='same'?0:1][0]['callback_data'];
+            cpeCheck('choice fits Telegram payload limit: '.$platform.'/'.$choice,strlen($payload)<=64,true);
+            $incoming=['platform'=>$platform,'type'=>'callback','callback_data'=>$payload,'callback_id'=>'intent.callback.'.$user,
+                'user'=>['chat_id'=>$chat,'external_user_id'=>$user]];
+            $before=count($sent);$dispatcher->dispatch($incoming);
+            cpeCheck('choice persists for reload and manager: '.$platform.'/'.$choice,SourceHotelIntentService::projection($id)['status']??null,$choice==='same'?'post_hotel':'custom_request');
+            cpeCheck('choice preserves all explicit trip needs: '.$platform.'/'.$choice,MaxSearchApi::$needContexts[$chat],$needs);
+            cpeCheck('choice asks just the next useful question: '.$platform.'/'.$choice,
+                $choice==='same'?str_contains($sent[$before]['payload']['text']??'','Когда планируете отдых?'):($sent[$before]['payload']['text']??'')==='Куда хотите поехать?',true);
+            cpeCheck('choice creates no premature manager request: '.$platform.'/'.$choice,cpeEventCount($id,'manager_request'),0);
+            $before=count($sent);$dispatcher->dispatch($incoming);
+            cpeCheck('duplicate button neither repeats question nor changes intent: '.$platform.'/'.$choice,[count($sent),SourceHotelIntentService::projection($id)['status']??null],[$before,$choice==='same'?'post_hotel':'custom_request']);
+            $label=ManagerCallbackPresentationService::fromMessage(['direction'=>'inbound','sender_type'=>'customer','text'=>$payload],['type'=>'callback']);
+            cpeCheck('manager sees button label without opaque token: '.$platform.'/'.$choice,[$label['label']??null,$label['raw_payload']??null],['Нажата кнопка «'.($choice==='same'?'В этот отель':'Подобрать другой').'»','']);
+            $manager=ManagerHandoffEventContextService::latestManagerRequest($id);
+            cpeCheck('manager can see selection before handoff: '.$platform.'/'.$choice,$manager['hotel_request_intent']['status']??null,$choice==='same'?'post_hotel':'custom_request');
+            $textInput=['platform'=>$platform,'type'=>'message','text'=>'На 9 ночей','message_id'=>'intent.need.'.$user,'user'=>$incoming['user']];
+            SourceHandlingService::handle($textInput);$context=SourceHandlingService::sourcePostContext($chat);
+            cpeCheck('bot receives explicit hotel intent: '.$platform.'/'.$choice,$context['hotel_request_intent']['status']??null,$choice==='same'?'post_hotel':'custom_request');
+            if($choice==='other'){
+                cpeCheck('custom request excludes advert defaults: '.$platform,isset($context['text'])||isset($context['title']),false);
+                $textInput['text']='А в том отеле бассейн есть?';SourceHandlingService::handle($textInput);
+                $reference=SourceHandlingService::sourcePostContext($chat);
+                cpeCheck('custom request can still ask about historical post: '.$platform,
+                    [isset($reference['text']),$reference['reference_only']??false,$reference['hotel_request_intent']['status']??null],[true,true,'custom_request']);
+            }
+            $before=count($sent);
+            if($platform==='max')cpeStartMax($user,$post['start_payload'],8940+$index*10+$choiceIndex);
+            else cpeStartTelegram($user,$post['start_payload'],$dispatcher,$messenger,8940+$index*10+$choiceIndex);
+            cpeCheck('confirmed source reentry is quiet: '.$platform.'/'.$choice,count($sent),$before);
+            $pdo->prepare("UPDATE conversations SET status='waiting_manager' WHERE id=?")->execute([$id]);
+            $dispatcher->dispatch($incoming);
+            cpeCheck('manager ownership blocks old buttons: '.$platform.'/'.$choice,[count($sent),cpeConversation($platform,$user)['status']],[$before,'waiting_manager']);
+        }
+
+        $user=88878200+$index;$chat=$platform==='max'?-$user:$user;
+        MaxSearchApi::$needContexts[$chat]=['city'=>'Казань','adults'=>2,'children'=>0,'country'=>'Турция','nights'=>'9'];
+        MaxSearchApi::$missingNeeds[$chat]=['date'];MaxSearchApi::$missingAfterApply[$chat]=[];
+        if($platform==='max')cpeStartMax($user,$post['start_payload'],8990+$index);
+        else cpeStartTelegram($user,$post['start_payload'],$dispatcher,$messenger,8990+$index);
+        $c=cpeConversation($platform,$user);$id=(int)$c['id'];$pending=SourceHotelIntentService::current($id);
+        $seen=[];
+        $app=new DialogueApplication(static function($message,$incoming)use(&$seen,$chat):void{
+            $seen[]=$incoming['text'];
+            AiNeedCompletionService::applyAndAdvance($chat,['date'=>'10.01.2027'],['source_need_fields'=>['date']]);
+        });
+        $input=['platform'=>$platform,'type'=>'message','text'=>'10 января 2027','message_id'=>'intent.text.'.$user,
+            'user'=>['chat_id'=>$chat,'external_user_id'=>$user]];
+        $before=count($sent);(new CpeDispatcher($app))->dispatch($input);
+        cpeCheck('non-choice text reaches canonical collector intact: '.$platform,$seen,['10 января 2027']);
+        cpeCheck('dates do not imply hotel consent: '.$platform,[SourceHotelIntentService::projection($id)['status']??null,cpeConversation($platform,$user)['status'],MaxSearchApi::$needContexts[$chat]['date']],['unconfirmed','ai','10.01.2027']);
+        cpeCheck('unresolved hotel asks one short choice after retaining needs: '.$platform,[count($sent)-$before,str_contains($sent[$before]['payload']['text']??'','или подобрать другой отель?')],[1,true]);
+        $input['text']='Нет, под свой запрос, хотим Таиланд';$input['message_id'].='.other';
+        ConversationRecorder::inbound($input);
+        cpeCheck('free text does not get swallowed by hotel choice: '.$platform,SourceHandlingService::handle($input),false);
+        cpeCheck('free text switches selection without extra click: '.$platform,SourceHotelIntentService::projection($id)['status']??null,'custom_request');
+        cpeCheck('free-text choice invalidates earlier question buttons: '.$platform,SourceHotelIntentService::choose($id,['choice'=>'same','token'=>$pending['token']]),[]);
+        cpeCheck('declining another field cannot silently change selection: '.$platform,SourceHotelIntentService::fromText($id,'да'),[]);
+        MaxSearchApi::$missingNeeds[$chat]=['country'];
+        $first=$input;$first['message_id'].='.first';$first['text']='Хочу в этот отель';
+        ConversationRecorder::inbound($first);SourceHandlingService::handle($first);
+        $second=$first;$second['message_id'].='.second';$second['text']='Подберите другой отель';
+        ConversationRecorder::inbound($second);SourceHandlingService::handle($second);
+        ConversationRecorder::inbound($first);SourceHandlingService::handle($first);
+        cpeCheck('replayed older text cannot undo newer selection: '.$platform,SourceHotelIntentService::projection($id)['status']??null,'custom_request');
+        (new CallbackController())->handle(['from'=>['id'=>$chat],'data'=>'restart','_platform'=>$platform]);
+        cpeCheck('new ordinary start invalidates old hotel choice: '.$platform,SourceHotelIntentService::projection($id),[]);
+        cpeCheck('old button cannot restore cleared choice: '.$platform,SourceHotelIntentService::choose($id,['choice'=>'same','token'=>$pending['token']]),[]);
+    }
+    // A current collected request completes after its delayed hotel choice, once.
+    foreach(['max','telegram'] as $index=>$platform){
+        $post=$registry->registerPublication('anytour',$platform,$publications[$platform]['bot_key'],$publications[$platform]['channel_id'],
+            $platform==='max'?'mid.intent.complete':'990',['text'=>'🏖 Side Star Resort 5★','format'=>'native']);
+        foreach(['button','text','button_country'] as $variant=>$kind){
+            $user=88878300+$index*10+$variant;$chat=$platform==='max'?-$user:$user;
+            MaxSearchApi::$needContexts[$chat]=['city'=>'Казань','country'=>'Турция','adults'=>2,'children'=>0,'nights'=>'9'];
+            MaxSearchApi::$missingNeeds[$chat]=['date'];MaxSearchApi::$missingAfterApply[$chat]=[];
+            if($kind==='button_country'){
+                unset(MaxSearchApi::$needContexts[$chat]['country']);
+                MaxSearchApi::$missingNeeds[$chat]=['date','country'];MaxSearchApi::$missingAfterApply[$chat]=['country'];
+            }
+            if($platform==='max')cpeStartMax($user,$post['start_payload'],9100+$index*10+$variant);
+            else cpeStartTelegram($user,$post['start_payload'],$dispatcher,$messenger,9100+$index*10+$variant);
+            $id=(int)cpeConversation($platform,$user)['id'];
+            $input=['platform'=>$platform,'type'=>'message','text'=>'10 января 2027','message_id'=>'complete.date.'.$user,
+                'user'=>['chat_id'=>$chat,'external_user_id'=>$user]];
+            ConversationRecorder::inbound($input);SourceHandlingService::handle($input);
+            AiNeedCompletionService::applyAndAdvance($chat,['date'=>'10.01.2027'],['source_need_fields'=>['date']]);
+            $state=SourceHotelIntentService::current($id);
+            cpeCheck('only accepted current needs permit delayed completion: '.$platform.'/'.$kind,$state['needs_progressed']??false,true);
+            $beforeChoice=count($sent);
+            if($kind!=='text'){
+                $input['type']='callback';$input['callback_data']='hotel_intent_same:'.$state['token'];$input['callback_id']='complete.click.'.$user;
+                unset($input['message_id'],$input['text']);$dispatcher->dispatch($input);
+            }else{
+                $input['message_id'].='.confirm';$input['text']='Да, в этот отель';
+                $dispatcher->dispatch($input);
+            }
+            if($kind==='button_country'){
+                cpeCheck('hotel button asks the sole missing country instead of FAQ: '.$platform,
+                    [cpeConversation($platform,$user)['status'],cpeEventCount($id,'manager_request'),
+                        str_contains($sent[$beforeChoice]['payload']['text']??'','Уточните страну поездки')],['ai',0,true]);
+            }else{
+                cpeCheck('finished request does not restart questionnaire after hotel choice: '.$platform.'/'.$kind,
+                    [cpeConversation($platform,$user)['status'],cpeEventCount($id,'manager_request')],['waiting_manager',1]);
+            }
+        }
+    }
+    foreach([
+        ['Да, в этот отель, в мае на двоих',true,'same'],
+        ['Нет, хотим Таиланд из Москвы',true,'other'],
+        ['В мае на двоих',true,null],['Есть ли в этом отеле бассейн?',true,null],
+        ['Да',false,null],['Нет',false,null],['Другой отель не нужен',true,null],
+        ['Хочу в Side Star Resort, другой отель не интересует',true,null],
+        ['Не хочу другой отель',true,null],['Другой отель не рассматриваю',true,null],
+        ['Не этот отель',true,'other'],
+        ['Этот отель дорогой',true,null],['Этот отель не подходит',true,'other'],
+        ['Подберите Rixos Premium Seagate',true,'other'],
+        ['Подобрать другой отель',false,'other'],['Хочу в Side Star Resort',true,'same'],
+    ] as [$text,$pending,$expected])cpeCheck('explicit hotel words: '.$text,SourceHotelIntentService::interpret($text,'Side Star Resort',$pending),$expected);
 
     // Real entry/source/application/progression/handoff owners, with only the
     // existing legacy need-storage and transport boundaries replaced by fixtures.

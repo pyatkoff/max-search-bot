@@ -34,6 +34,8 @@ class MissingFieldQuestionService
 
     public static function send($chatId, string $field, array $options = []): bool
     {
+        if (class_exists('SourceHandlingService', false)
+            && SourceHandlingService::askHotelIntentIfPending($chatId)) return true;
         if (class_exists('MaxSearchApi')) {
             MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);
         }

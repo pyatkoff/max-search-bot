@@ -13,6 +13,7 @@ require_once __DIR__.'/ManagerSelectionLinks.php';
 require_once __DIR__.'/ManagerAiDraftReferenceContext.php';
 require_once __DIR__.'/ManagerAiDraftPhotoContext.php';
 require_once __DIR__.'/ConversationRecordClock.php';
+require_once __DIR__.'/SourceHotelIntentService.php';
 
 /** A bounded, read-only input snapshot. It neither generates nor sends a reply. */
 final class ManagerAiDraftContextService
@@ -195,6 +196,8 @@ final class ManagerAiDraftContextService
                 'messages'=>$messages, 'history_incomplete'=>$incomplete,
                 'media_unread'=>in_array(true, array_column($messages, 'media_unread'), true),
                 'selections_link_unread'=>in_array(true, array_column($messages, 'selections_link_unread'), true)];
+            $hotelIntent = SourceHotelIntentService::projection($conversationId);
+            if ($hotelIntent) $context['hotel_request_intent'] = $hotelIntent;
             $knowledge = ManagerCompanyKnowledge::forProject((string)$conversation['project_key']);
             $references = ManagerAiDraftReferenceContext::capture($pdo,$conversation,$context);
             $photos = ManagerAiDraftPhotoContext::capture($context,$actor,(string)$conversation['project_key'],
@@ -239,6 +242,8 @@ final class ManagerAiDraftContextService
     private static function callbackText(string $text): string
     {
         $base = CallbackGeneration::base($text);
+        $hotelChoice = SourceHotelIntentService::callback($base);
+        if ($hotelChoice) return 'Нажата кнопка «'.($hotelChoice['choice']==='same'?'В этот отель':'Подобрать другой').'»; применение выбора проверяется по hotel_request_intent';
         $known = in_array($base, ['ai_start','search_options','start_search','manager_request',
             'manager_after_tours','phone_manual','show_tours','tours_checked','tours_found',
             'edit_params','restart','back_phone','back_check','pick_city_other','pick_country_other',

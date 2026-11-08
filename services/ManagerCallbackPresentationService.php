@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/CallbackGeneration.php';
+require_once __DIR__.'/SourceHotelIntentService.php';
 require_once __DIR__.'/DepartureCityValueContract.php';
 require_once __DIR__.'/CountryValueContract.php';
 require_once __DIR__.'/DateValueContract.php';
@@ -68,13 +69,15 @@ final class ManagerCallbackPresentationService
         $raw=(string)($message['text']??'');
         $payload=CallbackGeneration::base($raw);
         // Like callbacks contain a private offer token, including generation-wrapped historical rows.
-        $publicRaw=str_starts_with($payload,'tour_like_')?'':$raw;
+        $publicRaw=(str_starts_with($payload,'tour_like_')||str_starts_with($payload,'hotel_intent_'))?'':$raw;
         return ['type'=>'callback','label'=>self::label($payload),'raw_payload'=>$publicRaw];
     }
 
     private static function label(string $payload): string
     {
         if (isset(self::LABELS[$payload])) return self::LABELS[$payload];
+        $hotelChoice=SourceHotelIntentService::callback($payload);
+        if($hotelChoice)return 'Нажата кнопка «'.($hotelChoice['choice']==='same'?'В этот отель':'Подобрать другой').'»';
         // Keep the existing historical like-button presentation without exposing its opaque offer/token.
         if (str_starts_with($payload,'tour_like_')) return 'Нажата кнопка «Нравится»';
         $city=DepartureCityValueContract::fromCallbackPayload($payload);

@@ -19,6 +19,10 @@ class NeedProgressionService
             ? MaxSearchApi::getAiMissingFields($chatId)
             : [];
 
+        if (SourceHandlingService::askHotelIntentIfPending($chatId,$questionOptions)) {
+            return ['complete'=>false,'missing'=>$missing,'next_field'=>'hotel_intent'];
+        }
+
         if (empty($missing)) {
             $qualification=SourceHandlingService::completeQualification($chatId,$questionOptions);
             if($qualification!==null){

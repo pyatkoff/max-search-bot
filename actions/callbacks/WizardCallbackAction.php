@@ -94,7 +94,7 @@ class WizardCallbackAction
         );
     }
 
-    public static function handle(int $chatId, string $q): bool
+    public static function handle(int $chatId, string $q, string $platform = ''): bool
     {
         if ($q === 'search_options') {
             return InteractionGuard::runExpectedStatusReplacementCallback(
@@ -107,17 +107,18 @@ class WizardCallbackAction
             );
         }
         if (self::expectedStatusForForwardCallback($q) !== null) {
-            return InteractionGuard::synchronized($chatId, 'wizard.forward', static function() use ($chatId, $q): bool {
+            return InteractionGuard::synchronized($chatId, 'wizard.forward', static function() use ($chatId, $q, $platform): bool {
                 if (self::staleForwardCallback($chatId, $q)) return true;
-                return self::handleUnlocked($chatId, $q);
+                return self::handleUnlocked($chatId, $q, $platform);
             });
         }
-        return self::handleUnlocked($chatId, $q);
+        return self::handleUnlocked($chatId, $q, $platform);
     }
 
-    private static function handleUnlocked(int $chatId, string $q): bool
+    private static function handleUnlocked(int $chatId, string $q, string $platform): bool
     {
         if ($q === 'ai_start') {
+            SourceHotelIntentService::clearForStart($platform, $chatId);
             MaxSearchApi::funnelLog($chatId, 'ai_start');
             MaxSearchApi::deletePrevMessage($chatId);
             MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusStart);
@@ -127,6 +128,7 @@ class WizardCallbackAction
 
         if ($q === 'start_search' || $q === 'back_pick_city') {
             if ($q === 'start_search') {
+                SourceHotelIntentService::clearForStart($platform, $chatId);
                 MaxSearchApi::funnelLog($chatId, 'start_search');
                 MaxSearchApi::deletePrevMessage($chatId);
                 MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusStart);

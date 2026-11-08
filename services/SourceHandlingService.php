@@ -3,6 +3,7 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/IntegrationRegistry.php';
 require_once __DIR__ . '/ManagerHandoffDispatchService.php';
+require_once __DIR__ . '/SourceHotelIntentService.php';
 
 /**
  * Applies the configured conversation start policy for a concrete source.
@@ -95,6 +96,13 @@ class SourceHandlingService
                     self::sendSelfServiceStart($chatId);
                     return true;
                 }
+                if($type==='callback'&&str_starts_with($callback,'hotel_intent_')){
+                    $selection=SourceHotelIntentService::callback($callback);
+                    $selected=$selection?SourceHotelIntentService::choose((int)$row['id'],$selection,
+                        (string)($incoming['callback_id']??$incoming['message_id']??'')):[];
+                    if($selected)self::continueHotelChoice($incoming,$row,$selected);
+                    return true;
+                }
                 if($sourceStart||$qualifying||$choice===null){
                     if(!$qualifying){
                         self::recordChoice($platform,$chatId,self::AI,self::QUALIFICATION_REASON,['source_id'=>(int)$row['source_id']]);
@@ -103,6 +111,30 @@ class SourceHandlingService
                         // Reentry keeps current needs and does not manufacture a
                         // tourist message or complete an older trip by itself.
                         $postContext=self::greetingContext($incoming,$row,$platform);
+                        if(!empty($postContext['hotel_name'])){
+                            $intent=SourceHotelIntentService::begin((int)$row['id'],$postContext);
+                            if(!$intent)$intent=SourceHotelIntentService::current((int)$row['id']);
+                            if(!$intent){
+                                $fresh=self::conversation($platform,$chatId);
+                                if($fresh&&(string)$fresh['status']==='ai'&&(int)($fresh['manager_id']??0)===0){
+                                    require_once __DIR__.'/DialogueView.php';
+                                    DialogueView::sourceQualificationStart($chatId,['country'],true);
+                                }
+                                return true;
+                            }
+                            if($intent['choice']!=='pending'||$intent['publication_id']!==(int)$postContext['publication_id']
+                                ||$intent['version_id']!==(int)$postContext['version_id'])return true;
+                            if(!$intent['prompted']){
+                                require_once __DIR__.'/DialogueView.php';
+                                if(DialogueView::sourceQualificationStart($chatId,self::missing($chatId),true,
+                                    $intent['hotel_name'],$intent)){
+                                    SourceHotelIntentService::prompted((int)$row['id'],$intent['token']);
+                                    self::recordChoice($platform,$chatId,self::AI,self::QUALIFICATION_REASON,
+                                        ['source_id'=>(int)$row['source_id'],'prompted'=>true,'publication_id'=>(int)$postContext['publication_id']]);
+                                }
+                            }
+                            return true;
+                        }
                         $differentPost=!empty($postContext['publication_id'])
                             &&(int)$postContext['publication_id']!==(int)($savedChoice['publication_id']??0);
                         if(!$qualifying||empty($savedChoice['prompted'])||$differentPost){
@@ -124,6 +156,14 @@ class SourceHandlingService
                         'before'=>self::needContext($chatId),
                     ];
                     self::$postContextTurn=self::$qualificationTurn;
+                    if($type==='message'&&($incoming['linked_message']['type']??'')!=='forward'){
+                        $selected=SourceHotelIntentService::fromText((int)$row['id'],(string)($incoming['text']??''),
+                            (string)($incoming['message_id']??''));
+                        if($selected&&SourceHotelIntentService::choiceOnly((string)($incoming['text']??''))){
+                            self::continueHotelChoice($incoming,$row,$selected);
+                            return true;
+                        }
+                    }
                     // A first real message may arrive without a separate start.
                     // It must reach the canonical collector rather than be lost
                     // behind an introductory question or an old check surface.
@@ -184,6 +224,26 @@ class SourceHandlingService
         }
     }
 
+    private static function continueHotelChoice(array $incoming,array $row,array $selected): void
+    {
+        $chatId=$incoming['user']['chat_id'];
+        require_once __DIR__.'/DialogueView.php';
+        $missing=self::missing($chatId);
+        if(!empty($selected['needs_progressed'])&&$missing===[]){
+            self::$qualificationTurn=['incoming'=>$incoming,'conversation_id'=>(int)$row['id'],
+                'project_key'=>ProjectConfig::projectId(),'source_id'=>(int)$row['source_id'],
+                'before'=>self::needContext($chatId),'hotel_choice_applied'=>true];
+            self::$postContextTurn=self::$qualificationTurn;
+            require_once __DIR__.'/NeedProgressionService.php';
+            NeedProgressionService::advance($chatId,['source_need_applied'=>true]);
+            return;
+        }
+        // An entry choice alone cannot adopt all dates/party from a previous trip.
+        if($missing===[])$missing=['date'];
+        DialogueView::sourceQualificationStart($chatId,$missing,false,
+            $selected['choice']==='same'?$selected['hotel_name']:'',$selected);
+    }
+
     private static function handoff(array $incoming,string $platform,$chatId,string $reason,bool $sourceEntry=true): bool
     {
         $user=(array)($incoming['user']??[]);
@@ -209,6 +269,27 @@ class SourceHandlingService
             &&self::$qualificationTurn['project_key']===ProjectConfig::projectId();
     }
 
+    /** Preserve entered needs, then resolve the outstanding hotel choice before another question. */
+    public static function askHotelIntentIfPending($chatId,array $questionOptions=[]): bool
+    {
+        if(!self::qualifyingTurn($chatId))return false;
+        $turn=self::$qualificationTurn;
+        $row=self::conversation((string)$turn['incoming']['platform'],$chatId);
+        if(!$row||(int)$row['id']!==$turn['conversation_id']||(int)($row['manager_id']??0)>0
+            ||(string)$row['status']!=='ai')return false;
+        if(!empty($questionOptions['source_need_applied'])||self::qualificationNeedsChanged($chatId)){
+            SourceHotelIntentService::needsProgressed((int)$row['id']);
+        }
+        $intent=SourceHotelIntentService::current((int)$row['id']);
+        if(!$intent||$intent['choice']!=='pending')return false;
+        if(empty(self::$qualificationTurn['hotel_prompt_sent'])){
+            self::$qualificationTurn['hotel_prompt_sent']=true;
+            require_once __DIR__.'/DialogueView.php';
+            DialogueView::sourceQualificationStart($chatId,self::missing($chatId),false,$intent['hotel_name'],$intent);
+        }
+        return true;
+    }
+
     /** Used before model defaults: only already persisted essential needs count. */
     public static function qualificationNeedsChanged($chatId): bool
     {
@@ -223,8 +304,9 @@ class SourceHandlingService
         if(!self::qualifyingTurn($chatId))return null;
         $turn=self::$qualificationTurn;
         $incoming=$turn['incoming'];
-        if(($incoming['type']??'')!=='message'||trim((string)($incoming['text']??''))===''
-            ||preg_match('~\A/start(?:\s|@|\z)~u',trim((string)($incoming['text']??''))))return false;
+        $hotelChoiceApplied=!empty($turn['hotel_choice_applied'])&&($incoming['type']??'')==='callback';
+        if(!$hotelChoiceApplied&&(($incoming['type']??'')!=='message'||trim((string)($incoming['text']??''))===''
+            ||preg_match('~\A/start(?:\s|@|\z)~u',trim((string)($incoming['text']??'')))))return false;
         $platform=(string)$incoming['platform'];
         try{
             $row=self::conversation($platform,$chatId);
@@ -239,6 +321,11 @@ class SourceHandlingService
             $progress=array_key_exists('source_need_applied',$questionOptions)
                 ?!empty($questionOptions['source_need_applied'])
                 :self::qualificationNeedsChanged($chatId);
+            $intent=SourceHotelIntentService::current((int)$row['id']);
+            if(!$progress&&$intent&&$intent['choice']!=='pending'&&!empty($intent['needs_progressed'])){
+                $progress=$hotelChoiceApplied||((string)($intent['input_id']??'')!==''
+                    &&(string)$intent['input_id']===(string)($incoming['message_id']??''));
+            }
             if(!$progress)return false;
             if(!self::handoff($incoming,$platform,$chatId,'source_needs_complete',false))return false;
             self::recordChoice($platform,$chatId,self::MANAGER,'source_needs_complete');
@@ -275,6 +362,19 @@ class SourceHandlingService
                 else{$matched=[];preg_match('/\A.{0,'.$limit.'}/us',$value,$matched);$out[$key]=(string)($matched[0]??'');}
             }
             $out['historical_publication']=true;
+            $intent=SourceHotelIntentService::projection((int)$row['id']);
+            if($intent){
+                // A custom request must not inherit the advert's hotel, country,
+                // departure or dates. Attribution remains in the immutable ledger.
+                $text=(string)(self::$postContextTurn['incoming']['text']??'');
+                $postQuestion=preg_match('/(*UCP)\b(?:в|об|про)\s+(?:этом|том|этот|тот)\s+отел/iu',$text)===1
+                    ||($intent['source_hotel_name']!==''&&stripos($text,$intent['source_hotel_name'])!==false);
+                if(($intent['status']==='custom_request'&&!$postQuestion)||$intent['publication_id']!==(int)$out['publication_id']){
+                    $out=['historical_publication'=>true];
+                }
+                if($intent['status']==='custom_request'&&$postQuestion)$out['reference_only']=true;
+                $out['hotel_request_intent']=$intent;
+            }
             return self::$postContextTurn['post_context']=$out;
         }catch(Throwable $ignored){return [];}
     }
