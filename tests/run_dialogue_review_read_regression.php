@@ -102,7 +102,7 @@ function dialogueReviewReadRegression(PDO $pdo):int
             'type'=>'message','attachments'=>[['type'=>'image','token'=>'PRIVATE_MEDIA_TOKEN','url'=>'PRIVATE_MEDIA_URL']],
             'linked_message'=>['type'=>'reply','text'=>'UNREAD_LINKED_TEXT']]);
         $message(106,10,'Текст с недоступными метаданными.','{');
-        $message(107,10,'Продолжаем подбор.',['type'=>'message'],'ai','outbound');
+        $message(107,10,'Продолжаем подбор.',ConversationRecordClock::stamp(['type'=>'message'],$now),'ai','outbound');
         $message(200,11,'Когда можно обсудить варианты?',['type'=>'message']);
         $message(201,11,'Уточню длительность.',['type'=>'message'],'ai','outbound');
         $message(300,12,'Вариант менеджера.',['type'=>'message'],'manager','outbound');
@@ -160,6 +160,37 @@ function dialogueReviewReadRegression(PDO $pdo):int
             &&!str_contains($inventoryJson,'Ищем')&&!str_contains($inventoryJson,'MUST_NOT_DISCLOSE'),'inventory_is_text_free_without_native_peer_identifiers');
         $check($firstInventory['coverage']['change_hint_is_complete_edit_revision']===false
             &&$firstInventory['coverage']['semantic_review_complete']===false,'inventory_does_not_claim_edit_or_semantic_completeness');
+        $newestStart=$firstInventory['newest_open']['start_cursor']??null;
+        $check(is_string($newestStart)&&$firstInventory['newest_open']['order']==='conversation_id_desc'
+            &&$firstInventory['newest_open']['latest_activity_inventory']===false
+            &&$firstInventory['newest_open']['all_today_coverage']===false,'ordinary_inventory_advertises_bounded_newest_open_start');
+        $newestBefore=$fingerprint();$newestAll=[];$newestCursor=$newestStart;$newestPages=0;
+        do{
+            $newestPage=$service->inventory(1,$connection,['cursor'=>$newestCursor,'limit'=>1]);
+            array_push($newestAll,...$newestPage['dialogues']);$newestCursor=$newestPage['next_cursor'];
+            if(++$newestPages>4)throw new RuntimeException('newest_inventory_loop');
+        }while($newestCursor!==null);
+        $check(array_column($newestAll,'dialogue_id')===['12','11','10']&&$newestPages===3
+            &&$newestPage['total_open_at_this_read']===3,'newest_keyset_has_no_gap_duplicate_or_excluded_dialogue');
+        $check($firstInventory['dialogues'][0]['last_message_clock']['at']===gmdate('Y-m-d\TH:i:s\Z',$now)
+            &&$newestAll[0]['dialogue_id']==='12','newest_orders_conversation_ids_not_old_dialogue_recent_activity');
+        $check($newestPage['coverage']['order']==='conversation_id_desc'
+            &&$newestPage['coverage']['latest_activity_inventory']===false&&$newestPage['coverage']['all_today_coverage']===false
+            &&$newestPage['coverage']['inventory_traversal_exhausted_within_id_fence']===true
+            &&$newestPage['coverage']['new_or_reopened_rows_may_change_between_pages']===true
+            &&$newestPage['coverage']['transcripts_read']===false&&$newestPage['coverage']['semantic_review_complete']===false
+            &&!array_key_exists('order',$firstInventory['coverage']),'newest_coverage_preserves_current_state_and_review_limits');
+        $check($newestBefore===$fingerprint()&&$newestPage['database_writes']===0&&$newestPage['read_markers_changed']===0
+            &&$newestPage['customer_sends']===0&&$newestPage['model_calls']===0&&$newestPage['external_fetches']===0,
+            'newest_inventory_changes_no_sources_read_markers_or_external_state');
+        $newestContext=$service->context(1,$connection,['dialogue_ref'=>$newestAll[0]['dialogue_ref'],'limit'=>1]);
+        $check($newestContext['messages'][0]['message_id']==='301','newest_returns_ordinary_scoped_context_references');
+        $historical=new DialogueReviewReadService($pdo,$clock,$provider,historyAudit:true);
+        $historicalInventory=$historical->inventory(1,$connection,['limit'=>50]);
+        $check(!array_key_exists('newest_open',$historicalInventory)
+            &&in_array('13',array_column($historicalInventory['dialogues'],'dialogue_id'),true),
+            'historical_inventory_retains_closed_scope_without_newest_descriptor');
+        $reject(fn()=>$historical->inventory(1,$connection,['cursor'=>$newestStart]),'stale_cursor');
         $full=$service->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>100]);
         $byId=array_column($full['messages'],null,'message_id');
         $check(count($full['messages'])===8&&!$full['has_more']&&$full['next_cursor']===null,'complete_small_text_history');
@@ -256,10 +287,22 @@ function dialogueReviewReadRegression(PDO $pdo):int
             &&$slashPage['next_cursor']!==null,'slash_and_escape_heavy_record_is_bounded_by_real_adapter_encoding');
         $slashTail=$service->context(1,$connection,['dialogue_ref'=>$slashRef,'cursor'=>$slashPage['next_cursor'],'limit'=>1]);
         $check($slashTail['messages'][0]['message_id']==='700'&&!$slashTail['has_more'],'response_record_omission_advances_to_older_context');
-        $oldInventory=$service->inventory(1,$connection,['limit'=>1]);$conversation(999);
+        $oldInventory=$service->inventory(1,$connection,['limit'=>1]);
+        $newestFenced=$service->inventory(1,$connection,['cursor'=>$oldInventory['newest_open']['start_cursor'],'limit'=>1]);
+        $conversation(999);
         $oldIds=array_column($oldInventory['dialogues'],'dialogue_id');$cursor=$oldInventory['next_cursor'];
         while($cursor!==null){$page=$service->inventory(1,$connection,['cursor'=>$cursor]);array_push($oldIds,...array_column($page['dialogues'],'dialogue_id'));$cursor=$page['next_cursor'];}
         $check(!in_array('999',$oldIds,true)&&in_array('999',array_column($service->inventory(1,$connection,['limit'=>50])['dialogues'],'dialogue_id'),true),'inventory_id_fence_defers_new_conversation_to_next_pass');
+        $newestIds=array_column($newestFenced['dialogues'],'dialogue_id');$newestCursor=$newestFenced['next_cursor'];
+        while($newestCursor!==null){
+            $newestPage=$service->inventory(1,$connection,['cursor'=>$newestCursor,'limit'=>2]);
+            $check($newestPage['snapshot']===$newestFenced['snapshot'],'newest_continuation_preserves_original_fence_and_start');
+            array_push($newestIds,...array_column($newestPage['dialogues'],'dialogue_id'));$newestCursor=$newestPage['next_cursor'];
+            if(count($newestIds)>50)throw new RuntimeException('newest_fence_loop');
+        }
+        $freshNewest=$service->inventory(1,$connection,['cursor'=>$newestPage['newest_open']['start_cursor'],'limit'=>1]);
+        $check($newestIds===array_reverse($oldIds)&&!in_array('999',$newestIds,true)
+            &&$freshNewest['dialogues'][0]['dialogue_id']==='999','newest_continuation_excludes_insert_but_returned_fresh_start_includes_it');
         $existingCount=$service->inventory(1,$connection)['total_open_at_this_read'];
         for($i=2000;$i<2230;$i++)$conversation($i,$i%2===0?'max':'telegram');
         $censusIds=[];$censusCursor=null;$censusPages=0;
@@ -271,6 +314,22 @@ function dialogueReviewReadRegression(PDO $pdo):int
         }while($censusCursor!==null);
         $check(count($censusIds)===$existingCount+230&&count(array_unique($censusIds))===count($censusIds)
             &&in_array('2000',$censusIds,true)&&in_array('2229',$censusIds,true),'all_current_census_is_not_limited_to_inbox_100_or_200');
+        $newestCensus=[];$newestCursor=$page['newest_open']['start_cursor'];$newestPages=0;
+        do{
+            $newestPage=$service->inventory(1,$connection,['cursor'=>$newestCursor,'limit'=>50]);
+            $check($newestPage['returned']<=50&&strlen(json_encode($newestPage,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR))<=DialogueReviewReadService::MAX_OUTPUT_BYTES,
+                'newest_inventory_keeps_existing_page_and_output_limits');
+            array_push($newestCensus,...array_column($newestPage['dialogues'],'dialogue_id'));$newestCursor=$newestPage['next_cursor'];
+            if(++$newestPages>10)throw new RuntimeException('newest_census_loop');
+        }while($newestCursor!==null);
+        $check($newestCensus===array_reverse($censusIds),'large_newest_census_reverses_same_authorized_population_without_gaps');
+        $pdo->exec("INSERT INTO conversations SELECT 9223372036854775807,customer_id,customer_channel_id,project_key,channel,external_chat_id,status,manager_id,source_id,is_test,started_at,last_message_at,updated_at FROM conversations WHERE id=10");
+        $wideInventory=$service->inventory(1,$connection,['limit'=>1]);
+        $wideNewest=$service->inventory(1,$connection,['cursor'=>$wideInventory['newest_open']['start_cursor'],'limit'=>1]);
+        $wideTail=$service->inventory(1,$connection,['cursor'=>$wideNewest['next_cursor'],'limit'=>1]);
+        $check($wideNewest['dialogues'][0]['dialogue_id']==='9223372036854775807'
+            &&$wideNewest['snapshot']['conversation_id_fence']==='9223372036854775807'
+            &&$wideTail['dialogues'][0]['dialogue_id']==='2229','newest_bigint_fence_and_exclusive_before_do_not_overflow');
 
         $reject(fn()=>$service->inventory(1,$connection,['limit'=>51]),'invalid_arguments');
         $reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['10'],'limit'=>101]),'invalid_arguments');
@@ -282,6 +341,14 @@ function dialogueReviewReadRegression(PDO $pdo):int
         $reject(fn()=>$service->context(1,str_repeat('d',32),['dialogue_ref'=>$refs['10']]),'stale_cursor');
         $reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['11'],'cursor'=>$small['next_cursor']]),'stale_cursor');
         $reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['10'],'cursor'=>$firstInventory['next_cursor']]),'stale_cursor');
+        $tamperedNewest=substr($newestStart,0,-1).(str_ends_with($newestStart,'0')?'1':'0');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$tamperedNewest]),'stale_cursor');
+        $reject(fn()=>$service->inventory(3,$connection,['cursor'=>$newestStart]),'stale_cursor');
+        $reject(fn()=>$service->inventory(1,str_repeat('d',32),['cursor'=>$newestStart]),'stale_cursor');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$refs['10']]),'stale_cursor');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$small['next_cursor']]),'stale_cursor');
+        $reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$newestStart]),'stale_cursor');
+        $reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['10'],'cursor'=>$newestStart]),'stale_cursor');
         foreach([2,4,5]as$actor)$reject(fn()=>$service->inventory($actor,$connection),'forbidden');
         $decode=static function(string $token):array{return json_decode(base64_decode(strtr(explode('.',$token)[0],'-_','+/')),true,16,JSON_THROW_ON_ERROR);};
         $sign=static function(array $value)use(&$key,$connection):string{
@@ -298,9 +365,19 @@ function dialogueReviewReadRegression(PDO $pdo):int
         $reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['10'],'cursor'=>$sign($forged)]),'stale_cursor');
         $forged=$decode($firstInventory['next_cursor']);$forged['f']='99999999999999999999';
         $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($forged)]),'stale_cursor');
+        $newestState=$decode($newestStart);
+        $check($newestState['k']==='inventory_newest'&&$newestState['f']==='12'&&$newestState['a']==='0'
+            &&$newestState['t']===$now&&$newestState['e']===$now+DialogueReviewReadService::CURSOR_TTL,
+            'newest_start_is_signed_for_its_kind_fence_and_existing_ttl');
+        foreach([['f','18446744073709551615'],['a','13']]as[$field,$value]){
+            $forged=$newestState;$forged[$field]=$value;
+            $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$sign($forged)]),'stale_cursor');
+        }
         $now+=DialogueReviewReadService::CURSOR_TTL+1;
-        $reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['10']]),'stale_cursor');$now-=DialogueReviewReadService::CURSOR_TTL+1;
-        $key=str_repeat('z',32);$reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['10']]),'stale_cursor');$key=str_repeat('k',32);
+        $reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['10']]),'stale_cursor');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$newestStart]),'stale_cursor');$now-=DialogueReviewReadService::CURSOR_TTL+1;
+        $key=str_repeat('z',32);$reject(fn()=>$service->context(1,$connection,['dialogue_ref'=>$refs['10']]),'stale_cursor');
+        $reject(fn()=>$service->inventory(1,$connection,['cursor'=>$newestStart]),'stale_cursor');$key=str_repeat('k',32);
         $pdo->beginTransaction();$reject(fn()=>$service->inventory(1,$connection),'transaction_active');
         $check($pdo->inTransaction(),'caller_transaction_is_not_rolled_back');$pdo->rollBack();
         if(!$mysql){
@@ -316,6 +393,8 @@ function dialogueReviewReadRegression(PDO $pdo):int
         $race=new DialogueReviewReadService($pdo,static fn():int=>1793793600,$revoker);
         $reject(fn()=>$race->context(1,$connection,['dialogue_ref'=>$refs['10']]),'permission_changed');
         $check(!$pdo->inTransaction(),'revoked_admin_withholds_payload_and_rolls_back');$pdo->exec('UPDATE managers SET is_active=1 WHERE id=1');
+        $revocations=0;$reject(fn()=>$race->inventory(1,$connection,['cursor'=>$newestStart]),'permission_changed');
+        $check(!$pdo->inTransaction(),'newest_inventory_withholds_payload_after_admin_revocation');$pdo->exec('UPDATE managers SET is_active=1 WHERE id=1');
         $scopeCalls=0;
         $scopeChanger=static function(int $actor,string $family)use($pdo,&$scopeCalls,&$key):string{
             if(++$scopeCalls===2)$pdo->exec('UPDATE customer_channels SET customer_id=9999 WHERE id=10');return$key;
@@ -336,6 +415,7 @@ function dialogueReviewReadRegression(PDO $pdo):int
         $denyAfter=static function()use(&$denials):string{if(++$denials===2)throw new DomainException('PRIVATE AUTH');return str_repeat('k',32);};
         $postDenied=new DialogueReviewReadService($pdo,static fn():int=>1793793600,$denyAfter);
         $reject(fn()=>$postDenied->context(1,$connection,['dialogue_ref'=>$refs['10']]),'permission_changed');
+        $denials=0;$reject(fn()=>$postDenied->inventory(1,$connection,['cursor'=>$newestStart]),'permission_changed');
         foreach([[3024,'time_limit'],[1054,'unavailable']]as[$code,$reason]){
             $error=new PDOException('PRIVATE SQL BINDINGS');$error->errorInfo=['HY000',$code,'PRIVATE DRIVER ERROR'];
             DialogueReviewTraceStatement::$failure=$error;DialogueReviewTraceStatement::$failureNeedle='COUNT(*) AS total';
@@ -344,7 +424,8 @@ function dialogueReviewReadRegression(PDO $pdo):int
         }
         DialogueReviewTraceStatement::$failure=null;DialogueReviewTraceStatement::$failureNeedle=null;
         $finalBefore=$fingerprint();DialogueReviewTraceStatement::$queries=[];
-        $service->inventory(1,$connection);$service->context(1,$connection,['dialogue_ref'=>$refs['10']]);
+        $service->inventory(1,$connection);$service->inventory(1,$connection,['cursor'=>$newestStart]);
+        $service->context(1,$connection,['dialogue_ref'=>$refs['10']]);
         $check(!array_filter(DialogueReviewTraceStatement::$queries,static fn(string $sql):bool=>!str_starts_with($sql,'SELECT '))
             &&$finalBefore===$fingerprint(),'all_service_data_queries_select_only_and_sources_unchanged');
 
