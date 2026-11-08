@@ -198,6 +198,9 @@ try{
         $byName['list_current_dialogues']['inputSchema']['properties']['limit']['maximum']===50
         &&$byName['get_dialogue_review_context']['inputSchema']['properties']['limit']['maximum']===100
         &&$byName['get_dialogue_review_context']['inputSchema']['required']===['dialogue_ref']);
+    dialogueMcpCheck('newest traversal uses only the existing bounded inventory inputs',
+        array_keys($byName['list_current_dialogues']['inputSchema']['properties'])===['limit','cursor']
+        &&$byName['list_current_dialogues']['inputSchema']['required']===[]);
     foreach([$legacyScope,$forecastScope]as $scope){
         $family=$contexts[$scope]['connection_id'];$scopes=explode(' ',$scope);
         dialogueMcpCheck('existing capability discovers live review without gaining it '.$scope,
@@ -239,6 +242,7 @@ try{
         ['list_current_dialogues',['limit'=>'3']],['list_current_dialogues',['cursor'=>null]],
         ['list_current_dialogues',['cursor'=>'']],['list_current_dialogues',['project_key'=>'other']],
         ['list_current_dialogues',['account_id'=>1]],['list_current_dialogues',['after_id'=>1]],
+        ['list_current_dialogues',['order'=>'conversation_id_desc']],['list_current_dialogues',['since'=>'2026-11-04']],
         ['get_dialogue_review_context',[]],['get_dialogue_review_context',['dialogue_ref'=>[]]],
         ['get_dialogue_review_context',['dialogue_ref'=>'bad/route']],['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','limit'=>101]],
         ['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','limit'=>0]],['get_dialogue_review_context',['dialogue_ref'=>'synthetic.ref','limit'=>'3']],
@@ -369,7 +373,9 @@ try{
         CREATE TABLE messages(id INTEGER PRIMARY KEY,conversation_id INTEGER,direction TEXT,sender_type TEXT,channel TEXT,text TEXT,metadata_json TEXT,created_at TEXT);
         CREATE TABLE conversation_events(id INTEGER PRIMARY KEY,conversation_id INTEGER,event_type TEXT);
         INSERT INTO customer_channels VALUES(10,1010,'anytour','max','synthetic-source-user','synthetic-source-chat');
-        INSERT INTO conversations VALUES(10,1010,10,'anytour','max','synthetic-source-chat','manager',1,1,0,'2026-11-04 09:00:00','2026-11-04 09:00:00','2026-11-04 09:00:00');");
+        INSERT INTO customer_channels VALUES(11,1011,'anytour','telegram','synthetic-new-user','synthetic-new-chat');
+        INSERT INTO conversations VALUES(10,1010,10,'anytour','max','synthetic-source-chat','manager',1,1,0,'2026-11-04 09:00:00','2026-11-04 09:00:00','2026-11-04 09:00:00');
+        INSERT INTO conversations VALUES(11,1011,11,'anytour','telegram','synthetic-new-chat','ai',NULL,1,0,'2026-11-04 10:00:00','2026-11-04 10:00:00','2026-11-04 10:00:00');");
     $sourceText='Варианты https://qui-quo.ru/AB12-CD34 и https://example.test/PRIVATE_SOURCE';
     $pdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?)')
         ->execute([501,10,'outbound','manager','max',$sourceText,'{"type":"message"}','2026-11-04 09:00:00']);
@@ -395,6 +401,50 @@ try{
         &&!str_contains($nativeRow['text'],'https://')&&!str_contains(json_encode($nativePacket),'PRIVATE_SOURCE'));
     $dialogueContext=$oauth->contextForBearer('Bearer '.$rotated['access_token']);
     $ordinaryInventory=$nativeCall($native,$dialogueContext,'list_current_dialogues');
+    $newestStart=$ordinaryInventory['result']['structuredContent']['newest_open']['start_cursor']??null;
+    dialogueMcpCheck('real dialogue-only inventory supplies newest start without historical consent',
+        is_string($newestStart)&&!DialogueReviewMcpAdapter::isHistory(['cursor'=>$newestStart])
+        &&$ordinaryInventory['result']['structuredContent']['newest_open']['order']==='conversation_id_desc'
+        &&$ordinaryInventory['result']['structuredContent']['newest_open']['latest_activity_inventory']===false
+        &&$ordinaryInventory['result']['structuredContent']['newest_open']['all_today_coverage']===false);
+    $newestChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $newestCredentials=dialogueMcpCredentialRows($pdo);
+    $newestPacket=$nativeCall($native,$dialogueContext,'list_current_dialogues',['cursor'=>$newestStart,'limit'=>1]);
+    $newestData=$newestPacket['result']['structuredContent']??[];
+    $newestTail=$nativeCall($native,$dialogueContext,'list_current_dialogues',['cursor'=>$newestData['next_cursor'],'limit'=>1]);
+    $newestTailData=$newestTail['result']['structuredContent']??[];
+    dialogueMcpCheck('actual adapter returns descending pages and ordinary scoped references',
+        array_column($newestData['dialogues'],'dialogue_id')===['11']&&$newestData['has_more']
+        &&array_column($newestTailData['dialogues'],'dialogue_id')===['10']&&!$newestTailData['has_more']
+        &&$newestTailData['next_cursor']===null&&$newestData['coverage']['order']==='conversation_id_desc'
+        &&json_decode($newestPacket['result']['content'][0]['text'],true)===$newestData);
+    $newestContext=$nativeCall($native,$dialogueContext,'get_dialogue_review_context',[
+        'dialogue_ref'=>$newestData['dialogues'][0]['dialogue_ref']]);
+    dialogueMcpCheck('newest native reference reads its empty stored dialogue without writes',
+        ($newestContext['result']['structuredContent']['ok']??false)===true
+        &&$newestContext['result']['structuredContent']['messages']===[]
+        &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$newestChanges
+        &&dialogueMcpCredentialRows($pdo)===$newestCredentials);
+    foreach([$contexts[$legacyScope],$contexts[$qualityScope]]as$withoutDialogue){
+        $denied=$nativeCall($native,$withoutDialogue,'list_current_dialogues',['cursor'=>$newestStart]);
+        dialogueMcpCheck('newest cursor requires dialogue consent and is never a history lane',
+            str_contains(dialogueMcpChallenge($denied),'error="insufficient_scope"')
+            &&str_contains(dialogueMcpChallenge($denied),$dialogueScope)
+            &&!isset($denied['result']['structuredContent']['dialogues']));
+    }
+    foreach([$pairContext,$dialogueContext]as$cursorContext){
+        $cursor=$cursorContext===$pairContext?$newestStart:substr($newestStart,0,-1).(str_ends_with($newestStart,'0')?'1':'0');
+        $denied=$nativeCall($native,$cursorContext,'list_current_dialogues',['cursor'=>$cursor]);
+        dialogueMcpCheck('newest native cursor rejects another connection and signature tampering',
+            ($denied['result']['structuredContent']['reason']??null)==='stale_cursor'
+            &&($denied['result']['structuredContent']['recovery']??null)==='restart_inventory'
+            &&!isset($denied['result']['structuredContent']['dialogues']));
+    }
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$now,$dialogueContext['connection_id']]);
+    $newestRevoked=$nativeCall($native,$dialogueContext,'list_current_dialogues',['cursor'=>$newestStart]);
+    dialogueMcpCheck('newest native cursor is unusable after real grant revocation',
+        ($newestRevoked['error']['code']??null)===-32001&&!isset($newestRevoked['result']));
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$dialogueContext['connection_id']]);
     $ordinaryRef=$ordinaryInventory['result']['structuredContent']['dialogues'][0]['dialogue_ref'];
     $ordinaryPacket=$nativeCall($native,$dialogueContext,'get_dialogue_review_context',['dialogue_ref'=>$ordinaryRef]);
     dialogueMcpCheck('real dialogue-only grant keeps the previous fully redacted transcript',
