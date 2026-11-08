@@ -364,6 +364,15 @@ try {
         cpeCheck('unrelated default cannot validate a rejected raw need: '.$platform,
             [MaxSearchApi::$needContexts[$oldChat]['city'],cpeConversation($platform,$oldUser)['status']],['Москва','ai']);
         unset(MaxSearchApi::$rejectedNeedFields[$oldChat]);
+        $oldIntent=SourceHotelIntentService::current((int)$old['id']);
+        cpeCheck('rejected raw need and unrelated default never mark current progress: '.$platform,
+            $oldIntent['needs_progressed']??null,false);
+        $beforeOldChoice=count($sent);
+        $dispatcher->dispatch(['platform'=>$platform,'type'=>'callback','callback_data'=>'hotel_intent_same:'.$oldIntent['token'],
+            'callback_id'=>'fixture.old-trip.choice.'.$oldUser,'user'=>['chat_id'=>$oldChat,'external_user_id'=>$oldUser]]);
+        cpeCheck('hotel choice cannot adopt old trip after rejected current need: '.$platform,
+            [cpeConversation($platform,$oldUser)['status'],cpeEventCount((int)$old['id'],'manager_request'),
+                str_contains($sent[$beforeOldChoice]['payload']['text']??'','Когда планируете отдых?')],['ai',0,true]);
 
         // Explicit text continues through the canonical manager-intent owner.
         // The source policy itself must not treat a mention or refusal as a call.

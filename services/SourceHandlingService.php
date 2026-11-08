@@ -277,7 +277,10 @@ class SourceHandlingService
         $row=self::conversation((string)$turn['incoming']['platform'],$chatId);
         if(!$row||(int)$row['id']!==$turn['conversation_id']||(int)($row['manager_id']??0)>0
             ||(string)$row['status']!=='ai')return false;
-        if(!empty($questionOptions['source_need_applied'])||self::qualificationNeedsChanged($chatId)){
+        $progress=array_key_exists('source_need_applied',$questionOptions)
+            ?!empty($questionOptions['source_need_applied'])
+            :self::qualificationNeedsChanged($chatId);
+        if($progress){
             SourceHotelIntentService::needsProgressed((int)$row['id']);
         }
         $intent=SourceHotelIntentService::current((int)$row['id']);
