@@ -125,6 +125,27 @@ final class TourChoiceService
         return $out;
     }
 
+    /**
+     * Strict current-subject projection for explicitly consented booking reads.
+     * Identity is internal; ordinary historical panel reads remain unchanged.
+     */
+    public static function currentForConversation(PDO $pdo,int $conversationId,int $limit=20): ?array
+    {
+        $q=$pdo->prepare('SELECT c.id,c.customer_id,c.customer_channel_id,c.project_key,c.channel,c.external_chat_id,c.status,cc.external_user_id,cc.external_chat_id AS channel_chat_id'
+            .' FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id'
+            .' AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.id=?');
+        $q->execute([$conversationId]);$c=$q->fetch(PDO::FETCH_ASSOC);
+        if (!$c || !in_array($c['status'],['ai','waiting_manager','manager'],true) || !in_array($c['channel'],['max','telegram'],true)) return null;
+        foreach (['project_key','external_chat_id','external_user_id'] as $key) if (!self::nativeId((string)$c[$key])) return null;
+        $actor=(string)$c['external_user_id'];
+        $choices=self::nativeForConversation($pdo,$conversationId,$limit,self::binding($c));
+        $web=self::webInquiries($pdo,$conversationId,$limit,$actor);if ($web) $choices['web_inquiries']=$web;
+        $search=self::searchInquiries($pdo,$conversationId,$limit,$actor);if ($search) $choices['search_inquiries']=$search;
+        $identity=[];
+        foreach (['id','customer_id','customer_channel_id','project_key','channel','external_chat_id','external_user_id','channel_chat_id','status'] as $key) $identity[$key]=(string)$c[$key];
+        return ['identity'=>$identity,'choices'=>$choices];
+    }
+
     /** Read-only aggregate for an already-authorized immutable publication.
      * Native records remain authoritative; public clicks never enter this path.
      */
@@ -143,15 +164,16 @@ final class TourChoiceService
         return ['liked'=>$liked,'likes_limited'=>$native['limited'],'inquiries'=>$inquiries,'inquiries_limited'=>$limited];
     }
 
-    private static function nativeForConversation(PDO $pdo,int $conversationId,int $limit): array
+    private static function nativeForConversation(PDO $pdo,int $conversationId,int $limit,?array $binding=null): array
     {
         if ($conversationId <= 0) return ['offers'=>[], 'limited'=>false];
         $limit = max(1, min(20, $limit));
-        $q = $pdo->prepare('SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type=? ORDER BY id DESC LIMIT '.($limit + 1));
+        $q = $pdo->prepare('SELECT id,payload_json,created_at'.($binding===null?'':',actor_type,actor_id').' FROM conversation_events WHERE conversation_id=? AND event_type=? ORDER BY id DESC LIMIT '.($limit + 1));
         $q->execute([$conversationId, self::LIKED]);
         $likeRows = $q->fetchAll(PDO::FETCH_ASSOC);
         $likes = [];
         foreach ($likeRows as $row) {
+            if ($binding!==null && (($row['actor_type']??null)!=='customer'||(string)($row['actor_id']??'')!==$binding['external_user_id'])) continue;
             $p = self::decode($row['payload_json']);
             if (is_int($p['offer_id'] ?? null) && $p['offer_id'] > 0 && !isset($likes[$p['offer_id']])) $likes[$p['offer_id']] = $row;
         }
@@ -169,7 +191,7 @@ final class TourChoiceService
         $q = $pdo->prepare('SELECT id,conversation_id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type=? AND id IN ('.$slots.')');
         $q->execute(array_merge([$conversationId, self::PREPARED], $ids));
         $offers = [];
-        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) { $offer = self::decodedOffer($row); if ($offer !== null) $offers[$offer['id']] = $offer; }
+        foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) { $offer = self::decodedOffer($row); if ($offer !== null && ($binding===null || $offer['payload']['binding']===$binding)) $offers[$offer['id']] = $offer; }
         $q = $pdo->prepare("SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type=? AND CAST(JSON_EXTRACT(payload_json,'$.offer_id') AS CHAR) IN (".$slots.') ORDER BY id ASC LIMIT 20');
         $q->execute(array_merge([$conversationId, self::DELIVERED], array_map('strval', $ids)));
         $deliveries = [];
@@ -216,12 +238,13 @@ final class TourChoiceService
         return ['ok'=>true,'changed'=>true,'conversation_id'=>$conversation];
     }
 
-    private static function searchInquiries(PDO $pdo,int $conversation,int $limit): array
+    private static function searchInquiries(PDO $pdo,int $conversation,int $limit,?string $actor=null): array
     {
         if ($conversation<=0) return [];
-        $q=$pdo->prepare("SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type='tour_search_inquiry' ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));$q->execute([$conversation]);$out=[];
+        $q=$pdo->prepare("SELECT id,payload_json,created_at".($actor===null?'':',actor_type,actor_id')." FROM conversation_events WHERE conversation_id=? AND event_type='tour_search_inquiry'".($actor===null?'':" AND actor_type='customer' AND actor_id=?")." ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));$q->execute($actor===null?[$conversation]:[$conversation,$actor]);$out=[];
         require_once __DIR__.'/Search3TourHandoffSnapshot.php';
         foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($actor!==null && (($row['actor_type']??null)!=='customer'||(string)($row['actor_id']??'')!==$actor)) continue;
             $p=self::decode($row['payload_json']);
             if (($p['schema']??null)!==1||!is_array($p['snapshot']??null)||Search3TourHandoffSnapshot::normalize($p['snapshot'])===null) continue;
             $o=$p['snapshot']['observation'];$expiry=$o['price']['expiresAt'];
@@ -230,14 +253,16 @@ final class TourChoiceService
         return $out;
     }
 
-    private static function webInquiries(PDO $pdo,int $conversation,int $limit): array
+    private static function webInquiries(PDO $pdo,int $conversation,int $limit,?string $actor=null): array
     {
         if ($conversation<=0) return [];
-        $q=$pdo->prepare("SELECT id,payload_json,created_at FROM conversation_events WHERE conversation_id=? AND event_type='tour_web_inquiry' ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));
-        $q->execute([$conversation]);$out=[];
+        $q=$pdo->prepare("SELECT id,payload_json,created_at".($actor===null?'':',actor_type,actor_id')." FROM conversation_events WHERE conversation_id=? AND event_type='tour_web_inquiry'".($actor===null?'':" AND actor_type='customer' AND actor_id=?")." ORDER BY id DESC LIMIT ".max(1,min(20,$limit)));
+        $q->execute($actor===null?[$conversation]:[$conversation,$actor]);$out=[];
         foreach ($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($actor!==null && (($row['actor_type']??null)!=='customer'||(string)($row['actor_id']??'')!==$actor)) continue;
             $p=self::decode($row['payload_json']);
             if (($p['schema']??null)!==1 || !is_array($p['public_offer']??null)) continue;
+            if ($actor!==null && array_diff(array_keys($p['public_offer']),['index','hotel','departure','date_from','nights','adults','children','room','meal','amount','currency','price_qualifier','rationale','compromise','destination','flights','inclusions','constraints','observed_at','price_verified'])) continue;
             $out[]=['inquiry_id'=>(int)$row['id'],'public_offer'=>$p['public_offer'],'link_version'=>(int)$p['link_version'],'variant'=>(int)$p['variant'],'created_at'=>$row['created_at']];
         }
         return $out;

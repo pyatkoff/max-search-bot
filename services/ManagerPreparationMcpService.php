@@ -222,15 +222,27 @@ final class ManagerPreparationMcpService
         $archive=in_array($name,ArchiveResearchMcpAdapter::NAMES,true);
         $dialogue=in_array($name,DialogueReviewMcpAdapter::NAMES,true);
         $selection=in_array($name,ManagerTourSelectionMcpAdapter::NAMES,true);
+        if($selection)ManagerTourSelectionMcpAdapter::validateBookingArguments($name,$args);
         $development=in_array($name,DevelopmentWorkMcpAdapter::NAMES,true);
         $legacy=ManagerPreparationOAuth::hasScopes($scopes,ManagerPreparationOAuth::SCOPES);
         $required=$dialogue?[ManagerPreparationOAuth::DIALOGUE_SCOPE]:($forecast?[ManagerPreparationOAuth::FORECAST_SCOPE]:($development?[ManagerPreparationOAuth::DEVELOPMENT_SCOPE]:($hotel?[ManagerPreparationOAuth::HOTEL_SCOPE]:($archive?[ManagerPreparationOAuth::ARCHIVE_SCOPE]:ManagerPreparationOAuth::SCOPES))));
-        if($selection)$required=[ManagerPreparationOAuth::SELECTION_SCOPE];
+        if($selection)$required=[ManagerTourSelectionMcpAdapter::scopeFor($name)];
         if($dialogue&&DialogueReviewMcpAdapter::isHistory($args))$required=[ManagerPreparationOAuth::QUALITY_SCOPE];
         $stepUp=$selection||$dialogue||$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
             ||($development&&($legacy||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)||in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)));
         if ($stepUp&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
-            &&$this->scopedConnectionActive($connection,$admin,$scopes)) return self::capabilityScopeChallenge($scopes,$required[0]);
+            &&$this->scopedConnectionActive($connection,$admin,$scopes)) {
+            if ($required===[ManagerPreparationOAuth::BOOKING_SCOPE]) {
+                $oauth=new ManagerPreparationOAuth($this->pdo,$this->clock);
+                $metadata=$oauth->currentAuthorizationMetadata($connection,$admin,$scopes);
+                if ($metadata===null) throw new DomainException();
+                $challenge=self::capabilityScopeChallenge($metadata['granted_scopes'],$required[0]);
+                $challenge['_meta']['anytour/authorization_context']=$metadata;
+                if ($metadata!==$oauth->currentAuthorizationMetadata($connection,$admin,$scopes)) throw new DomainException();
+                return $challenge;
+            }
+            return self::capabilityScopeChallenge($scopes,$required[0]);
+        }
         if (!ManagerPreparationOAuth::hasScopes($scopes,$required)
             || (($selection||$dialogue||$forecast||$hotel||$archive||$development) && ($connection===null||!$this->scopedConnectionActive($connection,$admin,$required)))) {
             if (in_array($name,['hotel_work_status','development_work_status'],true)) {
@@ -239,6 +251,18 @@ final class ManagerPreparationMcpService
                 throw new ManagerPreparationAccessError($reason);
             }
             throw new DomainException();
+        }
+        if($selection&&$name==='read_tour_choices'&&$args===[]){
+            // A supported step-up entry and safe receipt without any guessed
+            // conversation/source ID or customer-store access.
+            $oauth=new ManagerPreparationOAuth($this->pdo,$this->clock);
+            $metadata=$oauth->currentAuthorizationMetadata($connection,$admin,$required);
+            if($metadata===null)throw new DomainException();
+            $data=['ok'=>true,'kind'=>'authorization_metadata']+$metadata
+                +['customer_reads'=>0,'form_context_loaded'=>false,'visual_form_opened'=>false];
+            $result=['content'=>[['type'=>'text','text'=>json_encode($data,JSON_THROW_ON_ERROR)]],'structuredContent'=>$data,'isError'=>false];
+            if($metadata!==$oauth->currentAuthorizationMetadata($connection,$admin,$required))throw new DomainException();
+            return $result;
         }
         if($selection){
             // The adapter completes fresh OAuth and conversation ACL checks at
@@ -368,6 +392,7 @@ final class ManagerPreparationMcpService
         [$description,$message]=match ($requested) {
             ManagerPreparationOAuth::HOTEL_SCOPE=>['Explicit hotel queue consent is required','Подтвердите дополнительный доступ ChatGPT к гостиничной очереди AnyTour.'],
             ManagerPreparationOAuth::ARCHIVE_SCOPE=>['Explicit archive research consent is required','Подтвердите дополнительный доступ ChatGPT к сохранённым историческим диалогам AnyTour.'],
+            ManagerPreparationOAuth::BOOKING_SCOPE=>['Explicit readonly customer choice and booking context consent is required','Подтвердите только чтение выбора туриста и данных формы бронирования AnyTour: точной версии предложения и сохранённых сумм, условий, сведений о согласии клиента, операторе, номере и статусе бронирования. Изменения, сообщения, бронь и платежи не выполняются.'],
             ManagerPreparationOAuth::SELECTION_SCOPE=>['Explicit selection editing and publication consent is required','Подтвердите чтение и редактирование подборок AnyTour, подготовку точной версии, проверку фото и публикацию общей ссылки. Сообщения клиентам не отправляются.'],
             ManagerPreparationOAuth::DEVELOPMENT_SCOPE=>['Explicit development queue consent is required','Подтвердите дополнительный доступ ChatGPT к очереди плана развития AnyTour.'],
             ManagerPreparationOAuth::FORECAST_SCOPE=>['Explicit private forecast status consent is required','Подтвердите чтение закрытого агрегированного статуса сигналов и ранних оценок AnyTour. Тексты и данные отдельных клиентов не возвращаются.'],

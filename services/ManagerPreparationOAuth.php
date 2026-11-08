@@ -44,7 +44,8 @@ final class ManagerPreparationOAuth
     public const DIALOGUE_SCOPE = 'dialogues:read';
     public const QUALITY_SCOPE = 'quality:read';
     public const SELECTION_SCOPE = 'selections:write';
-    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE, self::FORECAST_SCOPE, self::DIALOGUE_SCOPE, self::SELECTION_SCOPE, self::QUALITY_SCOPE];
+    public const BOOKING_SCOPE = 'bookings:read';
+    public const SUPPORTED_SCOPES = ['queue:read', 'prepared:write', self::HOTEL_SCOPE, self::ARCHIVE_SCOPE, self::DEVELOPMENT_SCOPE, self::FORECAST_SCOPE, self::DIALOGUE_SCOPE, self::SELECTION_SCOPE, self::QUALITY_SCOPE, self::BOOKING_SCOPE];
     // RFC 9207 issuer identification permits this documented stable callback.
     public const REDIRECT_URI = 'https://chatgpt.com/connector_platform_oauth_redirect';
     private PDO $pdo;
@@ -280,6 +281,19 @@ final class ManagerPreparationOAuth
     {
         $grant=$this->connectionGrant($familyId,$adminId);
         return $grant!==null && self::hasScopes(explode(' ',$grant['scopes']),$required);
+    }
+
+    /** Read only the current verified link's own rights; never a customer lookup. */
+    public function currentAuthorizationMetadata(string $familyId,int $adminId,array $required): ?array
+    {
+        if ($this->pdo->inTransaction() || !$this->activeAdmin($adminId)) return null;
+        $grant=$this->connectionGrant($familyId,$adminId);
+        if ($grant===null) return null;
+        $scopes=explode(' ',$grant['scopes']);
+        if (!self::hasScopes($scopes,$required)) return null;
+        $subject=['anytour-booking-consent-link-v1',$this->issuer(),$this->resource(),$this->profile,
+            $grant['project_key'],$grant['client_id'],(string)$adminId];
+        return ['granted_scopes'=>$scopes,'link_context'=>hash('sha256',json_encode($subject,JSON_THROW_ON_ERROR))];
     }
 
     /** Private self metadata for one current authenticated connection, never a queue owner lookup. */
@@ -686,10 +700,11 @@ final class ManagerPreparationOAuth
         $dialogue=in_array(self::DIALOGUE_SCOPE,$scopes,true);
         $selection=in_array(self::SELECTION_SCOPE,$scopes,true);
         $quality=in_array(self::QUALITY_SCOPE,$scopes,true);
+        $booking=in_array(self::BOOKING_SCOPE,$scopes,true);
         // Reply read/write remain one capability. Hotel and development metadata
         // each require separate explicit consent; refresh never adds a scope.
         // Archive, aggregate forecast and current-dialogue reads each require fresh consent.
-        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive && !$forecast && !$dialogue && !$selection && !$quality)) $this->fail('invalid_scope');
+        if ((!$legacy && array_intersect($scopes,self::SCOPES)) || (!$legacy && !$hotel && !$development && !$archive && !$forecast && !$dialogue && !$selection && !$quality && !$booking)) $this->fail('invalid_scope');
         return implode(' ',array_values(array_intersect(self::SUPPORTED_SCOPES,$scopes)));
     }
 

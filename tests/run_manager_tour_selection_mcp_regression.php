@@ -34,11 +34,30 @@ function selectionMcpBusinessRows(): array
     return $out;
 }
 
+// This focused CLI mode exercises only the new synthetic booking cases on
+// platforms without the unchanged POSIX-only protected photo-store fixture.
+// The ordinary required CI invocation still executes the complete file.
+if (in_array('--booking-only',$argv??[],true)) {
+    require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
+    ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic workspace']]);
+    $pdo->exec('CREATE TABLE manager_preparation_oauth_clients(client_id TEXT PRIMARY KEY,redirect_uri TEXT,registration_bucket TEXT,created_at INTEGER);
+CREATE TABLE manager_preparation_oauth_grants(grant_id TEXT PRIMARY KEY,client_id TEXT,admin_id INTEGER,project_key TEXT,resource TEXT,scopes TEXT,created_at INTEGER,expires_at INTEGER,revoked_at INTEGER);
+CREATE TABLE manager_preparation_oauth_codes(code_hash TEXT PRIMARY KEY,grant_id TEXT,redirect_uri TEXT,code_challenge TEXT,expires_at INTEGER,consumed_at INTEGER);
+CREATE TABLE manager_preparation_oauth_tokens(token_hash TEXT PRIMARY KEY,grant_id TEXT,token_kind TEXT,expires_at INTEGER,consumed_at INTEGER);');
+    $oauth=new ManagerPreparationOAuth($pdo);
+    $client=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'booking-only-fixture')['client_id'];
+    [, $legacyContext]=selectionRealGrant($oauth,$client,implode(' ',ManagerPreparationOAuth::SCOPES));
+    [, $selectionContext]=selectionRealGrant($oauth,$client,ManagerPreparationOAuth::SELECTION_SCOPE);
+    selectionBookingChecks($pdo,$oauth,$client,$legacyContext,$selectionContext,new ManagerPreparationMcpService($pdo));
+    echo 'Focused booking reader: '.$checks." checks passed\n";
+    exit;
+}
+
 $definitions=ManagerTourSelectionMcpAdapter::tools();$byName=array_column($definitions,null,'name');
-deliveryCheck('only the five selection actions are exposed',array_keys($byName)===ManagerTourSelectionMcpAdapter::NAMES);
+deliveryCheck('only the declared selection and readonly booking actions are exposed',array_keys($byName)===ManagerTourSelectionMcpAdapter::NAMES);
 foreach ($definitions as $tool) {
     deliveryCheck($tool['name'].' declares explicit selection capability and rejects extra arguments',
-        $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>['selections:write']]]
+        $tool['securitySchemes']===[['type'=>'oauth2','scopes'=>[ManagerTourSelectionMcpAdapter::scopeFor($tool['name'])]]]
         &&$tool['_meta']['securitySchemes']===$tool['securitySchemes']&&$tool['inputSchema']['additionalProperties']===false);
 }
 deliveryCheck('only metadata reads are read-only; photo review discloses externally loaded image',
@@ -212,7 +231,7 @@ function selectionRealRpc(string $name,array $args): array
 [$selectionTokens,$selectionContext]=selectionRealGrant($oauth,$client,ManagerPreparationOAuth::SELECTION_SCOPE);
 $all=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
 [$allTokens,$allContext]=selectionRealGrant($oauth,$client,$all);
-deliveryCheck('complete explicitly consented selection, dialogue and optional history catalog fits actual forward capacity',strlen($all)===138&&strlen($all)<=160&&$allTokens['scope']===$all&&$allContext['scopes']===ManagerPreparationOAuth::SUPPORTED_SCOPES);
+deliveryCheck('complete explicitly consented catalog including booking fits unchanged forward capacity',strlen($all)===152&&strlen($all)<=160&&$allTokens['scope']===$all&&$allContext['scopes']===ManagerPreparationOAuth::SUPPORTED_SCOPES);
 deliveryCheck('old grants and reply defaults do not acquire selection access',$legacyTokens['scope']==='queue:read prepared:write'&&!$oauth->connectionAuthorized($legacyContext['connection_id'],90,[ManagerPreparationOAuth::SELECTION_SCOPE])&&ManagerPreparationOAuth::SCOPES===['queue:read','prepared:write']);
 try {
     $oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,
@@ -247,4 +266,123 @@ foreach([ManagerPreparationOAuth::PROFILE_REPLIES,ManagerPreparationOAuth::PROFI
     selectionMcpRejected($profile.' audience cannot acquire selection capability',static fn()=>selectionRealGrant($profileOAuth,$profileClient,ManagerPreparationOAuth::SELECTION_SCOPE,$profile));
 }
 deliveryCheck('integrated OAuth and selection calls still never send a customer message',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0);
+
+// New capability: real grants, canonical saved choices, and no-write disclosure.
+function selectionBookingChecks(PDO $pdo,ManagerPreparationOAuth $oauth,string $client,array $legacyContext,array $selectionContext,ManagerPreparationMcpService $mcp): void
+{
+require_once __DIR__.'/support/search3-tour-handoff.php';
+require_once dirname(__DIR__).'/integrations/TelegramIncomingAdapter.php';
+[$bookingTokens,$bookingContext]=selectionRealGrant($oauth,$client,ManagerPreparationOAuth::BOOKING_SCOPE);
+$bookingRpc=static fn(array $args):array=>selectionRealRpc('read_tour_booking_context',$args);
+$choicesRpc=selectionRealRpc('read_tour_choices',['conversation_id'=>1]);
+foreach ([$legacyContext,$selectionContext] as $oldContext) {
+    $beforeChanges=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $denied=$mcp->handle($choicesRpc,90,$oldContext['connection_id'],$oldContext['scopes']);
+    deliveryCheck('existing grants require new booking consent without any writes',($denied['result']['isError']??false)===true
+        &&str_contains($denied['result']['_meta']['mcp/www_authenticate'][0]??'','bookings:read')
+        &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$beforeChanges
+        &&!isset($denied['result']['structuredContent']['choices']));
+}
+deliveryCheck('booking-only grant does not gain selection write or transcript rights',
+    !$oauth->connectionAuthorized($bookingContext['connection_id'],90,[ManagerPreparationOAuth::SELECTION_SCOPE])
+    &&!$oauth->connectionAuthorized($bookingContext['connection_id'],90,[ManagerPreparationOAuth::DIALOGUE_SCOPE]));
+$pdo->exec("UPDATE conversations SET customer_id=1,customer_channel_id=1,project_key='anytour',channel='telegram',external_chat_id='101',status='manager' WHERE id=1");
+$snapshot=['hotel'=>'Synthetic booking choice','departure'=>'Москва','date_from'=>'2027-06-12','date_to'=>'2027-06-19','nights'=>7,'adults'=>2,'child_ages'=>[],
+    'room'=>'Standard','meal'=>'AI','flights'=>[],'amount'=>'180000.50','currency'=>'RUB','price_basis'=>'party','is_demo'=>false];
+$native=TourChoiceService::prepare($pdo,1,$snapshot,7);
+deliveryCheck('synthetic native choice preparation succeeds',$native['ok']);
+deliveryCheck('synthetic delivered receipt is canonical',TourChoiceService::recordDelivered($pdo,$native['offer_id'],'1777','101')['ok']);
+$incoming=TelegramIncomingAdapter::fromUpdate(['callback_query'=>['id'=>'synthetic-booking-like','data'=>$native['callback_data'],'from'=>['id'=>101],
+    'message'=>['message_id'=>1777,'chat'=>['id'=>101,'type'=>'private']]]]);$incoming['project_key']='anytour';
+deliveryCheck('synthetic customer native like is genuine',TourChoiceService::like($pdo,$incoming)['ok']);
+$unliked=TourChoiceService::prepare($pdo,1,$snapshot,7);
+TourChoiceService::recordDelivered($pdo,$unliked['offer_id'],'1778','101');
+$pdo->beginTransaction();
+$web=TourChoiceService::webInquiryInTransaction($pdo,1,'101',str_repeat('a',64),['public_offer'=>['hotel'=>'Synthetic web choice','amount'=>'120000','currency'=>'RUB','date_from'=>'2027-06-12'],
+    'publication_id'=>str_repeat('a',32),'version'=>7,'card'=>0]);
+$intent=search3FixtureIntent();
+$search=TourChoiceService::searchInquiryInTransaction($pdo,1,'101',str_repeat('b',64),
+    ['origin'=>'search3','handoff_id'=>str_repeat('b',32),'snapshot'=>['binding'=>$intent['binding'],'observation'=>$intent['observation']]]);
+$pdo->commit();
+deliveryCheck('synthetic web and search inquiries are canonical',$web['ok']&&$search['ok']);
+$changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+$eventsBefore=$pdo->query('SELECT * FROM conversation_events ORDER BY id')->fetchAll();
+$markersBefore=$pdo->query('SELECT * FROM manager_conversation_reads ORDER BY 1')->fetchAll();
+$readChoices=$mcp->handle($choicesRpc,90,$bookingContext['connection_id'],$bookingContext['scopes']);
+$choices=$readChoices['result']['structuredContent']['choices']??[];
+$find=static function(string $kind,?int $id=null)use(&$choices):array{foreach($choices as $choice)if($choice['source_kind']===$kind&&($id===null||$choice['source_id']===$id))return $choice;throw new RuntimeException('Expected synthetic choice absent');};
+$chosen=$find('native',$native['offer_id']);$notChosen=$find('native',$unliked['offer_id']);
+deliveryCheck('current native like has exact immutable revision and delivery is not a choice',
+    $chosen['signal']==='native_like'&&$chosen['booking_eligible']&&strlen($chosen['choice_revision'])===64
+    &&!$notChosen['booking_eligible']&&$notChosen['signal']==='delivered_unliked');
+foreach (['web','search'] as $kind) deliveryCheck($kind.' genuine inquiry is returned as current source',$find($kind)['booking_eligible']===true);
+$args=['conversation_id'=>1,'source_kind'=>'native','source_id'=>$native['offer_id'],'choice_revision'=>$chosen['choice_revision']];
+$context=$mcp->handle($bookingRpc($args),90,$bookingContext['connection_id'],$bookingContext['scopes']);
+$data=$context['result']['structuredContent']??[];
+deliveryCheck('new booking grant loads exact context without inventing a visible form',
+    ($data['ok']??false)&&$data['source']['choice']===$chosen['choice']&&$data['record']===null
+    &&$data['context_loaded']===true&&$data['visual_form_opened']===false&&$data['price_refreshed']===false);
+foreach (['web','search'] as $kind) {
+    $source=$find($kind);$r=$mcp->handle($bookingRpc(['conversation_id'=>1,'source_kind'=>$kind,'source_id'=>$source['source_id'],'choice_revision'=>$source['choice_revision']]),90,$bookingContext['connection_id'],$bookingContext['scopes']);
+    deliveryCheck($kind.' source reaches canonical readonly booking context',($r['result']['structuredContent']['source']['choice']??null)===$source['choice']);
+}
+deliveryCheck('choice and context reads make no event, marker or other DB writes',
+    (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes
+    &&$pdo->query('SELECT * FROM conversation_events ORDER BY id')->fetchAll()===$eventsBefore
+    &&$pdo->query('SELECT * FROM manager_conversation_reads ORDER BY 1')->fetchAll()===$markersBefore);
+$bad=$args;$bad['source_id']=$unliked['offer_id'];$bad['choice_revision']=$notChosen['choice_revision'];
+deliveryCheck('delivered unliked source cannot load a booking',($mcp->handle($bookingRpc($bad),90,$bookingContext['connection_id'],$bookingContext['scopes'])['error']['code']??null)===-32001);
+foreach (['kind'=>static function(&$a){$a['source_kind']='web';},'id'=>static function(&$a){$a['source_id']=PHP_INT_MAX;},'revision'=>static function(&$a){$a['choice_revision']=str_repeat('0',64);},'conversation'=>static function(&$a){$a['conversation_id']=2;}] as $label=>$mutate) {
+    $bad=$args;$mutate($bad);$r=$mcp->handle($bookingRpc($bad),90,$bookingContext['connection_id'],$bookingContext['scopes']);
+    deliveryCheck('mismatched '.$label.' denies without partial context',isset($r['error'])&&!isset($r['result']));
+}
+$fields=TourBookingService::normalize(['state'=>'checking','amount'=>'','currency'=>'','checked_at'=>'','verification_source'=>'Synthetic verification',
+    'terms'=>'Private synthetic terms','agreement_evidence'=>'Private synthetic agreement','operator'=>'Synthetic operator','booking_reference'=>'TEST-PRIVATE-ONLY',
+    'confirmed_at'=>'','cancellation_reason'=>'','available'=>false,'customer_agreed'=>false]);
+$saved=TourBookingService::save($pdo,90,1,['source_kind'=>'native','source_id'=>$native['offer_id'],'revision'=>0,'operation_id'=>str_repeat('e',32),'fields'=>$fields],static fn():bool=>true);
+deliveryCheck('synthetic stored worksheet is prepared before read-only checks',$saved['ok']);
+$changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+$r=$mcp->handle($bookingRpc($args),90,$bookingContext['connection_id'],$bookingContext['scopes']);$record=$r['result']['structuredContent']['record']??[];
+deliveryCheck('explicitly consented record retains declared private categories without raw account data',
+    ($record['fields']??null)===$fields&&array_keys($record)===['revision','updated_at','fields']
+    &&!str_contains(json_encode($r),'actor_id')&&!str_contains(json_encode($r),'binding')
+    &&!str_contains(json_encode($r),$native['callback_data'])&&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes);
+$likeRow=$pdo->query("SELECT id,payload_json FROM conversation_events WHERE event_type='tour_offer_liked' ORDER BY id DESC LIMIT 1")->fetch();
+$alter=$pdo->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?');
+$alter->execute([json_encode(['offer_id'=>PHP_INT_MAX]),$likeRow['id']]);
+deliveryCheck('canonical old record alone can still exist after current like is absent',TourBookingService::read($pdo,1,'native',$native['offer_id'])['ok']);
+deliveryCheck('old record cannot substitute for the missing current choice',($mcp->handle($bookingRpc($args),90,$bookingContext['connection_id'],$bookingContext['scopes'])['error']['code']??null)===-32001);
+$alter->execute([$likeRow['payload_json'],$likeRow['id']]);
+$preparedPayload=$pdo->query('SELECT payload_json FROM conversation_events WHERE id='.(int)$native['offer_id'])->fetchColumn();
+$changedPayload=json_decode($preparedPayload,true);$changedPayload['snapshot']['amount']='190000';
+$alter->execute([json_encode($changedPayload),$native['offer_id']]);
+deliveryCheck('same source ID with changed frozen source rejects old revision',($mcp->handle($bookingRpc($args),90,$bookingContext['connection_id'],$bookingContext['scopes'])['error']['code']??null)===-32001);
+$new=$mcp->handle($choicesRpc,90,$bookingContext['connection_id'],$bookingContext['scopes']);$newChoices=$new['result']['structuredContent']['choices'];
+$newRevision=null;foreach($newChoices as $choice)if($choice['source_kind']==='native'&&$choice['source_id']===$native['offer_id'])$newRevision=$choice['choice_revision'];
+$changedArgs=$args;$changedArgs['choice_revision']=$newRevision;
+deliveryCheck('current revision cannot disclose a stored record with the old source',($mcp->handle($bookingRpc($changedArgs),90,$bookingContext['connection_id'],$bookingContext['scopes'])['error']['code']??null)===-32001);
+$alter->execute([$preparedPayload,$native['offer_id']]);
+$hook=null;$calls=0;
+$guarded=new ManagerTourSelectionMcpAdapter(static function(int $actor,string $family,array $required)use($oauth,$pdo,&$hook,&$calls,$bookingContext):void{
+    ++$calls;if($calls===2&&$hook!==null)$hook();
+    if($actor!==90||$family!==$bookingContext['connection_id']||$required!==[ManagerPreparationOAuth::BOOKING_SCOPE]
+        ||!$oauth->connectionAuthorized($family,$actor,$required))throw new DomainException();
+});
+foreach ([
+    'customer'=>[static fn()=>$pdo->exec('UPDATE conversations SET customer_id=2 WHERE id=1'),static fn()=>$pdo->exec('UPDATE conversations SET customer_id=1 WHERE id=1')],
+    'native subject'=>[static fn()=>$pdo->exec("UPDATE customer_channels SET external_user_id='999' WHERE id=1"),static fn()=>$pdo->exec("UPDATE customer_channels SET external_user_id='101' WHERE id=1")],
+    'channel chat'=>[static fn()=>$pdo->exec("UPDATE customer_channels SET external_chat_id='999' WHERE id=1"),static fn()=>$pdo->exec("UPDATE customer_channels SET external_chat_id='101' WHERE id=1")],
+    'conversation ACL'=>[static fn()=>$pdo->exec("UPDATE conversations SET project_key='other' WHERE id=1"),static fn()=>$pdo->exec("UPDATE conversations SET project_key='anytour' WHERE id=1")],
+    'admin'=>[static fn()=>$pdo->exec('UPDATE managers SET is_active=0 WHERE id=90'),static fn()=>$pdo->exec('UPDATE managers SET is_active=1 WHERE id=90')],
+    'grant'=>[static fn()=>$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([time(),$bookingContext['connection_id']]),static fn()=>$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$bookingContext['connection_id']])],
+    'current like'=>[static fn()=>$alter->execute([json_encode(['offer_id'=>PHP_INT_MAX]),$likeRow['id']]),static fn()=>$alter->execute([$likeRow['payload_json'],$likeRow['id']])]
+] as $label=>[$change,$restore]) {
+    $calls=0;$hook=$change;
+    try {selectionMcpRejected('final '.$label.' change suppresses all booking data',static fn()=>$guarded->call('read_tour_booking_context',$args,90,$bookingContext['connection_id']),DomainException::class);}
+    finally {$hook=null;$restore();}
+}
+deliveryCheck('new readonly APIs still never send customer messages',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0);
+}
+selectionBookingChecks($pdo,$oauth,$client,$legacyContext,$selectionContext,$mcp);
+
 echo 'Selection MCP adapter and real OAuth integration: '.$checks." checks passed\n";
