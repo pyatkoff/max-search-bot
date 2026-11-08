@@ -276,7 +276,8 @@ class WizardCallbackAction
         if (strpos($q, 'pick_date_') === 0) return self::handleDateSelection($chatId, $q);
 
         if ($q === 'back_check') {
-            MaxSearchApi::deletePrevMessage($chatId, true);
+            // Returning to the summary must retain value rows written by AI
+            // qualification. The check view owns non-destructive message cleanup.
             DialogueView::check($chatId);
             return true;
         }
