@@ -462,6 +462,37 @@ class StateMessageHandler
         return 'non_phone';
     }
 
+    /**
+     * The edit menu is an explicit request to change existing trip parameters.
+     * Only an entire active directory country name selects the country step;
+     * questions, negations and mixed requests keep the ordinary check guidance.
+     * The original inbound message then uses the existing update-only owner.
+     */
+    public static function handleMenuCountryEdit(array $message, $chatId): bool
+    {
+        if ((int)MaxSearchApi::getCurentStatus($chatId) !== (int)MaxSearchApi::$statusCheck
+            || (string)MaxSearchApi::getEditMode($chatId) !== 'menu') return false;
+
+        $text = trim((string)($message['text'] ?? ''));
+        if ($text === '') return false;
+        $country = MaxSearchApi::getCountryByName($text);
+        if (!is_array($country)
+            || CountryValueContract::fromDirectoryId($country['ID'] ?? null) === null
+            || mb_strtolower(trim((string)($country['NAME'] ?? '')), 'UTF-8') !== mb_strtolower($text, 'UTF-8')) {
+            return false;
+        }
+
+        EditFlowService::begin($chatId, 'country');
+        MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusContryChoose);
+        if ((int)MaxSearchApi::getCurentStatus($chatId) !== (int)MaxSearchApi::$statusContryChoose) {
+            // A failed step append must not update a historical country row.
+            MaxSearchApi::setEditMode($chatId, 'menu');
+            return false;
+        }
+        self::handle($message, $chatId, MaxSearchApi::$statusContryChoose);
+        return true;
+    }
+
     private static function routeFreeTextToAi($message, $chatId): void
     {
         MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusAi);

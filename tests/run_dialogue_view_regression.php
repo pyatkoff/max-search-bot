@@ -28,6 +28,9 @@ class MaxSearchApi {
     public static array $scheduledSearchIntros=[];
     public static int $currentStatus=64;
     public static bool $probeAi=false;
+    public static string $editMode='';
+    public static function getEditMode($chatId){return self::$editMode;}
+    public static function setEditMode($chatId,$field=''){self::$editMode=(string)$field;}
     public static function getCurentStatus($chatId){return self::$currentStatus;}
     public static function getAiSearchContext($chatId){return [];}
     public static array $missing=[];

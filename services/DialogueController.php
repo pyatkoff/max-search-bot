@@ -101,8 +101,12 @@ class DialogueController
         if ($status == MaxSearchApi::$statusCheck && self::isCheckPriceQuestion($plainText)) {
             return DialogueView::checkPriceGuidance($chatId);
         }
-        // Check is a button-confirmation state, not a free-text field editor.
-        // Acknowledge text without silently dropping it or mutating saved needs.
+        // An explicitly opened edit menu accepts an exact country name through
+        // the existing wizard owner. Other check text keeps its previous route.
+        if ($status == MaxSearchApi::$statusCheck && StateMessageHandler::handleMenuCountryEdit($message, $chatId)) {
+            return true;
+        }
+        // Acknowledge other text without silently dropping it or changing needs.
         if ($status == MaxSearchApi::$statusCheck && $plainText !== '') {
             return DialogueView::checkTextGuidance($chatId);
         }

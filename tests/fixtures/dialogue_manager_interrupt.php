@@ -35,6 +35,7 @@ class MaxSearchApi {
     public static $statusStart=64,$statusCityChoose=65,$statusContryChoose=66,$statusAdults=67,$statusChild=68,$statusAge=69,$statusStars=70,$statusMeal=71,$statusNights=72,$statusDate=73,$statusCheck=74,$statusPhone=75,$statusAi=76;
     public static $statuses=[],$needs=[];
     public static function getCurentStatus($chat){return self::$statuses[$chat]??0;}
+    public static function getEditMode($chat){return '';}
     public static function getAiSearchContext($chat){return self::$needs[$chat]??[];}
     public static function getAiMissingFields($chat){
         $needs=self::$needs[$chat]??[];
