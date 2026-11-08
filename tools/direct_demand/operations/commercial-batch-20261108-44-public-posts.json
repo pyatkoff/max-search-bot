@@ -1,0 +1,98 @@
+{
+  "ok": true,
+  "new_hotels": 7,
+  "new_posts": 14,
+  "total_hotel_pairs": 509,
+  "total_posts": 1018,
+  "publication_run": 42490106049,
+  "original_attempt": 1,
+  "source_commit": "48f6ba1b8f24521b11c81802d566067e45c4d2da",
+  "new_posts_verified_against_exact_approved_packet": true,
+  "read48_private_bindings_match_original_publication_receipts": true,
+  "public_posts": [
+    {
+      "hotel_id": 70030,
+      "name": "✈️ Туры в Utopia Beach Club",
+      "platform": "telegram",
+      "post_url": "https://t.me/any_toour/517"
+    },
+    {
+      "hotel_id": 1555,
+      "name": "✈️ Туры в DoubleTree by Hilton Antalya Kemer",
+      "platform": "telegram",
+      "post_url": "https://t.me/any_toour/518"
+    },
+    {
+      "hotel_id": 1690,
+      "name": "✈️ Туры в Mirage World",
+      "platform": "telegram",
+      "post_url": "https://t.me/any_toour/519"
+    },
+    {
+      "hotel_id": 28704,
+      "name": "✈️ Туры в Selectum Collection Bodrum",
+      "platform": "telegram",
+      "post_url": "https://t.me/any_toour/520"
+    },
+    {
+      "hotel_id": 1699,
+      "name": "✈️ Туры в Yasmin Bodrum Resort",
+      "platform": "telegram",
+      "post_url": "https://t.me/any_toour/521"
+    },
+    {
+      "hotel_id": 82545,
+      "name": "✈️ Туры в Ell Lounge Spa & Hotel",
+      "platform": "telegram",
+      "post_url": "https://t.me/any_toour/522"
+    },
+    {
+      "hotel_id": 70048,
+      "name": "✈️ Туры в Marina Gallery Resort KACHA Kalim Bay",
+      "platform": "telegram",
+      "post_url": "https://t.me/any_toour/523"
+    },
+    {
+      "hotel_id": 70030,
+      "name": "✈️ Туры в Utopia Beach Club",
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaG7kl8qV4Y"
+    },
+    {
+      "hotel_id": 1555,
+      "name": "✈️ Туры в DoubleTree by Hilton Antalya Kemer",
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaG7kmf6KaA"
+    },
+    {
+      "hotel_id": 1690,
+      "name": "✈️ Туры в Mirage World",
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaG7knE5YTU"
+    },
+    {
+      "hotel_id": 28704,
+      "name": "✈️ Туры в Selectum Collection Bodrum",
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaG7knpnN6E"
+    },
+    {
+      "hotel_id": 1699,
+      "name": "✈️ Туры в Yasmin Bodrum Resort",
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaG7koOKFHk"
+    },
+    {
+      "hotel_id": 82545,
+      "name": "✈️ Туры в Ell Lounge Spa & Hotel",
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaG7koxXOo4"
+    },
+    {
+      "hotel_id": 70048,
+      "name": "✈️ Туры в Marina Gallery Resort KACHA Kalim Bay",
+      "platform": "max",
+      "post_url": "https://max.ru/channel_anytour/AaG7kpV6AQI"
+    }
+  ]
+}

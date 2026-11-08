@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "operation": "commercial-channel-hotel-feeds-20261108-update46",
+  "state": "PREPARED_NOT_SENT",
+  "new_hotel_ids": [
+    70030,
+    1555,
+    1690,
+    28704,
+    1699,
+    82545,
+    70048
+  ],
+  "previous_hotel_pairs": 502,
+  "target_hotel_pairs": 509,
+  "target_rows": [
+    509,
+    509,
+    1018
+  ],
+  "previous502_offer_blocks_identical": true,
+  "outside_offers_identical_except_date": true,
+  "date_utc": "2026-11-08 14:31",
+  "public_feed_name_policy": "Preserve accepted feed convention: Telegram Путевки в; MAX Туры в. Public post captions retain the separately approved short heading.",
+  "source_read48": {
+    "operation": "commercial-channel-hotel-feeds-20261108-read48",
+    "json_sha256": "f565a447a2a2c7d4c8a03ad8bf223456f60e590983f17ef9ff66f6be41a9c0be",
+    "run_id": 42490106049,
+    "run_attempt": 1,
+    "head_sha": "48f6ba1b8f24521b11c81802d566067e45c4d2da",
+    "artifact_id": 13620762616,
+    "artifact_zip_sha256": "3708d51d984492b5be0f83f73802499ac09551c5824cd13de220d3bc255cab2c"
+  },
+  "expected_production_sha": "160e019701165cd53dd5a9be0fa3db533d82120e",
+  "native509_gate": {
+    "evidence_sha256": "891080d383bc900f91ccdc2efa260fac76354111912a5f90ce1a21536a0d3ecb",
+    "run_id": 42491219716,
+    "job_id": 128763814016,
+    "repository": "pyatkoff/tour-max",
+    "head_sha": "a49467e357609afe8d06042538a768da6ab49a78",
+    "run_attempt": 1,
+    "owner_path": ".github/workflows/tgmini-identity-readonly.yml",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "result_artifact_id": 13621224836,
+    "result_artifact_name": "commercial-max509-route-extension-install-result",
+    "result_zip_sha256": "0f085116f1c8e378a547372a5de3684687bbd9cb35dc811acda5c3d5531eea0a",
+    "state": "INSTALLED_AND_NATIVE_VERIFIED",
+    "exact_total_routes": 509,
+    "new_native_routes_verified": 7,
+    "previous502_rows_identical": true,
+    "private_projection_http_status": 404,
+    "save_calls": 0,
+    "db_writes": 0,
+    "provider_calls": 0,
+    "message_sends": 0
+  },
+  "baseline_manifest_sha256": "9c51c807d98cd36aa349a4a933a3bb822b6295cb36b74aafc011a2fdadbbf0bd",
+  "files": [
+    {
+      "name": "hotel-posts-telegram.xml",
+      "bytes": 327216,
+      "sha256": "497c9f961e7b1c9e6732cfbd7060209384d85dc70bf58cb24b7a5d3bec946a5a",
+      "rows": 509,
+      "expected_previous_sha256": "bb2d498a0c7a95e013d4f6451ae24cacaaee8afee7dd3c11450440fa7512384d"
+    },
+    {
+      "name": "hotel-posts-max.xml",
+      "bytes": 409286,
+      "sha256": "e6b311507257d7bbf9e19f02552e24448fefd62cd3a96ad069f8e8f51daf954d",
+      "rows": 509,
+      "expected_previous_sha256": "bb2ae7fdeaad03630d38d648ef25997ff7c02710d0b929c891bc07271c281cfd"
+    },
+    {
+      "name": "hotel-posts-all.xml",
+      "bytes": 736129,
+      "sha256": "8f6900a3797dac668361944e50454febe758f9a7e76fdf3bc3a062c895f89992",
+      "rows": 1018,
+      "expected_previous_sha256": "868f3d95e311e6d3cb61d925437df2b132a85aae4089e88e26c3fe1643d87c1c"
+    }
+  ],
+  "private_registry_ids_in_public_outputs": 0,
+  "local_preparation_only": true,
+  "remote_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0
+}

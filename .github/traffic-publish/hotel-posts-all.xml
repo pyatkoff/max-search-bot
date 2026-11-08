@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<yml_catalog date="2026-11-07 21:54">
+<yml_catalog date="2026-11-08 14:31">
   <shop>
     <name>AnyTour</name>
     <company>AnyTour</company>
@@ -9038,6 +9038,132 @@
         <description>Тур с перелётом. Хиккадува. Фото и особенности отеля. Узнайте стоимость.</description>
         <custom_label_0>max</custom_label_0>
         <custom_label_1>Хиккадува</custom_label_1>
+      </offer>
+      <offer id="tg_70030">
+        <url>https://t.me/any_toour/517</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70030.png</picture>
+        <name>Путевки в Utopia Beach Club</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="tg_1555">
+        <url>https://t.me/any_toour/518</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1555.png</picture>
+        <name>Путевки в DoubleTree by Hilton Antalya Kemer</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="tg_1690">
+        <url>https://t.me/any_toour/519</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1690.png</picture>
+        <name>Путевки в Mirage World</name>
+        <description>Тур с перелётом. Мармарис. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Мармарис</custom_label_1>
+      </offer>
+      <offer id="tg_28704">
+        <url>https://t.me/any_toour/520</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/28704.png</picture>
+        <name>Путевки в Selectum Collection Bodrum</name>
+        <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Бодрум</custom_label_1>
+      </offer>
+      <offer id="tg_1699">
+        <url>https://t.me/any_toour/521</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1699.png</picture>
+        <name>Путевки в Yasmin Bodrum Resort</name>
+        <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Бодрум</custom_label_1>
+      </offer>
+      <offer id="tg_82545">
+        <url>https://t.me/any_toour/522</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/82545.png</picture>
+        <name>Путевки в Ell Lounge Spa &amp; Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="tg_70048">
+        <url>https://t.me/any_toour/523</url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70048.png</picture>
+        <name>Путевки в Marina Gallery Resort KACHA Kalim Bay</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>telegram</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
+      </offer>
+      <offer id="max_70030">
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNzFiZWNmN2JlZjBiYjM5YzNjNjRjY2EyZTRmZTk1ZTYiLCJvZmZlcl9pZCI6Im1heF83MDAzMCJ9]]></url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70030.png</picture>
+        <name>Туры в Utopia Beach Club</name>
+        <description>Тур с перелётом. Аланья. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Аланья</custom_label_1>
+      </offer>
+      <offer id="max_1555">
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYWIwZGU1YzY2NzMzNGIxNTZlOWIzOGRiYzgyMGVhNTciLCJvZmZlcl9pZCI6Im1heF8xNTU1In0]]></url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1555.png</picture>
+        <name>Туры в DoubleTree by Hilton Antalya Kemer</name>
+        <description>Тур с перелётом. Кемер. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Кемер</custom_label_1>
+      </offer>
+      <offer id="max_1690">
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfYWMxMjRiODcyYTY1YzE5YjYwMDU0NThjNWI3ZWEzZDUiLCJvZmZlcl9pZCI6Im1heF8xNjkwIn0]]></url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1690.png</picture>
+        <name>Туры в Mirage World</name>
+        <description>Тур с перелётом. Мармарис. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Мармарис</custom_label_1>
+      </offer>
+      <offer id="max_28704">
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMTM3MzhjZDM4YzNhMzRmYTBmZTgwZTQzY2RkMTBkNjMiLCJvZmZlcl9pZCI6Im1heF8yODcwNCJ9]]></url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/28704.png</picture>
+        <name>Туры в Selectum Collection Bodrum</name>
+        <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Бодрум</custom_label_1>
+      </offer>
+      <offer id="max_1699">
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDA5MjA3N2U3ODU2YTY5Nzk2MmZmZTU5N2NhMzNmYjUiLCJvZmZlcl9pZCI6Im1heF8xNjk5In0]]></url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1699.png</picture>
+        <name>Туры в Yasmin Bodrum Resort</name>
+        <description>Тур с перелётом. Бодрум. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Бодрум</custom_label_1>
+      </offer>
+      <offer id="max_82545">
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfMDk4ZDY3OGMxOWJmMTg2YzZiMzc1NmViNmEyNDQzZDEiLCJvZmZlcl9pZCI6Im1heF84MjU0NSJ9]]></url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/82545.png</picture>
+        <name>Туры в Ell Lounge Spa &amp; Hotel</name>
+        <description>Тур с перелётом. Нячанг. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Нячанг</custom_label_1>
+      </offer>
+      <offer id="max_70048">
+        <url><![CDATA[https://max.ru/id9704048781_2_bot?startapp={yclid}_region_{region_id}_campaign_{campaign_id}_ctx1_eyJwb3N0X2lkIjoiaDFfNjcxZmQ3YzNlNGMzZWEzYjkwMzc2YjI3ZWE4NjVjNjgiLCJvZmZlcl9pZCI6Im1heF83MDA0OCJ9]]></url>
+        <categoryId>1</categoryId>
+        <picture>https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70048.png</picture>
+        <name>Туры в Marina Gallery Resort KACHA Kalim Bay</name>
+        <description>Тур с перелётом. Пхукет. Фото и особенности отеля. Узнайте стоимость.</description>
+        <custom_label_0>max</custom_label_0>
+        <custom_label_1>Пхукет</custom_label_1>
       </offer>
     </offers>
   </shop>

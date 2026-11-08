@@ -1,0 +1,60 @@
+{
+  "repository": "pyatkoff/tour-max",
+  "run_id": 42491219716,
+  "job_id": 128763814016,
+  "source_commit": "a49467e357609afe8d06042538a768da6ab49a78",
+  "run_attempt": 1,
+  "status": "completed",
+  "conclusion": "success",
+  "result_artifact_id": 13621224836,
+  "result_artifact_name": "commercial-max509-route-extension-install-result",
+  "result_zip_sha256": "0f085116f1c8e378a547372a5de3684687bbd9cb35dc811acda5c3d5531eea0a",
+  "result_json_sha256": "2713054dbc3fb466146e708ed8221d6107bf7fde0d226d1f472786ceffd094c4",
+  "candidate_artifact_id": 13622085245,
+  "candidate_zip_sha256": "ad14bedcc217dd264956f3150f87c79d9f4397f43fe079311e7d66236517e714",
+  "intent_artifact_id": 13621209973,
+  "intent_zip_sha256": "afc628c4643f2ec533f33d4624a233d8c4d519b21ddfc97559bd34baa80d2257",
+  "result": {
+    "candidate_module_sha256": "bb48596d9b9370bdc607a46dc42d58cb045a7be2440bbc8015b9dcf4f384e266",
+    "changed_files": [
+      "anytour-hotel-feed-routes-v509-20261108-44.private.php",
+      "anytour-hotel-feed-context.php"
+    ],
+    "checks": {
+      "counter_config_matches": true,
+      "db_writes": 0,
+      "exact_total_routes": 509,
+      "message_sends": 0,
+      "natural_signed_user_launch_verified": false,
+      "new_native_routes_verified": 7,
+      "ok": true,
+      "previous502_rows_identical": true,
+      "private_projection_http_status": 404,
+      "project_active": true,
+      "provider_calls": 0,
+      "required_post_fields_ready": true,
+      "save_calls": 0
+    },
+    "db_writes": 0,
+    "feed_writes": 0,
+    "message_sends": 0,
+    "ok": true,
+    "operation": "commercial-max509-private-route-extension-20261108-44-install1",
+    "previous_module_sha256": "a68771e64cc135b5291c757256d3dc3c751d2c1954d6fc5f9563c78e6cc228ac",
+    "provider_calls": 0,
+    "state": "INSTALLED_AND_NATIVE_VERIFIED"
+  },
+  "operation_consumed_do_not_replay": true,
+  "approved_files": [
+    {
+      "bytes": 108280,
+      "name": "anytour-hotel-feed-routes-v509-20261108-44.private.php",
+      "sha256": "1383708b4bbb7079522361ee650f59799ba5e2e0290ffd158090211194f27cc7"
+    },
+    {
+      "bytes": 3780,
+      "name": "anytour-hotel-feed-context.php",
+      "sha256": "bb48596d9b9370bdc607a46dc42d58cb045a7be2440bbc8015b9dcf4f384e266"
+    }
+  ]
+}

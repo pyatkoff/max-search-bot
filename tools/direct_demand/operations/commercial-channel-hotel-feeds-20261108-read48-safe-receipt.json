@@ -1,0 +1,108 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261108-read48",
+  "mode": "read_bounded_public_channel_post_feed_inputs",
+  "ok": true,
+  "db_writes": 0,
+  "provider_calls": 0,
+  "message_sends": 0,
+  "rows": [
+    {
+      "hotel_id": 70030,
+      "name": "Utopia Beach Club",
+      "country_id": 4,
+      "region_id": 19,
+      "destination": "Аланья",
+      "telegram_post_url": "https://t.me/any_toour/517",
+      "max_post_url": "https://max.ru/channel_anytour/AaG7kl8qV4Y",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70030.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1555,
+      "name": "DoubleTree by Hilton Antalya Kemer",
+      "country_id": 4,
+      "region_id": 22,
+      "destination": "Кемер",
+      "telegram_post_url": "https://t.me/any_toour/518",
+      "max_post_url": "https://max.ru/channel_anytour/AaG7kmf6KaA",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1555.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1690,
+      "name": "Mirage World",
+      "country_id": 4,
+      "region_id": 26,
+      "destination": "Мармарис",
+      "telegram_post_url": "https://t.me/any_toour/519",
+      "max_post_url": "https://max.ru/channel_anytour/AaG7knE5YTU",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1690.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 28704,
+      "name": "Selectum Collection Bodrum",
+      "country_id": 4,
+      "region_id": 24,
+      "destination": "Бодрум",
+      "telegram_post_url": "https://t.me/any_toour/520",
+      "max_post_url": "https://max.ru/channel_anytour/AaG7knpnN6E",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/28704.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 1699,
+      "name": "Yasmin Bodrum Resort",
+      "country_id": 4,
+      "region_id": 24,
+      "destination": "Бодрум",
+      "telegram_post_url": "https://t.me/any_toour/521",
+      "max_post_url": "https://max.ru/channel_anytour/AaG7koOKFHk",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1699.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 82545,
+      "name": "Ell Lounge Spa & Hotel",
+      "country_id": 16,
+      "region_id": 87,
+      "destination": "Нячанг",
+      "telegram_post_url": "https://t.me/any_toour/522",
+      "max_post_url": "https://max.ru/channel_anytour/AaG7koxXOo4",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/82545.png",
+      "image_missing": false
+    },
+    {
+      "hotel_id": 70048,
+      "name": "Marina Gallery Resort KACHA Kalim Bay",
+      "country_id": 2,
+      "region_id": 8,
+      "destination": "Пхукет",
+      "telegram_post_url": "https://t.me/any_toour/523",
+      "max_post_url": "https://max.ru/channel_anytour/AaG7kpV6AQI",
+      "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70048.png",
+      "image_missing": false
+    }
+  ],
+  "deferred": [],
+  "image_missing_count": 0,
+  "private_binding_count": 7,
+  "candidate_clearance": [],
+  "candidate_count": 0,
+  "read_at_utc": "2026-11-08T14:31:55+00:00",
+  "scope_hotels": 7,
+  "feed_rows": 7,
+  "deferred_count": 0,
+  "installed_sha": "160e019701165cd53dd5a9be0fa3db533d82120e",
+  "original_evidence": {
+    "run_id": 42490106049,
+    "job_id": 128760423687,
+    "commit": "48f6ba1b8f24521b11c81802d566067e45c4d2da",
+    "artifact_id": 13620762616,
+    "zip_sha256": "3708d51d984492b5be0f83f73802499ac09551c5824cd13de220d3bc255cab2c",
+    "private_receipt_sha256": "f565a447a2a2c7d4c8a03ad8bf223456f60e590983f17ef9ff66f6be41a9c0be",
+    "status": "CONSUMED_BOUNDED_BINDING_READ_SUCCESS",
+    "candidate_queries": 0,
+    "original_attempt": 1
+  }
+}

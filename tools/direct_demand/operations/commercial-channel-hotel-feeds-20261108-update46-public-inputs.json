@@ -1,0 +1,65 @@
+[
+  {
+    "hotel_id": 70030,
+    "name": "Utopia Beach Club",
+    "destination": "Аланья",
+    "telegram_post_url": "https://t.me/any_toour/517",
+    "public_offer_id": "max_70030",
+    "public_route_alias": "h1_71becf7bef0bb39c3c64cca2e4fe95e6",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70030.png"
+  },
+  {
+    "hotel_id": 1555,
+    "name": "DoubleTree by Hilton Antalya Kemer",
+    "destination": "Кемер",
+    "telegram_post_url": "https://t.me/any_toour/518",
+    "public_offer_id": "max_1555",
+    "public_route_alias": "h1_ab0de5c667334b156e9b38dbc820ea57",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1555.png"
+  },
+  {
+    "hotel_id": 1690,
+    "name": "Mirage World",
+    "destination": "Мармарис",
+    "telegram_post_url": "https://t.me/any_toour/519",
+    "public_offer_id": "max_1690",
+    "public_route_alias": "h1_ac124b872a65c19b6005458c5b7ea3d5",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1690.png"
+  },
+  {
+    "hotel_id": 28704,
+    "name": "Selectum Collection Bodrum",
+    "destination": "Бодрум",
+    "telegram_post_url": "https://t.me/any_toour/520",
+    "public_offer_id": "max_28704",
+    "public_route_alias": "h1_13738cd38c3a34fa0fe80e43cdd10d63",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/28704.png"
+  },
+  {
+    "hotel_id": 1699,
+    "name": "Yasmin Bodrum Resort",
+    "destination": "Бодрум",
+    "telegram_post_url": "https://t.me/any_toour/521",
+    "public_offer_id": "max_1699",
+    "public_route_alias": "h1_0092077e7856a697962ffe597ca33fb5",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1699.png"
+  },
+  {
+    "hotel_id": 82545,
+    "name": "Ell Lounge Spa & Hotel",
+    "destination": "Нячанг",
+    "telegram_post_url": "https://t.me/any_toour/522",
+    "public_offer_id": "max_82545",
+    "public_route_alias": "h1_098d678c19bf186c6b3756eb6a2443d1",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/82545.png"
+  },
+  {
+    "hotel_id": 70048,
+    "name": "Marina Gallery Resort KACHA Kalim Bay",
+    "destination": "Пхукет",
+    "telegram_post_url": "https://t.me/any_toour/523",
+    "public_offer_id": "max_70048",
+    "public_route_alias": "h1_671fd7c3e4c3ea3b90376b27ea865c68",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70048.png"
+  }
+]

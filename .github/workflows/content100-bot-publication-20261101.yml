@@ -1,4 +1,8 @@
-name: Publish 7 new AnyTour hotel pairs and read their feed bindings
+name: Append the seven confirmed hotel pairs to the existing public feeds
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: [.github/workflows/content100-bot-publication-20261101.yml]
 permissions:
   contents: read
   actions: read
@@ -7,270 +11,200 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 160e019701165cd53dd5a9be0fa3db533d82120e
+  NATIVE509_RUN_ID: '42491219716'
+  NATIVE509_JOB_ID: '128763814016'
+  NATIVE509_HEAD_SHA: 'a49467e357609afe8d06042538a768da6ab49a78'
+  NATIVE509_ARTIFACT_ID: '13621224836'
+  NATIVE509_ZIP_SHA256: '0f085116f1c8e378a547372a5de3684687bbd9cb35dc811acda5c3d5531eea0a'
 jobs:
   inspect:
-    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: ${{ github.sha }}
-        persist-credentials: false
-    - name: Require original current-source release and health gates
-      env:
-        GH_TOKEN: ${{ github.token }}
-      shell: bash
-      run: |
-        set -euo pipefail
-        umask 077
-        test "$GITHUB_RUN_ATTEMPT" = 1
-        test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-        evidence="$RUNNER_TEMP/commercial-source-evidence"
-        mkdir -m 700 "$evidence"
-        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-        gh api repos/pyatkoff/max-search-bot/actions/runs/42447901797 > "$evidence/verify_run.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs/42447901797/jobs?per_page=30" > "$evidence/verify_jobs.json"
-        gh api repos/pyatkoff/max-search-bot/actions/runs/42448247085 > "$evidence/tls_run.json"
-        gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-        tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-        gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-        python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-        for run_id in 42448247156 42448247086 42448247084 42448247150 42448247075 42448247122 42448247117; do
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/$run_id" > "$evidence/gate-$run_id.json"
-        done
-        python3 - <<'PY'
-        import json,os,pathlib
-        t=pathlib.Path(os.environ['RUNNER_TEMP'],'commercial-source-evidence');sha=os.environ['EXPECTED_PRODUCTION_SHA']
-        deploy=json.loads((t/'verify_run.json').read_text());assert deploy['status']=='completed' and deploy['conclusion']=='success' and deploy['head_sha']==sha
-        jobs=json.loads((t/'verify_jobs.json').read_text());assert len(jobs['jobs'])==6 and all(j['status']=='completed' and j['conclusion']=='success' and j['head_sha']==sha for j in jobs['jobs'])
-        expected={42448247156:'modeled-conversion-value-export.yml',42448247086:'max-production-health.yml',42448247084:'telegram-production-health.yml',42448247150:'live-session-diagnostics.yml',42448247075:'modeled-conversion-monitor.yml',42448247122:'tour-selection-host.yml',42448247117:'publish-conversation-diagnostics.yml'}
-        for rid,name in expected.items():
-            r=json.loads((t/f'gate-{rid}.json').read_text());assert r['id']==rid and r['head_sha']==sha and r['path']=='.github/workflows/'+name and r['status']=='completed' and r['conclusion']=='success'
-        print('ORIGINAL_CURRENT_SOURCE_GATES_ACCEPTED reviewed_publishing_blobs=22 no_checks_dispatched=1')
-        PY
-    - name: Validate the exact 7-hotel packet and current Telegram formatting before credentials
-      shell: bash
-      run: |
-        set -euo pipefail
-        test "$GITHUB_RUN_ATTEMPT" = 1
-        umask 077
-        python3 - <<'PY'
-        import hashlib,json,os,pathlib
-        base=pathlib.Path('tools/direct_demand/operations')
-        assert hashlib.sha256((base/'prepare-commercial-batch.py').read_bytes()).hexdigest()=='ccda43ff0360de931ee7c04f9f151c1232e531820335a9cc21a2591634f2157f'
-        approval=json.loads((base/'commercial-batch-20261108-44-approval.json').read_text())
-        assert approval['expected_installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-        assert approval['operation']=='commercial-hotel-batch-20261108-44-v1' and len(approval['hotel_ids'])==7
-        PY
-        python3 tools/direct_demand/operations/prepare-commercial-batch.py --manifest tools/direct_demand/operations/commercial-batch-20261108-44-manifest.json --approval tools/direct_demand/operations/commercial-batch-20261108-44-approval.json --output "$RUNNER_TEMP/channel-preflight.php"
-        php -l "$RUNNER_TEMP/channel-preflight.php"
-        mkdir -m 700 "$RUNNER_TEMP/commercial-heading-fixture"
-        cp tools/direct_demand/operations/commercial-batch-template-20261102.php tools/direct_demand/operations/test-commercial-publisher-heading.php "$RUNNER_TEMP/commercial-heading-fixture/"
-        while IFS= read -r source_path; do
-          target="$RUNNER_TEMP/commercial-heading-fixture/current-source/$source_path"
-          mkdir -p "$(dirname "$target")"
-          gh api -H 'Accept: application/vnd.github.raw+json' "repos/pyatkoff/max-search-bot/contents/$source_path?ref=$EXPECTED_PRODUCTION_SHA" > "$target"
-        done <<'EXACT_CURRENT_SOURCE_FILES'
-        integrations/ChannelPostApiTransport.php
-        integrations/ChannelPostIncomingAdapter.php
-        services/ChannelPostButtonTransport.php
-        services/ChannelPostTelegramAlbum.php
-        services/MaxTlsConfig.php
-        EXACT_CURRENT_SOURCE_FILES
-        python3 - <<'PY'
-        import hashlib,os,pathlib
-        p=pathlib.Path(os.environ['RUNNER_TEMP'],'commercial-heading-fixture/current-source')
-        pins={'integrations/ChannelPostApiTransport.php': 'fdc8b4c3e582b356ca7c872a7b5174605800491858507ec211d61e4465522d33', 'integrations/ChannelPostIncomingAdapter.php': 'd2d4c72e6b6c7f61deb829d324987418e86ab8144dc638f0185b8c84127d60a9', 'services/ChannelPostButtonTransport.php': 'a914580508607dd420f8eb4e5d060721de7210c433f23825d0ec5b82adc8c5eb', 'services/ChannelPostTelegramAlbum.php': 'be5bf6bcaa86908c375640df415da3267a200768434484cef8e267b3aeaf322a', 'services/MaxTlsConfig.php': '2298589ba344b679824cb583d31b10d069eebd39d428968a33b7f576cd4dd1c9'}
-        for name,digest in pins.items():assert hashlib.sha256((p/name).read_bytes()).hexdigest()==digest,(name,'current_fixture_source_changed')
-        PY
-        php -l tools/direct_demand/operations/commercial-batch-template-20261102.php
-        php "$RUNNER_TEMP/commercial-heading-fixture/test-commercial-publisher-heading.php"
-      env:
-        GH_TOKEN: ${{ github.token }}
-    - name: Prepare the bounded reader for only the newly published hotel pairs
-      shell: bash
-      run: |
-        set -euo pipefail
-        test "$GITHUB_RUN_ATTEMPT" = 1
-        umask 077
-        python3 - <<'PYCODE'
-        import base64,hashlib,json,os,pathlib
-        base=pathlib.Path('tools/direct_demand/operations');tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-        raw=(base/'commercial-channel-hotel-feeds-20261108-read48-inputs.json').read_bytes()
-        assert hashlib.sha256(raw).hexdigest()=='32f26865e670253108a3dec6c08d632fb00ce865ae529590ba59d2d59f0a36e0'
-        rows=json.loads(raw);assert [r['hotel_id'] for r in rows]==[70030,1555,1690,28704,1699,82545,70048]
-        (tmp/'feed-read48-inputs.json').write_bytes(raw)
-        source=(base/'read-commercial-channel-hotel-feeds-20261108-48.php').read_text()
-        assert hashlib.sha256(source.encode()).hexdigest()=='428644627174c95bc2c05216d8c33b66c9eefd4cff61a9e1fc22eda9c0fc7d72'
-        constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst FEED_EXPORT_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst FEED_EXPORT_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"
-        candidate_raw=(base/'commercial-channel-hotel-feeds-20261108-read48-candidates.json').read_bytes()
-        assert hashlib.sha256(candidate_raw).hexdigest()=='37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570'
-        assert len(json.loads(candidate_raw))==0
-        (tmp/'feed-read48-candidates.json').write_bytes(candidate_raw)
-        constants+="\nconst CANDIDATE_INPUT_SHA256='37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570';\nconst CANDIDATE_INPUT_B64='"+base64.b64encode(candidate_raw).decode()+"';\n"
-        (tmp/'channel-feed-read.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-        print(json.dumps({'operation':'commercial-channel-hotel-feeds-20261108-read48','new_hotels':7,'old161_read':0,'provider_calls':0,'writes':0}))
-        PYCODE
-        php -l "$RUNNER_TEMP/channel-feed-read.php"
-    - name: Retain exact approved inputs before any channel write
-      uses: actions/upload-artifact@v4
-      with:
-        name: commercial-batch-20261108-44-inputs
-        path: |
-          tools/direct_demand/operations/commercial-batch-20261108-44-manifest.json
-          tools/direct_demand/operations/commercial-batch-20261108-44-approval.json
-          tools/direct_demand/operations/commercial-batch-20261108-44-source-review.json
-          tools/direct_demand/operations/commercial-channel-hotel-feeds-20261108-read48-inputs.json
-          tools/direct_demand/operations/commercial-channel-hotel-feeds-20261108-read48-candidates.json
-        retention-days: 14
-        if-no-files-found: error
-    - name: Prepare existing server connection
-      env:
-        DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-      shell: bash
-      run: |
-        set -euo pipefail
-        umask 077
-        raw="$DEPLOY_SSH_KEY_VALUE"
-        if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-          if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-        else
-          printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-        fi
-        ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-    - name: Pin existing server host-key continuity
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      shell: bash
-      run: |
-        set -euo pipefail
-        umask 077
-        python3 - <<'PY'
-        import os,re,subprocess,base64,hashlib,pathlib
-        host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-        assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-        assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-        scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-        matches=[]
-        for line in scan.stdout.splitlines():
-          fields=line.split()
-          if len(fields)<3 or fields[0].startswith('#'):continue
-          try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-          except Exception:continue
-          if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-        assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-        pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-        PY
-    - name: Publish exactly 7 approved new hotels once in both channels
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        GH_TOKEN: ${{ github.token }}
-      shell: bash
-      run: |
-        set -euo pipefail
-        umask 077
-        test "$GITHUB_RUN_ATTEMPT" = 1
-        private="$RUNNER_TEMP/commercial-operation-fence"
-        mkdir -p "$private"
-        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
-        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
-        python3 - <<'PY'
-        import json,os,pathlib
-        p=pathlib.Path(os.environ['RUNNER_TEMP'],'commercial-operation-fence')
-        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
-        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
-        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
-        assert queued['total_count']==0
-        PY
-        set -euo pipefail
-        umask 077
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
-        python3 - <<'PY'
-        import pathlib,json,os
-        lines=pathlib.Path(os.environ['RUNNER_TEMP']+'/channel-preflight.json').read_text().splitlines()
-        d=json.loads(lines[-1])
-        print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
-        print(json.dumps({'new_post_urls':[{'platform':p['platform'],'logical_id':p['logical_id'],'post_url':p['post_url'],'verified':p['body_photo_button_verified']} for p in d.get('posts',[])]},ensure_ascii=False))
-        assert d['operation']=='commercial-hotel-batch-20261108-44-v1' and d['mode']=='publish_approved_commercial_batch'
-        assert d['ok'] is True and len(d['posts'])==14
-        assert d['post_write_attempts']==14 and d['new_posts']==14 and d['reused']==0
-        assert len({(p['platform'],p['logical_id']) for p in d['posts']})==14
-        assert all(p['body_photo_button_verified'] and p['button_text']=='✈️ Узнать стоимость тура' for p in d['posts'])
-        PY
-        test "${probe_status:-0}" = 0
-    - name: Retain bounded route evidence
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: commercial-batch-20261108-44-publication
-        path: ${{ runner.temp }}/channel-preflight.json
-        retention-days: 14
-        if-no-files-found: warn
-    - name: Read exactly the 7 new canonical feed bindings after confirmed publication
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        GH_TOKEN: ${{ github.token }}
-      shell: bash
-      run: |
-        set -euo pipefail
-        umask 077
-        test "$GITHUB_RUN_ATTEMPT" = 1
-        private="$RUNNER_TEMP/commercial-operation-fence"
-        mkdir -p "$private"
-        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
-        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
-        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
-        python3 - <<'PY'
-        import json,os,pathlib
-        p=pathlib.Path(os.environ['RUNNER_TEMP'],'commercial-operation-fence')
-        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
-        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
-        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
-        assert queued['total_count']==0
-        PY
-        set -euo pipefail
-        umask 077
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-feed-read.php" > "$RUNNER_TEMP/channel-feed-read.json" || probe_status=$?
-        python3 - <<'PY'
-        import pathlib,json,os
-        tmp=pathlib.Path(os.environ['RUNNER_TEMP'])
-        d=json.loads((tmp/'channel-feed-read.json').read_text().splitlines()[-1])
-        print(json.dumps({k:v for k,v in d.items() if k not in ('private_max_bindings','candidate_clearance')},ensure_ascii=False,sort_keys=True))
-        assert d['operation']=='commercial-channel-hotel-feeds-20261108-read48' and d['ok'] is True
-        assert d['scope_hotels']==d['feed_rows']==d['private_binding_count']==7 and d['deferred_count']==0
-        assert d['db_writes']==d['provider_calls']==d['message_sends']==0
-        assert d['candidate_count']==len(d['candidate_clearance'])==0
-        print(json.dumps({'candidate_clearance':[{'native_hotel_id':r['native_hotel_id'],'clear':r['clear'],'matches':[{'platform':m['platform'],'post_url':m['post_url']} for m in r['matches']]} for r in d['candidate_clearance']]},ensure_ascii=False))
-        assert [r['hotel_id'] for r in d['rows']]==[70030,1555,1690,28704,1699,82545,70048]
-        print('NEW_CURRENT_FEED_BINDINGS_READ older502_unchanged provider_calls=0 writes=0')
-        PY
-        test "${probe_status:-0}" = 0
-    - name: Retain only the new feed binding result
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: commercial-channel-hotel-feeds-20261108-read48-result
-        path: ${{ runner.temp }}/channel-feed-read.json
-        retention-days: 14
-        if-no-files-found: warn
-    - name: Remove ephemeral connection and script files
-      if: always()
-      shell: bash
-      run: |
-        rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json" "$RUNNER_TEMP/channel-feed-read.php" "$RUNNER_TEMP/channel-feed-read.json"
-        rm -rf "$RUNNER_TEMP/commercial-heading-fixture" "$RUNNER_TEMP/commercial-operation-fence"
-'on':
-  push:
-    branches:
-    - audit/content100-bot-publication-20261101
-    paths:
-    - .github/workflows/content100-bot-publication-20261101.yml
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Bind the exact approved509 route receipt and additive feed bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/current-main.json"
+          gh api "repos/pyatkoff/tour-max/actions/runs/$NATIVE509_RUN_ID" > "$RUNNER_TEMP/native509-original-run.json"
+          gh api "repos/pyatkoff/tour-max/actions/runs/$NATIVE509_RUN_ID/attempts/1/jobs?per_page=10" > "$RUNNER_TEMP/native509-original-jobs.json"
+          gh api "repos/pyatkoff/tour-max/actions/artifacts/$NATIVE509_ARTIFACT_ID" > "$RUNNER_TEMP/native509-original-artifact.json"
+          python3 - <<'PYCODE'
+          import base64,hashlib,json,os,pathlib,re,xml.etree.ElementTree as ET
+          p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP']);b=pathlib.Path('.github/traffic-publish')
+          assert json.loads((t/'current-main.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          nr=json.loads((t/'native509-original-run.json').read_text());nj=json.loads((t/'native509-original-jobs.json').read_text());na=json.loads((t/'native509-original-artifact.json').read_text())
+          native_run=int(os.environ['NATIVE509_RUN_ID']);native_job=int(os.environ['NATIVE509_JOB_ID']);native_artifact=int(os.environ['NATIVE509_ARTIFACT_ID']);native_head=os.environ['NATIVE509_HEAD_SHA']
+          assert nr['id']==native_run and nr['status']=='completed' and nr['conclusion']=='success' and nr['run_attempt']==1 and nr['head_sha']==native_head
+          assert nr['repository']['full_name']=='pyatkoff/tour-max' and nr['path']=='.github/workflows/tgmini-identity-readonly.yml' and nr['head_branch']=='audit/anytour-hotel-feed-routing-20261104' and nr['event']=='push'
+          assert nj['total_count']==len(nj['jobs']) and 0<len(nj['jobs'])<=10
+          selected=[j for j in nj['jobs'] if j['id']==native_job];assert len(selected)==1
+          j=selected[0];assert j['run_id']==native_run and j['head_sha']==native_head and j['status']=='completed' and j['conclusion']=='success'
+          assert na['id']==native_artifact and na['name']=='commercial-max509-route-extension-install-result' and na['expired'] is False and 0<na['size_in_bytes']<1000000
+          assert na['workflow_run']['id']==native_run and na['workflow_run']['head_sha']==native_head and na['workflow_run']['head_branch']=='audit/anytour-hotel-feed-routing-20261104'
+          assert na['archive_download_url']=='https://api.github.com/repos/pyatkoff/tour-max/actions/artifacts/'+str(native_artifact)+'/zip'
+          assert na['digest']=='sha256:'+os.environ['NATIVE509_ZIP_SHA256']
+          evidence=(p/'commercial-max509-installed-safe-evidence-20261108.json').read_bytes();assert hashlib.sha256(evidence).hexdigest()=='891080d383bc900f91ccdc2efa260fac76354111912a5f90ce1a21536a0d3ecb'
+          e=json.loads(evidence);r=e['result'];assert e['run_id']==42491219716 and e['job_id']==128763814016 and e['result_artifact_id']==13621224836 and r['ok'] and r['state']=='INSTALLED_AND_NATIVE_VERIFIED'
+          assert r['checks']['exact_total_routes']==509 and r['checks']['new_native_routes_verified']==7 and r['checks']['previous502_rows_identical'] and r['checks']['private_projection_http_status']==404 and r['checks']['save_calls']==0
+          plan=json.loads((p/'commercial-channel-hotel-feeds-20261108-update46-plan.json').read_text());baseline=json.loads((p/'commercial-channel-hotel-feeds-20261108-update46-baseline.json').read_text())
+          assert plan['state']=='PREPARED_NOT_SENT' and plan['native509_gate']['evidence_sha256']==hashlib.sha256(evidence).hexdigest() and plan['native509_gate']['result_zip_sha256']==os.environ['NATIVE509_ZIP_SHA256']
+          assert plan['new_hotel_ids']==[70030,1555,1690,28704,1699,82545,70048] and plan['target_rows']==[509,509,1018] and plan['previous502_offer_blocks_identical']
+          files=[]
+          for x in plan['files']:
+              raw=(b/x['name']).read_bytes();base=baseline[x['name']];assert len(raw)==x['bytes'] and hashlib.sha256(raw).hexdigest()==x['sha256']
+              blocks={m[1]:m[0] for m in re.finditer(r'<offer\b[^>]*\bid="([^"]+)"[^>]*>[\s\S]*?</offer>',raw.decode())};assert len(blocks)==x['rows']
+              assert set(blocks)==set(base['previous_offer_blocks_sha256'])|set(base['new_offer_blocks_sha256'])
+              for k,h in {**base['previous_offer_blocks_sha256'],**base['new_offer_blocks_sha256']}.items():assert hashlib.sha256(blocks[k].encode()).hexdigest()==h
+              outside=re.sub(r'<yml_catalog date="[^"]+">','<yml_catalog date="__DATE__">',re.sub(r'<offers>[\s\S]*?</offers>','<offers>__OFFERS__</offers>',raw.decode(),count=1)).encode();assert hashlib.sha256(outside).hexdigest()==base['outside_offers_sha256']
+              assert len(ET.fromstring(raw).findall('shop/offers/offer'))==x['rows']
+              files.append({'name':x['name'],'sha256':x['sha256'],'bytes':x['bytes'],'rows':x['rows'],'expected_previous_sha256':x['expected_previous_sha256'],'content_base64':base64.b64encode(raw).decode()})
+          payload={'schema_version':2,'operation':plan['operation'],'files':files};raw=json.dumps(payload,separators=(',',':')).encode();(t/'feed-update46-input.json').write_bytes(raw)
+          source=(p/'publish-commercial-channel-hotel-feeds-20261103-1.php').read_text();assert hashlib.sha256(source.encode()).hexdigest()=='2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst PUBLIC_STATIC_FEED_OPERATION='"+plan['operation']+"';\nconst PUBLIC_STATIC_FEED_INPUT_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst PUBLIC_STATIC_FEED_INPUT_B64='"+base64.b64encode(raw).decode()+"';\n"
+          (t/'channel-preflight.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+          (t/'channel-preflight.sha256').write_text(hashlib.sha256((t/'channel-preflight.php').read_bytes()).hexdigest())
+          print('FEED509_ADD_ONLY_PREPARED existing502_offer_blocks_unchanged=1 aliases509_confirmed=1 provider_calls=0')
+          PYCODE
+          php -l "$RUNNER_TEMP/channel-preflight.php"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: commercial-channel-hotel-feeds-20261108-update46-intent
+          path: ${{ runner.temp }}/feed-update46-input.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Atomically replace only the three feeds with exact previous hash guards
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_REPOSITORY" = pyatkoff/max-search-bot
+          test "$GITHUB_REF" = refs/heads/audit/content100-bot-publication-20261101
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=no)"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/main-before-feed-write.json"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/ops-before-feed-write.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/$GITHUB_RUN_ID" > "$RUNNER_TEMP/current-feed-run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/active-before-feed-write.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/queued-before-feed-write.json"
+          gh api "repos/pyatkoff/tour-max/actions/runs/$NATIVE509_RUN_ID" > "$RUNNER_TEMP/native509-original-run.json"
+          gh api "repos/pyatkoff/tour-max/actions/runs/$NATIVE509_RUN_ID/attempts/1/jobs?per_page=10" > "$RUNNER_TEMP/native509-original-jobs.json"
+          gh api "repos/pyatkoff/tour-max/actions/artifacts/$NATIVE509_ARTIFACT_ID" > "$RUNNER_TEMP/native509-original-artifact.json"
+          python3 - <<'PYFENCE'
+          import hashlib,json,os,pathlib
+          t=pathlib.Path(os.environ['RUNNER_TEMP'])
+          assert json.loads((t/'main-before-feed-write.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert json.loads((t/'ops-before-feed-write.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+          current=json.loads((t/'current-feed-run.json').read_text());active=json.loads((t/'active-before-feed-write.json').read_text());queued=json.loads((t/'queued-before-feed-write.json').read_text())
+          assert str(current['id'])==os.environ['GITHUB_RUN_ID'] and current['run_attempt']==1 and current['head_sha']==os.environ['GITHUB_SHA'] and current['status']=='in_progress'
+          assert current['repository']['full_name']=='pyatkoff/max-search-bot' and current['path']=='.github/workflows/content100-bot-publication-20261101.yml' and current['head_branch']=='audit/content100-bot-publication-20261101' and current['event']=='push'
+          assert active['total_count']==len(active['workflow_runs']) and active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+          assert queued['total_count']==0 and queued['workflow_runs']==[]
+          nr=json.loads((t/'native509-original-run.json').read_text());nj=json.loads((t/'native509-original-jobs.json').read_text());na=json.loads((t/'native509-original-artifact.json').read_text())
+          native_run=int(os.environ['NATIVE509_RUN_ID']);native_job=int(os.environ['NATIVE509_JOB_ID']);native_artifact=int(os.environ['NATIVE509_ARTIFACT_ID']);native_head=os.environ['NATIVE509_HEAD_SHA']
+          assert nr['id']==native_run and nr['status']=='completed' and nr['conclusion']=='success' and nr['run_attempt']==1 and nr['head_sha']==native_head
+          assert nr['repository']['full_name']=='pyatkoff/tour-max' and nr['path']=='.github/workflows/tgmini-identity-readonly.yml' and nr['head_branch']=='audit/anytour-hotel-feed-routing-20261104' and nr['event']=='push'
+          assert nj['total_count']==len(nj['jobs']) and 0<len(nj['jobs'])<=10
+          selected=[j for j in nj['jobs'] if j['id']==native_job];assert len(selected)==1
+          j=selected[0];assert j['run_id']==native_run and j['head_sha']==native_head and j['status']=='completed' and j['conclusion']=='success'
+          assert na['id']==native_artifact and na['name']=='commercial-max509-route-extension-install-result' and na['expired'] is False and 0<na['size_in_bytes']<1000000
+          assert na['workflow_run']['id']==native_run and na['workflow_run']['head_sha']==native_head and na['workflow_run']['head_branch']=='audit/anytour-hotel-feed-routing-20261104'
+          assert na['archive_download_url']=='https://api.github.com/repos/pyatkoff/tour-max/actions/artifacts/'+str(native_artifact)+'/zip'
+          assert na['digest']=='sha256:'+os.environ['NATIVE509_ZIP_SHA256']
+          p=pathlib.Path('tools/direct_demand/operations')
+          evidence=(p/'commercial-max509-installed-safe-evidence-20261108.json').read_bytes();plan=json.loads((p/'commercial-channel-hotel-feeds-20261108-update46-plan.json').read_text())
+          assert plan['state']=='PREPARED_NOT_SENT' and plan['native509_gate']['evidence_sha256']==hashlib.sha256(evidence).hexdigest()
+          gate=plan['native509_gate'];assert gate['run_id']==native_run and gate['job_id']==native_job and gate['head_sha']==native_head and gate['result_artifact_id']==native_artifact and gate['result_zip_sha256']==os.environ['NATIVE509_ZIP_SHA256']
+          assert hashlib.sha256((t/'channel-preflight.php').read_bytes()).hexdigest()==(t/'channel-preflight.sha256').read_text()
+          print('FEED509_FRESH_OWNER_AND_ORIGINAL_NATIVE_RECEIPT_VERIFIED provider_calls=0')
+          PYFENCE
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/channel-preflight.php" > "$RUNNER_TEMP/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import json,os,pathlib
+          d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'channel-preflight.json').read_text().splitlines()[-1]);print(json.dumps(d,sort_keys=True))
+          assert d['operation']=='commercial-channel-hotel-feeds-20261108-update46' and d['ok'] and len(d['files'])==3 and [x['rows'] for x in d['files']]==[509,509,1018]
+          assert d['db_writes']==d['provider_calls']==d['message_sends']==0
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Read back only the three new public feed files once
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import concurrent.futures,hashlib,json,os,pathlib,urllib.request,xml.etree.ElementTree as ET
+          t=pathlib.Path(os.environ['RUNNER_TEMP']);d=json.loads((t/'channel-preflight.json').read_text().splitlines()[-1]);assert d['ok']
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,*a,**kw):return None
+          def get(row):
+              op=urllib.request.build_opener(NoRedirect);url=row['public_url']
+              with op.open(urllib.request.Request(url,headers={'User-Agent':'AnyTour new509 feed readback','Cache-Control':'no-cache'}),timeout=20) as response:
+                  status=response.status;raw=response.read(1000001)
+              assert status==200 and len(raw)==row['bytes'] and hashlib.sha256(raw).hexdigest()==row['sha256']
+              offers=ET.fromstring(raw).findall('shop/offers/offer');assert len(offers)==row['rows']
+              return {'name':row['name'],'public_url':url,'http':status,'bytes':len(raw),'sha256':row['sha256'],'rows':len(offers),'exact_published_bytes':True}
+          with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:rows=list(pool.map(get,d['files']))
+          result={'operation':'commercial-channel-hotel-feeds-20261108-update46-public-readback','ok':True,'files':rows,'public_gets':3,'provider_calls':0,'message_sends':0,'db_writes':0};(t/'public-feed-readback.json').write_text(json.dumps(result,sort_keys=True));print(json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: commercial-channel-hotel-feeds-20261108-update46-result
+          path: |
+            ${{ runner.temp }}/channel-preflight.json
+            ${{ runner.temp }}/public-feed-readback.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and script files
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/channel-preflight.php" "$RUNNER_TEMP/channel-preflight.json"
