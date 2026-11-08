@@ -202,6 +202,13 @@ $exactGuard = AiDateContextService::applyAiGuard($chatId, '17.07.2030', ['date'=
 dcrCheck('explicit full date clears range clarification and overrides the model',
     $exactGuard['date'] === '17.07.2030' && PendingMonthStore::get($chatId) === []);
 AiDateContextService::resolveLocal($chatId, 'с 17 по 26 июля 2030');
+$rejectedPast = AiDateContextService::applyAiGuard($chatId, '17.07.2020', ['date'=>'26.07.2030']);
+dcrCheck('a past full date rejected by current admission does not expose old saved needs',
+    $rejectedPast['date'] === '17.07.2020' && PendingMonthStore::requiresClarification($chatId));
+AiDateContextService::resolveLocal($chatId, 'с 17 по 26 июля 2020');
+dcrCheck('a past short date retains clarification until an admissible departure is supplied',
+    DateContextResolver::resolvePendingShortDate($chatId, '18') === '18.07.2020'
+    && PendingMonthStore::requiresClarification($chatId));
 DateContextResolver::clear($chatId);
 dcrCheck('existing date/reset clearing removes the new pending state', PendingMonthStore::get($chatId) === []);
 $routeHandler = (string)file_get_contents(dirname(__DIR__).'/handlers/DepartureRouteAdviceHandler.php');

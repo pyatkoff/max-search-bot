@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/DateParser.php';
 require_once __DIR__ . '/PendingMonthStore.php';
+require_once __DIR__ . '/NativeDateService.php';
 
 /**
  * Owns stateful date clarification without changing DateParser semantics.
@@ -31,7 +32,11 @@ class DateContextResolver
         }
 
         if (!empty($resolved['date'])) {
-            PendingMonthStore::clear($chatId);
+            // A rejected past date must not reveal a previous saved departure.
+            if (!PendingMonthStore::requiresClarification($chatId)
+                || NativeDateService::isTodayOrFuture((string)$resolved['date'])) {
+                PendingMonthStore::clear($chatId);
+            }
             return $resolved;
         }
 
@@ -96,7 +101,9 @@ class DateContextResolver
 
         if ($year === (int)date('Y') && $month === (int)date('n') && $day < (int)date('j')) $year++;
         $date = DateParser::buildDate($day, $month, $year);
-        if ($date !== '') PendingMonthStore::clear($chatId);
+        if ($date !== '' && (empty($pending['requires_clarification']) || NativeDateService::isTodayOrFuture($date))) {
+            PendingMonthStore::clear($chatId);
+        }
 
         return $date;
     }
