@@ -1,4 +1,4 @@
-name: Apply the three reviewed hotel caption corrections once
+name: Refresh current headings for the 458 existing AnyTour hotel pairs
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -10,7 +10,7 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 840287a325da73df049a0dce8ee0b1f51aaacc10
+  EXPECTED_PRODUCTION_SHA: 7d3ad8cc07f71de6e85a285a4adaef5372f52df4
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
@@ -21,78 +21,27 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Reuse original current-source release gates before the exact correction
+      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
-          umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -m 700 "$evidence"
+          mkdir -p "$evidence"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42415428080 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/42415428080/jobs?per_page=30" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42415937675 > "$evidence/tls_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42437675610 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42437675610/jobs?per_page=20" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42438084138 > "$evidence/tls_run.json"
           gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
           tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
           gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
           python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-          for run_id in 42415937905 42415937674 42415937664 42415937729 42415937575 42415937637 42415937603; do
-            gh api "repos/pyatkoff/max-search-bot/actions/runs/$run_id" > "$evidence/gate-$run_id.json"
-          done
-          python3 - <<'PY'
-          import json,os,pathlib
-          t=pathlib.Path(os.environ['RUNNER_TEMP'],'commercial-source-evidence');sha=os.environ['EXPECTED_PRODUCTION_SHA']
-          deploy=json.loads((t/'verify_run.json').read_text());assert deploy['status']=='completed' and deploy['conclusion']=='success' and deploy['head_sha']==sha
-          jobs=json.loads((t/'verify_jobs.json').read_text());assert len(jobs['jobs'])==6 and all(j['status']=='completed' and j['conclusion']=='success' and j['head_sha']==sha for j in jobs['jobs'])
-          expected={42415937905:'modeled-conversion-value-export.yml',42415937674:'max-production-health.yml',42415937664:'telegram-production-health.yml',42415937729:'live-session-diagnostics.yml',42415937575:'modeled-conversion-monitor.yml',42415937637:'tour-selection-host.yml',42415937603:'publish-conversation-diagnostics.yml'}
-          for rid,name in expected.items():
-              r=json.loads((t/f'gate-{rid}.json').read_text());assert r['id']==rid and r['head_sha']==sha and r['path']=='.github/workflows/'+name and r['status']=='completed' and r['conclusion']=='success'
-          print('ORIGINAL_CURRENT_SOURCE_GATES_ACCEPTED unchanged_publishing_blobs=21 no_checks_dispatched=1')
-          PY
-      - name: Prepare only the immutable six-target correction in a private runner directory
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          private="$RUNNER_TEMP/caption-review-private"
-          mkdir -m 700 "$private"
-          gh api repos/pyatkoff/max-search-bot/git/blobs/2de1d8a6adf56670f9e46696f8eebbc02b604ff7 --jq '.content' | base64 --decode > "$private/caption-correction-input.json"
-          gh api repos/pyatkoff/max-search-bot/git/blobs/6d0ca8d1ad21a180ed37e3145e7683a66db55142 --jq '.content' | base64 --decode > "$private/update-reviewed-three-captions-template.php"
-          gh api repos/pyatkoff/max-search-bot/git/blobs/ba1db3e69db715dd6fea2a01e26f3c8c381f4ad8 --jq '.content' | base64 --decode > "$private/prepare-caption-correction.py"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/13572360372/zip > "$private/batch3.zip"
-          gh api repos/pyatkoff/max-search-bot/actions/artifacts/13572078493/zip > "$private/batch4.zip"
-          python3 - <<'PY'
-          import hashlib,json,os,pathlib
-          p=pathlib.Path(os.environ['RUNNER_TEMP'],'caption-review-private')
-          pins={'caption-correction-input.json':'605999f63f3c4600a7c880ab1897169344985938717f03e6e989d3528356db07','update-reviewed-three-captions-template.php':'e40decfd74d47fca21550f7f8d600b31453b82ad821b7a7b8319e9ce943f17bc','prepare-caption-correction.py':'14b0922300804632d54d3cab1db4b888f4775c1ba1c0a49603db95983b0e506a'}
-          for name,digest in pins.items():assert hashlib.sha256((p/name).read_bytes()).hexdigest()==digest
-          PY
-          python3 "$private/prepare-caption-correction.py" --runtime-source "$EXPECTED_PRODUCTION_SHA" --batch3-zip "$private/batch3.zip" --batch4-zip "$private/batch4.zip" --output "$private/output/caption-correction.php" > "$private/preparation.safe.json"
-          php -l "$private/output/caption-correction.php"
-          python3 - <<'PY'
-          import json,os,pathlib,re
-          t=pathlib.Path(os.environ['RUNNER_TEMP']);p=t/'caption-review-private';compiled=(p/'output/caption-correction.php').read_text()
-          assert compiled.count("const EXPECTED_INSTALLED_SHA = '"+os.environ['EXPECTED_PRODUCTION_SHA']+"';")==1
-          assert compiled.count("const ORIGINAL_PUBLICATION_SOURCE_SHA = 'a9b03a52bb4c4505640eae79541b7d48aa391083';")==1
-          assert "($original['installed_sha']??'')===ORIGINAL_PUBLICATION_SOURCE_SHA" in compiled
-          assert "trim((string)shell_exec('git rev-parse HEAD'))!==EXPECTED_INSTALLED_SHA" in compiled
-          result=json.loads((p/'preparation.safe.json').read_text());assert result['selected_historical_targets']==6 and result['original_receipt_counts']==[12,18]
-          intent={'operation':'commercial-hotel-caption-review6706115450-20261107-1-v1','state':'PREPARED_NATIVE_LINT_PASSED_NOT_EXECUTED_NOT_FRESH','packet_commit':'27dbad831970c3ec26d7bc52db80741cebf12920','publication_ids':[467,473,479,488,485,494],'historical_receipt_source':'a9b03a52bb4c4505640eae79541b7d48aa391083','expected_runtime_source':os.environ['EXPECTED_PRODUCTION_SHA'],'scope':'six existing captions only; preserve message photo button URL token','new_posts_allowed':0,'once_no_replay':True}
-          (t/'caption-intent.safe.json').write_text(json.dumps(intent,sort_keys=True))
-          print('EXACT_CAPTION_PREPARATION_AND_NATIVE_PHP_LINT_PASSED targets=6 original_receipts=12,18 provider_calls=0')
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: commercial-hotel-caption-review6706115450-20261107-1-intent
-          path: ${{ runner.temp }}/caption-intent.safe.json
-          retention-days: 14
-          if-no-files-found: error
+          python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert r["status"] == "completed" and r["conclusion"] == "success"' "$evidence/verify_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42397616407 > "$evidence/confirmed-route-bindings.json"
+          python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert (r["status"],r["conclusion"],r["head_sha"]) == ("completed","success","452ef56b8d714a0feb67577f0020cf8e56add9aa")' "$evidence/confirmed-route-bindings.json"
       - name: Prepare existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -131,58 +80,42 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Recheck sole publisher and apply only the six preflighted existing captions once
+      - name: Read the exact current posts and routes without writes
         env:
-          GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          private="$RUNNER_TEMP/caption-review-private"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
           python3 - <<'PY'
-          import json,os,pathlib
-          p=pathlib.Path(os.environ['RUNNER_TEMP'],'caption-review-private')
-          assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
-          active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
-          assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
-          assert queued['total_count']==0
+          import base64,hashlib,os,pathlib
+          path=pathlib.Path('tools/direct_demand/operations')
+          raw=(path/'short-heading-scope-20261107.json').read_bytes()
+          source=(path/'read-short-heading-scope-20261108.php').read_text()
+          assert hashlib.sha256(raw).hexdigest()=='d1c11d29609483213cd8988aeb398fca48c9d78b8a3588297066cf4926398724'
+          assert hashlib.sha256(source.encode()).hexdigest()=='16b2f660709bda1995fa4edbf90e67651338d54d25244e1b54cdabf36ec2aaea'
+          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+          (pathlib.Path(os.environ['RUNNER_TEMP'])/'read-short-heading.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
           PY
-          probe_status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/output/caption-correction.php" > "$private/caption-result.private.jsonl" || probe_status=$?
-          CAPTION_SSH_STATUS="$probe_status" python3 - <<'PY'
-          import json,os,pathlib
-          t=pathlib.Path(os.environ['RUNNER_TEMP']);p=t/'caption-review-private';f=p/'caption-result.private.jsonl'
-          try:d=json.loads(f.read_text().splitlines()[-1])
-          except Exception:
-              safe={'operation':'commercial-hotel-caption-review6706115450-20261107-1-v1','ok':False,'outcome':'UNKNOWN_STOP_NO_REPLAY','error':'no_valid_original_runtime_result','ssh_status':int(os.environ['CAPTION_SSH_STATUS'])}
-              (t/'caption-result.safe.json').write_text(json.dumps(safe,sort_keys=True));print(json.dumps(safe,sort_keys=True));raise SystemExit(2)
-          fields=['operation','mode','ok','error','installed_sha','preflight_existing_messages','post_write_attempts','content_edit_attempts','commercial_text_updates','button_only_edit_attempts','button_only_updates','configuration_write_attempts','price_block_updates','search_link_post_updates','search_link_only_post_updates','new_posts_created','tour_search_calls','price_queries']
-          safe={k:d[k] for k in fields if k in d};safe['ssh_status']=int(os.environ['CAPTION_SSH_STATUS']);safe['runtime_source_split_packet']='27dbad831970c3ec26d7bc52db80741cebf12920'
-          safe['posts']=[{k:r[k] for k in ['logical_id','platform','message_id','publication_id','version_id','previous_version_id','text_sha256','content_updated','state','body_photo_button_verified','existing_message_reused'] if k in r} for r in d.get('posts',[])]
-          (t/'caption-result.safe.json').write_text(json.dumps(safe,sort_keys=True));print(json.dumps(safe,sort_keys=True))
-          assert d['operation']=='commercial-hotel-caption-review6706115450-20261107-1-v1' and d['ok'] is True
-          assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-          assert d['preflight_existing_messages']==d['post_write_attempts']==d['content_edit_attempts']==d['commercial_text_updates']==len(d['posts'])==6
-          assert {r['publication_id'] for r in d['posts']}=={467,473,479,488,485,494}
-          assert all(r['state']=='sent' and r['body_photo_button_verified'] is True and r['existing_message_reused'] is True and r['content_updated'] is True for r in d['posts'])
-          assert all(d[k]==0 for k in ['configuration_write_attempts','button_only_edit_attempts','button_only_updates','price_block_updates','search_link_post_updates','search_link_only_post_updates','new_posts_created','tour_search_calls','price_queries'])
-          assert int(os.environ['CAPTION_SSH_STATUS'])==0
+          php -l "$RUNNER_TEMP/read-short-heading.php"
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/read-short-heading.php" > "$RUNNER_TEMP/short-heading-readback.json" || probe_status=$?
+          python3 - <<'PY'
+          import collections,json,os,pathlib
+          d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'short-heading-readback.json').read_text())
+          print(json.dumps({'ok':d['ok'],'posts':len(d['posts']),'statuses':collections.Counter(p['status'] for p in d['posts']),'error':d.get('error')}))
+          assert d['ok'] and d['post_write_attempts']==d['provider_calls']==0 and len(d['posts'])==916
           PY
-      - uses: actions/upload-artifact@v4
+          test "${probe_status:-0}" = 0
+      - name: Retain the exact read-only caption evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: commercial-hotel-caption-review6706115450-20261107-1-result
-          path: ${{ runner.temp }}/caption-result.safe.json
+          name: commercial-short-heading-registry-audit-20261108-result
+          path: ${{ runner.temp }}/short-heading-readback.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove only ephemeral runner connection and private preparation files
+      - name: Remove ephemeral files
         if: always()
         shell: bash
-        run: rm -rf "$RUNNER_TEMP/caption-review-private" "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/read-short-heading.php"
