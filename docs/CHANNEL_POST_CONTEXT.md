@@ -259,3 +259,32 @@ The provider contracts are [Message](https://dev.max.ru/docs-api/objects/Message
 and [PUT /messages](https://dev.max.ru/docs-api/methods/PUT/messages/): existing
 video attachments are reused through `payload.token`, alongside the keyboard.
 
+
+
+
+## Hotel choice at entry
+
+A resolved AnyTour hotel publication starts with one question and two buttons:
+«В этот отель» and «Подобрать другой». The first click is attribution only.
+The accepted choice lives in the existing conversation metadata, separately from
+trip needs and the immutable publication-entry ledger. No schema or new queue is
+needed. The manager and reply context distinguish an explicit post-hotel request,
+a custom request and an unconfirmed choice. Callback labels describe a click;
+the persisted choice, not a raw or replayed callback, establishes accepted intent.
+
+The question token belongs to one conversation, platform and publication version.
+A choice consumes it; repeated, stale and foreign buttons cannot change the trip.
+Metadata updates compare the exact prior metadata and AI ownership/source, keeping
+unrelated metadata intact. Manager-owned conversations remain quiet. A shared
+ordinary start clears the prior choice. A later post entry preserves a confirmed
+request rather than replacing it with the newly opened advertisement.
+
+Explicit free text can answer the choice while the original full message reaches
+the canonical needs collector. Dates or party alone do not select a hotel. The
+collector retains them and asks only the outstanding choice. For custom requests,
+the bot does not receive the advert's text as search defaults; an explicit question
+about that publication can still use its historical reference. Attribution remains
+available to the manager. Known dates, departure, party and budget are preserved.
+A chosen hotel does not confirm the advert's price, availability, departure, dates
+or composition. The existing canonical qualification/handoff produces the next
+step; this feature does not invent a quote or send a customer test message.

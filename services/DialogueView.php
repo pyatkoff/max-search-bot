@@ -108,15 +108,22 @@ class DialogueView
     }
 
     /** Start only the source-specific qualification; retain all saved needs. */
-    public static function sourceQualificationStart($chatId,array $missing,bool $greet=true,string $hotelName=''): bool
+    public static function sourceQualificationStart($chatId,array $missing,bool $greet=true,string $hotelName='',array $hotelChoice=[]): bool
     {
         require_once __DIR__.'/SourceQualificationPrompt.php';
         self::prepareSourceTrip($chatId);
         // Delivery failure must not leave the next real reply on an old check
         // surface. This changes mode, never resets or replaces the collected trip.
         MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);
-        return(bool)IntegrationRegistry::messenger()->sendWithButtons($chatId,
-            SourceQualificationPrompt::text($missing,$hotelName,$greet),
+        if (($hotelChoice['choice'] ?? '') === 'pending') {
+            require_once __DIR__.'/SourceHotelIntentService.php';
+            return (bool)IntegrationRegistry::messenger()->sendWithButtons($chatId,
+                SourceQualificationPrompt::choiceText($hotelName, $greet),
+                SourceHotelIntentService::buttons($hotelChoice));
+        }
+        $text = ($hotelChoice['choice'] ?? '') === 'other' && in_array('country', $missing, true)
+            ? 'Куда хотите поехать?' : SourceQualificationPrompt::text($missing,$hotelName,$greet);
+        return(bool)IntegrationRegistry::messenger()->sendWithButtons($chatId, $text,
             [[['text'=>'Позвать менеджера','callback_data'=>'source_choice_manager']]]
         );
     }

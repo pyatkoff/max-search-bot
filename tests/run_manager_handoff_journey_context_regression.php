@@ -66,6 +66,23 @@ $missingAges=ManagerHandoffContextService::build([
 mhjCheck('positive child count exposes only missing current ages',strpos($missingAges,'Не указано для поиска: возраст детей')!==false,true);
 mhjCheck('known party with missing ages is not mislabeled as wholly unknown',strpos($missingAges,'Не указано для поиска: состав туристов')===false,true);
 
+foreach([
+    ['post_hotel','Хочет тур в Side Star Resort'],
+    ['custom_request','Нужен подбор по пожеланиям'],
+    ['unconfirmed','Выбор отеля пока не подтверждён'],
+] as [$status,$label]){
+    $intent=['status'=>$status,'label'=>$label,'source_hotel_name'=>'Side Star Resort'];
+    $summary=ManagerHandoffContextService::build($context,$messages,['hotel_request_intent'=>$intent]);
+    mhjCheck('manager separates choice from advert: '.$status,str_contains($summary,'Запрос: '.$label."\nИсточник: публикация Side Star Resort"),true);
+    mhjCheck('choice keeps known party and budget: '.$status,str_contains($summary,'Туристы: 2 взр. + 0 реб.')&&str_contains($summary,'250 000 RUB на всех'),true);
+}
+
+$rawChoice='hotel_intent_same:'.str_repeat('a',32);
+foreach([$rawChoice,'g1_1234abcd_'.$rawChoice] as $payload){
+    $rawMessages=[['direction'=>'inbound','sender_type'=>'customer','text'=>$payload]];
+    mhjCheck('raw hotel token never appears as tourist prose: '.$payload,ManagerHandoffContextService::customerTranscript($rawMessages),'');
+}
+
 $eventSource=(string)file_get_contents(__DIR__ . '/../services/ManagerHandoffEventContextService.php');
 $apiSource=(string)file_get_contents(__DIR__ . '/../manager/api.php');
 $callbackSource=(string)file_get_contents(__DIR__ . '/../actions/callbacks/ManagerCallbackAction.php');

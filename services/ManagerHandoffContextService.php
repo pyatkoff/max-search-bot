@@ -13,6 +13,12 @@ class ManagerHandoffContextService
     {
         $state = TripStateService::fromLegacyAiContext($aiContext);
         $summary = trim(ManagerSummaryService::build($state));
+        $hotelIntent = $handoffContext['hotel_request_intent'] ?? null;
+        if (is_array($hotelIntent) && in_array($hotelIntent['status'] ?? '', ['post_hotel','custom_request','unconfirmed'], true)
+            && is_string($hotelIntent['label'] ?? null) && is_string($hotelIntent['source_hotel_name'] ?? null)) {
+            $summary = 'Запрос: '.$hotelIntent['label']."\n"
+                .'Источник: публикация '.$hotelIntent['source_hotel_name']."\n".$summary;
+        }
         $note = self::latestMeaningfulCustomerNote($messages);
         $transcript = self::customerTranscript($messages);
 
@@ -199,7 +205,7 @@ class ManagerHandoffContextService
             return true;
         }
 
-        foreach (['pick_','adults_','child_','star_','meal_','nights_','month_change_','back_','edit_','finish'] as $prefix) {
+        foreach (['hotel_intent_','pick_','adults_','child_','star_','meal_','nights_','month_change_','back_','edit_','finish'] as $prefix) {
             if (strpos($payload, $prefix) === 0) return true;
         }
 

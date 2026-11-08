@@ -20,10 +20,11 @@ class ConversationControlService {public static $status='manager';public static 
 class ManagerPushService {public static $calls=[];public static function notifyConversation(...$args):void {self::$calls[]=$args;}}
 PHP;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
-$dependencies=['DialogueApplication','DiagnosticLogger','ConversationRecorder','ConversationAttributionService','ConversationControlService','ManagerPushService','MetrikaConversionGoalService','ConversationDb','IntegrationRegistry','ManagerHandoffDispatchService'];
+$dependencies=['DialogueApplication','DiagnosticLogger','ConversationRecorder','ConversationAttributionService','ConversationControlService','ManagerPushService','MetrikaConversionGoalService','ConversationDb','ProjectConfig','IntegrationRegistry','ManagerHandoffDispatchService'];
 try {
     foreach($dependencies as $name)file_put_contents($tmp.'/'.$name.'.php',"<?php require_once __DIR__.'/bootstrap.php';");
     copy($root.'/services/SourceHandlingService.php',$tmp.'/SourceHandlingService.php');
+    copy($root.'/services/SourceHotelIntentService.php',$tmp.'/SourceHotelIntentService.php');
     copy($root.'/services/IncomingUpdateDispatcher.php',$tmp.'/IncomingUpdateDispatcher.php');
     require $tmp.'/IncomingUpdateDispatcher.php';
     $app=new DialogueApplication();$dispatcher=new IncomingUpdateDispatcher($app);$checks=0;$missing=[];$ownershipFailures=[];

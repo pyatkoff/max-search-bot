@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/ConversationDb.php';
+require_once __DIR__ . '/SourceHotelIntentService.php';
 
 /**
  * Read-only projection of the latest manager-request event for panel context.
@@ -21,7 +22,8 @@ final class ManagerHandoffEventContextService
             );
             $q->execute([$conversationId]);
             $row = $q->fetch();
-            if (!$row) return [];
+            $intent = SourceHotelIntentService::projection($conversationId);
+            if (!$row) return $intent ? ['hotel_request_intent'=>$intent] : [];
 
             $payload = json_decode((string)($row['payload_json'] ?? ''), true);
             if (!is_array($payload)) $payload = [];
@@ -29,7 +31,7 @@ final class ManagerHandoffEventContextService
             return [
                 'from_tours'=>!empty($payload['from_tours']),
                 'created_at'=>(string)($row['created_at'] ?? ''),
-            ];
+            ] + ($intent ? ['hotel_request_intent'=>$intent] : []);
         } catch (Throwable $ignored) {
             // Panel enrichment is optional. A read failure must not break the
             // manager detail endpoint or change queue/routing behaviour.

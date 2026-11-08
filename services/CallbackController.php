@@ -6,6 +6,7 @@ require_once dirname(__DIR__) . '/actions/callbacks/ToursCallbackAction.php';
 require_once dirname(__DIR__) . '/handlers/AiDateHandler.php';
 require_once __DIR__ . '/InteractionGuard.php';
 require_once __DIR__ . '/CallbackGeneration.php';
+require_once __DIR__ . '/SourceHotelIntentService.php';
 
 /**
  * Shared callback controller for MAX/Telegram normalized callbacks.
@@ -69,10 +70,11 @@ class CallbackController
                 && InteractionGuard::suppressDuplicateCallback($chatId, $q, 'wizard_back')) {
                 return true;
             }
-            return WizardCallbackAction::handle($chatId, $q);
+            return WizardCallbackAction::handle($chatId, $q, (string)($query['_platform'] ?? ''));
         }
 
         if ($q === 'restart') {
+            SourceHotelIntentService::clearForStart((string)($query['_platform'] ?? ''), $chatId);
             MaxSearchApi::deletePrevMessage($chatId, true);
             AiDateHandler::clear($chatId);
             MaxSearchApi::deleteAllStatus($chatId);
@@ -80,6 +82,7 @@ class CallbackController
             return true;
         }
         if ($q === 'back_phone') {
+            SourceHotelIntentService::clearForStart((string)($query['_platform'] ?? ''), $chatId);
             MaxSearchApi::deletePrevMessage($chatId, true);
             AiDateHandler::clear($chatId);
             MaxSearchApi::deleteAllStatus($chatId);

@@ -31,6 +31,7 @@ class DialogueController
     public static function start($chatId, array $entryMeta = [], string $platform = ''): bool
     {
         if (!$chatId) return false;
+        SourceHotelIntentService::clearForStart($platform, $chatId);
         self::resetDialogueSafe($chatId, $platform);
         return DialogueView::start($chatId, $entryMeta);
     }

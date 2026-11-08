@@ -14,6 +14,7 @@ final class SourceQualificationPrompt
             || (int)($post['version_id'] ?? 0) < 1 || empty($post['source_key'])) return [];
         return [
             'publication_id'=>(int)$post['publication_id'], 'source_id'=>(int)$post['source_id'],
+            'version_id'=>(int)$post['version_id'],
             'source_key'=>(string)$post['source_key'], 'platform'=>(string)$post['platform'],
             'hotel_name'=>self::hotelName((array)($post['snapshot'] ?? [])),
         ];
@@ -39,14 +40,20 @@ final class SourceQualificationPrompt
         return '';
     }
 
+    public static function choiceText(string $hotelName, bool $greet = true): string
+    {
+        $name = htmlspecialchars(trim(str_replace(["\r", "\n"], ' ', $hotelName)), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return ($greet ? "Здравствуйте! 👋\n\n" : '')
+            .'Вас интересует тур в '.$name.' или подобрать другой отель?';
+    }
+
     public static function text(array $missing, string $hotelName = '', bool $greet = true): string
     {
         $missing = array_fill_keys(array_intersect(
             ['date','adults','children','child_ages','nights','city','country'], $missing
         ), true);
-        // The authenticated hotel post already identifies the destination for the greeting.
-        // Do not silently write it into the tourist's search parameters.
-        if ($hotelName !== '') unset($missing['country']);
+        // A hotel heading is not a canonical country value. Keep a missing
+        // destination actionable, including after a button-only hotel choice.
         $questions = [];
         if (isset($missing['date'])) {
             $questions[] = isset($missing['adults'])
@@ -63,7 +70,8 @@ final class SourceQualificationPrompt
             unset($missing['child_ages']);
         }
         foreach (['child_ages','nights','city','country'] as $field) {
-            if (isset($missing[$field])) $questions[] = MissingFieldQuestionService::question($field);
+            if (isset($missing[$field])) $questions[] = $field === 'country' && $hotelName !== ''
+                ? 'Уточните страну поездки, пожалуйста.' : MissingFieldQuestionService::question($field);
         }
         $hotelName = trim(str_replace(["\r", "\n"], ' ', $hotelName));
         $hotel = $hotelName === '' ? '' : htmlspecialchars($hotelName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
