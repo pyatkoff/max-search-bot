@@ -26,6 +26,8 @@ final class SourceQualificationPrompt
             $name = trim(html_entity_decode(strip_tags($heading), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
             $name = preg_replace('/\\A[^\\p{L}\\p{N}]+/u', '', $name) ?? '';
             $name = preg_replace('/\\AТуры в (.+?)(?: с перел[её]том)?\\z/u', '$1', $name) ?? '';
+            // New hotel headings may append a destination after a separator.
+            $name = preg_replace('/\\s*[1-5]\\s*[★⭐*]\\s*[|｜]\\s*[^\\r\\n]+\\z/u', '', $name) ?? '';
             $name = preg_replace('/\\s*[1-5]\\s*[★⭐*](?:[^\\p{L}\\p{N}]*)\\z/u', '', $name) ?? '';
             $name = preg_replace('/\\s*[\\x{1F1E6}-\\x{1F1FF}]{2}\\s*\\z/u', '', $name) ?? '';
             $name = trim($name);
@@ -42,11 +44,14 @@ final class SourceQualificationPrompt
         $missing = array_fill_keys(array_intersect(
             ['date','adults','children','child_ages','nights','city','country'], $missing
         ), true);
+        // The authenticated hotel post already identifies the destination for the greeting.
+        // Do not silently write it into the tourist's search parameters.
+        if ($hotelName !== '') unset($missing['country']);
         $questions = [];
         if (isset($missing['date'])) {
             $questions[] = isset($missing['adults'])
-                ? 'На какие даты планируете поездку?'
-                : MissingFieldQuestionService::question('date');
+                ? 'Когда планируете отдых? Можно указать примерные даты.'
+                : 'Когда планируете отдых? Можно указать примерные даты.';
         }
         if (isset($missing['adults'], $missing['children'])) {
             $questions[] = 'Сколько взрослых и детей поедет? Если будут дети, укажите их возраст.';
@@ -65,7 +70,7 @@ final class SourceQualificationPrompt
         $intro = $greet ? "Здравствуйте! 👋\n" : '';
         if ($hotel !== '') $intro .= 'Помогу подобрать тур в '.$hotel.".\n\n";
         $question = $questions
-            ? implode(' ', array_slice($questions, 0, 2))
+            ? $questions[0]
             : ($hotel !== '' ? 'Что хотите уточнить по этому отелю?' : 'Что хотите уточнить по этому варианту?');
         return $intro.$question;
     }
