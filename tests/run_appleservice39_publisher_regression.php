@@ -57,6 +57,13 @@ final class ApplePilotTestProvider
     public array $requests = [];
     public array $messages = [];
     public string $mode = '';
+    public string $channelId = '-12345';
+    public bool $zeroUploadKey = false;
+    public bool $reorderButtons = false;
+    public bool $dropCreateImageId = false;
+    public ?string $fixedMid = null;
+    public ?string $fixedPhotoId = null;
+    public ?string $fixedUrl = null;
     public array $permissions = ['read_all_messages','write','edit','pin_message'];
     public ?string $pinned = null;
     public string $uploadHost = 'iu.oneme.ru';
@@ -71,22 +78,24 @@ final class ApplePilotTestProvider
         $method = $request['method'];
         if (str_starts_with($request['url'], 'https://iu.oneme.ru/')) {
             as39ProviderAssert($request['token'] === '' && $request['file'] !== null, 'upload never forwards bot credential');
-            $id = $query['id']; return $this->ok(['photos'=>[$id=>['token'=>'photo_'.$id]]]);
+            $id = $query['id']; return $this->ok(['photos'=>[($this->zeroUploadKey ? '0' : $id)=>['token'=>'photo_'.$id]]]);
         }
         as39ProviderAssert($request['token'] === 'synthetic-apple-token-12345', 'API uses the exact project token');
         if ($method === 'GET' && $path === '/me') return $this->ok(['user_id'=>123,'is_bot'=>true,'username'=>$this->mode === 'wrong_bot' ? 'other_bot' : AppleService39PilotManifest::BOT]);
-        if ($method === 'GET' && $path === '/chats/-12345') return $this->ok(['chat_id'=>-12345,'type'=>'channel','status'=>'active','is_public'=>true,'link'=>$this->mode === 'wrong_channel' ? 'https://max.ru/other_channel' : AppleService39PilotManifest::CHANNEL]);
-        if ($method === 'GET' && $path === '/chats/-12345/members/me') {
+        if ($method === 'GET' && $path === '/chats/'.$this->channelId) return $this->ok(['chat_id'=>(int)$this->channelId,'type'=>'channel','status'=>'active','is_public'=>true,'link'=>$this->mode === 'wrong_channel' ? 'https://max.ru/other_channel' : AppleService39PilotManifest::CHANNEL]);
+        if ($method === 'GET' && $path === '/chats/'.$this->channelId.'/members/me') {
             if ($this->membershipHook !== null) ($this->membershipHook)();
             return $this->ok(['user_id'=>123,'is_bot'=>true,'username'=>AppleService39PilotManifest::BOT,'is_admin'=>true,'permissions'=>$this->permissions]);
         }
         if ($method === 'POST' && $path === '/uploads') return $this->ok(['url'=>'https://'.$this->uploadHost.'/uploadImage?id='.(++$this->uploadId)]);
         if ($method === 'POST' && $path === '/messages') {
-            as39ProviderAssert($query === ['chat_id'=>'-12345'] && !isset($request['body']['notify']), 'create targets the channel with native notification semantics');
-            $mid = 'mid_'.(count($this->messages)+1);
+            as39ProviderAssert($query === ['chat_id'=>$this->channelId] && !isset($request['body']['notify']), 'create targets the channel with native notification semantics');
+            $mid = $this->fixedMid ?? 'mid_'.(count($this->messages)+1);
             $this->messages[$mid] = $this->message($mid, $request['body']);
             if ($this->mode === 'create_timeout') return ['http'=>0,'transport_error'=>true,'data'=>null];
-            return $this->ok(['message'=>$this->messages[$mid]]);
+            $created = $this->messages[$mid];
+            if ($this->dropCreateImageId) unset($created['body']['attachments'][0]['payload']['photo_id']);
+            return $this->ok(['message'=>$created]);
         }
         if ($method === 'GET' && str_starts_with($path, '/messages/')) {
             if ($this->mode === 'readback_timeout' && !$this->failedRead) { $this->failedRead = true; return ['http'=>0,'transport_error'=>true,'data'=>null]; }
@@ -105,6 +114,13 @@ final class ApplePilotTestProvider
             if ($this->mode === 'wrong_url') $message['url'] = 'https://max.ru/other_channel/borrowed';
             if ($this->mode === 'credential_url') $message['url'] = 'https://private_user@max.ru/channel_appleservice39ru/post_1';
             if ($this->mode === 'dot_url') $message['url'] = 'https://max.ru/channel_appleservice39ru/mid.1';
+            if ($this->reorderButtons) {
+                foreach ($message['body']['attachments'] as &$attachment) if ($attachment['type'] === 'inline_keyboard') {
+                    foreach ($attachment['payload']['buttons'] as &$row) foreach ($row as &$button) $button = array_reverse($button, true);
+                    unset($row,$button);
+                }
+                unset($attachment);
+            }
             if ($this->mode === 'wrapped_readback') return $this->ok(['message'=>$message]);
             return $this->ok($message);
         }
@@ -115,7 +131,7 @@ final class ApplePilotTestProvider
             if (in_array($this->mode, ['edit_timeout','edit_unchanged_timeout'], true)) return ['http'=>0,'transport_error'=>true,'data'=>null];
             return $this->ok(['success'=>true]);
         }
-        if ($path === '/chats/-12345/pin') {
+        if ($path === '/chats/'.$this->channelId.'/pin') {
             if ($method === 'PUT') { $this->pinned = $request['body']['message_id']; return $this->ok(['success'=>true]); }
             return $this->ok(['message'=>$this->pinned === null ? null : $this->messages[$this->pinned]]);
         }
@@ -126,12 +142,12 @@ final class ApplePilotTestProvider
     {
         $attachments = $body['attachments'] ?? [];
         foreach ($attachments as &$attachment) if ($attachment['type'] === 'image') {
-            $attachment['payload']['photo_id'] = substr($attachment['payload']['token'], strlen('photo_'));
+            $attachment['payload']['photo_id'] = $this->fixedPhotoId ?? substr($attachment['payload']['token'], strlen('photo_'));
             $attachment['payload']['token'] = 'renewed_'.$attachment['payload']['photo_id'];
         }
         unset($attachment);
-        return ['recipient'=>['chat_id'=>-12345,'chat_type'=>'channel'],'body'=>['mid'=>$mid,'text'=>$body['text'],'attachments'=>$attachments],
-            'url'=>'https://max.ru/channel_appleservice39ru/post_'.substr($mid,4),'timestamp'=>1770000000000];
+        return ['recipient'=>['chat_id'=>(int)$this->channelId,'chat_type'=>'channel'],'body'=>['mid'=>$mid,'text'=>$body['text'],'attachments'=>$attachments],
+            'url'=>$this->fixedUrl ?? 'https://max.ru/channel_appleservice39ru/post_'.substr($mid,4),'timestamp'=>1770000000000];
     }
     public function count(string $method, string $path): int
     {
@@ -143,7 +159,7 @@ final class ApplePilotTestProvider
 
 function as39Publisher(PDO $pdo, ApplePilotTestProvider $provider, ?AppleService39PilotManifest $manifest = null): AppleService39PilotPublisher
 {
-    return new AppleService39PilotPublisher($pdo, $manifest ?? AppleService39PilotManifest::installed(), '-12345', static fn(): bool=>true, $provider, static function (): void {});
+    return new AppleService39PilotPublisher($pdo, $manifest ?? AppleService39PilotManifest::installed(), $provider->channelId, static fn(): bool=>true, $provider, static function (): void {});
 }
 
 function as39FullPublicationRegression(PDO $pdo): void
@@ -183,7 +199,7 @@ function as39FullPublicationRegression(PDO $pdo): void
     $publisher->run('pin'); $publisher->run('pin');
     as39Expect($provider->count('PUT','/chats/-12345/pin') === 1, 'menu pin follows all post and link readbacks exactly once');
     $summary = json_encode($publisher->run('inspect'), JSON_THROW_ON_ERROR);
-    as39Expect(!str_contains($summary, 'synthetic-apple-token') && !str_contains($summary, 'photo_') && !str_contains($summary, 'renewed_'), 'operator report excludes credentials and media tokens');
+    as39Expect(!str_contains($summary, 'synthetic-apple-token') && !preg_match('/"(?:photo|renewed)_[0-9]+"/', $summary), 'operator report excludes credentials and media tokens');
     $pdo->exec('DELETE FROM manager_projects WHERE manager_id=2');
     as39Refuses(static fn()=>$publisher->run('inspect'), 'active_project_admin_and_source_required');
 }
@@ -286,6 +302,66 @@ if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
             && ($diagnostic['upload_token_matches'] ?? null)===($mode==='missing_id_same_token'),
             'image diagnosis exposes bounded identifiers and match status without tokens');
     }
+    // A photos-map key of zero is an upload index, not a message photoID.
+    ProjectMaxConnection::resetForTests(as39Registry()); $pdo=as39Sqlite(); $provider=new ApplePilotTestProvider;
+    $provider->zeroUploadKey=true; $provider->reorderButtons=true; $publisher=as39Publisher($pdo,$provider);
+    $publisher->run('prepare'); $publisher->run('publish'); $publisher->run('finalize'); $publisher->run('pin');
+    $store=new AppleService39PilotPublicationStore($pdo); $report=$publisher->run('inspect');
+    as39Expect($report['ok'] && $provider->count('POST','/messages')===24 && $provider->count('PUT','/messages')===24,
+        'zero upload keys and renewed read tokens retain24 native POST image receipts without resend');
+    foreach (AppleService39PilotManifest::installed()->posts() as $post) {
+        $created=$store->operation($post['id'],'create'); $uploaded=$store->operation($post['id'],'upload');
+        as39Expect($uploaded['outcome']['photo_id']==='0' && $created['outcome']['image_receipt']['kind']==='create_response'
+            && $created['outcome']['image_receipt']['photo_id']!=='0'
+            && $created['outcome']['image_receipt']['request_sha256']===$created['payload_sha256'],
+            'native image receipt is bound to its own create request rather than the upload map key');
+    }
+    $linked=array_values(array_filter($report['operations'],static fn(array $row):bool=>$row['operation']==='links'));
+    as39Expect(count($linked)===24 && count(array_filter($linked,static fn(array $row):bool=>$row['button_object_key_order_normalized']===true))===24,
+        'native JSON object-key reordering is accepted with exact row order and typed button values');
+
+    ProjectMaxConnection::resetForTests(as39Registry()); $pdo=as39Sqlite(); $provider=new ApplePilotTestProvider;
+    $provider->zeroUploadKey=true; $provider->dropCreateImageId=true; $publisher=as39Publisher($pdo,$provider); $publisher->run('prepare');
+    as39Refuses(static fn()=>$publisher->run('publish'),'pilot_create_held');
+    $provider->dropCreateImageId=false; $writes=$provider->writes(); $report=as39Publisher($pdo,$provider)->run('reconcile');
+    as39Expect(!$report['ok'] && $report['held_operations']===1 && $provider->writes()===$writes
+        && $provider->count('POST','/messages')===1,
+        'a missing POST image receipt cannot be fabricated from an arbitrary known MID GET');
+    as39Refuses(static fn()=>$publisher->run('publish'),'pilot_create_held');
+
+    // The single legacy exception is the exact recorded own MID and reviewed native image.
+    ProjectMaxConnection::resetForTests(as39Registry()); $pdo=as39Sqlite(); $provider=new ApplePilotTestProvider;
+    $provider->channelId='-80917954947727'; $provider->fixedMid='mid.ffffb667d20a157101a1bd1d06ec5ef9';
+    $provider->fixedPhotoId='46750893649'; $provider->fixedUrl='https://max.ru/channel_appleservice39ru/AaG9HQbsXvk';
+    $provider->zeroUploadKey=true; $provider->dropCreateImageId=true; $provider->reorderButtons=true;
+    $publisher=as39Publisher($pdo,$provider); $publisher->run('prepare');
+    as39Refuses(static fn()=>$publisher->run('publish'),'pilot_create_held');
+    $provider->dropCreateImageId=false; $provider->mode='wrong_image'; $writes=$provider->writes();
+    $report=$publisher->run('reconcile');
+    as39Expect(!$report['ok'] && $report['held_operations']===1 && $provider->writes()===$writes,
+        'reviewed legacy proof cannot bind another native photoID');
+    $provider->mode=''; $report=as39Publisher($pdo,$provider)->run('reconcile');
+    $store=new AppleService39PilotPublicationStore($pdo); $first=AppleService39PilotManifest::installed()->posts()[0]['id'];
+    $row=$store->operation($first,'create');
+    as39Expect($report['ok'] && $row['state']==='verified' && (int)$row['write_attempts']===1
+        && $row['external_message_id']===$provider->fixedMid && $row['public_url']===$provider->fixedUrl
+        && $row['outcome']['image_receipt']['kind']==='reviewed_legacy_native_image' && $provider->writes()===$writes,
+        'exact reviewed legacy MID reconciles by native GET with its original single attempt and disclosed proof kind');
+    $publisher->run('reconcile');
+    as39Expect($provider->count('POST','/messages')===1 && $provider->writes()===$writes,
+        'repeated legacy reconciliation cannot publish or replace a message');
+
+    $compare=new ReflectionMethod(AppleService39PilotPublisher::class,'sameButtons');
+    $a=['type'=>'link','text'=>'A','url'=>'https://max.ru/channel_appleservice39ru/a'];
+    $b=['type'=>'link','text'=>'B','url'=>'https://max.ru/channel_appleservice39ru/b'];
+    as39Expect($compare->invoke(null,[[array_reverse($a,true)],[$b]],[[$a],[$b]]),
+        'button object key order alone is immaterial');
+    foreach ([[[$b],[$a]],[[array_merge($a,['url'=>1])],[$b]],[[array_merge($a,['extra'=>null])],[$b]],
+        [[['type'=>'link','text'=>'A']],[$b]],[1=>[$a],2=>[$b]]] as $bad) {
+        as39Expect(!$compare->invoke(null,$bad,[[$a],[$b]]),'changed button rows, fields, types and sparse arrays refuse');
+    }
+    as39Expect(!$compare->invoke(null,[[$b,$a]],[[$a,$b]]),'button order within a row remains exact');
+
     as39Expect(!AppleService39PilotPublisher::publicUrl('https://max.ru/other_channel/post_1','-12345')
         && !AppleService39PilotPublisher::publicUrl('https://max.ru/c/999/post_1','-12345')
         && !AppleService39PilotPublisher::publicUrl('https://max.ru/channel_appleservice39ru/post_1?token=secret','-12345'), 'only exact canonical provider URLs enter the link graph');

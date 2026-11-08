@@ -19,6 +19,7 @@ final class AppleService39PilotPublisher
     private $provenance;
     private $pause;
     private array $readbackDiagnostics = [];
+    private bool $buttonsNormalized = false;
 
     public function __construct(PDO $pdo, AppleService39PilotManifest $manifest, string $channelId,
         callable $provenance, ?callable $wire = null, ?callable $pause = null)
@@ -156,10 +157,12 @@ final class AppleService39PilotPublisher
                 self::check(is_array($message) && $this->messageIdentity($message), 'create_receipt_unknown');
                 $mid = (string)$message['body']['mid'];
                 $this->store->rememberMessage($row, $mid, '');
+                $receipt = $this->createImageReceipt($row, $post, $message, $body);
+                $this->store->rememberImageReceipt($row, $receipt);
                 $readback = self::read($this->transport->message($mid));
                 $url = $this->verifyMessage($readback, $mid, $body, $post);
                 $this->store->rememberMessage($row, $mid, $url);
-                $this->store->finish($row, 'verified', ['readback'=>true]);
+                $this->store->finish($row, 'verified', ['readback'=>true,'button_object_key_order_normalized'=>$this->buttonsNormalized]);
             } catch (Throwable $error) {
                 $this->hold($row, 'create_outcome_unknown');
                 throw new RuntimeException('pilot_create_held');
@@ -212,7 +215,7 @@ final class AppleService39PilotPublisher
                 // Exactly one GET follows even when the PUT response was lost.
                 $readback = self::read($this->transport->message($mid));
                 self::check($this->verifyMessage($readback, $mid, $body, $post) === $urls[$post['id']], 'post_url_changed');
-                $this->store->finish($row, 'verified', ['readback'=>true]);
+                $this->store->finish($row, 'verified', ['readback'=>true,'button_object_key_order_normalized'=>$this->buttonsNormalized]);
             } catch (Throwable $error) {
                 $this->hold($row, 'edit_outcome_unknown');
                 throw new RuntimeException('pilot_edit_held');
@@ -269,9 +272,12 @@ final class AppleService39PilotPublisher
                 try {
                     $response = $this->transport->message($row['external_message_id']);
                     $readback = self::read($response);
-                    $url = $this->verifyMessage($readback, $row['external_message_id'], $row['request']['body'], $post);
+                    $candidate = $row['operation'] === 'create' && !isset($row['outcome']['image_receipt'])
+                        ? $this->readbackImageReceipt($row, $post, $readback) : null;
+                    $url = $this->verifyMessage($readback, $row['external_message_id'], $row['request']['body'], $post, $candidate);
+                    if ($candidate !== null) $this->store->rememberImageReceipt($row, $candidate);
                     $this->store->rememberMessage($row, $row['external_message_id'], $url);
-                    $this->store->finish($row, 'verified', ['readback'=>true]);
+                    $this->store->finish($row, 'verified', ['readback'=>true,'button_object_key_order_normalized'=>$this->buttonsNormalized]);
                 } catch (Throwable $error) {
                     // Diagnose only the exact recorded MID; never retry or adopt a post.
                     $this->readbackDiagnostics[] = $this->readbackDiagnostic($row, $response, $readback, $error);
@@ -297,8 +303,9 @@ final class AppleService39PilotPublisher
                 && (!isset($sender['is_bot']) || $sender['is_bot'] === true));
     }
 
-    private function verifyMessage(array $message, string $mid, array $body, array $post): string
+    private function verifyMessage(array $message, string $mid, array $body, array $post, ?array $candidate = null): string
     {
+        $this->buttonsNormalized = false;
         self::check($this->messageIdentity($message) && $message['body']['mid'] === $mid
             && ($message['body']['text'] ?? null) === $body['text']
             && in_array($message['body']['markup'] ?? null, [null,[]], true)
@@ -307,11 +314,19 @@ final class AppleService39PilotPublisher
         $expected = $body['attachments'] ?? [];
         self::check(is_array($actual) && array_is_list($actual) && count($actual) === count($expected), 'post_attachment_mismatch');
         $upload = $this->upload($post);
+        $created = $this->store->operation($post['id'], 'create');
+        $receipt = $candidate ?? ($created['outcome']['image_receipt'] ?? null);
+        self::check($created !== null && is_array($receipt) && $this->validImageReceipt($receipt, $created, $post, $upload, $mid),
+            'native_image_receipt_required');
         foreach ($expected as $index=>$attachment) {
             $observed = $actual[$index];
             self::check(is_array($observed) && ($observed['type'] ?? null) === $attachment['type'], 'post_attachment_mismatch');
-            if ($attachment['type'] === 'image') self::check(self::imageIdentity((array)($observed['payload'] ?? []), $upload), 'post_image_mismatch');
-            else self::check(($observed['payload']['buttons'] ?? null) === $attachment['payload']['buttons'], 'post_button_mismatch');
+            if ($attachment['type'] === 'image') self::check(self::imageIdentity((array)($observed['payload'] ?? []), $upload, $receipt), 'post_image_mismatch');
+            else {
+                $buttons = $observed['payload']['buttons'] ?? null;
+                self::check(self::sameButtons($buttons, $attachment['payload']['buttons']), 'post_button_mismatch');
+                if ($buttons !== $attachment['payload']['buttons']) $this->buttonsNormalized = true;
+            }
         }
         $url = $message['url'] ?? null;
         self::check(is_string($url) && self::publicUrl($url, $this->channelId), 'native_post_url_required');
@@ -319,15 +334,111 @@ final class AppleService39PilotPublisher
     }
 
     /** A provider photo identifier or the exact original unique attachment token. */
-    private static function imageIdentity(array $payload, array $upload): bool
+    private static function imageIdentity(array $payload, array $upload, array $receipt): bool
     {
         $id = $payload['photo_id'] ?? null;
         if (!is_int($id) && !is_string($id)) return false;
         $id = (string)$id;
         if (preg_match('/\\A-?(?:0|[1-9][0-9]{0,19})\\z/D', $id) !== 1) return false;
-        if ($id === $upload['photo_id']) return true;
+        if ($id === $receipt['photo_id']) return true;
         $token = $payload['token'] ?? null;
         return is_string($token) && $token !== '' && hash_equals($upload['token'], $token);
+    }
+
+    /** JSON object key order is immaterial; both array orders and every typed field are exact. */
+    private static function sameButtons($actual, array $expected): bool
+    {
+        if (!is_array($actual) || !array_is_list($actual) || !array_is_list($expected) || count($actual) !== count($expected)) return false;
+        foreach ($expected as $i=>$row) {
+            if (!is_array($row) || !array_is_list($row) || !is_array($actual[$i]) || !array_is_list($actual[$i])
+                || count($row) !== count($actual[$i])) return false;
+            foreach ($row as $j=>$button) {
+                $observed = $actual[$i][$j];
+                if (!is_array($button) || array_is_list($button) || !is_array($observed) || array_is_list($observed)
+                    || count($button) !== count($observed)) return false;
+                foreach ($button as $key=>$value) if (!array_key_exists($key, $observed) || $observed[$key] !== $value) return false;
+            }
+        }
+        return true;
+    }
+
+    private static function nativePhotoId($value): string
+    {
+        $id = is_int($value) || is_string($value) ? (string)$value : '';
+        return preg_match('/\\A(?:0|-?[1-9][0-9]{0,18})\\z/D', $id) === 1 ? $id : '';
+    }
+
+    private function imagePayload(array $message): ?array
+    {
+        $attachments = $message['body']['attachments'] ?? null;
+        if (!is_array($attachments) || !array_is_list($attachments)) return null;
+        $images = array_values(array_filter($attachments, static fn($item): bool => is_array($item) && ($item['type'] ?? null) === 'image'));
+        return count($images) === 1 && is_array($images[0]['payload'] ?? null) ? $images[0]['payload'] : null;
+    }
+
+    private function imageReceipt(array $row, array $post, string $mid, string $photoId, string $kind, string $evidence = ''): array
+    {
+        $upload = $this->upload($post);
+        return ['kind'=>$kind,'message_id'=>$mid,'photo_id'=>$photoId,'source_sha256'=>$post['image']['sha256'],
+            'upload_token_sha256'=>hash('sha256', $upload['token']),'request_sha256'=>$row['payload_sha256'],'evidence_sha256'=>$evidence];
+    }
+
+    /** Learn an opaque native photoID only from the original claimed POST response. */
+    private function createImageReceipt(array $row, array $post, array $message, array $body): array
+    {
+        $payload = $this->imagePayload($message);
+        $photoId = self::nativePhotoId($payload['photo_id'] ?? null);
+        self::check($this->messageIdentity($message) && ($message['body']['text'] ?? null) === $body['text']
+            && count((array)($message['body']['attachments'] ?? [])) === count($body['attachments'])
+            && $photoId !== '', 'native_image_receipt_required');
+        return $this->imageReceipt($row, $post, $message['body']['mid'], $photoId, 'create_response');
+    }
+
+    private function validImageReceipt(array $receipt, array $row, array $post, array $upload, string $mid): bool
+    {
+        if (($row['external_message_id'] ?? null) !== $mid || ($receipt['message_id'] ?? null) !== $mid
+            || ($receipt['request_sha256'] ?? null) !== $row['payload_sha256']
+            || ($receipt['source_sha256'] ?? null) !== $post['image']['sha256']
+            || ($receipt['upload_token_sha256'] ?? null) !== hash('sha256', $upload['token'])
+            || self::nativePhotoId($receipt['photo_id'] ?? null) === ''
+            || !in_array($receipt['kind'] ?? '', ['create_response','exact_upload_token','reviewed_legacy_native_image'], true)) return false;
+        if ($receipt['kind'] !== 'reviewed_legacy_native_image') return ($receipt['evidence_sha256'] ?? null) === '';
+        $path = __DIR__.'/../resources/appleservice39/pilot/reconciliation/first-create.json';
+        return is_file($path) && !is_link($path) && ($receipt['evidence_sha256'] ?? null) === hash_file('sha256', $path);
+    }
+
+    /** Missing canonical evidence is never filled from a merely similar post or a new MID. */
+    private function readbackImageReceipt(array $row, array $post, array $message): ?array
+    {
+        $upload = $this->upload($post); $mid = (string)$row['external_message_id'];
+        $payload = $this->imagePayload($message); $photoId = self::nativePhotoId($payload['photo_id'] ?? null);
+        if ($photoId === '' || ($row['request']['body'] ?? null) !== $this->manifest->body($post, $upload)) return null;
+        if (is_string($payload['token'] ?? null) && hash_equals($upload['token'], $payload['token'])) {
+            return $this->imageReceipt($row, $post, $mid, $photoId, 'exact_upload_token');
+        }
+        if ($post['id'] !== 'repair-iphone-x-battery-replacement' || $mid !== 'mid.ffffb667d20a157101a1bd1d06ec5ef9'
+            || $this->channelId !== '-80917954947727') return null;
+        $directory = __DIR__.'/../resources/appleservice39/pilot/reconciliation';
+        $path = $directory.'/first-create.json'; $preview = $directory.'/first-create-preview.jpg';
+        self::check(is_file($path) && !is_link($path) && filesize($path) <= 16384
+            && is_file($preview) && !is_link($preview) && filesize($preview) <= 1048576, 'reviewed_image_evidence_unavailable');
+        $proof = json_decode((string)file_get_contents($path), true, 16, JSON_THROW_ON_ERROR);
+        self::check(is_array($proof) && ($proof['schema'] ?? null) === 1
+            && ($proof['campaign'] ?? null) === AppleService39PilotManifest::CAMPAIGN
+            && ($proof['project_key'] ?? null) === AppleService39PilotManifest::PROJECT
+            && ($proof['bot_key'] ?? null) === AppleService39PilotManifest::BOT
+            && ($proof['channel_id'] ?? null) === $this->channelId
+            && ($proof['manifest_sha256'] ?? null) === $this->manifest->sha256()
+            && ($proof['post_id'] ?? null) === $post['id'] && ($proof['message_id'] ?? null) === $mid
+            && ($proof['native_photo_id'] ?? null) === $photoId
+            && ($proof['public_url'] ?? null) === ($message['url'] ?? null)
+            && ($proof['source_image_sha256'] ?? null) === $post['image']['sha256']
+            && ($proof['provider_preview_sha256'] ?? null) === hash_file('sha256', $preview),
+            'reviewed_image_evidence_mismatch');
+        $size = @getimagesize($preview);
+        self::check(is_array($size) && $size[0] === 615 && $size[1] === 768 && $size[2] === IMAGETYPE_JPEG,
+            'reviewed_image_evidence_mismatch');
+        return $this->imageReceipt($row, $post, $mid, $photoId, 'reviewed_legacy_native_image', hash_file('sha256', $path));
     }
 
     public static function publicUrl(string $url, string $channelId): bool
@@ -352,7 +463,8 @@ final class AppleService39PilotPublisher
     private function readbackDiagnostic(array $row, ?array $response, ?array $message, Throwable $error): array
     {
         $reasons = ['provider_read_unknown','post_readback_mismatch','post_attachment_mismatch',
-            'post_image_mismatch','post_button_mismatch','native_post_url_required'];
+            'post_image_mismatch','post_button_mismatch','native_post_url_required','native_image_receipt_required',
+            'reviewed_image_evidence_unavailable','reviewed_image_evidence_mismatch'];
         $reason = in_array($error->getMessage(), $reasons, true) ? $error->getMessage() : 'readback_unclassified';
         $url = $message['url'] ?? null; $parts = is_string($url) ? parse_url($url) : false;
         $safeUrl = $parts && ($parts['scheme'] ?? '') === 'https' && ($parts['host'] ?? '') === 'max.ru'
@@ -387,7 +499,10 @@ final class AppleService39PilotPublisher
             if (in_array($row['state'], ['write_started','unknown','rejected'], true)) $held++;
             $rows[] = ['post_id'=>$row['post_key'],'operation'=>$row['operation'],'state'=>$row['state'],
                 'write_attempts'=>(int)$row['write_attempts'],'message_id'=>$row['external_message_id'],
-                'url'=>$row['public_url'] !== '' ? $row['public_url'] : null];
+                'url'=>$row['public_url'] !== '' ? $row['public_url'] : null,
+                'image_receipt_kind'=>$row['outcome']['image_receipt']['kind'] ?? null,
+                'native_photo_id'=>$row['outcome']['image_receipt']['photo_id'] ?? null,
+                'button_object_key_order_normalized'=>$row['outcome']['button_object_key_order_normalized'] ?? null];
         }
         return ['ok'=>$held === 0,'state'=>$held === 0 ? $state : 'held','campaign'=>AppleService39PilotManifest::CAMPAIGN,
             'project_key'=>AppleService39PilotManifest::PROJECT,'bot_key'=>AppleService39PilotManifest::BOT,

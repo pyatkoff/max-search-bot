@@ -28,3 +28,11 @@ The source archive is `AppleService39-MAX-Launch.zip`, SHA-256 `4e81fd53eaa9c75f
 
 Source regression, successful installation, provider publication readback and a real deep-link conversation are separate evidence. The real acceptance is a button in a published repair post opening the bot, a contextual answer without customer typing, and the same model/service plus both sides of the conversation visible in the common manager panel. A provider send response does not prove device delivery or that the customer read it.
 
+
+## Native image receipts and exact legacy reconciliation
+
+The image-upload response map key is not assumed to be the canonical message photo ID. The original claimed create response supplies that opaque ID; the existing create operation saves a source/request/upload-token-hash-bound image receipt before its independent GET. Holds and verified completion preserve the receipt. A generic later GET cannot manufacture a missing original receipt. Lost-MID creates and unknown uploads remain non-replayable.
+
+The one legacy first create has a separate, disclosed operator-reviewed native image binding in `resources/appleservice39/pilot/reconciliation/first-create.json`. Its original returned MID, exact source PNG, native photo ID, real public URL, native readback run and downloaded MAX JPEG are retained. Both exact image files were visually inspected against the approved cover; the resized JPEG is not byte-equal to the source PNG. This evidence is not called an original POST image receipt. It applies only to that exact known own MID, project/bot/channel, immutable manifest/source image, request and reviewed photo ID. A different MID, asset or current native body cannot use it. Reconciliation performs no provider mutation and preserves the original one-attempt claim; only complete fresh native validation may move it to verified.
+
+Button objects use exact key sets and strict typed field values independent of JSON object-key order. Both row order and button order remain exact. Native receipt metadata discloses when object-key normalization was needed; generic PHP loose equality is not used. Image, text, URL, connection, actor and source guards remain active. Natural published-button/client response/common-panel acceptance remains separate from these publication receipts.
