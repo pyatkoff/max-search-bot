@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "campaign": "appleservice39-pilot-v1",
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_id": "-80917954947727",
+  "manifest_sha256": "93212e4cd8bc62f5bb1098ea690528106b4c520087c92bc49ea658b2c7a955f3",
+  "post_id": "repair-iphone-x-battery-replacement",
+  "message_id": "mid.ffffb667d20a157101a1bd1d06ec5ef9",
+  "public_url": "https://max.ru/channel_appleservice39ru/AaG9HQbsXvk",
+  "native_photo_id": "46750893649",
+  "source_image_sha256": "bd972a093c2d1d3455000484a17405a51a6267e0254404c645044e3a5097fe78",
+  "provider_preview_sha256": "303d366971b87f626a99782f6a00b3d17aab2565f0821fe85fe275ee9ade1c1c",
+  "evidence": {
+    "kind": "exact_recorded_mid_native_readback_and_source_image_review",
+    "original_create_run": 42526521011,
+    "native_readback_run": 42530026489,
+    "native_readback_job": 128881997344,
+    "http_status": 200,
+    "source_png_dimensions": [
+      1122,
+      1402
+    ],
+    "provider_jpeg_dimensions": [
+      615,
+      768
+    ],
+    "reviewed_at_utc": "2026-11-08T22:47:15Z",
+    "reviewer": "existing AppleService39 publisher in SOURCE6722718562",
+    "review": "Both exact files were downloaded and visually inspected. Same approved brand, model, battery service, price 3500, free-diagnostics caption and phone/battery artwork. MAX resized and JPEG-encoded the image. File-byte equality and upload-token equality are not asserted. This is a bounded operator-reviewed native image binding for the already recorded MID, not a recovered original POST image receipt."
+  }
+}
