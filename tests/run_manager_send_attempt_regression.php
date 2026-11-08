@@ -27,7 +27,7 @@ checkSend('late original cannot execute after cancellation',execSend(3)['attempt
 checkSend('cancellation cannot reverse a confirmed receipt',ManagerSendAttemptService::cancel(7,101,idSend(1))['attempt']['state']==='confirmed');
 $pending=execSend(4,callback:static function(){throw new RuntimeException('synthetic secret payload');});
 checkSend('exception remains unknown and cannot be replayed cancelled or leaked',$pending['attempt']['state']==='unknown'&&execSend(4)['attempt']['state']==='unknown'&&ManagerSendAttemptService::cancel(7,101,idSend(4))['attempt']['state']==='unknown'&&$calls===1);
-foreach([['unknown',0,'unknown'],['temporary',503,'unknown'],['temporary',429,'unknown'],['unknown',408,'unknown'],['blocked',403,'rejected'],['suspended',0,'rejected'],['unsupported',0,'rejected'],['unavailable',404,'rejected']] as [$category,$code,$state]){
+foreach([['unknown',0,'unknown'],['temporary',503,'unknown'],['temporary',429,'unknown'],['unknown',408,'unknown'],['blocked',403,'rejected'],['suspended',0,'rejected'],['unsupported',0,'rejected'],['unavailable',404,'rejected'],['connection_unavailable',0,'rejected']] as [$category,$code,$state]){
  static $n=10;$result=execSend(++$n,callback:static fn()=>['ok'=>false,'failure'=>['category'=>$category,'http_code'=>$code,'message'=>'private provider payload']]);checkSend('conservative provider result '.$category.'/'.$code,$result['attempt']['state']===$state&&!str_contains(json_encode($result),'private'));
 }
 $pdo->exec("CREATE TRIGGER reject_send_finish BEFORE UPDATE ON manager_send_attempts WHEN NEW.operation_id='".idSend(30)."' BEGIN SELECT RAISE(FAIL,'synthetic finish failure'); END");

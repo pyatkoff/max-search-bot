@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/TourSearchHandoffService.php';
+require_once __DIR__ . '/ProjectConfiguration.php';
 
 class ProjectConfig
 {
@@ -17,12 +18,13 @@ class ProjectConfig
 
     public static function get(string $path, $default = null)
     {
-        $value = self::all();
-        foreach (explode('.', $path) as $part) {
-            if (!is_array($value) || !array_key_exists($part, $value)) return $default;
-            $value = $value[$part];
-        }
-        return $value;
+        return ProjectConfiguration::valueAtPath(self::all(), $path, $default);
+    }
+
+    /** Settings only: the caller must resolve and authorize the project first. */
+    public static function forProject(string $expectedProjectKey, array $values): ProjectConfiguration
+    {
+        return new ProjectConfiguration($expectedProjectKey, $values);
     }
 
     public static function projectId(): string

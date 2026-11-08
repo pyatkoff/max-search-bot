@@ -91,6 +91,11 @@ class MediaSessionStatement {
             if(in_array($id,[42,43,44],true))$this->rows=[['id'=>$id,'project_key'=>$id===43?'denied':'fixture','source_id'=>$id===44?99:0,'channel'=>'max','status'=>'manager','manager_id'=>7]];
             return true;
         }
+        if(str_starts_with($sql,'SELECT c.id,c.project_key,c.channel FROM messages m JOIN conversations ')) {
+            $id=(int)$args[0];
+            if(in_array($id,[99,101],true))$this->rows=[['id'=>$id===101?43:42,'project_key'=>$id===101?'denied':'fixture','channel'=>'max']];
+            return true;
+        }
         if(str_starts_with($sql,'SELECT id,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes FROM conversation_sources ')) {$this->rows=[['id'=>99,'primary_group_id'=>123,'fallback_mode'=>'none','fallback_group_id'=>0]];return true;}
         if(str_starts_with($sql,'SELECT group_id FROM manager_group_members ')) return true;
         if($sql==='SELECT COALESCE(MAX(id),0) FROM messages WHERE conversation_id=?') {$this->rows=[[99]];return true;}
@@ -218,7 +223,7 @@ PHP);
         } finally {mediaSessionStop($worker);}
     }
     $trace=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/db-trace.jsonl',FILE_IGNORE_NEW_LINES));
-    $protected=array_filter($trace,static fn($row)=>str_starts_with($row['sql'],'SELECT c.id,c.project_key,')||str_starts_with($row['sql'],'INSERT INTO manager_conversation_reads '));
+    $protected=array_filter($trace,static fn($row)=>str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,')||str_starts_with($row['sql'],'INSERT INTO manager_conversation_reads '));
     mediaSessionCheck('conversation authorization and read marker still run inside the session lock',
         count($protected)>0&&count(array_filter($protected,static fn($row)=>!$row['active']))===0);
 } catch(Throwable $error) {

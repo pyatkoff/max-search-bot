@@ -14,6 +14,24 @@ define('TOURVISOR_JWT', '');
 define('MAX_SEARCH_TOKEN', '');
 define('MAX_SEARCH_WEBHOOK_SECRET', '');
 define('MAX_SEARCH_WEBHOOK_URL', '');
+// Additional companies are registered only in the existing protected config.
+// Empty/missing entries stay disabled; unknown projects never use MAX_SEARCH_TOKEN.
+// Provision the matching active project and MAX source in the shared directory.
+define('MAX_SEARCH_PROJECT_CONNECTIONS', [
+    // 'appleservice39' => [
+    //     'project' => [
+    //         'id'=>'appleservice39',
+    //         'brand'=>['name'=>'AppleService39'],
+    //         'business'=>['kind'=>'device_repair'],
+    //         'routing'=>['source_key'=>'max:appleservice39-main'],
+    //     ],
+    //     'max' => [
+    //         'bot_key'=>'id390521129062_bot',
+    //         'token'=>'', // real token belongs only in protected server config
+    //         'webhook_secret'=>'', // unique random value, at least 32 characters
+    //     ],
+    // ],
+]);
 define('TELEGRAM_BOT_TOKEN', '');
 define('TELEGRAM_WEBHOOK_SECRET', '');
 define('TELEGRAM_WEBHOOK_URL', '');

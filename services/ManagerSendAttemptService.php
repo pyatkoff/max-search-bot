@@ -36,8 +36,8 @@ final class ManagerSendAttemptService
                 $raw=$result['failure']??null;
                 if (is_array($raw)) {
                     $category=(string)($raw['category']??'unknown');$code=(int)($raw['http_code']??0);
-                    $definite=in_array($category,['suspended','blocked','unsupported','attempt_context_changed'],true)||($code>=400&&$code<500&&!in_array($code,[408,409,429],true));
-                    if ($definite) {$state='rejected';$failure=['category'=>in_array($category,['suspended','blocked','unavailable','unsupported','attempt_context_changed'],true)?$category:'unknown'];}
+                    $definite=in_array($category,['suspended','blocked','unsupported','attempt_context_changed','connection_unavailable'],true)||($code>=400&&$code<500&&!in_array($code,[408,409,429],true));
+                    if ($definite) {$state='rejected';$failure=['category'=>in_array($category,['suspended','blocked','unavailable','unsupported','attempt_context_changed','connection_unavailable'],true)?$category:'unknown'];}
                 }
             }
         } catch (Throwable $e) { /* No exception/provider payload in the receipt. */ }

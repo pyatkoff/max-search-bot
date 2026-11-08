@@ -3,7 +3,7 @@ require_once __DIR__.'/ManagerMessageEditPolicy.php';
 require_once __DIR__.'/ManagerConversationService.php';
 require_once __DIR__.'/ConversationDb.php';
 require_once __DIR__.'/ConversationControlService.php';
-require_once __DIR__.'/../integrations/MaxMessengerAdapter.php';
+require_once __DIR__.'/ProjectMaxMessengerFactory.php';
 require_once __DIR__.'/../integrations/TelegramMessengerAdapter.php';
 
 class ManagerMessageEditService
@@ -52,7 +52,8 @@ class ManagerMessageEditService
             $safe=htmlspecialchars($text,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');
 
             if($channel==='max'){
-                $adapter=new MaxMessengerAdapter(null,null,'manager',null,false);
+                $adapter=ProjectMaxMessengerFactory::forConversation($conversation,'manager');
+                if(!$adapter) return ['ok'=>false,'error'=>'connection_unavailable'];
                 if(!$adapter->editText((string)$policy['external_message_id'],$safe)) return ['ok'=>false,'error'=>'provider_edit_failed'];
             } elseif($channel==='telegram'){
                 $adapter=new TelegramMessengerAdapter(null,'manager',false);

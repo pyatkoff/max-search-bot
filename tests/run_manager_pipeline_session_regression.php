@@ -53,7 +53,15 @@ try {
         'services/ManagerLeadInboxService.php','services/ManagerAiInboxStatusService.php','services/ManagerQueueProjectionService.php','services/ManagerWorkspaceFilterService.php',
         'services/SalesPipelineCatalogAdminService.php','services/LeadTaskService.php']as$dependency)cardCopy($dependency);
     file_put_contents($tmp.'/config.php',"<?php require_once __DIR__.'/services/ProjectConfig.php';ProjectConfig::resetForTests(['id'=>'fixture','brand'=>['name'=>'Fixture']]);\n");
-    file_put_contents($tmp.'/maxsearchclass.php','<?php class MaxSearchApi {static function getAiSearchContext($chat):array{return [];} }');
+    file_put_contents($tmp.'/maxsearchclass.php', <<<'PHP'
+<?php
+class MaxSearchApi {
+    static function getAiSearchContext($chat):array{
+        file_put_contents(__DIR__.'/legacy-context-reads.jsonl',json_encode(['chat'=>(string)$chat])."\n",FILE_APPEND);
+        return ['country'=>match((string)$chat){'-7001'=>'Synthetic MAX trip','7001'=>'Synthetic Telegram trip','8001'=>'Synthetic website trip',default=>'Unexpected chat'}];
+    }
+}
+PHP);
     // This HTTP/session fixture has no cached AI jobs. The real metadata
     // reader is exercised on SQLite/native MySQL in the prepared-reply suite.
     file_put_contents($tmp.'/services/ManagerAiDraftService.php','<?php class ManagerAiDraftService {static function instructions($context=null):string{return "synthetic-inbox-instructions";} }');
@@ -77,16 +85,17 @@ class CardSessionStatement {
             $id=(int)$args[0];if(in_array($id,[7,8,9],true))$this->rows=[['id'=>$id,'login'=>'fixture','display_name'=>'Fixture','role'=>$id===9?'admin':'manager','is_active'=>$id===8?0:1,'is_working'=>1]];return true;
         }
         if(str_starts_with($sql,'SELECT p.id,p.project_key,p.display_name FROM projects p JOIN manager_projects ')){$this->rows=[['id'=>1,'project_key'=>'fixture','display_name'=>'Fixture']];return true;}
-        if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=$args[1]==='fixture'?[[1]]:[];return true;}
+        if(str_starts_with($sql,'SELECT 1 FROM manager_projects mp JOIN projects ')){$this->rows=in_array($args[1],['fixture','repair_fixture'],true)?[[1]]:[];return true;}
         if(str_contains($sql,' AS unread_count ')){cardFixtureGate(($GLOBALS['action']??'')==='counts'?'counts':'list');return true;}
-        if(str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages ')){$this->rows=[['id'=>101,'direction'=>'outbound','sender_type'=>'manager','text'=>'Synthetic transcript &amp; retained','created_at'=>'2026-10-25 10:00:00']];return true;}
-        if(str_starts_with($sql,'SELECT EXISTS(SELECT 1 FROM messages ')){$this->rows=[[1]];return true;}
+        if(str_starts_with($sql,'SELECT id,direction,sender_type,text,created_at FROM messages ')){$customer=in_array((int)$args[0],[46,47,48],true);$this->rows=[['id'=>101,'direction'=>$customer?'inbound':'outbound','sender_type'=>$customer?'customer':'manager','text'=>'Synthetic transcript &amp; retained','created_at'=>'2026-10-25 10:00:00']];return true;}
+        if(str_starts_with($sql,'SELECT EXISTS(SELECT 1 FROM messages ')){$this->rows=[[in_array((int)$args[0],[46,47,48],true)?0:1]];return true;}
+        if(str_starts_with($sql,'SELECT payload_json,created_at FROM conversation_events '))return true;
         if(str_starts_with($sql,'SELECT id,channel,direction,metadata_json FROM messages ')
             ||str_starts_with($sql,'SELECT id,channel,metadata_json FROM messages '))return true;
         if(str_starts_with($sql,'SELECT last_read_message_id FROM manager_conversation_reads ')){$this->rows=[[0]];return true;}
         if(str_starts_with($sql,'SELECT MIN(id) AS first_id,COUNT(*) AS unread_count FROM messages ')){$this->rows=[['first_id'=>null,'unread_count'=>0]];return true;}
         if(str_starts_with($sql,'SELECT c.id,c.project_key,c.source_id,c.channel,')){
-            $id=(int)$args[0];if(in_array($id,[42,43,44,45],true))$this->rows=[['id'=>$id,'project_key'=>$id===43?'denied':'fixture','source_id'=>$id===44?99:0,'channel'=>'max','status'=>'manager','manager_id'=>$id===45?9:7,'external_chat_id'=>'synthetic','phone'=>null,'email'=>null]];return true;
+            $id=(int)$args[0];if(in_array($id,[42,43,44,45,46,47,48],true))$this->rows=[['id'=>$id,'project_key'=>$id===43?'denied':($id===46?'repair_fixture':'fixture'),'source_id'=>$id===44?99:0,'channel'=>$id===47?'telegram':($id===48?'website':'max'),'status'=>'manager','manager_id'=>$id===45?9:7,'external_chat_id'=>$id===47?'7001':($id===48?'8001':'-7001'),'phone'=>null,'email'=>null]];return true;
         }
         if(str_starts_with($sql,'SELECT id,primary_group_id,fallback_mode,fallback_group_id,fallback_after_minutes FROM conversation_sources ')){$this->rows=[['id'=>99,'primary_group_id'=>123,'fallback_mode'=>'none','fallback_group_id'=>0]];return true;}
         if(str_starts_with($sql,'SELECT group_id FROM manager_group_members '))return true;
@@ -155,6 +164,22 @@ PHP);
         $samples[]=['same_session_ms'=>$elapsed,'completed_while_card_held'=>$completed,'different_session_ms'=>$other['ms']];
     }
     echo 'SYNTHETIC_HTTP_SAMPLES '.json_encode($samples,JSON_THROW_ON_ERROR)."\n";
+    $legacyContextFile=$tmp.'/legacy-context-reads.jsonl';
+    $legacyCard=cardRequest($second,'/manager/pipeline-api.php',$data,$cookies['own']);
+    cardCheck('default project MAX card retains its own legacy trip',$legacyCard['status']===200&&$legacyCard['body']['trip']===['country'=>'Synthetic MAX trip']);
+    $legacyReadCount=count(file($legacyContextFile));
+    $isolated=cardRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>46,'csrf'=>'fixture-csrf'],$cookies['own']);
+    cardCheck('another project with the same MAX user cannot read the legacy trip',$isolated['status']===200&&!empty($isolated['body']['ok'])&&$isolated['body']['trip']===[]&&count(file($legacyContextFile))===$legacyReadCount);
+    $isolated=cardRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>46,'csrf'=>'fixture-csrf'],$cookies['own']);
+    cardCheck('another project with the same MAX user cannot read legacy handoff context',$isolated['status']===200&&!empty($isolated['body']['ok'])&&$isolated['body']['handoff_context']===null&&count(file($legacyContextFile))===$legacyReadCount);
+    foreach([47=>['7001','Synthetic Telegram trip'],48=>['8001','Synthetic website trip']] as $id=>[$chatId,$country]){
+        $card=cardRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>'fixture-csrf'],$cookies['own']);
+        cardCheck($country.' retains its normalized legacy trip key',$card['status']===200&&$card['body']['trip']===['country'=>$country]);
+        $detail=cardRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>'fixture-csrf'],$cookies['own']);
+        $summary=(string)($detail['body']['handoff_context']['summary']??'');
+        $reads=array_map(static fn($line)=>json_decode($line,true),file($legacyContextFile,FILE_IGNORE_NEW_LINES));
+        cardCheck($country.' keeps first-reply context without borrowing the MAX key',$detail['status']===200&&!empty($detail['body']['ok'])&&str_contains($summary,$country)&&!str_contains($summary,'Synthetic MAX trip')&&end($reads)===['chat'=>$chatId]);
+    }
     $listSamples=[];
     for($cycle=0;$cycle<3;$cycle++){
         @unlink($tmp.'/list.entered');@unlink($tmp.'/list.release');
@@ -212,7 +237,7 @@ PHP);
     cardCheck('Inbox list releases the session before loading rows',count(array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['kind']==='list'))===3&&array_filter($loads,static fn($row)=>$row['action']==='list'&&$row['active'])===[]);
     cardCheck('queue counts release the session before all three canonical list reads',count(array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['kind']==='counts'))===9&&array_filter($loads,static fn($row)=>$row['action']==='counts'&&$row['active'])===[]);
     $queries=array_map(static fn($line)=>json_decode($line,true),file($tmp.'/queries.jsonl',FILE_IGNORE_NEW_LINES));
-    cardCheck('conversation visibility is checked while session is still locked',array_filter($queries,static fn($row)=>str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')&&str_ends_with($row['sql'],'WHERE c.id=? LIMIT 1')&&!$row['active'])===[]);
+    cardCheck('card conversation visibility is checked while session is still locked',array_filter($queries,static fn($row)=>($row['path']??'')==='/manager/pipeline-api.php'&&str_starts_with($row['sql'],'SELECT c.id,c.project_key,c.source_id,c.channel,')&&str_ends_with($row['sql'],'WHERE c.id=? LIMIT 1')&&!$row['active'])===[]);
 
     // Keep all original session/denial checks above unchanged. Observe real
     // endpoint wiring with the real auth/project owners, not a source substring.

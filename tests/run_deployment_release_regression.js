@@ -265,6 +265,7 @@ async function gitBridge(){
     f.bindTerminal(prepared.record_digest);equal(await C.closeRelease(f.options()),'released','normal full release closes');
     f.complete();const baseline=await R.acceptedBaseline(f.api,await R.readRecord(f.api));
     equal(baseline.release.baseline_eligible,true,'first full real release becomes the accepted baseline');
+    await connectionSetupConsumer(f, a, a);
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
       content:R.contentSummary(proposal.comparison,a,r),intent:proposal.comparison.intent_scan,observation:observation(a)});
@@ -314,6 +315,7 @@ async function gitBridge(){
     const result=await resolveSchedule(f);
     equal([result.repository_sha,result.application_sha,result.perform_actions,result.ready],[r,a,true,true],
       'scheduled monitoring resumes against original application after terminal acceptance');
+    await connectionSetupConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
     equal(f.calls.filter(c=>c.path.includes('/actions/artifacts/')).length,0,
@@ -379,6 +381,26 @@ function installNoopJobs(f){
 function consumerEnv(run,workflow,event,jobName){
   return {GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_EVENT_NAME:event,GITHUB_REF:'refs/heads/main',GITHUB_SHA:run.head_sha,
     GITHUB_RUN_ID:String(run.id),GITHUB_RUN_ATTEMPT:'1',GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@refs/heads/main',GITHUB_JOB:jobName};
+}
+async function connectionSetupConsumer(f,repositorySha,applicationSha){
+  const workflow=R.PREFIX+'setup-appleservice39-connection.yml';
+  const run={...copy(f.wave.parent),id:6500,path:workflow,event:'workflow_dispatch',status:'in_progress',conclusion:null};
+  f.runs.set(run.id,run);
+  const event={repository:{full_name:R.REPOSITORY}};
+  const env=consumerEnv(run,workflow,'workflow_dispatch','setup');
+  const before=f.calls.length;
+  const result=await R.resolveConsumer({env,event,api:f.api});
+  equal([result.repository_sha,result.application_sha,result.perform_actions,result.ready],
+    [repositorySha,applicationSha,true,true],'fixed manual repair setup resolves the accepted application');
+  equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'setup admission remains read-only');
+  run.event='push';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_EVENT_NAME:'push'},
+    event:{...event,ref:'refs/heads/main',after:repositorySha},api:f.api}),'untrusted_push_consumer',
+    'repair setup never gains automatic push authority');
+  run.event='workflow_dispatch';run.path=R.PREFIX+'unknown-connection-setup.yml';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+run.path+'@refs/heads/main'},event,api:f.api}),
+    'untrusted_consumer_event','allowing this setup does not allow arbitrary manual operations');
+  f.runs.delete(run.id);
 }
 async function resolveSchedule(f,eventName='schedule'){
   const workflow=R.PREFIX+'modeled-conversion-monitor.yml';

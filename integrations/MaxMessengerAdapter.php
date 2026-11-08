@@ -8,11 +8,12 @@ class MaxMessengerAdapter implements OutboundMetadataMessengerInterface
     private $send;
     private $sendWithButtons;
     private $sendMedia;
+    private $editText;
     private $senderType;
     private $recordOutbound;
     private $lastExternalMessageId = '';
 
-    public function __construct(?callable $send = null, ?callable $sendWithButtons = null, string $senderType = 'ai', ?callable $sendMedia = null, bool $recordOutbound = true)
+    public function __construct(?callable $send = null, ?callable $sendWithButtons = null, string $senderType = 'ai', ?callable $sendMedia = null, bool $recordOutbound = true, ?callable $editText = null)
     {
         $this->send = $send ?: static function ($chatId, string $text) {
             return class_exists('MaxSearchApi') ? MaxSearchApi::MaxSend($text, $chatId) : false;
@@ -23,6 +24,10 @@ class MaxMessengerAdapter implements OutboundMetadataMessengerInterface
         $this->sendMedia = $sendMedia ?: static function ($chatId, string $type, string $filePath, string $fileName, string $mimeType, string $text) {
             if (!class_exists('MaxSearchApi') || !defined('MAX_SEARCH_TOKEN')) return false;
             return MaxTransport::uploadAndSend(MaxSearchApi::$TV_API_URL, MAX_SEARCH_TOKEN, $chatId, $type, $filePath, $fileName, $mimeType, $text, dirname(__DIR__) . '/tmp_max_search.txt');
+        };
+        $this->editText = $editText ?: static function (string $messageId, string $text): bool {
+            if (!class_exists('MaxSearchApi') || !defined('MAX_SEARCH_TOKEN')) return false;
+            return MaxTransport::editMessage(MaxSearchApi::$TV_API_URL, MAX_SEARCH_TOKEN, $messageId, $text, dirname(__DIR__).'/tmp_max_search.txt');
         };
         $this->senderType = in_array($senderType, ['ai','manager','system'], true) ? $senderType : 'ai';
         $this->recordOutbound = $recordOutbound;
@@ -44,7 +49,9 @@ class MaxMessengerAdapter implements OutboundMetadataMessengerInterface
 
     public function sendWithButtonsAndMetadata($chatId, string $text, array $buttons, array $metadata): bool
     {
-        $ok = (bool)call_user_func($this->sendWithButtons, $chatId, $text, $buttons);
+        $result = call_user_func($this->sendWithButtons, $chatId, $text, $buttons);
+        $this->lastExternalMessageId = is_string($result) ? trim($result) : '';
+        $ok = (bool)$result;
         if ($ok && $this->recordOutbound) ConversationRecorder::outbound('max', $chatId, $text, $this->senderType, array_merge($metadata,['has_buttons'=>true]));
         return $ok;
     }
@@ -70,8 +77,8 @@ class MaxMessengerAdapter implements OutboundMetadataMessengerInterface
     public function editText($messageId, string $text): bool
     {
         $messageId=trim((string)$messageId);$text=trim($text);
-        if($messageId===''||$text===''||!class_exists('MaxSearchApi')||!defined('MAX_SEARCH_TOKEN')) return false;
-        return MaxTransport::editMessage(MaxSearchApi::$TV_API_URL,MAX_SEARCH_TOKEN,$messageId,$text,dirname(__DIR__).'/tmp_max_search.txt');
+        if($messageId===''||$text==='') return false;
+        return (bool)call_user_func($this->editText,$messageId,$text);
     }
 
     public function sendContactRequest($chatId, string $text, string $manualCallback, string $backCallback): bool

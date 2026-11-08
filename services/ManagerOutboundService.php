@@ -6,7 +6,7 @@ require_once __DIR__ . '/ManagerDeliveryStateService.php';
 require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecorder.php';
 require_once __DIR__ . '/MetrikaConversionGoalService.php';
-require_once __DIR__ . '/../integrations/MaxMessengerAdapter.php';
+require_once __DIR__ . '/ProjectMaxMessengerFactory.php';
 require_once __DIR__ . '/../integrations/TelegramMessengerAdapter.php';
 require_once __DIR__ . '/../integrations/WebsiteMessengerAdapter.php';
 
@@ -73,10 +73,11 @@ class ManagerOutboundService
                 return true;
             }
 
-            if ($channel === 'max') $adapter = new MaxMessengerAdapter(null, null, 'manager', null, false);
+            if ($channel === 'max') $adapter = ProjectMaxMessengerFactory::forConversation($c,'manager');
             elseif ($channel === 'telegram') $adapter = new TelegramMessengerAdapter(null, 'manager', false);
             elseif ($channel === 'website') $adapter = new WebsiteMessengerAdapter('manager', false);
             else return false;
+            if (!$adapter) return self::connectionNotConfigured($channel,$projectKey);
 
             $storedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
             $ok = $adapter->send($chatId, $storedText);
@@ -91,7 +92,7 @@ class ManagerOutboundService
                 // Suppressed duplicates and failed deliveries never reach it.
                 ConversationRecorder::outboundForConversation($conversationId,$channel,$storedText,'manager',(string)$managerId,$metadata,in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'',isset($metadata['ai_draft'])?$text:null);
                 ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>(string)$c['project_key']]);
-                MetrikaConversionGoalService::managerReply($conversationId);
+                if ($projectKey === ProjectConfig::projectId()) MetrikaConversionGoalService::managerReply($conversationId);
                 return true;
             }
             return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key']);
@@ -117,7 +118,8 @@ class ManagerOutboundService
             if($suspended){self::$lastFailure=$suspended;return false;}
         }
         $type=self::attachmentTypeForMime($mimeType);
-        $adapter=$channel==='max'?new MaxMessengerAdapter(null,null,'manager',null,false):new TelegramMessengerAdapter(null,'manager',false);
+        $adapter=$channel==='max'?ProjectMaxMessengerFactory::forConversation($c,'manager'):new TelegramMessengerAdapter(null,'manager',false);
+        if(!$adapter)return self::connectionNotConfigured($channel,$projectKey);
         $safeCaption=trim($caption)!==''?htmlspecialchars(trim($caption),ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'):'';
         $ok=$adapter->sendMedia($c['external_chat_id'],$type,$filePath,$fileName,$mimeType,$safeCaption,$previewUrl);
         if($ok){
@@ -126,7 +128,7 @@ class ManagerOutboundService
             if(trim($previewUrl)!=='')$attachment['url']=trim($previewUrl);
             ConversationRecorder::outboundForConversation($conversationId,$channel,$preview,'manager',(string)$managerId,['project_key'=>$projectKey,'attachments'=>[$attachment]],in_array($channel,['max','telegram'],true)?$adapter->lastExternalMessageId():'');
             ConversationControlService::event($conversationId,'manager_message','manager',$managerId,['channel'=>$channel,'project_key'=>$projectKey,'media_type'=>$type]);
-            MetrikaConversionGoalService::managerReply($conversationId);
+            if($projectKey===ProjectConfig::projectId())MetrikaConversionGoalService::managerReply($conversationId);
             return true;
         }
         return self::recordFailure($conversationId,$managerId,$channel,(string)$c['project_key'],['media_type'=>$type]);
@@ -136,6 +138,13 @@ class ManagerOutboundService
     {
         // These returns precede adapter dispatch; expose no conversation or file data.
         self::$lastFailure=['category'=>'not_dispatched','reason'=>$reason,'http_code'=>0];
+        return false;
+    }
+
+    private static function connectionNotConfigured(string $channel,string $projectKey): bool
+    {
+        // Missing credentials must never fall back to another project's bot.
+        self::$lastFailure=['category'=>'connection_unavailable','http_code'=>0,'channel'=>$channel,'project_key'=>$projectKey];
         return false;
     }
 
@@ -171,6 +180,7 @@ class ManagerOutboundService
     public static function failureNotice(array $failure): string
     {
         switch((string)($failure['category']??'unknown')){
+            case 'connection_unavailable': return 'Сообщение не отправлено: подключение бота этого проекта недоступно.';
             case 'not_dispatched': return ($failure['reason']??'')==='file_unavailable'
                 ? 'Отправка файла не началась: не удалось прочитать вложение.'
                 : 'Отправка файла не началась: диалог изменился или недоступен. Проверьте диалог перед новой отправкой.';

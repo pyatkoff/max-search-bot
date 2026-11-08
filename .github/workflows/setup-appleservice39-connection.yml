@@ -1,0 +1,198 @@
+name: Set up AppleService39 connection
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/setup_appleservice39_connection.php'
+      - 'tests/run_appleservice39_setup_regression.php'
+      - '.github/workflows/setup-appleservice39-connection.yml'
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Inspect, prepare/import credentials, verify delivery, or explicitly activate this bot
+        type: choice
+        options: [status, prepare, apply, verify, activate]
+        required: true
+        default: status
+      expected_application_sha:
+        description: Full accepted application SHA (not an assumed repository SHA)
+        type: string
+        required: true
+      admin_manager_id:
+        description: Existing active administrator ID for prepare/apply/activate; status lists eligible identities
+        type: string
+        required: false
+      encrypted_envelope:
+        description: Apply only — version 1 encrypted JSON envelope; NEVER a plaintext token
+        type: string
+        required: false
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  regression:
+    name: AppleService39 setup regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: openssl, curl, pdo_sqlite
+          coverage: none
+      - name: Verify encrypted import, exact bindings, one-use state and configuration preservation
+        run: php tests/run_appleservice39_setup_regression.php
+
+  setup:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Use the existing installation slot; PR tests never acquire this slot.
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Checkout exact repository source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Verify exact repository source is current main
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'pyatkoff/max-search-bot'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          bash tools/verify_deploy_main_provenance.sh
+
+      - name: Resolve accepted repository and actual application
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+
+      - name: Validate fixed operation and installed binding before credentials
+        env:
+          OPERATION: ${{ inputs.operation }}
+          EXPECTED_APPLICATION_SHA: ${{ inputs.expected_application_sha }}
+          ADMIN_MANAGER_ID: ${{ inputs.admin_manager_id }}
+          ENCRYPTED_ENVELOPE: ${{ inputs.encrypted_envelope }}
+          WORKFLOW_SHA: ${{ github.sha }}
+          REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+          RELEASE_READY: ${{ steps.release.outputs.ready }}
+          PERFORM_ACTIONS: ${{ steps.release.outputs.perform_actions }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$RELEASE_READY" = true
+          test "$PERFORM_ACTIONS" = true
+          test "$WORKFLOW_SHA" = "$REPOSITORY_SHA"
+          test "$EXPECTED_APPLICATION_SHA" = "$APPLICATION_SHA"
+          case "$OPERATION" in status|prepare|apply|verify|activate) ;; *) exit 2 ;; esac
+          if [[ "$OPERATION" != status && "$OPERATION" != verify ]]; then
+            [[ "$ADMIN_MANAGER_ID" =~ ^[1-9][0-9]{0,17}$ ]]
+          else
+            test -z "$ADMIN_MANAGER_ID"
+          fi
+          if [[ "$OPERATION" == apply ]]; then
+            python3 - <<'PY'
+          import base64, json, os, re, sys
+          try:
+              raw = os.environ['ENCRYPTED_ENVELOPE']
+              assert 0 < len(raw) <= 16384
+              value = json.loads(raw)
+              assert set(value) == {'version', 'request_id', 'encrypted_key', 'nonce', 'ciphertext', 'tag'}
+              assert type(value['version']) is int and value['version'] == 1
+              assert re.fullmatch(r'[0-9a-f]{32}', value['request_id'])
+              decoded = {key: base64.b64decode(value[key], validate=True) for key in ('encrypted_key', 'nonce', 'ciphertext', 'tag')}
+              assert len(decoded['encrypted_key']) == 384 and len(decoded['nonce']) == 12 and len(decoded['tag']) == 16
+              assert 8 <= len(decoded['ciphertext']) <= 4096
+          except Exception:
+              print('Invalid encrypted envelope; plaintext token input is not accepted.', file=sys.stderr)
+              sys.exit(2)
+          PY
+          else
+            test -z "$ENCRYPTED_ENVELOPE"
+          fi
+
+      - name: Prepare existing deployment SSH credential
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$RUNNER_TEMP/appleservice39_deploy_key"
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$key_file"; else printf '%s\n' "$raw" | tr -d '\r' > "$key_file"; fi
+          else
+            decoded="$(printf '%s' "$raw" | base64 --decode 2>/dev/null || true)"
+            [[ "$decoded" == *"PRIVATE KEY"* ]] || { echo 'Invalid deployment SSH key'; exit 2; }
+            printf '%s\n' "$decoded" | tr -d '\r' > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh-keygen -y -f "$key_file" >/dev/null
+
+      - name: Run the fixed bootstrap once and report only safe metadata
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_APPLICATION_SHA: ${{ inputs.expected_application_sha }}
+          OPERATION: ${{ inputs.operation }}
+          ADMIN_MANAGER_ID: ${{ inputs.admin_manager_id }}
+          ENCRYPTED_ENVELOPE: ${{ inputs.encrypted_envelope }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
+          case "$OPERATION" in status|prepare|apply|verify|activate) ;; *) exit 2 ;; esac
+          remote="$DEPLOY_USER@$DEPLOY_HOST"
+          ssh_options=(-i "$RUNNER_TEMP/appleservice39_deploy_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=no)
+          status_command="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/setup_appleservice39_connection.php status --expected-sha=$EXPECTED_APPLICATION_SHA"
+          verify_command="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/setup_appleservice39_connection.php verify --expected-sha=$EXPECTED_APPLICATION_SHA"
+          if [[ "$OPERATION" == status || "$OPERATION" == verify ]]; then
+            readonly_command="$status_command"
+            if [[ "$OPERATION" == verify ]]; then readonly_command="$verify_command"; fi
+            ssh "${ssh_options[@]}" "$remote" "$readonly_command"
+          else
+            [[ "$ADMIN_MANAGER_ID" =~ ^[1-9][0-9]{0,17}$ ]]
+            command="cd /var/www/anytoour/data/www/app.anytoour.ru && MAX_SEARCH_ALLOW_STANDBY_CONFIG_WRITE=1 php tools/setup_appleservice39_connection.php $OPERATION --expected-sha=$EXPECTED_APPLICATION_SHA --admin-manager-id=$ADMIN_MANAGER_ID"
+            if [[ "$OPERATION" == prepare ]]; then
+              ssh "${ssh_options[@]}" "$remote" "$command"
+            elif [[ "$OPERATION" == apply ]]; then
+              result=0
+              printf '%s' "$ENCRYPTED_ENVELOPE" | ssh "${ssh_options[@]}" "$remote" "$command" || result=$?
+              if [[ "$result" != 0 ]]; then
+                # Uncertain writes get one inspection, never a second import.
+                ssh "${ssh_options[@]}" "$remote" "$status_command" || true
+                exit "$result"
+              fi
+            else
+              result=0
+              ssh "${ssh_options[@]}" "$remote" "$command" || result=$?
+              if [[ "$result" != 0 ]]; then
+                # A provider timeout gets one read-only verification, never a
+                # repeated registration or deletion request.
+                ssh "${ssh_options[@]}" "$remote" "$verify_command" || true
+                exit "$result"
+              fi
+            fi
+          fi
+
+      - name: Remove ephemeral runner SSH credential
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/appleservice39_deploy_key"

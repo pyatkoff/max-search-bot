@@ -40,6 +40,64 @@ class MaxTransport
 
     public static function lastError(): ?array { return is_array(self::$lastError) ? self::$lastError : null; }
 
+    /** Fixed MAX webhook operations, strict TLS and bounded bodies; no legacy logs. */
+    public static function webhookRequest(string $token, string $method, string $path, array $query = [], ?array $body = null, ?callable $wire = null): array
+    {
+        $failure = ['http'=>0,'transport_error'=>true,'data'=>null];
+        if ($token === '' || strlen($token) > 4096 || preg_match('/[\x00-\x20\x7f]/', $token)) return $failure;
+        $validUrl = static function ($url): bool {
+            if (!is_string($url) || $url === '' || strlen($url) > 2048 || preg_match('/[\x00-\x20\x7f]/', $url)) return false;
+            $parts = parse_url($url);
+            return is_array($parts) && ($parts['scheme'] ?? '') === 'https' && !empty($parts['host'])
+                && !isset($parts['user']) && !isset($parts['pass']) && !isset($parts['fragment']);
+        };
+        $read = $method === 'GET' && in_array($path, ['/me','/subscriptions'], true) && $query === [] && $body === null;
+        $remove = $method === 'DELETE' && $path === '/subscriptions' && array_keys($query) === ['url'] && $body === null && $validUrl($query['url']);
+        $register = false;
+        if ($method === 'POST' && $path === '/subscriptions' && $query === [] && $body !== null) {
+            $keys = array_keys($body); sort($keys);
+            $types = $body['update_types'] ?? null;
+            $secret = $body['secret'] ?? null;
+            $register = $keys === ['secret','update_types','url'] && $validUrl($body['url'] ?? null)
+                && is_string($secret) && preg_match('/\A[A-Za-z0-9_-]{5,256}\z/D', $secret) === 1
+                && is_array($types) && array_is_list($types) && count($types) >= 1 && count($types) <= 128;
+            if ($register) foreach ($types as $type) {
+                if (!is_string($type) || preg_match('/\A[a-z_]{1,64}\z/D', $type) !== 1) { $register = false; break; }
+            }
+        }
+        if (!$read && !$remove && !$register) return $failure;
+        try {
+            $encoded = $body === null ? null : json_encode($body, JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+            if ($encoded !== null && strlen($encoded) > 16384) return $failure;
+            $url = 'https://platform-api2.max.ru'.$path;
+            if ($query) $url .= '?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+            $wire = $wire ?? static function (string $url, string $method, string $token, ?string $encoded): array {
+                if (!extension_loaded('curl')) return ['http'=>0,'errno'=>1,'body'=>''];
+                $raw = ''; $ch = curl_init($url);
+                if ($ch === false) return ['http'=>0,'errno'=>1,'body'=>''];
+                $options = MaxTlsConfig::strictCurlOptions() + [
+                    CURLOPT_RETURNTRANSFER=>false,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,
+                    CURLOPT_CONNECTTIMEOUT=>2,CURLOPT_TIMEOUT=>6,CURLOPT_CUSTOMREQUEST=>$method,
+                    CURLOPT_HTTPHEADER=>['Authorization: '.$token,'Accept: application/json','Content-Type: application/json'],
+                    CURLOPT_WRITEFUNCTION=>static function ($handle, string $chunk) use (&$raw): int {
+                        if (strlen($raw)+strlen($chunk) > 262144) return 0;
+                        $raw .= $chunk; return strlen($chunk);
+                    },
+                ];
+                if ($encoded !== null) $options[CURLOPT_POSTFIELDS] = $encoded;
+                curl_setopt_array($ch, $options);
+                $ok = curl_exec($ch); $http = (int)curl_getinfo($ch,CURLINFO_HTTP_CODE); $errno = curl_errno($ch);
+                curl_close($ch);
+                return ['http'=>$http,'errno'=>$ok === false && $errno === 0 ? 1 : $errno,'body'=>$raw];
+            };
+            $response = $wire($url, $method, $token, $encoded);
+            if (!is_array($response) || !is_string($response['body'] ?? null) || strlen($response['body']) > 262144) return $failure;
+            $failed = (int)($response['errno'] ?? 1) !== 0;
+            $data = $failed ? null : json_decode($response['body'], true, 32);
+            return ['http'=>(int)($response['http'] ?? 0),'transport_error'=>$failed,'data'=>is_array($data) ? $data : null];
+        } catch (Throwable $ignored) { return $failure; }
+    }
+
     public static function classifyFailure(int $httpCode, string $response): array
     {
         $message = self::failureMessage($response);

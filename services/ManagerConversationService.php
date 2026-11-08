@@ -3,6 +3,7 @@ require_once __DIR__ . '/ConversationDb.php';
 require_once __DIR__ . '/ConversationRecordClock.php';
 require_once __DIR__ . '/ConversationControlService.php';
 require_once __DIR__ . '/ProjectAccessService.php';
+require_once __DIR__ . '/ProjectMaxConnection.php';
 require_once __DIR__ . '/RoutingAccessService.php';
 require_once __DIR__ . '/ManagerConversationAccessPolicy.php';
 require_once __DIR__ . '/ManagerReadService.php';
@@ -284,6 +285,29 @@ class ManagerConversationService
         return$conversation;
     }
 
+    /** A bounded projection from this already-authorized conversation only. */
+    private static function repairContext(array $conversation): ?array
+    {
+        if((string)($conversation['channel']??'')!=='max'
+            ||ProjectMaxConnection::isLegacyConversation($conversation)
+            ||ProjectMaxConnection::resolve((string)($conversation['project_key']??''))===null)return null;
+        try{
+            $q=ConversationDb::connection()->prepare('SELECT metadata_json FROM conversations WHERE id=? AND project_key=? AND channel=? LIMIT 1');
+            $q->execute([(int)$conversation['id'],(string)$conversation['project_key'],'max']);
+            $metadata=json_decode((string)$q->fetchColumn(),true);
+            $saved=is_array($metadata)?($metadata['repair_context']??null):null;
+            if(!is_array($saved))return null;
+            $context=[];
+            foreach(['model'=>160,'service'=>240,'entry_code'=>128] as $key=>$limit){
+                if(!is_string($saved[$key]??null))continue;
+                $value=trim($saved[$key]);
+                if($value==='')continue;
+                $context[$key]=function_exists('mb_substr')?mb_substr($value,0,$limit,'UTF-8'):substr($value,0,$limit);
+            }
+            return $context?:null;
+        }catch(Throwable $ignored){return null;}
+    }
+
     public static function detail(int $conversationId,int $managerId,int $beforeId=0,int $limit=200,bool $markRead=false,bool $openUnread=false): ?array
     {
         if($beforeId<0)throw new InvalidArgumentException('invalid_history_cursor');
@@ -326,6 +350,8 @@ class ManagerConversationService
         if ($beforeId === 0) {
             try { $detail['tour_choices'] = ['available'=>true] + TourChoiceService::forConversation($pdo, $conversationId); }
             catch (Throwable $ignored) { $detail['tour_choices'] = ['available'=>false,'offers'=>[],'limited'=>false]; }
+            $repairContext=self::repairContext($conversation);
+            if($repairContext!==null)$detail['conversation']['repair_context']=$repairContext;
         }
         // Transcript reads never acknowledge display, including direct callers.
         if($supervisorRead){
@@ -384,7 +410,7 @@ class ManagerConversationService
 
     private static function accessibleConversation(int $conversationId,int $managerId,bool $forUpdate=false): ?array
     {
-        RoutingAccessService::ensureSchema();$sql='SELECT id,project_key,source_id,status,manager_id,external_chat_id,started_at,last_message_at FROM conversations WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
+        RoutingAccessService::ensureSchema();$sql='SELECT id,project_key,source_id,status,manager_id,external_chat_id,started_at,last_message_at,channel FROM conversations WHERE id=? LIMIT 1'.($forUpdate?' FOR UPDATE':'');
         $q=ConversationDb::connection()->prepare($sql);$q->execute([$conversationId]);$row=$q->fetch();if(!$row||!ManagerConversationAccessPolicy::canView($managerId,$row))return null;return$row;
     }
 
@@ -498,7 +524,7 @@ class ManagerConversationService
         if(!$row)return self::lifecycleRefusal('unavailable');
         if((int)($row['manager_id']??0)!==$managerId)return self::lifecycleRefusal('not_owned');
         if((string)$row['status']!=='manager')return self::lifecycleRefusal('state_changed');
-        $chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,manager_id=NULL WHERE id=?')->execute(['ai',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND manager_id=? AND released_at IS NULL')->execute([$conversationId,$managerId]);if(class_exists('MaxSearchApi')){try{MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'manager_released','manager',$managerId);return ['ok'=>true];
+        $chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,manager_id=NULL WHERE id=?')->execute(['ai',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND manager_id=? AND released_at IS NULL')->execute([$conversationId,$managerId]);if(ProjectMaxConnection::isLegacyProject((string)($row['project_key']??''))&&class_exists('MaxSearchApi')){try{MaxSearchApi::setStatus($chatId,MaxSearchApi::$statusAi);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'manager_released','manager',$managerId);return ['ok'=>true];
     }
     public static function close(int $conversationId,int $managerId): bool
     {
@@ -510,7 +536,7 @@ class ManagerConversationService
         if(!$row)return self::lifecycleRefusal('unavailable');
         if((string)$row['status']==='closed')return self::lifecycleRefusal('closed');
         if(!empty($row['manager_id'])&&(int)$row['manager_id']!==$managerId)return self::lifecycleRefusal('owned_elsewhere');
-        $chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,closed_at=NOW() WHERE id=?')->execute(['closed',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);if(class_exists('MaxSearchApi')){try{MaxSearchApi::deleteAllStatus($chatId);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'conversation_closed','manager',$managerId);return ['ok'=>true];
+        $chatId=$row['external_chat_id'];$pdo->prepare('UPDATE conversations SET status=?,closed_at=NOW() WHERE id=?')->execute(['closed',$conversationId]);$pdo->prepare('UPDATE manager_assignments SET released_at=NOW() WHERE conversation_id=? AND released_at IS NULL')->execute([$conversationId]);if(ProjectMaxConnection::isLegacyProject((string)($row['project_key']??''))&&class_exists('MaxSearchApi')){try{MaxSearchApi::deleteAllStatus($chatId);}catch(Throwable $ignored){}}ConversationControlService::event($conversationId,'conversation_closed','manager',$managerId);return ['ok'=>true];
     }
     public static function reopen(int $conversationId,int $managerId): bool
     {

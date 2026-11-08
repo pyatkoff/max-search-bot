@@ -16,7 +16,8 @@ require_once $baseDir.'/services/ProjectAccessService.php';
 ManagerHttp::startJson();
 
 function pipelineConversation(int $id,int $mid):?array{return ManagerConversationService::visibleConversation($id,$mid);}
-function pipelineTrip(array $c):array{$chat=$c['external_chat_id']??null;if($chat===null||$chat==='')return[];try{return class_exists('MaxSearchApi')?(array)MaxSearchApi::getAiSearchContext($chat):[];}catch(Throwable $ignored){return[];}}
+// This legacy trip owner is shared by the default project's normalized channel IDs.
+function pipelineTrip(array $c):array{$chat=$c['external_chat_id']??null;if($chat===null||$chat===''||!ProjectMaxConnection::isLegacyProject((string)($c['project_key']??'')))return[];try{return class_exists('MaxSearchApi')?(array)MaxSearchApi::getAiSearchContext($chat):[];}catch(Throwable $ignored){return[];}}
 function pipelineDetailPart(string $component,int $conversationId,callable $load,$fallback,array &$degraded)
 {
     try{return$load();}

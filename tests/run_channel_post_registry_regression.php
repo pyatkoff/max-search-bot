@@ -195,5 +195,51 @@ postCheck('public permalink token retains project and bot isolation', $registry-
 
 $sql = (string)file_get_contents(dirname(__DIR__) . '/migrations/033_channel_post_context.sql');
 postCheck('production schema preserves binary token equality and persistent identity uniqueness', str_contains($sql, 'uq_post_publications_identity') && str_contains($sql, 'uq_post_publications_token') && str_contains($sql, 'uq_post_entries_event') && substr_count($sql, 'COLLATE ascii_bin') >= 10 && !preg_match('/^\s*(?:INSERT|UPDATE|DELETE)\b/m', preg_replace('/^--.*$/m', '', $sql)));
+
+require_once dirname(__DIR__) . '/services/ProjectConfig.php';
+require_once dirname(__DIR__) . '/services/RepairOfferDraft.php';
+require_once dirname(__DIR__) . '/services/ChannelPostButtonTransport.php';
+$repairValues = require dirname(__DIR__) . '/resources/project-examples/appleservice39.php';
+$repair = ProjectConfig::forProject('appleservice39', $repairValues);
+$offer = $repair->get('offer');
+$draft = RepairOfferDraft::prepare($repair, $offer);
+$pdo->exec("INSERT INTO projects VALUES (3,'appleservice39','AppleService39 fixture',1);
+    INSERT INTO conversation_sources VALUES (31,3,'repair_max_fixture','Repair MAX','max',1,'manager'),(32,3,'repair_tg_fixture','Repair Telegram','telegram',1,'manager');
+    INSERT INTO conversations (id,project_key,channel,status,manager_id,source_id) VALUES
+    (301,'appleservice39','max','manager',78,31),(302,'appleservice39','telegram','manager',78,32);");
+$pilotBindings = [
+    'max' => ['-9100101', 'mid.repair-fixture', 'https://max.ru/', 'repair_max_fixture', 301, 100],
+    'telegram' => ['-1009100102', '41', 'https://t.me/', 'repair_tg_fixture', 302, 101],
+];
+foreach ($pilotBindings as $platform => [$channelId, $mid, $origin, $source, $conversation, $tourConversation]) {
+    $project = $draft['project_key'];
+    $bot = 'Repair_fixture_bot';
+    $botUrl = $origin . $bot;
+    $registry->configureChannel(['project_key'=>$project,'platform'=>$platform,'channel_id'=>$channelId,
+        'bot_key'=>$bot,'bot_url'=>$botUrl,'source_key'=>$source,'is_enabled'=>true,'button_text'=>$draft['publication']['button_text']]);
+    $register = static fn(array $item) => $registry->registerPublication($project, $platform, $bot, $channelId, $mid, [
+        'text' => $item['publication']['caption'], 'title' => $item['publication']['title'], 'format' => 'native',
+    ]);
+    $published = $register($draft);
+    $token = $published['start_payload'];
+    $resolved = $registry->resolveToken($project, $platform, $bot, $token);
+    postCheck($platform . ' repair draft uses the configured button label and existing opaque link',
+        $resolved['channel']['button_text'] === 'Уточнить ремонт' && ChannelPostButtonTransport::buttonUrl($resolved) === $botUrl . '?start=' . $token);
+    $entry = $registry->recordEntry($conversation, $resolved, 'repair-fixture-entry');
+    $retry = $registry->recordEntry($conversation, $resolved, 'repair-fixture-entry');
+    postCheck($platform . ' repair entry is idempotent and isolated from AnyTour', $entry && $retry['duplicate']
+        && $retry['entry_id'] === $entry['entry_id'] && $registry->resolveToken('anytour', $platform, $bot, $token) === null
+        && $registry->recordEntry($tourConversation, $resolved, 'wrong-project') === null
+        && $registry->versionForEntry($conversation, 'anytour', $entry['entry_id']) === null);
+
+    $updatedOffer = $offer;
+    $updatedOffer['price_review_required'] = true;
+    $update = $register(RepairOfferDraft::prepare($repair, $updatedOffer));
+    $manager = $registry->managerContext($conversation, $project)['current'];
+    postCheck($platform . ' editing the same repair message keeps one publication and preserves manager history',
+        $update['publication_id'] === $published['publication_id'] && $update['start_payload'] === $token
+        && $update['version_id'] !== $published['version_id'] && $manager['version_id'] === $published['version_id']
+        && $manager['text'] === $draft['publication']['caption'] && $manager['source_key'] === $source);
+}
 echo 'OK ' . $passed . " channel post registry checks\n";
 
