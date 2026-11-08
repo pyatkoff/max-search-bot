@@ -94,6 +94,9 @@ final class ApplePilotTestProvider
             if (!is_array($message)) return ['http'=>404,'transport_error'=>false,'data'=>['code'=>'not_found']];
             if ($this->mode === 'wrong_image') $message['body']['attachments'][0]['payload']['photo_id'] = '999999';
             if ($this->mode === 'wrong_url') $message['url'] = 'https://max.ru/other_channel/borrowed';
+            if ($this->mode === 'credential_url') $message['url'] = 'https://private_user@max.ru/channel_appleservice39ru/post_1';
+            if ($this->mode === 'dot_url') $message['url'] = 'https://max.ru/channel_appleservice39ru/mid.1';
+            if ($this->mode === 'wrapped_readback') return $this->ok(['message'=>$message]);
             return $this->ok($message);
         }
         if ($method === 'PUT' && $path === '/messages') {
@@ -224,11 +227,27 @@ if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
     as39Refuses(static fn()=>$publisher->run('finalize'), 'pilot_edit_held');
     as39Expect($provider->count('PUT','/messages')===1, 'unknown unchanged edit is never automatically repeated');
 
-    foreach (['wrong_image','wrong_url'] as $mode) {
+    foreach (['wrong_image'=>'post_image_mismatch','wrong_url'=>'native_post_url_required',
+        'wrapped_readback'=>'post_readback_mismatch','credential_url'=>'native_post_url_required',
+        'dot_url'=>'native_post_url_required'] as $mode=>$readbackReason) {
         ProjectMaxConnection::resetForTests(as39Registry()); $pdo=as39Sqlite(); $provider=new ApplePilotTestProvider; $publisher=as39Publisher($pdo,$provider);
         $publisher->run('prepare'); $provider->mode=$mode;
         as39Refuses(static fn()=>$publisher->run('publish'), 'pilot_create_held');
         as39Expect($provider->count('POST','/messages')===1, 'foreign readback cannot become a verified own publication');
+        $writes=$provider->writes(); $report=$publisher->run('reconcile'); $diagnostic=$report['readback_diagnostics'][0] ?? [];
+        as39Expect(($diagnostic['reason'] ?? null)===$readbackReason && $report['held_operations']===1,
+            'read-only reconcile identifies the exact failed predicate while retaining the hold');
+        as39Expect($provider->writes()===$writes && $provider->count('POST','/messages')===1,
+            'readback diagnosis cannot retry a provider write');
+        $safe=json_encode($diagnostic,JSON_THROW_ON_ERROR);
+        as39Expect(!str_contains($safe,'photo_') && !str_contains($safe,'renewed_') && !str_contains($safe,'synthetic-apple-token')
+            && !str_contains($safe,'private_user') && !str_contains($safe,'other_channel') && !str_contains($safe,'Здравствуйте') && !str_contains($safe,'Замена аккумулятора'),
+            'readback diagnosis omits body, media tokens, credentials and foreign URLs');
+        as39Expect(($diagnostic['message_envelope'] ?? false)===($mode==='wrapped_readback'),
+            'diagnosis reports native response envelope shape without adopting its content');
+        as39Expect(($diagnostic['observed_own_url'] ?? null)===($mode==='dot_url' ? 'https://max.ru/channel_appleservice39ru/mid.1'
+            : ($mode==='wrong_image' ? 'https://max.ru/channel_appleservice39ru/post_1' : null)),
+            'only exact own-channel public URL candidates appear as unverified diagnostic evidence');
     }
     as39Expect(!AppleService39PilotPublisher::publicUrl('https://max.ru/other_channel/post_1','-12345')
         && !AppleService39PilotPublisher::publicUrl('https://max.ru/c/999/post_1','-12345')
