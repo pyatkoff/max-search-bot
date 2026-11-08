@@ -151,6 +151,20 @@ mandatory gates, changed main, unavailable/ambiguous metadata, API refusal,
 rate limiting and timeouts stop without freeing the slot. There is no retry on
 429 or other API errors.
 
+An original consumer of an ordinary push installation may briefly await one narrowly pending
+Jobs API snapshot before any protected operation. The original Deploy and its
+exact required jobs must already be completed successfully; every required step
+must be either completed successfully or explicitly `in_progress` with a null
+conclusion. The consumer shares one 30-second monotonic budget across its proof
+reads, permits at most two additional jobs snapshots ten seconds apart, and
+rechecks the same source, attempt, job identities and current main. Missing,
+duplicate, failed, skipped or unknown required steps, changed authority and API
+errors still refuse immediately. A still-pending snapshot exhausts the bounded
+wait without granting acceptance. Manual/scheduled consumers, admission and
+recovery attempts receive no such wait. This is read-only metadata convergence
+within the original run, not permission to rerun a consumer or replace a failed
+original gate.
+
 Before the one terminal update, the same closer prepares `pending_terminal` in
 the existing `deploy_status.json` using a non-force diagnostics ref update. The
 next job step binds the exact record digest into its original GitHub
