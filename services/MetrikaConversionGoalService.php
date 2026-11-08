@@ -72,8 +72,9 @@ class MetrikaConversionGoalService
     /** The persisted handoff, including direct/night entries, owns this stage. */
     public static function managerRequest(int $conversationId, ?callable $queue = null): bool
     {
-        AdvertisingSignalService::request($conversationId);
         try{
+            if (!self::ownsLegacyConversation($conversationId)) return false;
+            AdvertisingSignalService::request($conversationId);
             $managed=self::managedChannelConversation($conversationId);
             if(!$managed||!MaxChannelConversionOutbox::sharedGoalsActive($managed['settings']))return false;
             if(!$managed['repository']->event($managed['conversation'],'max_manager_request',$managed['settings']))return false;
@@ -150,6 +151,9 @@ class MetrikaConversionGoalService
 
     private static function emitOnce(int $conversationId, string $target, ?callable $queue): bool
     {
+        // Native MAX user IDs can be equal in different companies. The global
+        // legacy counter/queue may only receive its configured project's rows.
+        if (!self::ownsLegacyConversation($conversationId)) return false;
         $marker = self::marker($target);
         if (self::hasEvent($conversationId, $marker)) return true;
         $chatId = self::chatId($conversationId);
@@ -168,6 +172,15 @@ class MetrikaConversionGoalService
     {
         if (!class_exists('MaxSearchApi') || !method_exists('MaxSearchApi', 'queueMetrikaGoal')) return false;
         return (bool)MaxSearchApi::queueMetrikaGoal($chatId, $target, ['conversation_id'=>(string)$conversationId]);
+    }
+
+    private static function ownsLegacyConversation(int $conversationId): bool
+    {
+        if ($conversationId <= 0) return false;
+        $q = ConversationDb::connection()->prepare('SELECT project_key FROM conversations WHERE id=? LIMIT 1');
+        $q->execute([$conversationId]);
+        $project = $q->fetchColumn();
+        return is_string($project) && $project !== '' && $project === ProjectConfig::projectId();
     }
 
     private static function chatId(int $conversationId): string

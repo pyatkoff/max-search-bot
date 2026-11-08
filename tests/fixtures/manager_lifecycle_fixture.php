@@ -50,7 +50,7 @@ function lifecycleFixtureSchema(PDO $pdo,bool $mysql=false): void
         'managers'=>'id INTEGER PRIMARY KEY,login VARCHAR(64),display_name VARCHAR(100),role VARCHAR(32),email VARCHAR(100),is_active INTEGER,is_working INTEGER,fixture_marker VARCHAR(64)',
         'conversation_sources'=>'id INTEGER PRIMARY KEY,primary_group_id INTEGER,fallback_mode VARCHAR(32),fallback_group_id INTEGER,fallback_after_minutes INTEGER,is_active INTEGER',
         'manager_group_members'=>'manager_id INTEGER,group_id INTEGER',
-        'conversations'=>'id INTEGER PRIMARY KEY,project_key VARCHAR(64),source_id INTEGER,status VARCHAR(32),manager_id INTEGER NULL,external_chat_id VARCHAR(64),started_at DATETIME,last_message_at DATETIME,closed_at DATETIME NULL',
+        'conversations'=>"id INTEGER PRIMARY KEY,project_key VARCHAR(64),source_id INTEGER,status VARCHAR(32),manager_id INTEGER NULL,external_chat_id VARCHAR(64),started_at DATETIME,last_message_at DATETIME,closed_at DATETIME NULL,channel VARCHAR(20) DEFAULT 'max'",
         'manager_assignments'=>"id {$id},conversation_id INTEGER,manager_id INTEGER,assignment_type VARCHAR(32),released_at DATETIME NULL",
         'conversation_events'=>"id {$id},conversation_id INTEGER,event_type VARCHAR(64),actor_type VARCHAR(32),actor_id VARCHAR(32),payload_json TEXT NULL,created_at DATETIME NULL",
         // Sentinels prove lifecycle/state checks do not read/mark/modify messages.
@@ -67,7 +67,7 @@ function lifecycleFixtureSeed(PDO $pdo): void
     $pdo->exec("INSERT INTO managers VALUES(1,'one','One','manager','',1,1,'manager-lifecycle-native-fixture'),(2,'two','Two','manager','',1,1,'manager-lifecycle-native-fixture'),(3,'admin','Admin','admin','',1,0,'manager-lifecycle-native-fixture'),(4,'off','Off','manager','',1,0,'manager-lifecycle-native-fixture'),(5,'outside','Outside','admin','',1,1,'manager-lifecycle-native-fixture'),(6,'inactive','Inactive','manager','',0,1,'manager-lifecycle-native-fixture')");
     $pdo->exec('INSERT INTO manager_projects VALUES(1,1),(2,1),(3,1),(4,1),(5,2)');
     $pdo->exec("INSERT INTO conversation_sources VALUES(1,90,'none',NULL,0,1)");
-    $insert=$pdo->prepare('INSERT INTO conversations VALUES(?,?,?,?,?,?,?,?,?)');
+    $insert=$pdo->prepare('INSERT INTO conversations(id,project_key,source_id,status,manager_id,external_chat_id,started_at,last_message_at,closed_at) VALUES(?,?,?,?,?,?,?,?,?)');
     foreach([[11,'waiting_manager',null],[12,'manager',2],[13,'closed',2],[14,'ai',1],[15,'ai',null],[16,'manager',1],[17,'waiting_manager',null],[18,'manager',1],[19,'custom',null],[21,'manager',1],[22,'closed',1]] as [$id,$status,$owner]){
         $insert->execute([$id,$id===18?'other':'anytour',$id===17?1:0,$status,$owner,'synthetic-'.$id,'2026-10-16 08:00:00','2026-10-16 08:01:00',$status==='closed'?'2026-10-16 09:00:00':null]);
         if($owner!==null&&$status==='manager')$pdo->prepare('INSERT INTO manager_assignments(conversation_id,manager_id,assignment_type) VALUES(?,?,?)')->execute([$id,$owner,'synthetic']);

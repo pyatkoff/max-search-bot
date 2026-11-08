@@ -128,7 +128,8 @@ if($action==='detail'){
     if ($beforeId===0) $d['handoff_context']=null;
     if ($beforeId===0 && !$d['has_manager_reply']) {
         $chatId=$d['conversation']['external_chat_id']??null;
-        if($chatId!==null&&$chatId!==''&&class_exists('MaxSearchApi')){
+        // AnyTour's legacy dialogue store also serves Telegram and website IDs.
+        if($chatId!==null&&$chatId!==''&&ProjectMaxConnection::isLegacyProject((string)($d['conversation']['project_key']??''))&&class_exists('MaxSearchApi')){
             try{
                 $handoffContext=ManagerHandoffEventContextService::latestManagerRequest($conversationId);
                 $summary=ManagerHandoffContextService::build((array)MaxSearchApi::getAiSearchContext($chatId),$d['messages'],$handoffContext);
@@ -136,6 +137,15 @@ if($action==='detail'){
                     $d['handoff_context']=['summary'=>$summary,'guidance'=>ManagerHandoffContextService::firstReplyGuidance(),'attachments'=>ManagerHandoffContextService::customerAttachments($d['messages'])];
                 }
             }catch(Throwable $ignored){}
+        }elseif(is_array($d['conversation']['repair_context']??null)){
+            $repair=$d['conversation']['repair_context'];$summary=[];
+            if(!empty($repair['model']))$summary[]='Модель: '.$repair['model'];
+            if(!empty($repair['service']))$summary[]='Услуга: '.$repair['service'];
+            if($summary)$d['handoff_context']=[
+                'summary'=>implode("\n",$summary),
+                'guidance'=>'Учитывайте уже указанные модель и услугу. Уточняйте только недостающие детали ремонта.',
+                'attachments'=>ManagerHandoffContextService::customerAttachments($d['messages']),
+            ];
         }
     }
 

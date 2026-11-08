@@ -30,6 +30,12 @@ class ManagerConversationService {
 class ManagerPushService { public static function notifyConversation(...$args){} }
 class ManagerSendGuardService { public static function acquire(...$args){return false;} }
 class MetrikaConversionGoalService { public static function managerReply(...$args){} }
+class ProjectMaxMessengerFactory {
+    public static function forConversation(array $conversation,string $senderType='manager'): ?MaxMessengerAdapter {
+        if(($conversation['channel']??null)!=='max'||($conversation['project_key']??null)!==ProjectConfig::projectId())return null;
+        return new MaxMessengerAdapter(null,null,$senderType,null,false);
+    }
+}
 class MaxMessengerAdapter {
     public static $calls=0,$ok=true;
     public function __construct(...$args){}
@@ -42,7 +48,7 @@ class WebsiteMessengerAdapter extends MaxMessengerAdapter {}
 class MaxTransport { public static function lastError(){return ['category'=>'suspended','http_code'=>403,'message'=>'Synthetic suspended'];} }
 PHP;
 file_put_contents($tmp.'/bootstrap.php',$bootstrap);
-foreach(['ConversationDb','ProjectConfig','DiagnosticLogger','SourceHandlingService','ConversationRecorder','ManagerConversationService','ManagerPushService','ManagerSendGuardService','MetrikaConversionGoalService'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
+foreach(['ConversationDb','ProjectConfig','DiagnosticLogger','SourceHandlingService','ConversationRecorder','ManagerConversationService','ManagerPushService','ManagerSendGuardService','MetrikaConversionGoalService','ProjectMaxMessengerFactory'] as $name)file_put_contents($tmp.'/services/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 foreach(['MaxMessengerAdapter','TelegramMessengerAdapter','WebsiteMessengerAdapter'] as $name)file_put_contents($tmp.'/integrations/'.$name.'.php',"<?php require_once dirname(__DIR__).'/bootstrap.php';\n");
 foreach(['MaxStartSourcePolicy','ManagerDeliveryStateService','ManagerOutboundService'] as $name)copy($root.'/services/'.$name.'.php',$tmp.'/services/'.$name.'.php');
 $pass=0;$fail=0;

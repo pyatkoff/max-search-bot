@@ -455,7 +455,7 @@ final class ChannelPostRegistryService
     }
 
     /** Entry and event pointer commit together; existing dialogue ownership is untouched. */
-    public function recordEntry(int $conversationId, array $resolved, string $eventKey = ''): ?array
+    public function recordEntry(int $conversationId, array $resolved, string $eventKey = '', bool $joinTransaction = false): ?array
     {
         if ($conversationId <= 0) return null;
         $publicationId = (int)($resolved['publication_id'] ?? 0);
@@ -480,11 +480,11 @@ final class ChannelPostRegistryService
             $entryId = (int)$this->pdo->lastInsertId();
             $this->execute('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json,created_at) VALUES (?,?,?,?,?)', [$conversationId, 'channel_post_entry', 'customer', self::json(['entry_id' => $entryId, 'publication_id' => $publicationId, 'version_id' => $versionId, 'source_key' => $publication['source_key']]), $now]);
             return ['entry_id' => $entryId, 'version_id' => $versionId, 'duplicate' => false];
-        });
+        }, $joinTransaction);
     }
 
     /** Do not leave an earlier post looking current after an unknown p_ entry. */
-    public function recordUnavailableEntry(int $conversationId, string $projectKey, string $platform, string $eventKey = ''): ?array
+    public function recordUnavailableEntry(int $conversationId, string $projectKey, string $platform, string $eventKey = '', bool $joinTransaction = false): ?array
     {
         self::platform($platform);
         if ($conversationId <= 0) return null;
@@ -499,7 +499,7 @@ final class ChannelPostRegistryService
             $entryId = (int)$this->pdo->lastInsertId();
             $this->execute('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json,created_at) VALUES (?,?,?,?,?)', [$conversationId, 'channel_post_entry', 'customer', self::json(['entry_id' => $entryId, 'unavailable' => true]), $now]);
             return ['entry_id' => $entryId, 'version_id' => null, 'duplicate' => false];
-        });
+        }, $joinTransaction);
     }
 
     /** Manager ACL belongs to the endpoint. Here project isolation is checked again. */
@@ -740,9 +740,12 @@ final class ChannelPostRegistryService
         return $q->rowCount();
     }
 
-    private function transaction(callable $operation)
+    private function transaction(callable $operation, bool $joinTransaction = false)
     {
-        if ($this->pdo->inTransaction()) throw new LogicException('channel_registry_requires_own_transaction');
+        if ($this->pdo->inTransaction()) {
+            if ($joinTransaction) return $operation();
+            throw new LogicException('channel_registry_requires_own_transaction');
+        }
         $this->pdo->beginTransaction();
         try {
             $result = $operation();

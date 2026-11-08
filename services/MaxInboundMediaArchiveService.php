@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__.'/ConversationDb.php';
+require_once __DIR__.'/ProjectMaxConnection.php';
 require_once __DIR__.'/../integrations/MaxInboundMediaDownloadAdapter.php';
 
 /**
@@ -16,15 +17,29 @@ final class MaxInboundMediaArchiveService
     public const MAX_MEDIA_BYTES = 50 * 1024 * 1024;
 
     /** Best-effort post-response archive for a newly recorded inbound MAX message. */
-    public static function archiveRecordedMessage(string $externalMessageId, ?callable $messageFetcher = null, ?callable $mediaFetcher = null): int
+    public static function archiveRecordedMessage(string $externalMessageId, ?callable $messageFetcher = null, ?callable $mediaFetcher = null, ?callable $videoFetcher = null, ?string $projectKey = null, ?int $conversationId = null): int
     {
         $externalMessageId = trim($externalMessageId);
         if ($externalMessageId === '' || !ConversationDb::isConfigured()) return 0;
+        $projectKey = $projectKey === null ? ProjectConfig::projectId() : trim($projectKey);
+        if ($projectKey === '' || ($conversationId !== null && $conversationId <= 0)) return 0;
+        // New bot entries already know their canonical conversation. Never
+        // select another company's (or another dialogue's) copy of a MAX mid.
+        if ($projectKey !== ProjectConfig::projectId() && $conversationId === null) return 0;
+        $connection = ProjectMaxConnection::resolve($projectKey);
+        if ($connection === null) return 0;
 
-        $q = ConversationDb::connection()->prepare("SELECT id,metadata_json FROM messages WHERE channel='max' AND direction='inbound' AND external_message_id=? ORDER BY id DESC LIMIT 1");
-        $q->execute([$externalMessageId]);
+        $sql = "SELECT m.id,m.metadata_json,c.id AS conversation_id FROM messages m JOIN conversations c ON c.id=m.conversation_id WHERE m.channel='max' AND m.direction='inbound' AND m.external_message_id=? AND c.project_key=? AND c.channel='max'";
+        $params = [$externalMessageId,$projectKey];
+        if ($conversationId !== null) { $sql .= ' AND c.id=?'; $params[] = $conversationId; }
+        $q = ConversationDb::connection()->prepare($sql.' ORDER BY m.id DESC LIMIT 1');
+        $q->execute($params);
         $row = $q->fetch();
         if (!$row) return 0;
+        $connection = ProjectMaxConnection::forConversation(['id'=>(int)$row['conversation_id'],'project_key'=>$projectKey,'channel'=>'max']);
+        if ($connection === null) return 0;
+        $messageFetcher = $messageFetcher ?? static fn(string $mid): ?array => MaxInboundMediaDownloadAdapter::fetchMessage($mid,$connection->token(),$connection->baseUrl());
+        $videoFetcher = $videoFetcher ?? static fn(string $token): ?array => MaxInboundMediaDownloadAdapter::fetchVideo($token,$connection->token(),$connection->baseUrl());
 
         $meta = json_decode((string)($row['metadata_json'] ?? ''), true);
         if (!is_array($meta) || !is_array($meta['attachments'] ?? null)) return 0;
@@ -36,7 +51,7 @@ final class MaxInboundMediaArchiveService
             if (self::localDescriptorAvailable((array)($attachment['local_media'] ?? []))) continue;
             $index = self::publicIndexForKey($attachments, $key);
             if ($index < 0) continue;
-            $local = self::archiveMedia((int)$row['id'], $index, $externalMessageId, $attachment, $messageFetcher, $mediaFetcher);
+            $local = self::archiveMedia((int)$row['id'], $index, $externalMessageId, $attachment, $messageFetcher, $mediaFetcher, $videoFetcher);
             if ($local === null) continue;
             $attachments[$key]['local_media'] = $local;
             $changed++;
@@ -53,7 +68,7 @@ final class MaxInboundMediaArchiveService
      * Resolve/download/store one MAX photo. Injectable fetchers keep the contract
      * testable without touching MAX or customer data.
      */
-    public static function archiveMedia(int $messageId, int $index, string $externalMessageId, array $attachment, ?callable $messageFetcher = null, ?callable $mediaFetcher = null): ?array
+    public static function archiveMedia(int $messageId, int $index, string $externalMessageId, array $attachment, ?callable $messageFetcher = null, ?callable $mediaFetcher = null, ?callable $videoFetcher = null): ?array
     {
         if ($messageId <= 0 || $index < 0 || $index > 20 || !in_array((string)($attachment['type'] ?? ''), ['image','video','audio','file'], true)) return null;
         $known = (array)($attachment['local_media'] ?? []);
@@ -72,7 +87,8 @@ final class MaxInboundMediaArchiveService
         if (!$urls && (string)($attachment['type'] ?? '') === 'video') {
             $token=trim((string)($attachment['token'] ?? ''));
             if($token!==''){
-                $video=MaxInboundMediaDownloadAdapter::fetchVideo($token);
+                $fetchVideo=$videoFetcher??[MaxInboundMediaDownloadAdapter::class,'fetchVideo'];
+                $video=$fetchVideo($token);
                 if(is_array($video)) $urls=self::urls($video);
             }
         }
@@ -114,7 +130,7 @@ final class MaxInboundMediaArchiveService
     }
 
     /** Load an authorized message attachment from local storage, recovering it from MAX once when absent. */
-    public static function openMessageAttachment(int $messageId, int $index, ?callable $messageFetcher = null, ?callable $mediaFetcher = null, bool $persistRecovery = true): ?array
+    public static function openMessageAttachment(int $messageId, int $index, ?callable $messageFetcher = null, ?callable $mediaFetcher = null, bool $persistRecovery = true, ?callable $videoFetcher = null): ?array
     {
         if ($messageId <= 0 || $index < 0 || $index > 20 || !ConversationDb::isConfigured()) return null;
         $q = ConversationDb::connection()->prepare("SELECT channel,direction,external_message_id,metadata_json FROM messages WHERE id=? LIMIT 1");
@@ -133,7 +149,7 @@ final class MaxInboundMediaArchiveService
         $file = self::openLocal($local);
         if ($file !== null) return $file;
 
-        $local = self::archiveMedia($messageId, $index, (string)($row['external_message_id'] ?? ''), $attachment, $messageFetcher, $mediaFetcher);
+        $local = self::archiveMedia($messageId, $index, (string)($row['external_message_id'] ?? ''), $attachment, $messageFetcher, $mediaFetcher, $videoFetcher);
         if ($local === null) return null;
         $meta['attachments'][$key]['local_media'] = $local;
         if ($persistRecovery) self::updateMetadata($messageId, $meta);

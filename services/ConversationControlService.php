@@ -9,9 +9,15 @@ class ConversationControlService
 {
     public static function statusByChat(string $platform, $chatId): ?array
     {
+        return self::statusForProject(ProjectConfig::projectId(), $platform, $chatId);
+    }
+
+    /** Scope comes from a trusted registered connection, never from event data. */
+    public static function statusForProject(string $projectKey, string $platform, $chatId): ?array
+    {
         if (!ConversationDb::isConfigured()) return null;
         $q = ConversationDb::connection()->prepare('SELECT id,status,manager_id,project_key,source_id,channel FROM conversations WHERE project_key=? AND channel=? AND external_chat_id=? AND status<>? ORDER BY id DESC LIMIT 1');
-        $q->execute([ProjectConfig::projectId(), strtolower(trim($platform)), (string)$chatId, 'closed']);
+        $q->execute([$projectKey, strtolower(trim($platform)), (string)$chatId, 'closed']);
         $row = $q->fetch();
         return $row ?: null;
     }
@@ -25,11 +31,22 @@ class ConversationControlService
 
     public static function markWaitingByChat(string $platform, $chatId, array $payload = [], ?bool &$created = null): bool
     {
+        return self::markWaiting(ProjectConfig::projectId(), $platform, $chatId, $payload, $created, true, true);
+    }
+
+    /** Same queue transition, without attaching another company's legacy goals. */
+    public static function markWaitingForProject(string $projectKey, string $platform, $chatId, array $payload = [], ?bool &$created = null, bool $notify = true): bool
+    {
+        return self::markWaiting($projectKey, $platform, $chatId, $payload, $created, false, $notify);
+    }
+
+    private static function markWaiting(string $projectKey, string $platform, $chatId, array $payload, ?bool &$created, bool $legacyGoals, bool $notify): bool
+    {
         $created = false;
-        $row = self::statusByChat($platform, $chatId);
+        $row = self::statusForProject($projectKey, $platform, $chatId);
         if (!$row) return false;
         if (in_array((string)$row['status'], ['waiting_manager','manager'], true)) {
-            MetrikaConversionGoalService::managerRequest((int)$row['id']);
+            if ($legacyGoals) MetrikaConversionGoalService::managerRequest((int)$row['id']);
             return true;
         }
         if ((string)$row['status'] !== 'ai' || !empty($row['manager_id'])) return false;
@@ -42,12 +59,12 @@ class ConversationControlService
             $q->execute(['waiting_manager',(int)$row['id']]);
             if ($q->rowCount() !== 1) {
                 if ($ownTransaction) $pdo->rollBack();
-                $current = self::statusByChat($platform, $chatId);
+                $current = self::statusForProject($projectKey, $platform, $chatId);
                 return $current && in_array((string)$current['status'], ['waiting_manager','manager'], true);
             }
             self::event((int)$row['id'], 'waiting_manager', 'customer', null, $payload);
             if ($ownTransaction) $pdo->commit();
-            else MetrikaConversionGoalService::managerRequest((int)$row['id']);
+            elseif ($legacyGoals) MetrikaConversionGoalService::managerRequest((int)$row['id']);
         } catch (Throwable $e) {
             if ($ownTransaction && $pdo->inTransaction()) $pdo->rollBack();
             throw $e;
@@ -58,9 +75,9 @@ class ConversationControlService
         // No API call here: owned transactions capture after commit. An outer
         // transaction captured locally above, so a late commit cannot fall
         // behind the event cursor; its outbox and marker roll back together.
-        if($ownTransaction)MetrikaConversionGoalService::managerRequest((int)$row['id']);
+        if($ownTransaction && $legacyGoals)MetrikaConversionGoalService::managerRequest((int)$row['id']);
         try {
-            ManagerPushService::notifyConversation((int)$row['id'], 'Новая заявка ждёт менеджера');
+            if ($notify) ManagerPushService::notifyConversation((int)$row['id'], 'Новая заявка ждёт менеджера');
         } catch (Throwable $ignored) {
             // Notification transport cannot roll back the durable queue and event.
         }

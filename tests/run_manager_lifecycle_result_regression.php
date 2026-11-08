@@ -2,6 +2,9 @@
 declare(strict_types=1);
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once __DIR__.'/fixtures/manager_lifecycle_fixture.php';
+require_once dirname(__DIR__).'/integrations/MaxIncomingAdapter.php';
+require_once dirname(__DIR__).'/integrations/TelegramIncomingAdapter.php';
+require_once dirname(__DIR__).'/integrations/WebsiteIncomingAdapter.php';
 $pdo=new LifecycleFixturePdo('sqlite::memory:');lifecycleFixtureBind($pdo);lifecycleFixtureSchema($pdo);
 $passed=0;
 function lifecycleCheck(string $label,bool $ok): void {global $passed;if(!$ok)throw new RuntimeException('FAIL '.$label);$passed++;echo 'PASS '.$label."\n";}
@@ -38,6 +41,30 @@ foreach([['release',16,'ai','manager_released'],['close',16,'closed','conversati
 foreach(['take'=>11,'release'=>16,'close'=>16,'reopen'=>13] as $action=>$id){
     lifecycleFixtureSeed($pdo);lifecycleCheck($action.' legacy caller still receives strict true',ManagerConversationService::{$action}($id,1)===true);
     lifecycleCheck($action.' legacy caller still receives strict false',ManagerConversationService::{$action}(999,1)===false);
+}
+$maxIncoming=MaxIncomingAdapter::fromUpdate(['update_type'=>'message_created','message'=>['sender'=>['user_id'=>7001],'body'=>['mid'=>'synthetic-max-mid','text'=>'Synthetic message']]]);
+$telegramIncoming=TelegramIncomingAdapter::fromUpdate(['message'=>['from'=>['id'=>7001],'message_id'=>1,'text'=>'Synthetic message']]);
+$websiteIncoming=WebsiteIncomingAdapter::fromPayload(['text'=>'Synthetic message','message_id'=>'synthetic-web-mid'],'synthetic-web-session',8001);
+$legacyChatIds=['max'=>(string)$maxIncoming['user']['chat_id'],'telegram'=>(string)$telegramIncoming['user']['chat_id'],'website'=>(string)$websiteIncoming['user']['chat_id']];
+lifecycleCheck('actual ingress keeps MAX and Telegram native user IDs in distinct legacy keys',$legacyChatIds===['max'=>'-7001','telegram'=>'7001','website'=>'8001']);
+foreach(['release'=>'ai','close'=>'closed'] as $action=>$status){
+    foreach($legacyChatIds as $channel=>$chatId){
+        lifecycleFixtureSeed($pdo);
+        $pdo->exec('INSERT INTO manager_projects VALUES(1,2)');
+        $pdo->prepare('UPDATE conversations SET channel=?,external_chat_id=? WHERE id=16')->execute([$channel,$chatId]);
+        $pdo->prepare('UPDATE conversations SET project_key=?,channel=?,external_chat_id=? WHERE id=18')->execute(['other',$channel,$chatId]);
+        $legacyBefore=$pdo->query('SELECT * FROM conversations WHERE id=16')->fetch();
+        $result=lifecycleResult($action,18);
+        lifecycleCheck($action.' another project cannot touch the same legacy chat key for '.$channel,
+            $result===['ok'=>true]&&$pdo->query('SELECT status FROM conversations WHERE id=18')->fetchColumn()===$status
+            &&MaxSearchApi::$calls===[]&&$pdo->query('SELECT * FROM conversations WHERE id=16')->fetch()===$legacyBefore);
+        $otherBefore=$pdo->query('SELECT * FROM conversations WHERE id=18')->fetch();
+        $result=lifecycleResult($action,16);
+        $expected=$action==='release'?['setStatus',$chatId,MaxSearchApi::$statusAi]:['deleteAllStatus',$chatId];
+        lifecycleCheck($action.' preserves the default project shared dialogue hook for '.$channel,
+            $result===['ok'=>true]&&$pdo->query('SELECT status FROM conversations WHERE id=16')->fetchColumn()===$status
+            &&MaxSearchApi::$calls===[$expected]&&$pdo->query('SELECT * FROM conversations WHERE id=18')->fetch()===$otherBefore);
+    }
 }
 foreach(['take'=>11,'reopen'=>13] as $action=>$id){
     lifecycleFixtureSeed($pdo);$before=lifecycleFixtureSnapshot($pdo);

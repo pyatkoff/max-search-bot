@@ -29,11 +29,23 @@ final class ChannelPostButtonTransport
             self::check(in_array($platform, ['max', 'telegram'], true), 'unsupported_platform');
             self::check(ChannelPostIncomingAdapter::channelId($id) !== '', 'invalid_channel_id');
             self::check(self::botUrlMatches($platform, (string)($channel['bot_url'] ?? ''), $bot), 'canonical_bot_url_mismatch');
+            $verifyPublicUrl = array_key_exists('expected_public_url', $channel);
+            $expectedUrl = $channel['expected_public_url'] ?? null;
+            if ($verifyPublicUrl) {
+                self::check($platform === 'max' && is_string($expectedUrl)
+                    && preg_match('~\Ahttps://max\.ru/[A-Za-z0-9_]{1,191}\z~D', $expectedUrl) === 1,
+                    'invalid_expected_public_channel_url');
+            }
             $this->identity($platform, $bot, $id);
             $chat = $platform === 'max'
                 ? self::readable($this->call('max', 'GET', '/chats/' . $id, [], null, 'channel_type'), 'max')
                 : self::readable($this->call('telegram', 'POST', 'getChat', [], ['chat_id' => $id], 'channel_type'), 'telegram');
             self::check(($chat['type'] ?? '') === 'channel' && (string)($chat[$platform === 'max' ? 'chat_id' : 'id'] ?? '') === $id, 'channel_type_mismatch');
+            if ($verifyPublicUrl) {
+                self::check(($chat['status'] ?? null) === 'active' && ($chat['is_public'] ?? null) === true
+                    && is_string($chat['link'] ?? null) && rtrim($chat['link'], '/') === $expectedUrl,
+                    'public_channel_identity_mismatch');
+            }
             return $this->result('ready', 'capability_verified');
         } catch (ChannelPostTransportFailure $e) {
             return $this->result($e->getMessage() === 'provider_read_failed' ? 'unknown' : 'requires_attention', $e->getMessage());

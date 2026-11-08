@@ -17,6 +17,24 @@ class ConversationRecorder
 
     public static function inbound(array $incoming): bool
     {
+        $conversationId = null;
+        $duplicate = null;
+        return self::recordInbound($incoming, ProjectConfig::projectId(), true, $conversationId, $duplicate);
+    }
+
+    /** Explicit server-owned scope; callers must check persistence before acknowledging. */
+    public static function inboundForProject(string $projectKey, array $incoming, ?int &$conversationId = null, ?bool &$duplicate = null): bool
+    {
+        $conversationId = null;
+        $duplicate = false;
+        if (!preg_match('/\A[a-z0-9][a-z0-9_-]{0,63}\z/D', $projectKey)) return false;
+        return self::recordInbound($incoming, $projectKey, false, $conversationId, $duplicate);
+    }
+
+    private static function recordInbound(array $incoming, string $projectKey, bool $legacy, ?int &$conversationId, ?bool &$duplicate): bool
+    {
+        $conversationId = null;
+        $duplicate = false;
         self::$wizardInput = null;
         self::$wizardReceipts = [];
         self::$wizardReceiptReason = 'input_unavailable';
@@ -27,14 +45,20 @@ class ConversationRecorder
             $externalUserId = trim((string)($user['external_user_id'] ?? ''));
             $chatId = trim((string)($user['chat_id'] ?? ''));
             if ($platform === '' || $externalUserId === '' || $chatId === '') return false;
-            $sourceKey=trim((string)($incoming['source_key']??ProjectConfig::get('routing.source_key',$platform.':default')));
+            $sourceKey=trim((string)($incoming['source_key']??($legacy ? ProjectConfig::get('routing.source_key',$platform.':default') : $platform.':default')));
 
-            $conversationId = self::ensureConversation($platform, $externalUserId, $chatId, $user, $sourceKey);
+            $conversationId = self::ensureConversation($platform, $externalUserId, $chatId, $user, $sourceKey, $projectKey, $legacy);
             if (!$conversationId) return false;
 
             $type = (string)($incoming['type'] ?? 'message');
             if ($platform === 'max' && $type === 'bot_started') {
-                return self::eventByChat($platform, $chatId, 'bot_started', ['source_key'=>$sourceKey], 'system');
+                $payload = ['source_key'=>$sourceKey];
+                if (!$legacy) {
+                    foreach (['delivery_key','bot_key','repair_context'] as $key) {
+                        if (isset($incoming[$key])) $payload[$key] = $incoming[$key];
+                    }
+                }
+                return self::eventForConversation($conversationId, 'bot_started', $payload, 'system');
             }
             $attachments = array_values(array_filter((array)($incoming['attachments'] ?? []), 'is_array'));
             $text = $type === 'contact'
@@ -49,12 +73,18 @@ class ConversationRecorder
                 $check = $pdo->prepare('SELECT id FROM messages WHERE conversation_id=? AND direction=? AND external_message_id=? LIMIT 1');
                 $check->execute([$conversationId, 'inbound', $messageId]);
                 if ($check->fetchColumn()) {
+                    $duplicate = true;
                     self::$wizardReceiptReason = 'duplicate_input';
                     return true;
                 }
             }
 
             $metadata = ['type'=>$type, 'username'=>(string)($user['username'] ?? ''), 'source_key'=>$sourceKey];
+            if (!$legacy) {
+                foreach (['delivery_key','bot_key'] as $key) {
+                    if (isset($incoming[$key])) $metadata[$key] = $incoming[$key];
+                }
+            }
             if ($attachments) $metadata['attachments'] = $attachments;
             $linked=(array)($incoming['linked_message']??[]);
             if(in_array((string)($linked['type']??''),['reply','forward'],true)) $metadata['linked_message']=$linked;
@@ -63,7 +93,7 @@ class ConversationRecorder
             $stmt->execute([$conversationId,'inbound','customer',$externalUserId,$platform,$messageId !== '' ? $messageId : null,$text,$meta]);
             $inputId = (string)$pdo->lastInsertId();
             self::touch($conversationId);
-            if (ProjectConfig::projectId() === 'anytour' && in_array($platform, ['max','telegram'], true)
+            if ($legacy && $projectKey === 'anytour' && in_array($platform, ['max','telegram'], true)
                 && in_array($type, ['message','callback'], true) && $text !== ''
                 && ($linked['type'] ?? '') !== 'forward' && ctype_digit($inputId) && (int)$inputId > 0) {
                 self::$wizardInput = ['conversation_id'=>$conversationId, 'chat_id'=>$chatId,
@@ -174,6 +204,18 @@ class ConversationRecorder
             if (!ConversationDb::isConfigured()) return false;
             $conversationId = self::findConversationByChat(strtolower(trim($platform)), trim((string)$chatId));
             if (!$conversationId) return false;
+            return self::eventForConversation($conversationId, $eventType, $payload, $actorType);
+        } catch (Throwable $e) {
+            self::logFailure('event', $e);
+            return false;
+        }
+    }
+
+    /** The caller has already resolved and authorized the exact conversation. */
+    public static function eventForConversation(int $conversationId, string $eventType, array $payload = [], string $actorType = 'system'): bool
+    {
+        try {
+            if (!ConversationDb::isConfigured() || $conversationId <= 0) return false;
             $pdo = ConversationDb::connection();
             $stmt = $pdo->prepare('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json) VALUES (?,?,?,?)');
             $stmt->execute([$conversationId,$eventType,$actorType,self::json(ConversationRecordClock::stamp($payload))]);
@@ -197,11 +239,19 @@ class ConversationRecorder
         return $names ? '📎 ' . implode(', ', $names) : '📎 Вложение';
     }
 
-    private static function ensureConversation(string $platform, string $externalUserId, string $chatId, array $user, string $sourceKey): int
+    private static function ensureConversation(string $platform, string $externalUserId, string $chatId, array $user, string $sourceKey, string $project, bool $legacy): int
     {
         $pdo = ConversationDb::connection();
-        $project = ProjectConfig::projectId();
-        $sourceId=RoutingAccessService::sourceId($project,$sourceKey,$platform);
+        if ($legacy) {
+            $sourceId=RoutingAccessService::sourceId($project,$sourceKey,$platform);
+        } else {
+            // Registered connections may only use an existing active source.
+            // No global-project bootstrap or implicit source creation here.
+            $source = $pdo->prepare('SELECT s.id FROM conversation_sources s JOIN projects p ON p.id=s.project_id WHERE p.project_key=? AND p.is_active=1 AND s.source_key=? AND s.channel=? AND s.is_active=1');
+            $source->execute([$project,$sourceKey,$platform]);
+            $sourceId = (int)$source->fetchColumn();
+            if ($sourceId <= 0) return 0;
+        }
 
         $stmt = $pdo->prepare('SELECT cc.id AS channel_id, cc.customer_id FROM customer_channels cc WHERE cc.project_key=? AND cc.channel=? AND cc.external_user_id=? LIMIT 1');
         $stmt->execute([$project,$platform,$externalUserId]);
@@ -209,7 +259,8 @@ class ConversationRecorder
 
         $displayName = trim((string)($user['first_name'] ?? '') . ' ' . (string)($user['last_name'] ?? ''));
         if (!$row) {
-            $pdo->beginTransaction();
+            $ownTransaction = !$pdo->inTransaction();
+            if ($ownTransaction) $pdo->beginTransaction();
             try {
                 $q = $pdo->prepare('INSERT INTO customers (display_name) VALUES (?)');
                 $q->execute([$displayName !== '' ? $displayName : null]);
@@ -217,9 +268,9 @@ class ConversationRecorder
                 $q = $pdo->prepare('INSERT INTO customer_channels (customer_id,project_key,channel,external_user_id,external_chat_id,username,metadata_json) VALUES (?,?,?,?,?,?,?)');
                 $q->execute([$customerId,$project,$platform,$externalUserId,$chatId,(string)($user['username'] ?? ''),self::json(['first_name'=>$user['first_name'] ?? '', 'last_name'=>$user['last_name'] ?? ''])]);
                 $channelId = (int)$pdo->lastInsertId();
-                $pdo->commit();
+                if ($ownTransaction) $pdo->commit();
             } catch (Throwable $e) {
-                if ($pdo->inTransaction()) $pdo->rollBack();
+                if ($ownTransaction && $pdo->inTransaction()) $pdo->rollBack();
                 throw $e;
             }
         } else {

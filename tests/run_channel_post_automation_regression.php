@@ -101,6 +101,7 @@ final class FixturePostProvider
     public array $calls = [];
     public string $mode = 'success';
     public string $bot = '';
+    public array $chatFields = [];
     public $onRead = null;
     public bool $failVerification = false;
     public function __construct(array $message) { $this->message = $message; }
@@ -109,7 +110,7 @@ final class FixturePostProvider
         $bot = $this->bot !== '' ? $this->bot : ($platform === 'max' ? 'id9704048781_1_bot' : 'Any_tour_bot');
         if ($path === '/me') return $this->ok(['user_id' => 42, 'is_bot' => true, 'username' => $bot]);
         if (strpos($path, '/members/me') !== false) return $this->ok(['user_id' => 42, 'is_bot' => true, 'username' => $bot, 'is_admin' => true, 'permissions' => $this->mode === 'no_rights' ? ['read_all_messages'] : ['read_all_messages', 'edit']]);
-        if (preg_match('~^/chats/(-[0-9]+)$~', $path, $m)) return $this->ok(['chat_id' => $m[1], 'type' => $this->mode === 'wrong_channel_type' ? 'chat' : 'channel']);
+        if (preg_match('~^/chats/(-[0-9]+)$~', $path, $m)) return $this->ok(['chat_id' => $m[1], 'type' => $this->mode === 'wrong_channel_type' ? 'chat' : 'channel'] + $this->chatFields);
         if ($path === 'getMe') return $this->ok(['ok' => true, 'result' => ['id' => 42, 'is_bot' => true, 'username' => $bot]]);
         if ($path === 'getChatMember') return $this->ok(['ok' => true, 'result' => ['user' => ['id' => 42, 'is_bot' => true, 'username' => $bot], 'status' => 'administrator', 'can_edit_messages' => $this->mode !== 'no_rights']]);
         if ($path === 'getChat') return $this->ok(['ok' => true, 'result' => ['id' => $body['chat_id'], 'type' => $this->mode === 'wrong_channel_type' ? 'supergroup' : 'channel']]);
@@ -240,6 +241,21 @@ foreach (['max', 'telegram'] as $platform) {
     channelPostCheck($platform . ' capability verification performs no write', $provider->writes(), 0);
     $provider->mode = 'wrong_channel_type';
     channelPostCheck($platform . ' admin rejects non-channel chat', $transport->verifyChannel($channel)['reason'], 'channel_type_mismatch');
+    if ($platform === 'max') {
+        $provider->mode = 'success';
+        $channel['expected_public_url'] = 'https://max.ru/example_channel';
+        $provider->chatFields = ['status' => 'active', 'is_public' => true, 'link' => 'https://max.ru/example_channel/'];
+        channelPostCheck('MAX capability verification matches the exact public channel', $transport->verifyChannel($channel)['state'], 'ready');
+        $provider->chatFields['link'] = 'https://max.ru/other_channel';
+        channelPostCheck('MAX capability rejects a different managed channel', $transport->verifyChannel($channel)['reason'], 'public_channel_identity_mismatch');
+        $provider->chatFields['link'] = $channel['expected_public_url'];
+        $provider->chatFields['is_public'] = false;
+        channelPostCheck('MAX capability rejects a nonpublic channel', $transport->verifyChannel($channel)['reason'], 'public_channel_identity_mismatch');
+        $channel['expected_public_url'] = 'https://max.ru/join/example_channel';
+        $rejected = $transport->verifyChannel($channel);
+        channelPostCheck('MAX invalid public channel URL fails before provider reads', [$rejected['reason'], $rejected['receipt']['request_count']], ['invalid_expected_public_channel_url', 0]);
+        channelPostCheck('MAX public channel verification performs no write', $provider->writes(), 0);
+    }
 
     [$store, $provider, $transport, $service] = channelPostScenario($fixtures[$platform], $platform);
     $callback = $fixtures[$platform];

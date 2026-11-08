@@ -8,12 +8,13 @@ final class MaxInboundMediaDownloadAdapter
 {
     private const API = 'https://platform-api2.max.ru';
 
-    public static function fetchMessage(string $externalMessageId): ?array
+    public static function fetchMessage(string $externalMessageId, ?string $authToken = null, ?string $baseUrl = null): ?array
     {
-        $token = defined('MAX_SEARCH_TOKEN') ? trim((string)MAX_SEARCH_TOKEN) : '';
+        $token = $authToken === null ? (defined('MAX_SEARCH_TOKEN') ? trim((string)MAX_SEARCH_TOKEN) : '') : trim($authToken);
         $externalMessageId = trim($externalMessageId);
         if ($token === '' || $externalMessageId === '' || strlen($externalMessageId) > 512) return null;
-        $url = self::API.'/messages/'.rawurlencode($externalMessageId);
+        $url = rtrim($baseUrl ?? self::API,'/').'/messages/'.rawurlencode($externalMessageId);
+        if (!self::safeHttpsUrl($url)) return null;
         $stream = tmpfile();
         if ($stream === false) return null;
         $bytes = 0;
@@ -40,12 +41,13 @@ final class MaxInboundMediaDownloadAdapter
         return is_array($data) ? $data : null;
     }
 
-    public static function fetchVideo(string $token): ?array
+    public static function fetchVideo(string $token, ?string $authToken = null, ?string $baseUrl = null): ?array
     {
         $token = trim($token);
-        $auth = defined('MAX_SEARCH_TOKEN') ? trim((string)MAX_SEARCH_TOKEN) : '';
+        $auth = $authToken === null ? (defined('MAX_SEARCH_TOKEN') ? trim((string)MAX_SEARCH_TOKEN) : '') : trim($authToken);
         if ($token === '' || $auth === '' || strlen($token) > 1024) return null;
-        $url = self::API.'/videos/'.rawurlencode($token);
+        $url = rtrim($baseUrl ?? self::API,'/').'/videos/'.rawurlencode($token);
+        if (!self::safeHttpsUrl($url)) return null;
         $stream = tmpfile();
         if ($stream === false) return null;
         $bytes = 0;
