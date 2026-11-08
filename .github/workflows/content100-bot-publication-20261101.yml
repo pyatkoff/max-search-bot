@@ -1,162 +1,227 @@
-name: Reconcile the stopped caption journal once without application access
-on:
-  push:
-    branches: [audit/content100-bot-publication-20261101]
-    paths: [.github/workflows/content100-bot-publication-20261101.yml]
+name: Shorten the two reviewed Susesi headings once
 permissions:
   contents: read
   actions: read
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 87f9c7cccff02382dc2c33f9dda06f5b8e6357c0
+'on':
+  push:
+    branches:
+    - audit/content100-bot-publication-20261101
+    paths:
+    - .github/workflows/content100-bot-publication-20261101.yml
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Prepare the exact private-journal reader only
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          test "$GITHUB_RUN_ATTEMPT" = 1
-          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          cat > "$RUNNER_TEMP/caption-prior-journal-reader.php" <<'PHP'
-          <?php
-          declare(strict_types=1);
-          // One existing private journal, outside the application checkout.
-          // No application load, database, provider request, or journal write.
-          ini_set('display_errors','0');ini_set('log_errors','0');
-          $out=['operation'=>'commercial-hotel-caption-review6706115450-20261107-1-v1','mode'=>'read_only_original_journal_reconciliation','ok'=>false,'prior_run_id'=>42433350408,'prior_job_id'=>128586848537,'file_writes'=>0,'database_calls'=>0,'provider_calls'=>0,'post_write_attempts'=>0,'used_operation_id_reusable'=>false];
-          function requireJournal(bool $ok,string $reason):void{if(!$ok)throw new RuntimeException($reason);}
-          $handle=null;
-          try {
-              requireJournal(PHP_SAPI==='cli','cli_required');
-              $parent='/var/www/anytoour/data/channel-post-operations';
-              $dir=$parent.'/commercial-hotel-caption-review6706115450-20261107-1-v1';
-              $file=$dir.'/receipt.jsonl';
-              requireJournal(is_dir($parent)&&!is_link($parent)&&realpath($parent)===$parent,'journal_parent_path_changed');
-              requireJournal(is_dir($dir)&&!is_link($dir)&&realpath($dir)===$dir,'original_operation_directory_missing_or_changed');
-              requireJournal((fileperms($dir)&0077)===0,'operation_directory_not_private');
-              requireJournal(is_file($file)&&!is_link($file)&&realpath($file)===$file,'original_journal_missing_or_changed');
-              $handle=fopen($file,'rb');requireJournal(is_resource($handle),'journal_read_open_failed');
-              requireJournal(flock($handle,LOCK_SH|LOCK_NB),'journal_has_active_exclusive_writer');
-              $before=fstat($handle);requireJournal(is_array($before)&&$before['size']>0&&$before['size']<=1048576,'journal_empty_or_outside_read_bound');
-              $raw=stream_get_contents($handle,1048577);$after=fstat($handle);
-              requireJournal(is_string($raw)&&strlen($raw)===$before['size']&&is_array($after),'bounded_original_journal_read_failed');
-              foreach(['dev','ino','size','mtime','ctime'] as $key)requireJournal($before[$key]===$after[$key],'journal_changed_during_read');
-              requireJournal(str_ends_with($raw,"\n"),'journal_contains_unresolved_partial_line');
-              $lines=explode("\n",substr($raw,0,-1));requireJournal(count($lines)>0&&count($lines)<=64,'journal_line_count_outside_bound');
-              foreach($lines as $line){
-                  requireJournal($line!=='','journal_contains_empty_record');
-                  $state=json_decode($line,true,64,JSON_THROW_ON_ERROR);
-                  requireJournal(is_array($state)&&($state['operation']??'')===$out['operation'],'original_journal_operation_changed');
-                  requireJournal(($state['manifest_hash']??'')==='bc42da11b7f4d806b4e7e2cff33ccbabf30333881df5c49581f7b59d8597b4e1','original_journal_manifest_binding_changed');
-                  requireJournal(array_key_exists('configs',$state)&&array_key_exists('posts',$state)&&$state['configs']===[]&&$state['posts']===[],'journal_has_configuration_or_edit_intent_requires_original_reconciliation');
-                  requireJournal(($state['complete']??false)===false,'journal_already_marked_complete');
-              }
-              $out['ok']=true;$out['outcome']='ORIGINAL_JOURNAL_CONFIRMS_NO_CONFIGURATION_OR_POST_EDIT_INTENT';
-              $out['journal_records']=count($lines);$out['journal_bytes']=strlen($raw);$out['journal_sha256']=hash('sha256',$raw);
-              $out['original_manifest_binding_matches']=true;$out['shared_lock_acquired']=true;
-              $out['all_records_empty_configs_and_posts']=true;$out['journal_unchanged_during_read']=true;
-              $out['no_replay_remains_required']=true;
-          } catch(Throwable $error) {
-              $out['error']=preg_match('/\A[a-z][a-z0-9_]{1,150}\z/',$error->getMessage())?$error->getMessage():'bounded_original_journal_reconciliation_failed';
-          } finally {
-              if(is_resource($handle)){flock($handle,LOCK_UN);fclose($handle);}
-          }
-          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
-          exit($out['ok']?0:2);
-          PHP
-          php -l "$RUNNER_TEMP/caption-prior-journal-reader.php"
-      - name: Prepare existing server connection
-        env:
-          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          raw="$DEPLOY_SSH_KEY_VALUE"
-          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
-            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else
-            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
-          fi
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-      - name: Pin existing server host-key continuity
-        env:
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re,subprocess,base64,hashlib,pathlib
-          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
-          matches=[]
-          for line in scan.stdout.splitlines():
-            fields=line.split()
-            if len(fields)<3 or fields[0].startswith('#'):continue
-            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
-            except Exception:continue
-            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
-          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
-          PY
-      - name: Read only the exact original stopped journal under the existing publisher
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/journal-current-repository.json"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/journal-current-audit.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/journal-active-publisher.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/journal-queued-publisher.json"
-          python3 - <<'PY'
-          import json,os,pathlib,re
-          p=pathlib.Path(os.environ['RUNNER_TEMP'])
-          main=json.loads((p/'journal-current-repository.json').read_text())['object']['sha'];assert re.fullmatch('[0-9a-f]{40}',main)
-          assert json.loads((p/'journal-current-audit.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
-          active=json.loads((p/'journal-active-publisher.json').read_text());queued=json.loads((p/'journal-queued-publisher.json').read_text())
-          assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
-          assert queued['total_count']==0
-          PY
-          probe_status=0
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < "$RUNNER_TEMP/caption-prior-journal-reader.php" > "$RUNNER_TEMP/caption-prior-journal-reconciliation.safe.json" || probe_status=$?
-          JOURNAL_SSH_STATUS="$probe_status" python3 - <<'PY'
-          import json,os,pathlib
-          p=pathlib.Path(os.environ['RUNNER_TEMP']);f=p/'caption-prior-journal-reconciliation.safe.json'
-          try:d=json.loads(f.read_text())
-          except Exception:
-              d={'operation':'commercial-hotel-caption-review6706115450-20261107-1-v1','mode':'read_only_original_journal_reconciliation','ok':False,'error':'no_valid_original_journal_result','used_operation_id_reusable':False}
-          d['reader_commit']=os.environ['GITHUB_SHA'];d['observed_repository_sha']=json.loads((p/'journal-current-repository.json').read_text())['object']['sha'];d['ssh_status']=int(os.environ['JOURNAL_SSH_STATUS'])
-          f.write_text(json.dumps(d,sort_keys=True));print(json.dumps(d,sort_keys=True))
-          assert d['ok'] is True and d['outcome']=='ORIGINAL_JOURNAL_CONFIRMS_NO_CONFIGURATION_OR_POST_EDIT_INTENT'
-          assert d['original_manifest_binding_matches'] is True and d['all_records_empty_configs_and_posts'] is True and d['journal_unchanged_during_read'] is True
-          assert d['file_writes']==d['database_calls']==d['provider_calls']==d['post_write_attempts']==0 and d['used_operation_id_reusable'] is False
-          assert d['ssh_status']==0
-          PY
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: commercial-caption-prior-journal-reconciliation-20261108-1
-          path: ${{ runner.temp }}/caption-prior-journal-reconciliation.safe.json
-          retention-days: 14
-          if-no-files-found: warn
-      - name: Remove only ephemeral runner files
-        if: always()
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/caption-prior-journal-reader.php"
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.sha }}
+        persist-credentials: false
+    - name: Verify exact scripts and native PHP before loading credentials
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        python3 - <<'PY'
+        import hashlib,pathlib
+        p=pathlib.Path('tools/direct_demand/operations')
+        pins={'title-only-executor-template.php': 'c7499d15466db5fc1bfbff4870faa460a911d69ba5fd34b6f5c07b7cb8283e4d', 'title-only-markup-functions.php': '0667dc01ccbc023aa84d422463810122a51873928710ef835f5e7d603c314ac0', 'test-title-only-markup.php': '3c03344f7869cd08e100b370b8f016e3cf42397e5eca8243bf578e981b1e7903', 'prepare-title-only.py': '062b0b5081451ad130caa6c5fbc040a2c378d66a873f1eb3d7cc9b67313b4a7c', 'read-short-heading-scope-20261108.php': '16b2f660709bda1995fa4edbf90e67651338d54d25244e1b54cdabf36ec2aaea', 'short-heading-scope-20261107.json': 'd1c11d29609483213cd8988aeb398fca48c9d78b8a3588297066cf4926398724'}
+        for name,digest in pins.items():
+            assert hashlib.sha256((p/name).read_bytes()).hexdigest()==digest,(name,'reviewed_script_changed')
+        helper=(p/'title-only-markup-functions.php').read_text().split('declare(strict_types=1);',1)[1].strip()
+        assert helper in (p/'title-only-executor-template.php').read_text()
+        PY
+        python3 tools/direct_demand/operations/prepare-title-only.py --self-test
+        php -l tools/direct_demand/operations/title-only-executor-template.php
+        php -l tools/direct_demand/operations/title-only-markup-functions.php
+        php -l tools/direct_demand/operations/test-title-only-markup.php
+        php tools/direct_demand/operations/test-title-only-markup.php
+        mkdir -m 700 "$RUNNER_TEMP/short-title-private"
+    - name: Require original current-source release and health gates
+      env:
+        GH_TOKEN: ${{ github.token }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+        evidence="$RUNNER_TEMP/commercial-source-evidence"
+        mkdir -m 700 "$evidence"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+        gh api repos/pyatkoff/max-search-bot/actions/runs/42438449639 > "$evidence/verify_run.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs/42438449639/jobs?per_page=30" > "$evidence/verify_jobs.json"
+        gh api repos/pyatkoff/max-search-bot/actions/runs/42438892051 > "$evidence/tls_run.json"
+        gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+        tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+        gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+        python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+        for run_id in 42438892033 42438892091 42438892036 42438892062 42438892076 42438892165 42438892151; do
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/$run_id" > "$evidence/gate-$run_id.json"
+        done
+        python3 - <<'PY'
+        import json,os,pathlib
+        t=pathlib.Path(os.environ['RUNNER_TEMP'],'commercial-source-evidence');sha=os.environ['EXPECTED_PRODUCTION_SHA']
+        deploy=json.loads((t/'verify_run.json').read_text());assert deploy['status']=='completed' and deploy['conclusion']=='success' and deploy['head_sha']==sha
+        jobs=json.loads((t/'verify_jobs.json').read_text());assert len(jobs['jobs'])==6 and all(j['status']=='completed' and j['conclusion']=='success' and j['head_sha']==sha for j in jobs['jobs'])
+        expected={42438892033:'modeled-conversion-value-export.yml',42438892091:'max-production-health.yml',42438892036:'telegram-production-health.yml',42438892062:'live-session-diagnostics.yml',42438892076:'modeled-conversion-monitor.yml',42438892165:'tour-selection-host.yml',42438892151:'publish-conversation-diagnostics.yml'}
+        for rid,name in expected.items():
+            r=json.loads((t/f'gate-{rid}.json').read_text());assert r['id']==rid and r['head_sha']==sha and r['path']=='.github/workflows/'+name and r['status']=='completed' and r['conclusion']=='success'
+        print('ORIGINAL_CURRENT_SOURCE_GATES_ACCEPTED unchanged_publishing_blobs=21 no_checks_dispatched=1')
+        PY
+    - name: Prepare existing server connection
+      env:
+        DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        raw="$DEPLOY_SSH_KEY_VALUE"
+        if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+          if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+        else
+          printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+        fi
+        ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+    - name: Pin existing server host-key continuity
+      env:
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        umask 077
+        python3 - <<'PY'
+        import os,re,subprocess,base64,hashlib,pathlib
+        host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+        assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+        assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+        scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+        matches=[]
+        for line in scan.stdout.splitlines():
+          fields=line.split()
+          if len(fields)<3 or fields[0].startswith('#'):continue
+          try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+          except Exception:continue
+          if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+        assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+        pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+        PY
+    - name: Refresh the immutable 916-post scope and compile the two-post canary
+      shell: bash
+      env:
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        python3 - <<'PY'
+        import base64,hashlib,os,pathlib
+        p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        raw=(p/'short-heading-scope-20261107.json').read_bytes()
+        source=(p/'read-short-heading-scope-20261108.php').read_text()
+        constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+        (t/'reader.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+        PY
+        php -l "$private/reader.php"
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/reader.php" > "$private/snapshot.json"
+        python3 - <<'PY'
+        import hashlib,json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private');d=json.loads((p/'snapshot.json').read_text())
+        assert d['ok'] and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert d['provider_calls']==d['post_write_attempts']==0 and len(d['posts'])==916
+        digest=hashlib.sha256(json.dumps(d['posts'],ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        assert digest=='a50fea3b1e2a5666750b5b5788776c05638ca4abe6d1290b062a6d2e7abb4d58','reviewed_target_snapshot_changed'
+        print('FRESH_SNAPSHOT_CONFIRMED exact_unchanged_posts=916 writes=0')
+        PY
+        python3 tools/direct_demand/operations/prepare-title-only.py --snapshot "$private/snapshot.json" --expected-installed-sha "$EXPECTED_PRODUCTION_SHA" --operation-prefix commercial-short-heading-20261108 --batch-size 20 --output-dir "$private/manifests"
+        python3 - <<'PY'
+        import base64,hashlib,json,os,pathlib
+        p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        index=json.loads((t/'manifests/plan-index.json').read_text())
+        assert index['selected_posts']==916 and index['no_matching_suffix_publication_ids']==[] and len(index['manifests'])==47
+        entry=index['manifests'][0];raw=(t/'manifests'/entry['file']).read_bytes();manifest=json.loads(raw)
+        assert hashlib.sha256(raw).hexdigest()==entry['sha256'] and entry['posts']==2
+        assert manifest['operation']=='commercial-short-heading-20261108-canary-v1'
+        assert {(r['platform'],r['publication_id'],r['version_id']) for r in manifest['rows']}=={('max',432,668),('telegram',431,669)}
+        constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='"+manifest['operation']+"';\nconst APPROVED_MANIFEST_SHA256='"+entry['sha256']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
+        source=(p/'title-only-executor-template.php').read_text()
+        (t/'canary.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+        intent={'operation':manifest['operation'],'state':'PREPARED_NOT_EXECUTED','expected_installed_sha':os.environ['EXPECTED_PRODUCTION_SHA'],'manifest_sha256':entry['sha256'],'post_count':2,'scope':'first-line suffix only; preserve existing messages, body, photos and button routes','once_no_replay':True}
+        (t/'intent.safe.json').write_text(json.dumps(intent,sort_keys=True))
+        print(json.dumps(intent,sort_keys=True))
+        PY
+        php -l "$private/canary.php"
+    - name: Retain the fresh snapshot and exact bounded manifests before the canary
+      uses: actions/upload-artifact@v4
+      with:
+        name: commercial-short-heading-20261108-prepared
+        path: |-
+          ${{ runner.temp }}/short-title-private/snapshot.json
+          ${{ runner.temp }}/short-title-private/manifests
+          ${{ runner.temp }}/short-title-private/intent.safe.json
+        retention-days: 14
+        if-no-files-found: error
+    - name: Recheck sole publisher and shorten exactly two existing headings once
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/canary.php" > "$private/canary-result.jsonl" || probe_status=$?
+        CAPTION_SSH_STATUS="$probe_status" python3 - <<'PY'
+        import json,os,pathlib
+        t=pathlib.Path(os.environ['RUNNER_TEMP']);p=t/'short-title-private'
+        try:
+            d=json.loads((p/'canary-result.jsonl').read_text().splitlines()[-1])
+            if not isinstance(d,dict) or d.get('operation')!='commercial-short-heading-20261108-canary-v1' or type(d.get('ok')) is not bool:
+                raise ValueError('original_runtime_result_missing')
+        except Exception:
+            d={'operation':'commercial-short-heading-20261108-canary-v1','ok':False,'error':'no_valid_original_runtime_result','outcome':'UNKNOWN_STOP_NO_REPLAY'}
+        d['ssh_status']=int(os.environ['CAPTION_SSH_STATUS'])
+        (t/'short-title-canary.safe.json').write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
+        print(json.dumps(d,ensure_ascii=False,sort_keys=True))
+        assert d['operation']=='commercial-short-heading-20261108-canary-v1' and d['ok'] is True
+        assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['ssh_status']==0
+        assert d['preflight_existing_messages']==d['post_write_attempts']==d['title_updates']==len(d['posts'])==2
+        assert {r['publication_id'] for r in d['posts']}=={431,432}
+        assert all(r['state']=='sent' and r['body_photo_button_verified'] and r['formatting_verified'] and r['existing_message_reused'] and r['existing_token_resolves_to_current_version'] for r in d['posts'])
+        assert all(d[k]==0 for k in ['configuration_write_attempts','button_write_attempts','new_posts_created','tour_search_calls','price_queries'])
+        PY
+    - name: Retain the original two-post outcome
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: commercial-short-heading-20261108-canary-result
+        path: ${{ runner.temp }}/short-title-canary.safe.json
+        retention-days: 14
+        if-no-files-found: warn
+    - name: Remove only ephemeral connection and compiled private files
+      if: always()
+      shell: bash
+      run: rm -rf "$RUNNER_TEMP/short-title-private" "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
