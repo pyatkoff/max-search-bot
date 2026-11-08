@@ -145,6 +145,19 @@ repository release identifies R and authenticates that inheritance. The closer
 also proves that automatic child jobs executed only their finite metadata steps
 and skipped the protected operations. No new live probe or acceptance is run.
 
+A same-source scheduled monitor may independently create a skipped activation
+while the original deployment tail is running. The closer classifies that child
+separately: the exact origin ID must identify a successful original scheduled
+monitor in this repository, on main and at the same source; the child must retain
+that exact origin. Only a completed child with one original `activate` job,
+explicitly skipped and with zero steps, is excluded from release candidates.
+The original deployment monitor's activation remains mandatory and is the only
+activation written into the terminal proof. A pending independent child shares
+the existing finite metadata wait; it cannot silently permit closure. Duplicate
+origins, wrong repository/source/attempt, failed or executed jobs, incomplete
+metadata and API failures retain the publisher. This classification starts no
+monitor, activation, installation or retry and changes no workflow or schedule.
+
 Pending gates are read together every 20 seconds for at most 18 minutes within
 the existing server job. Completed gates are not rerun. Failed/cancelled/skipped
 mandatory gates, changed main, unavailable/ambiguous metadata, API refusal,

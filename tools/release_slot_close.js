@@ -123,6 +123,47 @@ function gateState(snapshot, c) {
   requireValue(own[0].status === 'in_progress' && own[0].conclusion === null, 'closer_not_active');
   return waiting ? 'waiting' : 'ready';
 }
+// A scheduled monitor can create a separate, deliberately skipped activation
+// for this same commit. It is never the original deployment's activation proof.
+async function selectReleaseRuns(snapshot,c,get) {
+  const runs=snapshot?.workflow_runs;
+  requireValue(Array.isArray(runs)&&Number.isSafeInteger(snapshot.total_count)
+    &&snapshot.total_count===runs.length&&runs.length<100
+    &&new Set(runs.map(r=>r.id)).size===runs.length,'incomplete_runs');
+  const selected=[],origins=new Set();
+  let waiting=false;
+  for(const run of runs) {
+    const match=run.path===PREFIX+ACTIVATION.file&&run.event==='workflow_run'
+      &&typeof run.display_title==='string'
+      &&/^monitor-proof:v1:([1-9][0-9]*):1$/.exec(run.display_title);
+    if(!match){selected.push(run);continue;}
+    const parentId=Number(match[1]);
+    requireValue(id(parentId)&&!origins.has(parentId),'ambiguous_activation_origin');
+    origins.add(parentId);
+    const present=runs.find(r=>r.id===parentId);
+    const parent=present||await get('/actions/runs/'+parentId);
+    if(parent?.event!=='schedule'){selected.push(run);continue;}
+    validRun(parent,c,PREFIX+'modeled-conversion-monitor.yml','schedule','Monitor modeled conversion delivery');
+    requireValue(parent.id===parentId&&parent.status==='completed'&&parent.conclusion==='success'
+      &&parent.head_commit?.id===c.sha,'independent_monitor_unconfirmed');
+    validRun(run,c,PREFIX+ACTIVATION.file,'workflow_run',ACTIVATION.name,match[0]);
+    requireValue(Date.parse(run.created_at)>=Date.parse(parent.created_at),'stale_gate');
+    if(run.status!=='completed'){
+      requireValue(['queued','in_progress','waiting','pending','requested'].includes(run.status)
+        &&run.conclusion===null,'invalid_run_state');
+      waiting=true;continue;
+    }
+    requireValue(['success','skipped'].includes(run.conclusion),'independent_activation_unconfirmed');
+    const jobs=await get('/actions/runs/'+run.id+'/attempts/1/jobs?per_page=100');
+    requireValue(Array.isArray(jobs?.jobs)&&jobs.total_count===1&&jobs.jobs.length===1,
+      'incomplete_independent_activation_jobs');
+    const j=jobs.jobs[0];
+    requireValue(id(j.id)&&j.name==='activate'&&j.run_id===run.id&&j.run_attempt===1
+      &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
+      &&Array.isArray(j.steps)&&j.steps.length===0,'independent_activation_executed');
+  }
+  return {runs:await selectRecoveryRuns({...snapshot,total_count:selected.length,workflow_runs:selected},c,get),waiting};
+}
 function recordState(record, b) {
   requireValue(record?.id === b.comment_id && record.user?.id === b.owner_id
     && record.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/1122'
@@ -173,7 +214,7 @@ async function closeRelease({ env, event, api, sleep, now = Date.now, prepare = 
   };
   await main();
   if(c.deployAttempt===2)c.recovery=await readRecovery(get,c);
-  const snapshot=async()=>selectRecoveryRuns(await get('/actions/runs?head_sha='+c.sha+'&per_page=100'),c,get);
+  const snapshot=async()=>selectReleaseRuns(await get('/actions/runs?head_sha='+c.sha+'&per_page=100'),c,get);
   const pulls = await get('/commits/' + c.sha + '/pulls?per_page=100');
   requireValue(Array.isArray(pulls) && pulls.length < 100, 'incomplete_pulls');
   const merged = pulls.filter(p => p.merge_commit_sha === c.sha && p.state === 'closed');
@@ -201,8 +242,9 @@ async function closeRelease({ env, event, api, sleep, now = Date.now, prepare = 
   const deadline = now() + 18 * 60 * 1000;
   while (true) {
     await main();
-    const state = gateState(await snapshot(), c);
-    if (state === 'ready') break;
+    const observed = await snapshot();
+    const state = gateState(observed.runs, c);
+    if (state === 'ready' && !observed.waiting) break;
     requireValue(now() < deadline, 'gate_deadline');
     await sleep(Math.min(20000, deadline - now()));
   }
@@ -239,8 +281,9 @@ async function closeRelease({ env, event, api, sleep, now = Date.now, prepare = 
   requireValue(JSON.stringify(current) === JSON.stringify(b), 'binding_changed');
   await main();
   if(c.recovery)c.recovery=await readRecovery(get,c);
-  const finalRuns = await snapshot();
-  requireValue(gateState(finalRuns, c) === 'ready', 'gates_changed');
+  const finalSnapshot = await snapshot();
+  const finalRuns = finalSnapshot.runs;
+  requireValue(gateState(finalRuns, c) === 'ready' && !finalSnapshot.waiting, 'gates_changed');
   const activation = finalRuns.workflow_runs.find(r => r.path === PREFIX + ACTIVATION.file
     && r.event === 'workflow_run');
   verifyActivation(await get('/actions/runs/' + activation.id + '/attempts/1/jobs?per_page=100'), activation, c,
@@ -270,7 +313,8 @@ async function closeRelease({ env, event, api, sleep, now = Date.now, prepare = 
     await release.authenticatePublication(api,fresh);
     // No slow artifact/job verification after the last publisher admission.
     // Re-read main, the binding and the owned record immediately before PATCH.
-    requireValue(gateState(await snapshot(),c)==='ready','gates_changed');
+    const lastSnapshot=await snapshot();
+    requireValue(gateState(lastSnapshot.runs,c)==='ready'&&!lastSnapshot.waiting,'gates_changed');
     let lastBinding=binding(await get('/pulls/'+b.pr),c.sha);
     if(lastBinding&&r.kind==='application_unchanged')lastBinding={...lastBinding,released:release.terminalBody(r.kind,b.pr)};
     requireValue(release.same(lastBinding,b),'binding_changed');
@@ -668,7 +712,7 @@ function makeApi(token, fetchImpl = globalThis.fetch) {
 }
 module.exports = { REQUIRED, CLOSER, ACTIVATION, context, binding, gateState, recordState, verifyTelemetry,
   verifyConfigure, verifyActivation, closeRelease, makeApi, INSTALL_JOBS, VERIFY_STEPS, stepResult, copiedExecution,
-  deploymentHistory, admitVerification, selectRecoveryRuns, stageStatus, bindingSnapshot, gateReferences,
+  deploymentHistory, admitVerification, selectRecoveryRuns, selectReleaseRuns, stageStatus, bindingSnapshot, gateReferences,
   onlyMetadataSteps,verifyUnchangedJobs,prepareRecord,PUBLIC_DIAGNOSTIC_JSON,diagnosticsTree,publishDiagnostics,
   publishPending,resumePublication };
 if (typeof require === 'function' && require.main === module) {
