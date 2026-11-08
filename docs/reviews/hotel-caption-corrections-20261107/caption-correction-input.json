@@ -1,183 +1,233 @@
 {
-  "schema_version": 1,
-  "status": "PREPARED_NOT_EXECUTED_NOT_FRESH",
+  "schema_version": 2,
+  "status": "PREPARED_NOT_EXECUTED",
   "operation": "commercial-hotel-caption-review6706115450-20261107-1-v1",
-  "review": {
-    "url": "https://github.com/pyatkoff/max-search-bot/issues/1142#issuecomment-6706115450",
-    "id": 6706115450,
-    "updated_at": "2026-11-07T11:46:26Z"
-  },
+  "review_url": "https://github.com/pyatkoff/max-search-bot/issues/1142#issuecomment-6706115450",
   "button_text": "✈️ Узнать стоимость тура",
   "update_kind": "caption_only",
   "search_link_included": false,
-  "expected_installed_sha": "a9b03a52bb4c4505640eae79541b7d48aa391083",
   "expected_existing_messages": 6,
-  "source_template": {
-    "url": "https://github.com/pyatkoff/max-search-bot/blob/c261486fdb8ff8f18a467ee51c228e29bcf6c5bd/tools/direct_demand/operations/update-existing-three-captions-20261107-template.php",
-    "git_blob_sha": "f0015367abf054af59196d2234e015991716f018",
-    "sha256": "ef6636881b3969da8041f07f69017bbaf54261224c13692d5ac9e316760deb32"
+  "expected_installed_sha": "840287a325da73df049a0dce8ee0b1f51aaacc10",
+  "source_caption_receipt": {
+    "operation": "commercial-existing-headings-20261107-4-v1",
+    "run_id": 42386815481,
+    "run_attempt": 1,
+    "head_sha": "84713e852f3405fb2f5672c27c986083e4fbe217",
+    "job_id": 128445837697,
+    "artifact_id": 13580068810,
+    "artifact_name": "commercial-existing-headings-20261107-4-result",
+    "installed_sha": "57e5ca2d4e14b2e130e728f5a7e99518f89b4f29",
+    "zip_sha256": "62ed453aa5bf3dd1c7d6ebb87bba3e8adf548a365967aca983a5427d0493b94d",
+    "member": "channel-preflight.json",
+    "member_sha256": "cbb7c41de72bc72be847f94726038c25a3b7c188f77e59ca00f0a3e945640186",
+    "original_posts": 72,
+    "logical_ids": [
+      "commercial-alma-resort-cam-ranh-73974-v1",
+      "commercial-amwaj-beach-club-abu-soma-1960-v1",
+      "commercial-anda-barut-collection-108146-v1",
+      "commercial-andaman-embrace-patong-613-v1",
+      "commercial-barut-b-suites-55647-v1",
+      "commercial-barut-hemera-1033-v1",
+      "commercial-calista-luxury-resort-1065-v1",
+      "commercial-chateau-du-village-116932-v1",
+      "commercial-flow-spectrum-resort-sahl-hasheesh-118475-v1",
+      "commercial-golden-beach-resort-ex-movie-gate-140-v1",
+      "commercial-graceland-khao-lak-beach-resort-24909-v1",
+      "commercial-gural-premier-belek-1074-v1",
+      "commercial-gural-premier-tekirova-969-v1",
+      "commercial-khao-lak-marriott-beach-resort-spa-120117-v1",
+      "commercial-lara-barut-collection-1035-v1",
+      "commercial-le-meridien-khao-lak-resort-spa-68984-v1",
+      "commercial-long-beach-resort-hurghada-ex-hilton-long-beach-resort-247-v1",
+      "commercial-mirage-park-resort-1354-v1",
+      "commercial-monte-carlo-sharm-resort-spa-aqua-park-386-v1",
+      "commercial-nika-island-2469-v1",
+      "commercial-nooe-kunaavashi-101694-v1",
+      "commercial-novotel-phuket-vintage-park-8053-v1",
+      "commercial-phuket-graceland-resort-spa-748-v1",
+      "commercial-phuket-marriott-resort-spa-merlin-beach-703-v1",
+      "commercial-pine-beach-belek-1362-v1",
+      "commercial-pullman-pattaya-hotel-g-2050-v1",
+      "commercial-seashells-phu-quoc-hotel-spa-58987-v1",
+      "commercial-sherwood-exclusive-kemer-1352-v1",
+      "commercial-side-star-park-45199-v1",
+      "commercial-sol-by-melia-phu-quoc-54193-v1",
+      "commercial-sphinx-aqua-park-beach-resort-462-v1",
+      "commercial-sueno-hotels-deluxe-belek-37360-v1",
+      "commercial-sugar-marina-resort-surf-kata-beach-33313-v1",
+      "commercial-sun-siyam-pasikudah-43236-v1",
+      "commercial-uga-jungle-beach-24462-v1",
+      "commercial-wyndham-garden-phuket-kamala-128087-v1"
+    ]
   },
-  "source_receipts": [
-    {
-      "batch": 3,
-      "operation": "commercial-hotel-batch-20261107-3-v1",
-      "source_manifest_commit": "cfd1acb33f19f9e9fa7a5ee45910653e6bf091bd",
-      "source_manifest_path": "tools/direct_demand/operations/commercial-batch-20261107-3-manifest.json",
-      "source_manifest_git_blob": "48fe7174863fc73a61c58a2495bfb02be79045da",
-      "run_id": 42366571943,
-      "job_id": 128385778924,
-      "artifact_id": 13572360372,
-      "artifact_name": "commercial-batch-20261107-3-publication",
-      "zip_sha256": "6a1e7da61da2f55b94dff4d1ae6a67d18b1154a9f80298c2c0e9e1823d52f9f0",
-      "member": "channel-preflight.json",
-      "member_sha256": "16ef835c505b6e2c225374a50526eb8ecb72213cbe0e1e0de411b5a3b593fde1",
-      "original_new_posts": 12,
-      "original_post_write_attempts": 12,
-      "original_hotel_ids": [
-        1352,
-        37360,
-        1035,
-        45199,
-        613,
-        24909
-      ]
-    },
-    {
-      "batch": 4,
-      "operation": "commercial-hotel-batch-20261107-4-v1",
-      "source_manifest_commit": "88036ab7fdb97e3f6c9713bea14c66bac3a87fa5",
-      "source_manifest_path": "tools/direct_demand/operations/commercial-batch-20261107-4-manifest.json",
-      "source_manifest_git_blob": "68104c34600ac60e62672992e8383d2131497553",
-      "run_id": 42368588925,
-      "job_id": 128391812460,
-      "artifact_id": 13572078493,
-      "artifact_name": "commercial-batch-20261107-4-publication",
-      "zip_sha256": "3235c02be5bb2b960bdecb5f6867a3ca2d59eaf1ba605d693115583a42044178",
-      "member": "channel-preflight.json",
-      "member_sha256": "e81e69c817ca3469766ab613603fcb255c184b1df0563b6cee4b54586bf7f450",
-      "original_new_posts": 18,
-      "original_post_write_attempts": 18,
-      "original_hotel_ids": [
-        1074,
-        108146,
-        1362,
-        68984,
-        703,
-        118475,
-        462,
-        2050,
-        1354
-      ]
-    }
-  ],
+  "source_registry_read": {
+    "operation": "commercial-short-heading-registry-audit-20261107-v1",
+    "run_id": 42412091790,
+    "run_attempt": 1,
+    "head_sha": "b6f1504d8074291299ef6a8671857bc79c12e3df",
+    "job_id": 128522234154,
+    "artifact_id": 13590040752,
+    "artifact_name": "commercial-short-heading-registry-audit-20261107-result",
+    "zip_sha256": "e0fbf21d7510d9cd793d6c82f400163131f58b2c6c0232e384d321de475c8db4",
+    "member": "short-heading-readback.json",
+    "member_sha256": "c6d92cfafae653906d975f958ec865b2d053b7e3c006dd7e7700b19df34d7990",
+    "original_posts": 916
+  },
   "rows": [
     {
       "hotel_id": 1352,
-      "source_batch": 3,
       "key": "commercial-sherwood-exclusive-kemer-1352-v1",
       "logical_id": "commercial-sherwood-exclusive-kemer-1352-v1",
-      "old_text": "🌿 Sherwood Exclusive Kemer 5★\n\nПляжный отдых в Кемере с отдельными спальнями для всей семьи.\n\n🏖 Первая линия и собственный пляж протяжённостью 450 м.\n🛏 Family Suite 60 м²: две спальни с дверью и два санузла.\n💧 Для любителей воды есть номера Swim Up с прямым доступом к бассейну.\n🎶 Вечерняя программа, живая музыка и дискотека.\n\n✈️ Подберём подходящий номер в Sherwood Exclusive Kemer и рассчитаем тур с перелётом на ваши даты.",
-      "old_text_sha256": "be331dea4ade938f45e411e12c0f14dbcaf846c6210154f3d61bc837bcb88a35",
-      "new_text": "🌿 Sherwood Exclusive Kemer 5★\n\nПляжный отдых в Кемере с отдельными спальнями для всей семьи.\n\n🏖 Первая линия и собственный пляж протяжённостью 450 м.\n🛏 Family Suite 60 м²: две спальни с дверью и два санузла.\n💧 Для отдыха вдвоём есть номера Swim Up с прямым доступом к бассейну.\n🎶 Вечерняя программа, живая музыка и дискотека.\n\n✈️ Подберём подходящий номер в Sherwood Exclusive Kemer и рассчитаем тур с перелётом на ваши даты.",
-      "new_text_sha256": "ba35097d064a29f1cbac4f4090aaee9a8810f1b373d69e82812465d10a22a7b4",
-      "photo_sha256": "3aa966029d0c4ff35b100e47a046f7d9e60ad728950d3b3e5f0ea99db1985db6",
-      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/0da11a5def1f1af556c97c5a5036dbf7500d88c3/.github/traffic-publish/commercial-batch-20261107-3/1352.png",
+      "previous_heading": "✈️ Туры в Sherwood Exclusive Kemer с перелётом",
+      "new_heading": "✈️ Туры в Sherwood Exclusive Kemer",
+      "location": "📍 Кемер, Турция.",
+      "old_text": "✈️ Туры в Sherwood Exclusive Kemer с перелётом\n📍 Кемер, Турция.\n\nПляжный отдых в Кемере с отдельными спальнями для всей семьи.\n\n🏖 Первая линия и собственный пляж протяжённостью 450 м.\n🛏 Family Suite 60 м²: две спальни с дверью и два санузла.\n💧 Для любителей воды есть номера Swim Up с прямым доступом к бассейну.\n🎶 Вечерняя программа, живая музыка и дискотека.\n\n✈️ Подберём подходящий номер в Sherwood Exclusive Kemer и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "f62e7651df99cd411690a4023f6ebd47093bceff85c42131be86c28d0ebc21c6",
+      "new_text": "✈️ Туры в Sherwood Exclusive Kemer\n📍 Кемер, Турция.\n\nПляжный отдых в Кемере с отдельными спальнями для всей семьи.\n\n🏖 Первая линия и собственный пляж протяжённостью 450 м.\n🛏 Family Suite 60 м²: две спальни с дверью и два санузла.\n💧 Для отдыха вдвоём есть номера Swim Up с прямым доступом к бассейну.\n🎶 Вечерняя программа, живая музыка и дискотека.\n\n✈️ Подберём подходящий номер в Sherwood Exclusive Kemer и рассчитаем тур с перелётом на ваши даты.",
+      "new_text_sha256": "b607f04d264136181f4a9ac79c3d9b932a22cf2a4a5067b4f9b8bd7d4fdbd900",
       "update_text": true,
-      "historical_expected_bindings": {
-        "telegram": {
-          "publication_id": 467,
-          "version_id": 943,
-          "message_id": "183",
-          "post_url": "https://t.me/any_toour/183",
-          "channel_id": "-1002262666616",
-          "source_key": "tg_anytour_msk",
-          "button_url_sha256": "5eb306ebef25f7dda3d4000bb730416d81b266ef6b20dd93587686dac329ec69"
-        },
+      "accepted_replacements": [
+        {
+          "old": "💧 Для любителей воды есть номера Swim Up с прямым доступом к бассейну.",
+          "new": "💧 Для отдыха вдвоём есть номера Swim Up с прямым доступом к бассейну."
+        }
+      ],
+      "expected_bindings": {
         "max": {
           "publication_id": 473,
-          "version_id": 949,
+          "version_id": 1191,
           "message_id": "mid.ffffb6caf0606fed01a1b5ae99d31052",
           "post_url": "https://max.ru/channel_anytour/AaG1rpnTEFI",
           "channel_id": "-80492244209683",
           "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49793560840",
           "button_url_sha256": "063b2f954979ff4955d7d274a8af0e73b8e632a18d79adc90c25ad76a4528820"
+        },
+        "telegram": {
+          "publication_id": 467,
+          "version_id": 1227,
+          "message_id": "183",
+          "post_url": "https://t.me/any_toour/183",
+          "channel_id": "-1002262666616",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADRzVrG-HPeUt9",
+          "button_url_sha256": "5eb306ebef25f7dda3d4000bb730416d81b266ef6b20dd93587686dac329ec69"
         }
       }
     },
     {
       "hotel_id": 1074,
-      "source_batch": 4,
       "key": "commercial-gural-premier-belek-1074-v1",
       "logical_id": "commercial-gural-premier-belek-1074-v1",
-      "old_text": "🌿 Gural Premier Belek 5★\n\nСемейный отпуск с просторными номерами и большим аквапарком.\n\n🏖 Песчаный пляж с пологим входом в море.\n💧 Аквапарк площадью 20 000 м²: 20 горок и отдельный детский комплекс.\n🛏 Deluxe Family: две комнаты для отдыха всей семьи. Superior Family 90 м²: две спальни и две ванные комнаты.\n\n✈️ Подберём подходящий семейный номер в Gural Premier Belek и рассчитаем тур с перелётом на ваши даты.",
-      "old_text_sha256": "bb02a180e0af062dbacf1c66d3188bead377782d5cfb6153dad5efc79ad008c0",
-      "new_text": "🌿 Gural Premier Belek 5★\n\nСемейный отпуск с просторными номерами и большим аквапарком.\n\n🏖 Собственный пляж; при входе в море — песок и галька.\n💧 Аквапарк площадью 20 000 м²: 11 взрослых и 9 детских горок.\n🛏 Deluxe Family: две комнаты для отдыха всей семьи. Superior Family: две спальни и две ванные комнаты.\n\n✈️ Подберём подходящий семейный номер в Gural Premier Belek и рассчитаем тур с перелётом на ваши даты.",
-      "new_text_sha256": "70cdc0b2a3fcb75139350c1130207794088941e065bf262d3e49b40a8e2ce0b6",
-      "photo_sha256": "38b5e0a973ddbc1d3237df7636339c050c65b358023dffe7e461aed778e23e82",
-      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/1074.png",
+      "previous_heading": "✈️ Туры в Gural Premier Belek с перелётом",
+      "new_heading": "✈️ Туры в Gural Premier Belek",
+      "location": "📍 Белек, Турция.",
+      "old_text": "✈️ Туры в Gural Premier Belek с перелётом\n📍 Белек, Турция.\n\nСемейный отпуск с просторными номерами и большим аквапарком.\n\n🏖 Песчаный пляж с пологим входом в море.\n💧 Аквапарк площадью 20 000 м²: 20 горок и отдельный детский комплекс.\n🛏 Deluxe Family: две комнаты для отдыха всей семьи. Superior Family 90 м²: две спальни и две ванные комнаты.\n\n✈️ Подберём подходящий семейный номер в Gural Premier Belek и рассчитаем тур с перелётом на ваши даты.",
+      "old_text_sha256": "19afd6dad710e2396c5528c4b615446cc677934d4b070f32c63df61e644e29ea",
+      "new_text": "✈️ Туры в Gural Premier Belek\n📍 Белек, Турция.\n\nСемейный отпуск с просторными номерами и большим аквапарком.\n\n🏖 Собственный пляж; при входе в море — песок и галька.\n💧 Аквапарк площадью 20 000 м²: 11 взрослых и 9 детских горок.\n🛏 Deluxe Family: две комнаты для отдыха всей семьи. Superior Family: две спальни и две ванные комнаты.\n\n✈️ Подберём подходящий семейный номер в Gural Premier Belek и рассчитаем тур с перелётом на ваши даты.",
+      "new_text_sha256": "1d8bec9114c9094d0b9a37303534c618b21e230e336f181a1cb29ae18a44d846",
       "update_text": true,
-      "historical_expected_bindings": {
-        "telegram": {
-          "publication_id": 479,
-          "version_id": 955,
-          "message_id": "189",
-          "post_url": "https://t.me/any_toour/189",
-          "channel_id": "-1002262666616",
-          "source_key": "tg_anytour_msk",
-          "button_url_sha256": "5194e0e9c91ec3b78dea8a3f0480975a9e43db940749207c1f64e699ed1d65f1"
+      "accepted_replacements": [
+        {
+          "old": "🏖 Песчаный пляж с пологим входом в море.",
+          "new": "🏖 Собственный пляж; при входе в море — песок и галька."
         },
+        {
+          "old": "💧 Аквапарк площадью 20 000 м²: 20 горок и отдельный детский комплекс.",
+          "new": "💧 Аквапарк площадью 20 000 м²: 11 взрослых и 9 детских горок."
+        },
+        {
+          "old": "Superior Family 90 м²: две спальни и две ванные комнаты.",
+          "new": "Superior Family: две спальни и две ванные комнаты."
+        }
+      ],
+      "expected_bindings": {
         "max": {
           "publication_id": 488,
-          "version_id": 964,
+          "version_id": 1197,
           "message_id": "mid.ffffb6caf0606fed01a1b5c8d7e82dab",
           "post_url": "https://max.ru/channel_anytour/AaG1yNfoLas",
           "channel_id": "-80492244209683",
           "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49798284552",
           "button_url_sha256": "2766949d2434c62e97630fbbf2f51f02bc0a93b4b0e575e7efebc9d86e6598ee"
+        },
+        "telegram": {
+          "publication_id": 479,
+          "version_id": 1233,
+          "message_id": "189",
+          "post_url": "https://t.me/any_toour/189",
+          "channel_id": "-1002262666616",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADezVrG-HPeUt9",
+          "button_url_sha256": "5194e0e9c91ec3b78dea8a3f0480975a9e43db940749207c1f64e699ed1d65f1"
         }
       }
     },
     {
       "hotel_id": 462,
-      "source_batch": 4,
       "key": "commercial-sphinx-aqua-park-beach-resort-462-v1",
       "logical_id": "commercial-sphinx-aqua-park-beach-resort-462-v1",
-      "old_text": "☀️ Sphinx Aqua Park Beach Resort 4★ · Хургада\n\nОтель у моря с аквапарком для семейного отдыха.\n\n🏖 Пляж у отеля: песчаные и коралловые участки, есть понтон.\n💧 В аквапарке четыре взрослые и две детские горки.\n🛏 Standard 35 м² для пары; семейную категорию подберём под ваш состав.\n🎶 Живая музыка, шоу и дискотека.\n\n✈️ Рассчитаем тур в Sphinx Aqua Park Beach Resort с перелётом и питанием «всё включено» на ваши даты.",
-      "old_text_sha256": "6ed0d4a3d5491cc0c22eaeb0e314df294571e5c5a34c09f44fca8ef54a888780",
-      "new_text": "☀️ Sphinx Aqua Park Beach Resort 4★ · Хургада\n\nОтель у моря с аквапарком для семейного отдыха.\n\n🏖 Пляж у отеля: песчаные и коралловые участки, есть понтон.\n💧 Аквапарк с горками для взрослых и детей.\n🛏 Standard 35 м² для пары; семейную категорию подберём под ваш состав.\n🎶 Живая музыка, шоу и дискотека.\n\n✈️ Рассчитаем тур в Sphinx Aqua Park Beach Resort с перелётом и питанием «всё включено» на ваши даты.",
-      "new_text_sha256": "e6ece83ced0be4723e450102214d31d7fd6e5f161a2dbc96e1562b43523a6c22",
-      "photo_sha256": "0405f6421847ea67993211df27c7d0b84007a7dcea6a18d1290a96bba527e64a",
-      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/2e2d7c5b79e7e4a028662be70d507723fbbac86b/.github/traffic-publish/commercial-batch-20261107-4/462.png",
+      "previous_heading": "✈️ Туры в Sphinx Aqua Park Beach Resort с перелётом",
+      "new_heading": "✈️ Туры в Sphinx Aqua Park Beach Resort",
+      "location": "📍 Хургада, Египет.",
+      "old_text": "✈️ Туры в Sphinx Aqua Park Beach Resort с перелётом\n📍 Хургада, Египет.\n\nОтель у моря с аквапарком для семейного отдыха.\n\n🏖 Пляж у отеля: песчаные и коралловые участки, есть понтон.\n💧 В аквапарке четыре взрослые и две детские горки.\n🛏 Standard 35 м² для пары; семейную категорию подберём под ваш состав.\n🎶 Живая музыка, шоу и дискотека.\n\n✈️ Рассчитаем тур в Sphinx Aqua Park Beach Resort с перелётом и питанием «всё включено» на ваши даты.",
+      "old_text_sha256": "b8160cb5c95d80e657a6f78cda71733015a78fe4705f9dc6311769bc0fc36daf",
+      "new_text": "✈️ Туры в Sphinx Aqua Park Beach Resort\n📍 Хургада, Египет.\n\nОтель у моря с аквапарком для семейного отдыха.\n\n🏖 Пляж у отеля: песчаные и коралловые участки, есть понтон.\n💧 Аквапарк с горками для взрослых и детей.\n🛏 Standard 35 м² для пары; семейную категорию подберём под ваш состав.\n🎶 Живая музыка, шоу и дискотека.\n\n✈️ Рассчитаем тур в Sphinx Aqua Park Beach Resort с перелётом и питанием «всё включено» на ваши даты.",
+      "new_text_sha256": "f1713c928b031940833ea16878b61d90e6d9470e8fc271501972d8ff6f18ecb7",
       "update_text": true,
-      "historical_expected_bindings": {
-        "telegram": {
-          "publication_id": 485,
-          "version_id": 961,
-          "message_id": "195",
-          "post_url": "https://t.me/any_toour/195",
-          "channel_id": "-1002262666616",
-          "source_key": "tg_anytour_msk",
-          "button_url_sha256": "7cdf93ef962df8c6122ebe1d87505ae0b374b02216ad37ec9c3b641bc24eb180"
-        },
+      "accepted_replacements": [
+        {
+          "old": "💧 В аквапарке четыре взрослые и две детские горки.",
+          "new": "💧 Аквапарк с горками для взрослых и детей."
+        }
+      ],
+      "expected_bindings": {
         "max": {
           "publication_id": 494,
-          "version_id": 970,
+          "version_id": 1203,
           "message_id": "mid.ffffb6caf0606fed01a1b5c90d9725bf",
           "post_url": "https://max.ru/channel_anytour/AaG1yQ2XJb8",
           "channel_id": "-80492244209683",
           "source_key": "max_anytour_msk1",
+          "photo_signature": "max:49798313992",
           "button_url_sha256": "9de88af26ad4b582fa00db7e146d8c5aaf3f1650035e6814ffb77c75eb79af3f"
+        },
+        "telegram": {
+          "publication_id": 485,
+          "version_id": 1239,
+          "message_id": "195",
+          "post_url": "https://t.me/any_toour/195",
+          "channel_id": "-1002262666616",
+          "source_key": "tg_anytour_msk",
+          "photo_signature": "telegram:AQADgTVrG-HPeUt9",
+          "button_url_sha256": "7cdf93ef962df8c6122ebe1d87505ae0b374b02216ad37ec9c3b641bc24eb180"
         }
       }
     }
   ],
   "operational_constraints": {
-    "fresh_canonical_reader_performed": false,
-    "operation_free_confirmed": false,
-    "execution_performed": false,
-    "existing_source_owner": "SOURCE issue1142/940; audit/content100-bot-publication-20261101",
-    "required_runtime": "Retain all-six fresh canonical/provider preflight and all existing durable-intent/receipt/UNKNOWN guards before any provider edit; stop on changed/finished targets, active operation, missing expected evidence, or mismatch.",
-    "missing_expected_fields": []
+    "source_owner": "SOURCE1142/940 / anytour-max",
+    "execution_route": ".github/workflows/content100-bot-publication-20261101.yml",
+    "new_posts_allowed": false,
+    "operation_directory_must_not_exist": true,
+    "all_six_current_versions_and_three_max_reads_before_provider_edit": true,
+    "stop_on_active_unknown_or_changed_target": true,
+    "fresh_runtime_preflight_performed": false
+  },
+  "execution_block": {
+    "state": "BLOCKED_PRIOR_OPERATION_REQUIRES_RECONCILIATION",
+    "operation": "commercial-hotel-caption-review6706115450-20261107-1-v1",
+    "original_run_id": 42433350408,
+    "original_job_id": 128586848537,
+    "original_attempt": 1,
+    "original_workflow_sha": "04bcf71da708e45273d8722110e14a6a21bf2dde",
+    "original_packet_sha": "27dbad831970c3ec26d7bc52db80741cebf12920",
+    "original_error": "captured_legacy_version_changed",
+    "post_write_attempts": 0,
+    "result_posts": 0,
+    "do_not_replay": true,
+    "fresh_runtime_source_requires_revalidation_after_other_installation": true,
+    "private_journal_read_performed": false
   }
 }
-

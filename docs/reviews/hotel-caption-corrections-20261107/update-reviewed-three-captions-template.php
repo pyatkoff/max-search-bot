@@ -1,7 +1,5 @@
 <?php
 declare(strict_types=1);
-// Historical receipt provenance stays fixed when the live runtime advances.
-const ORIGINAL_PUBLICATION_SOURCE_SHA = 'a9b03a52bb4c4505640eae79541b7d48aa391083';
 // Exact caption-only correction of the six existing confirmed posts; existing edit transport and receipt mechanism.
 ini_set('display_errors','0');ini_set('log_errors','0');
 $out=['operation'=>APPROVED_UPDATE_OPERATION,'mode'=>'update_existing_hotel_captions_no_price_or_search','ok'=>false,'post_write_attempts'=>0,'price_block_updates'=>0,'search_link_post_updates'=>0,'search_link_only_post_updates'=>0,'channels'=>[]];
@@ -59,7 +57,6 @@ try {
 
     $inputRaw=base64_decode(MANIFEST_BASE64,true);need(is_string($inputRaw)&&hash('sha256',$inputRaw)===APPROVED_MANIFEST_SHA256,'approved_manifest_bytes_changed');
     $payload=json_decode($inputRaw,true,128,JSON_THROW_ON_ERROR);
-    need(($payload['expected_installed_sha']??'')===ORIGINAL_PUBLICATION_SOURCE_SHA,'original_publication_source_changed');
     need(($payload['operation']??'')===APPROVED_UPDATE_OPERATION&&APPROVED_UPDATE_OPERATION==='commercial-hotel-caption-review6706115450-20261107-1-v1','exact_caption_operation_changed');
     need(($payload['button_text']??'')==='✈️ Узнать стоимость тура'&&($payload['update_kind']??'')==='caption_only'&&($payload['search_link_included']??null)===false,'caption_only_scope_changed');
     $rows=$payload['rows']??null;need(is_array($rows)&&array_column($rows,'hotel_id')===[1352,1074,462],'exact_caption_hotel_scope_changed');
@@ -68,37 +65,29 @@ try {
         need($r['old_text']!==$r['new_text']&&mb_check_encoding($r['new_text'],'UTF-8')&&strlen(mb_convert_encoding($r['new_text'],'UTF-16LE','UTF-8'))/2<=1024&&($r['update_text']??null)===true,'approved_caption_size_or_change_invalid');
         need(preg_match('/\Acommercial-[a-z0-9-]+-v1\z/D',(string)($r['logical_id']??''))===1&&$r['key']===$r['logical_id'],'caption_logical_identity_changed');
     }
-    // Two intact historical batch receipts. The six target proofs are a derived selection, never a fabricated six-post original receipt.
-    $originals=$payload['original_publication_results']??null;
-    need(is_array($originals)&&array_column($originals,'batch')===[3,4],'original_batch_receipts_missing');
-    $sourceBindings=[
-        3=>['operation'=>'commercial-hotel-batch-20261107-3-v1','run_id'=>42366571943,'artifact_id'=>13572360372,'zip_sha256'=>'6a1e7da61da2f55b94dff4d1ae6a67d18b1154a9f80298c2c0e9e1823d52f9f0','member_sha256'=>'16ef835c505b6e2c225374a50526eb8ecb72213cbe0e1e0de411b5a3b593fde1','count'=>12,'hotel_ids'=>[1352,37360,1035,45199,613,24909]],
-        4=>['operation'=>'commercial-hotel-batch-20261107-4-v1','run_id'=>42368588925,'artifact_id'=>13572078493,'zip_sha256'=>'3235c02be5bb2b960bdecb5f6867a3ca2d59eaf1ba605d693115583a42044178','member_sha256'=>'e81e69c817ca3469766ab613603fcb255c184b1df0563b6cee4b54586bf7f450','count'=>18,'hotel_ids'=>[1074,108146,1362,68984,703,118475,462,2050,1354]],
-    ];
-    $proofs=[];$expectedIds=[1352=>['telegram'=>[467,943],'max'=>[473,949]],1074=>['telegram'=>[479,955],'max'=>[488,964]],462=>['telegram'=>[485,961],'max'=>[494,970]]];$expectedBatch=[1352=>3,1074=>4,462=>4];$selectedCount=0;
-    foreach($originals as $wrapped){
-        $batch=$wrapped['batch'];$source=$sourceBindings[$batch];
-        foreach(['run_id','artifact_id','zip_sha256','member_sha256'] as $field)need(($wrapped[$field]??null)===$source[$field],'original_artifact_binding_changed');
-        $original=$wrapped['result']??null;
-        need(is_array($original)&&($original['operation']??'')===$source['operation']&&($original['mode']??'')==='publish_approved_commercial_batch'&&($original['installed_sha']??'')===ORIGINAL_PUBLICATION_SOURCE_SHA&&($original['ok']??null)===true&&($original['new_posts']??null)===$source['count']&&($original['post_write_attempts']??null)===$source['count']&&($original['reused']??null)===0&&count($original['posts']??[])===$source['count'],'original_full_batch_receipt_invalid');
-        $seen=[];
-        foreach($original['posts'] as $proof){
-            $id=$proof['hotel_id']??null;$platform=$proof['platform']??'';$proofKey=$id.':'.$platform;
-            need(in_array($id,$source['hotel_ids'],true)&&in_array($platform,['telegram','max'],true)&&!isset($seen[$proofKey]),'original_full_batch_identity_changed');$seen[$proofKey]=true;
-            need(($proof['state']??'')==='sent'&&($proof['body_photo_button_verified']??null)===true&&($proof['reused']??null)===false,'original_receipt_confirmation_changed');
-            if(!isset($expectedIds[$id]))continue;
-            need($expectedBatch[$id]===$batch&&!isset($proofs[$id][$platform]),'selected_receipt_identity_outside_scope');
-            need([$proof['publication_id'],$proof['version_id']]===$expectedIds[$id][$platform],'original_target_version_binding_changed');
-            $row=null;foreach($rows as $r)if($r['hotel_id']===$id)$row=$r;
-            need(is_array($row)&&$row['source_batch']===$batch&&$proof['logical_id']===$row['logical_id']&&$proof['text_sha256']===$row['old_text_sha256']&&$proof['photo_sha256']===$row['photo_sha256']&&$proof['photo_url']===$row['photo_url'],'original_receipt_caption_photo_binding_changed');
-            $binding=$row['historical_expected_bindings'][$platform]??null;need(is_array($binding),'historical_expected_binding_missing');
-            foreach(['publication_id','version_id','message_id','post_url','channel_id','source_key'] as $field)need(($proof[$field]??null)===($binding[$field]??null),'historical_expected_binding_changed');
-            need(($proof['button_text']??'')===$payload['button_text']&&is_string($proof['button_url']??null)&&hash('sha256',$proof['button_url'])===($binding['button_url_sha256']??''),'original_button_binding_changed');
-            $proofs[$id][$platform]=$proof;$selectedCount++;
-        }
-        foreach($source['hotel_ids'] as $id)foreach(['telegram','max'] as $platform)need(isset($seen[$id.':'.$platform]),'original_full_batch_pair_missing');
+    // Preserve the complete original72 edit receipt; derive only the approved six targets.
+    $source=$payload['source_caption_receipt']??null;$original=$payload['original_caption_result']??null;
+    need(is_array($source)&&$source['operation']==='commercial-existing-headings-20261107-4-v1'&&$source['run_id']===42386815481&&$source['artifact_id']===13580068810&&$source['installed_sha']===ORIGINAL_CAPTION_INSTALLED_SHA&&ORIGINAL_CAPTION_INSTALLED_SHA==='57e5ca2d4e14b2e130e728f5a7e99518f89b4f29','original_caption_source_changed');
+    need(is_array($original)&&($original['operation']??'')===$source['operation']&&($original['mode']??'')==='update_existing_hotel_captions_no_price_or_search'&&($original['installed_sha']??'')===ORIGINAL_CAPTION_INSTALLED_SHA&&($original['ok']??null)===true&&($original['update_kind']??'')==='caption_only'&&($original['new_posts_created']??null)===0&&count($original['posts']??[])===72,'original_full_caption_receipt_invalid');
+    foreach(['post_write_attempts','commercial_text_updates','content_edit_attempts','preflight_existing_messages'] as $field)need(($original[$field]??null)===72,'original_full_caption_count_changed');
+    foreach(['configuration_write_attempts','button_only_edit_attempts','price_block_updates','search_link_post_updates','search_link_only_post_updates','tour_search_calls','price_queries'] as $field)need(($original[$field]??null)===0,'original_caption_scope_changed');
+    $logicalIds=$source['logical_ids']??null;need(is_array($logicalIds)&&count($logicalIds)===36&&count(array_unique($logicalIds))===36,'original_full_caption_scope_changed');
+    $byLogical=[];foreach($rows as $row)$byLogical[$row['logical_id']]=$row;
+    $proofs=[];$seen=[];$selectedCount=0;
+    $expectedIds=[1352=>['telegram'=>[467,1227],'max'=>[473,1191]],1074=>['telegram'=>[479,1233],'max'=>[488,1197]],462=>['telegram'=>[485,1239],'max'=>[494,1203]]];
+    foreach($original['posts'] as $proof){
+        $logical=$proof['logical_id']??'';$platform=$proof['platform']??'';$proofKey=$logical.':'.$platform;
+        need(in_array($logical,$logicalIds,true)&&in_array($platform,['max','telegram'],true)&&!isset($seen[$proofKey]),'original_full_caption_identity_changed');$seen[$proofKey]=true;
+        need(($proof['state']??'')==='sent'&&($proof['body_photo_button_verified']??null)===true&&($proof['existing_message_reused']??null)===true&&($proof['content_updated']??null)===true&&is_string($proof['photo_signature']??null)&&$proof['photo_signature']!==''&&$proof['photo_signature']===($proof['previous_photo_signature']??null),'original_caption_confirmation_changed');
+        if(!isset($byLogical[$logical]))continue;
+        $row=$byLogical[$logical];$id=$row['hotel_id'];$binding=$row['expected_bindings'][$platform]??null;
+        need(is_array($binding)&&!isset($proofs[$id][$platform])&&[$proof['publication_id'],$proof['version_id']]===$expectedIds[$id][$platform],'selected_caption_identity_changed');
+        foreach(['publication_id','version_id','message_id','post_url','channel_id','source_key','photo_signature'] as $field)need(($proof[$field]??null)===($binding[$field]??null),'selected_caption_binding_changed');
+        need($proof['text_sha256']===$row['old_text_sha256']&&($proof['button_text']??'')===$payload['button_text']&&is_string($proof['button_url']??null)&&hash('sha256',$proof['button_url'])===($binding['button_url_sha256']??''),'selected_caption_body_button_changed');
+        $proofs[$id][$platform]=$proof;$selectedCount++;
     }
-    need($selectedCount===6,'exact_six_target_proofs_missing');
+    foreach($logicalIds as $logical)foreach(['max','telegram'] as $platform)need(isset($seen[$logical.':'.$platform]),'original_full_caption_pair_missing');
+    need($selectedCount===6&&($payload['expected_installed_sha']??'')===EXPECTED_INSTALLED_SHA,'exact_six_current_target_proofs_missing');
     $hasPrice=false;$out['update_kind']='caption_only';
     $pdo=ConversationDb::connection();
     $active=$pdo->query("SELECT COUNT(*) FROM post_versions WHERE publication_id IN (467,473,479,488,485,494) AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");need((int)$active->fetchColumn()===0,'existing_publication_active_or_unknown_stop');
@@ -119,7 +108,7 @@ try {
             $id=(int)$proof['publication_id'];$mid=(string)$proof['message_id'];
             $p=$registry->publication($id);need(is_array($p)&&$p['project_key']==='anytour'&&$p['platform']===$platform&&$p['bot_key']===$t['bot']&&$p['channel_id']===$t['channel']&&$p['external_message_id']===$mid&&$p['source_key']===$t['source']&&$p['state']==='sent','existing_publication_identity_changed');
             $key=$platform.':'.$r['key'];$done=$state['posts'][$key]??null;
-            $proof['photo_signature']=photoSignature($p['snapshot']);
+            need(photoSignature($p['snapshot'])===$proof['photo_signature'],'original_photo_signature_changed');
             need(ChannelPostButtonTransport::buttonUrl($p)===$proof['button_url']&&($p['snapshot']['post_url']??'')===$proof['post_url'],'captured_legacy_photo_token_button_url_changed');
             if(!$done)need((int)$p['version_id']===(int)$proof['version_id'],'captured_legacy_version_changed');
             need(($p['snapshot']['text']??'')===($done?$r['new_text']:$r['old_text']),'existing_caption_changed');
@@ -128,6 +117,7 @@ try {
             $plans[$key]=['platform'=>$platform,'key'=>$r['key'],'logical_id'=>$r['logical_id'],'message_id'=>$mid,'publication_id'=>$id,'old_version_id'=>(int)$p['version_id'],'token'=>$p['start_payload'],'post_url'=>$snap['post_url'],'photo_signature'=>photoSignature($snap),'text'=>$r['new_text'],'update_text'=>$r['update_text']];
         }
     }
+    need(count($plans)===6,'exact_six_preflight_targets_required');
     $out['preflight_existing_messages']=count($plans);$out['configuration_write_attempts']=0;$out['content_edit_attempts']=0;$out['button_only_edit_attempts']=0;$out['posts']=[];
     foreach($plans as $key=>$plan){
         $out['current']=['platform'=>$plan['platform'],'logical_id'=>$plan['logical_id']];if(isset($state['posts'][$key])){$out['posts'][]=$state['posts'][$key]['receipt'];continue;}

@@ -1,0 +1,189 @@
+name: Apply the three reviewed corrections to six existing hotel posts
+on:
+  push:
+    branches: [audit/content100-bot-publication-20261101]
+    paths: [.github/workflows/content100-bot-publication-20261101.yml]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: anytour-authorized-channel-publication
+  cancel-in-progress: false
+env:
+  EXPECTED_PRODUCTION_SHA: 840287a325da73df049a0dce8ee0b1f51aaacc10
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Bind current production and both original completed receipts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          evidence="$RUNNER_TEMP/commercial-source-evidence"
+          mkdir -m 700 "$evidence"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$evidence/audit.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42415428080 > "$evidence/verify_run.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs/42415428080/jobs?per_page=100" > "$evidence/verify_jobs.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42415937675 > "$evidence/tls_run.json"
+          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
+          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
+          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
+          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42386815481 > "$evidence/headings_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/13580068810 > "$evidence/headings_artifact.json"
+          gh api repos/pyatkoff/max-search-bot/actions/runs/42412091790 > "$evidence/read_run.json"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/13590040752 > "$evidence/read_artifact.json"
+          python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'commercial-source-evidence'
+          read=lambda name:json.loads((p/(name+'.json')).read_text())
+          assert read('audit')['object']['sha']==os.environ['GITHUB_SHA']
+          assert read('verify_run')['conclusion']=='success' and read('verify_run')['run_attempt']==1
+          assert read('tls_run')['run_attempt']==1
+          for prefix,run_id,head,artifact_id,name in (
+              ('headings',42386815481,'84713e852f3405fb2f5672c27c986083e4fbe217',13580068810,'commercial-existing-headings-20261107-4-result'),
+              ('read',42412091790,'b6f1504d8074291299ef6a8671857bc79c12e3df',13590040752,'commercial-short-heading-registry-audit-20261107-result')):
+              r=read(prefix+'_run');a=read(prefix+'_artifact')
+              assert (r['id'],r['head_sha'],r['run_attempt'],r['status'],r['conclusion'])==(run_id,head,1,'completed','success')
+              assert r['path']=='.github/workflows/content100-bot-publication-20261101.yml'
+              assert a['id']==artifact_id and a['name']==name and not a['expired']
+              assert a['workflow_run']['id']==run_id and a['workflow_run']['head_sha']==head
+          print('EXACT_ORIGINAL_RECEIPTS_AND_CURRENT_PUBLISHING_SOURCE_ACCEPTED')
+          PY
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/13580068810/zip > "$evidence/headings4.zip"
+          gh api repos/pyatkoff/max-search-bot/actions/artifacts/13590040752/zip > "$evidence/latest-read.zip"
+      - name: Prepare exact six edits and run native PHP lint before provider access
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import hashlib,pathlib
+          p=pathlib.Path('tools/direct_demand/operations')
+          checks={
+              'commercial-hotel-caption-review6706115450-20261107-1-inputs.json':'9c76f3ab819c037723fc1c73e01c6bbe1a04f8162719044f4c482d9e936c67aa',
+              'update-reviewed-three-captions-20261108-template.php':'84bac9d5b2d48fb92c290a622d863d2044938def55db080d6517d7e1290da495',
+              'prepare-reviewed-three-captions-20261108.py':'6c5323e82f09dfb211437f0315f7f9ce83ee77e18ecbefc369123186f009786c'}
+          for name,expected in checks.items():assert hashlib.sha256((p/name).read_bytes()).hexdigest()==expected
+          PY
+          python3 tools/direct_demand/operations/prepare-reviewed-three-captions-20261108.py \
+            --input tools/direct_demand/operations/commercial-hotel-caption-review6706115450-20261107-1-inputs.json \
+            --template tools/direct_demand/operations/update-reviewed-three-captions-20261108-template.php \
+            --headings-zip "$RUNNER_TEMP/commercial-source-evidence/headings4.zip" \
+            --registry-read-zip "$RUNNER_TEMP/commercial-source-evidence/latest-read.zip" \
+            --output-dir "$RUNNER_TEMP/reviewed-caption-private"
+          php -l "$RUNNER_TEMP/reviewed-caption-private/channel-preflight.php"
+      - name: Retain exact caption edit intent before provider access
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-hotel-caption-review6706115450-20261107-1-intent
+          path: ${{ runner.temp }}/reviewed-caption-private/caption-correction-input.json
+          retention-days: 14
+          if-no-files-found: error
+      - name: Prepare existing server connection
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" == *"PRIVATE KEY"* ]]; then
+            if [[ "$raw" == *'\n'* ]]; then printf '%b\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$raw" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else
+            printf '%s' "$raw" | base64 --decode > "$RUNNER_TEMP/channel_key"
+          fi
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+      - name: Pin existing server host-key continuity
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re,subprocess,base64,hashlib,pathlib
+          host=os.environ['DEPLOY_HOST'];user=os.environ['DEPLOY_USER']
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',host) and not host.startswith('-')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',user)
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',host],capture_output=True,text=True,timeout=35)
+          matches=[]
+          for line in scan.stdout.splitlines():
+            fields=line.split()
+            if len(fields)<3 or fields[0].startswith('#'):continue
+            try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(fields[2])).digest()).decode().rstrip('=')
+            except Exception:continue
+            if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':matches.append(line)
+          assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
+          PY
+      - name: Correct six existing captions and verify retained photos buttons and tokens
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(gh api repos/pyatkoff/max-search-bot/git/ref/heads/main --jq .object.sha)" = "$EXPECTED_PRODUCTION_SHA"
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/reviewed-caption-private/channel-preflight.php" > "$RUNNER_TEMP/reviewed-caption-private/channel-preflight.json" || probe_status=$?
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'reviewed-caption-private'
+          d=json.loads((p/'channel-preflight.json').read_text().splitlines()[-1])
+          print(json.dumps({k:v for k,v in d.items() if k!='posts'},ensure_ascii=False,sort_keys=True))
+          assert d['operation']=='commercial-hotel-caption-review6706115450-20261107-1-v1'
+          assert d['mode']=='update_existing_hotel_captions_no_price_or_search' and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+          assert d['ok'] is True and len(d['posts'])==6 and d['post_write_attempts']==6 and d['new_posts_created']==0
+          assert d['commercial_text_updates']==d['content_edit_attempts']==d['preflight_existing_messages']==6
+          assert d['configuration_write_attempts']==d['button_only_updates']==d['button_only_edit_attempts']==0
+          assert d['price_block_updates']==d['search_link_post_updates']==d['search_link_only_post_updates']==d['tour_search_calls']==d['price_queries']==0
+          source=json.loads((p/'caption-correction-input.json').read_text())
+          original=source['original_caption_result']
+          assert len(original['posts'])==72 and original['installed_sha']==source['source_caption_receipt']['installed_sha']
+          prior={(r['platform'],r['logical_id']):r for r in original['posts']}
+          rows={r['logical_id']:r for r in source['rows']}
+          expected={(platform,logical) for logical in rows for platform in ('max','telegram')}
+          assert len({(r['platform'],r['logical_id']) for r in d['posts']})==6
+          assert {(r['platform'],r['logical_id']) for r in d['posts']}==expected
+          safe=[]
+          for r in d['posts']:
+              old=prior[(r['platform'],r['logical_id'])]
+              assert all(r[k]==old[k] for k in ('publication_id','message_id','post_url','button_url','button_text','source_key','channel_id','photo_signature'))
+              assert r['previous_version_id']==old['version_id'] and r['version_id']!=old['version_id']
+              assert r['text_sha256']==rows[r['logical_id']]['new_text_sha256']
+              assert r['state']=='sent' and r['body_photo_button_verified'] and r['existing_message_reused'] and r['content_updated']
+              safe.append({**{k:v for k,v in r.items() if k!='button_url'},'button_url_sha256':hashlib.sha256(r['button_url'].encode()).hexdigest()})
+          public={**{k:v for k,v in d.items() if k!='posts'},'posts':safe,'original_receipt_posts':72,'operation_consumed_do_not_replay':True}
+          (p/'caption-correction-safe-result.json').write_text(json.dumps(public,ensure_ascii=False,indent=2)+'\n')
+          print('REVIEW6706115450_COMPLETE six_existing_edits=6 new_sends=0 retained_photos_buttons_tokens=verified replay_allowed=false')
+          PY
+          test "${probe_status:-0}" = 0
+      - name: Retain the original result and bounded safe evidence without replay
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: commercial-hotel-caption-review6706115450-20261107-1-result
+          path: |
+            ${{ runner.temp }}/reviewed-caption-private/channel-preflight.json
+            ${{ runner.temp }}/reviewed-caption-private/caption-correction-safe-result.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Remove ephemeral connection and compiled script
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/reviewed-caption-private/channel-preflight.php"
