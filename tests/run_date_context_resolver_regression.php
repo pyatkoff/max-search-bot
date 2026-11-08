@@ -152,6 +152,63 @@ $guarded = AiDateContextService::applyAiGuard($chatId, 'без даты в те�
 dcrCheck('AI date without user month remains allowed', ($guarded['date'] ?? '') === '20.12.2026');
 dcrCheck('allowed AI date clears older pending month', PendingMonthStore::get($chatId) === []);
 
+
+// Synthetic named-month windows must not become their last endpoint or midpoint.
+// Only the new clarification flow is stateful; ordinary numeric policies above stay intact.
+DateContextResolver::clear($chatId);
+foreach (['с 17 по 26 июля 2030', 'с17по26 июля 2030', '17–26 июля 2030', '17 - 26 июля 2030', 'с 17-го по 26ое июля 2030', '2 взрослых, с 17 до 26 июля 2030 на 9 ночей'] as $window) {
+    $parsed = DateParser::resolveDate($window);
+    dcrCheck('named window needs clarification: ' . $window,
+        !empty($parsed['ambiguous_range']) && empty($parsed['date']) && $parsed['month'] === 7 && $parsed['year'] === 2030);
+}
+foreach (['с 26 по 17 июля 2030', 'с 31 по 35 февраля 2030'] as $invalidWindow) {
+    dcrCheck('invalid/reversed named interval cannot select an endpoint',
+        !empty(DateParser::resolveDate($invalidWindow)['ambiguous_range'])
+        && empty(DateParser::resolveDate($invalidWindow)['date']));
+}
+dcrCheck('same-day named interval stays unambiguous',
+    (DateParser::resolveDate('17–17 июля 2030')['date'] ?? '') === '17.07.2030');
+DateContextResolver::rememberMonth($chatId, 12, 2030);
+$rangeLocal = AiDateContextService::resolveLocal($chatId, 'с 17 по 26 июля 2030');
+dcrCheck('range replaces an obsolete pending month without guessing a departure',
+    !empty($rangeLocal['ambiguous_range']) && $rangeLocal['date'] === ''
+    && PendingMonthStore::get($chatId) === ['month'=>7,'year'=>2030,'requires_clarification'=>true]);
+$guardedWindow = AiDateContextService::applyAiGuard($chatId, '2 взрослых', ['date'=>'26.07.2030','adults'=>2,'nights'=>'9']);
+dcrCheck('later unrelated answer cannot restore an AI-guessed departure',
+    $guardedWindow === ['date'=>null,'adults'=>2,'nights'=>'9'] && PendingMonthStore::requiresClarification($chatId));
+$questionContext = AiDateContextService::resolveLocal($chatId, 'Есть ли бассейн?');
+dcrCheck('pending clarification does not misclassify a later FAQ as another literal range',
+    empty($questionContext['ambiguous_range']) && PendingMonthStore::requiresClarification($chatId));
+dcrCheck('repeating a short interval does not turn it into a midpoint in this flow',
+    DateContextResolver::resolvePendingShortDate($chatId, '17-26') === '' && PendingMonthStore::requiresClarification($chatId));
+dcrCheck('clarification state remains scoped to its own dialogue',
+    !PendingMonthStore::requiresClarification($chatId - 1));
+DateContextResolver::rememberMonth($chatId, 8, 2030);
+dcrCheck('compatibility month updates retain the unresolved departure',
+    PendingMonthStore::get($chatId) === ['month'=>8,'year'=>2030,'requires_clarification'=>true]);
+$severalMonths = AiDateContextService::resolveLocal($chatId, 'июль или август 2030');
+dcrCheck('later multiple months cannot inherit the previous range month',
+    !empty($severalMonths['ambiguous_months'])
+    && PendingMonthStore::get($chatId) === ['month'=>0,'year'=>0,'requires_clarification'=>true]);
+dcrCheck('bare day with an unresolved month does not acquire the previous month',
+    DateContextResolver::resolvePendingShortDate($chatId, '18') === '');
+AiDateContextService::resolveLocal($chatId, 'август 2030');
+dcrCheck('a newly specified month retains the unresolved day',
+    PendingMonthStore::get($chatId) === ['month'=>8,'year'=>2030,'requires_clarification'=>true]);
+dcrCheck('explicit day finishes the clarified month once',
+    DateContextResolver::resolvePendingShortDate($chatId, '18') === '18.08.2030' && PendingMonthStore::get($chatId) === []);
+AiDateContextService::resolveLocal($chatId, 'с 17 по 26 июля 2030');
+$exactGuard = AiDateContextService::applyAiGuard($chatId, '17.07.2030', ['date'=>'26.07.2030']);
+dcrCheck('explicit full date clears range clarification and overrides the model',
+    $exactGuard['date'] === '17.07.2030' && PendingMonthStore::get($chatId) === []);
+AiDateContextService::resolveLocal($chatId, 'с 17 по 26 июля 2030');
+DateContextResolver::clear($chatId);
+dcrCheck('existing date/reset clearing removes the new pending state', PendingMonthStore::get($chatId) === []);
+$routeHandler = (string)file_get_contents(dirname(__DIR__).'/handlers/DepartureRouteAdviceHandler.php');
+$rangeDecline = strpos($routeHandler, "if (!empty(\$dateInfo['ambiguous_range'])) return false;");
+dcrCheck('route advice leaves named-window clarification to its canonical owner before constructing advice',
+    $rangeDecline !== false && $rangeDecline < strpos($routeHandler, 'new DepartureRouteResolver()'));
+
 $handler = (string)file_get_contents(__DIR__ . '/../handlers/AiDateHandler.php');
 dcrCheck('AI date handler delegates to shared date context resolver', strpos($handler, 'DateContextResolver::resolveFromText') !== false && strpos($handler, 'DateContextResolver::resolvePendingShortDate') !== false);
 dcrCheck('AI date handler no longer owns pending store directly', strpos($handler, 'PendingMonthStore::') === false);

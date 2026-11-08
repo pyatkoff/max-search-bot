@@ -16,8 +16,17 @@ class DateContextResolver
     {
         $resolved = DateParser::resolveDate($text);
 
+        if (!empty($resolved['ambiguous_range'])) {
+            PendingMonthStore::set($chatId, (int)$resolved['month'], (int)$resolved['year'], true);
+            return $resolved;
+        }
         if (!empty($resolved['ambiguous_months'])) {
-            PendingMonthStore::clear($chatId);
+            if (PendingMonthStore::requiresClarification($chatId)) {
+                // A later multi-month reply cannot inherit the preceding range's month.
+                PendingMonthStore::set($chatId, 0, 0, true);
+            } else {
+                PendingMonthStore::clear($chatId);
+            }
             return $resolved;
         }
 
@@ -27,7 +36,7 @@ class DateContextResolver
         }
 
         if (!empty($resolved['month']) && !empty($resolved['year'])) {
-            PendingMonthStore::set($chatId, (int)$resolved['month'], (int)$resolved['year']);
+            PendingMonthStore::set($chatId, (int)$resolved['month'], (int)$resolved['year'], PendingMonthStore::requiresClarification($chatId));
         }
 
         return $resolved;
@@ -35,7 +44,7 @@ class DateContextResolver
 
     public static function rememberMonth($chatId, int $month, int $year): void
     {
-        PendingMonthStore::set($chatId, $month, $year);
+        PendingMonthStore::set($chatId, $month, $year, PendingMonthStore::requiresClarification($chatId));
     }
 
     public static function resolvePendingShortDate($chatId, string $text): string
@@ -45,6 +54,7 @@ class DateContextResolver
 
         $month = (int)$pending['month'];
         $year = (int)$pending['year'];
+        if ($month < 1 || $month > 12 || $year < 2020) return '';
         // A remembered current month can still resolve to a day that has already
         // passed (for example "в конце сентября" on September 28). Keep the
         // existing future-date policy by moving that resolved day to next year.
@@ -57,6 +67,7 @@ class DateContextResolver
         $toDay = 0;
         if (preg_match('/^(\d{1,2})\s*[-–—]\s*(\d{1,2})$/u', $normalized, $m)
             || preg_match('/^с\s*(\d{1,2})\s*по\s*(\d{1,2})(?:\s*число|\s*числа)?$/ui', $normalized, $m)) {
+            if (!empty($pending['requires_clarification'])) return '';
             $fromDay = (int)$m[1];
             $toDay = (int)$m[2];
             if ($fromDay >= 1 && $toDay >= $fromDay

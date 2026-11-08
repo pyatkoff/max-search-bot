@@ -178,6 +178,27 @@ $storage = AiSearchContextService::storageMap($status);
 aiCheck('storage map country', $storage['country'] ?? null, 66);
 aiCheck('storage map date', $storage['date'] ?? null, 73);
 
+
+$currentSaved[73] = '13.07.2030';
+$beforeClarification = $currentSaved;
+aiCheck('unresolved named window blocks an otherwise complete current request',
+    AiSearchContextService::missingForCurrentSearch($currentSaved, $status, $today, true), ['date']);
+$cityResolver = static fn($id) => $id === 17 ? 'Калининград' : false;
+$countryResolver = static fn($id) => $id === 4 ? 'Турция' : false;
+$oldProjection = AiSearchContextService::contextFromSaved($currentSaved, $status, $cityResolver, $countryResolver);
+$waitingProjection = $oldProjection;
+unset($waitingProjection['date']);
+$waitingProjection['date_requires_clarification'] = true;
+aiCheck('active AI context excludes the obsolete date and retains all independent needs',
+    AiSearchContextService::contextFromSaved($currentSaved, $status, $cityResolver, $countryResolver, true), $waitingProjection);
+aiCheck('clarification does not rewrite stored historical facts', $currentSaved, $beforeClarification);
+aiCheck('ordinary historical projection retains the original date', $oldProjection['date'] ?? null, '13.07.2030');
+aiCheck('clarified current request can become complete again',
+    AiSearchContextService::missingForCurrentSearch($currentSaved, $status, $today, false), []);
+$apiBridge = (string)file_get_contents(dirname(__DIR__).'/maxsearchclass.php');
+aiCheck('runtime context and missing-field bridges both consume the canonical pending state',
+    substr_count($apiBridge, 'PendingMonthStore::requiresClarification($chatID)') === 2, true);
+
 $total = $passed + $failed;
 echo "\n---------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";

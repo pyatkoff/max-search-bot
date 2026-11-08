@@ -139,6 +139,15 @@ class DateParser
                 $year = $candidateYear;
             }
         }
+        // A named-month interval is not one agreed departure. In particular,
+        // the last endpoint must not be mistaken for the day before the month.
+        if (preg_match('/(?<![\p{L}\d.\/])(?:с\s*)?(\d{1,2})(?:-?(?:ого|ое|го|е|й))?\s*(?:[-–—]|по|до)\s*(\d{1,2})\s+'.preg_quote($stem,'/').'[а-яё]*(?![а-яё])/ui', $text, $range)) {
+            $from = (int)$range[1];
+            $to = (int)$range[2];
+            if ($from !== $to || !checkdate($month, $from, $year)) {
+                return ['ambiguous_range'=>true, 'month'=>$month, 'year'=>$year];
+            }
+        }
         $day = 0;
 
         if (preg_match('/(?:в\s+)?начал(?:е|о)\s+[а-яё]+/ui', $text)) $day = 5;
