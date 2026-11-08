@@ -131,19 +131,27 @@ final class TourChoiceService
      */
     public static function currentForConversation(PDO $pdo,int $conversationId,int $limit=20): ?array
     {
+        $identity=self::currentIdentity($pdo,$conversationId);
+        if ($identity===null) return null;
+        $actor=$identity['external_user_id'];
+        $choices=self::nativeForConversation($pdo,$conversationId,$limit,self::binding($identity));
+        $web=self::webInquiries($pdo,$conversationId,$limit,$actor);if ($web) $choices['web_inquiries']=$web;
+        $search=self::searchInquiries($pdo,$conversationId,$limit,$actor);if ($search) $choices['search_inquiries']=$search;
+        return ['identity'=>$identity,'choices'=>$choices];
+    }
+
+    /** Lightweight current-subject barrier; never scans offers or inquiries. */
+    public static function currentIdentity(PDO $pdo,int $conversationId): ?array
+    {
         $q=$pdo->prepare('SELECT c.id,c.customer_id,c.customer_channel_id,c.project_key,c.channel,c.external_chat_id,c.status,cc.external_user_id,cc.external_chat_id AS channel_chat_id'
             .' FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id'
             .' AND cc.project_key=c.project_key AND cc.channel=c.channel WHERE c.id=?');
         $q->execute([$conversationId]);$c=$q->fetch(PDO::FETCH_ASSOC);
         if (!$c || !in_array($c['status'],['ai','waiting_manager','manager'],true) || !in_array($c['channel'],['max','telegram'],true)) return null;
         foreach (['project_key','external_chat_id','external_user_id'] as $key) if (!self::nativeId((string)$c[$key])) return null;
-        $actor=(string)$c['external_user_id'];
-        $choices=self::nativeForConversation($pdo,$conversationId,$limit,self::binding($c));
-        $web=self::webInquiries($pdo,$conversationId,$limit,$actor);if ($web) $choices['web_inquiries']=$web;
-        $search=self::searchInquiries($pdo,$conversationId,$limit,$actor);if ($search) $choices['search_inquiries']=$search;
         $identity=[];
         foreach (['id','customer_id','customer_channel_id','project_key','channel','external_chat_id','external_user_id','channel_chat_id','status'] as $key) $identity[$key]=(string)$c[$key];
-        return ['identity'=>$identity,'choices'=>$choices];
+        return $identity;
     }
 
     /** Read-only aggregate for an already-authorized immutable publication.

@@ -242,7 +242,10 @@ class DialogueView
         );
         $text = "✅ <b>Готово! Проверьте параметры</b>\n\n" . implode("\n", $summary) . "\n\nЧто удобнее дальше?";
         $ok = self::sendAndStatus($chatId,$text,$buttons,MaxSearchApi::$statusCheck,false,TripSummaryProjection::metadata($summary));
-        if ($ok) MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusCheck, $generation);
+        if ($ok) {
+            MaxSearchApi::saveLastValue($chatId, MaxSearchApi::$statusCheck, $generation);
+            if ((string)MaxSearchApi::getEditMode($chatId) === 'menu') MaxSearchApi::setEditMode($chatId, '');
+        }
         return $ok;
     }
 

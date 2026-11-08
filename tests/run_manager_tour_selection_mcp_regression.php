@@ -4,6 +4,18 @@ if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once __DIR__.'/support/manager-tour-selection.php';
 require_once dirname(__DIR__).'/services/ManagerTourSelectionMcpAdapter.php';
 
+/** Synthetic query-time race hook, inert outside the explicit cases below. */
+class SelectionBookingReadStatement extends PDOStatement
+{
+    protected function __construct(private object $state) {}
+
+    public function execute(?array $params=null): bool
+    {
+        if ($this->state->beforeRead!==null && str_starts_with($this->queryString,'SELECT ')) ($this->state->beforeRead)($this->queryString);
+        return parent::execute($params);
+    }
+}
+
 $pdo=deliveryDb();
 $pdo->exec('CREATE TABLE manager_tour_selection_links(conversation_id INTEGER PRIMARY KEY,version INTEGER,token TEXT UNIQUE,publication_id TEXT,is_active INTEGER,updated_by_manager_id INTEGER,updated_at TEXT);
 CREATE TABLE manager_tour_selection_link_history(conversation_id INTEGER,version INTEGER,publication_id TEXT,is_active INTEGER,manager_id INTEGER,created_at TEXT,PRIMARY KEY(conversation_id,version));');
@@ -381,6 +393,35 @@ foreach ([
     try {selectionMcpRejected('final '.$label.' change suppresses all booking data',static fn()=>$guarded->call('read_tour_booking_context',$args,90,$bookingContext['connection_id']),DomainException::class);}
     finally {$hook=null;$restore();}
 }
+// Inject inside the LAST source query of the final scan, after authorizer #2.
+// The already loaded source and choice rows stay unchanged. Only a barrier
+// after this query can refuse disclosure on current authority/subject drift.
+$statementClass=$pdo->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+$readState=(object)['beforeRead'=>null];
+$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,[SelectionBookingReadStatement::class,[$readState]]);
+try {
+    foreach ([
+        'grant'=>[static fn()=>$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([time(),$bookingContext['connection_id']]),static fn()=>$pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$bookingContext['connection_id']])],
+        'admin'=>[static fn()=>$pdo->exec('UPDATE managers SET is_active=0 WHERE id=90'),static fn()=>$pdo->exec('UPDATE managers SET is_active=1 WHERE id=90')],
+        'project'=>[static fn()=>$pdo->exec('UPDATE projects SET is_active=0 WHERE id=1'),static fn()=>$pdo->exec('UPDATE projects SET is_active=1 WHERE id=1')],
+        'conversation ACL'=>[static fn()=>$pdo->exec("UPDATE conversations SET project_key='other' WHERE id=1"),static fn()=>$pdo->exec("UPDATE conversations SET project_key='anytour' WHERE id=1")],
+        'customer'=>[static fn()=>$pdo->exec('UPDATE conversations SET customer_id=2 WHERE id=1'),static fn()=>$pdo->exec('UPDATE conversations SET customer_id=1 WHERE id=1')],
+        'native subject'=>[static fn()=>$pdo->exec("UPDATE customer_channels SET external_user_id='999' WHERE id=1"),static fn()=>$pdo->exec("UPDATE customer_channels SET external_user_id='101' WHERE id=1")],
+        'channel chat'=>[static fn()=>$pdo->exec("UPDATE customer_channels SET external_chat_id='999' WHERE id=1"),static fn()=>$pdo->exec("UPDATE customer_channels SET external_chat_id='101' WHERE id=1")]
+    ] as $label=>[$change,$restore]) foreach (['read_tour_choices'=>['conversation_id'=>1],'read_tour_booking_context'=>$args] as $name=>$readArgs) {
+        $hook=null;$calls=0;$fired=false;$returned=null;
+        $readState->beforeRead=static function(string $sql)use(&$calls,&$fired,$change):void{
+            if ($calls===2 && !$fired && str_contains($sql,"event_type='tour_search_inquiry'")) {$fired=true;$change();}
+        };
+        try {
+            try {$returned=$guarded->call($name,$readArgs,90,$bookingContext['connection_id']);throw new RuntimeException('Query-time race was accepted');}
+            catch (DomainException $error) {
+                deliveryCheck($name.' denies '.$label.' drift inside last final source query without partial data',$fired&&$returned===null);
+            }
+        } finally {$readState->beforeRead=null;$restore();}
+    }
+} finally {$pdo->setAttribute(PDO::ATTR_STATEMENT_CLASS,$statementClass);}
+
 deliveryCheck('new readonly APIs still never send customer messages',(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE direction='outbound'")->fetchColumn()===0);
 }
 selectionBookingChecks($pdo,$oauth,$client,$legacyContext,$selectionContext,$mcp);

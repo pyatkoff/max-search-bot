@@ -185,6 +185,11 @@ final class ManagerTourSelectionMcpAdapter
                 $after=self::choice($fresh['choices'],$args['source_kind'],$args['source_id']);
                 if ($after===null || $after!==$requested || !hash_equals($args['choice_revision'],self::choiceRevision($args['source_kind'],$after))) throw new DomainException('booking_choice_changed');
             } elseif (self::choices($fresh['choices'])!==self::choices($current['choices'])) throw new DomainException('booking_choices_changed');
+            // The late source scan may itself wait for storage. Check current
+            // authority and pinned identity after it. No source scans follow.
+            ($this->authorize)($actor,$connection,$required);
+            self::requireConversation($actor,$conversation);
+            if (TourChoiceService::currentIdentity(ConversationDb::connection(),$conversation)!==$current['identity']) throw new DomainException('booking_subject_changed');
         }
         return ['content'=>$content,'structuredContent'=>$data,'isError'=>($data['ok']??false)!==true];
     }

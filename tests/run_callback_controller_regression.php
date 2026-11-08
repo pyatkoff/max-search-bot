@@ -302,6 +302,14 @@ try {
     DiagnosticLogger::setFile('');
 }
 
+
+$contextFixtureOutput=[];
+$contextFixtureCommand=escapeshellarg(PHP_BINARY).' '.escapeshellarg(__DIR__.'/fixtures/back_check_context.php').' 2>&1';
+exec($contextFixtureCommand,$contextFixtureOutput,$contextFixtureCode);
+echo implode("\n",$contextFixtureOutput)."\n";
+ccCheck('real back-check callback preserves current needs across summary and failed presentation',
+    $contextFixtureCode,0);
+
 $total = $passed + $failed;
 echo "\n--------------------------\n";
 echo "TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";
