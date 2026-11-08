@@ -36,6 +36,7 @@ class MaxSearchApi
     public static array $claim = ['UF_CODE'=>'synthetic-existing-claim'];
     public static array $aiContext = [];
     public static function getCurentStatus($chatId) { return self::$status; }
+    public static function getEditMode($chatId): string { return ''; }
     public static function getLastClaimForChat($chatId) { return self::$claim; }
     public static function getAiSearchContext($chatId): array { return self::$aiContext; }
     public static function __callStatic($method, $args)

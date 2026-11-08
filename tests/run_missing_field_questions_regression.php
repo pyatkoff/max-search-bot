@@ -27,6 +27,7 @@ class MaxSearchApi {
     public static function formatSavedData(array $saved): array { return []; }
     public static function saveLastValue($chatId,$status,$value){ self::$lastValues[$status]=$value; return true; }
     public static function getAiSearchContext($chatId): array { return []; }
+    public static function getEditMode($chatId): string { return ''; }
 }
 require_once __DIR__ . '/../services/MissingFieldQuestionService.php';
 
