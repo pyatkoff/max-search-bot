@@ -76,6 +76,11 @@ MaxSearchApi::$lastValues = [];
 NeedProgressionService::advance(321);
 mfqCheck('fresh start boundary can offer optional budget again', count($m->sent), $optionalBefore + 2);
 
+
+mfqCheck('named-month interval requests an agreed departure, not an endpoint',
+    MissingFieldQuestionService::question('date',['ambiguous_range'=>true]),
+    'Вы указали период поездки. Какую дату вылета взять для поиска? Укажите число и месяц.');
+
 IntegrationRegistry::resetForTests();
 ProjectConfig::resetForTests(null);
 $total=$passed+$failed;echo"\n--------------------------\n";echo"TOTAL {$total} | PASS {$passed} | FAIL {$failed}\n";exit($failed>0?1:0);

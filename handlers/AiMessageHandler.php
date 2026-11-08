@@ -60,11 +60,11 @@ class AiMessageHandler
                     }
                 }
 
-                // Keep an unsupported multi-month window out of both local
+                // Keep an unresolved date window out of both local
                 // anchoring and remote inference, but retain independent facts
                 // before asking for the one unresolved date.
                 $dateContext = AiDateContextService::resolveLocal($chat_id, $userText);
-                if (!empty($dateContext['ambiguous_months'])) {
+                if (!empty($dateContext['ambiguous_months']) || !empty($dateContext['ambiguous_range'])) {
                     if (DepartureCityResolver::resolveAndStore($chat_id, $userText)) {
                         $current = MaxSearchApi::getAiSearchContext($chat_id);
                     }
@@ -75,7 +75,9 @@ class AiMessageHandler
                     if ($explicitParams !== []) {
                         NeedApplicationService::applyParameters($chat_id, $explicitParams);
                     }
-                    MissingFieldQuestionService::send($chat_id, 'date', ['ambiguous_months'=>true]);
+                    $dateQuestion = !empty($dateContext['ambiguous_months'])
+                        ? ['ambiguous_months'=>true] : ['ambiguous_range'=>true];
+                    MissingFieldQuestionService::send($chat_id, 'date', $dateQuestion);
                     return;
                 }
 

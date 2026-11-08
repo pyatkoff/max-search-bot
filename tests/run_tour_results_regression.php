@@ -136,6 +136,7 @@ trCheck('MAX wire button retains website origin and all parameters',$wire[0][0][
 // Exercise the actual canonical API methods without loading production config.
 // Extract whole adjacent methods verbatim; no copy of their readiness logic.
 require_once __DIR__ . '/../services/AiSearchContextService.php';
+require_once __DIR__ . '/../services/PendingMonthStore.php';
 require_once __DIR__ . '/../services/DialogueView.php';
 $apiSource = (string)file_get_contents(__DIR__ . '/../maxsearchclass.php');
 function trMethods(string $source, string $first, string $next): string {
@@ -161,7 +162,10 @@ foreach ([
     'invalid'=>array_replace($ready,[73=>'31.02.2030']),
     'unanswered_children'=>array_replace($ready,[68=>null]),
     'missing_child_age'=>array_replace($ready,[68=>1]),
+    'date_clarification'=>$ready,
 ] as $label=>$needs) {
+    PendingMonthStore::clear(-930001);
+    if ($label === 'date_clarification') PendingMonthStore::set(-930001, 7, 2030, true);
     foreach (['showToursChoice','showFinishButtons'] as $method) {
         CurrentSearchApiProbe::$saved=$needs;
         $messages=[];
@@ -178,6 +182,7 @@ foreach ([
         trCheck($label.' '.$method.' emits no search buttons',$messages[0]['buttons']??[],[]);
     }
 }
+PendingMonthStore::clear(-930001);
 CurrentSearchApiProbe::$saved=$ready;
 $claimsBefore=MaxSearchApi::$claims;
 $linksBefore=MaxSearchApi::$links;

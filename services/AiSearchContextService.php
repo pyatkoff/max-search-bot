@@ -5,7 +5,7 @@ require_once __DIR__ . '/NativeDateService.php';
 
 class AiSearchContextService
 {
-    public static function contextFromSaved(array $saved, array $status, callable $cityById, callable $countryById): array
+    public static function contextFromSaved(array $saved, array $status, callable $cityById, callable $countryById, bool $dateNeedsClarification = false): array
     {
         $out = [];
 
@@ -50,6 +50,10 @@ class AiSearchContextService
             $out['negative_preferences'] = array_values($saved['_negative_preferences']);
         }
 
+        if ($dateNeedsClarification) {
+            unset($out['date']);
+            $out['date_requires_clarification'] = true;
+        }
         return $out;
     }
 
@@ -80,9 +84,10 @@ class AiSearchContextService
      * Current search admission is separate from historical context projection.
      * Reuse the existing runtime future-date policy; never rewrite saved needs.
      */
-    public static function missingForCurrentSearch(array $saved, array $status, ?DateTimeImmutable $today = null): array
+    public static function missingForCurrentSearch(array $saved, array $status, ?DateTimeImmutable $today = null, bool $dateNeedsClarification = false): array
     {
         $required = $saved;
+        if ($dateNeedsClarification) unset($required[$status['date']]);
         // An unanswered wizard row is not an explicit "no children".
         if (array_key_exists($status['children'], $required)
             && ($required[$status['children']] === null || $required[$status['children']] === '')) {
