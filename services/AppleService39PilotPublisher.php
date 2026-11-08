@@ -310,12 +310,24 @@ final class AppleService39PilotPublisher
         foreach ($expected as $index=>$attachment) {
             $observed = $actual[$index];
             self::check(is_array($observed) && ($observed['type'] ?? null) === $attachment['type'], 'post_attachment_mismatch');
-            if ($attachment['type'] === 'image') self::check((string)($observed['payload']['photo_id'] ?? '') === $upload['photo_id'], 'post_image_mismatch');
+            if ($attachment['type'] === 'image') self::check(self::imageIdentity((array)($observed['payload'] ?? []), $upload), 'post_image_mismatch');
             else self::check(($observed['payload']['buttons'] ?? null) === $attachment['payload']['buttons'], 'post_button_mismatch');
         }
         $url = $message['url'] ?? null;
         self::check(is_string($url) && self::publicUrl($url, $this->channelId), 'native_post_url_required');
         return $url;
+    }
+
+    /** A provider photo identifier or the exact original unique attachment token. */
+    private static function imageIdentity(array $payload, array $upload): bool
+    {
+        $id = $payload['photo_id'] ?? null;
+        if (!is_int($id) && !is_string($id)) return false;
+        $id = (string)$id;
+        if (preg_match('/\\A-?(?:0|[1-9][0-9]{0,19})\\z/D', $id) !== 1) return false;
+        if ($id === $upload['photo_id']) return true;
+        $token = $payload['token'] ?? null;
+        return is_string($token) && $token !== '' && hash_equals($upload['token'], $token);
     }
 
     public static function publicUrl(string $url, string $channelId): bool
@@ -348,6 +360,12 @@ final class AppleService39PilotPublisher
             && (preg_match('~\\A/channel_appleservice39ru/[A-Za-z0-9_.-]{1,191}\\z~D', (string)($parts['path'] ?? ''))
                 || preg_match('~\\A/c/(-?[1-9][0-9]{0,18})/[A-Za-z0-9_.-]{1,191}\\z~D', (string)($parts['path'] ?? ''), $match)
                     && ltrim($match[1], '-') === ltrim($this->channelId, '-'));
+        $upload = $this->upload($this->manifest->post($row['post_key']));
+        $images = array_values(array_filter((array)($message['body']['attachments'] ?? []),
+            static fn($item): bool => is_array($item) && ($item['type'] ?? null) === 'image'));
+        $payload = (array)($images[0]['payload'] ?? []); $photoId = $payload['photo_id'] ?? null;
+        $safePhotoId = (is_string($photoId) || is_int($photoId))
+            && preg_match('/\\A-?(?:0|[1-9][0-9]{0,19})\\z/D', (string)$photoId) === 1 ? (string)$photoId : null;
         return ['post_id'=>$row['post_key'],'operation'=>$row['operation'],'message_id'=>$row['external_message_id'],
             'reason'=>$reason,'http'=>(int)($response['http'] ?? 0),'transport_error'=>!empty($response['transport_error']),
             'message_envelope'=>is_array($response['data']['message'] ?? null),
@@ -356,7 +374,10 @@ final class AppleService39PilotPublisher
             'text_matches'=>($message['body']['text'] ?? null) === ($row['request']['body']['text'] ?? null),
             'url_present'=>is_string($url) && $url !== '',
             'url_matches_policy'=>is_string($url) && self::publicUrl($url, $this->channelId),
-            'observed_own_url'=>$safeUrl ? $url : null];
+            'observed_own_url'=>$safeUrl ? $url : null,
+            'image_readback'=>['count'=>count($images),'upload_photo_id'=>$upload['photo_id'],'native_photo_id'=>$safePhotoId,
+                'photo_id_matches'=>$safePhotoId !== null && $safePhotoId === $upload['photo_id'],
+                'upload_token_matches'=>is_string($payload['token'] ?? null) && hash_equals($upload['token'], $payload['token'])]];
     }
 
     private function report(string $state): array

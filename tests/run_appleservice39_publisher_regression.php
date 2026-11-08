@@ -93,6 +93,15 @@ final class ApplePilotTestProvider
             $message = $this->messages[basename($path)] ?? null;
             if (!is_array($message)) return ['http'=>404,'transport_error'=>false,'data'=>['code'=>'not_found']];
             if ($this->mode === 'wrong_image') $message['body']['attachments'][0]['payload']['photo_id'] = '999999';
+            if (in_array($this->mode, ['remapped_image','remapped_wrong_token','missing_id_same_token'], true)) {
+                $image = &$message['body']['attachments'][0]['payload'];
+                $originalId = (string)$image['photo_id'];
+                $image['photo_id'] = '90000'.$originalId;
+                $image['token'] = 'photo_'.$originalId;
+                if ($this->mode === 'remapped_wrong_token') $image['token'] = 'different-token';
+                if ($this->mode === 'missing_id_same_token') unset($image['photo_id']);
+                unset($image);
+            }
             if ($this->mode === 'wrong_url') $message['url'] = 'https://max.ru/other_channel/borrowed';
             if ($this->mode === 'credential_url') $message['url'] = 'https://private_user@max.ru/channel_appleservice39ru/post_1';
             if ($this->mode === 'dot_url') $message['url'] = 'https://max.ru/channel_appleservice39ru/mid.1';
@@ -248,6 +257,34 @@ if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
         as39Expect(($diagnostic['observed_own_url'] ?? null)===($mode==='dot_url' ? 'https://max.ru/channel_appleservice39ru/mid.1'
             : ($mode==='wrong_image' ? 'https://max.ru/channel_appleservice39ru/post_1' : null)),
             'only exact own-channel public URL candidates appear as unverified diagnostic evidence');
+    }
+    ProjectMaxConnection::resetForTests(as39Registry()); $pdo=as39Sqlite(); $provider=new ApplePilotTestProvider; $publisher=as39Publisher($pdo,$provider);
+    $publisher->run('prepare'); $provider->mode='wrong_image';
+    as39Refuses(static fn()=>$publisher->run('publish'), 'pilot_create_held');
+    $first=AppleService39PilotManifest::installed()->posts()[0]['id']; $store=new AppleService39PilotPublicationStore($pdo);
+    $originalMid=$store->operation($first,'create')['external_message_id']; $writes=$provider->writes();
+    $provider->mode='remapped_image'; $report=$publisher->run('reconcile');
+    as39Expect($report['ok'] && $report['held_operations']===0 && $provider->writes()===$writes,
+        'exact original upload token verifies a remapped native image by GET without another send');
+    $row=$store->operation($first,'create');
+    as39Expect($row['state']==='verified' && $row['external_message_id']===$originalMid && (int)$row['write_attempts']===1,
+        'image recovery preserves the exact original MID and single write attempt');
+    $publisher->run('publish'); $publisher->run('finalize'); $publisher->run('pin');
+    as39Expect($provider->count('POST','/messages')===24 && $provider->count('PUT','/messages')===24
+        && $provider->count('PUT','/chats/-12345/pin')===1,
+        'all24 remapped native images keep exact own links and one menu pin without duplicate creation');
+    foreach (['remapped_wrong_token','missing_id_same_token'] as $mode) {
+        ProjectMaxConnection::resetForTests(as39Registry()); $pdo=as39Sqlite(); $provider=new ApplePilotTestProvider; $publisher=as39Publisher($pdo,$provider);
+        $publisher->run('prepare'); $provider->mode=$mode;
+        as39Refuses(static fn()=>$publisher->run('publish'), 'pilot_create_held');
+        $report=$publisher->run('reconcile');
+        as39Expect(!$report['ok'] && $report['held_operations']===1 && $provider->count('POST','/messages')===1,
+            'a foreign token or missing native photo ID cannot clear an image hold');
+        $diagnostic=$report['readback_diagnostics'][0]['image_readback'] ?? [];
+        as39Expect(($diagnostic['upload_photo_id'] ?? null)==='1'
+            && ($diagnostic['native_photo_id'] ?? null)===($mode==='missing_id_same_token' ? null : '900001')
+            && ($diagnostic['upload_token_matches'] ?? null)===($mode==='missing_id_same_token'),
+            'image diagnosis exposes bounded identifiers and match status without tokens');
     }
     as39Expect(!AppleService39PilotPublisher::publicUrl('https://max.ru/other_channel/post_1','-12345')
         && !AppleService39PilotPublisher::publicUrl('https://max.ru/c/999/post_1','-12345')
