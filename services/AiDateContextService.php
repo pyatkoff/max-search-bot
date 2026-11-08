@@ -16,6 +16,7 @@ class AiDateContextService
             'date' => !empty($resolved['date']) ? (string)$resolved['date'] : '',
             'month_only' => !empty($resolved['month']) && empty($resolved['date']),
             'ambiguous_months' => !empty($resolved['ambiguous_months']),
+            'ambiguous_range' => !empty($resolved['ambiguous_range']),
         ];
     }
 
@@ -25,7 +26,7 @@ class AiDateContextService
 
         if (!empty($resolved['date'])) {
             $params['date'] = $resolved['date'];
-        } elseif (!empty($resolved['month']) || !empty($resolved['ambiguous_months'])) {
+        } elseif (!empty($resolved['month']) || !empty($resolved['ambiguous_months']) || PendingMonthStore::requiresClarification($chatId)) {
             $params['date'] = null;
         } elseif (!empty($params['date'])) {
             AiDateHandler::clear($chatId);

@@ -24,16 +24,19 @@ class PendingMonthStore
         );
     }
 
-    public static function set($chatId, int $month, int $year): void
+    public static function set($chatId, int $month, int $year, bool $requiresClarification = false): void
     {
-        if ($month < 1 || $month > 12 || $year < 2020) {
+        if (($month < 1 || $month > 12 || $year < 2020)
+            && !($requiresClarification && $month === 0 && $year === 0)) {
             self::debug($chatId, 'set_rejected', ['month'=>$month,'year'=>$year]);
             return;
         }
         $file = self::filePath($chatId);
+        $data = ['month'=>$month,'year'=>$year];
+        if ($requiresClarification) $data['requires_clarification'] = true;
         $bytes = @file_put_contents(
             $file,
-            json_encode(['month'=>$month,'year'=>$year], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+            json_encode($data, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
             LOCK_EX
         );
         self::debug($chatId, 'set', [
@@ -60,12 +63,21 @@ class PendingMonthStore
         }
         $month = (int)($data['month'] ?? 0);
         $year = (int)($data['year'] ?? 0);
-        if ($month < 1 || $month > 12 || $year < 2020) {
+        $requiresClarification = ($data['requires_clarification'] ?? false) === true;
+        if (($month < 1 || $month > 12 || $year < 2020)
+            && !($requiresClarification && $month === 0 && $year === 0)) {
             self::debug($chatId, 'get_rejected', ['file'=>$file,'month'=>$month,'year'=>$year]);
             return [];
         }
         self::debug($chatId, 'get', ['file'=>$file,'month'=>$month,'year'=>$year]);
-        return ['month'=>$month,'year'=>$year];
+        $pending = ['month'=>$month,'year'=>$year];
+        if ($requiresClarification) $pending['requires_clarification'] = true;
+        return $pending;
+    }
+
+    public static function requiresClarification($chatId): bool
+    {
+        return !empty(self::get($chatId)['requires_clarification']);
     }
 
     public static function clear($chatId): void

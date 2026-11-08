@@ -212,6 +212,7 @@ require __DIR__.'/handlers/AiMessageHandler.php';
 $base=['city'=>'Казань','country'=>'Турция'];$out=[];
 $ambiguous=['date'=>'','month_only'=>false,'ambiguous_months'=>true];
 $compound='24 июля по 2 августа 2030, 2 взрослых 2 ребёнка 6,12 лет';
+$namedRange=['date'=>'','month_only'=>true,'ambiguous_range'=>true];
 $cases=[
  ['faq','Есть ли бассейн?',$base,['intent'=>'question','parameters'=>[],'reply'=>'В публикации указан бассейн.'],[],null],
  ['mixed','На двоих, бассейн есть?',$base+['nights'=>'7','date'=>'15.01.2027'],['intent'=>'question','parameters'=>['adults'=>2,'children'=>0],'reply'=>'В публикации указан бассейн.'],[],null],
@@ -223,6 +224,10 @@ $cases=[
  ['ambiguous_existing','24 июля по 2 августа 2030',$base+['adults'=>3,'children'=>0,'nights'=>'9','date'=>'20.08.2030'],[],$ambiguous,null],
  ['ambiguous_departure','Хотим из Самары в Египет, '.$compound,$base+['nights'=>'7'],[],$ambiguous,['city'=>'Самара']],
  ['ambiguous_shared','24 июля по 2 августа 2030. Детям по 7 лет. Вы уже спрашивали',$base+['adults'=>2,'children'=>2,'nights'=>'7'],[],$ambiguous,null],
+ ['named_range_party','с 17 по 26 июля 2030, 2 взрослых 2 ребёнка 6,12 лет',$base+['nights'=>'7'],[],$namedRange,null],
+ ['named_range_existing','с 17 по 26 июля 2030',$base+['adults'=>3,'children'=>0,'nights'=>'9','date'=>'20.08.2030'],[],$namedRange,null],
+ ['waiting_date_faq','Есть ли бассейн?',$base+['adults'=>2,'children'=>0,'nights'=>'7','date_requires_clarification'=>true],['intent'=>'question','parameters'=>[],'reply'=>'В публикации указан бассейн.'],[],null],
+ ['waiting_date_stop','хватит',$base+['adults'=>2,'children'=>0,'nights'=>'7','date_requires_clarification'=>true],['intent'=>'stop','parameters'=>[],'reply'=>'Хорошо.'],[],null],
  ['shared_age_only','Детям по 7 лет',$base+['adults'=>2,'children'=>2,'nights'=>'7'],[],[],null],
  ['shared_age_tail','Детям по 7 лет. Вы уже спрашивали',$base+['adults'=>2,'children'=>2,'nights'=>'7'],['intent'=>'search','parameters'=>[],'reply'=>''],[],null],
  ['shared_age_correction_tail','Детям по 7 лет. Не 7, а 8',$base+['adults'=>2,'children'=>2,'nights'=>'7'],['intent'=>'question','parameters'=>[],'reply'=>'Уточните возраст детей.'],[],null],
@@ -246,7 +251,7 @@ try{
     $sourceResults=json_decode($sourceOutput,true);
     aiCompletionCheck('source handler fixture runs without external model calls',$sourceExit===0&&is_array($sourceResults));
     if($sourceExit!==0)echo $sourceError."\n";
-    foreach(['faq','mixed','stop'] as $case){
+    foreach(['faq','mixed','stop','waiting_date_faq','waiting_date_stop'] as $case){
         aiCompletionCheck('source '.$case.' reaches existing router',count($sourceResults[$case]['router']??[])===1);
         aiCompletionCheck('source '.$case.' never completes from stale needs',($sourceResults[$case]['progress']??null)===[]);
     }
@@ -259,6 +264,26 @@ try{
         aiCompletionCheck($case.' asks only the unresolved date',($sourceResults[$case]['sent']??null)===[['field'=>'date','options'=>['ambiguous_months'=>true]]]);
         aiCompletionCheck($case.' does not infer remotely or progress to handoff',($sourceResults[$case]['router']??null)===[]&&($sourceResults[$case]['progress']??null)===[]);
     }
+
+    foreach(['named_range_party','named_range_existing'] as $case){
+        aiCompletionCheck($case.' requests the date without model inference or handoff',
+            ($sourceResults[$case]['sent']??null)===[['field'=>'date','options'=>['ambiguous_range'=>true]]]
+            && ($sourceResults[$case]['router']??null)===[] && ($sourceResults[$case]['progress']??null)===[]);
+    }
+    $rangeParty=$sourceResults['named_range_party']['context']??[];
+    aiCompletionCheck('same-month date window retains the independent complete family',
+        ($rangeParty['city']??null)==='Казань'&&($rangeParty['country']??null)==='Турция'
+        &&($rangeParty['adults']??null)===2&&($rangeParty['children']??null)===2
+        &&($rangeParty['child_ages']??null)===[6,12]&&!array_key_exists('date',$rangeParty));
+    aiCompletionCheck('date clarification leaves historical storage unchanged',
+        ($sourceResults['named_range_existing']['context']??null)===['city'=>'Казань','country'=>'Турция','adults'=>3,'children'=>0,'nights'=>'9','date'=>'20.08.2030']);
+    aiCompletionCheck('a later hotel FAQ remains answerable while the date is unresolved',
+        ($sourceResults['waiting_date_faq']['sent']??null)===['В публикации указан бассейн.']
+        && !array_key_exists('date',$sourceResults['waiting_date_faq']['seen_contexts'][0]??[])
+        && ($sourceResults['waiting_date_faq']['seen_contexts'][0]['date_requires_clarification']??false)===true);
+    aiCompletionCheck('stop remains an acknowledgement while the date is unresolved',
+        ($sourceResults['waiting_date_stop']['sent']??null)===['Хорошо.']);
+
     $savedParty=$sourceResults['ambiguous_party']['context']??[];
     aiCompletionCheck('date clarification keeps all explicit party values',[$savedParty['adults']??null,$savedParty['children']??null,$savedParty['child_ages']??null]===[2,2,[6,12]]);
     aiCompletionCheck('date clarification preserves the known departure and no date is guessed',($savedParty['city']??null)==='Казань'&&!array_key_exists('date',$savedParty));

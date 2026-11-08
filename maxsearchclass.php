@@ -19,6 +19,7 @@ require_once(__DIR__ . '/services/TravelDirectoryRepository.php');
 require_once(__DIR__ . '/services/DialogueView.php');
 require_once(__DIR__ . '/services/TourResultsService.php');
 require_once(__DIR__ . '/services/NativeDateService.php');
+require_once(__DIR__ . '/services/PendingMonthStore.php');
 
 class MaxSearchApi extends MaxSearchBase
 {
@@ -107,9 +108,9 @@ class MaxSearchApi extends MaxSearchBase
     public static function upsertStatusValue($chatID,$status,$value){ return ConversationStateRepository::upsertValue(static::$HL,$chatID,$status,$value); }
 
     public static function getAiSearchContext($chatID){
-        return AiSearchContextService::contextFromSaved((array)static::getSavedData($chatID),static::statusMap(),function($id){return static::getCityByID($id);},function($id){return static::getCountryByID($id);});
+        return AiSearchContextService::contextFromSaved((array)static::getSavedData($chatID),static::statusMap(),function($id){return static::getCityByID($id);},function($id){return static::getCountryByID($id);},PendingMonthStore::requiresClarification($chatID));
     }
-    public static function getAiMissingFields($chatID){ return AiSearchContextService::missingForCurrentSearch((array)static::getSavedData($chatID),static::statusMap()); }
+    public static function getAiMissingFields($chatID){ return AiSearchContextService::missingForCurrentSearch((array)static::getSavedData($chatID),static::statusMap(),null,PendingMonthStore::requiresClarification($chatID)); }
     public static function applyAiParameters($chatID,array $params){
         $normalized=AiSearchContextService::normalizeParameters($params,function($name){$r=static::getCityByName($name);return $r?($r['ID']??null):null;},function($name){$r=static::getCountryByName($name);return $r?($r['ID']??null):null;},function($date){return NativeDateService::isTodayOrFuture((string)$date);});
         $storageMap=AiSearchContextService::storageMap(static::statusMap()); $applied=[];

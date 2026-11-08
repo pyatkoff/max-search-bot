@@ -19,6 +19,7 @@ class DepartureRouteAdviceHandler
 
         $normalized = self::lower($text);
         $dateInfo = DateParser::resolveDate($text);
+        if (!empty($dateInfo['ambiguous_range'])) return false;
         $period = self::periodFromDateInfo($dateInfo);
         $preferenceIntent = DestinationPreferenceResolver::detectIntent($text);
 
