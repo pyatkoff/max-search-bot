@@ -1,0 +1,570 @@
+{
+  "schema_version": "next-prep-primary-evidence-v1",
+  "prepared_at_utc": "2026-11-08T14:44:23.247038+00:00",
+  "state": "PREPARED_NOT_PUBLISHED",
+  "purpose": "Compact local next-batch handoff while published batch44 closes. No queue or publication changes.",
+  "scope_native_hotel_ids": [
+    13844,
+    32232,
+    57684
+  ],
+  "source_inventory_path": "/workspace/scratch/03f23da71f12/inventory-readonly/next-new-hotel-candidates.json",
+  "source_inventory_sha256": "f0859f63d5ae7e2dd5e4ff0a8cd170633da83aeaf024e72b083da44f3c639fe0",
+  "rows": [
+    {
+      "native_hotel_id": 13844,
+      "anytour_hotel_id": null,
+      "hotel_name": "JA Ocean View Hotel",
+      "aliases": [
+        "Ja Ocean View Hotel"
+      ],
+      "state": "PREPARED_NOT_PUBLISHED",
+      "historical_hold": "MEDIA_HELD",
+      "historical_hold_ledger_unchanged": true,
+      "historical_hold_detail": "Pinned inventory/manifest identifies blocker class only; exact earlier failed claim or media rejection reason is not retained here.",
+      "historical_registry_clearance": {
+        "read_no": 39,
+        "read_at_utc": "2026-11-07T18:34:00+00:00",
+        "source_path": "tools/direct_demand/operations/commercial-channel-hotel-feeds-20261107-read39-safe-receipt.json",
+        "source_git_blob": "13cf531ef9e68b0afd85ef8ac206a30b385b8c6f",
+        "clearance": {
+          "native_hotel_id": 13844,
+          "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+          "logical_id": null,
+          "aliases": [
+            "Ja Ocean View Hotel"
+          ],
+          "matches": [],
+          "clear": true,
+          "limit_reached": false
+        }
+      },
+      "current_registry_read_performed": false,
+      "absent_from_accepted_502": true,
+      "absent_from_published_batch44_seven": true,
+      "fresh_typed_catalog_identity_required": true,
+      "category_badge_approved": false,
+      "resort": "Дубай",
+      "country": "ОАЭ",
+      "caption": "✈️ Туры в JA Ocean View Hotel\n📍 Дубай, ОАЭ.\n\nВид на море и прогулки по The Walk для тех, кто хочет совместить пляж с городской жизнью.\n\n🛏 Sea View Room 39 м² с собственным балконом.\n💧 Бассейн с видом на колесо Ain Dubai.\n🍽 Ресторан Aqua и итальянская пиццерия IL Motto в отеле.\n\n✈️ Подберём питание и рассчитаем полную стоимость тура в JA Ocean View Hotel с перелётом на ваши даты.",
+      "caption_utf16_units": 385,
+      "caption_sha256": "7afd8553b5a98657fa1b1dce0b68b51c65656907d542aa059993f38437097ad5",
+      "caption_state": "DRAFT_PRIMARY_FACTS_REVIEWED_FINAL_ROOT_ACCEPTANCE_PENDING",
+      "claims": [
+        {
+          "claim": "Отель находится на The Walk в Jumeirah Beach Residences, Дубай; подходит для сочетания пляжа с городскими прогулками.",
+          "sources": [
+            "home"
+          ],
+          "kind": "fact_plus_editorial_fit"
+        },
+        {
+          "claim": "Sea View Room: 39 м², вид на море, собственный балкон.",
+          "sources": [
+            "room"
+          ],
+          "kind": "direct_room_category"
+        },
+        {
+          "claim": "У бассейна виден Ain Dubai; Aqua и IL Motto Pizzeria находятся в отеле.",
+          "sources": [
+            "home",
+            "gallery"
+          ],
+          "kind": "direct_hotel_facilities"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.jaresortshotels.com/dubai/ja-ocean-view-hotel",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/home.html",
+          "sha256": "802f02aa5f1c2bc5f338817d41fcd6f79ccc858dc8a881a2f03d658bc704508c",
+          "source_id": "home",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        },
+        {
+          "url": "https://www.jaresortshotels.com/accommodation-detail/dubai/ja-ocean-view-hotel/sea-view-room",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/room.html",
+          "sha256": "722fc7696a58fcdf00e2145a196891243814b7ea64f972654453b518d702b8a4",
+          "source_id": "room",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        },
+        {
+          "url": "https://www.jaresortshotels.com/media-library-detail/dubai/ja-ocean-view-hotel",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/media.html",
+          "sha256": "7a5bd6ff078174b06b0a80e7139882ee5d58c985fec57b9f420c6fa1a5bc1a7d",
+          "source_id": "media",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        },
+        {
+          "url": "https://www.jaresortshotels.com/dubai/ja-ocean-view-hotel/gallery",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/gallery.html",
+          "sha256": "a02a11fb85d6596ef98005186f3b34e079f793ef49ca776a5a0a50d13c9e6f9e",
+          "source_id": "gallery",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        }
+      ],
+      "selected_photos": [
+        {
+          "name": "hero",
+          "url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/hero-image-top/-hero-top/ovh-jpgfd3b0bf4-d5ca-43be-a90c-649106d4d943.jpg?sfvrsn=1f5f0e10_0",
+          "source_url": "https://www.jaresortshotels.com/media-library-detail/dubai/ja-ocean-view-hotel",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/media.html",
+          "source_sha256": "7a5bd6ff078174b06b0a80e7139882ee5d58c985fec57b9f420c6fa1a5bc1a7d",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/hero.jpg",
+          "sha256": "6a5f2c96c0629e8ca5c4cb3574ff5274d64aec650af54e5f45d198f31cb45680",
+          "size": [
+            1922,
+            647
+          ],
+          "alt": "OVH.jpg",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 1,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальный бассейн отеля с кабинками OIA и Ain Dubai на заднем плане; точное фото с официальной hotel media page."
+        },
+        {
+          "name": "room-full",
+          "url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/accommodations/landing-small/a-seaview-room-jpg75a6e2aa-0a2f-4783-b761-e61868b72163.jpg?sfvrsn=98cc8255_0",
+          "source_url": "https://www.jaresortshotels.com/accommodation-detail/dubai/ja-ocean-view-hotel/sea-view-room",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/room.html",
+          "source_sha256": "722fc7696a58fcdf00e2145a196891243814b7ea64f972654453b518d702b8a4",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/room-full.jpg",
+          "sha256": "4c82d6722a34756727ef63119003943e0e3e6653fcbc474bab06f397c5b19615",
+          "size": [
+            1058,
+            642
+          ],
+          "alt": "A.Seaview room.JPG",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 2,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальный Sea View Room с балконом, голубым ковром и видом на море; категория прямо названа официальной страницей."
+        },
+        {
+          "name": "restaurant",
+          "url": "https://jaweb2019cdn.azureedge.net/assets/images/default-source/jarh-images/site-redesign/-masonry-grid-image/aqua-restaurant-bar-4-jpg0ef901fe-63aa-47ee-a73f-5b3f3ead8671.jpg?sfvrsn=aeb58127_2",
+          "source_url": "https://www.jaresortshotels.com/dubai/ja-ocean-view-hotel/gallery",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/gallery.html",
+          "source_sha256": "a02a11fb85d6596ef98005186f3b34e079f793ef49ca776a5a0a50d13c9e6f9e",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/13844/restaurant.jpg",
+          "sha256": "33da513a12a36b6f5c8cf28874b3e58b0e5242ca0b2c918feb59083bdd360216",
+          "size": [
+            833,
+            522
+          ],
+          "alt": "Aqua Restaurant & Bar 4.jpg",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 3,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальный интерьер Aqua Restaurant & Bar из гостиничной галереи."
+        }
+      ],
+      "selected_photo_count": 3,
+      "source_photos_visually_reviewed": true,
+      "limitations_and_exclusions": [
+        "Это городской отель JBR. Не приписывать ему собственный пляж, площадь соседних курортов JA или бесплатный доступ к JA Beach Hotel.",
+        "Sea View Room39м² не смешивать с Family Interconnecting80м². Питание, конкретный вид и тариф уточняются при подборе.",
+        "Колесо Ain Dubai на фотографии подтверждает вид; режим работы самого аттракциона не проверялся и не обещается."
+      ],
+      "branded_cover_created": false,
+      "branded_cover_visually_reviewed": false,
+      "media_ready_for_publication": false,
+      "publication_attempted": false
+    },
+    {
+      "native_hotel_id": 32232,
+      "anytour_hotel_id": null,
+      "hotel_name": "Waldorf Astoria Dubai Palm Jumeirah",
+      "aliases": [
+        "Waldorf Astoria Dubai Palm Jumeirah"
+      ],
+      "state": "PREPARED_NOT_PUBLISHED",
+      "historical_hold": "SOURCE_HELD",
+      "historical_hold_ledger_unchanged": true,
+      "historical_hold_detail": "Pinned inventory/manifest identifies blocker class only; exact earlier failed claim or media rejection reason is not retained here.",
+      "historical_registry_clearance": {
+        "read_no": 39,
+        "read_at_utc": "2026-11-07T18:34:00+00:00",
+        "source_path": "tools/direct_demand/operations/commercial-channel-hotel-feeds-20261107-read39-safe-receipt.json",
+        "source_git_blob": "13cf531ef9e68b0afd85ef8ac206a30b385b8c6f",
+        "clearance": {
+          "native_hotel_id": 32232,
+          "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+          "logical_id": null,
+          "aliases": [
+            "Waldorf Astoria Dubai Palm Jumeirah"
+          ],
+          "matches": [],
+          "clear": true,
+          "limit_reached": false
+        }
+      },
+      "current_registry_read_performed": false,
+      "absent_from_accepted_502": true,
+      "absent_from_published_batch44_seven": true,
+      "fresh_typed_catalog_identity_required": true,
+      "category_badge_approved": false,
+      "resort": "Дубай",
+      "country": "ОАЭ",
+      "caption": "✈️ Туры в Waldorf Astoria Dubai Palm Jumeirah\n📍 Дубай, ОАЭ.\n\nОтдых на острове Пальма Джумейра с собственным песчаным пляжем и бассейном среди пальм.\n\n🛏 King Deluxe Room with Palm Sea View 58 м², с собственным балконом и видом на море.\n🏖 Собственный пляж с белым песком.\n💧 Открытый бассейн.\n🎨 Клуб Coco’s Kids Club для детей.\n\n✈️ Подберём питание и номер, рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "caption_utf16_units": 418,
+      "caption_sha256": "507a0cc5e9543c05178a93814edebe8dceefbe88236cfdf6b768be496d9700c9",
+      "caption_state": "DRAFT_PRIMARY_FACTS_REVIEWED_FINAL_ROOT_ACCEPTANCE_PENDING",
+      "claims": [
+        {
+          "claim": "Отель расположен на East Crescent острова Palm Jumeirah в Дубае.",
+          "sources": [
+            "home"
+          ],
+          "kind": "identity_location"
+        },
+        {
+          "claim": "Собственный пляж с белым песком, открытый бассейн, Coco’s Kids Club.",
+          "sources": [
+            "home",
+            "rooms"
+          ],
+          "kind": "direct_hotel_facilities"
+        },
+        {
+          "claim": "King Deluxe Room with Palm Sea View: 58 м², собственный балкон, вид на Palm Jumeirah/море, до трёх гостей.",
+          "sources": [
+            "rooms"
+          ],
+          "kind": "public_server_rendered_room_payload",
+          "evidence_locator": "rooms.html: unique King Deluxe Room with Palm Sea View payload followed by 58 sq. m./625 sq. ft.; separate Skyline payload says61 sq.m.",
+          "caption_uses_occupancy": false
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/32232/home.html",
+          "sha256": "da9a6e74b64f9d72c810ee13495afea65a3ed7854a4f5c6bf84e317ff29d7080",
+          "source_id": "home",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        },
+        {
+          "url": "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/rooms/",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/32232/rooms.html",
+          "sha256": "872c581f107992b15d5fad89654b8a63c352aca74ff1c5b255cf70e60978997f",
+          "source_id": "rooms",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        }
+      ],
+      "selected_photos": [
+        {
+          "hotel_id": 32232,
+          "name": "hero",
+          "url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1920,h_1080,q_70,f_auto,g_auto/Imagery/Property%20Photography/Waldorf%20Astoria/D/DXBPDWA/Waldorf%20Astoria%20Dubai%20May%202014%20Exterior%201%20Master.jpg",
+          "source_url": "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/32232/home.html",
+          "source_sha256": "da9a6e74b64f9d72c810ee13495afea65a3ed7854a4f5c6bf84e317ff29d7080",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/32232/hero.jpg",
+          "sha256": "abb4f27959540c83a439aadf3ade21b903476c42d3afa6be5d0ade85e2c7db8e",
+          "size": [
+            1920,
+            1080
+          ],
+          "alt": "Hotel Exterior from the water",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 1,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальный фасад Waldorf Astoria Palm Jumeirah с собственным пляжем, вид со стороны воды."
+        },
+        {
+          "hotel_id": 32232,
+          "name": "room",
+          "url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1920,h_1080,q_70,f_auto,g_auto/Imagery/Property%20Photography/Waldorf%20Astoria/D/DXBPDWA/DXBPDWA_King_Deluxe_Room_Palm_Sea_View.jpg",
+          "source_url": "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/rooms/",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/32232/rooms.html",
+          "source_sha256": "872c581f107992b15d5fad89654b8a63c352aca74ff1c5b255cf70e60978997f",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/32232/room.jpg",
+          "sha256": "23f5bf764ad64fc5600cc0367dd035d0e669553a589853ea7c8d7affb480c7e5",
+          "size": [
+            1920,
+            1080
+          ],
+          "alt": "king bedroom with sofa",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 2,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальный номер с балконом и видом на Palm; текущий Hilton asset назван King Deluxe Room Palm Sea View."
+        },
+        {
+          "hotel_id": 32232,
+          "name": "pool",
+          "url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_720,h_540,q_80,f_auto,g_auto/Imagery/Property%20Photography/Waldorf%20Astoria/D/DXBPDWA/DXBPDWA_Palm_Sea_View.jpg",
+          "source_url": "https://www.hilton.com/en/hotels/dxbpdwa-waldorf-astoria-dubai-palm-jumeirah/",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/32232/home.html",
+          "source_sha256": "da9a6e74b64f9d72c810ee13495afea65a3ed7854a4f5c6bf84e317ff29d7080",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/32232/pool.jpg",
+          "sha256": "490f853f044c300a564ac97945dacdcb8df8f948f3af2f0c32dd78e9bee1e009",
+          "size": [
+            720,
+            540
+          ],
+          "alt": "overhead view of the outdoor pool and city across the water",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 3,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальный вид с высоты на бассейн, пальмы, пляж и воду Palm Jumeirah."
+        }
+      ],
+      "selected_photo_count": 3,
+      "source_photos_visually_reviewed": true,
+      "limitations_and_exclusions": [
+        "Точный текущий Hilton payload для King Deluxe Palm Sea View указывает58м²; Skyline Sea View61м² относится к другой категории. Старые обобщённые55м² не переносить.",
+        "Pearl Club доступен определённым категориям; не включать его в обычный Deluxe.",
+        "Детский клуб подтверждён как объект; возрастные ограничения, стоимость и часы не обещаются.",
+        "Реальный срок съёмки официальных фотографий не установлен; используются оригинальные фото, которые текущий официальный сайт продолжает размещать."
+      ],
+      "branded_cover_created": false,
+      "branded_cover_visually_reviewed": false,
+      "media_ready_for_publication": false,
+      "publication_attempted": false
+    },
+    {
+      "native_hotel_id": 57684,
+      "anytour_hotel_id": null,
+      "hotel_name": "Wyndham Garden Ajman Corniche",
+      "aliases": [
+        "Wyndham Garden Ajman Corniche"
+      ],
+      "state": "PREPARED_NOT_PUBLISHED",
+      "historical_hold": "SOURCE_HELD",
+      "historical_hold_ledger_unchanged": true,
+      "historical_hold_detail": "Pinned inventory/manifest identifies blocker class only; exact earlier failed claim or media rejection reason is not retained here.",
+      "historical_registry_clearance": {
+        "read_no": 39,
+        "read_at_utc": "2026-11-07T18:34:00+00:00",
+        "source_path": "tools/direct_demand/operations/commercial-channel-hotel-feeds-20261107-read39-safe-receipt.json",
+        "source_git_blob": "13cf531ef9e68b0afd85ef8ac206a30b385b8c6f",
+        "clearance": {
+          "native_hotel_id": 57684,
+          "scope": "remaining_original20_FIRST_CANONICAL_IDENTITY_READ_first_registry_clearance_not_release_ready",
+          "logical_id": null,
+          "aliases": [
+            "Wyndham Garden Ajman Corniche"
+          ],
+          "matches": [],
+          "clear": true,
+          "limit_reached": false
+        }
+      },
+      "current_registry_read_performed": false,
+      "absent_from_accepted_502": true,
+      "absent_from_published_batch44_seven": true,
+      "fresh_typed_catalog_identity_required": true,
+      "category_badge_approved": false,
+      "resort": "Аджман",
+      "country": "ОАЭ",
+      "caption": "✈️ Туры в Wyndham Garden Ajman Corniche\n📍 Аджман, ОАЭ.\n\nОтпуск на набережной Аджмана с собственным балконом и видом на море из номера.\n\n🛏 Номера и люксы с балконом.\n🏖 Бесплатный доступ к частному пляжу.\n💧 Открытый бассейн и джакузи.\n🍽 Gourmet Garden с международной кухней и Seascape с морепродуктами.\n\n✈️ Подберём питание и рассчитаем полную стоимость тура в Wyndham Garden Ajman Corniche с перелётом на ваши даты.",
+      "caption_utf16_units": 420,
+      "caption_sha256": "ed98dce7a2c02f0b3786b86a3444e054ae61fb5fcf7ba7f01cf6ce49616bb111",
+      "caption_state": "DRAFT_PRIMARY_FACTS_REVIEWED_FINAL_ROOT_ACCEPTANCE_PENDING",
+      "claims": [
+        {
+          "claim": "Отель находится на набережной Аджмана; номера и люксы имеют собственные балконы с видом на море.",
+          "sources": [
+            "home",
+            "rooms"
+          ],
+          "kind": "identity_room_features"
+        },
+        {
+          "claim": "Бесплатный доступ к частному пляжу.",
+          "sources": [
+            "home",
+            "beach"
+          ],
+          "kind": "direct_hotel_access"
+        },
+        {
+          "claim": "Открытый бассейн, джакузи, Gourmet Garden с международной кухней и Seascape с морепродуктами.",
+          "sources": [
+            "home",
+            "chain"
+          ],
+          "kind": "direct_hotel_facilities"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.rhotels.ae/en/wyndham-garden-ajman-corniche.html",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/home.html",
+          "sha256": "c130e1463ad087f785c2784b2793f50aedcd10689dfa45cb06e728c8b451c5e7",
+          "source_id": "home",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        },
+        {
+          "url": "https://ajmancorniche.rhotels.ae/en/rooms",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/rooms.html",
+          "sha256": "beef4a00c4ec6cdb1921a8254aa00c33f7986a1b82111cd431b18b8ff10ebbf5",
+          "source_id": "rooms",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        },
+        {
+          "url": "https://www.wyndhamhotels.com/en-uk/wyndham-garden/ajman-united-arab-emirates/wyndham-garden-ajman-corniche/overview",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/chain.html",
+          "sha256": "341c751ca096e624d9a48c5e51130ee65f55f6922b09f65c00371f9949326fbd",
+          "source_id": "chain",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        },
+        {
+          "url": "https://www.rhotels.ae/en/wyndham-garden-ajman-corniche/amenities/private-beach-access.html",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/beach.html",
+          "sha256": "0860c01ccd3c38a44b63351a72392347bd88db2f580a8b4e0485b96be3561d37",
+          "source_id": "beach",
+          "source_type": "hotel_or_chain_official",
+          "captured_on": "2026-11-08"
+        }
+      ],
+      "selected_photos": [
+        {
+          "hotel_id": 57684,
+          "name": "hero",
+          "url": "https://www.wyndhamhotels.com/content/dam/property-images/en-us/gn/ae/others/ajman/50667/50667_exterior_view_1.jpg?crop=3000:2000;*,*&downsize=1800:*",
+          "source_url": "https://www.wyndhamhotels.com/en-uk/wyndham-garden/ajman-united-arab-emirates/wyndham-garden-ajman-corniche/overview",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/chain.html",
+          "source_sha256": "341c751ca096e624d9a48c5e51130ee65f55f6922b09f65c00371f9949326fbd",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/hero.jpg",
+          "sha256": "ff1314c5a7ba15075ce14fc5ea81d5f6d09c50df5366e9ceb075c67d3e5478b1",
+          "size": [
+            3000,
+            2002
+          ],
+          "alt": "Exterior of Wyndham Garden Ajman Corniche hotel in Ajman, Other than US/Canada",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 1,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальный высотный Wyndham Garden Ajman Corniche, фирменная зелёная вывеска, соседние здания и берег."
+        },
+        {
+          "hotel_id": 57684,
+          "name": "room",
+          "url": "https://www.rhotels.ae/uploads/image-slider/45bc756164b019793988ed8b8b353e941573630059.jpg",
+          "source_url": "https://www.rhotels.ae/en/wyndham-garden-ajman-corniche.html",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/home.html",
+          "source_sha256": "c130e1463ad087f785c2784b2793f50aedcd10689dfa45cb06e728c8b451c5e7",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/room.jpg",
+          "sha256": "29209afaeacff304a3892ffb1d13aa5bdbfa5d0a3e4f294461c93ff050876dba",
+          "size": [
+            700,
+            466
+          ],
+          "alt": "Standard Room Sea view",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 2,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальный Standard Room Sea View с бирюзовыми акцентами и балконом, исходник официального оператора R Hotels."
+        },
+        {
+          "hotel_id": 57684,
+          "name": "pool",
+          "url": "https://www.wyndhamhotels.com/content/dam/property-images/en-us/gn/ae/others/ajman/50667/50667_pool_feature_1.jpg?crop=3000:2000;*,*&downsize=1800:*",
+          "source_url": "https://www.wyndhamhotels.com/en-uk/wyndham-garden/ajman-united-arab-emirates/wyndham-garden-ajman-corniche/overview",
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/chain.html",
+          "source_sha256": "341c751ca096e624d9a48c5e51130ee65f55f6922b09f65c00371f9949326fbd",
+          "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/57684/pool.jpg",
+          "sha256": "cf6deb0dfd7ea27aba34fa5e36dccb36d36822feaaa25590285af0b3627de3b4",
+          "size": [
+            3000,
+            2002
+          ],
+          "alt": "Pool feature at the Wyndham Garden Ajman Corniche in Ajman, Other than US/Canada",
+          "status": "REAL_SOURCE_PHOTO_VISUALLY_REVIEWED",
+          "selection_order": 3,
+          "visual_reviewed_at": "2026-11-08",
+          "visual_review_notes": "Реальная детская водная зона гостиницы с кольцами и грибком; источник Wyndham property50667."
+        }
+      ],
+      "selected_photo_count": 3,
+      "source_photos_visually_reviewed": true,
+      "limitations_and_exclusions": [
+        "Подтверждён доступ к частному пляжу; в этой подготовке не установлены точное расстояние/маршрут, переход дороги и актуальный шаттл. Не обещать первую линию или прямой выход с территории.",
+        "Третье выбранное фото показывает детскую водную зону с крышей, а не основной открытый бассейн. На обложке не подписывать его как взрослый открытый бассейн.",
+        "Гарантированное питание, бесплатный трансфер в торговые центры и точные часы работы не включены.",
+        "Фото комнаты подписано официальным оператором Standard Room Sea View; конкретный тариф/планировка не гарантируются."
+      ],
+      "branded_cover_created": false,
+      "branded_cover_visually_reviewed": false,
+      "media_ready_for_publication": false,
+      "publication_attempted": false
+    }
+  ],
+  "next_gates": [
+    {
+      "gate": 1,
+      "name": "Fresh typed identity and category",
+      "required": "Read current canonical AnyTour catalogue for native13844,32232,57684; verify unique native→AnyTour links, current names/aliases, resort/country/category, and material factual conflicts before any star badge or hotel-context CTA."
+    },
+    {
+      "gate": 2,
+      "name": "Fresh nonduplicate publication admission",
+      "required": "Check current canonical registry for exact native/logical IDs and distinguishing aliases against completed509 and preserved public records. Historical read39 is evidence only, not fresh release clearance."
+    },
+    {
+      "gate": 3,
+      "name": "Explicit review of new evidence against prior hold",
+      "required": "Keep historical SOURCE_HELD/MEDIA_HELD ledger as audit fact. Root reviews current primary proof/claims/photo identity and records why replacement evidence is sufficient; do not silently delete holds or claim the unavailable earlier detailed rejection was disproved."
+    },
+    {
+      "gate": 4,
+      "name": "Final original-photo cover and caption approval",
+      "required": "Use exactly three unmodified selected source photographs in accepted AnyTour600×600 grid with actual logo/banner; visually inspect final crops, text/category, identity and photo-specific caveats. Verify final caption≤1024UTF16, short heading, no body dashes, strong single quote CTA and one canonical contextual button."
+    },
+    {
+      "gate": 5,
+      "name": "Canonical new-operation release",
+      "required": "Only after gates1–4, root may prepare a fresh bounded canonical publisher operation/immutable manifest with current source pins and exact caption/entity/cover hashes. This handoff is not a release manifest; do not reuse batch44 or start a new publisher from this prep."
+    }
+  ],
+  "not_selected": [
+    {
+      "native_hotel_id": 81358,
+      "hotel_name": "GLOW Mira Karon Beach",
+      "historical_hold": "SOURCE_HELD",
+      "state": "HOLD_RETAINED",
+      "exact_current_observation": "Three official URLs (home, suites-rooms, standard-room) returned HTTP403 on raw capture; search can read facts but no complete retained primary/three-photo packet was assembled. No clearing."
+    }
+  ],
+  "remaining_source_held_ids_unchanged": [
+    81358,
+    1551,
+    212,
+    983,
+    2575,
+    2569,
+    57684,
+    32232,
+    55511,
+    132016,
+    473,
+    475,
+    206,
+    14140,
+    32356,
+    65254,
+    22660
+  ],
+  "remaining_media_held_ids_unchanged": [
+    13844
+  ],
+  "remote_writes": 0,
+  "provider_send_calls": 0,
+  "workflow_dispatches": 0,
+  "new_research_queue_created": false,
+  "old_cards_modified": false,
+  "publication_manifest_created": false
+}

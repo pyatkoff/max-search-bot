@@ -1,0 +1,38 @@
+{
+  "state": "PREPARED_NOT_PUBLISHED",
+  "native_hotel_ids": [
+    13844,
+    32232,
+    57684
+  ],
+  "handoff_sha256": "551ba6241eaf2b9fe30bf296fc0bf6fa26191460a2527dfbb84d3dc971e2be9c",
+  "three_original_photos_per_hotel": true,
+  "source_photo_visual_review_completed": true,
+  "current_typed_catalog_verified": false,
+  "current_registry_clearance_performed": false,
+  "historical_holds_unchanged": true,
+  "branded_covers_created": false,
+  "release_manifest_created": false,
+  "next_gates": [
+    "Fresh typed identity and category",
+    "Fresh nonduplicate publication admission",
+    "Explicit review of new evidence against prior hold",
+    "Final original-photo cover and caption approval",
+    "Canonical new-operation release"
+  ],
+  "remote_writes": 0,
+  "provider_sends": 0,
+  "workflow_dispatches": 0,
+  "additional_candidates_opened_after_scope_freeze": 0,
+  "also_evaluated_not_selected": [
+    {
+      "native_hotel_id": 81358,
+      "state": "SOURCE_HELD_RETAINED",
+      "reason": "Official raw capture HTTP403; three-photo evidence packet incomplete."
+    }
+  ],
+  "historical_scratch_handoff_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/next-prep-20261108/next-three-prepared-not-published.json",
+  "handoff_repository_path": "tools/direct_demand/operations/commercial-next-three-20261108-prepared-not-published.json",
+  "accepted_public_total_before_any_future_release": 509,
+  "not_a_publication_admission": true
+}
