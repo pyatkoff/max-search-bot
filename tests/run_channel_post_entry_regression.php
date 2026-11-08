@@ -314,6 +314,10 @@ try {
         if($platform==='max')cpeStartMax($user,$publications[$platform]['start_payload'],400+$index);
         else cpeStartTelegram($user,$publications[$platform]['start_payload'],$dispatcher,$messenger,400+$index);
         $before=cpeConversation($platform,$user);$id=(int)$before['id'];
+        cpeCheck('named entry asks explicit hotel intent before needs: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','или подобрать другой отель?'),true);
+        $intent=SourceHotelIntentService::current($id);$sendBefore=count($sent);
+        $dispatcher->dispatch(['platform'=>$platform,'type'=>'callback','callback_data'=>'hotel_intent_same:'.$intent['token'],
+            'callback_id'=>'fixture.qualified.choice.'.$user,'user'=>['chat_id'=>$chat,'external_user_id'=>$user]]);
         cpeCheck('qualification asks the one missing date: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','Когда планируете отдых?'),true);
         cpeCheck('qualification does not promise a manager before needs: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','Менеджер'),false);
         cpeCheck('qualification preserves current collected needs: '.$platform,MaxSearchApi::$needContexts[$chat],$known);
