@@ -1,4 +1,4 @@
-name: Shorten the two reviewed Susesi headings once
+name: Shorten the remaining 914 hotel headings sequentially once
 permissions:
   contents: read
   actions: read
@@ -7,6 +7,16 @@ concurrency:
   cancel-in-progress: false
 env:
   EXPECTED_PRODUCTION_SHA: 87f9c7cccff02382dc2c33f9dda06f5b8e6357c0
+  CANARY_RUN_ID: '42439965037'
+  CANARY_COMMIT_SHA: 1e03ced0660f553a3597b68a80c05a54649e03c1
+  PREPARED_ARTIFACT_ID: '13601551280'
+  PREPARED_ZIP_SHA256: 11d7636aeed75da7ebc2245807e58fe9ee070971c7066a8acf94f541d1fdcbe5
+  PREPARED_INDEX_SHA256: 7fc49e0bcd5e21e2fa008ac2f75b695072ce9bd2f4b69bcba585762724c6d9f1
+  CANARY_MANIFEST_SHA256: 776c95600c9c22f1c9ac9cb5eb9b7dd5644d03d2377871924e540bea668e5c84
+  TITLE_EXECUTOR_SHA256: 860e0cceaa86321b57b6a4075d38c05e2748de862a35a07c7845b914937c5c73
+  BULK_HELPER_SHA256: 0d00e43ea337fa30bbb8a44c2e430ba330b74c141335068e9d357b11e0a4c041
+  TITLE_READER_SHA256: 16b2f660709bda1995fa4edbf90e67651338d54d25244e1b54cdabf36ec2aaea
+  TITLE_SCOPE_SHA256: d1c11d29609483213cd8988aeb398fca48c9d78b8a3588297066cf4926398724
 'on':
   push:
     branches:
@@ -17,7 +27,7 @@ jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 180
     steps:
     - uses: actions/checkout@v4
       with:
@@ -43,6 +53,13 @@ jobs:
         php -l tools/direct_demand/operations/test-title-only-markup.php
         php tools/direct_demand/operations/test-title-only-markup.php
         mkdir -m 700 "$RUNNER_TEMP/short-title-private"
+        python3 - <<'PY'
+        import hashlib,os,pathlib
+        p=pathlib.Path('tools/direct_demand/operations/verify-title-bulk-packet.py')
+        assert hashlib.sha256(p.read_bytes()).hexdigest()==os.environ['BULK_HELPER_SHA256'],'bulk_verifier_changed'
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py self-test
+        mkdir -m 700 "$RUNNER_TEMP/short-title-bulk-safe"
     - name: Require original current-source release and health gates
       env:
         GH_TOKEN: ${{ github.token }}
@@ -75,6 +92,19 @@ jobs:
             r=json.loads((t/f'gate-{rid}.json').read_text());assert r['id']==rid and r['head_sha']==sha and r['path']=='.github/workflows/'+name and r['status']=='completed' and r['conclusion']=='success'
         print('ORIGINAL_CURRENT_SOURCE_GATES_ACCEPTED unchanged_publishing_blobs=21 no_checks_dispatched=1')
         PY
+    - name: Authenticate the successful original canary and its immutable prepared archive
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs/$CANARY_RUN_ID" > "$private/canary-run.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/artifacts/$PREPARED_ARTIFACT_ID" > "$private/prepared-artifact.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/artifacts/$PREPARED_ARTIFACT_ID/zip" > "$private/prepared.zip"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py verify --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe"
     - name: Prepare existing server connection
       env:
         DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -113,69 +143,1584 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Refresh the immutable 916-post scope and compile the two-post canary
-      shell: bash
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      run: |
-        set -euo pipefail
-        umask 077
-        private="$RUNNER_TEMP/short-title-private"
-        python3 - <<'PY'
-        import base64,hashlib,os,pathlib
-        p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
-        raw=(p/'short-heading-scope-20261107.json').read_bytes()
-        source=(p/'read-short-heading-scope-20261108.php').read_text()
-        constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
-        (t/'reader.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-        PY
-        php -l "$private/reader.php"
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/reader.php" > "$private/snapshot.json"
-        python3 - <<'PY'
-        import hashlib,json,os,pathlib
-        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private');d=json.loads((p/'snapshot.json').read_text())
-        assert d['ok'] and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-        assert d['provider_calls']==d['post_write_attempts']==0 and len(d['posts'])==916
-        digest=hashlib.sha256(json.dumps(d['posts'],ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
-        assert digest=='a50fea3b1e2a5666750b5b5788776c05638ca4abe6d1290b062a6d2e7abb4d58','reviewed_target_snapshot_changed'
-        print('FRESH_SNAPSHOT_CONFIRMED exact_unchanged_posts=916 writes=0')
-        PY
-        python3 tools/direct_demand/operations/prepare-title-only.py --snapshot "$private/snapshot.json" --expected-installed-sha "$EXPECTED_PRODUCTION_SHA" --operation-prefix commercial-short-heading-20261108 --batch-size 20 --output-dir "$private/manifests"
-        python3 - <<'PY'
-        import base64,hashlib,json,os,pathlib
-        p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
-        index=json.loads((t/'manifests/plan-index.json').read_text())
-        assert index['selected_posts']==916 and index['no_matching_suffix_publication_ids']==[] and len(index['manifests'])==47
-        entry=index['manifests'][0];raw=(t/'manifests'/entry['file']).read_bytes();manifest=json.loads(raw)
-        assert hashlib.sha256(raw).hexdigest()==entry['sha256'] and entry['posts']==2
-        assert manifest['operation']=='commercial-short-heading-20261108-canary-v1'
-        assert {(r['platform'],r['publication_id'],r['version_id']) for r in manifest['rows']}=={('max',432,668),('telegram',431,669)}
-        constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='"+manifest['operation']+"';\nconst APPROVED_MANIFEST_SHA256='"+entry['sha256']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
-        source=(p/'title-only-executor-template.php').read_text()
-        (t/'canary.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-        intent={'operation':manifest['operation'],'state':'PREPARED_NOT_EXECUTED','expected_installed_sha':os.environ['EXPECTED_PRODUCTION_SHA'],'manifest_sha256':entry['sha256'],'post_count':2,'scope':'first-line suffix only; preserve existing messages, body, photos and button routes','once_no_replay':True}
-        (t/'intent.safe.json').write_text(json.dumps(intent,sort_keys=True))
-        print(json.dumps(intent,sort_keys=True))
-        PY
-        php -l "$private/canary.php"
-    - name: Retain the fresh snapshot and exact bounded manifests before the canary
-      uses: actions/upload-artifact@v4
-      with:
-        name: commercial-short-heading-20261108-prepared
-        path: |-
-          ${{ runner.temp }}/short-title-private/snapshot.json
-          ${{ runner.temp }}/short-title-private/manifests
-          ${{ runner.temp }}/short-title-private/intent.safe.json
-        retention-days: 14
-        if-no-files-found: error
-    - name: Recheck sole publisher and shorten exactly two existing headings once
+    - name: Batch 01/46 — shorten exactly 20 existing captions once
+      id: batch001
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
         DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
         DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
       run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 1
+        php -l "$private/batch001.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 1
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch001.php" > "$private/batch001.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 1 --ssh-status "$probe_status"
+    - name: Batch 02/46 — shorten exactly 20 existing captions once
+      id: batch002
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 2
+        php -l "$private/batch002.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 2
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch002.php" > "$private/batch002.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 2 --ssh-status "$probe_status"
+    - name: Batch 03/46 — shorten exactly 20 existing captions once
+      id: batch003
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 3
+        php -l "$private/batch003.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 3
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch003.php" > "$private/batch003.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 3 --ssh-status "$probe_status"
+    - name: Batch 04/46 — shorten exactly 20 existing captions once
+      id: batch004
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 4
+        php -l "$private/batch004.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 4
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch004.php" > "$private/batch004.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 4 --ssh-status "$probe_status"
+    - name: Batch 05/46 — shorten exactly 20 existing captions once
+      id: batch005
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 5
+        php -l "$private/batch005.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 5
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch005.php" > "$private/batch005.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 5 --ssh-status "$probe_status"
+    - name: Batch 06/46 — shorten exactly 20 existing captions once
+      id: batch006
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 6
+        php -l "$private/batch006.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 6
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch006.php" > "$private/batch006.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 6 --ssh-status "$probe_status"
+    - name: Batch 07/46 — shorten exactly 20 existing captions once
+      id: batch007
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 7
+        php -l "$private/batch007.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 7
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch007.php" > "$private/batch007.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 7 --ssh-status "$probe_status"
+    - name: Batch 08/46 — shorten exactly 20 existing captions once
+      id: batch008
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 8
+        php -l "$private/batch008.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 8
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch008.php" > "$private/batch008.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 8 --ssh-status "$probe_status"
+    - name: Batch 09/46 — shorten exactly 20 existing captions once
+      id: batch009
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 9
+        php -l "$private/batch009.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 9
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch009.php" > "$private/batch009.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 9 --ssh-status "$probe_status"
+    - name: Batch 10/46 — shorten exactly 20 existing captions once
+      id: batch010
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 10
+        php -l "$private/batch010.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 10
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch010.php" > "$private/batch010.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 10 --ssh-status "$probe_status"
+    - name: Batch 11/46 — shorten exactly 20 existing captions once
+      id: batch011
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 11
+        php -l "$private/batch011.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 11
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch011.php" > "$private/batch011.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 11 --ssh-status "$probe_status"
+    - name: Batch 12/46 — shorten exactly 20 existing captions once
+      id: batch012
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 12
+        php -l "$private/batch012.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 12
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch012.php" > "$private/batch012.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 12 --ssh-status "$probe_status"
+    - name: Batch 13/46 — shorten exactly 20 existing captions once
+      id: batch013
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 13
+        php -l "$private/batch013.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 13
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch013.php" > "$private/batch013.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 13 --ssh-status "$probe_status"
+    - name: Batch 14/46 — shorten exactly 20 existing captions once
+      id: batch014
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 14
+        php -l "$private/batch014.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 14
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch014.php" > "$private/batch014.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 14 --ssh-status "$probe_status"
+    - name: Batch 15/46 — shorten exactly 20 existing captions once
+      id: batch015
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 15
+        php -l "$private/batch015.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 15
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch015.php" > "$private/batch015.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 15 --ssh-status "$probe_status"
+    - name: Batch 16/46 — shorten exactly 20 existing captions once
+      id: batch016
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 16
+        php -l "$private/batch016.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 16
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch016.php" > "$private/batch016.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 16 --ssh-status "$probe_status"
+    - name: Batch 17/46 — shorten exactly 20 existing captions once
+      id: batch017
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 17
+        php -l "$private/batch017.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 17
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch017.php" > "$private/batch017.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 17 --ssh-status "$probe_status"
+    - name: Batch 18/46 — shorten exactly 20 existing captions once
+      id: batch018
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 18
+        php -l "$private/batch018.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 18
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch018.php" > "$private/batch018.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 18 --ssh-status "$probe_status"
+    - name: Batch 19/46 — shorten exactly 20 existing captions once
+      id: batch019
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 19
+        php -l "$private/batch019.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 19
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch019.php" > "$private/batch019.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 19 --ssh-status "$probe_status"
+    - name: Batch 20/46 — shorten exactly 20 existing captions once
+      id: batch020
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 20
+        php -l "$private/batch020.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 20
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch020.php" > "$private/batch020.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 20 --ssh-status "$probe_status"
+    - name: Batch 21/46 — shorten exactly 20 existing captions once
+      id: batch021
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 21
+        php -l "$private/batch021.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 21
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch021.php" > "$private/batch021.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 21 --ssh-status "$probe_status"
+    - name: Batch 22/46 — shorten exactly 20 existing captions once
+      id: batch022
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 22
+        php -l "$private/batch022.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 22
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch022.php" > "$private/batch022.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 22 --ssh-status "$probe_status"
+    - name: Batch 23/46 — shorten exactly 20 existing captions once
+      id: batch023
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 23
+        php -l "$private/batch023.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 23
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch023.php" > "$private/batch023.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 23 --ssh-status "$probe_status"
+    - name: Batch 24/46 — shorten exactly 20 existing captions once
+      id: batch024
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 24
+        php -l "$private/batch024.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 24
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch024.php" > "$private/batch024.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 24 --ssh-status "$probe_status"
+    - name: Batch 25/46 — shorten exactly 20 existing captions once
+      id: batch025
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 25
+        php -l "$private/batch025.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 25
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch025.php" > "$private/batch025.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 25 --ssh-status "$probe_status"
+    - name: Batch 26/46 — shorten exactly 20 existing captions once
+      id: batch026
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 26
+        php -l "$private/batch026.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 26
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch026.php" > "$private/batch026.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 26 --ssh-status "$probe_status"
+    - name: Batch 27/46 — shorten exactly 20 existing captions once
+      id: batch027
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 27
+        php -l "$private/batch027.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 27
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch027.php" > "$private/batch027.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 27 --ssh-status "$probe_status"
+    - name: Batch 28/46 — shorten exactly 20 existing captions once
+      id: batch028
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 28
+        php -l "$private/batch028.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 28
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch028.php" > "$private/batch028.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 28 --ssh-status "$probe_status"
+    - name: Batch 29/46 — shorten exactly 20 existing captions once
+      id: batch029
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 29
+        php -l "$private/batch029.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 29
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch029.php" > "$private/batch029.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 29 --ssh-status "$probe_status"
+    - name: Batch 30/46 — shorten exactly 20 existing captions once
+      id: batch030
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 30
+        php -l "$private/batch030.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 30
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch030.php" > "$private/batch030.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 30 --ssh-status "$probe_status"
+    - name: Batch 31/46 — shorten exactly 20 existing captions once
+      id: batch031
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 31
+        php -l "$private/batch031.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 31
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch031.php" > "$private/batch031.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 31 --ssh-status "$probe_status"
+    - name: Batch 32/46 — shorten exactly 20 existing captions once
+      id: batch032
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 32
+        php -l "$private/batch032.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 32
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch032.php" > "$private/batch032.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 32 --ssh-status "$probe_status"
+    - name: Batch 33/46 — shorten exactly 20 existing captions once
+      id: batch033
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 33
+        php -l "$private/batch033.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 33
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch033.php" > "$private/batch033.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 33 --ssh-status "$probe_status"
+    - name: Batch 34/46 — shorten exactly 20 existing captions once
+      id: batch034
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 34
+        php -l "$private/batch034.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 34
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch034.php" > "$private/batch034.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 34 --ssh-status "$probe_status"
+    - name: Batch 35/46 — shorten exactly 20 existing captions once
+      id: batch035
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 35
+        php -l "$private/batch035.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 35
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch035.php" > "$private/batch035.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 35 --ssh-status "$probe_status"
+    - name: Batch 36/46 — shorten exactly 20 existing captions once
+      id: batch036
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 36
+        php -l "$private/batch036.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 36
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch036.php" > "$private/batch036.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 36 --ssh-status "$probe_status"
+    - name: Batch 37/46 — shorten exactly 20 existing captions once
+      id: batch037
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 37
+        php -l "$private/batch037.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 37
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch037.php" > "$private/batch037.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 37 --ssh-status "$probe_status"
+    - name: Batch 38/46 — shorten exactly 20 existing captions once
+      id: batch038
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 38
+        php -l "$private/batch038.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 38
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch038.php" > "$private/batch038.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 38 --ssh-status "$probe_status"
+    - name: Batch 39/46 — shorten exactly 20 existing captions once
+      id: batch039
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 39
+        php -l "$private/batch039.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 39
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch039.php" > "$private/batch039.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 39 --ssh-status "$probe_status"
+    - name: Batch 40/46 — shorten exactly 20 existing captions once
+      id: batch040
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 40
+        php -l "$private/batch040.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 40
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch040.php" > "$private/batch040.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 40 --ssh-status "$probe_status"
+    - name: Batch 41/46 — shorten exactly 20 existing captions once
+      id: batch041
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 41
+        php -l "$private/batch041.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 41
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch041.php" > "$private/batch041.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 41 --ssh-status "$probe_status"
+    - name: Batch 42/46 — shorten exactly 20 existing captions once
+      id: batch042
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 42
+        php -l "$private/batch042.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 42
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch042.php" > "$private/batch042.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 42 --ssh-status "$probe_status"
+    - name: Batch 43/46 — shorten exactly 20 existing captions once
+      id: batch043
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 43
+        php -l "$private/batch043.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 43
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch043.php" > "$private/batch043.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 43 --ssh-status "$probe_status"
+    - name: Batch 44/46 — shorten exactly 20 existing captions once
+      id: batch044
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 44
+        php -l "$private/batch044.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 44
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch044.php" > "$private/batch044.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 44 --ssh-status "$probe_status"
+    - name: Batch 45/46 — shorten exactly 20 existing captions once
+      id: batch045
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 45
+        php -l "$private/batch045.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 45
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch045.php" > "$private/batch045.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 45 --ssh-status "$probe_status"
+    - name: Batch 46/46 — shorten exactly 14 existing captions once
+      id: batch046
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 46
+        php -l "$private/batch046.php"
+        set -euo pipefail
+        umask 077
+        private="$RUNNER_TEMP/short-title-private"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$private/main-before-operation.json"
+        gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$private/audit-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$private/active-before-operation.json"
+        gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$private/queued-before-operation.json"
+        python3 - <<'PY'
+        import json,os,pathlib
+        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
+        assert json.loads((p/'main-before-operation.json').read_text())['object']['sha']==os.environ['EXPECTED_PRODUCTION_SHA']
+        assert json.loads((p/'audit-before-operation.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+        active=json.loads((p/'active-before-operation.json').read_text());queued=json.loads((p/'queued-before-operation.json').read_text())
+        assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+        assert queued['total_count']==0
+        PY
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py start --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 46
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/batch046.php" > "$private/batch046.runtime.jsonl" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py result --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --batch 46 --ssh-status "$probe_status"
+    - name: Read back all 916 original publications and verify the exact title-only result
+      id: final_readback
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+      run: |
+        set -euo pipefail
+        umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        private="$RUNNER_TEMP/short-title-private"
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py compile-final --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe"
+        php -l "$private/final-reader.php"
         set -euo pipefail
         umask 077
         private="$RUNNER_TEMP/short-title-private"
@@ -193,34 +1738,36 @@ jobs:
         assert queued['total_count']==0
         PY
         probe_status=0
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/canary.php" > "$private/canary-result.jsonl" || probe_status=$?
-        CAPTION_SSH_STATUS="$probe_status" python3 - <<'PY'
-        import json,os,pathlib
-        t=pathlib.Path(os.environ['RUNNER_TEMP']);p=t/'short-title-private'
-        try:
-            d=json.loads((p/'canary-result.jsonl').read_text().splitlines()[-1])
-            if not isinstance(d,dict) or d.get('operation')!='commercial-short-heading-20261108-canary-v1' or type(d.get('ok')) is not bool:
-                raise ValueError('original_runtime_result_missing')
-        except Exception:
-            d={'operation':'commercial-short-heading-20261108-canary-v1','ok':False,'error':'no_valid_original_runtime_result','outcome':'UNKNOWN_STOP_NO_REPLAY'}
-        d['ssh_status']=int(os.environ['CAPTION_SSH_STATUS'])
-        (t/'short-title-canary.safe.json').write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
-        print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-        assert d['operation']=='commercial-short-heading-20261108-canary-v1' and d['ok'] is True
-        assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['ssh_status']==0
-        assert d['preflight_existing_messages']==d['post_write_attempts']==d['title_updates']==len(d['posts'])==2
-        assert {r['publication_id'] for r in d['posts']}=={431,432}
-        assert all(r['state']=='sent' and r['body_photo_button_verified'] and r['formatting_verified'] and r['existing_message_reused'] and r['existing_token_resolves_to_current_version'] for r in d['posts'])
-        assert all(d[k]==0 for k in ['configuration_write_attempts','button_write_attempts','new_posts_created','tour_search_calls','price_queries'])
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/final-reader.php" > "$private/final-snapshot.runtime.json" || probe_status=$?
+        python3 tools/direct_demand/operations/verify-title-bulk-packet.py verify-final --private-dir "$RUNNER_TEMP/short-title-private" --safe-dir "$RUNNER_TEMP/short-title-bulk-safe" --ssh-status "$probe_status"
+    - name: Preserve confirmed, unresolved and unstarted batch counts
+      if: always()
+      shell: bash
+      env:
+        JOB_STATUS: ${{ job.status }}
+      run: |
+        set -euo pipefail
+        umask 077
+        python3 - <<'PY'
+        import hashlib,json,os,pathlib,runpy
+        safe=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-bulk-safe')
+        safe.mkdir(mode=0o700,parents=True,exist_ok=True)
+        helper=pathlib.Path('tools/direct_demand/operations/verify-title-bulk-packet.py')
+        if helper.is_file() and hashlib.sha256(helper.read_bytes()).hexdigest()==os.environ['BULK_HELPER_SHA256']:
+            runpy.run_path(str(helper))['summarize'](safe)
+        else:
+            result={'ok':False,'state':'BULK_VERIFIER_NOT_ACCEPTED_STOP','job_status_before_summary':os.environ['JOB_STATUS']}
+            (safe/'summary.safe.json').write_text(json.dumps(result,sort_keys=True)+'\n')
+            print(json.dumps(result,sort_keys=True))
         PY
-    - name: Retain the original two-post outcome
+    - name: Retain all safe batch outcomes and final read-only verification
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-short-heading-20261108-canary-result
-        path: ${{ runner.temp }}/short-title-canary.safe.json
+        name: commercial-short-heading-20261108-bulk-result
+        path: ${{ runner.temp }}/short-title-bulk-safe
         retention-days: 14
-        if-no-files-found: warn
+        if-no-files-found: error
     - name: Remove only ephemeral connection and compiled private files
       if: always()
       shell: bash
