@@ -5,6 +5,7 @@ declare(strict_types=1);
 $root=dirname(__DIR__);
 $adapter=(string)file_get_contents($root.'/integrations/TelegramMessengerAdapter.php');
 $outbound=(string)file_get_contents($root.'/services/ManagerOutboundService.php');
+$maxFactory=(string)file_get_contents($root.'/services/ProjectMaxMessengerFactory.php');
 $upload=(string)file_get_contents($root.'/manager/media-upload.php');
 $ui=(string)file_get_contents($root.'/manager/assets/workspace-v2-media.js');
 $passed=0;$failed=0;
@@ -18,7 +19,13 @@ tgMediaCheck('Telegram media preserves optional caption HTML mode',strpos($adapt
 tgMediaCheck('Telegram media records attachment metadata for Workspace history',strpos($adapter,"ConversationRecorder::outbound('telegram'")!==false&&strpos($adapter,"['attachments'=>[\$attachment]]")!==false&&strpos($adapter,"\$attachment['url']=trim(\$previewUrl)")!==false);
 tgMediaCheck('manager outbound media supports MAX and Telegram only',strpos($outbound,"\$channel!=='max'&&\$channel!=='telegram'")!==false);
 tgMediaCheck('manager outbound media keeps ownership guard',strpos($outbound,"(int)\$c['manager_id']!==\$managerId")!==false&&strpos($outbound,"(string)\$c['status']!=='manager'")!==false);
-tgMediaCheck('manager outbound media selects non-mirroring adapters before exact conversation persistence',strpos($outbound,"\$channel==='max'?new MaxMessengerAdapter(null,null,'manager',null,false)")!==false&&strpos($outbound,"new TelegramMessengerAdapter(null,'manager',false)")!==false&&strpos($outbound,'ConversationRecorder::outboundForConversation($conversationId,$channel,$preview')!==false&&strpos($outbound,"if(\$channel==='max')")!==false&&strpos($outbound,'unresolvedSuspendedFailure')!==false);
+tgMediaCheck('manager outbound media selects non-mirroring adapters before exact conversation persistence',
+    strpos($outbound,"\$channel==='max'?ProjectMaxMessengerFactory::forConversation(\$c,'manager')")!==false
+    &&strpos($maxFactory,'new MaxMessengerAdapter(null, null, $senderType, null, false)')!==false
+    &&strpos($maxFactory,'new MaxMessengerAdapter($send, $buttons, $senderType, $media, false, $edit)')!==false
+    &&strpos($outbound,"new TelegramMessengerAdapter(null,'manager',false)")!==false
+    &&strpos($outbound,'ConversationRecorder::outboundForConversation($conversationId,$channel,$preview')!==false
+    &&strpos($outbound,"if(\$channel==='max')")!==false&&strpos($outbound,'unresolvedSuspendedFailure')!==false);
 tgMediaCheck('manager media lifecycle and manager-reply conversion remain shared',strpos($outbound,"['channel'=>\$channel")!==false&&strpos($outbound,'MetrikaConversionGoalService::managerReply($conversationId)')!==false);
 tgMediaCheck('existing Workspace composer sends the same upload request for Telegram and MAX',strpos($ui,"fetch('media-upload.php'")!==false&&strpos($ui,"data.append('conversation_id'")!==false&&strpos($upload,'ManagerOutboundService::sendMedia')!==false);
 tgMediaCheck('Telegram media captions have exact edit transport',strpos($adapter,'editMessageCaption')!==false&&strpos($adapter,"'message_id'=>\$messageId")!==false&&strpos($adapter,"'caption'=>\$text")!==false);
