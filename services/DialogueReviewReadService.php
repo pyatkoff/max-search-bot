@@ -37,6 +37,7 @@ final class DialogueReviewReadService
         return $this->read($admin,$connection,function(string $key)use($admin,$connection,$args):array{
             $now=$this->now();$limit=$args['limit']??25;
             $state=isset($args['cursor'])?$this->decode($args['cursor'],'inventory',$key,$admin,$connection):null;
+            $kind=$state['k']??'inventory';$newest=$kind==='inventory_newest';
             [$from,$where]=$this->nativeScope();
             $summary=$this->q('SELECT COUNT(*) AS total,COALESCE(MAX(c.id),0) AS upper_id FROM '.$from.' WHERE '.$where,['anytour'])->fetch(PDO::FETCH_ASSOC);
             $fence=$state['f']??(string)$summary['upper_id'];$after=$state['a']??'0';$started=$state['t']??$now;
@@ -46,7 +47,10 @@ final class DialogueReviewReadService
                 $maximum=(string)$this->q('SELECT COALESCE(MAX(id),0) FROM conversations WHERE project_key=?',['anytour'])->fetchColumn();
                 if(self::greater($fence,$maximum))self::fail('stale_cursor');
             }
-            $rows=$this->nativeRows(' AND c.id>? AND c.id<=?',[$after,$fence],$limit+1);
+            if($newest){
+                $rows=$this->nativeRows(' AND c.id<=?'.($after!=='0'?' AND c.id<?':''),
+                    $after!=='0'?[$fence,$after]:[$fence],$limit+1,true);
+            }else $rows=$this->nativeRows(' AND c.id>? AND c.id<=?',[$after,$fence],$limit+1);
             $more=count($rows)>$limit;$rows=array_slice($rows,0,$limit);
             $markers=$this->activityMarkers($rows);$dialogues=[];
             foreach($rows as$row){
@@ -62,16 +66,27 @@ final class DialogueReviewReadService
                 ];
                 $after=$id;
             }
-            return $this->base('inventory',$now)+[
+            $result=$this->base('inventory',$now)+[
                 'snapshot'=>['inventory_started_at'=>gmdate('Y-m-d\TH:i:s\Z',$started),'conversation_id_fence'=>$fence,
                     'consistency'=>'per_request_current_state_not_frozen_cohort'],
                 'dialogues'=>$dialogues,'returned'=>count($dialogues),'total_open_at_this_read'=>(int)$summary['total'],
-                'has_more'=>$more,'next_cursor'=>$more?$this->encode(['v'=>1,'k'=>'inventory','f'=>$fence,'a'=>$after,'t'=>$started,'e'=>$now+self::CURSOR_TTL],$key,$admin,$connection):null,
+                'has_more'=>$more,'next_cursor'=>$more?$this->encode(['v'=>1,'k'=>$kind,'f'=>$fence,'a'=>$after,'t'=>$started,'e'=>$now+self::CURSOR_TTL],$key,$admin,$connection):null,
                 'coverage'=>['population'=>$this->historyAudit?'retained_authorized_anytour_max_telegram_including_closed':'current_open_authorized_anytour_max_telegram_including_ai',
                     'inventory_traversal_exhausted_within_id_fence'=>!$more,'new_or_reopened_rows_may_change_between_pages'=>true,
                     'change_hint_is_complete_edit_revision'=>false,'deduplicate_using_returned_message_revisions'=>true,
                     'transcripts_read'=>false,'semantic_review_complete'=>false],
             ];
+            if(!$this->historyAudit){
+                // A fresh start is distinct from next_cursor, which continues this pass.
+                $result['newest_open']=[
+                    'start_cursor'=>$this->encode(['v'=>1,'k'=>'inventory_newest','f'=>(string)$summary['upper_id'],
+                        'a'=>'0','t'=>$now,'e'=>$now+self::CURSOR_TTL],$key,$admin,$connection),
+                    'order'=>'conversation_id_desc','latest_activity_inventory'=>false,'all_today_coverage'=>false,
+                ];
+            }
+            if($newest)$result['coverage']+=['order'=>'conversation_id_desc',
+                'latest_activity_inventory'=>false,'all_today_coverage'=>false];
+            return$result;
         });
     }
 
@@ -231,12 +246,12 @@ final class DialogueReviewReadService
             "c.project_key=? AND c.channel IN ('max','telegram')".($this->historyAudit?'':" AND c.status<>'closed'")." AND c.is_test=0 AND NOT ".InternalOwnerDialogueScope::conversationSql('c')];
     }
 
-    private function nativeRows(string $extra,array $bindings,int $limit):array
+    private function nativeRows(string $extra,array $bindings,int $limit,bool $descending=false):array
     {
         [$from,$where]=$this->nativeScope();
         $rows=$this->q('SELECT c.id,c.project_key,c.channel,c.customer_id,c.customer_channel_id,c.external_chat_id,c.status,c.manager_id,c.source_id,'
             .'c.started_at,c.last_message_at,c.updated_at,cc.external_user_id,cc.external_chat_id AS channel_chat_id FROM '.$from.' WHERE '.$where.$extra
-            .' ORDER BY c.id LIMIT '.$limit,['anytour',...$bindings])->fetchAll(PDO::FETCH_ASSOC);
+            .' ORDER BY c.id'.($descending?' DESC':'').' LIMIT '.$limit,['anytour',...$bindings])->fetchAll(PDO::FETCH_ASSOC);
         foreach($rows as$row)foreach(['id','customer_id','customer_channel_id']as$field)if(!self::decimal((string)$row[$field],false))self::fail('unavailable');
         return$rows;
     }
@@ -409,8 +424,9 @@ final class DialogueReviewReadService
         $body=base64_decode(strtr($m[1],'-_','+/').str_repeat('=',(4-strlen($m[1])%4)%4),true);
         try{$v=json_decode((string)$body,true,16,JSON_THROW_ON_ERROR);}catch(Throwable $e){self::fail('stale_cursor');}
         $keys=match($kind){'inventory'=>['v','k','f','a','t','e'],'dialogue'=>['v','k','d','r','e'],'context'=>['v','k','d','r','m','b','p','t','e'],default=>[]};
+        $kinds=$kind==='inventory'&&!$this->historyAudit?['inventory','inventory_newest']:[$kind];
         $now=$this->now();
-        if(!is_array($v)||count($v)!==count($keys)||array_diff(array_keys($v),$keys)||($v['v']??null)!==1||($v['k']??null)!==$kind
+        if(!is_array($v)||count($v)!==count($keys)||array_diff(array_keys($v),$keys)||($v['v']??null)!==1||!in_array($v['k']??null,$kinds,true)
             ||!is_int($v['e'])||$v['e']<$now||$v['e']>$now+self::CURSOR_TTL)self::fail('stale_cursor');
         foreach($kind==='inventory'?['f','a']:($kind==='context'?['d','m','b']:['d'])as$field)
             if(!is_string($v[$field])||!self::decimal($v[$field],$field!=='d'))self::fail('stale_cursor');

@@ -27,6 +27,61 @@ function exactCases(actual, expected) {
   assert.equal(new Set(actual.map(item => item.key)).size, actual.length);
   assert.deepEqual(keys(actual), keys(expected));
 }
+const componentSource = (count = 401, browser = 'chromium') => source(count, browser).filter(item => item.spec === SELECTION_SPEC);
+function chooseComponent(expected, part, options = {}) {
+  return selection({browser: 'chromium', part, partCount: 2, profile: 'tour-selection',
+    selectedSpecs: [SELECTION_SPEC], wholeSpecs: [], expected, ...options});
+}
+
+test('odd and even component inventories execute every case once on each engine', () => {
+  for (const browser of ['chromium', 'webkit']) for (const count of [401, 402]) {
+    const expected = componentSource(count, browser);
+    const parts = [0, 1].map(part => chooseComponent(expected, part, {browser}));
+    exactCases(parts.flatMap(part => part.cases), expected);
+    assert.deepEqual(parts.map(part => part.cases.length), [Math.ceil(count / 2), Math.floor(count / 2)]);
+    assert(parts.every(part => part.split && part.profile === 'tour-selection'));
+  }
+});
+test('component ownership depends on exact keys rather than listing order or a fixed case count', () => {
+  for (const count of [2, 3, 127, 128, 401, 402]) {
+    const expected = componentSource(count);
+    const parts = [0, 1].map(part => chooseComponent(expected, part));
+    exactCases(parts.flatMap(part => part.cases), expected);
+    for (let part = 0; part < 2; part++) {
+      assert.deepEqual(keys(parts[part].cases), keys(chooseComponent([...expected].reverse(), part).cases));
+      assert.equal(parts[part].cases.length, part === 0 ? Math.ceil(count / 2) : Math.floor(count / 2));
+    }
+  }
+});
+test('component literal filters preserve nested titles, punctuation and Unicode', () => {
+  const expected = [row(['suite.+(x)', 'Цена [250 000 ₽] (2+1)? $ / \\']), row('price'), row('price extended')];
+  for (const part of [0, 1]) {
+    const plan = chooseComponent(expected, part), regex = new RegExp(plan.grep);
+    for (const item of expected) for (const label of [path.posix.basename(item.spec), item.spec])
+      assert.equal(regex.test('chromium ' + label + ' ' + item.title.join(' ')), plan.cases.some(owned => owned.key === item.key));
+  }
+  assert.throws(() => chooseComponent([row(['one two', 'three']), row(['one', 'two three'])], 0), /Ambiguous/);
+});
+test('component inventory rejects duplicates, foreign specs, engines and malformed identities', () => {
+  for (const change of [
+    rows => rows.push(rows[0]),
+    rows => rows.push(row('foreign', otherSpecs[0])),
+    rows => { rows[0] = row('foreign engine', SELECTION_SPEC, 'webkit'); },
+    rows => { rows[0].key = 'forged'; },
+    rows => { rows[0].title = []; },
+  ]) {
+    const expected = componentSource(); change(expected);
+    assert.throws(() => chooseComponent(expected, 0));
+  }
+});
+test('component profile cannot change the four-part full contract or add whole-spec work', () => {
+  for (const options of [{profile: 'unknown'}, {partCount: 4}, {part: 2}, {part: -1}, {part: 0.5},
+    {selectedSpecs: allSpecs}, {wholeSpecs: [SELECTION_SPEC]}, {browser: 'firefox'}])
+    assert.throws(() => chooseComponent(componentSource(), 0, options));
+  for (const count of [0, 1]) assert.throws(() => chooseComponent(componentSource(count), 0));
+  assert.throws(() => choose(source(), 0, {partCount: 2}));
+  assert.deepEqual(choose(source(), 0, {profile: 'full'}), choose(source(), 0));
+});
 
 test('all 375 constructor cases execute once across four existing parts', () => {
   const expected = source(), parts = [0, 1, 2, 3].map(part => choose(expected, part));
@@ -98,22 +153,34 @@ test('oversized and multiline title filters stop instead of truncating coverage'
   assert.throws(() => choose(expected, 0), /Ambiguous/);
 });
 
-function exercise({listingChange, execFailure} = {}) {
+function exercise({listingChange, listingReportChange, execFailure, component = false, runOptions = {}, prepare} = {}) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'm2-case-parts-'));
-  const plan = choose(source(), 0), calls = [];
+  const plan = component ? chooseComponent(componentSource(), 0) : choose(source(), 0), calls = [];
+  const reportFile = path.join(directory, 'tour-selection-browser.json');
+  const filteredFile = path.join(directory, 'tour-selection-filtered.json');
+  let originalListing;
   const exec = (program, args, options) => {
     calls.push({program, args: [...args], options: {...options, env: {...options.env}}});
     if (calls.length === 1) {
       const cases = plan.cases.slice(); if (listingChange) listingChange(cases);
-      return JSON.stringify({cases});
+      const listed = component ? {config: {forbidOnly: true}, cases} : {cases};
+      if (listingReportChange) listingReportChange(listed);
+      originalListing = JSON.stringify(listed, null, 1) + '\n\n';
+      return originalListing;
     }
     if (execFailure) throw new Error('native test failed');
     return undefined;
   };
   try {
-    run({root: directory, browser: 'chromium', selection: plan, collectCases: report => report.cases, exactCases, exec});
-    return {calls, directory};
-  } catch (error) { error.calls = calls; throw error; }
+    if (prepare) prepare({reportFile, filteredFile});
+    run({root: directory, browser: 'chromium', selection: plan, collectCases: report => report.cases, exactCases, exec,
+      ...(component ? {forbidOnly: true, reportFile, filteredFile} : {}), ...runOptions});
+    return {calls, directory, originalListing, filtered: fs.existsSync(filteredFile) ? fs.readFileSync(filteredFile, 'utf8') : null};
+  } catch (error) {
+    error.calls = calls; error.filteredExists = fs.existsSync(filteredFile);
+    error.savedEvidence = [reportFile, filteredFile].filter(file => fs.existsSync(file)).map(file => fs.readFileSync(file, 'utf8'));
+    throw error;
+  }
   finally { fs.rmSync(directory, {recursive: true, force: true}); }
 }
 test('native filtered listing precedes one single-worker browser execution', () => {
@@ -152,6 +219,42 @@ test('JSON report environment overrides cannot replace the intended current repo
   } finally { names.forEach((name, i) => {if (saved[i] === undefined) delete process.env[name]; else process.env[name] = saved[i];}); }
 });
 
+test('component native listing and execution retain forbid-only and single-worker isolation', () => {
+  const {calls, originalListing, filtered} = exercise({component: true});
+  assert.equal(calls.length, 2);
+  for (const call of calls) {
+    assert(call.args.includes('--forbid-only')); assert(call.args.includes('--workers=1'));
+    assert(call.args.includes('--browser=chromium')); assert(call.args.includes(SELECTION_SPEC));
+    assert(!call.args.includes('--pass-with-no-tests')); assert(!call.args.some(value => value.startsWith('--retries')));
+  }
+  assert(calls[0].args.includes('--list')); assert(!calls[1].args.includes('--list'));
+  assert(calls[1].options.env.PLAYWRIGHT_JSON_OUTPUT_NAME.endsWith('/tour-selection-browser.json'));
+  assert.equal(filtered, originalListing, 'retain original native JSON bytes, not a reconstructed listing');
+});
+test('component missing, duplicated or additional filtered cases stop before execution', () => {
+  for (const listingChange of [cases => cases.pop(), cases => cases.push(cases[0]), cases => cases.push(row('unexpected'))])
+    assert.throws(() => exercise({component: true, listingChange}), error => error.calls.length === 1 && !error.filteredExists);
+});
+test('component filtered native report must actually acknowledge forbid-only', () => {
+  for (const listingReportChange of [report => {report.config.forbidOnly = false;}, report => {delete report.config.forbidOnly;}])
+    assert.throws(() => exercise({component: true, listingReportChange}), error => error.calls.length === 1 && !error.filteredExists);
+});
+test('component execution refuses a disabled forbid-only or colliding evidence outputs', () => {
+  for (const runOptions of [{forbidOnly: false}, {forbidOnly: undefined}, {filteredFile: undefined},
+    {reportFile: undefined}, {reportFile: 'same.json', filteredFile: 'same.json'}, {filteredFile: '../outside.json'}])
+    assert.throws(() => exercise({component: true, runOptions}), error => error.calls.length === 0 && !error.filteredExists);
+});
+test('component browser failure preserves its validated listing without a retry', () => {
+  assert.throws(() => exercise({component: true, execFailure: true}), error =>
+    error.message === 'native test failed' && error.calls.length === 2 && error.filteredExists);
+});
+test('component execution cannot overwrite a prior native report or filtered listing', () => {
+  for (const name of ['reportFile', 'filteredFile']) {
+    assert.throws(() => exercise({component: true, prepare: files => fs.writeFileSync(files[name], 'original evidence')}), error =>
+      error.calls.length === 0 && error.savedEvidence.length === 1 && error.savedEvidence[0] === 'original evidence');
+  }
+});
+
 test('uneven constructor inventories retain exact coverage without loading the busy part', () => {
   for (const count of [128, 129, 374, 375, 376, 1001]) {
     const expected = source(count), parts = [0, 1, 2, 3].map(part => choose(expected, part));
@@ -166,9 +269,9 @@ function screenshotFixture(action) {
   const write = (name, value) => { const file = path.join(root, name); fs.mkdirSync(path.dirname(file), {recursive:true}); fs.writeFileSync(file, value); return file; };
   try { action(root, write); } finally { fs.rmSync(root, {recursive:true, force:true}); }
 }
-test('identical screenshot names from two parts retain separate original bytes', () => {
+test('identical screenshot names retain separate original bytes in component and full parts', () => {
   const results = [];
-  for (const part of [0, 3]) screenshotFixture((root, write) => {
+  for (const part of [0, 1, 3]) screenshotFixture((root, write) => {
     const name = 'manager2-artifacts/tour-selection-photo-correction-webkit-1440.png';
     const original = write(name, 'native bytes from part ' + part);
     const bytes = fs.readFileSync(original);
@@ -177,7 +280,7 @@ test('identical screenshot names from two parts retain separate original bytes',
     assert(!fs.existsSync(original)); assert.deepEqual(fs.readFileSync(path.join(root, target)), bytes);
     assertScreenshotNamespace([{path:target}], part); results.push(target);
   });
-  assert.equal(new Set(results).size, 2);
+  assert.equal(new Set(results).size, 3);
 });
 test('nested screenshots and CLI captures retain all paths and non-PNG files', () => screenshotFixture((root, write) => {
   write('manager2-artifacts/nested/image.png', 'nested');

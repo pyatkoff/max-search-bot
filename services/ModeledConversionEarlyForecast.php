@@ -64,6 +64,7 @@ final class ModeledConversionEarlyForecast
         }
         // Match the canonical Python chronological tie-break; omitted rows remain barriers.
         usort($rows,static fn(array $a,array $b):int=>($a['at']??0)<=>($b['at']??0)?:strcmp($a['ref'],$b['ref']));
+        $wizardApplications=$denied||$clockUnresolved?[]:self::admittedWizardApplications($rows,$wrapper,$admitted,$subject,$requested);
         $state=ArchiveResearchSemanticExtractor::initialState();$events=[];$current=[];$boundaries=[];
         $flags=['episode_identity_unverified'=>true,'source_history_incomplete'=>true];
         $offerReaction=new ModeledConversionOfferReaction($case,$wrapper,$requested,$denied||$clockUnresolved);
@@ -102,15 +103,18 @@ final class ModeledConversionEarlyForecast
                 $predictive->knownOperationalOutcome($ref,(int)$item['at'],(int)$row['observed_at_unix'],(int)$row['source_version_no']);
             if($permit===null||$clockUnresolved){
                 $longGap=ArchiveResearchSemanticExtractor::hasLongObservationGap($state['last'],$item['at']);
-                $serviceKind=null;$observationalBridge=false;
+                $serviceKind=null;$observationalBridge=false;$applicationBridge=false;
                 if(!$denied&&!$clockUnresolved&&!$longGap){
                     if(self::knownServiceReply($row,$subject,$requested))$serviceKind='preserved_ai_replies';
                     elseif(self::knownServiceEvent($row,$subject,$requested))$serviceKind='preserved_handoff_receipts';
                     $observationalBridge=self::knownObservationalEvent($row,$subject,$requested)
                         &&$predictive->canPreserveCustomerContext((int)$item['at']);
+                    $inputRef=$wizardApplications[$ref]??null;
+                    $applicationBridge=$inputRef!==null
+                        &&$predictive->canPreserveCustomerContext((int)$item['at'],$inputRef);
                 }
                 $serviceBridge=$serviceKind!==null&&$predictive->canPreserveCustomerContext((int)$item['at']);
-                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
+                if($clockUnresolved||(!$operationalKnown&&!$serviceBridge&&!$observationalBridge&&!$applicationBridge&&!$offerReaction->bridgesUnavailable($ref,$longGap))){
                     $predictive->barrier();
                     $reason=$clockUnresolved?'unresolved_clock_barriers':($longGap?'long_gap_barriers':
                         match($row['source_kind']??null){'message'=>'unavailable_message_barriers','event'=>'unavailable_event_barriers',default=>'other_source_barriers'});
@@ -256,6 +260,62 @@ final class ModeledConversionEarlyForecast
         return $receipt;
     }
 
+    /** Recheck immutable bindings already selected by the canonical Python wizard admission. */
+    private static function admittedWizardApplications(array $rows,array $wrapper,array $admitted,array $subject,int $cutoff):array
+    {
+        $packet=$wrapper['wizard_applications']??null;
+        if(!is_array($packet)||count($packet)!==2||($packet['version']??null)!=='admitted_wizard_applications_v1'
+            ||!is_array($packet['receipts']??null)||!array_is_list($packet['receipts'])||count($packet['receipts'])>50)return [];
+        $byRef=[];foreach($rows as$item)$byRef[$item['ref']]=$item['row'];
+        $bindings=[];$seen=[];
+        foreach($packet['receipts']as$binding){
+            if(!is_array($binding)||count($binding)!==2||!self::journalRef($binding['receipt_ref']??null)
+                ||!self::journalRef($binding['input_ref']??null)||isset($seen[$binding['receipt_ref']]))return [];
+            $ref=$binding['receipt_ref'];$inputRef=$binding['input_ref'];$seen[$ref]=true;
+            $receipt=$byRef[$ref]??null;$input=$byRef[$inputRef]??null;$permit=$admitted[$inputRef]??null;
+            if(!is_array($receipt)||!is_array($input)||!is_array($permit)||($permit['role']??null)!=='customer')continue;
+            $decoded=[];$valid=true;
+            foreach([[$receipt,'event','payload_json'],[$input,'message','metadata_json']]as[$row,$kind,$jsonKey]){
+                $s=$row['snapshot']??null;
+                if(($row['source_kind']??null)!==$kind||($row['source_version_no']??null)!==1||!is_array($s)
+                    ||($s['source_kind']??null)!==$kind||($s['source_status']??null)!=='present'
+                    ||($s['payload_status']??null)!=='copied'||!self::sameSubject($s,$subject)
+                    ||(string)($s['source_id']??'')!==(string)($row['source_id']??'')
+                    ||($s['source_timestamp_basis']??null)!=='canonical_recording_unix_v1'){$valid=false;break;}
+                $payload=$s['payload']??null;$raw=is_array($payload)?($payload[$jsonKey]??null):null;
+                if(!is_string($raw)||strlen($raw)>32768){$valid=false;break;}
+                try{$p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$at=ConversationRecordClock::read($raw);}
+                catch(Throwable $ignored){$valid=false;break;}
+                $available=$row['observed_at_unix']??null;
+                if(!is_array($p)||array_is_list($p)||!is_int($at)||!is_int($available)
+                    ||$at<946684800||$at>$available||$available>$cutoff
+                    ||($s['source_created_at_unix']??null)!==$at){$valid=false;break;}
+                $decoded[$kind]=$p;
+            }
+            if(!$valid)continue;
+            $event=$receipt['snapshot']['payload'];$message=$input['snapshot']['payload'];$p=$decoded['event'];
+            unset($p['_recorded_clock']);ksort($p);
+            if(($event['event_type']??null)!=='wizard_value_applied'||($event['actor_type']??null)!=='system'
+                ||array_keys($p)!==['field','input_kind','input_message_id','input_text_sha256','origin','storage_value','version']
+                ||$p['version']!==1||$p['origin']!=='existing_wizard_step_application'||$p['input_kind']!=='message'
+                ||!is_string($p['input_message_id'])||$p['input_message_id']!==(string)$input['source_id']
+                ||!in_array($p['field'],['city','country','adults','children','child_ages','stars','meal','nights','date'],true)
+                ||!is_string($p['storage_value'])||$p['storage_value']===''||strlen($p['storage_value'])>160
+                ||($message['direction']??null)!=='inbound'||($message['sender_type']??null)!=='customer'
+                ||!is_string($message['text']??null)||strlen($message['text'])>ArchiveResearchSemanticExtractor::MAX_TEXT_BYTES
+                ||preg_match('//u',$message['text'])!==1||!is_string($p['input_text_sha256'])
+                ||!hash_equals(hash('sha256',$message['text']),$p['input_text_sha256']))continue;
+            $meta=$decoded['message'];
+            if(($meta['type']??null)!=='message'||(isset($meta['linked_message'])&&(!is_array($meta['linked_message'])
+                ||($meta['linked_message']['type']??null)!=='reply')))continue;
+            $inputAt=$input['snapshot']['source_created_at_unix'];$inputAvailable=$input['observed_at_unix'];
+            if($inputAt!==$permit['at']||$inputAvailable!==$permit['available_at']
+                ||$inputAt>$receipt['snapshot']['source_created_at_unix']||$inputAvailable>$receipt['observed_at_unix'])continue;
+            $bindings[$ref]=$inputRef;
+        }
+        return $bindings;
+    }
+
     /** Canonical AI output is not a customer omission and never supplies customer evidence. */
     private static function knownServiceReply(array $row,array $subject,int $cutoff):bool
     {
@@ -293,7 +353,8 @@ final class ModeledConversionEarlyForecast
         $payload=$s['payload']??null;$raw=is_array($payload)?($payload['payload_json']??null):null;
         $type=$payload['event_type']??null;$actor=$payload['actor_type']??null;
         $actors=['manager_message'=>['manager'],'manager_taken'=>['manager'],
-            'manager_request'=>['ai','system'],'manager_request_deferred'=>['ai'],'waiting_manager'=>['customer']];
+            'manager_request'=>['ai','system'],'manager_request_deferred'=>['ai'],'waiting_manager'=>['customer'],
+            'source_handling_choice'=>['system']];
         if(!is_string($type)||!isset($actors[$type])||!in_array($actor,$actors[$type],true)||!is_string($raw)||strlen($raw)>32768)return false;
         try{
             $p=json_decode($raw,true,32,JSON_THROW_ON_ERROR);$at=ConversationRecordClock::read($raw);
@@ -303,6 +364,8 @@ final class ModeledConversionEarlyForecast
                 if($keys!==['channel','project_key']||$p['channel']!==$subject['platform']||$p['project_key']!=='anytour')return false;
             }elseif($type==='manager_taken'){
                 if($p!==[])return false;
+            }elseif($type==='source_handling_choice'){
+                if($keys!==['choice','reason']||$p['choice']!=='manager'||$p['reason']!=='source_needs_complete')return false;
             }else{
                 $withSummary=$keys===['from_tours','manager_available','summary','within_working_hours'];
                 $withSource=$keys===['manager_available','source','within_working_hours'];

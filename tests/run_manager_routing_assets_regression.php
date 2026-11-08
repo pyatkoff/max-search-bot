@@ -50,6 +50,6 @@ checkRouting('manager-first reuses canonical handoff queue application without m
 checkRouting('source policy does not own shift priority or routing mutations',strpos($sourceHandling,'setWorking')===false&&strpos($sourceHandling,'ManagerPriorityService')===false&&strpos($sourceHandling,'RoutingAdminService')===false);
 checkRouting('source policy runs before normal AI application',strpos($dispatcher,'SourceHandlingService::handle($incoming)')!==false&&strpos($dispatcher,'$handled = $this->application->dispatch($incoming)')!==false&&strpos($dispatcher,'SourceHandlingService::handle($incoming)')<strpos($dispatcher,'$handled = $this->application->dispatch($incoming)'));
 checkRouting('manager choice suppresses AI even when transport fails',strpos($sourceHandling,"self::handoff(\$incoming,\$platform,\$chatId,'source_policy');\n                return true;")!==false&&strpos($sourceHandling,"self::handoff(\$incoming,\$platform,\$chatId,'source_choice');\n                    return true;")!==false);
-checkRouting('handoff back restores self service',strpos($sourceHandling,"self::recordChoice(\$platform,\$chatId,self::AI,'handoff_back')")!==false);
+checkRouting('handoff back restores self service with the current source binding',strpos($sourceHandling,"self::recordChoice(\$platform,\$chatId,self::AI,'handoff_back',['source_id'=>(int)(\$row['source_id']??0)])")!==false);
 echo "\n--------------------------\nTOTAL ".($passed+$failed)." | PASS $passed | FAIL $failed\n";
 exit($failed?1:0);

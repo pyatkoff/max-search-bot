@@ -65,6 +65,73 @@ localCheck('live rich request deterministically keeps child age next to child wo
 $params = LocalAiFallbackService::parameters('1 взрослый и 2 ребенка', ['city'=>'Москва']);
 localCheck('explicit numeric child count in sentence is retained', $params['children'] ?? null, 2);
 
+// Synthetic compound requests keep the whole party independently of date
+// clarification, without feeding date or party-count digits to the age parser.
+$compound = '24 июля по 2 августа 2030, 2 взрослых 2 ребёнка 6,12 лет';
+$params = LocalAiFallbackService::parameters($compound, ['city'=>'Казань']);
+localCheck('compound request retains both adults', $params['adults'] ?? null, 2);
+localCheck('compound request retains both children', $params['children'] ?? null, 2);
+localCheck('compound request retains ages tied to the children', $params['child_ages'] ?? null, [6,12]);
+localCheck('compound request never replaces the saved departure', array_key_exists('city', $params), false);
+foreach ([
+    ['24 июля по 2 августа 2030, 2 взрослых 2 ребёнка 6 и 12 лет', [6,12]],
+    ['2 ребёнка 6 лет и 12 лет, 2 взрослых, 24 июля по 2 августа 2030', [6,12]],
+    ['2 ребёнка 0 и 8 лет, на неделю', [0,8]],
+] as [$text, $expectedAges]) {
+    $params = LocalAiFallbackService::parameters($text, ['city'=>'Казань']);
+    localCheck('explicit age list uses canonical bounds: '.$text, $params['child_ages'] ?? null, $expectedAges);
+}
+foreach ([
+    '24 июля по 2 августа 2030, 2 взрослых 2 ребёнка',
+    '2 ребёнка 6 лет',
+    '2 ребёнка 6-12 лет',
+    '2 ребёнка 06.12',
+    '2 ребёнка 6 и 18 лет',
+    '2 ребёнка 6,12,14 лет',
+    '2 ребёнка 6,12 лет, 14',
+    '2 ребёнка 6,12 лет или 14 лет',
+    '2 ребёнка около 6 и 12 лет',
+] as $text) {
+    $params = LocalAiFallbackService::parameters($text, ['city'=>'Казань']);
+    localCheck('unconfirmed or extra age details are not guessed: '.$text, array_key_exists('child_ages', $params), false);
+}
+foreach ([
+    ['Ребёнок возрастом 6 лет. На неделю', [6]],
+    ['Ребёнок возраст 6 лет', [6]],
+    ['Ребёнку в возрасте 6 лет', [6]],
+    ['Ребёнку 1 год 11 месяцев', [1]],
+    ['Ребёнку 1 год и 11 месяцев. Когда вылет?', [1]],
+] as [$text, $expectedAges]) {
+    $params = LocalAiFallbackService::parameters($text, ['city'=>'Казань','children'=>1]);
+    localCheck('complete explicit single-child age remains canonical: '.$text, $params['child_ages'] ?? null, $expectedAges);
+}
+foreach (['Ребёнку 1 год 15 месяцев', 'Ребёнку 1 год и 15 месяцев. Когда вылет?', 'Ребёнку будет 6 лет'] as $text) {
+    $params = LocalAiFallbackService::parameters($text, ['city'=>'Казань','children'=>1]);
+    localCheck('single-child age is never accepted from a truncated clause: '.$text, array_key_exists('child_ages', $params), false);
+}
+foreach ([
+    ['Детям по 7 лет. Вы уже спрашивали', 2, [7,7]],
+    ['Обоим по 6 лет. Когда вылет?', 2, [6,6]],
+    ['Каждому ребёнку 8 лет. Нужна ещё информация?', 3, [8,8,8]],
+] as [$text, $children, $expectedAges]) {
+    $params = LocalAiFallbackService::parameters($text, ['city'=>'Казань','children'=>$children]);
+    localCheck('complete shared-age clause survives an unrelated tail: '.$text, $params['child_ages'] ?? null, $expectedAges);
+    localCheck('shared-age clause never changes known child count: '.$text, array_key_exists('children', $params), false);
+}
+foreach ([
+    ['Детям по 7 лет. Одному 8 лет', 2],
+    ['Детям по 7 лет, ребёнку 8 лет', 2],
+    ['Детям по 7 лет или 8 лет', 2],
+    ['Детям по 7 лет, 8', 2],
+    ['Детям по 7 лет. Не 7, а 8', 2],
+    ['Не обоим по 7 лет. Уточню', 2],
+    ['Обоим по 7 лет. Когда вылет?', 3],
+    ['Каждому ребёнку 6 и 12 лет', 2],
+] as [$text, $children]) {
+    $params = LocalAiFallbackService::parameters($text, ['city'=>'Казань','children'=>$children]);
+    localCheck('conflicting shared ages are not partially accepted: '.$text, array_key_exists('child_ages', $params), false);
+}
+
 $params = LocalAiFallbackService::applyDestinationDefaults(['date'=>'15.09.2026'], ['country'=>'Египет']);
 localCheck('current Egypt still supplies defaults for date-only local correction', $params['meal'] ?? null, 'all_inclusive');
 localCheck('current Egypt still supplies star default for date-only local correction', $params['stars'] ?? null, 4);

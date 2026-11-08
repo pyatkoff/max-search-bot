@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-// Full coverage is partitioned, never sampled. Per-part browser executions are
+// Browser coverage is partitioned, never sampled. Per-part executions are
 // retained independently of the runner which assembles their canonical proof.
 const fs=require('node:fs');
 const path=require('node:path');
@@ -18,17 +18,25 @@ const MIN_CASES = 128;
 // and send 20/0/10/70 percent of selection identities to residual capacity.
 // This fixed cycle changes ownership only; it never removes a case or runner.
 const CASE_PART_CYCLE = Object.freeze([0, 3, 3, 2, 3, 0, 3, 3, 3, 3]);
+// The component runs only the isolated selection spec. Keep its two-way cycle
+// separate from the full panel's four-part ownership and minimum split size.
+const COMPONENT_CASE_CYCLE = Object.freeze([0, 1]);
 function requireValue(value, message) { if (!value) throw new Error(message); }
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-function selection({browser, part, partCount, selectedSpecs, wholeSpecs, expected}) {
+function selection({browser, part, partCount, selectedSpecs, wholeSpecs, expected, profile = 'full'}) {
   requireValue(['chromium', 'webkit'].includes(browser), 'Unknown partition browser');
-  requireValue(partCount === 4 && Number.isInteger(part) && part >= 0 && part < partCount,
-    'Expected one of the existing four partitions');
+  requireValue(['full', 'tour-selection'].includes(profile), 'Unknown partition profile');
+  const component = profile === 'tour-selection';
+  requireValue(partCount === (component ? 2 : 4) && Number.isInteger(part) && part >= 0 && part < partCount,
+    component ? 'Expected one of two component partitions' : 'Expected one of the existing four partitions');
   requireValue(Array.isArray(selectedSpecs) && new Set(selectedSpecs).size === selectedSpecs.length &&
     Array.isArray(wholeSpecs) && new Set(wholeSpecs).size === wholeSpecs.length,
     'Invalid spec selection');
   requireValue(Array.isArray(expected), 'Original native listing is required');
+  if (component) requireValue(selectedSpecs.length === 1 && selectedSpecs[0] === SELECTION_SPEC && wholeSpecs.length === 0 &&
+    expected.length >= 2 && expected.every(row => row?.spec === SELECTION_SPEC),
+    'Component partitions require the complete isolated selection inventory');
   const keys = new Set();
   for (const row of expected) {
     requireValue(row && typeof row.spec === 'string' && row.project === browser &&
@@ -39,10 +47,12 @@ function selection({browser, part, partCount, selectedSpecs, wholeSpecs, expecte
   }
   const ordered = expected.filter(row => row.spec === SELECTION_SPEC)
     .sort((left, right) => left.key < right.key ? -1 : left.key > right.key ? 1 : 0);
-  const split = selectedSpecs.includes(SELECTION_SPEC) && ordered.length >= MIN_CASES;
-  const owned = new Set(split ? ordered.filter((_, index) => CASE_PART_CYCLE[index % CASE_PART_CYCLE.length] === part).map(row => row.key) : []);
+  const split = component || (selectedSpecs.includes(SELECTION_SPEC) && ordered.length >= MIN_CASES);
+  const cycle = component ? COMPONENT_CASE_CYCLE : CASE_PART_CYCLE;
+  const owned = new Set(split ? ordered.filter((_, index) => cycle[index % cycle.length] === part).map(row => row.key) : []);
   const cases = expected.filter(row => selectedSpecs.includes(row.spec) &&
     (split && row.spec === SELECTION_SPEC ? owned.has(row.key) : wholeSpecs.includes(row.spec)));
+  if (component) cases.sort((left, right) => left.key < right.key ? -1 : left.key > right.key ? 1 : 0);
   const specs = selectedSpecs.filter(spec => cases.some(row => row.spec === spec));
   if (!split) return {split: false, specs, cases, grep: null};
 
@@ -67,25 +77,45 @@ function selection({browser, part, partCount, selectedSpecs, wholeSpecs, expecte
     requireValue(regex.test(browser + ' ' + path.posix.basename(row.spec) + ' ' + row.title.join(' ')) ===
       cases.some(item => item.key === row.key), 'Case filter differs from intended ownership');
   }
-  return {split: true, specs, cases, grep};
+  return {split: true, specs, cases, grep, ...(component ? {profile} : {})};
 }
 
-function run({root, browser, selection: plan, collectCases, exactCases, exec = cp.execFileSync}) {
+function run({root, browser, selection: plan, collectCases, exactCases, reportFile, filteredFile, forbidOnly = false, exec = cp.execFileSync}) {
   requireValue(plan.split === true && plan.specs.length && plan.cases.length && typeof plan.grep === 'string',
     'An exact split selection is required');
-  const directory = path.join(root, 'visual-reports');
-  fs.mkdirSync(directory, {recursive: true});
+  const component = plan.profile === 'tour-selection';
+  requireValue(typeof forbidOnly === 'boolean', 'Invalid forbid-only setting');
+  if (component) requireValue(forbidOnly === true && typeof reportFile === 'string' && typeof filteredFile === 'string',
+    'Component execution requires forbid-only and separate native evidence outputs');
+  const reportPath = value => {
+    requireValue(typeof value === 'string' && value.length > 0, 'Invalid native report path');
+    const file = path.resolve(root, value);
+    requireValue(file.startsWith(path.resolve(root) + path.sep) && file.endsWith('.json'), 'Native report must remain inside the evidence root');
+    return file;
+  };
+  const output = reportPath(reportFile === undefined ? 'visual-reports/main.json' : reportFile);
+  const filtered = filteredFile === undefined ? null : reportPath(filteredFile);
+  requireValue(filtered !== output, 'Native execution and filtered listing must have separate paths');
+  if (component) requireValue(!fs.lstatSync(output, {throwIfNoEntry: false}), 'Component execution report must be fresh');
+  if (filtered) requireValue(!fs.lstatSync(filtered, {throwIfNoEntry: false}), 'Native filtered listing must be fresh');
+  fs.mkdirSync(path.dirname(output), {recursive: true});
   const args = ['playwright', 'test', ...plan.specs, '--browser=' + browser,
-    '--workers=1', '--grep=' + plan.grep];
+    '--workers=1', '--grep=' + plan.grep, ...(forbidOnly ? ['--forbid-only'] : [])];
   const env = {...process.env};
   for (const key of ['PLAYWRIGHT_JSON_OUTPUT_NAME', 'PLAYWRIGHT_JSON_OUTPUT_FILE', 'PLAYWRIGHT_JSON_OUTPUT_DIR']) delete env[key];
   // Verify what the pinned native runner will actually execute, before opening
   // a browser. Selection errors are not successful empty or partial runs.
-  const listed = JSON.parse(exec('npx', [...args, '--reporter=json', '--list'],
-    {cwd: root, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024}));
+  const nativeListing = exec('npx', [...args, '--reporter=json', '--list'],
+    {cwd: root, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+  const listed = JSON.parse(nativeListing);
+  if (forbidOnly) requireValue(listed?.config?.forbidOnly === true, 'Native filtered listing must enforce forbid-only');
   exactCases(collectCases(listed, {browser, expectedFiles: plan.specs, listing: true}), plan.cases,
     'Native filtered partition listing');
-  env.PLAYWRIGHT_JSON_OUTPUT_NAME = path.join(directory, 'main.json');
+  if (filtered) {
+    fs.mkdirSync(path.dirname(filtered), {recursive: true});
+    fs.writeFileSync(filtered, nativeListing, {encoding: 'utf8', flag: 'wx'});
+  }
+  env.PLAYWRIGHT_JSON_OUTPUT_NAME = output;
   exec('npx', [...args, '--reporter=line,json'], {cwd: root, env, stdio: 'inherit'});
 }
 

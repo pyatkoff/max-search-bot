@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__.'/ModeledConversionStatusBudget.php';
 require_once __DIR__.'/ModeledConversionValueContract.php';
+require_once __DIR__.'/ModeledConversionTickFailure.php';
 
 /** Fixed derived-value aggregates only. No source tables, network, processing or mutation. */
 final class ModeledConversionValueDeliveryReader
@@ -54,7 +55,7 @@ final class ModeledConversionValueDeliveryReader
             if($seen>self::ROW_LIMIT)return $this->unavailable('invalid_ledger');
             $out=['available'=>true,'goal_id'=>self::GOAL,'counter_id'=>'98615635','target'=>ModeledConversionValueContract::TARGET,
                 'contract'=>ModeledConversionValueContract::VERSION,'currency'=>'RUB','mode'=>$s['mode'],
-                'activated_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$activation),'last_tick_at'=>null,'last_tick_errors'=>null,
+                'activated_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$activation),'last_tick_at'=>null,'last_tick_errors'=>null,'last_recorded_failure'=>null,
                 'window'=>['basis'=>'latest_live_and_owner_authorized_historical_goal_rows','max_rows'=>self::ROW_LIMIT,'inspected_rows'=>$seen,
                     'complete_within_bound'=>$seen<self::ROW_LIMIT],
                 'reserved_value_rub'=>$this->number($r['reserved_rub'],true),
@@ -75,6 +76,11 @@ final class ModeledConversionValueDeliveryReader
             if(is_string($s['receipt_json']??null)){try{$receipt=json_decode($s['receipt_json'],true,32,JSON_THROW_ON_ERROR);}catch(JsonException $ignored){}}
             if(is_array($receipt)&&is_int($receipt['errors']??null)&&$receipt['errors']>=0&&$receipt['errors']<=100)$out['last_tick_errors']=$receipt['errors'];
             $tick=(int)($s['last_tick_unix']??0);if($tick>=$activation&&$tick<=$now)$out['last_tick_at']=gmdate('Y-m-d\\TH:i:s\\Z',$tick);
+            if($out['last_tick_at']!==null){
+                $failure=ModeledConversionTickFailure::normalize($receipt['last_recorded_failure']??null,$activation,$tick);
+                if($failure!==null)$out['last_recorded_failure']=['tick_at'=>gmdate('Y-m-d\\TH:i:s\\Z',$failure['tick_at_unix']),
+                    'phase'=>$failure['phase'],'category'=>$failure['category']];
+            }
             $out['metrika_goal_report']=$this->report($receipt['metrika_report']??null,$activation,$now);
             if(!in_array($out['metrika_goal_report']['status']??null,['ok','sampled'],true)){
                 $lastGood=is_string($s['last_success_json']??null)?json_decode($s['last_success_json'],true):null;
@@ -103,6 +109,7 @@ final class ModeledConversionValueDeliveryReader
                         'profiles_scanned'=>$this->number($first['history_scanned'],false),'events_collected'=>$this->number($first['history_collected'],false)];
             }
             $out['interpretation']=['values'=>'owner_assigned_advertising_estimates_not_actual_income',
+                'last_recorded_failure_is_historical'=>true,
                 'states_are_disjoint'=>true,'accepted_receipts_include_later_rejected_or_unmatched_rows'=>true,
                 'processed_means_validated_upload_rows_not_verified_visit_linkage'=>true,
                 'matched_upload_status_means_user_ids_matched_not_per_upload_visit_proof'=>true,
@@ -176,29 +183,33 @@ final class ModeledConversionValueDeliveryReader
             $columns[]="(SELECT COALESCE(SUM(prior.value_rub),0) FROM max_channel_conversion_outbox prior"
                 ." WHERE prior.project_key=o.project_key AND prior.conversation_id=o.conversation_id"
                 ." AND prior.transport_target=o.transport_target AND prior.value_contract=o.value_contract AND prior.id<o.id)";
-            $sql="SELECT JSON_ARRAY(".implode(',',$columns).") AS packet FROM"
+            $sql="SELECT o.id AS packet_id,JSON_ARRAY(".implode(',',$columns).") AS packet FROM"
                 ." (SELECT * FROM max_channel_conversion_outbox WHERE project_key='anytour' AND counter_id='98615635'"
                 ." AND transport_target=? AND value_contract=? ORDER BY id DESC LIMIT ".self::ROW_LIMIT.") o"
                 ." LEFT JOIN modeled_conversion_profile_versions p ON p.id=o.value_profile_id AND p.project_key=o.project_key"
                 ." AND p.platform=o.platform AND p.conversation_id=o.conversation_id"
-                ." WHERE o.target LIKE 'anytour_value_pred_%' ORDER BY o.id DESC LIMIT 17";
+                ." WHERE o.target LIKE 'anytour_value_pred_%' ORDER BY o.id DESC LIMIT 17 OFFSET 0";
             $packetBytes=$mysql?'OCTET_LENGTH(JSON_QUOTE(CAST(packet AS CHAR)))':'LENGTH(CAST(JSON_QUOTE(CAST(packet AS TEXT)) AS BLOB))';
-            $size=$this->query('SELECT COALESCE(SUM('.$packetBytes.'+24),0)+2 AS packet_bytes FROM ('.$sql.') packet_sizes',[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
-            if((int)($size[0]['packet_bytes']??PHP_INT_MAX)+8192>$this->budget->remainingBytes())return ['available'=>false,'reason'=>'budget_headroom'];
-            $rows=$this->query($sql,[ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION]);
+            // LIMIT/OFFSET keeps the projection materialized once, including SQLite window rewriting.
+            // Gate the whole escaped result inside SQL: an oversized set copies only bounded NULL sentinels.
+            $rows=$this->query('SELECT CASE WHEN SUM('.$packetBytes.'+24) OVER ()+2<=? THEN packet ELSE NULL END AS packet'
+                .' FROM ('.$sql.') bounded_packets ORDER BY packet_id DESC',
+                [ModeledConversionValueContract::TARGET,ModeledConversionValueContract::VERSION],8192);
+            if($rows&&$rows[0]['packet']===null)return ['available'=>false,'reason'=>'budget_headroom'];
             $out=['available'=>true,'basis'=>'saved_predictive_key_rows_and_frozen_scalar_calculations_not_reclassification',
                 'window'=>['max_goal_rows'=>self::ROW_LIMIT,'max_predictive_rows'=>17,'inspected_predictive_rows'=>count($rows),
                     'complete_within_goal_suffix'=>count($rows)<17,'global_coverage_known'=>false],
                 'events'=>0,'conversations'=>0,'value_rub'=>0,'api_accepted_events'=>0,'api_accepted_value_rub'=>0,
                 'processed_events'=>0,'processed_value_rub'=>0,'by_state'=>[],'by_platform'=>[],
                 'invalid_binding_rows'=>0,'voided_zero_value_rows'=>0,'calculation_unavailable_rows'=>0,'examples'=>[],
+                'examples_selection'=>'comparison_differences_first_then_newest',
                 'calculation_basis_counts'=>['probability_prediction'=>0,'stage_fraction'=>0,'unavailable'=>0],
                 'stage_comparison_counts'=>['above_stage'=>0,'equal_stage'=>0,'below_stage'=>0,'stage_only'=>0,'unavailable'=>0],
                 'calculation_unavailable_reason_counts'=>['profile_binding_unverified'=>0,'probability_prediction_unavailable'=>0,
                     'monetary_policy_unavailable'=>0,'scalar_contract_unverified'=>0,'price_base_unverified'=>0,
                     'frozen_value_unverified'=>0,'increment_not_explained'=>0],
                 'per_event_visit_linkage'=>'not_observed_by_this_cached_upload_reader','provider_requests'=>0];
-            $cases=[];
+            $cases=[];$differenceExamples=[];$otherExamples=[];
             foreach($rows as$row){
                 $v=json_decode($row['packet'],true,16,JSON_THROW_ON_ERROR);
                 if(!is_array($v)||count($v)!==38)throw new UnexpectedValueException();
@@ -316,8 +327,11 @@ final class ModeledConversionValueDeliveryReader
                 if($comparisonBucket==='available')$comparisonBucket=$comparison['contextual_minus_stage_rub']>0?'above_stage':
                     ($comparison['contextual_minus_stage_rub']<0?'below_stage':'equal_stage');
                 $out['stage_comparison_counts'][$comparisonBucket]++;
-                if(count($out['examples'])<16)$out['examples'][]=$e;
+                if($comparison['status']==='available'&&$comparison['contextual_minus_stage_rub']!==0)$differenceExamples[]=$e;
+                else $otherExamples[]=$e;
             }
+            // Stable selection within the same inspected suffix, before the existing example/response caps.
+            $out['examples']=array_slice(array_merge($differenceExamples,$otherExamples),0,16);
             $out['conversations']=count($cases);
             $this->budget->check();($this->authorize)();$this->budget->check();return $out;
         }catch(ModeledConversionStatusLimit $e){throw $e;}
@@ -379,9 +393,12 @@ final class ModeledConversionValueDeliveryReader
         return $money?round($n,2):(int)$n;
     }
     private function unavailable(string $reason):array{return ['available'=>false,'goal_id'=>self::GOAL,'reason'=>$reason];}
-    private function query(string $sql,array $args):array
+    private function query(string $sql,array $args,?int $packetReserve=null):array
     {
-        $this->budget->check();($this->authorize)();$this->budget->check();$q=$this->budget->prepare($this->pdo,$sql);
+        $this->budget->check();($this->authorize)();$this->budget->check();
+        // Authorization consumes the same shared budget before the predictive copy limit is bound.
+        if($packetReserve!==null)array_unshift($args,$this->budget->remainingBytes()-$packetReserve);
+        $q=$this->budget->prepare($this->pdo,$sql);
         foreach($args as$i=>$v)$q->bindValue($i+1,$v,is_int($v)?PDO::PARAM_INT:PDO::PARAM_STR);
         $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();$this->budget->check();
         $this->budget->consumeBytes(strlen(json_encode($rows,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)));

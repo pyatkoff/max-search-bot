@@ -186,11 +186,12 @@ final class ModeledConversionSemanticPrediction
         // Known operational outcomes are a conservative global exclusion, never bank truth.
     }
 
-    /** A verified service reply or receipt may preserve, never establish or refresh, recent customer meaning. */
-    public function canPreserveCustomerContext(int $occurred):bool
+    /** An applied-input receipt also needs its admitted customer input in this current context. */
+    public function canPreserveCustomerContext(int $occurred,?string $inputRef=null):bool
     {
         return $this->anchor!==null&&$this->lastMeaningfulAt!==null
-            &&$occurred>=$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400;
+            &&$occurred>=$this->lastMeaningfulAt&&$occurred-$this->lastMeaningfulAt<=86400
+            &&($inputRef===null||($this->messages[$inputRef]['role']??null)==='customer');
     }
 
     public function knownOperationalOutcome(string $ref,int $occurred,int $available,int $sourceVersion):void

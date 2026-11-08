@@ -150,8 +150,8 @@ lost responses/UNKNOWN, readonly access, preview/send, publish/revoke, pending
 photos and the anonymous public page. It also executes every collector case for
 the shipped adapters, one-click import, optional price editor, destination/row
 freshness, popup geometry and uncertain-result recovery. The inventory is
-freshly listed on each run; all current cases must execute without grep or
-sampling. A fixture proof does not replace physical Chrome/Яндекс installation
+freshly listed without filtering on each part; the two exact-key parts together
+execute every current case once, without sampling. A fixture proof does not replace physical Chrome/Яндекс installation
 and an authorized live source/import acceptance.
 
 `verify_tour_selection_browser_report.js` retains the29 original mandatory
@@ -165,10 +165,54 @@ reports and PNG digests. It is component proof, never full-panel donor evidence.
 Unrelated sound, post-context, Firefox, full-panel layout/captures do not run
 for this exact family. The stable `regression`/`screenshots` aggregates still
 fail on missing/failed selected evidence. Changes to the selector, component
-verifier or visual workflow run **full coverage plus the component runner** once
+verifier, shared case allocator or visual workflow run **full coverage plus the component runner** once
 to commission its real invocation/report path; ordinary full changes do not pay
 for that additional proof. The prepared environment below also removes repeated
 OS, browser and npm installation; test timeouts and assertions are unchanged.
+
+### Two isolated component parts
+
+`tour-browser-parts` runs two parts for each of Chromium and WebKit in the same
+pinned native environment. The existing `manager2_visual_shards.js` allocator
+has an explicit two-part `tour-selection` profile. It sorts the canonical
+`[browser, project, relativeSpecPath, titleArray]` identities and alternates them
+between parts zero and one. Odd inventories differ by one case; inventory size
+is never a hard-coded acceptance count. The full profile retains its four parts,
+existing case cycle, whole-spec and daily-cache ownership, and workers=1.
+
+Every component part first runs an unfiltered native `--list`. The allocator then
+validates the native filtered listing against that part's exact expected keys
+before execution. All three invocations retain workers=1 and `--forbid-only`.
+The original complete listing, filtered listing, execution report and receipt
+are preserved. Each case has one passing result and zero retries. The part
+receipt binds its real run attempt, source tree, tested/head SHA, repository,
+workflow, PR, browser, prepared environment and report/PNG digests.
+
+The existing `tour-browser` result now assembles both parts per engine without
+running another browser. It requires successful matrix results and downloads
+two strictly named artifacts into separate directories. It compares canonical
+inventories rather than timestamp-bearing listing bytes, independently derives
+ownership, and proves the exact union without gaps, duplicate or foreign cases.
+The original 29 mandatory contracts are checked against that complete union.
+Missing parts, mixed source/run/browser/environment, changed reports, future
+attempts or invalid statistics fail. A successful original part of an earlier
+attempt in the same unchanged run retains its real receipt during a failed-job
+retry; successful siblings are not rerun or relabelled.
+
+Ordinary component PNG names are prefixed with `case-part-0--` or
+`case-part-1--`, preserving equal basenames produced by different runners.
+Each of the 16 mandatory logical captures has exactly one case owner; assembly
+checks its part, SHA256, PNG dimensions and viewport before restoring its
+canonical name. Duplicate mandatory captures fail even when their bytes match.
+Traversal, symlinks, wrong namespaces and file collisions fail. The final
+component artifact retains both original proof directories and all namespaced
+PNG bytes. Existing full-only OneTouch captures remain full evidence, not an
+additional mandatory component capture or a full-panel donor.
+
+The intended elapsed-time reduction must be measured on the actual native run.
+Two parts add runner preparation and an assembly step; queue time and complete
+full-suite commissioning can still dominate. No assertion, viewport, engine or
+required screenshot is removed to meet a timing target.
 
 ## Styling-only backend subprofile
 
@@ -192,7 +236,7 @@ CSS does not alter the PHP/SQL implementation. Its observable browser effects
 remain covered by the full selection suite in both Chromium and WebKit, including
 all four existing widths, private/anonymous behavior and required screenshots.
 The editor's package, host, install/rollback and private-HTTP workflow is unchanged.
-No case is removed from a manifest, filtered by grep or accepted from an older run.
+No case is omitted from the complete native union or accepted from another run.
 
 For this exact subprofile, the existing required matrix runs architecture and
 excludes dialogue, website, manager and diagnostics. Inventory and PHP syntax
@@ -278,11 +322,11 @@ removing package installation does not establish an end-to-end latency SLA.
 
 ## Full browser workload allocation
 
-Full Chromium and WebKit coverage uses four isolated whole-spec parts, each
-retaining workers=1. The allocation follows observed native per-spec execution
-time: selection owns part three; history remains in part zero, alongside its
-existing layout/CLI and daily-cache ownership. Part zero leaves room for those
-captures. No shared fixture is split and the complete spec/case inventory is
+Full Chromium and WebKit coverage uses four isolated parts, each retaining
+workers=1. Whole-spec allocation follows observed native execution time;
+the isolated selection cases retain the existing fixed 20/0/10/70 cycle.
+History remains in part zero, alongside its existing layout/CLI and daily-cache
+ownership. No shared fixture is split and the complete spec/case inventory is
 unchanged. Every engine assembly downloads and validates all four original
 parts; missing or old two-part evidence cannot pass. The source-bound registry
 identity changes with allocation, so the first run executes fresh full coverage.

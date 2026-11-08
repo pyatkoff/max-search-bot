@@ -11,10 +11,40 @@ final class ForecastV1ObservedStatement extends PDOStatement
     public static bool $copied=false;
     public static bool $valueCopied=false;
     public static mixed $afterMetadata=null;
+    public static bool $observePredictive=false;
+    public static int $predictiveExecutions=0;
+    public static array $predictiveCopies=[];
+    public static array $predictiveStatements=[];
+    public static bool $observeCore=false;
+    public static array $coreStatements=[];
+    public static array $coreCopies=[];
+    public static int $diagnosisExecutions=0;
+    private array $predictiveBindings=[];
     protected function __construct(){}
+    public function bindValue(string|int $param,mixed $value,int $type=PDO::PARAM_STR):bool
+    {
+        $ok=parent::bindValue($param,$value,$type);
+        if(self::$observePredictive||self::$observeCore)$this->predictiveBindings[$param]=[$value,$type];
+        return $ok;
+    }
+    public function execute(?array $params=null):bool
+    {
+        if(self::$observeCore)foreach(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,12)as$frame)
+            if(($frame['class']??null)===ModeledConversionInputDiagnosisReader::class){self::$diagnosisExecutions++;break;}
+        $ok=parent::execute($params);
+        if(self::$observePredictive){
+            self::$predictiveExecutions++;
+            self::$predictiveStatements[]=['sql'=>$this->queryString,'bindings'=>$this->predictiveBindings];
+        }
+        if(self::$observeCore&&str_contains($this->queryString,' AS prediction_json,'))
+            self::$coreStatements[]=['sql'=>$this->queryString,'bindings'=>$this->predictiveBindings];
+        return $ok;
+    }
     public function fetchAll(int $mode=PDO::FETCH_DEFAULT,mixed ...$args):array
     {
         $rows=parent::fetchAll($mode,...$args);
+        if(self::$observePredictive)self::$predictiveCopies[]=$rows;
+        if(self::$observeCore&&str_contains($this->queryString,' AS prediction_json,'))self::$coreCopies[]=$rows;
         if(str_contains($this->queryString,' AS reserved_rub'))self::$valueCopied=true;
         if(str_contains($this->queryString,' AS prediction_json,'))self::$copied=true;
         if(str_contains($this->queryString,' AS namespace_matches')&&is_callable(self::$afterMetadata)){
@@ -119,6 +149,55 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
     $check('value read returns no identities upload IDs arbitrary cached text or source markers',!str_contains($json,'PRIVATE_REPORT_MUST_NOT_LEAVE')&&!str_contains($json,'PRIVATE_LEDGER_CLIENT_ID')&&!str_contains($json,'"501"')&&!str_contains($json,'"502"')&&!str_contains($json,'8800000123'));
     $r=forecastV1Read($p);
     $check('repeated private read causes no queue or saved-profile mutation',$before===json_encode($p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),JSON_THROW_ON_ERROR));
+    $check('legacy successful tick has an explicit null recorded failure',array_key_exists('last_recorded_failure',$d)&&$d['last_recorded_failure']===null);
+    $saveFailureReceipt=$p->prepare("UPDATE modeled_conversion_value_export_settings SET last_receipt_json=?,last_tick_unix=?");
+    $failureSnapshot=static fn():array=>[
+        $p->query('SELECT * FROM modeled_conversion_value_export_settings ORDER BY project_key')->fetchAll(PDO::FETCH_ASSOC),
+        $p->query('SELECT * FROM max_channel_conversion_outbox ORDER BY id')->fetchAll(PDO::FETCH_ASSOC),forecastV1Rows($p)];
+    $failureReadOnly=true;
+    $readFailure=static function(array $savedReceipt,mixed $lastTick)use($p,$saveFailureReceipt,$failureSnapshot,&$failureReadOnly):array{
+        $saveFailureReceipt->execute([json_encode($savedReceipt,JSON_THROW_ON_ERROR),$lastTick]);
+        $saved=$failureSnapshot();$read=forecastV1Read($p);$failureReadOnly=$failureReadOnly&&$saved===$failureSnapshot();return $read;
+    };
+    $failure=['tick_at_unix'=>$now-120,'phase'=>'upload','category'=>'transport_not_sent'];
+    $withFailure=$receipt;$withFailure['last_recorded_failure']=$failure+[
+        'message'=>'PRIVATE_TICK_MESSAGE_MUST_NOT_LEAVE','client_id'=>'PRIVATE_TICK_ID_MUST_NOT_LEAVE',
+        'response'=>['body'=>'PRIVATE_TICK_RESPONSE_MUST_NOT_LEAVE']];
+    $r=$readFailure($withFailure,$now-60);$d=$r['value_delivery'];
+    $check('healthy current tick retains an older sanitized failure without becoming a current error',
+        $d['available']&&$d['last_tick_errors']===0&&$d['last_tick_at']===gmdate('Y-m-d\TH:i:s\Z',$now-60)
+        &&$d['last_recorded_failure']===['tick_at'=>gmdate('Y-m-d\TH:i:s\Z',$now-120),'phase'=>'upload','category'=>'transport_not_sent']
+        &&$d['reserved_value_rub']===8333.0);
+    $check('recorded failure is explicitly historical',$d['interpretation']['last_recorded_failure_is_historical']===true);
+    $check('failure projection drops all arbitrary private exception and provider fields',!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_TICK_'));
+    $legacyFailure=$receipt;$legacyFailure['errors']=1;$d=$readFailure($legacyFailure,$now-60)['value_delivery'];
+    $check('legacy tick error count cannot fabricate a failure category',$d['last_tick_errors']===1&&$d['last_recorded_failure']===null);
+    foreach(['activation'=>$act,'last_tick'=>$now-60]as$boundary=>$at){
+        $withFailure['last_recorded_failure']=array_replace($failure,['tick_at_unix'=>$at]);
+        $d=$readFailure($withFailure,$now-60)['value_delivery'];
+        $check('recorded failure accepts inclusive '.$boundary.' boundary',
+            $d['last_recorded_failure']===['tick_at'=>gmdate('Y-m-d\TH:i:s\Z',$at),'phase'=>'upload','category'=>'transport_not_sent']);
+    }
+    $invalidFailures=['null_record'=>null,'scalar_record'=>'PRIVATE_TICK_INVALID_RECORD','missing_time'=>['phase'=>'upload','category'=>'transport_not_sent']];
+    foreach(['numeric_string'=>(string)($now-120),'fractional'=>$now-120.5,'boolean'=>true,'null_time'=>null,
+        'pre_activation'=>$act-1,'future'=>$now+3600,'after_last_tick'=>$now-30]as$reason=>$at)
+        $invalidFailures[$reason]=array_replace($failure,['tick_at_unix'=>$at]);
+    foreach(['phase'=>'UPLOAD','category'=>'PRIVATE_TICK_UNKNOWN_CATEGORY']as$field=>$value)
+        $invalidFailures['unknown_'.$field]=array_replace($failure,[$field=>$value]);
+    foreach($invalidFailures as$reason=>$invalid){
+        $withFailure['last_recorded_failure']=$invalid;$read=$readFailure($withFailure,$now-60);$d=$read['value_delivery'];
+        $check('invalid recorded failure '.$reason.' stays null without hiding the ledger',
+            $d['available']&&$d['last_recorded_failure']===null&&$d['last_tick_errors']===0&&$d['reserved_value_rub']===8333.0
+            &&!str_contains(json_encode($read,JSON_THROW_ON_ERROR),'PRIVATE_TICK_'));
+    }
+    $withFailure['last_recorded_failure']=$failure;
+    foreach(['missing'=>null,'pre_activation'=>$act-1,'future'=>$now+3600]as$reason=>$lastTick){
+        $d=$readFailure($withFailure,$lastTick)['value_delivery'];
+        $check('invalid last tick '.$reason.' cannot validate a historical failure',
+            $d['available']&&$d['last_tick_at']===null&&$d['last_recorded_failure']===null);
+    }
+    $check('failure status reads never mutate saved settings ledger or profiles',$failureReadOnly);
+    $saveFailureReceipt->execute([json_encode($receipt,JSON_THROW_ON_ERROR),$now]);
     $audit=['version'=>'retained_priced_base_v1','checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$now),
         'goal_rows_scanned'=>1001,'complete'=>false,'unprocessed_candidates'=>0,
         'actions'=>['voided'=>['events'=>1001,'removed_rub'=>100100000]],
@@ -183,6 +262,80 @@ function forecastValueDeliveryAssertions(PDO $p,callable $check):void
         &&$cohort['complete_within_bound']&&!str_contains(json_encode($r,JSON_THROW_ON_ERROR),'PRIVATE_UNUSED_PROFILE'));
     $p->exec('DROP TABLE modeled_conversion_value_export_settings');$r=forecastV1Read($p);
     $check('missing value storage preserves the independent forecast result',$r['available']&&$r['value_delivery']['available']===false&&$r['value_delivery']['reason']==='storage_unavailable');
+}
+
+/** Reuse the existing one-profile fixture; all probes are SELECTs on its unchanged saved rows. */
+function forecastCoreProjectionBudgetAssertions(PDO $p,callable $check,array $expected):void
+{
+    $snapshot=static fn():array=>[forecastV1Rows($p),$p->query('SELECT * FROM modeled_conversion_profiles_state ORDER BY project_key')->fetchAll(PDO::FETCH_ASSOC)];
+    $before=$snapshot();
+    $capture=static function(ModeledConversionStatusBudget $budget,?callable $authorize=null)use($p):array{
+        $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+        ForecastV1ObservedStatement::$observeCore=true;ForecastV1ObservedStatement::$coreStatements=[];
+        ForecastV1ObservedStatement::$coreCopies=[];ForecastV1ObservedStatement::$diagnosisExecutions=0;
+        try{
+            $result=forecastV1Read($p,$authorize,$budget);
+            return [$result,ForecastV1ObservedStatement::$coreStatements,ForecastV1ObservedStatement::$coreCopies,
+                ForecastV1ObservedStatement::$diagnosisExecutions];
+        }finally{ForecastV1ObservedStatement::$observeCore=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    };
+    $replay=static function(string $sql,array $bindings)use($p):array{
+        $q=$p->prepare($sql);
+        foreach($bindings as$parameter=>[$value,$type])$q->bindValue($parameter,$value,$type);
+        $q->execute();$rows=$q->fetchAll(PDO::FETCH_ASSOC);$q->closeCursor();return $rows;
+    };
+    $checkpoints=['reader_entry','state','metadata','visit_receipt','first_profile','value_delivery','optional_views','remaining_profiles'];
+    $basis='shared_budget_v1';
+    $budget=new ModeledConversionStatusBudget(0.0,static fn():float=>0.0);
+    [$normal,$statements,$copies,$diagnosisQueries]=$capture($budget);
+    $statement=$statements[0];$body=$copies[0];
+    $check('core packet replay preserves all four returned fields and frozen checkpoints preserve the original read limits',
+        count($statements)===1&&count($copies)===1&&count($body)===1
+        &&array_keys($body[0])===['prediction_json','followup_json','deal_json','binding_json']
+        &&$replay($statement['sql'],$statement['bindings'])===$body
+        &&$normal['saved']===$expected['saved']&&$normal['window']===$expected['window']
+        &&$normal['input_coverage']===$expected['input_coverage']&&$snapshot()===$before
+        &&$normal['read_budget']===['basis'=>$basis,'remaining_ms'=>array_fill_keys($checkpoints,5000)]
+        &&$normal['saved_input_diagnosis']['available']===true&&$diagnosisQueries>0
+        &&$normal['limits']['max_selected_bytes']===65536&&$normal['limits']['max_execution_seconds']===5
+        &&$budget->remainingBytes()>=8192);
+    $size=(int)$statement['bindings'][4][0];
+    $changedSize=$statement['bindings'];$changedSize[4][0]=$size+1;
+    $tooSmall=$statement['bindings'];$tooSmall[5][0]=$size-1;
+    $check('both core packet size guards reject the selected row before any four-field result is copied',
+        $replay($statement['sql'],$changedSize)===[]&&$replay($statement['sql'],$tooSmall)===[]&&$snapshot()===$before);
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'){
+        // Instrument the actual scalar, preserving JSON subtypes of the surrounding binding object.
+        $evaluations=0;
+        $p->sqliteCreateFunction('forecast_core_scalar_probe',static function(mixed $value)use(&$evaluations):mixed{
+            $evaluations++;return $value;
+        },1,PDO::SQLITE_DETERMINISTIC);
+        $scalar="JSON_EXTRACT(profile_json,'$.access_status')";
+        $probeSql=str_replace($scalar,'forecast_core_scalar_probe('.$scalar.')',$statement['sql'],$instrumented);
+        $probeRows=$replay($probeSql,$statement['bindings']);
+        $check('SQLite materializes the core binding once for both size guards and the returned packet',
+            $instrumented>0&&$evaluations===1&&$probeRows===$body&&$snapshot()===$before);
+    }
+    // Bootstrap consumed 250ms; only the first authorization advances this controlled clock by one second.
+    $clock=0.25;$advanced=false;
+    $timedBudget=new ModeledConversionStatusBudget(0.0,static function()use(&$clock):float{return $clock;});
+    [$timed,,,$timedDiagnosisQueries]=$capture($timedBudget,static function()use(&$clock,&$advanced):void{
+        if(!$advanced){$clock+=1.0;$advanced=true;}
+    });
+    $remaining=array_fill_keys($checkpoints,3750);$remaining['reader_entry']=4750;
+    $check('time headroom reports the pre-gate shared remainder and skips diagnosis SQL after authorization consumes time',
+        $advanced&&$timed['read_budget']===['basis'=>$basis,'remaining_ms'=>$remaining]
+        &&$timed['saved_input_diagnosis']===['available'=>false,'reason'=>'time_headroom','minimum_required_ms'=>4000,'remaining_ms'=>3750]
+        &&$timedDiagnosisQueries===0&&$timed['saved']===$normal['saved']&&$timed['input_coverage']===$normal['input_coverage']
+        &&$timed['model_calls']===0&&$timed['conversion_uploads']===0&&$timedBudget->remainingBytes()>=8192&&$snapshot()===$before);
+    $boundaryBudget=new ModeledConversionStatusBudget(0.0,static fn():float=>1.0);
+    [$boundary,,,$boundaryDiagnosisQueries]=$capture($boundaryBudget);
+    $check('the unchanged four-second diagnosis boundary admits the real reader without changing saved rows',
+        $boundary['read_budget']===['basis'=>$basis,'remaining_ms'=>array_fill_keys($checkpoints,4000)]
+        &&$boundary['saved_input_diagnosis']['available']===true&&$boundaryDiagnosisQueries>0
+        &&$boundary['saved_input_diagnosis']===$normal['saved_input_diagnosis']&&$boundary['saved']===$normal['saved']
+        &&$boundaryBudget->remainingBytes()>=8192&&$snapshot()===$before);
 }
 
 function forecastV1Assertions(PDO $p,callable $check):void
@@ -256,6 +409,7 @@ function forecastV1Assertions(PDO $p,callable $check):void
         $injected&&$authChecks>4&&$bounded['saved']['prospective_estimates']===1
         &&$bounded['saved_input_diagnosis']===['available'=>false,'reason'=>'budget_headroom']
         &&$guardBudget->remainingBytes()>4096&&forecastV1Rows($p)===$rowsBeforeBudget);
+    forecastCoreProjectionBudgetAssertions($p,$check,$bounded);
 
     forecastV1Schema($p);
     $descriptive=forecastV1Packet(messages:[
@@ -807,6 +961,29 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $p->exec("CREATE TABLE modeled_conversion_profile_versions(id BIGINT PRIMARY KEY,project_key VARCHAR(40),platform VARCHAR(16),customer_key VARCHAR(40),conversation_id BIGINT,observed_at_unix BIGINT,profile_json TEXT)");
     $p->exec("CREATE TABLE max_channel_conversion_outbox(id BIGINT PRIMARY KEY,project_key VARCHAR(40),counter_id VARCHAR(20),transport_target VARCHAR(64),value_contract VARCHAR(64),target VARCHAR(100),platform VARCHAR(16),conversation_id BIGINT,value_profile_id BIGINT,value_stage VARCHAR(40),value_rub DECIMAL(12,2),state VARCHAR(24),upload_status VARCHAR(32),event_unix BIGINT,claimed_at_unix BIGINT,value_api_accepted_at_unix BIGINT,value_processed_at_unix BIGINT,upload_id VARCHAR(40),client_id VARCHAR(40))");
     $now=time();
+    // Observe actual executions and copies only during this reader call, without matching SQL text.
+    $observe=static function(callable $read)use($p):array{
+        $oldClass=$p->getAttribute(PDO::ATTR_STATEMENT_CLASS);
+        $p->setAttribute(PDO::ATTR_STATEMENT_CLASS,[ForecastV1ObservedStatement::class]);
+        ForecastV1ObservedStatement::$observePredictive=true;
+        ForecastV1ObservedStatement::$predictiveExecutions=0;ForecastV1ObservedStatement::$predictiveCopies=[];
+        ForecastV1ObservedStatement::$predictiveStatements=[];
+        try{return $read();}
+        finally{ForecastV1ObservedStatement::$observePredictive=false;$p->setAttribute(PDO::ATTR_STATEMENT_CLASS,$oldClass);}
+    };
+    $transferFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $onlyNullPackets=static function(array $copies):bool{
+        if(count($copies)!==1||count($copies[0])<1||count($copies[0])>17)return false;
+        foreach($copies[0]as$row)if($row!==['packet'=>null])return false;
+        return true;
+    };
+    $emptyBudget=new ModeledConversionStatusBudget();
+    $empty=$observe(static fn():array=>(new ModeledConversionValueDeliveryReader($p,static function():void{},$emptyBudget))->predictiveV1($now));
+    $check('an empty predictive suffix remains available with zero totals after one empty scalar copy',
+        ForecastV1ObservedStatement::$predictiveExecutions===1&&ForecastV1ObservedStatement::$predictiveCopies===[[]]
+        &&$empty['available']===true&&$empty['events']===0&&$empty['conversations']===0&&$empty['value_rub']===0
+        &&$empty['window']['inspected_predictive_rows']===0&&$empty['window']['complete_within_goal_suffix']===true
+        &&$empty['examples']===[]&&$emptyBudget->remainingBytes()>=8192);
     $profile=$p->prepare("INSERT INTO modeled_conversion_profile_versions VALUES(?,'anytour',?,'770001',?,?,?)");
     $row=$p->prepare("INSERT INTO max_channel_conversion_outbox VALUES(?,'anytour','98615635','anytour_modeled_value_v1','semantic_stage_value_25000_v1',?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
     $put=static function(int $id,string $platform,int $scope,?float $prob,?int $price,?int $full,int $delta,string $state,string $status,array $money=[],array $semantic=[])use($profile,$row,$now):void{
@@ -888,10 +1065,39 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         !str_contains($json,'PRIVATE_')&&!str_contains($json,'770001')&&!str_contains($json,'990001')
         &&!str_contains($json,'value_profile_id')&&!str_contains($json,'conversation_id'));
     $read();$check('repeated predictive inspection leaves every profile and outbox row byte identical',$before===$snapshot());
+    $observed=$observe($read);$packets=[];
+    foreach(ForecastV1ObservedStatement::$predictiveCopies[0]??[]as$copy)$packets[]=json_decode($copy['packet']??'null',true,16,JSON_THROW_ON_ERROR);
+    $check('one predictive statement preserves the exact scalar result newest order and original rows',
+        ForecastV1ObservedStatement::$predictiveExecutions===1&&count(ForecastV1ObservedStatement::$predictiveCopies)===1
+        &&array_column($packets,0)===[6,5,4,3,2]&&array_map('count',$packets)===[38,38,38,38,38]
+        &&$observed===$r&&$before===$snapshot());
+    if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite'){
+        // Probe one existing scalar in the actual generated statement; keep every binding and result unchanged.
+        $statement=ForecastV1ObservedStatement::$predictiveStatements[0];$evaluations=0;
+        $p->sqliteCreateFunction('forecast_scalar_probe',static function(mixed $id)use(&$evaluations):mixed{
+            $evaluations++;return $id;
+        },1,PDO::SQLITE_DETERMINISTIC);
+        $probeSql=str_replace('JSON_ARRAY(o.id,','JSON_ARRAY(forecast_scalar_probe(o.id),',$statement['sql'],$instrumented);
+        $probe=$p->prepare($probeSql);
+        foreach($statement['bindings']as$parameter=>[$value,$type])$probe->bindValue($parameter,$value,$type);
+        $probe->execute();$probeRows=$probe->fetchAll(PDO::FETCH_ASSOC);$probe->closeCursor();
+        $check('SQLite materializes each predictive packet once while returning identical scalar bytes',
+            $instrumented===1&&$evaluations===5&&$probeRows===ForecastV1ObservedStatement::$predictiveCopies[0]
+            &&$before===$snapshot());
+    }
     $calls=0;$revoked=false;
     try{(new ModeledConversionValueDeliveryReader($p,static function()use(&$calls):void{if(++$calls>=2)throw new DomainException('revoked');},new ModeledConversionStatusBudget()))->predictiveV1($now);}
     catch(DomainException $ignored){$revoked=true;}
     $check('authorization revoked after the scalar read prevents predictive release',$revoked);
+    $copyRevoked=false;
+    try{$observe(static fn():array=>(new ModeledConversionValueDeliveryReader($p,static function():void{
+        if(ForecastV1ObservedStatement::$predictiveCopies!==[])throw new DomainException('revoked_after_predictive_copy');
+    },new ModeledConversionStatusBudget()))->predictiveV1($now));}
+    catch(DomainException $ignored){$copyRevoked=true;}
+    $copied=ForecastV1ObservedStatement::$predictiveCopies;
+    $check('revocation after the actual predictive packet copy prevents release and leaves saved rows unchanged',
+        $copyRevoked&&ForecastV1ObservedStatement::$predictiveExecutions===1&&count($copied)===1&&count($copied[0])===5
+        &&is_string($copied[0][0]['packet']??null)&&$before===$snapshot());
     $budget=new ModeledConversionStatusBudget();$budget->consumeBytes(50000);
     $limited=(new ModeledConversionValueDeliveryReader($p,static function():void{},$budget))->predictiveV1($now);
     $check('predictive optional read preserves the existing shared authorization headroom',$limited===['available'=>false,'reason'=>'budget_headroom']);
@@ -1001,9 +1207,28 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
         &&array_sum($r['stage_comparison_counts'])===$r['events']&&$r['events']>count($r['examples']));
     $p->prepare("UPDATE modeled_conversion_profile_versions SET profile_json=JSON_SET(profile_json,'$.semantic_prediction.reasons',JSON_ARRAY(?))")->execute([str_repeat('я',600)]);
     $tight=new ModeledConversionStatusBudget();$tight->consumeBytes(40000);
-    $bounded=(new ModeledConversionValueDeliveryReader($p,static function():void{},$tight))->predictiveV1($now);
+    $multibyteBefore=$snapshot();$tightBefore=$tight->remainingBytes();
+    $bounded=$observe(static fn():array=>(new ModeledConversionValueDeliveryReader($p,static function():void{},$tight))->predictiveV1($now));
     $check('oversized multibyte scalar detail is preflighted before copying and retains authorization bytes',
         $bounded===['available'=>false,'reason'=>'budget_headroom']&&$tight->remainingBytes()>=8192);
+    $copied=ForecastV1ObservedStatement::$predictiveCopies;
+    $copyBytes=strlen(json_encode($copied[0]??[],$transferFlags));
+    $check('oversized multibyte detail copies only bounded null packets in one statement and charges those exact bytes',
+        ForecastV1ObservedStatement::$predictiveExecutions===1&&$onlyNullPackets($copied)
+        &&$tightBefore-$tight->remainingBytes()===$copyBytes&&$copyBytes<=512&&$multibyteBefore===$snapshot());
+    $postAuthBudget=new ModeledConversionStatusBudget();$authSpent=false;
+    $postAuth=$observe(static function()use($p,$postAuthBudget,&$authSpent,$now):array{
+        return (new ModeledConversionValueDeliveryReader($p,static function()use($postAuthBudget,&$authSpent):void{
+            if(!$authSpent){$postAuthBudget->consumeBytes(40000);$authSpent=true;}
+        },$postAuthBudget))->predictiveV1($now);
+    });
+    $copied=ForecastV1ObservedStatement::$predictiveCopies;
+    $copyBytes=strlen(json_encode($copied[0]??[],$transferFlags));
+    $check('the scalar transfer gate uses the remaining budget after authorization consumes bytes',
+        $authSpent&&$postAuth===['available'=>false,'reason'=>'budget_headroom']
+        &&ForecastV1ObservedStatement::$predictiveExecutions===1&&$onlyNullPackets($copied)
+        &&65536-$postAuthBudget->remainingBytes()===40000+$copyBytes&&$postAuthBudget->remainingBytes()>=8192
+        &&$multibyteBefore===$snapshot());
 
     // Each synthetic stage case starts after the unchanged suffix/budget fixtures above.
     $stageReadOnly=true;
@@ -1133,6 +1358,66 @@ function forecastPredictiveValueAssertions(PDO $p,callable $check):void
     $check('a negative ledger increment is rejected without a stage explanation',
         $r===['available'=>false,'reason'=>'invalid_saved_projection']);
     $check('all stage inspections leave the synthetic profiles and reservation rows byte identical',$stageReadOnly);
+
+    // Seventeen already-inspected events exercise selection before the existing sixteen-example cap.
+    $selectionReadOnly=true;
+    $selectionRead=static function(array $overrides=[])use($p,$put,$read,$snapshot,&$selectionReadOnly):array{
+        $p->exec('DELETE FROM max_channel_conversion_outbox');$p->exec('DELETE FROM modeled_conversion_profile_versions');
+        for($id=100;$id<=116;$id++){
+            [$probability,$full,$delta,$semantic]=$overrides[$id]??[0.05,500,500,[]];
+            $put($id,'max',1000+$id,$probability,null,$full,$delta,'accepted','UPLOADED',
+                ['version'=>'early_deal_commission_7pct_v2','full_value_base_rub'=>10000],$semantic);
+        }
+        $before=$snapshot();$result=$read();$selectionReadOnly=$selectionReadOnly&&$before===$snapshot();return $result;
+    };
+    $nonComparisons=[115=>[null,null,500,['status'=>'insufficient_context']],114=>[0.05,600,600,[]]];
+    $r=$selectionRead($nonComparisons+[100=>[0.06,600,600,[]]]);
+    $newestCases=array_map(static fn(int $n):string=>'dialogue_'.$n,range(1,16));
+    $check('a difference in the seventeenth inspected row precedes the newest ordinary examples before the sixteen-example cap',
+        $r['examples_selection']==='comparison_differences_first_then_newest'
+        &&array_column($r['examples'],'case')===array_merge(['dialogue_17'],array_slice($newestCases,0,15))
+        &&$r['examples'][0]['stage_comparison']['contextual_minus_stage_rub']===100
+        &&$r['events']===17&&$r['conversations']===17&&$r['value_rub']===8700
+        &&$r['stage_comparison_counts']===['above_stage'=>1,'equal_stage'=>14,'below_stage'=>0,'stage_only'=>1,'unavailable'=>1]
+        &&array_sum($r['stage_comparison_counts'])===$r['events']
+        &&$r['window']===['max_goal_rows'=>201,'max_predictive_rows'=>17,'inspected_predictive_rows'=>17,
+            'complete_within_goal_suffix'=>false,'global_coverage_known'=>false]);
+
+    // Exercise the real response trimmer with enough space for four actual reader examples.
+    $projection=new ModeledConversionForecastStatusReader($p,static function():void{},new ModeledConversionStatusBudget());
+    $method=new ReflectionMethod(ModeledConversionForecastStatusReader::class,'boundedResponse');
+    $large=['value_delivery'=>['predictive_v1'=>$r],'synthetic_padding'=>''];$four=$large;
+    $four['value_delivery']['predictive_v1']['examples']=array_slice($r['examples'],0,4);
+    $four['value_delivery']['predictive_v1']['examples_omitted_due_to_response_budget']=true;
+    $jsonFlags=JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR;
+    $large['synthetic_padding']=str_repeat('x',28000-strlen(json_encode($four,$jsonFlags))-1);
+    $bounded=$method->invoke($projection,$large);$kept=$bounded['value_delivery']['predictive_v1'];
+    $summary=$r;unset($summary['examples']);$boundedSummary=$kept;
+    unset($boundedSummary['examples'],$boundedSummary['examples_omitted_due_to_response_budget']);
+    $check('the actual response budget retains the late difference and exact aggregates while trimming to four examples',
+        strlen(json_encode($bounded,$jsonFlags))<=28000&&count($kept['examples'])===4
+        &&$kept['examples']===array_slice($r['examples'],0,4)&&$kept['examples_omitted_due_to_response_budget']===true
+        &&$boundedSummary===$summary&&$kept['examples'][0]['stage_comparison']['contextual_minus_stage_rub']===100);
+
+    $mixed=$selectionRead($nonComparisons+[111=>[0.04,400,400,[]],108=>[0.09,900,900,[]],
+        103=>[0.03,300,300,[]],100=>[0.06,600,600,[]]]);
+    $check('both signs have equal priority and preserve newest order rather than sorting by sign or magnitude',
+        array_column($mixed['examples'],'case')===['dialogue_6','dialogue_9','dialogue_14','dialogue_17',
+            'dialogue_1','dialogue_2','dialogue_3','dialogue_4','dialogue_5','dialogue_7','dialogue_8','dialogue_10',
+            'dialogue_11','dialogue_12','dialogue_13','dialogue_15']
+        &&array_column(array_column(array_slice($mixed['examples'],0,4),'stage_comparison'),'contextual_minus_stage_rub')===[-100,400,-200,100]
+        &&$mixed['stage_comparison_counts']===['above_stage'=>2,'equal_stage'=>11,'below_stage'=>2,'stage_only'=>1,'unavailable'=>1]);
+    $equal=$selectionRead($nonComparisons);
+    $check('without differences the newest order is unchanged and null comparisons are not promoted as nonzero',
+        array_column($equal['examples'],'case')===$newestCases
+        &&array_column(array_column(array_slice($equal['examples'],0,3),'stage_comparison'),'status')===['available','stage_only','unavailable']
+        &&array_column(array_column(array_slice($equal['examples'],0,3),'stage_comparison'),'contextual_minus_stage_rub')===[0,null,null]
+        &&$equal['stage_comparison_counts']===['above_stage'=>0,'equal_stage'=>15,'below_stage'=>0,'stage_only'=>1,'unavailable'=>1]);
+    $json=json_encode([$r,$kept,$mixed,$equal],JSON_THROW_ON_ERROR);
+    $check('prioritized examples retain the existing privacy provider and immutable-row boundaries',
+        $selectionReadOnly&&$r['provider_requests']===0&&$mixed['provider_requests']===0&&$equal['provider_requests']===0
+        &&!str_contains($json,'PRIVATE_')&&!str_contains($json,'770001')&&!str_contains($json,'990001')
+        &&!str_contains($json,'value_profile_id')&&!str_contains($json,'conversation_id'));
 }
 
 if(realpath($_SERVER['SCRIPT_FILENAME']??'')===__FILE__){

@@ -7,6 +7,7 @@ The ordinary matrix jobs remain responsible for actual native MySQL evidence.
 import json
 import os
 from pathlib import Path
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -20,6 +21,7 @@ GROUPS = {
         'tests/mysql/virtual-reply-sampling.php',
         'tests/mysql/virtual-reply-controls.php',
         'tests/mysql/manager-tour-delivery.php',
+        'tests/run_active_budget_regression.php --prepared-mysql',
     ],
     'queues': [
         'tests/mysql/hotel-work-queue.php',
@@ -84,8 +86,8 @@ def verify(document):
     expected.extend(['*) exit 2 ;;', 'esac'])
     script = step['run']
     check([line.strip() for line in script.splitlines() if line.strip()] == expected,
-          'all nine original commands must execute exactly once in their original group order')
-    check(len({command for commands in GROUPS.values() for command in commands}) == 9,
+          'all ten commands must execute exactly once in their original group order')
+    check(len({command for commands in GROUPS.values() for command in commands}) == 10,
           'partition must not duplicate any command')
     aggregate = jobs['regression']
     check('prepared-mysql' in aggregate['needs'] and aggregate['if'] == 'always()'
@@ -105,10 +107,10 @@ def verify(document):
     with tempfile.TemporaryDirectory(prefix='mysql-partition-') as temp:
         folder = Path(temp)
         stub = folder / 'php'
-        stub.write_text('#!' + sys.executable + '\n' + '''import json, os, sys
+        stub.write_text('#!' + sys.executable + '\n' + '''import json, os, shlex, sys
 with open(os.environ['CALL_LOG'], 'a') as log:
     log.write(json.dumps({'args': sys.argv[1:], 'dsn': os.environ.get('PREPARED_REPLY_MYSQL_DSN')}) + '\\n')
-sys.exit(37 if sys.argv[1:] == [os.environ.get('FAIL_ON')] else 0)
+sys.exit(37 if sys.argv[1:] == shlex.split(os.environ.get('FAIL_ON', '')) else 0)
 ''')
         stub.chmod(0o700)
         log = folder / 'calls.jsonl'
@@ -127,12 +129,12 @@ sys.exit(37 if sys.argv[1:] == [os.environ.get('FAIL_ON')] else 0)
         for group, commands in GROUPS.items():
             code, calls = execute(group)
             check(code == 0 and calls == [
-                {'args': [command], 'dsn': CONNECTION['PREPARED_REPLY_MYSQL_DSN']}
+                {'args': shlex.split(command), 'dsn': CONNECTION['PREPARED_REPLY_MYSQL_DSN']}
                 for command in commands], 'actual shell lost/duplicated coverage in ' + group)
             for index, command in enumerate(commands):
                 code, calls = execute(group, command)
                 check(code == 37 and [call['args'] for call in calls] == [
-                    [item] for item in commands[:index + 1]],
+                    shlex.split(item) for item in commands[:index + 1]],
                     'actual shell must stop and propagate failure from ' + command)
         for group in [None, '', 'unknown']:
             code, calls = execute(group)

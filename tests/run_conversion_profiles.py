@@ -1350,6 +1350,10 @@ class JournalProfileTests(unittest.TestCase):
         self.assertEqual([r["source"] for r in fact["references"]], ["event", "message"])
         self.assertEqual(fact["available_at"], J_EXTRACT)
         self.assertEqual(result["coverage"]["applied_wizard_fields"], 6)
+        self.assertEqual(result["wizard_applications"], {
+            "version": "admitted_wizard_applications_v1",
+            "receipts": [{"receipt_ref": "journal:"+str(i+10), "input_ref": "journal:"+str(i)}
+                         for i in range(1, 7)]})
         self.assertFalse(p["target_admission"]["eligible"])
         self.assertIsNone(p["expected_value_rub"])
         self.assertEqual(self.build(*rows[::2])["profile"]["party"]["adults"]["status"], "unknown")
@@ -1357,10 +1361,26 @@ class JournalProfileTests(unittest.TestCase):
     def test_applied_callback_is_not_customer_dialogue_or_positive_stage(self):
         row = journal_row(text="adults_2")
         row["snapshot"]["payload"]["metadata_json"] = '{"type":"callback"}'
-        p = self.build(row, wizard_receipt(row,"adults","2"))["profile"]
+        result = self.build(row, wizard_receipt(row,"adults","2")); p = result["profile"]
         self.assertEqual(p["party"]["adults"]["value"], 2)
         self.assertEqual(p["current_stage"]["status"], "unknown")
         self.assertFalse(p["observation_input"]["evidence"])
+        # A saved button value is a binding, not admission as customer text.
+        self.assertEqual(result["wizard_applications"]["receipts"], [
+            {"receipt_ref": "journal:19", "input_ref": "journal:1"}])
+
+    def test_wizard_binding_is_only_an_admitted_reference_pair(self):
+        row = journal_row(text="Подберите тур в Турцию на 7 ночей, 2 взрослых")
+        clean = self.build(row)
+        bound = self.build(row, wizard_receipt(row, "adults", "2"))
+        self.assertEqual(clean["wizard_applications"], {
+            "version": "admitted_wizard_applications_v1", "receipts": []})
+        self.assertEqual(bound["wizard_applications"], {
+            "version": "admitted_wizard_applications_v1",
+            "receipts": [{"receipt_ref": "journal:19", "input_ref": "journal:1"}]})
+        self.assertFalse(bound["profile"]["target_admission"]["eligible"])
+        self.assertIsNone(bound["profile"]["expected_value_rub"])
+        self.assertNotIn(row["snapshot"]["payload"]["text"], json.dumps(bound["wizard_applications"], ensure_ascii=False))
 
     def test_application_needs_matching_unedited_customer_input_not_current_state(self):
         for mutation in [lambda r:r["snapshot"]["payload"].update(text="3"),
@@ -1373,25 +1393,35 @@ class JournalProfileTests(unittest.TestCase):
             result = self.build(row,receipt)
             self.assertEqual(result["profile"]["party"]["adults"]["status"], "unknown")
             self.assertEqual(result["coverage"]["applied_wizard_fields"], 0)
+            self.assertEqual(result["wizard_applications"]["receipts"], [])
 
     def test_missing_input_wrong_question_and_unsupported_receipt_stay_unknown(self):
         row = journal_row(text="adults_2"); row["snapshot"]["payload"]["metadata_json"] = '{"type":"callback"}'
-        self.assertEqual(self.build(wizard_receipt(row,"adults","2"))["coverage"]["errors"], {"wizard_input_missing_or_ambiguous":1})
+        missing = self.build(wizard_receipt(row,"adults","2"))
+        self.assertEqual(missing["coverage"]["errors"], {"wizard_input_missing_or_ambiguous":1})
+        self.assertEqual(missing["wizard_applications"]["receipts"], [])
         for field, value in [("children","2"),("adults","3"),("adults","999"),("budget","200000")]:
             result = self.build(row,wizard_receipt(row,field,value))
             self.assertEqual(result["coverage"]["applied_wizard_fields"], 0)
+            self.assertEqual(result["wizard_applications"]["receipts"], [])
         receipt = wizard_receipt(row,"adults","2"); receipt["snapshot"]["payload"]["actor_type"] = "ai"
-        self.assertEqual(self.build(row,receipt)["coverage"]["applied_wizard_fields"], 0)
+        invalid = self.build(row,receipt)
+        self.assertEqual(invalid["coverage"]["applied_wizard_fields"], 0)
+        self.assertEqual(invalid["wizard_applications"]["receipts"], [])
 
     def test_receipt_repeat_is_idempotent_and_conflict_is_not_an_accepted_value(self):
         row = journal_row(text="2")
         first = wizard_receipt(row,"adults","2","18"); second = wizard_receipt(row,"adults","2","19")
         one = self.build(row,first); twice = self.build(row,first,second)
         self.assertEqual(one["profile"], twice["profile"])
+        self.assertEqual(one["wizard_applications"], twice["wizard_applications"])
+        self.assertEqual(twice["wizard_applications"]["receipts"], [
+            {"receipt_ref": "journal:18", "input_ref": "journal:1"}])
         second = wizard_receipt(row,"adults","3","19")
         p = self.build(row,first,second)
         self.assertEqual(p["profile"]["party"]["adults"]["status"], "unknown")
         self.assertEqual(p["coverage"]["errors"]["conflicting_wizard_application"], 1)
+        self.assertEqual(p["wizard_applications"]["receipts"], [])
 
     def test_receipt_has_its_own_availability_and_respects_frozen_fence(self):
         row = journal_row(text="2"); receipt = wizard_receipt(row,"adults","2")
@@ -1407,9 +1437,13 @@ class JournalProfileTests(unittest.TestCase):
     def test_application_is_not_retrofitted_to_edited_or_deleted_source(self):
         row = journal_row(text="2"); receipt = wizard_receipt(row,"adults","2")
         receipt["source_version_no"] = 2
-        self.assertEqual(self.build(row,receipt)["coverage"]["applied_wizard_fields"], 0)
+        edited = self.build(row,receipt)
+        self.assertEqual(edited["coverage"]["applied_wizard_fields"], 0)
+        self.assertEqual(edited["wizard_applications"]["receipts"], [])
         row["snapshot"] = {"source_kind":"message","source_id":"1","source_status":"deleted"}
-        self.assertEqual(self.build(row,wizard_receipt(journal_row(text="2"),"adults","2"))["coverage"]["applied_wizard_fields"], 0)
+        deleted = self.build(row,wizard_receipt(journal_row(text="2"),"adults","2"))
+        self.assertEqual(deleted["coverage"]["applied_wizard_fields"], 0)
+        self.assertEqual(deleted["wizard_applications"]["receipts"], [])
 
     def test_wizard_storage_is_exact_not_a_new_interpretation_of_ids_or_ages(self):
         for field, raw in [("child_ages","7,, 8"),("child_ages","18"),("nights","8-6"),

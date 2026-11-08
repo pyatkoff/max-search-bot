@@ -35,7 +35,7 @@ function pipelineCatalogSaveStatus(array $result):int
 $data=ManagerHttp::body();
 $action=(string)($data['action']??'');
 // A secondary card read verifies the configured project without repairing it.
-if($action==='detail'&&ManagerHttp::managerId()>0){
+if(in_array($action,['detail','outcome_operation'],true)&&ManagerHttp::managerId()>0){
     try{ProjectAccessService::initializeReadOnly();}
     catch(Throwable $ignored){ManagerHttp::respond(['ok'=>false,'error'=>'project_unavailable'],503);}
 }
@@ -71,7 +71,7 @@ if($action==='list'){
 }
 
 $id=(int)($data['conversation_id']??0);
-$c=$action==='detail'?ManagerConversationService::visibleConversation($id,(int)$m['id'],true):pipelineConversation($id,(int)$m['id']);
+$c=in_array($action,['detail','outcome_operation'],true)?ManagerConversationService::visibleConversation($id,(int)$m['id'],true):pipelineConversation($id,(int)$m['id']);
 if(!$c)ManagerHttp::respond(['ok'=>false,'error'=>'not_found'],404);
 $can=ManagerHttp::canEditConversation($c,$m);
 
@@ -123,13 +123,24 @@ if($action==='set_tags'){
 }
 if($action==='set_outcome'){
     ManagerHttp::requireConversationEdit($c,$m);
-    if(array_key_exists('stage_key',$data)){
-        if(!is_string($data['stage_key'])||!isset($data['expected_stage_key'])||!is_string($data['expected_stage_key']))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_stage'],422);
-        $ok=SalesPipelineService::setOutcomeAndStage($id,(string)($data['outcome']??''),isset($data['close_reason'])?(string)$data['close_reason']:null,isset($data['note'])?(string)$data['note']:null,(int)$m['id'],isset($data['sale_amount'])?(string)$data['sale_amount']:null,isset($data['sale_date'])?(string)$data['sale_date']:null,$data['stage_key'],$data['expected_stage_key']);
-        ManagerHttp::respond(['ok'=>$ok,'error'=>$ok?null:'stage_or_result_changed','pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null],$ok?200:409);
-    }
-    $ok=SalesPipelineService::setOutcome($id,(string)($data['outcome']??''),isset($data['close_reason'])?(string)$data['close_reason']:null,isset($data['note'])?(string)$data['note']:null,(int)$m['id'],isset($data['sale_amount'])?(string)$data['sale_amount']:null,isset($data['sale_date'])?(string)$data['sale_date']:null);
-    ManagerHttp::respond(['ok'=>$ok,'pipeline'=>$ok?SalesPipelineService::conversationSnapshot($id):null],$ok?200:422);
+    $result=SalesPipelineService::saveOutcomeCommand($id,(int)$m['id'],$data,static function()use($id,$m):bool{
+        $fresh=ManagerAuthService::byId((int)$m['id']);
+        $visible=ManagerConversationService::visibleConversation($id,(int)$m['id']);
+        return $fresh&&!empty($fresh['is_active'])&&$visible&&ManagerHttp::canEditConversation($visible,$fresh);
+    });
+    // Cached older panels still recognize the original completion conflict name.
+    if(!array_key_exists('outcome_trip',$data)&&($result['error']??null)==='conflict')$result['error']='stage_or_result_changed';
+    $error=$result['error']??null;
+    ManagerHttp::respond($result,!empty($result['ok'])?200:match($error){'forbidden'=>403,'conflict','context_changed','operation_mismatch','stage_or_result_changed'=>409,'storage_unavailable'=>503,default=>422});
+}
+if($action==='outcome_operation'){
+    if(!is_string($data['operation_id']??null))ManagerHttp::respond(['ok'=>false,'error'=>'invalid_binding'],422);
+    session_write_close();
+    $result=SalesPipelineService::outcomeOperation($id,(int)$m['id'],$data['operation_id'],static function()use($id,$m):bool{
+        $fresh=ManagerAuthService::byId((int)$m['id']);
+        return $fresh&&!empty($fresh['is_active'])&&ManagerConversationService::visibleConversation($id,(int)$m['id'],true)!==null;
+    });
+    ManagerHttp::respond($result,!empty($result['ok'])?200:match($result['error']??null){'forbidden'=>403,'operation_mismatch'=>409,'storage_unavailable'=>503,default=>422});
 }
 if($action==='create_task'){
     ManagerHttp::requireConversationEdit($c,$m);

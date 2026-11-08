@@ -101,10 +101,14 @@ try {
     cpeCheck('foreign publication has no hotel greeting',SourceQualificationPrompt::publicationContext($foreign),[]);
     $heading=$publications['max'];$heading['snapshot']['text']="✈️ Rixos Premium Seagate 5★\nТур с перелётом";
     cpeCheck('hotel heading drops presentation emoji and stars',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'Rixos Premium Seagate');
+    $heading['snapshot']['text']="🏖 Side Star Resort 5★ | Турция, Сиде\nОтдых для семьи";
+    cpeCheck('compact hotel title keeps only hotel name',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'Side Star Resort');
     $heading['snapshot']['text']="Тур с перелётом в Египет\nRixos Premium Seagate";
     cpeCheck('ordinary caption never guesses a hotel from a later line',SourceQualificationPrompt::publicationContext($heading)['hotel_name']??null,'');
     $copy=SourceQualificationPrompt::text(['date','adults','children'],'Rixos Premium Seagate');
-    cpeCheck('new hotel asks dates and explicit party',str_contains($copy,'Rixos Premium Seagate')&&str_contains($copy,'На какие даты')&&str_contains($copy,'Сколько взрослых и детей'),true);
+    cpeCheck('new hotel asks dates and explicit party',str_contains($copy,'Rixos Premium Seagate')&&str_contains($copy,'Когда планируете отдых?')&&!str_contains($copy,'Сколько взрослых и детей'),true);
+    $copy=SourceQualificationPrompt::text(['country'],'Side Star Resort');
+    cpeCheck('hotel post does not ask destination again',!str_contains($copy,'Куда хотите')&&str_contains($copy,'Что хотите уточнить'),true);
     $copy=SourceQualificationPrompt::text(['date'],'Rixos Premium Seagate');
     cpeCheck('known party is not asked again',str_contains($copy,'взросл')||str_contains($copy,'дет'),false);
     $copy=SourceQualificationPrompt::text(['adults','children'],'Rixos Premium Seagate');
@@ -120,19 +124,24 @@ try {
         $basePost=$publications[$platform];$user=88877100+$index;$chat=$platform==='max'?-$user:$user;
         $known=['city'=>'Москва','country'=>'Египет','adults'=>2,'children'=>0,'nights'=>'5'];
         MaxSearchApi::$needContexts[$chat]=$known;MaxSearchApi::$missingNeeds[$chat]=['date'];
+        $legacyTitle=SourceQualificationPrompt::publicationContext([
+            ...$basePost, 'snapshot'=>['text'=>"✈️ Туры в Papillon Zeugma с перелётом\n📍 Белек, Турция."],
+        ]);
+        cpeCheck('existing flight-suffix heading still resolves the hotel: '.$platform,$legacyTitle['hotel_name']??'','Papillon Zeugma');
         $named=[];
         foreach(['Rixos Premium Seagate','Papillon Zeugma'] as $variant=>$hotel){
             $message=$platform==='max'?'mid.greeting.'.($variant+1):(string)(951+$variant);
             $url=$platform==='max'?'https://max.ru/c/-80095447388179/greeting'.($variant+1):'https://t.me/c/1234567890/'.$message;
+            $caption=$variant===0?"✈️ ".$hotel." 5★\nТур с перелётом":"✈️ Туры в ".$hotel." с перелётом\n📍 Белек, Турция.";
             $named[]=$registry->registerPublication('anytour',$platform,$basePost['bot_key'],$basePost['channel_id'],$message,
-                ['text'=>"✈️ ".$hotel." 5★\nТур с перелётом",'format'=>'native','post_url'=>$url]);
+                ['text'=>$caption,'format'=>'native','post_url'=>$url]);
         }
         $beforeSent=count($sent);$beforeResets=count(MaxSearchApi::$resets);$beforeApplied=count(MaxSearchApi::$needApplications);
         if($platform==='max')cpeStartMax($user,$named[0]['start_payload'],8800+$index);
         else cpeStartTelegram($user,$named[0]['start_payload'],$dispatcher,$messenger,8800+$index);
         $text=$sent[$beforeSent]['payload']['text']??'';
         cpeCheck('actual current post names hotel before entry ledger write: '.$platform,str_contains($text,'Rixos Premium Seagate'),true);
-        cpeCheck('current entry asks only missing date: '.$platform,str_contains($text,'дата вылета')&&!str_contains($text,'взросл')&&!str_contains($text,'дет'),true);
+        cpeCheck('current entry asks only missing date: '.$platform,str_contains($text,'Когда планируете отдых?')&&!str_contains($text,'взросл')&&!str_contains($text,'дет'),true);
         cpeCheck('post dates and party do not mutate tourist needs: '.$platform,[MaxSearchApi::$needContexts[$chat],count(MaxSearchApi::$needApplications),count(MaxSearchApi::$resets)],[$known,$beforeApplied,$beforeResets]);
         $afterFirst=count($sent);
         if($platform==='max')cpeStartMax($user,$named[0]['start_payload'],8810+$index);
@@ -161,7 +170,7 @@ try {
         if($platform==='max')cpeStartMax($user,$publications[$platform]['start_payload'],400+$index);
         else cpeStartTelegram($user,$publications[$platform]['start_payload'],$dispatcher,$messenger,400+$index);
         $before=cpeConversation($platform,$user);$id=(int)$before['id'];
-        cpeCheck('qualification asks the one missing date: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','дата вылета'),true);
+        cpeCheck('qualification asks the one missing date: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','Когда планируете отдых?'),true);
         cpeCheck('qualification does not promise a manager before needs: '.$platform,str_contains($sent[$sendBefore]['payload']['text']??'','Менеджер'),false);
         cpeCheck('qualification preserves current collected needs: '.$platform,MaxSearchApi::$needContexts[$chat],$known);
         cpeCheck('qualification leaves canonical ownership unqueued: '.$platform,[$before['status'],cpeEventCount($id,'manager_request')],['ai',0]);

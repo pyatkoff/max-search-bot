@@ -320,6 +320,40 @@ Statuses sampled/forbidden/unavailable/not_recorded and age>900sec remain explic
 missing or stale reporting data is never fabricated as zero or exact linkage.
 Counters/values are private results, never published into Git/Actions/diagnostics.
 
+#### Retained conversion-cycle failure
+
+The same bounded settings receipt now retains `last_recorded_failure`: the start
+time of the latest recorded failed tick, its first failing phase and a fixed
+category. This is distinct from `last_tick_at` and `last_tick_errors`; a healthy
+tick keeps the historical failure without keeping the current tick degraded.
+An absent or invalid record is `null`, not proof that no previous failure occurred.
+The reader validates an integer time between activation and the current saved
+tick (itself no later than the read), and reconstructs only `tick_at`, `phase` and
+`category`. `last_recorded_failure_is_historical` makes this distinction explicit.
+
+Phases are `recover`, `price_continuity`, `collect_profiles`, `collect_history`,
+`resolve_identity`, `goal_check`, `upload` and `reconcile_receipts`. Categories are
+`storage_failed`, `configuration_unavailable`, `goal_verification_failed`,
+`goal_read_failed`, `processing_failed`, `transport_not_sent`, `rate_limited`,
+`api_rejected` and `upload_failed`. Arbitrary exception messages, SQL, provider
+responses, identifiers and customer text are never copied into this record.
+Only the existing two paths that increment conversion `errors` create it.
+An uncertain upload acknowledgement and an independent Reporting API failure
+retain their existing separate meanings and do not create a conversion failure.
+
+After all network work, a short transaction locks and merges the current settings
+receipt. A late older failed tick can add its failure to a newer healthy receipt
+without replacing that receipt's counts, tick or report clocks. A newer failure
+wins; equal-second failures retain the first saved record. No lock is held during
+network work. The same 8192-byte receipt bound and existing read queries, response
+budgets, authorization and alert rules remain. No new table or schedule is added.
+This preserves future failures only when their bounded metadata can be committed; it
+cannot recover already overwritten details or record a database-write failure in
+an unavailable database. A malformed or oversized newer receipt is not overwritten
+by the stale-tick merge. Failure enrichment that would exceed the existing receipt
+cap is omitted, preserving the current statistics and report metadata. On MySQL,
+the writer checks native JSON byte length, including its normalization whitespace.
+
 ### V1.5: diverse saved-input diagnosis
 
 The same private route additionally projects fixed scalar counters from at most
@@ -568,6 +602,32 @@ unavailable pending the owner's later Bitrix access. This is a missing source,
 not zero subscribers, zero conversion or zero elapsed time. A verified tgmini
 visit and bot start remain different facts and never become a join proxy.
 
+The same aggregate page separately describes Telegram Mini App entry context for
+that inquiry cohort. It reads only imported `tgmini` observations from counter
+`98615635`, with verified native identity matching the exact conversation of the
+earliest admitted journal message. The four exclusive categories are: an entry
+observed no later than that message with one distinct ClientID; ambiguous prior
+ClientIDs or identity; only later entries; and no qualifying data. Repeated entries
+with the same ClientID do not prove a unique visit. Original entry time is compared
+with the journal message time, never profile freeze or conversion export time.
+Both clocks have whole-second precision: equality means “not later”, not strict
+causal order. Imported observations available at report time may describe an older
+entry; this is a retrospective as-of view, not the information known to the model
+when the customer wrote. No lower-bound attribution window or ad-click claim is
+introduced.
+
+Unverified or out-of-scope captures and raw IDs supplied in profiles/start hints
+cannot manufacture entry context. A saved Mini App observation is not proof of an
+earlier external website session, subscription, human identity or advertising
+causality. No data does not mean bot traffic or no visits. MAX receives no entry
+counts: user-to-ClientID mapping alone cannot establish a preceding website entry,
+and this report does not perform tracker lookups. No raw message, customer, visit,
+ClientID or YCLID is added to the response. Existing administrator access is unchanged.
+Entry queries share the same read transaction and authorization/time/row/byte budget,
+in batches of at most 100 identities. They do not sample the newest entries: missing
+storage, invalid accepted clocks or an incomplete bounded history make the report
+visibly unavailable rather than yielding misleading counts.
+
 Coverage is valid unambiguous join/inquiry pairs divided by all eligible inquiry
 people in that platform's cohort. It is NOT the fraction of all subscribers who
 contacted the agency. Median, nearest-rank p90 and duration bins use valid pairs
@@ -694,6 +754,86 @@ The view reads frozen price basis,7% commission, monetary-policy version and its
 
 API receipt presence, saved upload status, processed state and visit attribution remain separate. Even MATCHED/PROCESSED is not per-event session evidence. The cached all-goal visit report cannot establish that a particular V1 increment reached a visit. This read performs SELECT-only queries, no provider request, poll, capture, upload, queue or conversation mutation.
 
+### Single bounded predictive projection (v1_19)
+
+The predictive scalar selection now executes once. Previously the same profile
+joins, 38-field JSON packet and earlier-reservation sum ran for a size preflight
+and then again for the copied result. The existing newest 201-row goal suffix,
+17-row predictive limit, bindings and descending row order are unchanged.
+
+An outer window sum checks the escaped size of the entire selected result inside
+SQL before any packet can be copied. The inner LIMIT 17 OFFSET 0 retains the
+projection boundary, including under SQLite window rewriting. An admitted result
+still returns only the original packet column. An oversized result returns at
+most 17 SQL NULL sentinels, which remain charged to the shared budget and produce
+explicit budget_headroom. An empty selection remains an available empty result.
+
+The copy allowance is bound after the existing authorization has consumed its
+bytes, retaining the same 8192-byte reserve. Authorization before the one query
+and after its copied result remains mandatory. No large scalar is copied merely
+to discover that the result exceeds its allowance. All later validation,
+arithmetic, comparison groups and difference-first example selection are unchanged.
+
+This removes one duplicate selection and its ordinary before-query authorization;
+it does not guarantee a production duration or availability of every later view.
+The 4000ms input-diagnosis admission gate, optional-view order, final OAuth checks,
+reserves, 64KiB/five-second budget and result/RPC ceilings are unchanged.
+The existing shared SQLite/native MySQL cases check one actual query, original
+result/order, empty selection, NULL-only oversized transfer, post-authorization
+headroom, late revocation and unchanged stored rows. The existing composed
+real-OAuth fixture continues to cover the combined report.
+
+### One core projection and private budget checkpoints (v1_20)
+
+The core body query now builds its four selected JSON parts once in a bounded
+derived projection. Its existing project, primary-key, ID-fence and valid-JSON
+predicates remain inside `LIMIT 1 OFFSET 0`; the outer query applies both the
+exact recorded-size and 49152-byte guards to the projected aliases. The same
+four columns, parameter order, PHP type/actual-size checks, query count,
+authorization calls and selected-byte accounting remain unchanged. The complete
+source document is never copied by this query. This removes repeated construction
+inside one statement; it does not establish a production duration or guarantee
+that the optional diagnosis will be admitted.
+
+The existing private report includes `read_budget.remaining_ms` with exactly
+eight fixed checkpoints. Each is the integer milliseconds remaining in the SAME
+shared five-second budget, obtained from the existing budget clock:
+
+| Checkpoint | Point in this read |
+| --- | --- |
+| `reader_entry` | Before the reader's initial authorization |
+| `state` | After the state query and its authorization |
+| `metadata` | After source hashes and the bounded metadata query |
+| `visit_receipt` | After the optional saved visit-reconciliation receipt |
+| `first_profile` | After the initial pass that copies at most one core packet |
+| `value_delivery` | After the value-delivery section, before diagnosis admission |
+| `optional_views` | After diagnosis, timing, daily, linkage and external-monitor sections |
+| `remaining_profiles` | After the remaining bounded core-profile pass |
+
+The fixed basis is `shared_budget_v1`; these are shared execution-budget
+checkpoints, not request or provider latency.
+The entry reading includes budget already spent on canonical bootstrap, bearer
+and dispatcher/adapter checks. Differences between adjacent checkpoints include
+all authorization, query and validation work within that phase; they do not
+isolate SQL time or OAuth time. The last point precedes response compaction and
+final reader/adapter/dispatcher authorization, so it is not endpoint latency.
+Rounded readings from separate requests are not a controlled benchmark.
+
+When an optional view is omitted for `time_headroom`, its result additionally
+returns `minimum_required_ms` and `remaining_ms` from the exact same clock reading
+used for admission. Input diagnosis still requires at least 4000ms; equality is
+admitted. A denial happens before its query starts and is not evidence that the
+diagnosis SQL was slow. Other omission reasons retain their existing meaning.
+
+These fields are attached only to the normal authorized result before its
+existing response-size bounding. Access revocation and global deadline failures
+still prevent release. There is no extra SQL query, provider call, persistent
+metric, transcript/identifier, log, new tool or caller-selected probe. All
+64KiB/five-second/result/RPC limits, byte reserves, row caps and optional-section
+order remain unchanged. The shared regression exercises the actual generated
+body SQL and its size guards, the SQLite projection evaluation count, fixed
+checkpoint fields and both sides of the unchanged diagnosis admission boundary.
+
 
 ### Monetary continuity when a price disappears
 
@@ -770,7 +910,7 @@ are rejected; refresh the selected report to start a new consistent snapshot.
 
 ## Saved monetary-policy visibility and calculation availability
 
-Reader `saved_semantic_prediction_status_v1_18` exposes
+Reader `saved_semantic_prediction_status_v1_20` exposes
 `saved.deal_value.by_monetary_policy` from the monetary capsules already validated
 in the ordinary core-packet read. Each supported saved version reports its count,
 policy cap and unknown-price base, unknown-price/numeric-value counts, and the
@@ -855,6 +995,15 @@ amounts. Unavailable is never interpreted as zero effect.
 window into `above_stage`, `equal_stage`, `below_stage`, `stage_only` and
 `unavailable`. Counts remain when optional examples are removed to fit the
 response budget. They describe saved event rows, not unique people or trips.
+`examples_selection` is `comparison_differences_first_then_newest`: explained
+nonzero comparisons, positive and negative alike, precede the other examples.
+Each group retains the original newest-first order. Selection considers only
+the same at-most-17 inspected rows, then applies the unchanged 16-example cap;
+response compaction still removes examples from the tail. This is a diagnostic
+selection, not a representative sample or a ranking of business value. Under a
+tighter response budget even prioritized examples may be omitted; the fixed
+counts and explicit omission flag remain authoritative for the inspected window.
+
 The difference is between two formulas, not an isolated effect of contextual
 factors. For example, the semantic prior 0.083333 and the stage fraction
 2083/25000 produce 8333 and 8332 RUB on a 100000 RUB base even without a context
