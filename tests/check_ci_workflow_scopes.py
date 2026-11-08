@@ -44,7 +44,7 @@ for filename in ['regression-tests.yml', 'workspace-sound.yml', 'channel-post-co
     check(concurrency.get('cancel-in-progress') == "${{ github.event_name == 'pull_request' }}", 'only superseded PRs may be cancelled: ' + filename)
     check(concurrency.get('group') == "ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('run-{0}-{1}', github.run_id, github.run_attempt) }}", 'PR/workflow isolation and unique manual runs required: ' + filename)
 
-check(set(regression['regression']['needs']) == {'change-scope','inventory','php-syntax','required','prepared-mysql','oauth'}, 'regression must await all branches')
+check(set(regression['regression']['needs']) == {'change-scope','inventory','php-syntax','required','prepared-mysql','appleservice39-mysql','oauth'}, 'regression must await all branches')
 # Source-result aggregation and mutable release admission are separate steps.
 # Exercise every old truth-table case below against the source gate, while the
 # existing Node policy suite executes admission/failure behavior with API fixtures.
@@ -69,7 +69,7 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
     for job in jobs:
         check(load(name)['jobs'][job]['if'] == "needs.change-scope.outputs.mode == 'full'", name + '/' + job + ' must require full mode')
         check('change-scope' in load(name)['jobs'][job]['needs'], name + '/' + job + ' must await selector')
-for job in ['required','prepared-mysql']:
+for job in ['required','prepared-mysql','appleservice39-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
 check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
@@ -78,6 +78,35 @@ check(regression['required']['strategy']['matrix'] == {
     'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
     'styling excludes exactly four unchanged server groups; other profiles keep all five')
 check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
+pilot_mysql = regression['appleservice39-mysql']
+check(pilot_mysql['if'] == regression['prepared-mysql']['if']
+      and pilot_mysql['needs'] == 'change-scope'
+      and pilot_mysql['runs-on'] == 'ubuntu-latest'
+      and pilot_mysql['timeout-minutes'] == 8
+      and not pilot_mysql.get('continue-on-error', False),
+      'pilot native CAS is a fatal required job for each full backend profile')
+check(pilot_mysql['services'] == {'mysql': {
+    'image':'mysql:8.0',
+    'env':{'MYSQL_ROOT_PASSWORD':'as39-test-only','MYSQL_ROOT_HOST':'%','MYSQL_DATABASE':'appleservice39_publisher_test'},
+    'ports':['3306:3306'],
+    'options':'--health-cmd="mysqladmin ping -h 127.0.0.1 -pas39-test-only" --health-interval=5s --health-timeout=5s --health-retries=20',
+}}, 'pilot claims require their own isolated native database and readiness gate')
+pilot_steps = pilot_mysql['steps']
+check(len(pilot_steps) == 3
+      and pilot_steps[0] == {'uses':'actions/checkout@v4'}
+      and pilot_steps[1] == {'uses':'shivammathur/setup-php@v2','with':{
+          'php-version':'8.3','extensions':'curl, mbstring, pdo_mysql','coverage':'none'}}
+      and all('if' not in step and not step.get('continue-on-error', False) for step in pilot_steps),
+      'native pilot fixture uses checked source and cannot be skipped or suppress failure')
+check(pilot_steps[2]['run'] == 'php tests/mysql/appleservice39-publisher.php'
+      and pilot_steps[2]['env'] == {
+          'APPLESERVICE39_TEST_MYSQL_DSN':'mysql:host=127.0.0.1;port=3306;dbname=appleservice39_publisher_test;charset=utf8mb4',
+          'APPLESERVICE39_TEST_MYSQL_USER':'root','APPLESERVICE39_TEST_MYSQL_PASSWORD':'as39-test-only'},
+      'actual migration and independent claim workers execute on the isolated fixture')
+check(source_gate['env']['APPLESERVICE39_MYSQL_RESULT'] == '${{ needs.appleservice39-mysql.result }}',
+      'required aggregate consumes the actual pilot native job result')
+check('native-mysql' not in load('publish-appleservice39-pilot.yml')['jobs'],
+      'pilot native fixture has one mandatory aggregate owner')
 scope_document = load('ci-change-scope.yml')
 scope_events = scope_document.get('on',scope_document.get(True))
 check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.scope.outputs.backend }}'
@@ -223,20 +252,20 @@ for value in ['123','', '0','01','1,2','foreign','-1']:
     check((result==0)==(value=='123'),'plan artifact ID guard rejected wrong value: '+value)
 for mode in ['oauth','full','tour-selection','', 'invalid']:
     full_backend=mode in ['full','tour-selection']
-    valid = dict(CI_MODE=mode,BACKEND_PROFILE='full',SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',REQUIRED_RESULT='success' if full_backend else 'skipped',PREPARED_MYSQL_RESULT='success' if full_backend else 'skipped',OAUTH_RESULT='success' if mode=='oauth' else 'skipped')
+    valid = dict(CI_MODE=mode,BACKEND_PROFILE='full',SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',REQUIRED_RESULT='success' if full_backend else 'skipped',PREPARED_MYSQL_RESULT='success' if full_backend else 'skipped',APPLESERVICE39_MYSQL_RESULT='success' if full_backend else 'skipped',OAUTH_RESULT='success' if mode=='oauth' else 'skipped')
     cases=[valid]
-    for key in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
-        for value in ['success','failure','skipped','cancelled']:
+    for key in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','APPLESERVICE39_MYSQL_RESULT','OAUTH_RESULT']:
+        for value in ['success','failure','skipped','cancelled','timed_out','']:
             cases.append({**valid,key:value})
     for env in cases:
-        expected = env['SCOPE_RESULT'] == env['INVENTORY_RESULT'] == env['SYNTAX_RESULT'] == 'success' and ((mode == 'oauth' and env['OAUTH_RESULT'] == 'success' and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == 'skipped') or (full_backend and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == 'success' and env['OAUTH_RESULT'] == 'skipped'))
+        expected = env['SCOPE_RESULT'] == env['INVENTORY_RESULT'] == env['SYNTAX_RESULT'] == 'success' and ((mode == 'oauth' and env['OAUTH_RESULT'] == 'success' and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == env['APPLESERVICE39_MYSQL_RESULT'] == 'skipped') or (full_backend and env['REQUIRED_RESULT'] == env['PREPARED_MYSQL_RESULT'] == env['APPLESERVICE39_MYSQL_RESULT'] == 'success' and env['OAUTH_RESULT'] == 'skipped'))
         check(gate_passes(regression['regression'],env,'Require every gate') == expected, 'regression gate accepted wrong results: ' + str(env))
 # Exercise the actual aggregate, including absent/foreign profile results.
 style_valid = dict(CI_MODE='tour-selection',BACKEND_PROFILE='selection-style',
     SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',
-    REQUIRED_RESULT='success',PREPARED_MYSQL_RESULT='skipped',OAUTH_RESULT='skipped')
+    REQUIRED_RESULT='success',PREPARED_MYSQL_RESULT='skipped',APPLESERVICE39_MYSQL_RESULT='skipped',OAUTH_RESULT='skipped')
 check(gate_passes(aggregate,style_valid,'Require every gate'),'audited styling baseline passes')
-for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
+for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','APPLESERVICE39_MYSQL_RESULT','OAUTH_RESULT']:
     for value in ['success','failure','skipped','cancelled','timed_out','']:
         check(gate_passes(aggregate,{**style_valid,field:value},'Require every gate') == (value == style_valid[field]),
               'styling gate cannot hide a missing or incorrect result: '+field+'='+value)
@@ -249,7 +278,7 @@ for mode,profile in itertools.product(['oauth','full','tour-selection','','unkno
 # Its browser mode remains full; existing full visual truth tables still apply.
 workspace_valid = {**style_valid,'CI_MODE':'full','BACKEND_PROFILE':'workspace-style'}
 check(gate_passes(aggregate,workspace_valid,'Require every gate'),'workspace styling baseline passes')
-for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','OAUTH_RESULT']:
+for field in ['SCOPE_RESULT','INVENTORY_RESULT','SYNTAX_RESULT','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','APPLESERVICE39_MYSQL_RESULT','OAUTH_RESULT']:
     for value in ['success','failure','skipped','cancelled','timed_out','']:
         check(gate_passes(aggregate,{**workspace_valid,field:value},'Require every gate') == (value == workspace_valid[field]),
               'workspace styling cannot hide a missing or incorrect result: '+field+'='+value)
@@ -258,7 +287,7 @@ check(visual_triggered('manager/assets/workspace-v2-tour-choices.css'),'booking 
 for mode in ['full','tour-selection','oauth']:
     backend = mode != 'oauth'
     full_valid = dict(CI_MODE=mode,SCOPE_RESULT='success',INVENTORY_RESULT='success',SYNTAX_RESULT='success',
-        REQUIRED_RESULT='success' if backend else 'skipped',PREPARED_MYSQL_RESULT='success' if backend else 'skipped',
+        REQUIRED_RESULT='success' if backend else 'skipped',PREPARED_MYSQL_RESULT='success' if backend else 'skipped',APPLESERVICE39_MYSQL_RESULT='success' if backend else 'skipped',
         OAUTH_RESULT='skipped' if backend else 'success')
     for profile in ['', 'unknown', 'selection-style', 'workspace-style']:
         check(not gate_passes(aggregate,{**full_valid,'BACKEND_PROFILE':profile},'Require every gate'),

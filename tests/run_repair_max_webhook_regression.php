@@ -12,6 +12,41 @@ function repairCheck(string $name, bool $ok): void
     echo 'PASS '.$name.PHP_EOL;
 }
 
+function repairEntryPayload(PDO $pdo, int $conversationId): array
+{
+    $q = $pdo->prepare("SELECT payload_json FROM conversation_events WHERE conversation_id=? AND event_type='bot_started' AND payload_json LIKE ? ORDER BY id DESC LIMIT 1");
+    $q->execute([$conversationId,'%"repair_entry_reply":%']);
+    return json_decode((string)$q->fetchColumn(), true) ?: [];
+}
+
+function repairEntryIntent(PDO $pdo, int $conversationId): array
+{
+    return repairEntryPayload($pdo,$conversationId)['repair_entry_reply'] ?? [];
+}
+
+$catalog = AppleService39PilotCatalog::entries();
+repairCheck('catalog contains exactly the fifteen reviewed repair entries', count($catalog) === 15);
+foreach ($catalog as $entry) {
+    $payload = AppleService39PilotCatalog::payloadForPost($entry['post_id']);
+    repairCheck('canonical payload maps to reviewed model and service '.$entry['post_id'],
+        $payload === 'as39_'.$entry['post_id'] && strlen($payload) <= 64
+        && preg_match('/\A[A-Za-z0-9_-]+\z/D',$payload) === 1
+        && AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot',$payload) === $entry);
+}
+$battery = AppleService39PilotCatalog::forPost('repair-iphone-x-battery-replacement');
+repairCheck('original pilot alias remains compatible', AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_x_battery') === $battery);
+repairCheck('catalog fails closed for other projects bots and unreviewed post keys',
+    AppleService39PilotCatalog::resolve('repair_two','id390521129062_bot','as39_x_battery') === null
+    && AppleService39PilotCatalog::resolve('appleservice39','id999999999002_bot','as39_x_battery') === null
+    && AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_repair-iphone-16-display') === null
+    && AppleService39PilotCatalog::payloadForPost('service-menu') === null);
+$displayX = AppleService39PilotCatalog::forPost('repair-iphone-x-display');
+$display15 = AppleService39PilotCatalog::forPost('repair-iphone-15-pro-max-display');
+repairCheck('display options and unknown-price qualification are retained', $displayX['price_kind'] === 'variants'
+    && str_contains($displayX['price_text'],'12 000') && str_contains($displayX['price_text'],'6 000')
+    && $display15['price_kind'] === 'on_request' && str_contains($display15['price_text'],'по запросу')
+    && preg_match('/[0-9]/',$display15['price_text']) === 0);
+
 $pdo = repairFixture();
 $globalBefore = ProjectConfig::all();
 $legacyBefore = [
@@ -26,7 +61,7 @@ $factory = static function (ProjectMaxConnection $connection) use ($pdo, &$sent)
     return new MaxMessengerAdapter(static function ($chatId, string $text) use ($connection, $pdo, &$sent): string {
         repairCheck('provider write follows core commit', !$pdo->inTransaction());
         $row = repairConversation($pdo, $connection->projectKey(), abs((int)$chatId));
-        repairCheck('provider write sees durable shared manager queue', ($row['status'] ?? '') === 'waiting_manager');
+        repairCheck('provider write sees durable open manager conversation', in_array($row['status'] ?? '', ['waiting_manager','manager'], true));
         $sent[] = ['project'=>$connection->projectKey(),'chat'=>$chatId,'text'=>$text];
         return 'synthetic_reply_'.count($sent);
     }, null, 'system', null, false);
@@ -57,8 +92,11 @@ $context = json_decode((string)$apple['metadata_json'],true);
 repairCheck('pilot start persists into the shared queue', $first['status'] === 200 && $apple['status'] === 'waiting_manager');
 repairCheck('reviewed model and service survive without invented post URL', $context['repair_context'] === ['model'=>'iPhone X','service'=>'Замена аккумулятора','entry_code'=>'as39_x_battery'] && !isset($context['repair_context']['post_url']));
 repairCheck('platform start is an event and never a fake customer message', (int)$pdo->query('SELECT COUNT(*) FROM messages WHERE conversation_id='.(int)$apple['id']." AND direction='inbound'")->fetchColumn() === 0);
-repairCheck('bot greeting uses Apple brand and stored repair question', count($sent) === 1 && str_contains($sent[0]['text'],'AppleService39') && str_contains($sent[0]['text'],'iPhone X') && str_contains($sent[0]['text'],'что случилось'));
-repairCheck('successful bot reply is recorded against exact Apple conversation', (int)$pdo->query("SELECT COUNT(*) FROM messages WHERE conversation_id=".(int)$apple['id']." AND direction='outbound' AND external_message_id='synthetic_reply_1'")->fetchColumn() === 1 && repairIntent($pdo,(int)$apple['id'])['state'] === 'delivered');
+repairCheck('bot reply uses Apple brand reviewed price and a service-specific question', count($sent) === 1
+    && $sent[0]['text'] === AppleService39PilotCatalog::responseText($battery,'AppleService39')
+    && str_contains($sent[0]['text'],'3 500') && str_contains($sent[0]['text'],'Актуальную цену'));
+repairCheck('successful bot reply is recorded against exact Apple conversation', (int)$pdo->query("SELECT COUNT(*) FROM messages WHERE conversation_id=".(int)$apple['id']." AND direction='outbound' AND external_message_id='synthetic_reply_1'")->fetchColumn() === 1 && repairEntryIntent($pdo,(int)$apple['id'])['state'] === 'delivered');
+repairCheck('contextual handoff has no second generic greeting intent', repairIntent($pdo,(int)$apple['id']) === []);
 $pushCount = count($notifications);
 repairCheck('same start replay is acknowledged as duplicate', $handle('appleservice39',repairStart(7001))['result'] === 'duplicate');
 repairCheck('start replay repeats neither greeting nor notification', count($sent) === 1 && count($notifications) === $pushCount);
@@ -77,11 +115,43 @@ $pdo->exec("UPDATE conversations SET status='manager',manager_id=88 WHERE id=".(
 $count = count($sent);
 $handle('appleservice39',repairStart(7001,'as39_x_battery',1800000000001));
 $owned = repairConversation($pdo,'appleservice39',7001);
-repairCheck('fresh reentry preserves assigned manager and routing source silently', $owned['status'] === 'manager' && (int)$owned['manager_id'] === 88 && $owned['source_id'] === $apple['source_id'] && count($sent) === $count);
+repairCheck('explicit fresh repair entry replies without changing assigned manager or routing', $owned['status'] === 'manager' && (int)$owned['manager_id'] === 88 && $owned['source_id'] === $apple['source_id'] && count($sent) === $count+1);
+$count = count($sent);
 $handle('appleservice39',repairStart(7001,'unknown_payload',1800000000002));
 repairCheck('unknown start preserves known model and service', (json_decode((string)repairConversation($pdo,'appleservice39',7001)['metadata_json'],true)['repair_context'] ?? null) === $context['repair_context']);
 $handle('appleservice39',repairMessage(7001,'photo_mid',[['type'=>'image','payload'=>['token'=>'synthetic-photo-token']]]));
 repairCheck('media archive receives exact project and conversation', end($archives) === ['photo_mid','appleservice39',(int)$apple['id']] && count($sent) === $count);
+
+$handle('appleservice39',repairMessage(7004,'generic_before_entry'));
+$generic = repairConversation($pdo,'appleservice39',7004);
+$count = count($sent);
+$pushCount = count($notifications);
+$entry = repairStart(7004,'as39_x_battery',1800000000100);
+repairCheck('known repair start upgrades an existing general conversation without typing', $handle('appleservice39',$entry)['status'] === 200 && count($sent) === $count+1);
+$upgraded = repairConversation($pdo,'appleservice39',7004);
+repairCheck('entry upgrade keeps the same conversation and one handoff', $upgraded['id'] === $generic['id'] && $upgraded['status'] === 'waiting_manager' && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$generic['id']." AND event_type='waiting_manager'")->fetchColumn() === 1 && count($notifications) === $pushCount);
+repairCheck('upgraded conversation projects the requested repair context', (json_decode((string)$upgraded['metadata_json'],true)['repair_context'] ?? null) === $context['repair_context']);
+repairCheck('entry retry does not repeat its reply or handoff', $handle('appleservice39',$entry)['result'] === 'duplicate' && count($sent) === $count+1 && count($notifications) === $pushCount);
+$count = count($sent);
+$handle('appleservice39',repairStart(7004,'',1800000000101));
+$handle('appleservice39',repairStart(7004,'as39_repair-iphone-16-display',1800000000102));
+repairCheck('empty or unknown reentry remains quiet in an existing conversation', count($sent) === $count && count($notifications) === $pushCount);
+$newEntry = repairStart(7004,'as39_repair-iphone-15-pro-max-display',1800000000103);
+$handle('appleservice39',$newEntry);
+$changedContext = json_decode((string)repairConversation($pdo,'appleservice39',7004)['metadata_json'],true)['repair_context'] ?? [];
+repairCheck('another reviewed post replaces the visible context and answers that exact repair', count($sent) === $count+1
+    && end($sent)['text'] === AppleService39PilotCatalog::responseText($display15,'AppleService39')
+    && $changedContext === ['model'=>'iPhone 15 Pro Max','service'=>'Замена дисплея','entry_code'=>$newEntry['payload']]
+    && count($notifications) === $pushCount);
+
+foreach ($catalog as $index=>$entry) {
+    $result = $handle('appleservice39',repairStart(7100+$index,$entry['start_payload']));
+    $row = repairConversation($pdo,'appleservice39',7100+$index);
+    repairCheck('reviewed entry sends exact captured answer '.$entry['post_id'], $result['status'] === 200
+        && end($sent)['text'] === AppleService39PilotCatalog::responseText($entry,'AppleService39')
+        && repairEntryIntent($pdo,(int)$row['id'])['state'] === 'delivered'
+        && repairIntent($pdo,(int)$row['id']) === []);
+}
 
 $before = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();
 $ignored = [
@@ -128,14 +198,40 @@ repairCheck('failed persistence rolls back identity and suppresses external effe
 $pdo->exec('DROP TRIGGER fail_repair_inbound');
 repairCheck('provider retry after storage recovery persists normally', $handle('appleservice39',repairMessage(7010,'fail_mid'))['status'] === 200);
 
+$before = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();
+$sentBefore = count($sent);
+$notifyBefore = count($notifications);
+$pdo->exec("CREATE TRIGGER fail_repair_entry_capture BEFORE UPDATE ON conversation_events WHEN NEW.event_type='bot_started' AND NEW.payload_json LIKE '%\"repair_entry_reply\":%' BEGIN SELECT RAISE(ABORT,'synthetic entry capture failure'); END;");
+repairCheck('entry intent must persist before acknowledgement or external effects', $handle('appleservice39',repairStart(7011))['status'] === 503
+    && (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn() === $before
+    && repairConversation($pdo,'appleservice39',7011) === [] && count($sent) === $sentBefore && count($notifications) === $notifyBefore);
+$pdo->exec('DROP TRIGGER fail_repair_entry_capture');
+repairCheck('entry capture recovery records and sends the original update once', $handle('appleservice39',repairStart(7011))['status'] === 200 && count($sent) === $sentBefore+1);
+
 $constructionFailure = static function (): MaxMessengerAdapter { throw new RuntimeException('synthetic pre-send failure'); };
 $pendingStart = repairStart(7020);
 repairCheck('failure after core commit before provider attempt returns retryable status', $handle('appleservice39',$pendingStart,$constructionFailure)['status'] === 503);
 $pendingConversation = repairConversation($pdo,'appleservice39',7020);
-repairCheck('pre-send failure leaves persisted pending greeting', repairIntent($pdo,(int)$pendingConversation['id'])['state'] === 'pending');
+repairCheck('pre-send failure leaves persisted pending entry answer', repairEntryIntent($pdo,(int)$pendingConversation['id'])['state'] === 'pending');
+$captured = repairEntryPayload($pdo,(int)$pendingConversation['id']);
+$catalogProperty = new ReflectionProperty(AppleService39PilotCatalog::class,'catalog');
+$catalogProperty->setAccessible(true);
+$catalogBefore = $catalogProperty->getValue();
+$changedCatalog = $catalogBefore;
+$changedCatalog['repair-iphone-x-battery-replacement']['price_text'] = 'Synthetic changed catalog text';
+$catalogProperty->setValue(null,$changedCatalog);
+$laterMetadata = json_decode((string)$pendingConversation['metadata_json'],true);
+$laterMetadata['repair_context'] = ['model'=>'Later model','service'=>'Later service','entry_code'=>'later'];
+$q = $pdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=?');
+$q->execute([json_encode($laterMetadata),(int)$pendingConversation['id']]);
 $before = count($sent);
 $notifyBefore = count($notifications);
-repairCheck('same delivery replay recovers only the unsent pending greeting', $handle('appleservice39',$pendingStart)['result'] === 'duplicate' && count($sent) === $before+1 && count($notifications) === $notifyBefore && repairIntent($pdo,(int)$pendingConversation['id'])['state'] === 'delivered');
+repairCheck('same delivery replay recovers only the unsent pending entry answer', $handle('appleservice39',$pendingStart)['result'] === 'duplicate' && count($sent) === $before+1 && count($notifications) === $notifyBefore && repairEntryIntent($pdo,(int)$pendingConversation['id'])['state'] === 'delivered');
+$catalogProperty->setValue(null,$catalogBefore);
+$mirror = $pdo->query('SELECT text,metadata_json FROM messages WHERE conversation_id='.(int)$pendingConversation['id']." AND direction='outbound' ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+repairCheck('pending recovery uses immutable captured text and entry context', end($sent)['text'] === $captured['repair_entry_reply']['text']
+    && $mirror['text'] === $captured['repair_entry_reply']['text']
+    && (json_decode((string)$mirror['metadata_json'],true)['repair_context'] ?? null) === $captured['repair_context']);
 
 $attempts = 0;
 $ambiguous = static function () use (&$attempts): MaxMessengerAdapter {
@@ -144,7 +240,7 @@ $ambiguous = static function () use (&$attempts): MaxMessengerAdapter {
 $ambiguousStart = repairStart(7021);
 repairCheck('ambiguous provider outcome retains durable inbound queue', $handle('appleservice39',$ambiguousStart,$ambiguous)['status'] === 200);
 $ambiguousConversation = repairConversation($pdo,'appleservice39',7021);
-repairCheck('ambiguous provider receipt is explicit and has no confirmed outbound mirror', repairIntent($pdo,(int)$ambiguousConversation['id'])['state'] === 'unknown' && (int)$pdo->query('SELECT COUNT(*) FROM messages WHERE conversation_id='.(int)$ambiguousConversation['id'])->fetchColumn() === 0);
+repairCheck('ambiguous provider receipt is explicit and has no confirmed outbound mirror', repairEntryIntent($pdo,(int)$ambiguousConversation['id'])['state'] === 'unknown' && (int)$pdo->query('SELECT COUNT(*) FROM messages WHERE conversation_id='.(int)$ambiguousConversation['id'])->fetchColumn() === 0);
 $handle('appleservice39',$ambiguousStart,$ambiguous);
 repairCheck('unknown provider write is never automatically repeated', $attempts === 1);
 
@@ -152,13 +248,13 @@ $pdo->exec("CREATE TRIGGER fail_repair_outbound BEFORE INSERT ON messages WHEN N
 $mirrorStart = repairStart(7022);
 repairCheck('successful provider send without history receipt returns truthful failure', $handle('appleservice39',$mirrorStart)['status'] === 503);
 $mirrorConversation = repairConversation($pdo,'appleservice39',7022);
-repairCheck('failed outbound mirror leaves unknown delivery and no false history row', repairIntent($pdo,(int)$mirrorConversation['id'])['state'] === 'unknown' && (int)$pdo->query('SELECT COUNT(*) FROM messages WHERE conversation_id='.(int)$mirrorConversation['id'])->fetchColumn() === 0);
+repairCheck('failed outbound mirror leaves unknown delivery and no false history row', repairEntryIntent($pdo,(int)$mirrorConversation['id'])['state'] === 'unknown' && (int)$pdo->query('SELECT COUNT(*) FROM messages WHERE conversation_id='.(int)$mirrorConversation['id'])->fetchColumn() === 0);
 $pdo->exec('DROP TRIGGER fail_repair_outbound');
 $before = count($sent);
 $handle('appleservice39',$mirrorStart);
 repairCheck('history failure replay cannot repeat an already attempted provider send', count($sent) === $before);
 
-$ownedPending = repairStart(7023);
+$ownedPending = repairStart(7023,'');
 $handle('appleservice39',$ownedPending,$constructionFailure);
 $ownedPendingConversation = repairConversation($pdo,'appleservice39',7023);
 $pdo->exec("UPDATE conversations SET status='manager',manager_id=99 WHERE id=".(int)$ownedPendingConversation['id']);
@@ -172,8 +268,95 @@ $managerTakesBeforeClaim = static function (ProjectMaxConnection $connection) us
     $pdo->exec("UPDATE conversations SET status='manager',manager_id=99 WHERE id=".(int)$row['id']);
     return new MaxMessengerAdapter(static function () use (&$claimRaceSends): string { $claimRaceSends++; return 'unexpected_reply'; },null,'system',null,false);
 };
-$handle('appleservice39',repairStart(7024),$managerTakesBeforeClaim);
+$handle('appleservice39',repairStart(7024,''),$managerTakesBeforeClaim);
 repairCheck('manager taking conversation between initial read and delivery claim suppresses send', $claimRaceSends === 0 && repairConversation($pdo,'appleservice39',7024)['status'] === 'manager');
+
+$entryManagerTakes = static function (ProjectMaxConnection $connection) use ($pdo,$factory): MaxMessengerAdapter {
+    $row = repairConversation($pdo,$connection->projectKey(),7025);
+    $pdo->exec("UPDATE conversations SET status='manager',manager_id=99 WHERE id=".(int)$row['id']);
+    return $factory($connection);
+};
+$before = count($sent);
+$handle('appleservice39',repairStart(7025),$entryManagerTakes);
+$entryOwned = repairConversation($pdo,'appleservice39',7025);
+repairCheck('explicit contextual answer is allowed when manager takes ownership before claim', count($sent) === $before+1
+    && $entryOwned['status'] === 'manager' && (int)$entryOwned['manager_id'] === 99
+    && repairEntryIntent($pdo,(int)$entryOwned['id'])['state'] === 'delivered');
+
+$oldGeneric = repairMessage(7026,'old_pending_generic');
+$handle('appleservice39',$oldGeneric,$constructionFailure);
+$genericPending = repairConversation($pdo,'appleservice39',7026);
+repairCheck('generic handoff can retain an unsent greeting', repairIntent($pdo,(int)$genericPending['id'])['state'] === 'pending');
+$before = count($sent);
+$handle('appleservice39',repairStart(7026));
+$handle('appleservice39',$oldGeneric);
+repairCheck('contextual entry suppresses only the obsolete pending generic answer', count($sent) === $before+1
+    && repairEntryIntent($pdo,(int)$genericPending['id'])['state'] === 'delivered'
+    && repairIntent($pdo,(int)$genericPending['id'])['state'] === 'suppressed'
+    && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$genericPending['id']." AND event_type='waiting_manager'")->fetchColumn() === 1);
+
+$closedStart = repairStart(7027);
+$handle('appleservice39',$closedStart,$constructionFailure);
+$closedEntry = repairConversation($pdo,'appleservice39',7027);
+$pdo->exec("UPDATE conversations SET status='closed' WHERE id=".(int)$closedEntry['id']);
+$before = count($sent);
+$conversationCount = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();
+$handle('appleservice39',$closedStart);
+repairCheck('delayed entry retry after close sends nothing and does not reopen', count($sent) === $before
+    && (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn() === $conversationCount
+    && repairEntryIntent($pdo,(int)$closedEntry['id'])['state'] === 'suppressed');
+$handle('appleservice39',repairStart(7027,'as39_x_battery',1800000000200));
+$reopenedEntry = repairConversation($pdo,'appleservice39',7027);
+repairCheck('genuinely new entry after close creates one new contextual handoff', count($sent) === $before+1
+    && $reopenedEntry['id'] !== $closedEntry['id'] && $reopenedEntry['status'] === 'waiting_manager'
+    && repairEntryIntent($pdo,(int)$reopenedEntry['id'])['state'] === 'delivered');
+
+$reassociatedStart = repairStart(7028);
+$handle('appleservice39',$reassociatedStart,$constructionFailure);
+$reassociated = repairConversation($pdo,'appleservice39',7028);
+$q = $pdo->prepare('UPDATE conversations SET customer_channel_id=? WHERE id=?');
+$q->execute([(int)$apple['customer_channel_id'],(int)$reassociated['id']]);
+$before = count($sent);
+$handle('appleservice39',$reassociatedStart);
+repairCheck('pending reply refuses a reassociated customer channel', count($sent) === $before
+    && repairEntryIntent($pdo,(int)$reassociated['id'])['state'] === 'suppressed');
+
+$closeBeforeClaim = static function (ProjectMaxConnection $connection) use ($pdo,$factory): MaxMessengerAdapter {
+    $row = repairConversation($pdo,$connection->projectKey(),7029);
+    $pdo->exec("UPDATE conversations SET status='archived' WHERE id=".(int)$row['id']);
+    return $factory($connection);
+};
+$before = count($sent);
+$handle('appleservice39',repairStart(7029),$closeBeforeClaim);
+$archived = repairConversation($pdo,'appleservice39',7029);
+repairCheck('claim refuses an entry archived after its first eligibility read', count($sent) === $before
+    && repairEntryIntent($pdo,(int)$archived['id'])['state'] === 'suppressed');
+
+$afterClaimStart = repairStart(7030);
+$handle('appleservice39',$afterClaimStart,$constructionFailure);
+$afterClaim = repairConversation($pdo,'appleservice39',7030);
+$pdo->exec("CREATE TRIGGER rebind_repair_after_claim AFTER UPDATE ON conversation_events WHEN NEW.conversation_id=".(int)$afterClaim['id']." AND NEW.event_type='bot_started' AND NEW.payload_json LIKE '%\"state\":\"attempted\"%' BEGIN UPDATE conversations SET metadata_json='{\"max_bot_key\":\"id999999999002_bot\"}' WHERE id=NEW.conversation_id; END;");
+$before = count($sent);
+$handle('appleservice39',$afterClaimStart);
+$pdo->exec('DROP TRIGGER rebind_repair_after_claim');
+repairCheck('second eligibility read refuses a different bot binding after claim', count($sent) === $before
+    && repairEntryIntent($pdo,(int)$afterClaim['id'])['state'] === 'suppressed');
+
+$concurrentStart = repairStart(7031);
+$innerResult = null;
+$competingClaim = static function (ProjectMaxConnection $connection) use ($handle,$factory,$concurrentStart,&$innerResult): MaxMessengerAdapter {
+    $innerResult = $handle('appleservice39',$concurrentStart,$factory);
+    return $factory($connection);
+};
+$before = count($sent);
+$notifyBefore = count($notifications);
+$handle('appleservice39',$concurrentStart,$competingClaim);
+$concurrent = repairConversation($pdo,'appleservice39',7031);
+repairCheck('competing replay can win one claim without duplicating send or handoff', ($innerResult['result'] ?? '') === 'duplicate'
+    && count($sent) === $before+1 && count($notifications) === $notifyBefore+1
+    && repairEntryIntent($pdo,(int)$concurrent['id'])['state'] === 'delivered'
+    && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$concurrent['id']." AND event_type='bot_started'")->fetchColumn() === 1
+    && (int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE conversation_id=".(int)$concurrent['id']." AND event_type='waiting_manager'")->fetchColumn() === 1);
 
 $pdo->exec("UPDATE conversations SET status='closed' WHERE id=".(int)$second['id']);
 $before = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();

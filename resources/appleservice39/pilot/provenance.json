@@ -1,0 +1,1448 @@
+{
+  "schema": 1,
+  "campaign_key": "appleservice39-pilot-v1",
+  "source_artifacts": [
+    {
+      "name": "AppleService39-MAX-Launch.zip",
+      "size_bytes": 11326840,
+      "sha256": "4e81fd53eaa9c75f65b2599ba072494ff7bb7ff02e77ce2f621a151122b7d281"
+    },
+    {
+      "name": "AppleService39-MAX-Posts.docx",
+      "size_bytes": 41369,
+      "sha256": "2a56309426c3946b7401f3f06f3029dadd477d77509b5038de8b4580c4f09315"
+    },
+    {
+      "name": "appleservice39-onboarding-2026-11-05.zip",
+      "size_bytes": 33487,
+      "sha256": "68fff8af10dfbde4418589bc06335006da2c45d428bd756c39704197c514cb62"
+    }
+  ],
+  "source_posts_sha256": "a91078c8debb1ea318690170a0d63ff5d79676953c744ff420e2a370197352d9",
+  "source_evidence_sha256": "0d87e5ec854e47d11f8139451fbe41f05a1bc70f040d405737a40e7d28090390",
+  "source_price_checked_date": "2026-11-07",
+  "fresh_source_check": {
+    "attempted_date": "2026-11-08",
+    "result": "unavailable",
+    "note": "All four official source URLs were inaccessible through the web lookup tool; targeted official-domain searches returned no results. No current-live price confirmation is claimed.",
+    "source_urls": [
+      "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+    ]
+  },
+  "publication_state_in_source": "unpublished",
+  "published_urls_in_source": 0,
+  "button_urls_in_source": 0,
+  "payload_rule": "as39_ + exact post_id",
+  "legacy_payload_alias": {
+    "as39_x_battery": "repair-iphone-x-battery-replacement"
+  },
+  "scope": {
+    "posts": 24,
+    "repair_ctas": 15,
+    "model_posts": 5,
+    "service_posts": 3,
+    "menu_posts": 1
+  },
+  "publication_order": [
+    "repair-iphone-x-battery-replacement",
+    "repair-iphone-x-front-glass-replacement",
+    "repair-iphone-x-display",
+    "repair-iphone-15-battery-replacement",
+    "repair-iphone-15-front-glass-replacement",
+    "repair-iphone-15-display",
+    "repair-iphone-15-plus-battery-replacement",
+    "repair-iphone-15-plus-front-glass-replacement",
+    "repair-iphone-15-plus-display",
+    "repair-iphone-15-pro-battery-replacement",
+    "repair-iphone-15-pro-front-glass-replacement",
+    "repair-iphone-15-pro-display",
+    "repair-iphone-15-pro-max-battery-replacement",
+    "repair-iphone-15-pro-max-front-glass-replacement",
+    "repair-iphone-15-pro-max-display",
+    "model-iphone-x",
+    "model-iphone-15",
+    "model-iphone-15-plus",
+    "model-iphone-15-pro",
+    "model-iphone-15-pro-max",
+    "service-display",
+    "service-front-glass-replacement",
+    "service-battery-replacement",
+    "menu"
+  ],
+  "navigation": {
+    "edges": 86,
+    "all_targets_in_pilot": true,
+    "all_nodes_reachable_from_menu": true,
+    "source": "Original DOCX bookmarks matched through each post's previous_draft number; remove two cross-category edges under the approved bounded pilot graph.",
+    "source_docx_edges": 88,
+    "cycles_expected": true,
+    "execution": "Create the 24 approved text/image/CTA posts in manifest order, retain and read back actual provider receipts, then add only verified navigation URLs. Never publish placeholders."
+  },
+  "cleanup": [
+    {
+      "post_id": "repair-iphone-x-battery-replacement",
+      "kind": "price_qualification_added",
+      "added": "Актуальную цену и наличие детали уточним до ремонта."
+    },
+    {
+      "post_id": "repair-iphone-x-battery-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-x-front-glass-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-x-display",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-battery-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-front-glass-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-display",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-plus-battery-replacement",
+      "kind": "removed_docx_chapter_heading",
+      "removed": "05  /  КАРТОЧКИ РЕМОНТА"
+    },
+    {
+      "post_id": "repair-iphone-15-plus-battery-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-plus-front-glass-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-plus-display",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-pro-battery-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-pro-front-glass-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-pro-display",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-battery-replacement",
+      "kind": "removed_docx_chapter_heading",
+      "removed": "06  /  КАРТОЧКИ РЕМОНТА"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-battery-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-front-glass-replacement",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-display",
+      "kind": "contextual_button_explanation_added",
+      "added": "Кнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой."
+    },
+    {
+      "post_id": "model-iphone-x",
+      "kind": "removed_docx_chapter_heading",
+      "removed": "02  /  МОДЕЛИ"
+    },
+    {
+      "post_id": "model-iphone-15-pro",
+      "kind": "removed_docx_chapter_heading",
+      "removed": "03  /  НАВИГАЦИЯ"
+    },
+    {
+      "post_id": "service-display",
+      "kind": "pilot_category_scope_copy",
+      "before": "Выберите модель. Там, где условия общие для линейки, указана серия.",
+      "after": "Выберите модель iPhone. В карточке ремонта можно уточнить условия."
+    },
+    {
+      "post_id": "service-front-glass-replacement",
+      "kind": "pilot_category_scope_copy",
+      "before": "Выберите модель. Там, где условия общие для линейки, указана серия.",
+      "after": "Выберите модель iPhone. В карточке ремонта можно уточнить условия."
+    },
+    {
+      "post_id": "service-battery-replacement",
+      "kind": "pilot_category_scope_copy",
+      "before": "Выберите модель. Там, где условия общие для линейки, указана серия.",
+      "after": "Выберите модель iPhone. В карточке ремонта можно уточнить условия."
+    },
+    {
+      "post_id": "menu",
+      "kind": "pilot_menu_copy",
+      "before": [
+        "AppleService39. Выберите свою модель iPhone или начните с услуги. Карточка подскажет, что написать мастеру и какую цену можно уточнить."
+      ],
+      "after": [
+        "AppleService39. Выберите модель iPhone или услугу. В карточке ремонта нажмите «Уточнить ремонт», чтобы открыть бота с выбранной моделью и услугой."
+      ]
+    }
+  ],
+  "excluded_price_review_post_ids": [
+    "repair-iphone-8-battery-replacement",
+    "repair-iphone-8-plus-battery-replacement",
+    "repair-iphone-xs-battery-replacement",
+    "repair-iphone-xr-battery-replacement",
+    "repair-iphone-xs-max-battery-replacement",
+    "repair-iphone-11-battery-replacement",
+    "repair-iphone-11-pro-battery-replacement",
+    "repair-iphone-8-front-glass-replacement",
+    "repair-iphone-11-pro-max-front-glass-replacement",
+    "repair-iphone-14-pro-max-front-glass-replacement"
+  ],
+  "price_constraints": [
+    "All listed amounts remain qualified as source price-list amounts with current price and part availability confirmed before repair.",
+    "iPhone X display retains two separate original/analogue variants; no averaging.",
+    "The four iPhone 15 display cards retain on-request prices without invented numbers.",
+    "Duration conflicts and series minima do not become promises for an exact model.",
+    "No warranty duration or unsupported completion time was added."
+  ],
+  "source_rows_for_repair_contexts": [
+    {
+      "id": "as39_09165b04301d930449f5",
+      "business_key": "appleservice39",
+      "operation_key": "front_glass_replacement",
+      "service_label": "Замена стекла экрана без дисплея",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone 15 pro max",
+        "model_keys": [
+          "iphone_15_pro_max"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 10000,
+        "currency": "RUB",
+        "raw": "10000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "180 мин.",
+      "source_id": "src_04",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 23,
+      "source_cells": [
+        "IPhone 15 pro max",
+        "10000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "review_flags": [
+        "duration_conflict",
+        "series_minimum_differs"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_17ef44f9eb76d620bf97",
+      "business_key": "appleservice39",
+      "operation_key": "battery_replacement",
+      "service_label": "Замена аккумулятора",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone X",
+        "model_keys": [
+          "iphone_x"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 3500,
+        "currency": "RUB",
+        "raw": "3500 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "60 мин.",
+      "source_id": "src_03",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 3,
+      "source_cells": [
+        "IPhone X",
+        "3500 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "review_flags": [
+        "duration_conflict"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_1e2dfce7afcc7417fb4d",
+      "business_key": "appleservice39",
+      "operation_key": "battery_replacement",
+      "service_label": "Замена аккумулятора",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone 15",
+        "model_keys": [
+          "iphone_15"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB",
+        "raw": "6000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "60 мин.",
+      "source_id": "src_03",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 20,
+      "source_cells": [
+        "IPhone 15",
+        "6000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "review_flags": [
+        "duration_conflict",
+        "series_minimum_differs"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_2024c480e872fce8f83e",
+      "business_key": "appleservice39",
+      "operation_key": "display_original_replacement",
+      "service_label": "Замена дисплея оригинал",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone X",
+        "model_keys": [
+          "iphone_x"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 12000,
+        "currency": "RUB",
+        "raw": "12000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "120 мин.",
+      "source_id": "src_16",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 3,
+      "source_cells": [
+        "Замена дисплея оригинал",
+        "12000 руб.",
+        "✔",
+        "120 мин."
+      ],
+      "review_flags": [],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_54b25185891aa94289a3",
+      "business_key": "appleservice39",
+      "operation_key": "display_original_replacement",
+      "service_label": "Замена дисплея оригинал",
+      "model_scope": {
+        "kind": "series",
+        "label": "iPhone 15 series",
+        "series": 15,
+        "model_keys": []
+      },
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB",
+        "raw": "Уточняйте"
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "40 мин.",
+      "source_id": "src_01",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 3,
+      "source_cells": [
+        "Замена дисплея оригинал",
+        "Уточняйте",
+        "✔",
+        "40 мин."
+      ],
+      "review_flags": [],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_5621312c2914c7797fc5",
+      "business_key": "appleservice39",
+      "operation_key": "front_glass_replacement",
+      "service_label": "Замена стекла (Без дисплея)",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone X",
+        "model_keys": [
+          "iphone_x"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB",
+        "raw": "5000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "2-4 часа",
+      "source_id": "src_16",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 2,
+      "source_cells": [
+        "Замена стекла (Без дисплея)",
+        "5000 руб.",
+        "✔",
+        "2-4 часа"
+      ],
+      "review_flags": [
+        "duration_conflict"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_5753f028573829c74383",
+      "business_key": "appleservice39",
+      "operation_key": "front_glass_replacement",
+      "service_label": "Замена стекла экрана без дисплея",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone X",
+        "model_keys": [
+          "iphone_x"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 5000,
+        "currency": "RUB",
+        "raw": "5000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "180 мин.",
+      "source_id": "src_04",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 3,
+      "source_cells": [
+        "IPhone X",
+        "5000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "review_flags": [
+        "duration_conflict"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_6ccad6347b7f878b28c4",
+      "business_key": "appleservice39",
+      "operation_key": "battery_replacement",
+      "service_label": "Замена аккумулятора",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone 15 plus",
+        "model_keys": [
+          "iphone_15_plus"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB",
+        "raw": "6000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "60 мин.",
+      "source_id": "src_03",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 21,
+      "source_cells": [
+        "IPhone 15 plus",
+        "6000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "review_flags": [
+        "duration_conflict",
+        "series_minimum_differs"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_b1410445337f4cc31066",
+      "business_key": "appleservice39",
+      "operation_key": "battery_replacement",
+      "service_label": "Замена аккумулятора",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone 15 pro",
+        "model_keys": [
+          "iphone_15_pro"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB",
+        "raw": "7000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "60 мин.",
+      "source_id": "src_03",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 22,
+      "source_cells": [
+        "IPhone 15 pro",
+        "7000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "review_flags": [
+        "duration_conflict",
+        "series_minimum_differs"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_b2a27b7463f3140d9650",
+      "business_key": "appleservice39",
+      "operation_key": "front_glass_replacement",
+      "service_label": "Замена стекла экрана без дисплея",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone 15 pro",
+        "model_keys": [
+          "iphone_15_pro"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 9000,
+        "currency": "RUB",
+        "raw": "9000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "180 мин.",
+      "source_id": "src_04",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 22,
+      "source_cells": [
+        "IPhone 15 pro",
+        "9000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "review_flags": [
+        "duration_conflict",
+        "series_minimum_differs"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_baf98635e1aeed17d0dc",
+      "business_key": "appleservice39",
+      "operation_key": "battery_replacement",
+      "service_label": "Замена акумулятор оригинал",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone X",
+        "model_keys": [
+          "iphone_x"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 3500,
+        "currency": "RUB",
+        "raw": "3500 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "25 мин.",
+      "source_id": "src_16",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 1,
+      "source_cells": [
+        "Замена акумулятор оригинал",
+        "3500 руб.",
+        "✔",
+        "25 мин."
+      ],
+      "review_flags": [
+        "duration_conflict"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_bbbfa0723c583bab630b",
+      "business_key": "appleservice39",
+      "operation_key": "display_copy_replacement",
+      "service_label": "Замена дисплея копия (китай)",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone X",
+        "model_keys": [
+          "iphone_x"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 6000,
+        "currency": "RUB",
+        "raw": "6000 руб."
+      },
+      "warranty": {
+        "raw": "нет",
+        "offered": false,
+        "months": null
+      },
+      "duration_raw": "120 мин.",
+      "source_id": "src_16",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "source_cells": [
+        "Замена дисплея копия (китай)",
+        "6000 руб.",
+        "нет",
+        "120 мин."
+      ],
+      "review_flags": [],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_cd6b4f2676a8ded5eaea",
+      "business_key": "appleservice39",
+      "operation_key": "display_copy_replacement",
+      "service_label": "Замена дисплея копия (китай)",
+      "model_scope": {
+        "kind": "series",
+        "label": "iPhone 15 series",
+        "series": 15,
+        "model_keys": []
+      },
+      "price": {
+        "kind": "on_request",
+        "amount": null,
+        "currency": "RUB",
+        "raw": "Уточняйте"
+      },
+      "warranty": {
+        "raw": "1 мес.",
+        "offered": true,
+        "months": 1
+      },
+      "duration_raw": "40 мин.",
+      "source_id": "src_01",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 4,
+      "source_cells": [
+        "Замена дисплея копия (китай)",
+        "Уточняйте",
+        "1 мес.",
+        "40 мин."
+      ],
+      "review_flags": [],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_d4ff1ca62e35f1b15154",
+      "business_key": "appleservice39",
+      "operation_key": "battery_replacement",
+      "service_label": "Замена аккумулятора",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone 15 pro max",
+        "model_keys": [
+          "iphone_15_pro_max"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB",
+        "raw": "7000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "60 мин.",
+      "source_id": "src_03",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 23,
+      "source_cells": [
+        "IPhone 15 pro max",
+        "7000 руб.",
+        "✔",
+        "60 мин."
+      ],
+      "review_flags": [
+        "duration_conflict",
+        "series_minimum_differs"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_e856dec6d0b298ce4b88",
+      "business_key": "appleservice39",
+      "operation_key": "front_glass_replacement",
+      "service_label": "Замена стекла экрана без дисплея",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone 15 plus",
+        "model_keys": [
+          "iphone_15_plus"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 8000,
+        "currency": "RUB",
+        "raw": "8000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "180 мин.",
+      "source_id": "src_04",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 21,
+      "source_cells": [
+        "IPhone 15 plus",
+        "8000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "review_flags": [
+        "duration_conflict",
+        "series_minimum_differs"
+      ],
+      "matches_live_source": true
+    },
+    {
+      "id": "as39_f6a2a46cc39d6d8842a4",
+      "business_key": "appleservice39",
+      "operation_key": "front_glass_replacement",
+      "service_label": "Замена стекла экрана без дисплея",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone 15",
+        "model_keys": [
+          "iphone_15"
+        ]
+      },
+      "price": {
+        "kind": "listed",
+        "amount": 7000,
+        "currency": "RUB",
+        "raw": "7000 руб."
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "180 мин.",
+      "source_id": "src_04",
+      "source_url": "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/",
+      "source_table": 1,
+      "source_row": 20,
+      "source_cells": [
+        "IPhone 15",
+        "7000 руб.",
+        "✔",
+        "180 мин."
+      ],
+      "review_flags": [
+        "duration_conflict",
+        "series_minimum_differs"
+      ],
+      "matches_live_source": true
+    }
+  ],
+  "additional_diagnostics_claim_rows": [
+    {
+      "id": "as39_cdec52b47454cdca227a",
+      "business_key": "appleservice39",
+      "operation_key": "diagnostics",
+      "service_label": "Диагностика",
+      "model_scope": {
+        "kind": "model",
+        "label": "iPhone X",
+        "model_keys": [
+          "iphone_x"
+        ]
+      },
+      "price": {
+        "kind": "free",
+        "amount": 0,
+        "currency": "RUB",
+        "raw": "БЕСПЛАТНО"
+      },
+      "warranty": {
+        "raw": "✔",
+        "offered": true,
+        "months": null
+      },
+      "duration_raw": "15-20 мин.",
+      "source_id": "src_16",
+      "source_url": "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+      "source_table": 1,
+      "source_row": 16,
+      "source_cells": [
+        "Диагностика",
+        "БЕСПЛАТНО",
+        "✔",
+        "15-20 мин."
+      ],
+      "review_flags": [],
+      "matches_live_source": true
+    }
+  ],
+  "posts": [
+    {
+      "post_id": "repair-iphone-x-battery-replacement",
+      "previous_draft": "10",
+      "source_text_file": "posts/repair-iphone-x-battery-replacement.txt",
+      "source_text_sha256": "775ccab06072ca67d810bfde90fcbb9b59b547257ebc004bbbc23f077f6e3548",
+      "source_cover": "covers/repair-iphone-x-battery-replacement.png",
+      "source_cover_sha256": "bd972a093c2d1d3455000484a17405a51a6267e0254404c645044e3a5097fe78",
+      "cover_kind": "approved_asset",
+      "cover_dimensions": [
+        1122,
+        1402
+      ],
+      "source_ids": [
+        "as39_17ef44f9eb76d620bf97",
+        "as39_baf98635e1aeed17d0dc"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 3500,
+      "normalized_text_sha256": "1bbc6b259448680de63cb7be1e1b67b2fe422e9eceea180c810d1c04d7cc5848"
+    },
+    {
+      "post_id": "repair-iphone-x-front-glass-replacement",
+      "previous_draft": "24",
+      "source_text_file": "posts/repair-iphone-x-front-glass-replacement.txt",
+      "source_text_sha256": "ba83078797b37cb7f03ddd22e8176b8be60c6c6dee94cd2c292ce5e3a8c93fd8",
+      "source_cover": "covers/repair-iphone-x-front-glass-replacement.png",
+      "source_cover_sha256": "b1f4f96721f9db97256ec3bc1143e6a5c55a5ae0bce90a292e20e3334b243b82",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_5753f028573829c74383",
+        "as39_5621312c2914c7797fc5"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 5000,
+      "normalized_text_sha256": "5dfc48934652a847f6f6fdd0fde65ad39b4e36405695f07eaab0f2e2892cc686"
+    },
+    {
+      "post_id": "repair-iphone-x-display",
+      "previous_draft": "23",
+      "source_text_file": "posts/repair-iphone-x-display.txt",
+      "source_text_sha256": "d91e014eb6354bbb35b84e8b61d9d89367369687a86829c50a9f2d666f816ac1",
+      "source_cover": "covers/repair-iphone-x-display.png",
+      "source_cover_sha256": "15484218754550af4ea3b90ebf846503a1c99ae779a3f3cc3832b77912ccda2b",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_2024c480e872fce8f83e",
+        "as39_bbbfa0723c583bab630b"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/"
+      ],
+      "price_kind": "variants",
+      "amount_rub": null,
+      "normalized_text_sha256": "7c7c9ca1cca7fed45acb88e996f66fde82a30e145c76278d6e85c64edda46b18"
+    },
+    {
+      "post_id": "repair-iphone-15-battery-replacement",
+      "previous_draft": "16",
+      "source_text_file": "posts/repair-iphone-15-battery-replacement.txt",
+      "source_text_sha256": "84d032516d88811a8bf3aaa76385dbb107579634c573ab57e0d6104de442e4a0",
+      "source_cover": "covers/repair-iphone-15-battery-replacement.png",
+      "source_cover_sha256": "7778d547fd5ecc258a08784debff8cdcc32c68aa300dc00898dcfd1d48aabd44",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_1e2dfce7afcc7417fb4d"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 6000,
+      "normalized_text_sha256": "865b689a742009b18c4fe8be6e81d2c685c05c19a51f828082d57a0a3ae1da47"
+    },
+    {
+      "post_id": "repair-iphone-15-front-glass-replacement",
+      "previous_draft": "15",
+      "source_text_file": "posts/repair-iphone-15-front-glass-replacement.txt",
+      "source_text_sha256": "3981df3c1d9d7910fbb4a191f71c4147e310c59f30c29270bc6d2f3548fd91dd",
+      "source_cover": "covers/repair-iphone-15-front-glass-replacement.png",
+      "source_cover_sha256": "bf848a84073dcdffbac3dd50571b4788d18dca130d31c43d715ac5975e3ec4cc",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_f6a2a46cc39d6d8842a4"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 7000,
+      "normalized_text_sha256": "35d876a0fea4f4cf13f32fdf0f40c10749f2f6688191d4c912eb70847382dd4f"
+    },
+    {
+      "post_id": "repair-iphone-15-display",
+      "previous_draft": "14",
+      "source_text_file": "posts/repair-iphone-15-display.txt",
+      "source_text_sha256": "c639b52b2b8e2aec33ab0f2f9134a3c7fa6053b2bfba9c066284f052631c89fc",
+      "source_cover": "covers/repair-iphone-15-display.png",
+      "source_cover_sha256": "ed84d5c655c0a3377536efdbe66165cef70d47b704e24acbb0d7e7ce76e9a729",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_54b25185891aa94289a3",
+        "as39_cd6b4f2676a8ded5eaea"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ],
+      "price_kind": "on_request",
+      "amount_rub": null,
+      "normalized_text_sha256": "db4c4896802e03d2b45d50dc7ed49150bb6e9f1c09eaca259bebb508b3ee1b4a"
+    },
+    {
+      "post_id": "repair-iphone-15-plus-battery-replacement",
+      "previous_draft": "19",
+      "source_text_file": "posts/repair-iphone-15-plus-battery-replacement.txt",
+      "source_text_sha256": "b46c714122c75d693425e2b443eb87835f0121327ce4dc59094a51143e7fde0e",
+      "source_cover": "covers/repair-iphone-15-plus-battery-replacement.png",
+      "source_cover_sha256": "3a9ba2f9550737156b51477e2ab96aee643b30c2eb23601f3e2e1ff2bf00d62d",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_6ccad6347b7f878b28c4"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 6000,
+      "normalized_text_sha256": "ccd9fa6b3e9dfe4815f43b9d2244ae8275ddb3075288919da78fe36c2b0b0430"
+    },
+    {
+      "post_id": "repair-iphone-15-plus-front-glass-replacement",
+      "previous_draft": "18",
+      "source_text_file": "posts/repair-iphone-15-plus-front-glass-replacement.txt",
+      "source_text_sha256": "fad73914f0a20a184d378a9862fe3845adb698e7590606bc5e1537863ca9e8b9",
+      "source_cover": "covers/repair-iphone-15-plus-front-glass-replacement.png",
+      "source_cover_sha256": "1aad66a643ed0dcdf2ea149435131eb6c6bec573b35be3d46414c0dcb036b8ef",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_e856dec6d0b298ce4b88"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 8000,
+      "normalized_text_sha256": "02c481b2a02e58a24c2f68e58150f1ad9fb35d08266172d73f91b40c7462c1b1"
+    },
+    {
+      "post_id": "repair-iphone-15-plus-display",
+      "previous_draft": "17",
+      "source_text_file": "posts/repair-iphone-15-plus-display.txt",
+      "source_text_sha256": "828540a596a0f664f2ec12d736493338c03b9612260437b07250672d709016b4",
+      "source_cover": "covers/repair-iphone-15-plus-display.png",
+      "source_cover_sha256": "e3b25dec2e04b6c38ccfea897fca5f994bb09e9c6c5ed5d9a3ce8e5f8f066dda",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_54b25185891aa94289a3",
+        "as39_cd6b4f2676a8ded5eaea"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ],
+      "price_kind": "on_request",
+      "amount_rub": null,
+      "normalized_text_sha256": "1c90dc8491f5227f70d1ff6b46cbac9ea72b25af1143ef27172c8e3d82b956ca"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-battery-replacement",
+      "previous_draft": "22",
+      "source_text_file": "posts/repair-iphone-15-pro-battery-replacement.txt",
+      "source_text_sha256": "5c70d7d849d50101b1c159db2e81a21c30bdf521adb013523dbe28712c3aa244",
+      "source_cover": "covers/repair-iphone-15-pro-battery-replacement.png",
+      "source_cover_sha256": "799eaf8d7430231b77639a96e719b1da87e05ecd6d3a01ba0703042984cfa486",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_b1410445337f4cc31066"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 7000,
+      "normalized_text_sha256": "0d401ad5f617a1725554eeee6f1082aba1542bd9f5123faf58c6268dfeb73fa4"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-front-glass-replacement",
+      "previous_draft": "21",
+      "source_text_file": "posts/repair-iphone-15-pro-front-glass-replacement.txt",
+      "source_text_sha256": "0a6689a05ca079084761bfd86c696deabfdba1fba5f0072d04e98372e887269c",
+      "source_cover": "covers/repair-iphone-15-pro-front-glass-replacement.png",
+      "source_cover_sha256": "55ce0e506f1d961c74eb7c35e59194574f37471afd601852d981f7047440c3ed",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_b2a27b7463f3140d9650"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 9000,
+      "normalized_text_sha256": "89b3fe134f430caf5e1f35e98e11fd27bb13024863b75627dc81ed44416b610c"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-display",
+      "previous_draft": "20",
+      "source_text_file": "posts/repair-iphone-15-pro-display.txt",
+      "source_text_sha256": "5e48108235006fa99f0fc40d7ead67b9a4dd1b7a5209738fe5368aa7473a5dc2",
+      "source_cover": "covers/repair-iphone-15-pro-display.png",
+      "source_cover_sha256": "2dcdf3ceff627293de573b10f8e0143ec6c8c26b19510ca641bb88e9ad46324f",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_54b25185891aa94289a3",
+        "as39_cd6b4f2676a8ded5eaea"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ],
+      "price_kind": "on_request",
+      "amount_rub": null,
+      "normalized_text_sha256": "b67bebe3f7c136d9698277e3fff42d4e4b1cf637a3ca7ff10749c558d8d5b959"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-battery-replacement",
+      "previous_draft": "09",
+      "source_text_file": "posts/repair-iphone-15-pro-max-battery-replacement.txt",
+      "source_text_sha256": "6f064fc5f17bd7dfa3cab02fce55edbacc48371da4ed2d0fd267347370eb18aa",
+      "source_cover": "covers/repair-iphone-15-pro-max-battery-replacement.png",
+      "source_cover_sha256": "56f3ba966bd5844c6463965013a34271e8946f3469afc23a1ce7f924920fbdd2",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_d4ff1ca62e35f1b15154"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 7000,
+      "normalized_text_sha256": "45e2b97b0fda333bee7ab566836c17e836b4c080dca3a3d03141d2afc5e74f9d"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-front-glass-replacement",
+      "previous_draft": "08",
+      "source_text_file": "posts/repair-iphone-15-pro-max-front-glass-replacement.txt",
+      "source_text_sha256": "f5e696c3176ba4842e7d3a334d08483844ba72ad1b8cc99f6f8e8aadc3ed51ad",
+      "source_cover": "covers/repair-iphone-15-pro-max-front-glass-replacement.png",
+      "source_cover_sha256": "ed00395400b2ec630f861079edcaf7501734178b776feb84f44bf7fb224e1e66",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_09165b04301d930449f5"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": "listed",
+      "amount_rub": 10000,
+      "normalized_text_sha256": "99940583062db814b24b6203cffd725eaf23d761287749d7af4fcca5e844f603"
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-display",
+      "previous_draft": "07",
+      "source_text_file": "posts/repair-iphone-15-pro-max-display.txt",
+      "source_text_sha256": "02427b4789de4a09d840fd91d17d35f2e13522d4431499c51a81818a0f70475a",
+      "source_cover": "covers/repair-iphone-15-pro-max-display.png",
+      "source_cover_sha256": "d68e73e14cfa170055fab584ea2e7c23a056af2dd0a8a45383f99a42692079a4",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_54b25185891aa94289a3",
+        "as39_cd6b4f2676a8ded5eaea"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ],
+      "price_kind": "on_request",
+      "amount_rub": null,
+      "normalized_text_sha256": "ae421fe5773bf335b0797b6a7e303a83b8ad1ed62017789a86a7d8f8c305a478"
+    },
+    {
+      "post_id": "model-iphone-x",
+      "previous_draft": "03",
+      "source_text_file": "posts/model-iphone-x.txt",
+      "source_text_sha256": "06835a13f24551ece72e573bfb79325b3e4cc52c430a4d193fd4b3d54622b239",
+      "source_cover": "covers/model-iphone-x.png",
+      "source_cover_sha256": "4c664ae0cfea528eea534f3de6fe70bc4051b49efd05834f85c456657d0f2ed1",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_17ef44f9eb76d620bf97",
+        "as39_5753f028573829c74383",
+        "as39_baf98635e1aeed17d0dc",
+        "as39_5621312c2914c7797fc5",
+        "as39_2024c480e872fce8f83e",
+        "as39_bbbfa0723c583bab630b",
+        "as39_5cd524b1e225f31aa6c6",
+        "as39_55438be5b0751f65c5a4",
+        "as39_afe4a064eadcc9a8bcfc",
+        "as39_674e5f082f5f11476523",
+        "as39_e8be34d749b852468660",
+        "as39_484677c10b39e3f5e325",
+        "as39_9a0987bb737a496b7d3d",
+        "as39_9a09b17955ef88e31384",
+        "as39_e962e63a52080eb212a9",
+        "as39_59ce4ba3045639c0b665",
+        "as39_1efb4e7e606ced440656",
+        "as39_cdec52b47454cdca227a"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "af2bf790ee1cd1e037a363dc9720d8c15c4375e24b34598ae7999fb9c239632e"
+    },
+    {
+      "post_id": "model-iphone-15",
+      "previous_draft": "11",
+      "source_text_file": "posts/model-iphone-15.txt",
+      "source_text_sha256": "97595d64ce5610a79402ec08903fce71e4a390066e24e5c16cefceb85cb3bb1c",
+      "source_cover": "covers/model-iphone-15.png",
+      "source_cover_sha256": "802fefcaa3272b6a7dbd549717dd2719727ac7c8d74131c1decf4177d1842542",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_1e2dfce7afcc7417fb4d",
+        "as39_f6a2a46cc39d6d8842a4"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "5d2bf1bc57042e8944d18caf8f7755a7e888748e3256e308e924fbd7323c7241"
+    },
+    {
+      "post_id": "model-iphone-15-plus",
+      "previous_draft": "12",
+      "source_text_file": "posts/model-iphone-15-plus.txt",
+      "source_text_sha256": "5a9aa08ca0ef9067f8dc97232b21be055b898cd79d81845b829aa86fbcea9535",
+      "source_cover": "covers/model-iphone-15-plus.png",
+      "source_cover_sha256": "30cafb7ffe48b7e35525ae5891461263924ce606beafb4e85c6b8a3c658a8915",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_6ccad6347b7f878b28c4",
+        "as39_e856dec6d0b298ce4b88"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "f3c79e43cdf54d58d01ba1bfabf09d5ef5db92b5892c33ff20270207a9e60954"
+    },
+    {
+      "post_id": "model-iphone-15-pro",
+      "previous_draft": "13",
+      "source_text_file": "posts/model-iphone-15-pro.txt",
+      "source_text_sha256": "e4b0f0d8bf22dd0db3389584c6f083d8f50a7c825abd18f968b7377d8357b3a5",
+      "source_cover": "covers/model-iphone-15-pro.png",
+      "source_cover_sha256": "fb9b76c25ca5ea26b24d2f1a5a0c353c2626ed0d28c0a3f5a6f4566a6be72e47",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_b1410445337f4cc31066",
+        "as39_b2a27b7463f3140d9650"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "68c481f621e6db272a79d7e4eaac590bb8767e7293ff99ad52f3b7863ef00d31"
+    },
+    {
+      "post_id": "model-iphone-15-pro-max",
+      "previous_draft": "02",
+      "source_text_file": "posts/model-iphone-15-pro-max.txt",
+      "source_text_sha256": "47ed212edf62c72a8df22f8fcb3363958893ba277508fb4e2e26c64f11b90864",
+      "source_cover": "covers/model-iphone-15-pro-max.png",
+      "source_cover_sha256": "691997a7beb033238a28ff599e683fcd4502bb77720dc8dea7171d590cd404b9",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [
+        "as39_d4ff1ca62e35f1b15154",
+        "as39_09165b04301d930449f5"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "7106a2b43f9acb25015bd0fc0782c0d0a54f9fcc651749d97ac90420d3e35e46"
+    },
+    {
+      "post_id": "service-display",
+      "previous_draft": "04",
+      "source_text_file": "posts/service-display.txt",
+      "source_text_sha256": "f849913375830ad5d1bb5af1740fa5437c27e7f7b90df8c037f8203538137e62",
+      "source_cover": "covers/service-display.png",
+      "source_cover_sha256": "4833214b6e147979a8eb43a255af509b06e83b2118c798bd3878d99166fe1788",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [],
+      "source_urls": [],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "d99f31bbce1c77772afcf95cff4f572997c01e13afcdc4e5108523104c347107"
+    },
+    {
+      "post_id": "service-front-glass-replacement",
+      "previous_draft": "05",
+      "source_text_file": "posts/service-front-glass-replacement.txt",
+      "source_text_sha256": "ae8fe5c508bb3b1e1aea325aaeca146bf54f88de7580efe8e02d03ce3f123501",
+      "source_cover": "covers/service-front-glass-replacement.png",
+      "source_cover_sha256": "e35286133c030e59fc0a3b0fdb1dcf30895aaa8eb5babbec7ccb6165e4c940fd",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [],
+      "source_urls": [],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "d190d3b6a3096b435a09ecf0e62495d9242ef2010b6673ad0be95ba1829ab61a"
+    },
+    {
+      "post_id": "service-battery-replacement",
+      "previous_draft": "06",
+      "source_text_file": "posts/service-battery-replacement.txt",
+      "source_text_sha256": "e9e6800304495eb230d4bb817715417fed119f3deaf2ecc3178e8a53d306831a",
+      "source_cover": "covers/service-battery-replacement.png",
+      "source_cover_sha256": "39e634e446954baccce608e8576d4e3edd212327e876fffdea92859e8b8301a6",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [],
+      "source_urls": [],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "111839e3728156bce46bb02b121b0006448ef2a1b5b34af74a363b84bf54b927"
+    },
+    {
+      "post_id": "menu",
+      "previous_draft": "01",
+      "source_text_file": "posts/menu.txt",
+      "source_text_sha256": "b245c212c99f3a21538c0ca1a4ccfaf95e3d8f2005b8d7d2d8088e41a7dce196",
+      "source_cover": "covers/menu.png",
+      "source_cover_sha256": "b62fabf99cab3d7b1063978d35738cbece32988eff633cee9cce2d1c0f704dfe",
+      "cover_kind": "illustrated_template",
+      "cover_dimensions": [
+        900,
+        1125
+      ],
+      "source_ids": [],
+      "source_urls": [],
+      "price_kind": null,
+      "amount_rub": null,
+      "normalized_text_sha256": "bff83b9623d1cb3382fcb0c34d6faccfc8bbb18c76122b4b9b4704bea19a95b1"
+    }
+  ],
+  "manifest_sha256": "93212e4cd8bc62f5bb1098ea690528106b4c520087c92bc49ea658b2c7a955f3",
+  "pilot_catalog_sha256": "898a8550075eb9d52658cf8ad6de7ae35fa6cb11f1fa4a0dd075d709e6ab7f03"
+}

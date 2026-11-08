@@ -140,6 +140,37 @@ jobs:
             *) exit 2 ;;
           esac
 
+  appleservice39-mysql:
+    name: AppleService39 pilot native MySQL claims
+    needs: change-scope
+    if: (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: as39-test-only
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: appleservice39_publisher_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pas39-test-only"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, mbstring, pdo_mysql
+          coverage: none
+      - name: Apply the actual migration and race independent native claim workers
+        env:
+          APPLESERVICE39_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=appleservice39_publisher_test;charset=utf8mb4
+          APPLESERVICE39_TEST_MYSQL_USER: root
+          APPLESERVICE39_TEST_MYSQL_PASSWORD: as39-test-only
+        run: php tests/mysql/appleservice39-publisher.php
+
   oauth:
     needs: change-scope
     if: needs.change-scope.outputs.mode == 'oauth'
@@ -161,7 +192,7 @@ jobs:
 
   regression:
     name: regression
-    needs: [change-scope, inventory, php-syntax, required, prepared-mysql, oauth]
+    needs: [change-scope, inventory, php-syntax, required, prepared-mysql, appleservice39-mysql, oauth]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -180,6 +211,7 @@ jobs:
           SYNTAX_RESULT: ${{ needs.php-syntax.result }}
           REQUIRED_RESULT: ${{ needs.required.result }}
           PREPARED_MYSQL_RESULT: ${{ needs.prepared-mysql.result }}
+          APPLESERVICE39_MYSQL_RESULT: ${{ needs.appleservice39-mysql.result }}
         run: |
           test "$SCOPE_RESULT" = success
           test "$INVENTORY_RESULT" = success
@@ -189,15 +221,18 @@ jobs:
               test "$OAUTH_RESULT" = success
               test "$REQUIRED_RESULT" = skipped
               test "$PREPARED_MYSQL_RESULT" = skipped
+              test "$APPLESERVICE39_MYSQL_RESULT" = skipped
               ;;
             full:full|tour-selection:full)
               test "$REQUIRED_RESULT" = success
               test "$PREPARED_MYSQL_RESULT" = success
+              test "$APPLESERVICE39_MYSQL_RESULT" = success
               test "$OAUTH_RESULT" = skipped
               ;;
             tour-selection:selection-style|full:workspace-style)
               test "$REQUIRED_RESULT" = success
               test "$PREPARED_MYSQL_RESULT" = skipped
+              test "$APPLESERVICE39_MYSQL_RESULT" = skipped
               test "$OAUTH_RESULT" = skipped
               ;;
             *) exit 1 ;;
