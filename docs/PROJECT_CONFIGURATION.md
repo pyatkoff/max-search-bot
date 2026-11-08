@@ -167,8 +167,9 @@ Manager operations resolve the authorized saved conversation's project and bot
 binding before dispatch. Replacing a bot in private configuration cannot silently
 retarget an existing conversation. Missing or mismatched connections produce a
 definite `connection_unavailable` rejection. Lifecycle actions and travel context
-touch the legacy MAX state only for its original project/channel. Repair replies
-and sales events cannot enqueue that project's conversion goals.
+keep using the legacy dialogue store only for its original project, including
+the existing MAX, Telegram and website chat keys. Repair replies and sales events
+cannot enqueue that project's conversion goals.
 
 ### Installation and commissioning
 

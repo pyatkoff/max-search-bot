@@ -126,6 +126,19 @@ class MetrikaConversionGoalService
         DraftOutboundFixture::$trace[] = ['event'=>'reply_goal'];
     }
 }
+class ProjectConfig
+{
+    public static function projectId(): string { return 'synthetic-project'; }
+}
+class ProjectMaxMessengerFactory
+{
+    public static function forConversation(array $conversation, string $senderType = 'manager'): ?MaxMessengerAdapter
+    {
+        if (($conversation['channel'] ?? null) !== 'max'
+            || ($conversation['project_key'] ?? null) !== ProjectConfig::projectId()) return null;
+        return new MaxMessengerAdapter(null,null,$senderType,null,false);
+    }
+}
 class ManagerDeliveryStateService
 {
     public static function maxRestartsAfter(array $events): array { return []; }
@@ -181,7 +194,7 @@ try {
     foreach ([$tmp,$tmp.'/services',$tmp.'/integrations'] as $directory) mkdir($directory,0700);
     foreach (['ManagerConversationService','ManagerPushService','ManagerSendGuardService',
         'ManagerDeliveryStateService','ConversationDb','ManagerAiDraftFeedbackService',
-        'MetrikaConversionGoalService','ProjectConfig','RoutingAccessService'] as $dependency) {
+        'MetrikaConversionGoalService','ProjectConfig','ProjectMaxMessengerFactory','RoutingAccessService'] as $dependency) {
         file_put_contents($tmp.'/services/'.$dependency.'.php', "<?php\n// Dependency supplied by the isolated regression.\n");
     }
     foreach (['MaxMessengerAdapter','TelegramMessengerAdapter','WebsiteMessengerAdapter'] as $adapter) {
