@@ -159,12 +159,8 @@ function shortTitleProviderText(string $platform, string $oldText, string $newTe
     $cutEnd = intdiv(strlen(mb_convert_encoding($firstLine, 'UTF-16LE', 'UTF-8')), 2);
     $oldUnits = intdiv(strlen($old16), 2);
     $position = $platform === 'max' ? 'from' : 'offset';
-    // MAX documents character offsets without naming their Unicode unit.
-    // Before the first astral character, code-point and UTF-16 offsets agree.
-    $firstAstral = null;
-    if ($platform === 'max' && preg_match('/[\x{10000}-\x{10FFFF}]/u', $oldText, $astral, PREG_OFFSET_CAPTURE) === 1) {
-        $firstAstral = mb_strlen(substr($oldText, 0, $astral[0][1]), 'UTF-8');
-    }
+    // MAX's official formatter uses UTF-16 code units, including surrogate pairs:
+    // https://github.com/max-messenger/maxbot/blob/06b71f88c49e80222204ad1a10614338ddfe4124/formatter/formatter.go
     $adjusted = [];
     $ranges = [];
     foreach ($oldMarkup as $span) {
@@ -175,8 +171,6 @@ function shortTitleProviderText(string $platform, string $oldText, string $newTe
         need(is_int($start) && is_int($length) && $start >= 0 && $start <= $oldUnits
             && $length > 0 && $length <= $oldUnits - $start, 'markup_range_invalid');
         $end = $start + $length;
-        need($platform !== 'max' || $firstAstral === null || $end <= $firstAstral,
-            'max_markup_unicode_units_unverified');
         need(shortTitleUtf16Boundary($old16, $start) && shortTitleUtf16Boundary($old16, $end), 'markup_splits_surrogate');
         $ranges[] = [$start, $end];
         $map = static fn(int $x): int => $x <= $cutStart ? $x : ($x >= $cutEnd ? $x - ($cutEnd - $cutStart) : $cutStart);
