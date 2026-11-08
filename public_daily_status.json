@@ -1,63 +1,63 @@
 {
     "ok": true,
-    "generated_at": "2026-11-07T22:49:15+00:00",
+    "generated_at": "2026-11-08T01:22:47+00:00",
     "window_type": "calendar_day",
     "window_hours": null,
     "timezone": "Europe/Kaliningrad",
     "channel": "max",
     "summary": {
-        "sessions": 21,
-        "raw_sessions": 21,
+        "sessions": 22,
+        "raw_sessions": 22,
         "explicit_test_sessions": 0,
         "source_resolution": {
-            "resolved": 21,
+            "resolved": 22,
             "unresolved": 0
         },
-        "started": 12,
+        "started": 13,
         "needs_collected": 0,
         "tours_opened": 0,
         "site_opened": 0,
         "post_tour_manager_cta_shown": 0,
-        "manager_requested": 12,
+        "manager_requested": 13,
         "manager_replied": 4,
         "customer_replied_after_manager": 1,
         "phone_received": 0,
         "manager_response": {
             "answered_in_90s": 0,
             "answered_after_90s": 4,
-            "still_unanswered": 8,
+            "still_unanswered": 9,
             "measured_responses": 4,
             "avg_seconds": 5079,
             "max_seconds": 6383
         },
         "drop_points": {
             "started_only": 9,
-            "manager_requested": 8,
+            "manager_requested": 9,
             "manager_replied": 3,
             "customer_replied_after_manager": 1
         },
         "flags": {
-            "manager_requested_no_reply": 8
+            "manager_requested_no_reply": 9
         },
         "calendar_day": {
-            "conversations_started": 17,
+            "conversations_started": 18,
             "needs_collected_from_started": 0,
             "tours_opened_from_started": 0,
             "site_opened": 0,
             "post_tour_manager_cta_shown": 0,
-            "manager_requested": 8,
+            "manager_requested": 9,
             "manager_replied": 3,
             "customer_replied_after_manager": 0
         }
     },
     "telegram_dialogue_delivery": {
-        "sampled_at": "2026-11-07T22:49:15Z",
+        "sampled_at": "2026-11-08T01:22:47Z",
         "available": true,
         "error": null,
         "mode": "send",
         "activated": true,
         "queue_counts": {
-            "pending": 25,
+            "pending": 26,
             "ready": 0,
             "uploading": 0,
             "accepted": 0,
@@ -68,7 +68,7 @@
             "expired": 0,
             "retired": 0
         },
-        "queue_total": 28
+        "queue_total": 29
     },
     "local_date": "2026-11-08",
     "local_day_started_at": "2026-11-08T00:00:00+02:00",
