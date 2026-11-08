@@ -26,6 +26,7 @@ eval('class MaxSearchApi {
         $statusPhone=75, $statusAi=76;
     public static array $requests=[];
     public static function MaxRequest($method,$payload){ self::$requests[]=[$method,$payload]; return true; }
+    public static function getEditMode($chatId){ return ""; }
     public static function getCityByID($id){ return "Synthetic departure"; }
     public static function getCountryByID($id){ return "Synthetic destination"; }
     public static function formatSavedData($data){ return ["Synthetic saved trip"]; }
