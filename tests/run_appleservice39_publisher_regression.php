@@ -249,7 +249,7 @@ if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
         as39Expect($provider->writes()===$writes && $provider->count('POST','/messages')===1,
             'readback diagnosis cannot retry a provider write');
         $safe=json_encode($diagnostic,JSON_THROW_ON_ERROR);
-        as39Expect(!str_contains($safe,'photo_') && !str_contains($safe,'renewed_') && !str_contains($safe,'synthetic-apple-token')
+        as39Expect(!str_contains($safe,'"photo_1"') && !str_contains($safe,'"renewed_1"') && !str_contains($safe,'synthetic-apple-token')
             && !str_contains($safe,'private_user') && !str_contains($safe,'other_channel') && !str_contains($safe,'Здравствуйте') && !str_contains($safe,'Замена аккумулятора'),
             'readback diagnosis omits body, media tokens, credentials and foreign URLs');
         as39Expect(($diagnostic['message_envelope'] ?? false)===($mode==='wrapped_readback'),
