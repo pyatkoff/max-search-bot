@@ -1,4 +1,4 @@
-name: Shorten the two reviewed Susesi headings once
+name: Read the unchanged Susesi native formatting once
 permissions:
   contents: read
   actions: read
@@ -23,25 +23,19 @@ jobs:
       with:
         ref: ${{ github.sha }}
         persist-credentials: false
-    - name: Verify exact scripts and native PHP before loading credentials
+    - name: Verify exact native reader and PHP syntax before credentials
       shell: bash
       run: |
         set -euo pipefail
         umask 077
+        test "$GITHUB_RUN_ATTEMPT" = 1
+        test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
         python3 - <<'PY'
         import hashlib,pathlib
-        p=pathlib.Path('tools/direct_demand/operations')
-        pins={'title-only-executor-template.php': 'c7499d15466db5fc1bfbff4870faa460a911d69ba5fd34b6f5c07b7cb8283e4d', 'title-only-markup-functions.php': '0667dc01ccbc023aa84d422463810122a51873928710ef835f5e7d603c314ac0', 'test-title-only-markup.php': '3c03344f7869cd08e100b370b8f016e3cf42397e5eca8243bf578e981b1e7903', 'prepare-title-only.py': '062b0b5081451ad130caa6c5fbc040a2c378d66a873f1eb3d7cc9b67313b4a7c', 'read-short-heading-scope-20261108.php': '16b2f660709bda1995fa4edbf90e67651338d54d25244e1b54cdabf36ec2aaea', 'short-heading-scope-20261107.json': 'd1c11d29609483213cd8988aeb398fca48c9d78b8a3588297066cf4926398724'}
-        for name,digest in pins.items():
-            assert hashlib.sha256((p/name).read_bytes()).hexdigest()==digest,(name,'reviewed_script_changed')
-        helper=(p/'title-only-markup-functions.php').read_text().split('declare(strict_types=1);',1)[1].strip()
-        assert helper in (p/'title-only-executor-template.php').read_text()
+        p=pathlib.Path('tools/direct_demand/operations/read-canary-formatting.php')
+        assert hashlib.sha256(p.read_bytes()).hexdigest()=='a7233c344118fed66d0ee22ca0b8097f670b3320b88d51b06e695b093c29a0ae'
         PY
-        python3 tools/direct_demand/operations/prepare-title-only.py --self-test
-        php -l tools/direct_demand/operations/title-only-executor-template.php
-        php -l tools/direct_demand/operations/title-only-markup-functions.php
-        php -l tools/direct_demand/operations/test-title-only-markup.php
-        php tools/direct_demand/operations/test-title-only-markup.php
+        php -l tools/direct_demand/operations/read-canary-formatting.php
         mkdir -m 700 "$RUNNER_TEMP/short-title-private"
     - name: Require original current-source release and health gates
       env:
@@ -113,63 +107,7 @@ jobs:
         assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
         pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
         PY
-    - name: Refresh the immutable 916-post scope and compile the two-post canary
-      shell: bash
-      env:
-        DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
-        DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
-      run: |
-        set -euo pipefail
-        umask 077
-        private="$RUNNER_TEMP/short-title-private"
-        python3 - <<'PY'
-        import base64,hashlib,os,pathlib
-        p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
-        raw=(p/'short-heading-scope-20261107.json').read_bytes()
-        source=(p/'read-short-heading-scope-20261108.php').read_text()
-        constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
-        (t/'reader.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-        PY
-        php -l "$private/reader.php"
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/reader.php" > "$private/snapshot.json"
-        python3 - <<'PY'
-        import hashlib,json,os,pathlib
-        p=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private');d=json.loads((p/'snapshot.json').read_text())
-        assert d['ok'] and d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA']
-        assert d['provider_calls']==d['post_write_attempts']==0 and len(d['posts'])==916
-        digest=hashlib.sha256(json.dumps(d['posts'],ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
-        assert digest=='a50fea3b1e2a5666750b5b5788776c05638ca4abe6d1290b062a6d2e7abb4d58','reviewed_target_snapshot_changed'
-        print('FRESH_SNAPSHOT_CONFIRMED exact_unchanged_posts=916 writes=0')
-        PY
-        python3 tools/direct_demand/operations/prepare-title-only.py --snapshot "$private/snapshot.json" --expected-installed-sha "$EXPECTED_PRODUCTION_SHA" --operation-prefix commercial-short-heading-20261108 --batch-size 20 --output-dir "$private/manifests"
-        python3 - <<'PY'
-        import base64,hashlib,json,os,pathlib
-        p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private')
-        index=json.loads((t/'manifests/plan-index.json').read_text())
-        assert index['selected_posts']==916 and index['no_matching_suffix_publication_ids']==[] and len(index['manifests'])==47
-        entry=index['manifests'][0];raw=(t/'manifests'/entry['file']).read_bytes();manifest=json.loads(raw)
-        assert hashlib.sha256(raw).hexdigest()==entry['sha256'] and entry['posts']==2
-        assert manifest['operation']=='commercial-short-heading-20261108-canary-v1'
-        assert {(r['platform'],r['publication_id'],r['version_id']) for r in manifest['rows']}=={('max',432,668),('telegram',431,669)}
-        constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_UPDATE_OPERATION='"+manifest['operation']+"';\nconst APPROVED_MANIFEST_SHA256='"+entry['sha256']+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
-        source=(p/'title-only-executor-template.php').read_text()
-        (t/'canary.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
-        intent={'operation':manifest['operation'],'state':'PREPARED_NOT_EXECUTED','expected_installed_sha':os.environ['EXPECTED_PRODUCTION_SHA'],'manifest_sha256':entry['sha256'],'post_count':2,'scope':'first-line suffix only; preserve existing messages, body, photos and button routes','once_no_replay':True}
-        (t/'intent.safe.json').write_text(json.dumps(intent,sort_keys=True))
-        print(json.dumps(intent,sort_keys=True))
-        PY
-        php -l "$private/canary.php"
-    - name: Retain the fresh snapshot and exact bounded manifests before the canary
-      uses: actions/upload-artifact@v4
-      with:
-        name: commercial-short-heading-20261108-prepared
-        path: |-
-          ${{ runner.temp }}/short-title-private/snapshot.json
-          ${{ runner.temp }}/short-title-private/manifests
-          ${{ runner.temp }}/short-title-private/intent.safe.json
-        retention-days: 14
-        if-no-files-found: error
-    - name: Recheck sole publisher and shorten exactly two existing headings once
+    - name: Read one MAX message and both registry markups without writes
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
@@ -192,33 +130,29 @@ jobs:
         assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
         assert queued['total_count']==0
         PY
-        probe_status=0
-        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/canary.php" > "$private/canary-result.jsonl" || probe_status=$?
-        CAPTION_SSH_STATUS="$probe_status" python3 - <<'PY'
-        import json,os,pathlib
-        t=pathlib.Path(os.environ['RUNNER_TEMP']);p=t/'short-title-private'
-        try:
-            d=json.loads((p/'canary-result.jsonl').read_text().splitlines()[-1])
-            if not isinstance(d,dict) or d.get('operation')!='commercial-short-heading-20261108-canary-v1' or type(d.get('ok')) is not bool:
-                raise ValueError('original_runtime_result_missing')
-        except Exception:
-            d={'operation':'commercial-short-heading-20261108-canary-v1','ok':False,'error':'no_valid_original_runtime_result','outcome':'UNKNOWN_STOP_NO_REPLAY'}
-        d['ssh_status']=int(os.environ['CAPTION_SSH_STATUS'])
-        (t/'short-title-canary.safe.json').write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n')
-        print(json.dumps(d,ensure_ascii=False,sort_keys=True))
-        assert d['operation']=='commercial-short-heading-20261108-canary-v1' and d['ok'] is True
-        assert d['installed_sha']==os.environ['EXPECTED_PRODUCTION_SHA'] and d['ssh_status']==0
-        assert d['preflight_existing_messages']==d['post_write_attempts']==d['title_updates']==len(d['posts'])==2
-        assert {r['publication_id'] for r in d['posts']}=={431,432}
-        assert all(r['state']=='sent' and r['body_photo_button_verified'] and r['formatting_verified'] and r['existing_message_reused'] and r['existing_token_resolves_to_current_version'] for r in d['posts'])
-        assert all(d[k]==0 for k in ['configuration_write_attempts','button_write_attempts','new_posts_created','tour_search_calls','price_queries'])
+        python3 - <<'PY'
+        import os,pathlib
+        p=pathlib.Path('tools/direct_demand/operations/read-canary-formatting.php')
+        source=p.read_text();const="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\n"
+        (pathlib.Path(os.environ['RUNNER_TEMP'],'short-title-private/format-reader.php')).write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+const,1))
         PY
-    - name: Retain the original two-post outcome
+        php -l "$private/format-reader.php"
+        probe_status=0
+        ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$private/format-reader.php" > "$RUNNER_TEMP/canary-native-format.json" || probe_status=$?
+        FORMAT_SSH_STATUS="$probe_status" python3 - <<'PY'
+        import json,os,pathlib
+        d=json.loads(pathlib.Path(os.environ['RUNNER_TEMP'],'canary-native-format.json').read_text())
+        print(json.dumps({k:d.get(k) for k in ['operation','ok','error','canary_operation_directory_absent','post_write_attempts','provider_read_calls','operation_file_writes']}))
+        assert d['ok'] is True and d['canary_operation_directory_absent'] is True
+        assert d['post_write_attempts']==d['operation_file_writes']==d['configuration_write_attempts']==0 and d['provider_read_calls']==1
+        assert len(d['posts'])==2 and os.environ['FORMAT_SSH_STATUS']=='0'
+        PY
+    - name: Retain the exact original native formatting evidence
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: commercial-short-heading-20261108-canary-result
-        path: ${{ runner.temp }}/short-title-canary.safe.json
+        name: commercial-short-heading-native-format-20261108
+        path: ${{ runner.temp }}/canary-native-format.json
         retention-days: 14
         if-no-files-found: warn
     - name: Remove only ephemeral connection and compiled private files
