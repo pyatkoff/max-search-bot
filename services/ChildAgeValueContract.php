@@ -10,6 +10,13 @@
  */
 final class ChildAgeValueContract
 {
+    /**
+     * Non-empty tombstone used when a changed child count invalidates ages from
+     * the previous party composition. It must stay non-numeric so every normal
+     * age consumer fails closed instead of reviving an older stored value.
+     */
+    public const INVALIDATED_STORAGE = '?';
+
     public static function parseLegacyInput(string $text, int $childrenCount): ?array
     {
         preg_match('/[^\d\s,]{1,}/', $text, $invalid);
