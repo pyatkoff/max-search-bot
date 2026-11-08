@@ -113,6 +113,32 @@ Display review times in Europe/Moscow. Use validated recording instants where
 available; preserve the uncertainty of legacy bare DATETIME values. Do not
 reinterpret or rewrite historical stored times.
 
+### Newly created open dialogues first
+
+An ordinary inventory response includes `newest_open.start_cursor`. Pass this
+server-issued value as `cursor` to the same `list_current_dialogues` tool to
+start a pass in `conversation_id_desc` order. Continue that pass with its
+`next_cursor`. Calling without a cursor retains the existing ascending order.
+Both orders return the same authorized open population and ordinary
+`dialogue_ref` values for `get_dialogue_review_context`.
+
+The descending order prioritizes newly created native conversation IDs. Older
+dialogue IDs can still receive fresh messages. The descriptor and descending
+coverage therefore declare `latest_activity_inventory=false` and
+`all_today_coverage=false`; a partial pass does not establish either coverage.
+Use a valid issued dialogue reference without a context cursor to read its
+current message tail, or continue the ordinary inventory for broader coverage.
+No legacy bare DATETIME is interpreted as UTC or used as a recency filter.
+
+The signed start cursor binds the order, upper conversation ID, administrator,
+connection and existing expiry. The first page includes its upper ID; subsequent
+pages use an exclusive lower ID boundary. New conversations above that fence
+wait for a fresh pass. A later response's `newest_open.start_cursor` starts a
+new pass at that read's current fence; it is not the continuation cursor.
+The existing per-request permission checks, read-only snapshot, 50-row inventory
+and 64KiB response limits remain in force. Retained history lanes do not expose
+this descriptor or accept its cursor kind.
+
 ## Hourly reporting
 
 Activate exactly one private reporting schedule after the existing connection
