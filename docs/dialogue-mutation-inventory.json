@@ -68,9 +68,9 @@
       "path": "handlers/StateMessageHandler.php",
       "receiver": "MaxSearchApi",
       "method": "setStatus",
-      "occurrences": 1,
+      "occurrences": 2,
       "classification": "transition",
-      "rationale": "Enter AI fallback state."
+      "rationale": "Enter AI fallback, or open the existing country step for an exact country name in an explicitly opened edit menu."
     },
     {
       "path": "maxsearchbaseclass.php",

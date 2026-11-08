@@ -16,10 +16,13 @@ class EditParamsView
 
         $ok = IntegrationRegistry::messenger()->sendWithButtons(
             $chatId,
-            "✏️ <b>Что хотите изменить?</b>\n\nНе нужно начинать подбор заново — выберите только нужный параметр.",
+            "✏️ <b>Что хотите изменить?</b>\n\nВыберите нужный параметр. Чтобы изменить страну, можно просто написать её название.",
             $buttons
         );
-        if ($ok) MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusCheck);
+        if ($ok) {
+            MaxSearchApi::setStatus($chatId, MaxSearchApi::$statusCheck);
+            MaxSearchApi::setEditMode($chatId, 'menu');
+        }
         return (bool)$ok;
     }
 }
