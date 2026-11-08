@@ -377,7 +377,7 @@ function oneTouchDepartureForTrip(trip){
 function oneTouchPanelSearch(panel){return !!oneTouchDepartureName(panel?.departureId)&&!!oneTouchPanelParty(panel)}
 function oneTouchReviewMatches(panel){
   const review=panel?.review;
-  return oneTouchPanelSearch(panel)&&!!review&&sameOneTouchParty(review.offer,oneTouchPanelParty(panel))&&review.offer.date_from===panel.date&&review.offer.nights===panel.nights&&(panel.bundle?new URL(panel.bundle.source.url).searchParams.get('TOWNFROMINC')===panel.departureId:oneTouchDirectReference(review.source_reference,review.offer,panel.departureId));
+  return oneTouchPanelSearch(panel)&&!!review&&sameOneTouchParty(review.offer,oneTouchPanelParty(panel))&&review.offer.date_from===panel.date&&review.offer.nights===panel.nights&&(panel.bundle?oneTouchFileIdentity(panel.bundle.source.url)?.departureId===panel.departureId:oneTouchDirectReference(review.source_reference,review.offer,panel.departureId));
 }
 function oneTouchParty(value){
   const ages=value?.child_ages;
@@ -455,6 +455,18 @@ function oneTouchCaptureHeader(bundle){
   if(new TextEncoder().encode(JSON.stringify(source)).length>90000)throw Error('Данные источника превышают допустимый размер файла.');return source;
 }
 function oneTouchGallery(bundle,raw){const list=bundle.gallery_cache.filter(g=>g.url===raw.hotel_url&&g.html_sha256===raw.capture_gallery_sha256);if(list.length!==1)throw Error('Галерея не соответствует сохранённому предложению.');return list[0]}
+function oneTouchFileIdentity(url){
+  if(!oneTouchUrlParty(url))return null;
+  return {url,departureId:new URL(url).searchParams.get('TOWNFROMINC')};
+}
+function oneTouchFileSourceMatches(source,identity){
+  const actual=oneTouchFileIdentity(source?.url),expected=oneTouchFileIdentity(identity?.url);
+  return source?.adapter==='onetouch-public-v1'&&source.raw?.capture_mode==='manager-file-v1'&&!!actual&&!!expected&&identity.departureId===expected.departureId&&actual.url===expected.url&&actual.departureId===expected.departureId;
+}
+function oneTouchFilePhotoMatches(offer,saved){
+  const source=offer?.import_source;
+  return oneTouchFileSourceMatches(source,saved?.sourceIdentity)&&source.raw.capture_reference===saved.raw.capture_reference&&source.raw.hotel_url===saved.raw.hotel_url&&oneTouchPartyMatches(offer,saved.offer)&&['hotel','departure','destination','date_from','nights','room','meal','amount','currency','price_qualifier'].every(k=>Object.hasOwn(source.fields||{},k)&&source.fields[k]===saved.offer[k])&&source.raw.tariff===saved.raw.tariff&&source.raw.tour===saved.raw.tour;
+}
 async function oneTouchLocalPhotos(panel,review,gallery){
   const hashes=JSON.parse(review.raw.capture_photo_sha256),prepared=[];
   try{for(const url of review.photos){
@@ -467,16 +479,17 @@ async function oneTouchLocalPhotos(panel,review,gallery){
   }return prepared;}catch(e){for(const p of prepared)URL.revokeObjectURL(p.preview);throw e}
 }
 function oneTouchRememberPhotos(command,panel){
-  oneTouchPendingFiles.set(command.operation_id,{target:clone(context),epoch,raw:clone(panel.review.raw),offer:clone(panel.review.offer),photos:panel.review.localPhotos});
+  const sourceIdentity=oneTouchFileIdentity(panel.bundle?.source?.url);if(!sourceIdentity)return false;
+  oneTouchPendingFiles.set(command.operation_id,{target:clone(context),epoch,sourceIdentity,raw:clone(panel.review.raw),offer:clone(panel.review.offer),photos:panel.review.localPhotos});return true;
 }
 async function oneTouchFinishPhotos(operation,offerId,photoMode,expected){
   const saved=oneTouchPendingFiles.get(operation);if(!saved){const offer=photoMode==='url'?oneTouchDirectPhotoOffer(offerId,expected):null;if(!offer)return false;selected=offer.id;render();status('OneTouch сохранён с фотографиями и исходными условиями. Сообщения туристу не отправлялись.');return true}
   if(!current(saved.target)||epoch!==saved.epoch||pending||conflict||dirty||busy||!dialog?.open)return false;
-  const matches=draft.offers.filter(o=>o.import_source?.adapter==='onetouch-public-v1'&&o.import_source.raw.capture_reference===saved.raw.capture_reference&&o.import_source.raw.hotel_url===saved.raw.hotel_url&&oneTouchPartyMatches(o,saved.offer)&&['hotel','date_from','nights','room','meal','amount'].every(k=>Object.hasOwn(o.import_source.fields||{},k)&&o.import_source.fields[k]===saved.offer[k])&&o.import_source.raw.tariff===saved.raw.tariff&&o.import_source.raw.tour===saved.raw.tour);
+  const matches=draft.offers.filter(o=>oneTouchFilePhotoMatches(o,saved));
   const offer=offerId?matches.find(o=>o.id===offerId):matches.length===1?matches[0]:null;if(!offer){status('Тур сохранён; привязку фотографий нужно проверить. Повторного импорта нет.',true);return false}
   selected=offer.id;render();
   for(let i=0;i<saved.photos.length;i++){
-    if(!current(saved.target)||epoch!==saved.epoch||pending||conflict||dirty||busy||photoUpload||!dialog?.open||item()?.id!==offer.id)return false;
+    if(!current(saved.target)||epoch!==saved.epoch||pending||conflict||dirty||busy||photoUpload||!dialog?.open||item()?.id!==offer.id||!oneTouchFilePhotoMatches(item(),saved))return false;
     const kind=['cover','beach','room'][i],photo=saved.photos[i];if(item().photos.some(p=>p.kind===kind))continue;
     photoUpload={target:capture(),epoch,offer:offer.id,kind,version,operation:id(),file:new File([photo.bytes],'OneTouch-photo-'+(i+1)+'.jpg',{type:'image/jpeg'}),sourcePhotoUrl:photo.source,encoded:null,hash:null,nextPart:0,progress:0,controller:null,loading:false};
     await submitPhotoUpload();if(photoUpload||pending||conflict||dirty)return false;
@@ -485,17 +498,22 @@ async function oneTouchFinishPhotos(operation,offerId,photoMode,expected){
 }
 async function oneTouchResumePhotos(panel){
   if(!oneTouchCurrent(panel)||busy||!panel.bundle)return;let offer=item(),source=offer?.import_source;const offerId=offer?.id;
-  if(source?.adapter!=='onetouch-public-v1'||source.raw?.capture_reference!==panel.bundle.source.reference)return;
+  const identity=oneTouchFileIdentity(panel.bundle.source.url),fileRead=panel.fileRead;
+  const sameFile=()=>panel.fileRead===fileRead&&panel.bundle?.source?.url===identity?.url;
   try{
+    if(!oneTouchFileSourceMatches(source,identity)||source.raw.capture_reference!==panel.bundle.source.reference)throw Error('Файл относится к другому сохранённому поиску OneTouch. Фотографии не перенесены.');
     if(!oneTouchCanonicalPartiesCurrent()){
-      await load();if(!oneTouchCurrent(panel)||selected!==offerId)throw Error('Сохранённый вариант изменился. Проверьте привязку фотографий.');
+      await load();if(!oneTouchCurrent(panel)||selected!==offerId||!sameFile())throw Error('Сохранённый вариант или файл изменился. Проверьте привязку фотографий.');
       offer=draft.offers.find(value=>value.id===offerId);source=offer?.import_source;
-      if(source?.adapter!=='onetouch-public-v1'||source.raw?.capture_reference!==panel.bundle.source.reference)throw Error('Источник сохранённого варианта изменился.');
+      if(!oneTouchFileSourceMatches(source,identity)||source.raw.capture_reference!==panel.bundle.source.reference)throw Error('Источник сохранённого варианта изменился.');
     }
     const party=oneTouchSavedSourceParty(offer);
     if(!party||!source.fields||!oneTouchPartyMatches(offer,party))throw Error('Не удалось подтвердить сохранённый состав. Фотографии не перенесены.');
     const review={raw:source.raw,photos:source.photos},gallery=oneTouchGallery(panel.bundle,source.raw);review.localPhotos=await oneTouchLocalPhotos(panel,review,gallery);
-    const operation=id();oneTouchPendingFiles.set(operation,{target:clone(context),epoch,raw:clone(source.raw),offer:{...clone(source.fields),...party},photos:review.localPhotos});clearOneTouchCapture();render();await oneTouchFinishPhotos(operation,offer.id);
+    if(!oneTouchCurrent(panel)||selected!==offerId||!sameFile()||!oneTouchFileSourceMatches(item()?.import_source,identity)){
+      for(const photo of review.localPhotos)URL.revokeObjectURL(photo.preview);throw Error('Сохранённый вариант или файл изменился. Фотографии не перенесены.');
+    }
+    const operation=id();oneTouchPendingFiles.set(operation,{target:clone(context),epoch,sourceIdentity:identity,raw:clone(source.raw),offer:{...clone(source.fields),...party},photos:review.localPhotos});clearOneTouchCapture();render();await oneTouchFinishPhotos(operation,offer.id);
   }catch(e){panel.message=e.message;panel.error=true;render()}
 }
 
@@ -612,7 +630,7 @@ async function reviewOneTouch(panel,row){
 async function addOneTouch(panel){
   if(!oneTouchCurrent(panel)||busy||!panel.review||!$('tsOneTouchConfirm')?.checked||!oneTouchPhotosReady(panel)||!oneTouchReviewMatches(panel))return;
   let amount;try{const units=priceUnits($('tsOneTouchAmount').value);if(units<=0n)throw Error();amount=String(units/100n)+(units%100n?'.'+String(units%100n).padStart(2,'0'):'')}catch(e){panel.message='Укажите положительную цену с точностью до двух знаков.';panel.error=true;$('tsOneTouchStatus').textContent=panel.message;return}
-  const command={kind:'onetouch',operation_id:id(),ticket:panel.review.ticket,confirm_price_from:true,manager_amount:amount,dispatched:false,photo_mode:panel.bundle?'file':'url',...(!panel.bundle?{photo_expected:{source_reference:clone(panel.review.source_reference),offer:clone(panel.review.offer),raw:clone(panel.review.raw),photos:clone(panel.review.photos)}}:{})};if(panel.bundle)oneTouchRememberPhotos(command,panel);pending=command;clearOneTouchCapture();stash();render();return submitOneTouch(command);
+  const command={kind:'onetouch',operation_id:id(),ticket:panel.review.ticket,confirm_price_from:true,manager_amount:amount,dispatched:false,photo_mode:panel.bundle?'file':'url',...(!panel.bundle?{photo_expected:{source_reference:clone(panel.review.source_reference),offer:clone(panel.review.offer),raw:clone(panel.review.raw),photos:clone(panel.review.photos)}}:{})};if(panel.bundle&&!oneTouchRememberPhotos(command,panel)){panel.message='Не удалось подтвердить исходный город файла. Фотографии не перенесены.';panel.error=true;render();return}pending=command;clearOneTouchCapture();stash();render();return submitOneTouch(command);
 }
 async function submitOneTouch(command){
   if(!current()||busy||pending!==command)return;if(command.dispatched)return reconcileOneTouch();
