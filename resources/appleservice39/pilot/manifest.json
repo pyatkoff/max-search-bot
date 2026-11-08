@@ -1,0 +1,718 @@
+{
+  "schema_version": 1,
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "channel_url": "https://max.ru/channel_appleservice39ru",
+  "source_key": "max:appleservice39-main",
+  "campaign_key": "appleservice39-pilot-v1",
+  "menu_post_id": "menu",
+  "posts": [
+    {
+      "id": "repair-iphone-x-battery-replacement",
+      "kind": "repair",
+      "text": "Замена аккумулятора на iPhone X\n\niPhone X быстро разряжается или выключается раньше времени? Нажмите «Уточнить ремонт» и напишите, что происходит с телефоном.\n\nЗамена аккумулятора по прайсу — 3 500 ₽. Диагностика бесплатная. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-x-battery-replacement.png",
+        "sha256": "bd972a093c2d1d3455000484a17405a51a6267e0254404c645044e3a5097fe78"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-x-battery-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-x",
+          "label": "Ремонт iPhone X"
+        },
+        {
+          "id": "service-battery-replacement",
+          "label": "Аккумуляторы для iPhone"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-x-front-glass-replacement",
+      "kind": "repair",
+      "text": "Замена стекла на iPhone X\n\nЕсли стекло разбилось, а изображение и касания сохранились, мастер проверит, можно ли заменить только стекло.\n\nСтоимость по прайсу — 5 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-x-front-glass-replacement.png",
+        "sha256": "b1f4f96721f9db97256ec3bc1143e6a5c55a5ae0bce90a292e20e3334b243b82"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-x-front-glass-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-x",
+          "label": "Ремонт iPhone X"
+        },
+        {
+          "id": "service-front-glass-replacement",
+          "label": "Стекло экрана для iPhone"
+        },
+        {
+          "id": "repair-iphone-x-display",
+          "label": "Замена дисплея"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-x-display",
+      "kind": "repair",
+      "text": "Замена дисплея на iPhone X\n\nЕсли экран не показывает, появились полосы или не работает сенсор, нажмите «Уточнить ремонт» и опишите, что случилось.\n\nОригинальный дисплей — 12 000 ₽. Аналог — 6 000 ₽. Цены по прайсу. Уточним наличие и условия выбранного варианта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-x-display.png",
+        "sha256": "15484218754550af4ea3b90ebf846503a1c99ae779a3f3cc3832b77912ccda2b"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-x-display"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-x",
+          "label": "Ремонт iPhone X"
+        },
+        {
+          "id": "service-display",
+          "label": "Дисплеи для iPhone"
+        },
+        {
+          "id": "repair-iphone-x-front-glass-replacement",
+          "label": "Замена стекла"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-battery-replacement",
+      "kind": "repair",
+      "text": "Замена аккумулятора на iPhone 15\n\nЕсли заряда стало хватать на меньшее время, напишите, как быстро разряжается телефон. Если знаете максимальную ёмкость аккумулятора, укажите её.\n\nСтоимость по прайсу — 6 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-battery-replacement.png",
+        "sha256": "7778d547fd5ecc258a08784debff8cdcc32c68aa300dc00898dcfd1d48aabd44"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-battery-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15",
+          "label": "Ремонт iPhone 15"
+        },
+        {
+          "id": "service-battery-replacement",
+          "label": "Аккумуляторы для iPhone"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-front-glass-replacement",
+      "kind": "repair",
+      "text": "Замена стекла на iPhone 15\n\nЕсли переднее стекло треснуло, но экран показывает и реагирует на касания, проверим, можно ли сохранить дисплей.\n\nСтоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-front-glass-replacement.png",
+        "sha256": "bf848a84073dcdffbac3dd50571b4788d18dca130d31c43d715ac5975e3ec4cc"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-front-glass-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15",
+          "label": "Ремонт iPhone 15"
+        },
+        {
+          "id": "service-front-glass-replacement",
+          "label": "Стекло экрана для iPhone"
+        },
+        {
+          "id": "repair-iphone-15-display",
+          "label": "Замена дисплея"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-display",
+      "kind": "repair",
+      "text": "Замена дисплея на iPhone 15\n\nПоявились пятна, полосы или экран не реагирует на касания? Напишите, как это началось и видна ли картинка.\n\nСтоимость по запросу. Уточним варианты дисплея, цену и наличие детали.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-display.png",
+        "sha256": "ed84d5c655c0a3377536efdbe66165cef70d47b704e24acbb0d7e7ce76e9a729"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-display"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15",
+          "label": "Ремонт iPhone 15"
+        },
+        {
+          "id": "service-display",
+          "label": "Дисплеи для iPhone"
+        },
+        {
+          "id": "repair-iphone-15-front-glass-replacement",
+          "label": "Замена стекла"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-plus-battery-replacement",
+      "kind": "repair",
+      "text": "Замена аккумулятора на iPhone 15 Plus\n\nЕсли телефон внезапно выключается с остатком заряда, напишите, какой процент он показывал и что вы делали в момент отключения.\n\nСтоимость по прайсу — 6 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-plus-battery-replacement.png",
+        "sha256": "3a9ba2f9550737156b51477e2ab96aee643b30c2eb23601f3e2e1ff2bf00d62d"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-plus-battery-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-plus",
+          "label": "Ремонт iPhone 15 Plus"
+        },
+        {
+          "id": "service-battery-replacement",
+          "label": "Аккумуляторы для iPhone"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-plus-front-glass-replacement",
+      "kind": "repair",
+      "text": "Замена стекла на iPhone 15 Plus\n\nРазбито стекло на iPhone 15 Plus? Напишите, есть ли пятна или полосы и реагирует ли экран на касания. Это поможет понять, можно ли заменить одно стекло.\n\nСтоимость по прайсу — 8 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-plus-front-glass-replacement.png",
+        "sha256": "1aad66a643ed0dcdf2ea149435131eb6c6bec573b35be3d46414c0dcb036b8ef"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-plus-front-glass-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-plus",
+          "label": "Ремонт iPhone 15 Plus"
+        },
+        {
+          "id": "service-front-glass-replacement",
+          "label": "Стекло экрана для iPhone"
+        },
+        {
+          "id": "repair-iphone-15-plus-display",
+          "label": "Замена дисплея"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-plus-display",
+      "kind": "repair",
+      "text": "Замена дисплея на iPhone 15 Plus\n\nЭкран мерцает или часть изображения стала чёрной? Напишите, работает ли сенсор на всей площади экрана и меняется ли симптом со временем.\n\nСтоимость по запросу. Уточним варианты дисплея, цену и наличие детали.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-plus-display.png",
+        "sha256": "e3b25dec2e04b6c38ccfea897fca5f994bb09e9c6c5ed5d9a3ce8e5f8f066dda"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-plus-display"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-plus",
+          "label": "Ремонт iPhone 15 Plus"
+        },
+        {
+          "id": "service-display",
+          "label": "Дисплеи для iPhone"
+        },
+        {
+          "id": "repair-iphone-15-plus-front-glass-replacement",
+          "label": "Замена стекла"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-pro-battery-replacement",
+      "kind": "repair",
+      "text": "Замена аккумулятора на iPhone 15 Pro\n\nЕсли аккумулятор быстро разряжается, напишите, при каком использовании это заметнее. Можно указать максимальную ёмкость, если она известна.\n\nСтоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-pro-battery-replacement.png",
+        "sha256": "799eaf8d7430231b77639a96e719b1da87e05ecd6d3a01ba0703042984cfa486"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-pro-battery-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-pro",
+          "label": "Ремонт iPhone 15 Pro"
+        },
+        {
+          "id": "service-battery-replacement",
+          "label": "Аккумуляторы для iPhone"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-pro-front-glass-replacement",
+      "kind": "repair",
+      "text": "Замена стекла на iPhone 15 Pro\n\nТреснуло переднее стекло, а картинка и сенсор работают? Мастер проверит дисплей и уточнит, можно ли заменить стекло отдельно.\n\nСтоимость по прайсу — 9 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-pro-front-glass-replacement.png",
+        "sha256": "55ce0e506f1d961c74eb7c35e59194574f37471afd601852d981f7047440c3ed"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-pro-front-glass-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-pro",
+          "label": "Ремонт iPhone 15 Pro"
+        },
+        {
+          "id": "service-front-glass-replacement",
+          "label": "Стекло экрана для iPhone"
+        },
+        {
+          "id": "repair-iphone-15-pro-display",
+          "label": "Замена дисплея"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-pro-display",
+      "kind": "repair",
+      "text": "Замена дисплея на iPhone 15 Pro\n\nПосле удара появились цветные полосы, мерцание или пропало изображение? Напишите, когда это заметили и работает ли сенсор.\n\nСтоимость по запросу. Уточним варианты дисплея, цену и наличие детали.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-pro-display.png",
+        "sha256": "2dcdf3ceff627293de573b10f8e0143ec6c8c26b19510ca641bb88e9ad46324f"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-pro-display"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-pro",
+          "label": "Ремонт iPhone 15 Pro"
+        },
+        {
+          "id": "service-display",
+          "label": "Дисплеи для iPhone"
+        },
+        {
+          "id": "repair-iphone-15-pro-front-glass-replacement",
+          "label": "Замена стекла"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-pro-max-battery-replacement",
+      "kind": "repair",
+      "text": "Замена аккумулятора на iPhone 15 Pro Max\n\nТелефон быстро теряет заряд или неожиданно выключается? Нажмите «Уточнить ремонт» и опишите, когда это происходит. Если знаете максимальную ёмкость аккумулятора, укажите её.\n\nСтоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-pro-max-battery-replacement.png",
+        "sha256": "56f3ba966bd5844c6463965013a34271e8946f3469afc23a1ce7f924920fbdd2"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-pro-max-battery-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-pro-max",
+          "label": "Ремонт iPhone 15 Pro Max"
+        },
+        {
+          "id": "service-battery-replacement",
+          "label": "Аккумуляторы для iPhone"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-pro-max-front-glass-replacement",
+      "kind": "repair",
+      "text": "Замена стекла на iPhone 15 Pro Max\n\nЕсли разбито переднее стекло, а изображение есть и сенсор работает, проверим, можно ли сохранить дисплей и заменить только стекло.\n\nНапишите, есть ли пятна, полосы или сбои касаний.\n\nСтоимость по прайсу — 10 000 ₽. Актуальную цену и наличие детали уточним до ремонта.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-pro-max-front-glass-replacement.png",
+        "sha256": "ed00395400b2ec630f861079edcaf7501734178b776feb84f44bf7fb224e1e66"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-pro-max-front-glass-replacement"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-pro-max",
+          "label": "Ремонт iPhone 15 Pro Max"
+        },
+        {
+          "id": "service-front-glass-replacement",
+          "label": "Стекло экрана для iPhone"
+        },
+        {
+          "id": "repair-iphone-15-pro-max-display",
+          "label": "Замена дисплея"
+        }
+      ]
+    },
+    {
+      "id": "repair-iphone-15-pro-max-display",
+      "kind": "repair",
+      "text": "Замена дисплея на iPhone 15 Pro Max\n\nНа экране появились полосы, пятна или пропало изображение? Нажмите «Уточнить ремонт» и напишите, что происходит с экраном и реагирует ли он на касания.\n\nСтоимость по запросу. Уточним варианты дисплея, цену и наличие детали.\n\nКнопка «Уточнить ремонт» откроет бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/repair-iphone-15-pro-max-display.png",
+        "sha256": "d68e73e14cfa170055fab584ea2e7c23a056af2dd0a8a45383f99a42692079a4"
+      },
+      "buttons": [
+        {
+          "text": "Уточнить ремонт",
+          "url": "https://max.ru/id390521129062_bot?start=as39_repair-iphone-15-pro-max-display"
+        }
+      ],
+      "links": [
+        {
+          "id": "model-iphone-15-pro-max",
+          "label": "Ремонт iPhone 15 Pro Max"
+        },
+        {
+          "id": "service-display",
+          "label": "Дисплеи для iPhone"
+        },
+        {
+          "id": "repair-iphone-15-pro-max-front-glass-replacement",
+          "label": "Замена стекла"
+        }
+      ]
+    },
+    {
+      "id": "model-iphone-x",
+      "kind": "model",
+      "text": "Ремонт iPhone X\n\nЕсли пропало изображение или сенсор перестал работать, откройте карточку дисплея. При трещинах с рабочим экраном посмотрите замену стекла. Если телефон быстро разряжается, откройте карточку аккумулятора.",
+      "image": {
+        "path": "covers/model-iphone-x.png",
+        "sha256": "4c664ae0cfea528eea534f3de6fe70bc4051b49efd05834f85c456657d0f2ed1"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "repair-iphone-x-display",
+          "label": "Дисплей"
+        },
+        {
+          "id": "repair-iphone-x-front-glass-replacement",
+          "label": "Стекло экрана"
+        },
+        {
+          "id": "repair-iphone-x-battery-replacement",
+          "label": "Аккумулятор"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        }
+      ]
+    },
+    {
+      "id": "model-iphone-15",
+      "kind": "model",
+      "text": "Ремонт iPhone 15\n\nПосле падения или удара появилась проблема с экраном? Выберите дисплей или стекло по симптомам. При быстрой разрядке откройте карточку аккумулятора.",
+      "image": {
+        "path": "covers/model-iphone-15.png",
+        "sha256": "802fefcaa3272b6a7dbd549717dd2719727ac7c8d74131c1decf4177d1842542"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "repair-iphone-15-display",
+          "label": "Дисплей"
+        },
+        {
+          "id": "repair-iphone-15-front-glass-replacement",
+          "label": "Стекло экрана"
+        },
+        {
+          "id": "repair-iphone-15-battery-replacement",
+          "label": "Аккумулятор"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        }
+      ]
+    },
+    {
+      "id": "model-iphone-15-plus",
+      "kind": "model",
+      "text": "Ремонт iPhone 15 Plus\n\nЗдесь собраны три услуги для iPhone 15 Plus. Если экран мерцает или частично погас, начните с дисплея. При трещинах с рабочим экраном посмотрите замену стекла.",
+      "image": {
+        "path": "covers/model-iphone-15-plus.png",
+        "sha256": "30cafb7ffe48b7e35525ae5891461263924ce606beafb4e85c6b8a3c658a8915"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "repair-iphone-15-plus-display",
+          "label": "Дисплей"
+        },
+        {
+          "id": "repair-iphone-15-plus-front-glass-replacement",
+          "label": "Стекло экрана"
+        },
+        {
+          "id": "repair-iphone-15-plus-battery-replacement",
+          "label": "Аккумулятор"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        }
+      ]
+    },
+    {
+      "id": "model-iphone-15-pro",
+      "kind": "model",
+      "text": "Ремонт iPhone 15 Pro\n\nДля iPhone 15 Pro есть отдельные карточки дисплея, переднего стекла и аккумулятора. Выберите нужную услугу и опишите, что случилось с телефоном.",
+      "image": {
+        "path": "covers/model-iphone-15-pro.png",
+        "sha256": "fb9b76c25ca5ea26b24d2f1a5a0c353c2626ed0d28c0a3f5a6f4566a6be72e47"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "repair-iphone-15-pro-display",
+          "label": "Дисплей"
+        },
+        {
+          "id": "repair-iphone-15-pro-front-glass-replacement",
+          "label": "Стекло экрана"
+        },
+        {
+          "id": "repair-iphone-15-pro-battery-replacement",
+          "label": "Аккумулятор"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        }
+      ]
+    },
+    {
+      "id": "model-iphone-15-pro-max",
+      "kind": "model",
+      "text": "Ремонт iPhone 15 Pro Max\n\nНа экране полосы, пропало изображение или сенсор не реагирует на касания? Откройте карточку дисплея. Если стекло треснуло, но экран и сенсор работают, начните с карточки стекла. При быстрой разрядке посмотрите условия замены аккумулятора.",
+      "image": {
+        "path": "covers/model-iphone-15-pro-max.png",
+        "sha256": "691997a7beb033238a28ff599e683fcd4502bb77720dc8dea7171d590cd404b9"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "repair-iphone-15-pro-max-display",
+          "label": "Дисплей"
+        },
+        {
+          "id": "repair-iphone-15-pro-max-front-glass-replacement",
+          "label": "Стекло экрана"
+        },
+        {
+          "id": "repair-iphone-15-pro-max-battery-replacement",
+          "label": "Аккумулятор"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        }
+      ]
+    },
+    {
+      "id": "service-display",
+      "kind": "category",
+      "text": "Замена дисплея на iPhone\n\nНа экране полосы, пятна или пропало изображение? Напишите, реагирует ли экран на касания и как появилась неисправность.\n\nВыберите модель iPhone. В карточке ремонта можно уточнить условия.",
+      "image": {
+        "path": "covers/service-display.png",
+        "sha256": "4833214b6e147979a8eb43a255af509b06e83b2118c798bd3878d99166fe1788"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "repair-iphone-15-display",
+          "label": "iPhone 15"
+        },
+        {
+          "id": "repair-iphone-15-plus-display",
+          "label": "iPhone 15 Plus"
+        },
+        {
+          "id": "repair-iphone-15-pro-display",
+          "label": "iPhone 15 Pro"
+        },
+        {
+          "id": "repair-iphone-15-pro-max-display",
+          "label": "iPhone 15 Pro Max"
+        },
+        {
+          "id": "repair-iphone-x-display",
+          "label": "iPhone X"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        }
+      ]
+    },
+    {
+      "id": "service-front-glass-replacement",
+      "kind": "category",
+      "text": "Замена стекла экрана на iPhone\n\nПереднее стекло треснуло? Напишите, остались ли изображение и реакция на касания. Проверим, можно ли сохранить дисплей.\n\nВыберите модель iPhone. В карточке ремонта можно уточнить условия.",
+      "image": {
+        "path": "covers/service-front-glass-replacement.png",
+        "sha256": "e35286133c030e59fc0a3b0fdb1dcf30895aaa8eb5babbec7ccb6165e4c940fd"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "repair-iphone-15-front-glass-replacement",
+          "label": "iPhone 15"
+        },
+        {
+          "id": "repair-iphone-15-plus-front-glass-replacement",
+          "label": "iPhone 15 Plus"
+        },
+        {
+          "id": "repair-iphone-15-pro-front-glass-replacement",
+          "label": "iPhone 15 Pro"
+        },
+        {
+          "id": "repair-iphone-15-pro-max-front-glass-replacement",
+          "label": "iPhone 15 Pro Max"
+        },
+        {
+          "id": "repair-iphone-x-front-glass-replacement",
+          "label": "iPhone X"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        }
+      ]
+    },
+    {
+      "id": "service-battery-replacement",
+      "kind": "category",
+      "text": "Замена аккумулятора на iPhone\n\nБыстро садится заряд или телефон выключается с остатком? Напишите, когда это происходит. Если знаете максимальную ёмкость, укажите её.\n\nВыберите модель iPhone. В карточке ремонта можно уточнить условия.",
+      "image": {
+        "path": "covers/service-battery-replacement.png",
+        "sha256": "39e634e446954baccce608e8576d4e3edd212327e876fffdea92859e8b8301a6"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "repair-iphone-15-battery-replacement",
+          "label": "iPhone 15"
+        },
+        {
+          "id": "repair-iphone-15-plus-battery-replacement",
+          "label": "iPhone 15 Plus"
+        },
+        {
+          "id": "repair-iphone-15-pro-battery-replacement",
+          "label": "iPhone 15 Pro"
+        },
+        {
+          "id": "repair-iphone-15-pro-max-battery-replacement",
+          "label": "iPhone 15 Pro Max"
+        },
+        {
+          "id": "repair-iphone-x-battery-replacement",
+          "label": "iPhone X"
+        },
+        {
+          "id": "menu",
+          "label": "Меню ремонта"
+        }
+      ]
+    },
+    {
+      "id": "menu",
+      "kind": "menu",
+      "text": "Ремонт iPhone в Калининграде\n\nAppleService39. Выберите модель iPhone или услугу. В карточке ремонта нажмите «Уточнить ремонт», чтобы открыть бота с выбранной моделью и услугой.",
+      "image": {
+        "path": "covers/menu.png",
+        "sha256": "b62fabf99cab3d7b1063978d35738cbece32988eff633cee9cce2d1c0f704dfe"
+      },
+      "buttons": [],
+      "links": [
+        {
+          "id": "model-iphone-15",
+          "label": "iPhone 15"
+        },
+        {
+          "id": "model-iphone-15-plus",
+          "label": "iPhone 15 Plus"
+        },
+        {
+          "id": "model-iphone-15-pro",
+          "label": "iPhone 15 Pro"
+        },
+        {
+          "id": "model-iphone-15-pro-max",
+          "label": "iPhone 15 Pro Max"
+        },
+        {
+          "id": "model-iphone-x",
+          "label": "iPhone X"
+        },
+        {
+          "id": "service-display",
+          "label": "Замена дисплея"
+        },
+        {
+          "id": "service-front-glass-replacement",
+          "label": "Замена стекла"
+        },
+        {
+          "id": "service-battery-replacement",
+          "label": "Замена аккумулятора"
+        }
+      ]
+    }
+  ]
+}

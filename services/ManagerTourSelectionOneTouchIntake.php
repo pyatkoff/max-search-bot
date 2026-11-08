@@ -34,7 +34,7 @@ final class ManagerTourSelectionOneTouchIntake
             else return self::error('onetouch_capture_required');
             if(!self::sameContext($context,ManagerTourSelectionService::sourceContext($actor,$conversation)))return self::error('draft_changed');
             $offers=[];
-            foreach($quotes as $quote)$offers[]=['offer'=>$quote['offer'],'raw'=>$quote['raw'],'ticket'=>self::seal($session,$actor,$conversation,$context,$quote,'quote',$expires)];
+            foreach($quotes as $quote)$offers[]=['offer'=>$quote['offer'],'raw'=>$quote['raw'],'source_reference'=>['quote_id'=>$quote['quote_id'],'url'=>$quote['url']],'ticket'=>self::seal($session,$actor,$conversation,$context,$quote,'quote',$expires)];
             return ['ok'=>true,'version'=>$context['version'],'offers'=>$offers,'total'=>count($offers)];
         }catch(Throwable $e){return self::error($e instanceof RuntimeException&&in_array($e->getMessage(),['onetouch_source_changed','onetouch_capture_expired','onetouch_capture_invalid'],true)?$e->getMessage():'onetouch_source_unavailable');}
     }
@@ -228,7 +228,7 @@ final class ManagerTourSelectionOneTouchIntake
             elseif($kind==='html'){
                 $form=[];foreach(explode('&',$p['query']??'') as $pair){if(!preg_match('/\A([A-Z_]+)=([0-9]+(?:%2C[0-9]+){0,2})\z/D',$pair,$m)||isset($form[$m[1]])||$m[1]!=='AGES'&&str_contains($m[2],'%'))self::unavailable();$form[$m[1]]=rawurldecode($m[2]);}
                 $keys=['TOWNFROMINC','STATEINC','CHECKIN_BEG','CHECKIN_END','NIGHTS_FROM','NIGHTS_TILL','ADULT','CHILD','CURRENCY'];
-                if(array_diff(array_keys($form),[...$keys,'AGES'])||array_diff($keys,array_keys($form))||$form['TOWNFROMINC']!=='2'||$form['STATEINC']!=='9'||$form['CURRENCY']!=='1'||!preg_match('/\A(?:[1-9]|1[0-4])\z/D',$form['ADULT'])||self::scalar($form['CHECKIN_BEG'],true)!==$form['CHECKIN_BEG']||$form['CHECKIN_BEG']!==$form['CHECKIN_END']||$form['NIGHTS_FROM']!==$form['NIGHTS_TILL']||!preg_match('/\A[1-9][0-9]?\z/D',$form['NIGHTS_FROM'])||(int)$form['NIGHTS_FROM']>60)self::unavailable();
+                if(array_diff(array_keys($form),[...$keys,'AGES'])||array_diff($keys,array_keys($form))||ManagerTourSelectionOneTouchSource::departureName($form['TOWNFROMINC'])===null||$form['STATEINC']!=='9'||$form['CURRENCY']!=='1'||!preg_match('/\A(?:[1-9]|1[0-4])\z/D',$form['ADULT'])||self::scalar($form['CHECKIN_BEG'],true)!==$form['CHECKIN_BEG']||$form['CHECKIN_BEG']!==$form['CHECKIN_END']||$form['NIGHTS_FROM']!==$form['NIGHTS_TILL']||!preg_match('/\A[1-9][0-9]?\z/D',$form['NIGHTS_FROM'])||(int)$form['NIGHTS_FROM']>60)self::unavailable();
                 try{ManagerTourSelectionOneTouchSource::requestedAges($form);}catch(Throwable $e){self::unavailable();}
             }else self::unavailable();
         }elseif($host==='onetouch.travel'&&$kind==='html'&&!isset($p['query'])&&preg_match('~-([1-9][0-9]{0,11})/$~D',$path,$m)&&ManagerTourSelectionOneTouchSource::hotelUrl($url,$m[1])===$url){
@@ -289,6 +289,7 @@ final class ManagerTourSelectionOneTouchIntake
         if(count(array_unique($tokens))!==1||!preg_match('/\A[\x21-\x7e]{1,1024}\z/D',$tokens[0]??''))self::unavailable();
         $revs=[];foreach($x->query('//script[@src]') as $node){$src=$node->getAttribute('src');if(str_starts_with($src,'/'))$src='https://b2b.onetouch.travel'.$src;if(preg_match('~\Ahttps://b2b\.onetouch\.travel/public/js/(pack\.main\.js|search_tour/search_tour\.js)\?rev=([0-9]{1,12})\z~D',$src,$m))$revs[$m[1]][]=$m[2];}
         if(count($revs['pack.main.js']??[])!==1||count($revs['search_tour/search_tour.js']??[])!==1||$revs['pack.main.js'][0]!==$revs['search_tour/search_tour.js'][0])self::unavailable();
+        ManagerTourSelectionOneTouchSource::requestedDeparture($x,$query);
         $controls=[];$publicForm='';$cached=explode(' ','DISTRICTS STATEFROM STATEINC TOWNFROMINC TOURINC PROGRAMGROUPINC PROGRAMINC TOWNS HOTELS STARS MEALS ROOMS CURRENCY NIGHTS_FROM NIGHTS_TILL ADULT CHILD FILTER FREIGHT MOMENT_CONFIRM CHILD_IN_BED COMFORTABLE_SEATS COSTMIN COSTMAX CHECKIN_BEG CHECKIN_END HOTELSSEL TOURTYPE PRODUCTTYPE TOURGROUP FREIGHTTYPE TOWNS_ANY STARS_ANY HOTELS_ANY MEALS_ANY ROOMS_ANY hotelsearch UFILTER WITHOUT_PROMO CHECKIN_LIST NIGHTS_LIST townssearch');
         foreach($x->query('//select[@name]|//input[@name]') as $node){
             $name=$node->getAttribute('name');$classes=preg_split('/\s+/',trim($node->getAttribute('class')));if(!array_intersect($classes,$cached))continue;

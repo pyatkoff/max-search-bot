@@ -267,6 +267,7 @@ async function gitBridge(){
     f.complete();const baseline=await R.acceptedBaseline(f.api,await R.readRecord(f.api));
     equal(baseline.release.baseline_eligible,true,'first full real release becomes the accepted baseline');
     await connectionSetupConsumer(f, a, a);
+    await pilotPublisherConsumer(f, a, a);
     const nextRun={...context,event:'push'};
     const next=R.releaseRecord(receipt(a),nextRun,{kind:'application_unchanged',baseline:baseline.reference,
       content:R.contentSummary(proposal.comparison,a,r),intent:proposal.comparison.intent_scan,observation:observation(a)});
@@ -317,6 +318,7 @@ async function gitBridge(){
     equal([result.repository_sha,result.application_sha,result.perform_actions,result.ready],[r,a,true,true],
       'scheduled monitoring resumes against original application after terminal acceptance');
     await connectionSetupConsumer(f, r, a);
+    await pilotPublisherConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
     equal(f.calls.filter(c=>c.path.includes('/actions/artifacts/')).length,0,
@@ -401,6 +403,36 @@ async function connectionSetupConsumer(f,repositorySha,applicationSha){
   run.event='workflow_dispatch';run.path=R.PREFIX+'unknown-connection-setup.yml';
   await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+run.path+'@refs/heads/main'},event,api:f.api}),
     'untrusted_consumer_event','allowing this setup does not allow arbitrary manual operations');
+  f.runs.delete(run.id);
+}
+async function pilotPublisherConsumer(f,repositorySha,applicationSha){
+  const workflow=R.PREFIX+'publish-appleservice39-pilot.yml';
+  const run={...copy(f.wave.parent),id:6501,path:workflow,event:'workflow_dispatch',status:'in_progress',conclusion:null};
+  f.runs.set(run.id,run);
+  const event={repository:{full_name:R.REPOSITORY}};
+  const env=consumerEnv(run,workflow,'workflow_dispatch','publish');
+  const before=f.calls.length;
+  const result=await R.resolveConsumer({env,event,api:f.api});
+  equal([result.repository_sha,result.application_sha,result.perform_actions,result.ready],
+    [repositorySha,applicationSha,true,true],'fixed manual pilot publisher resolves the accepted actual application');
+  equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'pilot publisher admission is read-only before credentials');
+  run.run_attempt=2;
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_RUN_ATTEMPT:'2'},event,api:f.api}),
+    'consumer_rerun_forbidden','pilot workflow reruns gain no publication authority');
+  run.run_attempt=1;run.event='push';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_EVENT_NAME:'push'},
+    event:{...event,ref:'refs/heads/main',after:repositorySha},api:f.api}),
+    'untrusted_push_consumer','fixed pilot permission never adds automatic push publication');
+  run.event='schedule';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_EVENT_NAME:'schedule'},event:{...event,schedule:'0 * * * *'},api:f.api}),
+    'untrusted_consumer_event','fixed pilot permission never adds scheduled publication');
+  run.event='workflow_dispatch';run.path=R.PREFIX+'arbitrary-pilot-publisher.yml';
+  await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+run.path+'@refs/heads/main'},event,api:f.api}),
+    'untrusted_consumer_event','fixed pilot permission does not admit arbitrary workflows');
+  run.path=workflow;f.main='f'.repeat(40);
+  await refuses(()=>R.resolveConsumer({env,event,api:f.api}),'main_changed','pilot admission still binds current source');
+  f.main=repositorySha;run.status='completed';run.conclusion='success';
+  await refuses(()=>R.resolveConsumer({env,event,api:f.api}),'workflow_not_active','historical pilot runs grant no new authority');
   f.runs.delete(run.id);
 }
 async function resolveSchedule(f,eventName='schedule'){

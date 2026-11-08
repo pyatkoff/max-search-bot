@@ -8,6 +8,9 @@ declare(strict_types=1);
 final class ManagerTourSelectionOneTouchSource
 {
     public const MAX_BYTES=2097152;
+    // Native public INITIAL directory observed 2026-11-08; not quote availability.
+    public const DEPARTURES=['5607'=>'Грозный','6059'=>'Екатеринбург','6300'=>'Иркутск','6411'=>'Казань','7238'=>'Красноярск','8221'=>'Махачкала','8397'=>'Минеральные Воды','2'=>'Москва','8863'=>'Новосибирск','10118'=>'Самара','10260'=>'Санкт-Петербург','10716'=>'Сочи','11471'=>'Уфа','11725'=>'Хабаровск'];
+    public static function departureName(string $value): ?string{return self::DEPARTURES[$value]??null;}
     private const QUERY=['samo_action','TOWNFROMINC','STATEINC','TOURTYPE','TOURINC','PROGRAMGROUPINC','PROGRAMINC','CHECKIN_BEG','NIGHTS_FROM','CHECKIN_END','NIGHTS_TILL','ADULT','CURRENCY','CHILD','AGES','TOWNS_ANY','townssearch','TOWNS','STARS_ANY','STARS','HOTELS_ANY','hotelsearch','HOTELS','MEALS_ANY','MEALS','ROOMS_ANY','ROOMS','CHILD_IN_BED','FREIGHT','COMFORTABLE_SEATS','FILTER','MOMENT_CONFIRM','WITHOUT_PROMO','HOTELTYPES','PARTITION_PRICE','PRICEPAGE','DYN_SEPARATE','rev'];
 
     public static function query(string $url): array
@@ -19,7 +22,8 @@ final class ManagerTourSelectionOneTouchSource
         if(array_diff(array_diff(self::QUERY,['AGES']),array_keys($q)))self::fail();
         foreach(['TOURTYPE'=>'0','TOURINC'=>'0','PROGRAMGROUPINC'=>'0','PROGRAMINC'=>'0','TOWNS_ANY'=>'1','townssearch'=>'0','TOWNS'=>'','STARS_ANY'=>'1','STARS'=>'','HOTELS_ANY'=>'1','hotelsearch'=>'0','HOTELS'=>'','MEALS_ANY'=>'1','MEALS'=>'','ROOMS_ANY'=>'1','ROOMS'=>'','CHILD_IN_BED'=>'0','FREIGHT'=>'1','COMFORTABLE_SEATS'=>'0','FILTER'=>'1','MOMENT_CONFIRM'=>'0','WITHOUT_PROMO'=>'0','HOTELTYPES'=>'','PARTITION_PRICE'=>''] as $k=>$v)if($q[$k]!==$v)self::fail();
         // Decode only native enabled adult counts; each response row must bind the exact query party.
-        foreach(['samo_action'=>'PRICES','TOWNFROMINC'=>'2','STATEINC'=>'9','CURRENCY'=>'1','PRICEPAGE'=>'1','DYN_SEPARATE'=>'1'] as $k=>$v)if(($q[$k]??null)!==$v)self::fail();
+        foreach(['samo_action'=>'PRICES','STATEINC'=>'9','CURRENCY'=>'1','PRICEPAGE'=>'1','DYN_SEPARATE'=>'1'] as $k=>$v)if(($q[$k]??null)!==$v)self::fail();
+        if(self::departureName($q['TOWNFROMINC']??'')===null)self::fail();
         // Enabled native options are 1..14; canonical max20 does not admit 15..20 here.
         if(!preg_match('/\A(?:[1-9]|1[0-4])\z/D',$q['ADULT']??''))self::fail();
         self::requestedAges($q);
@@ -28,6 +32,27 @@ final class ManagerTourSelectionOneTouchSource
         return $q;
     }
 
+
+    /** Exact fresh selected city; no guessed native identity or implicit fallback. */
+    public static function requestedDeparture(DOMXPath $x,array $query): string
+    {
+        $value=$query['TOWNFROMINC']??null;
+        if(!is_string($value)||self::departureName($value)===null)self::fail();
+        $nodes=self::nodes($x,'//select[@name="TOWNFROMINC"]');
+        if(count($nodes)!==1)self::fail();$node=$nodes[0];
+        if($node->hasAttribute('disabled')||$node->hasAttribute('multiple'))self::fail();
+        foreach(self::nodes($x,'ancestor::fieldset[@disabled]',$node) as $fieldset){
+            $legends=self::nodes($x,'./legend[1]',$fieldset);$inside=false;
+            if($legends)for($parent=$node->parentNode;$parent!==null;$parent=$parent->parentNode)if($parent->isSameNode($legends[0])){$inside=true;break;}
+            if(!$inside)self::fail();
+        }
+        $options=self::nodes($x,'.//option',$node);
+        $selected=array_values(array_filter($options,static fn($o)=>$o->hasAttribute('selected')));
+        if(count($selected)!==1||!$selected[0]->hasAttribute('value')||$selected[0]->getAttribute('value')!==$value||$selected[0]->hasAttribute('disabled')||self::nodes($x,'ancestor::optgroup[@disabled]',$selected[0]))self::fail();
+        if(count(array_filter($options,static fn($o)=>$o->getAttribute('value')===$value))!==1)self::fail();
+        $label=self::text($selected[0]->textContent);if($label===''||strlen($label)>240)self::fail();
+        return $label;
+    }
 
     /** Native requested ages: canonical numeric sort, including equal ages. */
     public static function requestedAges(array $query): array
@@ -120,8 +145,8 @@ final class ManagerTourSelectionOneTouchSource
     public static function parse(string $response,string $url,string $form,string $observed): array
     {
         $q=self::query($url);$fx=self::document($form);
-        $labels=[];
-        foreach(['TOWNFROMINC','STATEINC','CURRENCY'] as $key){
+        $labels=['TOWNFROMINC'=>self::requestedDeparture($fx,$q)];
+        foreach(['STATEINC','CURRENCY'] as $key){
             $nodes=self::nodes($fx,'//select[@name="'.$key.'"]/option[@value="'.$q[$key].'" and @selected]');
             if(count($nodes)!==1)self::fail();$labels[$key]=self::text($nodes[0]->textContent);
         }
