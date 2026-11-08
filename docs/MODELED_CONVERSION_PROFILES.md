@@ -864,6 +864,14 @@ Edits, unknown events/payloads, outcome events, other subjects and invalid clock
 retain their existing barriers. The canonical human extractor still treats the
 receipt as unavailable semantic content, so a bare yes is not booking intent.
 
+The automatic source-qualification completion writes one further operational
+receipt after successful handoff: `source_handling_choice`, actor `system`, with
+exact `choice=manager` and `reason=source_needs_complete`. Only that exact
+two-field payload, plus the canonical recording clock, joins the existing
+handoff-receipt continuity category under the same immutable and24-hour guards.
+Other source choices, handoff-back actions, reasons, actors or payload keys remain
+barriers. The completion supplies no customer intent or payment evidence.
+
 Saved `contextual_signals.coverage.prediction_source_continuity` contains only
 fixed counts of preserved AI replies/handoff receipts and unavailable-source
 barriers. It describes source handling, not trip identity or purchase evidence;
@@ -873,6 +881,38 @@ canonical receipt, hides native tables, and verifies the same immutable packet
 through the real private reader. Assignment preserves its early digest; actual
 payment wording excludes a new prediction without becoming a future payment if
 it predates the freeze. No source messages, queues, priors or export rules change.
+
+
+### Admitted wizard application receipts preserve their current customer input
+
+A successful deterministic wizard application records `wizard_value_applied`
+with the original inbound message ID and text digest. The journal adapter already
+validates that input, the applied value, first revisions, clocks, scope and
+conflicting receipts. Its private wrapper now exposes only the selected bindings:
+`wizard_applications.version=admitted_wizard_applications_v1` and `receipts`, each
+containing `receipt_ref` and `input_ref`. These are journal references without
+text or storage values, bounded by the existing50-row case. Selection remains the
+earliest exact successful receipt per input/field; rejected or later duplicate
+receipts do not gain a continuity exemption.
+
+The numeric predictor rechecks the bound copied revision1 event and ordinary
+inbound/customer message, their exact subject/source IDs, canonical recording
+clocks, availability and input digest. The input must also be admitted customer
+text and still belong to the predictor's current context. A validated receipt
+can preserve an existing anchor only within24hours of the last meaningful
+customer turn. It cannot establish or refresh that anchor, add criteria, raise
+the probability, promote a callback to customer dialogue, or recover meaning
+across a real barrier. Missing bindings, changed inputs, unknown events, foreign
+subjects, invalid clocks and unselected duplicates remain barriers. The human
+extractor still receives an unavailable-source boundary; a bare yes does not
+become buying or payment evidence.
+
+Acceptance compares the real recorder/application→stream→Python→immutable profile
+path with the same customer input without a service receipt, including identical
+probability, criteria and downstream deal-value candidate. Earlier profile bytes
+remain unchanged. Existing money formulas, caps, high-water rules, goals, source
+bounds and status-counter schema are unchanged. No historical replay or repricing
+operation is added; subsequent ordinary calculations use the corrected continuity.
 
 
 ### Stable numeric integrity across the writer and private reader
