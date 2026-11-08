@@ -1,0 +1,556 @@
+{
+  "schema_version": 1,
+  "reviewed_at_utc": "2026-11-08T14:27:03.535829+00:00",
+  "reviewer": "next_hotel_inventory",
+  "review_type": "Independent visual review of actual final production PNGs and source/SVG hash verification",
+  "overall_result": "PASS",
+  "reviewed_hotel_ids": [
+    70030,
+    1555,
+    1690,
+    28704,
+    1699,
+    82545,
+    70048
+  ],
+  "rows": [
+    {
+      "hotel_id": 70030,
+      "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/final-covers/70030.png",
+      "photo_sha256": "6455ae602b38d9933d87431f5343828d75c4c09b8cba08cade427ba1bc0866aa",
+      "bytes": 868888,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner_observed": "UTOPIA BEACH CLUB 5★",
+      "visual_review": "PASS",
+      "hotel_identity": "PASS",
+      "three_nonblank_photo_panels": "PASS",
+      "white_anytour_logo": "PASS",
+      "full_name_and_catalog_category": "PASS",
+      "banner_no_overflow_or_clipping": "PASS",
+      "photo_content_consistent_with_verified_sources": "PASS",
+      "generative_photo_alteration_observed": false,
+      "source_image_checks": [
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/70030/hero.jpeg",
+          "source_sha256": "6ea28e5c5b6b69b2da5c97e53ed1fc887273e0c9653d8021afa614f230dcfd2c",
+          "source_file_unchanged": true,
+          "embedded_sha256": "6ea28e5c5b6b69b2da5c97e53ed1fc887273e0c9653d8021afa614f230dcfd2c",
+          "embedded_dimensions": [
+            1024,
+            682
+          ],
+          "source_dimensions": [
+            1024,
+            682
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/70030/detail_left.jpeg",
+          "source_sha256": "0243c53222ae7e7d96824ad4877e0c5c9bba41b58c96d24f9c28956def3a8e79",
+          "source_file_unchanged": true,
+          "embedded_sha256": "0243c53222ae7e7d96824ad4877e0c5c9bba41b58c96d24f9c28956def3a8e79",
+          "embedded_dimensions": [
+            1024,
+            683
+          ],
+          "source_dimensions": [
+            1024,
+            683
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/70030/detail_right.jpeg",
+          "source_sha256": "5de23468743d3d1f8fa157c6005c403d276dd45346a34ec4a91858430cecee44",
+          "source_file_unchanged": true,
+          "embedded_sha256": "5de23468743d3d1f8fa157c6005c403d276dd45346a34ec4a91858430cecee44",
+          "embedded_dimensions": [
+            1024,
+            683
+          ],
+          "source_dimensions": [
+            1024,
+            683
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        }
+      ],
+      "render_receipt_sha_matches": true,
+      "issues": []
+    },
+    {
+      "hotel_id": 1555,
+      "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/final-covers/1555.png",
+      "photo_sha256": "dff6da925a14e4cb421bb59e8c4bf862ac934085e7fad09fd60cffae54f4955b",
+      "bytes": 907531,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner_observed": "DOUBLETREE BY HILTON ANTALYA KEMER 5★",
+      "visual_review": "PASS",
+      "hotel_identity": "PASS",
+      "three_nonblank_photo_panels": "PASS",
+      "white_anytour_logo": "PASS",
+      "full_name_and_catalog_category": "PASS",
+      "banner_no_overflow_or_clipping": "PASS",
+      "photo_content_consistent_with_verified_sources": "PASS",
+      "generative_photo_alteration_observed": false,
+      "source_image_checks": [
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/1555/hero.jpeg",
+          "source_sha256": "b8c7c3c38a09ccfad9c7b3051f543d51e6385b3c242e4a4e0c79053fd125ffcf",
+          "source_file_unchanged": true,
+          "embedded_sha256": "b8c7c3c38a09ccfad9c7b3051f543d51e6385b3c242e4a4e0c79053fd125ffcf",
+          "embedded_dimensions": [
+            1920,
+            1920
+          ],
+          "source_dimensions": [
+            1920,
+            1920
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/1555/detail_left.jpeg",
+          "source_sha256": "140cc897d7bc99803574d811786b786b3a97edfde85d7c9535843e0683eabf24",
+          "source_file_unchanged": true,
+          "embedded_sha256": "140cc897d7bc99803574d811786b786b3a97edfde85d7c9535843e0683eabf24",
+          "embedded_dimensions": [
+            1110,
+            886
+          ],
+          "source_dimensions": [
+            1110,
+            886
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/1555/detail_right.jpeg",
+          "source_sha256": "12738dad40a4c7069bcdb51db81c54f541cc05686e13d2a0ad1913c2fc86eb90",
+          "source_file_unchanged": true,
+          "embedded_sha256": "12738dad40a4c7069bcdb51db81c54f541cc05686e13d2a0ad1913c2fc86eb90",
+          "embedded_dimensions": [
+            1920,
+            1280
+          ],
+          "source_dimensions": [
+            1920,
+            1280
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        }
+      ],
+      "render_receipt_sha_matches": true,
+      "issues": []
+    },
+    {
+      "hotel_id": 1690,
+      "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/final-covers/1690.png",
+      "photo_sha256": "f722e1e3464873285b1fe1cd4dd9884f6d405dc7f433e8d4011491e36914426e",
+      "bytes": 978231,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner_observed": "MIRAGE WORLD 5★",
+      "visual_review": "PASS",
+      "hotel_identity": "PASS",
+      "three_nonblank_photo_panels": "PASS",
+      "white_anytour_logo": "PASS",
+      "full_name_and_catalog_category": "PASS",
+      "banner_no_overflow_or_clipping": "PASS",
+      "photo_content_consistent_with_verified_sources": "PASS",
+      "generative_photo_alteration_observed": false,
+      "source_image_checks": [
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/1690/hero.jpeg",
+          "source_sha256": "cdec0391b22b586d72d981248220f482644b0875561bc426989b5a61e000c63e",
+          "source_file_unchanged": true,
+          "embedded_sha256": "cdec0391b22b586d72d981248220f482644b0875561bc426989b5a61e000c63e",
+          "embedded_dimensions": [
+            1200,
+            675
+          ],
+          "source_dimensions": [
+            1200,
+            675
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/1690/detail_left.jpeg",
+          "source_sha256": "fb607361cbf25ff76ce5b8852978ce8e6f8d8295519e433d82034c60bd7f4c95",
+          "source_file_unchanged": true,
+          "embedded_sha256": "fb607361cbf25ff76ce5b8852978ce8e6f8d8295519e433d82034c60bd7f4c95",
+          "embedded_dimensions": [
+            820,
+            550
+          ],
+          "source_dimensions": [
+            820,
+            550
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/1690/detail_right.jpeg",
+          "source_sha256": "40f089abbaeb06bccd0c9d2e3c0cf587ee633d2bd3ff5c7a2963b26bb67e9e2d",
+          "source_file_unchanged": true,
+          "embedded_sha256": "40f089abbaeb06bccd0c9d2e3c0cf587ee633d2bd3ff5c7a2963b26bb67e9e2d",
+          "embedded_dimensions": [
+            820,
+            550
+          ],
+          "source_dimensions": [
+            820,
+            550
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        }
+      ],
+      "render_receipt_sha_matches": true,
+      "issues": []
+    },
+    {
+      "hotel_id": 28704,
+      "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/final-covers/28704.png",
+      "photo_sha256": "b9f6702813f767b58c483962eba81697cede2d34070d5bee6939aeddbcf892ae",
+      "bytes": 718272,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner_observed": "SELECTUM COLLECTION BODRUM 5★",
+      "visual_review": "PASS",
+      "hotel_identity": "PASS",
+      "three_nonblank_photo_panels": "PASS",
+      "white_anytour_logo": "PASS",
+      "full_name_and_catalog_category": "PASS",
+      "banner_no_overflow_or_clipping": "PASS",
+      "photo_content_consistent_with_verified_sources": "PASS",
+      "generative_photo_alteration_observed": false,
+      "source_image_checks": [
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/28704/hero.jpeg",
+          "source_sha256": "3e5e29b9d12eb09bf7b11c78723638b5f9efcc68ddc4cdca4441a39c7588799e",
+          "source_file_unchanged": true,
+          "embedded_sha256": "3e5e29b9d12eb09bf7b11c78723638b5f9efcc68ddc4cdca4441a39c7588799e",
+          "embedded_dimensions": [
+            746,
+            498
+          ],
+          "source_dimensions": [
+            746,
+            498
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/28704/detail_left.jpeg",
+          "source_sha256": "de387fab06772fffb362fde949d1ae94e9ce5a748a6f4f27d0a4d86e6420dc3c",
+          "source_file_unchanged": true,
+          "embedded_sha256": "de387fab06772fffb362fde949d1ae94e9ce5a748a6f4f27d0a4d86e6420dc3c",
+          "embedded_dimensions": [
+            716,
+            490
+          ],
+          "source_dimensions": [
+            716,
+            490
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-four/selected/28704/detail_right.jpeg",
+          "source_sha256": "de606726566dbc1cdf297ac73a787c9939a695078e7f6933f26acf7798e4bf02",
+          "source_file_unchanged": true,
+          "embedded_sha256": "de606726566dbc1cdf297ac73a787c9939a695078e7f6933f26acf7798e4bf02",
+          "embedded_dimensions": [
+            894,
+            407
+          ],
+          "source_dimensions": [
+            894,
+            407
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        }
+      ],
+      "render_receipt_sha_matches": true,
+      "issues": []
+    },
+    {
+      "hotel_id": 1699,
+      "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/final-covers/1699.png",
+      "photo_sha256": "3e8276dee76f13377959c90fd51d723d4d980525081753db197350d701222279",
+      "bytes": 881638,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner_observed": "YASMIN BODRUM RESORT 5★",
+      "visual_review": "PASS",
+      "hotel_identity": "PASS",
+      "three_nonblank_photo_panels": "PASS",
+      "white_anytour_logo": "PASS",
+      "full_name_and_catalog_category": "PASS",
+      "banner_no_overflow_or_clipping": "PASS",
+      "photo_content_consistent_with_verified_sources": "PASS",
+      "generative_photo_alteration_observed": false,
+      "source_image_checks": [
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/1699-official-2.webp",
+          "source_sha256": "87133dc28a7f4986301b1080a49b80c63addd77b0ad3d2116821e8de3525c7da",
+          "source_file_unchanged": true,
+          "embedded_sha256": "2c7c11573e9359bd405ed0d35e3c1c81628c2262ca47289cc2858b874230c900",
+          "embedded_dimensions": [
+            1000,
+            625
+          ],
+          "source_dimensions": [
+            2560,
+            1600
+          ],
+          "embedded_byte_exact": false,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": "WebP decoded to PNG; resized only where dimensions differ. Matches original photographic content visually."
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/1699-official-room.webp",
+          "source_sha256": "c6fb80022b94039fd632c7070d302e5d5ae65fd41c2f5965bad76abaa934ffa0",
+          "source_file_unchanged": true,
+          "embedded_sha256": "24c3c36b669b093c9d07bc69b2ea81b13ba5a417e8166adc019eb619134ceb8e",
+          "embedded_dimensions": [
+            1000,
+            666
+          ],
+          "source_dimensions": [
+            1280,
+            852
+          ],
+          "embedded_byte_exact": false,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": "WebP decoded to PNG; resized only where dimensions differ. Matches original photographic content visually."
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/1699-official-3.webp",
+          "source_sha256": "bad9074f01734e8b7faf102bf8b9379dceb7b6703496fc62aed4f54df36157a3",
+          "source_file_unchanged": true,
+          "embedded_sha256": "794fe0668b20fe8e491df7a16f47d18fd083af1811380b8a4daefd2c2b3e0081",
+          "embedded_dimensions": [
+            1000,
+            625
+          ],
+          "source_dimensions": [
+            2560,
+            1600
+          ],
+          "embedded_byte_exact": false,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": "WebP decoded to PNG; resized only where dimensions differ. Matches original photographic content visually."
+        }
+      ],
+      "render_receipt_sha_matches": true,
+      "issues": []
+    },
+    {
+      "hotel_id": 82545,
+      "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/final-covers/82545.png",
+      "photo_sha256": "bef06a0386cba2dba1707a9208018a0d8face7d316e9bb42e78af58f3e75b2a5",
+      "bytes": 745318,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner_observed": "ELL LOUNGE SPA & HOTEL 2★",
+      "visual_review": "PASS",
+      "hotel_identity": "PASS",
+      "three_nonblank_photo_panels": "PASS",
+      "white_anytour_logo": "PASS",
+      "full_name_and_catalog_category": "PASS",
+      "banner_no_overflow_or_clipping": "PASS",
+      "photo_content_consistent_with_verified_sources": "PASS",
+      "generative_photo_alteration_observed": false,
+      "source_image_checks": [
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/82545-anex-double.jpg",
+          "source_sha256": "18b0e0a78c844f602c786d1af0f6178f217e64fc470ab083c62f25898e85ac8d",
+          "source_file_unchanged": true,
+          "embedded_sha256": "18b0e0a78c844f602c786d1af0f6178f217e64fc470ab083c62f25898e85ac8d",
+          "embedded_dimensions": [
+            1663,
+            935
+          ],
+          "source_dimensions": [
+            1663,
+            935
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/82545-anex-1.jpg",
+          "source_sha256": "accb567c47f473904bf87b73797d8762597d1ef1a31801697316332a0826bd2d",
+          "source_file_unchanged": true,
+          "embedded_sha256": "accb567c47f473904bf87b73797d8762597d1ef1a31801697316332a0826bd2d",
+          "embedded_dimensions": [
+            1200,
+            800
+          ],
+          "source_dimensions": [
+            1200,
+            800
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/82545-anex-triple.jpg",
+          "source_sha256": "71cb5ea9d95d19acc01ea507de5b1143b7d2eb4c1abdd0692758c070ed60550c",
+          "source_file_unchanged": true,
+          "embedded_sha256": "71cb5ea9d95d19acc01ea507de5b1143b7d2eb4c1abdd0692758c070ed60550c",
+          "embedded_dimensions": [
+            1920,
+            1080
+          ],
+          "source_dimensions": [
+            1920,
+            1080
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        }
+      ],
+      "render_receipt_sha_matches": true,
+      "issues": []
+    },
+    {
+      "hotel_id": 70048,
+      "path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/final-covers/70048.png",
+      "photo_sha256": "6a4d3b758a07e187952c39a413fe25a416874fb6bb9ce4b5ba0c65dc20030427",
+      "bytes": 866792,
+      "dimensions": [
+        600,
+        600
+      ],
+      "banner_observed": "MARINA GALLERY RESORT KACHA KALIM BAY 5★",
+      "visual_review": "PASS",
+      "hotel_identity": "PASS",
+      "three_nonblank_photo_panels": "PASS",
+      "white_anytour_logo": "PASS",
+      "full_name_and_catalog_category": "PASS",
+      "banner_no_overflow_or_clipping": "PASS",
+      "photo_content_consistent_with_verified_sources": "PASS",
+      "generative_photo_alteration_observed": false,
+      "source_image_checks": [
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/70048-official-whole_complex.webp",
+          "source_sha256": "0f52b5461195abecd95c9da4e48ab769e2660a08056f3e770cb63a60e076af18",
+          "source_file_unchanged": true,
+          "embedded_sha256": "58d8b01fef0df573e90f73bf4d0f0d330f978bbfe94db68cd9b1fd8aab2cca0c",
+          "embedded_dimensions": [
+            1000,
+            556
+          ],
+          "source_dimensions": [
+            1440,
+            800
+          ],
+          "embedded_byte_exact": false,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": "WebP decoded to PNG; resized only where dimensions differ. Matches original photographic content visually."
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/70048-official-room.jpg",
+          "source_sha256": "136ac8b019b02378ce01b238d2c47dd1ec9e149088c72f5d05e77f1fa11973a3",
+          "source_file_unchanged": true,
+          "embedded_sha256": "136ac8b019b02378ce01b238d2c47dd1ec9e149088c72f5d05e77f1fa11973a3",
+          "embedded_dimensions": [
+            800,
+            600
+          ],
+          "source_dimensions": [
+            800,
+            600
+          ],
+          "embedded_byte_exact": true,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": null
+        },
+        {
+          "source_path": "/workspace/scratch/03f23da71f12/hotel-fill-20261108/new-content-three/photos/70048-official-facade.webp",
+          "source_sha256": "38ca5daad0d6307b428296842d91cc2939c7ab071074069c8bc1544268349d5a",
+          "source_file_unchanged": true,
+          "embedded_sha256": "2649b752e7b0e43dbcd6233e4d0b65811ce0a6d503163ee84bd7810faff9b858",
+          "embedded_dimensions": [
+            998,
+            1000
+          ],
+          "source_dimensions": [
+            998,
+            1000
+          ],
+          "embedded_byte_exact": false,
+          "content_review": "PASS_SOURCE_PHOTO_MATCH",
+          "technical_normalization": "WebP decoded to PNG; resized only where dimensions differ. Matches original photographic content visually."
+        }
+      ],
+      "render_receipt_sha_matches": true,
+      "issues": []
+    }
+  ],
+  "resolved_findings": [
+    {
+      "hotel_id": 1555,
+      "finding": "Original banner omitted ANTALYA",
+      "resolution": "Full display name restored; revised actual PNG viewed and accepted at listed final SHA."
+    },
+    {
+      "hotel_id": 70048,
+      "finding": "Original banner omitted KALIM BAY",
+      "resolution": "Full display name restored; revised actual PNG viewed and accepted at listed final SHA."
+    }
+  ],
+  "provenance_notes": [
+    "All 21 original source photo files still match their retained SHA256 values.",
+    "16 embedded photographs preserve exact original JPEG bytes. Five source WebPs are embedded as PNG; four are reduced in size and one retains its original dimensions. This is technical image normalization, not an observed generative edit.",
+    "The logo is the retained AnyTour vector recolored white.",
+    "PASS applies to the exact final PNG hashes listed, including the two revised full-name banners; no publication action was performed."
+  ],
+  "cover_files_modified_by_reviewer": false,
+  "remote_writes": 0
+}

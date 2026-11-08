@@ -1,0 +1,212 @@
+{
+  "operation": "commercial-hotel-batch-20261108-44-v1",
+  "reviewed_at_utc": "2026-11-08T14:28:30.829490+00:00",
+  "owner_request": "давай дальше отели наполняй",
+  "approved_scope": "7 NEW hotels /14 posts, existing canonical channel publisher and additive feed closure",
+  "production_source": "160e019701165cd53dd5a9be0fa3db533d82120e",
+  "publisher_review": {
+    "ok": true,
+    "mode": "offline_pure_prepare_and_source_invariant_checks",
+    "tests_run": 26,
+    "existing_preparation_tests": 14,
+    "new_current_scope_tests": 12,
+    "runner_environment_modified": false,
+    "cloud_entrypoint_executed": false,
+    "publisher_executed": false,
+    "provider_calls": 0,
+    "remote_mutations": 0,
+    "php_binary": null,
+    "php_runtime_fixture_executed": false,
+    "production_source": "160e019701165cd53dd5a9be0fa3db533d82120e",
+    "files": {
+      "commercial-batch-template-20261102.php": {
+        "sha256": "6ceb2f6848eb3412c500563da4634d495b64c4284e151308b866128a9053dbcb",
+        "git_blob": "6911e7f989f0277521889033f0d2fabb90251fb0"
+      },
+      "prepare-commercial-batch.py": {
+        "sha256": "ccda43ff0360de931ee7c04f9f151c1232e531820335a9cc21a2591634f2157f",
+        "git_blob": "f1c10b82961ac9a1c00e95dada3edbf00ed2e235"
+      },
+      "canonical-publisher.patch": {
+        "sha256": "26fe5df64ea06b0720dec05dcb8cab1ef10558c9655da67dc9d90cb923178e8b",
+        "git_blob": "1bc3bd83aa39479b5a26afaaeb9dd00efb0db802"
+      }
+    },
+    "source_verifier_self_test": {
+      "ok": true,
+      "controlled_cases": 14,
+      "http_calls": 0,
+      "db_writes": 0,
+      "message_sends": 0
+    }
+  },
+  "independent_three_content_review_sha256": "eca30555640748d81103036d55c6b4b685047c133308231eaa95a26f9761f7d0",
+  "independent_seven_cover_review_sha256": "24323395900e8a81f24df935cf2f259c88aa8aaac211dc5bad4f395f4900b20a",
+  "native_photo_count": 21,
+  "generated_photographic_content_used": false,
+  "imagegen_layout_preview_used_for_publication": false,
+  "rows": [
+    {
+      "hotel_id": 70030,
+      "native_identity_checked": true,
+      "source_packet_sha256": "86ef0f4c0b120b73b98760c2c9ba16cb78965457ef12a99417ece576107515fd",
+      "text_sha256": "7c66ea44b3c2dae4be84880e0f125fc3d45531c8f76d3694fd122a6af6144dce",
+      "caption_utf16_units": 414,
+      "primary_source_urls": [
+        "https://utopiahotels.com/en/hotel/beachclub/contact",
+        "https://utopiahotels.com/en/hotel/beachclub/beach-and-pools",
+        "https://utopiahotels.com/en/hotel/beachclub/rooms/standard",
+        "https://utopiahotels.com/en/hotel/beachclub/rooms"
+      ],
+      "limitations": [
+        "Do not confuse this Turkish property with Utopia Beach Club in Egypt; Egyptian room descriptions/photos excluded.",
+        "Villa Family area is disputed: current catalog 37 m², official page 40 m² plus 8 m² balcony. No Villa Family area is advertised.",
+        "Historical Library passport declared 4 stars; current canonical catalog declares 5. Category badge basis is current catalog, not the historical passport.",
+        "Current catalog notes nearby third-party construction was suspended as of 2026-06-05 and completion date is unknown. No promise of silence or absence of construction.",
+        "No currently bookable date, room stock, future season, exact price, Blue Flag validity, or all-year pool heating is asserted."
+      ],
+      "source_photo_sha256": [
+        "6ea28e5c5b6b69b2da5c97e53ed1fc887273e0c9653d8021afa614f230dcfd2c",
+        "0243c53222ae7e7d96824ad4877e0c5c9bba41b58c96d24f9c28956def3a8e79",
+        "5de23468743d3d1f8fa157c6005c403d276dd45346a34ec4a91858430cecee44"
+      ],
+      "cover_sha256": "6455ae602b38d9933d87431f5343828d75c4c09b8cba08cade427ba1bc0866aa"
+    },
+    {
+      "hotel_id": 1555,
+      "native_identity_checked": true,
+      "source_packet_sha256": "86ef0f4c0b120b73b98760c2c9ba16cb78965457ef12a99417ece576107515fd",
+      "text_sha256": "afa0f21cc0312a788c117773404c1ed426a3809629091e0537abd3c11432beb0",
+      "caption_utf16_units": 435,
+      "primary_source_urls": [
+        "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/",
+        "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/dining/",
+        "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/rooms/",
+        "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/gallery/"
+      ],
+      "limitations": [
+        "No number of food trucks is used: the official page currently states ten, while the current catalog lists thirteen.",
+        "No assertion that à la carte restaurants or paid beach cabanas are included in the all-inclusive tariff.",
+        "The family suite is a named category, not a promise that every room has two levels/two bathrooms.",
+        "No exact current price, available date, unverified room area, or guaranteed seasonal service schedule is advertised."
+      ],
+      "source_photo_sha256": [
+        "b8c7c3c38a09ccfad9c7b3051f543d51e6385b3c242e4a4e0c79053fd125ffcf",
+        "140cc897d7bc99803574d811786b786b3a97edfde85d7c9535843e0683eabf24",
+        "12738dad40a4c7069bcdb51db81c54f541cc05686e13d2a0ad1913c2fc86eb90"
+      ],
+      "cover_sha256": "dff6da925a14e4cb421bb59e8c4bf862ac934085e7fad09fd60cffae54f4955b"
+    },
+    {
+      "hotel_id": 1690,
+      "native_identity_checked": true,
+      "source_packet_sha256": "86ef0f4c0b120b73b98760c2c9ba16cb78965457ef12a99417ece576107515fd",
+      "text_sha256": "722069997dc16f9debb873c6cc958be333a73d701c1b469a88a9d6876914d628",
+      "caption_utf16_units": 400,
+      "primary_source_urls": [
+        "https://miragehotels.com.tr/",
+        "https://miragehotels.com.tr/family.html",
+        "https://www.miragehotels.com.tr/galeri.html"
+      ],
+      "limitations": [
+        "Official page says 80 m to the sea; current catalog says 200 m to the hotel portion of the public beach. Exact distance and first-line claim omitted.",
+        "Adult/child pool counts differ between the homepage and embedded historical factsheet. Exact pool/slide counts omitted.",
+        "Embedded factsheet is explicitly season 2021. No operating hours, age admission, current towel charge, or service schedule is inferred from it.",
+        "Family Room is one bedroom plus a living room, not two bedrooms; no room-area or balcony promise because variants differ.",
+        "No exact rate or date availability is advertised."
+      ],
+      "source_photo_sha256": [
+        "cdec0391b22b586d72d981248220f482644b0875561bc426989b5a61e000c63e",
+        "fb607361cbf25ff76ce5b8852978ce8e6f8d8295519e433d82034c60bd7f4c95",
+        "40f089abbaeb06bccd0c9d2e3c0cf587ee633d2bd3ff5c7a2963b26bb67e9e2d"
+      ],
+      "cover_sha256": "f722e1e3464873285b1fe1cd4dd9884f6d405dc7f433e8d4011491e36914426e"
+    },
+    {
+      "hotel_id": 28704,
+      "native_identity_checked": true,
+      "source_packet_sha256": "86ef0f4c0b120b73b98760c2c9ba16cb78965457ef12a99417ece576107515fd",
+      "text_sha256": "6c21c645fc5c4b862711d2fbfe10c6c57fc69aa9abe40feb41eb874b20ccde0d",
+      "caption_utf16_units": 451,
+      "primary_source_urls": [
+        "https://collectionbodrum.selectumhotels.com/tr",
+        "https://collectionbodrum.selectumhotels.com/en/rooms/family-room",
+        "https://collectionbodrum.selectumhotels.com/en/pool-and-beach/beach",
+        "https://collectionbodrum.selectumhotels.com/en/kids",
+        "https://collectionbodrum.selectumhotels.com/en/contact"
+      ],
+      "limitations": [
+        "Current catalog calls the beach second line/200 m; official website says a few steps from the Aegean water. Exact distance and first-line claim omitted.",
+        "Use current brand Selectum Collection Bodrum; preserve old Kairaba Bodrum Imperial alias only in identity/dedup metadata.",
+        "No unsupported 28 m² room from selectumresorts.net is used; that domain was not established as the canonical official source.",
+        "Current official Family Room wording is two separate rooms. Caption does not strengthen it to two bedrooms or assert two bathrooms.",
+        "Cabana cost is not implied to be included; no future programme schedule or childcare for all ages is promised.",
+        "No price, fixed departure date or currently available tariff is advertised."
+      ],
+      "source_photo_sha256": [
+        "3e5e29b9d12eb09bf7b11c78723638b5f9efcc68ddc4cdca4441a39c7588799e",
+        "de387fab06772fffb362fde949d1ae94e9ce5a748a6f4f27d0a4d86e6420dc3c",
+        "de606726566dbc1cdf297ac73a787c9939a695078e7f6933f26acf7798e4bf02"
+      ],
+      "cover_sha256": "b9f6702813f767b58c483962eba81697cede2d34070d5bee6939aeddbcf892ae"
+    },
+    {
+      "hotel_id": 1699,
+      "native_identity_checked": true,
+      "source_packet_sha256": "b60f30f301602a8175393636c4bc1d949244963d219f5cab61e5f02b7df6ad54",
+      "text_sha256": "5c37f915276697b9ff16faddd64014c9b9e2fb1988504564fde87f02d561c499",
+      "caption_utf16_units": 435,
+      "primary_source_urls": [
+        "https://yasminbodrum.com/en-gb/",
+        "https://site.yasminbodrum.com/en/our-rooms/",
+        "https://yasminbodrum.com/en-gb/photos/"
+      ],
+      "limitations": [],
+      "source_photo_sha256": [
+        "87133dc28a7f4986301b1080a49b80c63addd77b0ad3d2116821e8de3525c7da",
+        "c6fb80022b94039fd632c7070d302e5d5ae65fd41c2f5965bad76abaa934ffa0",
+        "bad9074f01734e8b7faf102bf8b9379dceb7b6703496fc62aed4f54df36157a3"
+      ],
+      "cover_sha256": "3e8276dee76f13377959c90fd51d723d4d980525081753db197350d701222279"
+    },
+    {
+      "hotel_id": 82545,
+      "native_identity_checked": true,
+      "source_packet_sha256": "b60f30f301602a8175393636c4bc1d949244963d219f5cab61e5f02b7df6ad54",
+      "text_sha256": "6feca8b418025b463756621ab42a2a8468c1ed9d5adb0a7152ec0458f20c5960",
+      "caption_utf16_units": 519,
+      "primary_source_urls": [
+        "https://anextour.ru/tours/vietnam/ell-lounge-spahotel",
+        "https://anextour.ru/news/travel-guide/prileteli-vo-vetnam-na-vietjet"
+      ],
+      "limitations": [],
+      "source_photo_sha256": [
+        "18b0e0a78c844f602c786d1af0f6178f217e64fc470ab083c62f25898e85ac8d",
+        "accb567c47f473904bf87b73797d8762597d1ef1a31801697316332a0826bd2d",
+        "71cb5ea9d95d19acc01ea507de5b1143b7d2eb4c1abdd0692758c070ed60550c"
+      ],
+      "cover_sha256": "bef06a0386cba2dba1707a9208018a0d8face7d316e9bb42e78af58f3e75b2a5"
+    },
+    {
+      "hotel_id": 70048,
+      "native_identity_checked": true,
+      "source_packet_sha256": "b60f30f301602a8175393636c4bc1d949244963d219f5cab61e5f02b7df6ad54",
+      "text_sha256": "1cbe76cd7ca0e7feacd5d7cfe2bc56ca0b5495b3ccb8292ed6402d198ad28c82",
+      "caption_utf16_units": 498,
+      "primary_source_urls": [
+        "https://www.marinagalleryresort.com/",
+        "https://www.marinagalleryresort.com/accommadation/",
+        "https://www.marinagalleryresort.com/contact/",
+        "https://www.marinagalleryresort.com/our-service/",
+        "https://www.marinagalleryresort.com/space-and-facilities/"
+      ],
+      "limitations": [],
+      "source_photo_sha256": [
+        "0f52b5461195abecd95c9da4e48ab769e2660a08056f3e770cb63a60e076af18",
+        "136ac8b019b02378ce01b238d2c47dd1ec9e149088c72f5d05e77f1fa11973a3",
+        "38ca5daad0d6307b428296842d91cc2939c7ab071074069c8bc1544268349d5a"
+      ],
+      "cover_sha256": "6a4d3b758a07e187952c39a413fe25a416874fb6bb9ce4b5ba0c65dc20030427"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "hotel_id": 70030,
+    "name": "Utopia Beach Club",
+    "accepted_first_line": "✈️ Туры в Utopia Beach Club",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70030.png",
+    "image_sha256": "6455ae602b38d9933d87431f5343828d75c4c09b8cba08cade427ba1bc0866aa"
+  },
+  {
+    "hotel_id": 1555,
+    "name": "DoubleTree by Hilton Antalya Kemer",
+    "accepted_first_line": "✈️ Туры в DoubleTree by Hilton Antalya Kemer",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1555.png",
+    "image_sha256": "dff6da925a14e4cb421bb59e8c4bf862ac934085e7fad09fd60cffae54f4955b"
+  },
+  {
+    "hotel_id": 1690,
+    "name": "Mirage World",
+    "accepted_first_line": "✈️ Туры в Mirage World",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1690.png",
+    "image_sha256": "f722e1e3464873285b1fe1cd4dd9884f6d405dc7f433e8d4011491e36914426e"
+  },
+  {
+    "hotel_id": 28704,
+    "name": "Selectum Collection Bodrum",
+    "accepted_first_line": "✈️ Туры в Selectum Collection Bodrum",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/28704.png",
+    "image_sha256": "b9f6702813f767b58c483962eba81697cede2d34070d5bee6939aeddbcf892ae"
+  },
+  {
+    "hotel_id": 1699,
+    "name": "Yasmin Bodrum Resort",
+    "accepted_first_line": "✈️ Туры в Yasmin Bodrum Resort",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1699.png",
+    "image_sha256": "3e8276dee76f13377959c90fd51d723d4d980525081753db197350d701222279"
+  },
+  {
+    "hotel_id": 82545,
+    "name": "Ell Lounge Spa & Hotel",
+    "accepted_first_line": "✈️ Туры в Ell Lounge Spa & Hotel",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/82545.png",
+    "image_sha256": "bef06a0386cba2dba1707a9208018a0d8face7d316e9bb42e78af58f3e75b2a5"
+  },
+  {
+    "hotel_id": 70048,
+    "name": "Marina Gallery Resort KACHA Kalim Bay",
+    "accepted_first_line": "✈️ Туры в Marina Gallery Resort KACHA Kalim Bay",
+    "image_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70048.png",
+    "image_sha256": "6a4d3b758a07e187952c39a413fe25a416874fb6bb9ce4b5ba0c65dc20030427"
+  }
+]

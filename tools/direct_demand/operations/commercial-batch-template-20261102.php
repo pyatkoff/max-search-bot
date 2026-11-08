@@ -35,8 +35,17 @@ function maxPhoto(string $file,array $row,string $dir):string{
  $ok=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);$data=json_decode($raw,true);
  insist($ok!==false&&$http>=200&&$http<300&&is_array($data)&&token($data)!=='','photo_upload_outcome_unconfirmed');$t=token($data);persist($path,['state'=>'confirmed','photo_sha256'=>$row['photo_sha256'],'token'=>$t]);return $t;
 }
+function commercialTelegramCaptionEntities(string $text):array{
+ $title=explode("\n",$text,2)[0];insist($title!==''&&mb_check_encoding($title,'UTF-8'),'telegram_heading_invalid');
+ return [['type'=>'bold','offset'=>0,'length'=>intdiv(strlen(mb_convert_encoding($title,'UTF-16LE','UTF-8')),2)]];
+}
+function commercialTelegramCaptionEntitiesMatch($actual,array $expected):bool{
+ if(!is_array($actual)||!array_is_list($actual)||count($actual)!==1||!is_array($actual[0]))return false;
+ $returned=$actual[0];$approved=$expected[0];ksort($returned,SORT_STRING);ksort($approved,SORT_STRING);return $returned===$approved;
+}
 function safeReceipt(array $p,array $row,string $platform,bool $reused):array{
  insist(($p['state']??'')==='sent'&&($p['snapshot']['text']??'')===$row['text'],'registry_post_not_confirmed');
+ if($platform==='telegram')insist(commercialTelegramCaptionEntitiesMatch($p['snapshot']['markup']??null,commercialTelegramCaptionEntities($row['text'])),'registry_heading_not_confirmed');
  $media=$p['snapshot']['attachments']??[];insist(count($media)===1&&($media[0]['type']??'')==='image','registry_photo_missing');
  $url=$p['snapshot']['post_url']??'';$pattern=$platform==='telegram'?'~\Ahttps://t\.me/any_toour/[1-9][0-9]*\z~D':'~\Ahttps://max\.ru/(?:channel_anytour|c/-80492244209683)/[A-Za-z0-9_-]{1,100}\z~D';insist(preg_match($pattern,$url)===1,'canonical_post_url_missing');
  return ['logical_id'=>$row['logical_id'],'platform'=>$platform,'channel_id'=>(string)$p['channel_id'],'message_id'=>(string)$p['external_message_id'],'post_url'=>$url,'publication_id'=>(int)$p['publication_id'],'version_id'=>(int)$p['version_id'],'button_url'=>ChannelPostButtonTransport::buttonUrl($p),'source_key'=>$p['source_key'],'text_sha256'=>$row['text_sha256'],'photo_sha256'=>$row['photo_sha256'],'body_photo_button_verified'=>true,'state'=>'sent','reused'=>$reused,'hotel_id'=>(int)$row['hotel_id'],'button_text'=>'✈️ Узнать стоимость тура','photo_url'=>$row['photo_url']];
@@ -52,21 +61,22 @@ try {
         "migrations/040_channel_post_reconciliation.sql"=>"0f24b838eacd45333c5ade9a2991d060488c6035",
         "services/ChannelPostAdminService.php"=>"b80eefc801054bfe6fdb58ec345ecdf687b2e89a",
         "services/ChannelPostAutomationService.php"=>"f5975ab95de5f45e087eb7a0f768f566c5bca648",
-        "services/ChannelPostButtonTransport.php"=>"b6c123069810ad490391e825315abd8567c55310",
+        "services/ChannelPostButtonTransport.php"=>"7b6711f1de63000346d8e5789f2dbb7f725535b8",
         "services/ChannelPostEntryService.php"=>"f0e04e9b4e0ed6859ced96279cbf0619931596e6",
         "services/ChannelPostMaxAlbumRecovery.php"=>"de266cd068587cc3b2ff83f308a966ea66887a04",
         "services/ChannelPostMediaService.php"=>"f794efd0f6f24df916e18909ff6281b0bc928433",
         "services/ChannelPostMemberDeliveryService.php"=>"20c1d7984898b2a5996a5f9e20e4d2d8c20b4778",
         "services/ChannelPostReconciliationService.php"=>"2b559b067a91abb9402a9dc2f3ce75d1ddedc7c3",
         "services/ChannelPostReconciliationState.php"=>"d9583ceca80d1424a44ade3561c21282a23a52f0",
-        "services/ChannelPostRegistryService.php"=>"a407757b9ac54a9e286900d34385d519d22b8c84",
+        "services/ChannelPostRegistryService.php"=>"8335bf2fb0c1cd78f268d4e90fad1a4465fa6390",
         "services/ChannelPostRuntime.php"=>"2f1dd9b77474fdbaa92f0402f3b0aa170c595474",
         "services/ChannelPostTelegramAlbum.php"=>"faa1a14bc279a4af33936282126bf0d46e343040",
         "services/ChannelPostWebhookConfigService.php"=>"d5fdcb056088f1e3a541b4046325d97eef6417d9",
         "services/ConversationDb.php"=>"bb6281faf55aca7beeae7f8a57389d19751936f7",
         "services/MaxTlsConfig.php"=>"032c0211ee3f39c6f0d27c669abd5b467e321dea",
-        "services/MaxTransport.php"=>"bfa583167347ff42ed632c52a552e5585bb97de9",
-        "services/ProjectConfig.php"=>"538b596981f2c61fbf524e18756bf672578948f6",
+        "services/MaxTransport.php"=>"2cb4f8786b4704a8e62a3a9c40dc2cc73dad6159",
+        "services/ProjectConfig.php"=>"63c17c8103412f8cff8cdcc4bbb062e744106af9",
+        "services/ProjectConfiguration.php"=>"07019d473c588e3386ace42977db93092e8112e3",
     ];
     foreach($accepted as $path=>$blob)if(trim((string)shell_exec('git hash-object -- '.escapeshellarg($path)))!==$blob)throw new RuntimeException('publishing_surface_changed');
     ob_start();try {
@@ -136,11 +146,13 @@ try {
         $upload=$platform==='max'?maxPhoto($file,$row,$dir):null;
         $state['state']='send_started';persist($path,$state);$out['post_write_attempts']++;
         if($platform==='telegram'){
-            $ch=curl_init('https://api.telegram.org/bot'.TELEGRAM_BOT_TOKEN.'/sendPhoto');curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>['chat_id'=>$t['channel'],'caption'=>$row['text'],'photo'=>new CURLFile($file,$mime,'hotel-photo.'.(['image/png'=>'png','image/jpeg'=>'jpg','image/webp'=>'webp'][$mime]))],CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>60,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS]);
+            $captionEntities=commercialTelegramCaptionEntities($row['text']);
+            $ch=curl_init('https://api.telegram.org/bot'.TELEGRAM_BOT_TOKEN.'/sendPhoto');curl_setopt_array($ch,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>['chat_id'=>$t['channel'],'caption'=>$row['text'],'caption_entities'=>json_encode($captionEntities,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),'photo'=>new CURLFile($file,$mime,'hotel-photo.'.(['image/png'=>'png','image/jpeg'=>'jpg','image/webp'=>'webp'][$mime]))],CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>60,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS]);
             $raw=curl_exec($ch);$http=(int)curl_getinfo($ch,CURLINFO_HTTP_CODE);curl_close($ch);$response=is_string($raw)?json_decode($raw,true):null;
             if($http!==200||!is_array($response)||($response['ok']??false)!==true||!is_array($response['result']??null)){$state['state']='send_outcome_unconfirmed';$state['provider_http']=$http;$state['provider_error_code']=$response['error_code']??null;$state['retry_after_seconds']=$response['parameters']['retry_after']??null;persist($path,$state);throw new RuntimeException('telegram_send_unconfirmed_no_retry');}
             $m=$response['result'];$state['message']=$m;$state['state']='photo_sent';persist($path,$state);
             insist((string)($m['chat']['id']??'')===$t['channel']&&($m['chat']['username']??'')==='any_toour'&&($m['caption']??'')===$row['text']&&!empty($m['photo']),'telegram_post_readback_mismatch');
+            insist(commercialTelegramCaptionEntitiesMatch($m['caption_entities']??null,$captionEntities),'telegram_heading_readback_mismatch');
             $snapshot=ChannelPostIncomingAdapter::telegramSnapshot($m);insist(is_array($snapshot),'provider_snapshot_invalid');$snapshot['content_hash']=ChannelPostIncomingAdapter::contentFingerprint($snapshot,'',(string)$c['bot_url']);$snapshot['metadata']['observation_kind']='provider_send_response';$snapshot['metadata']['logical_id']=$row['logical_id'];$snapshot['metadata']['hotel_catalog_id']=(int)$row['hotel_id'];$snapshot['metadata']['source_event_id']='commercial-hotel-three-20261102-8-v1:telegram:'.$row['logical_id'].':'.$m['message_id'];
             $p=$registry->registerPublication('anytour','telegram',$t['bot'],$t['channel'],(string)$m['message_id'],$snapshot);
         }else{

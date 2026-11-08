@@ -1,0 +1,567 @@
+{
+  "operation": "commercial-hotel-batch-20261108-44-v1",
+  "state": "PREPARED_NOT_SENT",
+  "goal": "Continue the explicitly requested NEW hotel publication in the existing AnyTour MAX and Telegram owner after 502 complete pairs.",
+  "button_text": "✈️ Узнать стоимость тура",
+  "baseline_accepted_full_pairs": 502,
+  "expected_new_full_pairs": 7,
+  "expected_total_full_pairs": 509,
+  "asset_commit": "180282ea69e4eed3fe72910736e5253335ed4c40",
+  "selection_source": "Seven reserved native hotels from consumed read44, absent from the accepted502 roster; current canonical identities and primary facts reviewed on 2026-11-08.",
+  "current_registry_clearance": {
+    "original_read_run": 42412950055,
+    "original_result_sha256": "4816aed76338f77710327615a0b39806f823796654d32d22bd14392219cc7da3",
+    "same_clearance_not_replayed": true,
+    "atomic_exact_native_logical_casefolded_alias_guard_required": true
+  },
+  "rows": [
+    {
+      "hotel_id": 70030,
+      "logical_id": "commercial-utopia-beach-club-70030-v1",
+      "aliases": [
+        "Utopia Beach Club"
+      ],
+      "text": "✈️ Туры в Utopia Beach Club\n📍 Инжекум, Турция.\n\nПесчаный пляж и зелёная территория для отпуска у моря всей семьёй.\n\n🏖 Собственный пляж с прямым выходом к морю.\n🛏 Standard 24 м² с балконом. Для семьи есть номера с двумя спальнями.\n💧 Открытый бассейн среди пальм с видом на море.\n🍽 Подберём тур с питанием «ультра всё включено».\n\n✈️ Рассчитаем полную стоимость тура в Utopia Beach Club с перелётом на ваши даты.",
+      "text_sha256": "7c66ea44b3c2dae4be84880e0f125fc3d45531c8f76d3694fd122a6af6144dce",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70030.png",
+      "photo_sha256": "6455ae602b38d9933d87431f5343828d75c4c09b8cba08cade427ba1bc0866aa",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://utopiahotels.com/en/hotel/beachclub/contact",
+        "https://utopiahotels.com/en/hotel/beachclub/beach-and-pools",
+        "https://utopiahotels.com/en/hotel/beachclub/rooms/standard",
+        "https://utopiahotels.com/en/hotel/beachclub/rooms",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/utopia-beach-club176-63238100.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/utopia-beach-club176-63238108.jpg",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/utopia-beach-club176-63238107.jpg"
+      ],
+      "identity_binding": {
+        "legacy_native_id": 70030,
+        "anytour_id": 3136,
+        "source_url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "source_sha256": "2948082ec60ef000c36c5442182da10606e0313d28aa7c7e1ddfc95525c21ec7",
+        "binding": "Explicit links.legacyHotelId to links.anytourHotelId to items.id; no number or array-order inference"
+      },
+      "category": 5,
+      "display_category": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/utopia-beach-club176-63238100.jpg",
+          "source_page": null,
+          "raw_sha256": "6ea28e5c5b6b69b2da5c97e53ed1fc887273e0c9653d8021afa614f230dcfd2c",
+          "dimensions": [
+            1024,
+            682
+          ],
+          "alt": "Песчаный пляж и побережье Utopia Beach Club",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/utopia-beach-club176-63238108.jpg",
+          "source_page": null,
+          "raw_sha256": "0243c53222ae7e7d96824ad4877e0c5c9bba41b58c96d24f9c28956def3a8e79",
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Бассейн и виллы среди пальм Utopia Beach Club",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/utopia-beach-club176-63238107.jpg",
+          "source_page": null,
+          "raw_sha256": "5de23468743d3d1f8fa157c6005c403d276dd45346a34ec4a91858430cecee44",
+          "dimensions": [
+            1024,
+            683
+          ],
+          "alt": "Зона отдыха на территории Utopia Beach Club",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        }
+      ],
+      "media_approval_basis": "Root and independent reviewer visually checked actual final PNG and all three property source photographs; native SVG layout with ordinary resize/crop, no generated photographic content; exact real AnyTour vector logo recolored white."
+    },
+    {
+      "hotel_id": 1555,
+      "logical_id": "commercial-doubletree-antalya-kemer-1555-v1",
+      "aliases": [
+        "Doubletree By Hilton Antalya Kemer",
+        "DoubleTree by Hilton Antalya-Kemer All-Inclusive Resort"
+      ],
+      "text": "✈️ Туры в DoubleTree by Hilton Antalya Kemer\n📍 Кемер, Турция.\n\nОтдых у моря с собственным пляжем и обедами в формате фестиваля уличной еды.\n\n🏖 Шезлонги и зонты на пляже бесплатно.\n🍽 Фудтраки с кухнями разных стран. Рестораны по меню за доплату и по записи.\n🛏 King Duplex Family Suite: два уровня, гостиная и две ванные, до четырёх гостей.\n\n✈️ Подберём размещение и рассчитаем тур с перелётом и питанием «всё включено» на ваши даты.",
+      "text_sha256": "afa0f21cc0312a788c117773404c1ed426a3809629091e0537abd3c11432beb0",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1555.png",
+      "photo_sha256": "dff6da925a14e4cb421bb59e8c4bf862ac934085e7fad09fd60cffae54f4955b",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/",
+        "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/dining/",
+        "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/rooms/",
+        "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/gallery/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_3000,h_3000,q_90,f_auto/c_fill,w_1920,h_1920,q_90,f_auto/Imagery/Property%20Photography/DoubleTree%20-%20International/A/AYTAKDI/Hilton_3000px.jpg",
+        "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1110,h_886,q_80,f_auto,g_auto/Imagery/Property%20Photography/NoBrand/A/AYTAKDI/Pastaway.jpg",
+        "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1620,h_1080,q_90,f_auto/c_fill,w_1920,h_1280,q_90,f_auto/Imagery/Property%20Photography/DoubleTree%20-%20International/A/AYTAKDI/DSC_0152.jpg"
+      ],
+      "identity_binding": {
+        "legacy_native_id": 1555,
+        "anytour_id": 741,
+        "source_url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "source_sha256": "2948082ec60ef000c36c5442182da10606e0313d28aa7c7e1ddfc95525c21ec7",
+        "binding": "Explicit links.legacyHotelId to links.anytourHotelId to items.id; no number or array-order inference"
+      },
+      "category": 5,
+      "display_category": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "source_url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_3000,h_3000,q_90,f_auto/c_fill,w_1920,h_1920,q_90,f_auto/Imagery/Property%20Photography/DoubleTree%20-%20International/A/AYTAKDI/Hilton_3000px.jpg",
+          "source_page": "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/gallery/",
+          "raw_sha256": "b8c7c3c38a09ccfad9c7b3051f543d51e6385b3c242e4a4e0c79053fd125ffcf",
+          "dimensions": [
+            1920,
+            1920
+          ],
+          "alt": "Пляж, пирс и территория DoubleTree by Hilton Antalya Kemer",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1110,h_886,q_80,f_auto,g_auto/Imagery/Property%20Photography/NoBrand/A/AYTAKDI/Pastaway.jpg",
+          "source_page": "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/dining/",
+          "raw_sha256": "140cc897d7bc99803574d811786b786b3a97edfde85d7c9535843e0683eabf24",
+          "dimensions": [
+            1110,
+            886
+          ],
+          "alt": "Фудтрак в зоне Food Festival отеля",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://assets.hiltonstatic.com/hilton-asset-cache/image/upload/c_fill,w_1620,h_1080,q_90,f_auto/c_fill,w_1920,h_1280,q_90,f_auto/Imagery/Property%20Photography/DoubleTree%20-%20International/A/AYTAKDI/DSC_0152.jpg",
+          "source_page": "https://www.hilton.com/en/hotels/aytakdi-doubletree-antalya-kemer-all-inclusive-resort/gallery/",
+          "raw_sha256": "12738dad40a4c7069bcdb51db81c54f541cc05686e13d2a0ad1913c2fc86eb90",
+          "dimensions": [
+            1920,
+            1280
+          ],
+          "alt": "King Duplex Family Suite в DoubleTree by Hilton Antalya Kemer",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        }
+      ],
+      "media_approval_basis": "Root and independent reviewer visually checked actual final PNG and all three property source photographs; native SVG layout with ordinary resize/crop, no generated photographic content; exact real AnyTour vector logo recolored white."
+    },
+    {
+      "hotel_id": 1690,
+      "logical_id": "commercial-mirage-world-1690-v1",
+      "aliases": [
+        "Mirage World",
+        "Mirage World Marmaris"
+      ],
+      "text": "✈️ Туры в Mirage World\n📍 Ичмелер, Турция.\n\nСемейный отпуск в центре Ичмелера с отдельной спальней и гостиной.\n\n🛏 В Family Room спальня и гостиная с двумя диванами, до пяти гостей.\n💧 Бассейны для взрослых и детей.\n🏖 Собственная зона на общественном пляже.\n🍽 Подберём тур с питанием «всё включено».\n\n✈️ Рассчитаем полную стоимость тура в Mirage World с перелётом и подходящим номером на ваши даты.",
+      "text_sha256": "722069997dc16f9debb873c6cc958be333a73d701c1b469a88a9d6876914d628",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1690.png",
+      "photo_sha256": "f722e1e3464873285b1fe1cd4dd9884f6d405dc7f433e8d4011491e36914426e",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://miragehotels.com.tr/",
+        "https://miragehotels.com.tr/family.html",
+        "https://www.miragehotels.com.tr/galeri.html",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "https://static.tourvisor.ru/hotel_pics/verybig/4/mirage-world-102209140.jpg",
+        "https://miragehotels.com.tr/img/rooms/family/family3.jpg",
+        "https://www.miragehotels.com.tr/img/restaurant/restaurant12.jpg"
+      ],
+      "identity_binding": {
+        "legacy_native_id": 1690,
+        "anytour_id": 808,
+        "source_url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "source_sha256": "2948082ec60ef000c36c5442182da10606e0313d28aa7c7e1ddfc95525c21ec7",
+        "binding": "Explicit links.legacyHotelId to links.anytourHotelId to items.id; no number or array-order inference"
+      },
+      "category": 5,
+      "display_category": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "source_url": "https://static.tourvisor.ru/hotel_pics/verybig/4/mirage-world-102209140.jpg",
+          "source_page": null,
+          "raw_sha256": "cdec0391b22b586d72d981248220f482644b0875561bc426989b5a61e000c63e",
+          "dimensions": [
+            1200,
+            675
+          ],
+          "alt": "Территория и бассейны Mirage World в Ичмелере",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://miragehotels.com.tr/img/rooms/family/family3.jpg",
+          "source_page": "https://miragehotels.com.tr/family.html",
+          "raw_sha256": "fb607361cbf25ff76ce5b8852978ce8e6f8d8295519e433d82034c60bd7f4c95",
+          "dimensions": [
+            820,
+            550
+          ],
+          "alt": "Спальня Family Room в Mirage World",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.miragehotels.com.tr/img/restaurant/restaurant12.jpg",
+          "source_page": "https://www.miragehotels.com.tr/galeri.html",
+          "raw_sha256": "40f089abbaeb06bccd0c9d2e3c0cf587ee633d2bd3ff5c7a2963b26bb67e9e2d",
+          "dimensions": [
+            820,
+            550
+          ],
+          "alt": "Ресторан Mirage World",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        }
+      ],
+      "media_approval_basis": "Root and independent reviewer visually checked actual final PNG and all three property source photographs; native SVG layout with ordinary resize/crop, no generated photographic content; exact real AnyTour vector logo recolored white."
+    },
+    {
+      "hotel_id": 28704,
+      "logical_id": "commercial-selectum-collection-bodrum-28704-v1",
+      "aliases": [
+        "Selectum Collection Bodrum",
+        "SELECTUM COLLECTION BODRUM (EX. KAIRABA BODRUM IMPERIAL)",
+        "Kairaba Bodrum Imperial"
+      ],
+      "text": "✈️ Туры в Selectum Collection Bodrum\n📍 Бодрум, Турция.\n\nСемейный отдых у Эгейского моря с отдельными комнатами и занятиями для детей.\n\n🛏 Family Room 40 м²: две отдельные комнаты, до четырёх гостей.\n🏖 Песчаный пляж и пирс. Пляжные павильоны за доплату.\n🎨 В Puppies’ World игры и творческие занятия для детей разных возрастов.\n\n✈️ Подберём питание и размещение в Selectum Collection Bodrum, рассчитаем полную стоимость тура с перелётом на ваши даты.",
+      "text_sha256": "6c21c645fc5c4b862711d2fbfe10c6c57fc69aa9abe40feb41eb874b20ccde0d",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/28704.png",
+      "photo_sha256": "b9f6702813f767b58c483962eba81697cede2d34070d5bee6939aeddbcf892ae",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://collectionbodrum.selectumhotels.com/tr",
+        "https://collectionbodrum.selectumhotels.com/en/rooms/family-room",
+        "https://collectionbodrum.selectumhotels.com/en/pool-and-beach/beach",
+        "https://collectionbodrum.selectumhotels.com/en/kids",
+        "https://collectionbodrum.selectumhotels.com/en/contact",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "https://content.anexapps.com/v1/selectum-collection-bodrum/511671f758cf48f8a23e9af1d9b35e82.jpg",
+        "https://content.anexapps.com/v1/selectum-collection-bodrum/f23e98781e59479c9782e0eab91049b9.jpg",
+        "https://content.anexapps.com/v1/selectum-collection-bodrum/65a911f4877c4f44979ccaee6fbc90b6.jpg"
+      ],
+      "identity_binding": {
+        "legacy_native_id": 28704,
+        "anytour_id": 2081,
+        "source_url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "source_sha256": "2948082ec60ef000c36c5442182da10606e0313d28aa7c7e1ddfc95525c21ec7",
+        "binding": "Explicit links.legacyHotelId to links.anytourHotelId to items.id; no number or array-order inference"
+      },
+      "category": 5,
+      "display_category": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "source_url": "https://content.anexapps.com/v1/selectum-collection-bodrum/511671f758cf48f8a23e9af1d9b35e82.jpg",
+          "source_page": "https://collectionbodrum.selectumhotels.com/tr",
+          "raw_sha256": "3e5e29b9d12eb09bf7b11c78723638b5f9efcc68ddc4cdca4441a39c7588799e",
+          "dimensions": [
+            746,
+            498
+          ],
+          "alt": "Бассейн и побережье Selectum Collection Bodrum",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://content.anexapps.com/v1/selectum-collection-bodrum/f23e98781e59479c9782e0eab91049b9.jpg",
+          "source_page": "https://collectionbodrum.selectumhotels.com/en/rooms/family-room",
+          "raw_sha256": "de387fab06772fffb362fde949d1ae94e9ce5a748a6f4f27d0a4d86e6420dc3c",
+          "dimensions": [
+            716,
+            490
+          ],
+          "alt": "Family Room в Selectum Collection Bodrum",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://content.anexapps.com/v1/selectum-collection-bodrum/65a911f4877c4f44979ccaee6fbc90b6.jpg",
+          "source_page": "https://collectionbodrum.selectumhotels.com/en/pool-and-beach/beach",
+          "raw_sha256": "de606726566dbc1cdf297ac73a787c9939a695078e7f6933f26acf7798e4bf02",
+          "dimensions": [
+            894,
+            407
+          ],
+          "alt": "Пляж и пирс Selectum Collection Bodrum",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        }
+      ],
+      "media_approval_basis": "Root and independent reviewer visually checked actual final PNG and all three property source photographs; native SVG layout with ordinary resize/crop, no generated photographic content; exact real AnyTour vector logo recolored white."
+    },
+    {
+      "hotel_id": 1699,
+      "logical_id": "commercial-yasmin-bodrum-1699-v1",
+      "aliases": [
+        "Yasmin Bodrum Resort",
+        "YASMIN BODRUM RESORT (EX. PALOMA YASMIN RESORT)",
+        "YASMIN BODRUM RESORT",
+        "PALOMA YASMIN RESORT"
+      ],
+      "text": "✈️ Туры в Yasmin Bodrum Resort\n📍 Бодрум, Турция.\n\nЭгейское море, собственная бухта и зелёная территория для отдыха у воды.\n\n🛏 Standard в главном корпусе площадью от 29 до 33 м². Есть варианты с видом на море или территорию.\n🍽 Питание «ультра всё включено».\n🏖 Собственный пляж и пирс.\n💦 Открытые и крытый бассейны, аквабассейн с тремя горками.\n\n✈️ Рассчитаем тур с перелётом на ваши даты и проверим сезонный режим работы бассейнов.",
+      "text_sha256": "5c37f915276697b9ff16faddd64014c9b9e2fb1988504564fde87f02d561c499",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/1699.png",
+      "photo_sha256": "3e8276dee76f13377959c90fd51d723d4d980525081753db197350d701222279",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://yasminbodrum.com/en-gb/",
+        "https://site.yasminbodrum.com/en/our-rooms/",
+        "https://yasminbodrum.com/en-gb/photos/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "https://yasminbodrum.com/img/e30bb8ae6255c3da.webp",
+        "https://yasminbodrum.com/img/a70a7b3e35f0d911.webp",
+        "https://yasminbodrum.com/img/e6dde307f4f24af9.webp"
+      ],
+      "identity_binding": {
+        "legacy_native_id": 1699,
+        "anytour_id": 812,
+        "source_url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "source_sha256": "2948082ec60ef000c36c5442182da10606e0313d28aa7c7e1ddfc95525c21ec7",
+        "binding": "Explicit links.legacyHotelId to links.anytourHotelId to items.id; no number or array-order inference"
+      },
+      "category": 5,
+      "display_category": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "source_url": "https://yasminbodrum.com/img/e30bb8ae6255c3da.webp",
+          "source_page": "https://yasminbodrum.com/en-gb/",
+          "raw_sha256": "87133dc28a7f4986301b1080a49b80c63addd77b0ad3d2116821e8de3525c7da",
+          "dimensions": [
+            2560,
+            1600
+          ],
+          "alt": "Official homepage slider",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://yasminbodrum.com/img/a70a7b3e35f0d911.webp",
+          "source_page": "https://yasminbodrum.com/en-gb/photos/",
+          "raw_sha256": "c6fb80022b94039fd632c7070d302e5d5ae65fd41c2f5965bad76abaa934ffa0",
+          "dimensions": [
+            1280,
+            852
+          ],
+          "alt": "Official gallery Rooms, gallery-3, first photo; specific room category not stated",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://yasminbodrum.com/img/e6dde307f4f24af9.webp",
+          "source_page": "https://yasminbodrum.com/en-gb/",
+          "raw_sha256": "bad9074f01734e8b7faf102bf8b9379dceb7b6703496fc62aed4f54df36157a3",
+          "dimensions": [
+            2560,
+            1600
+          ],
+          "alt": "Official homepage slider",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        }
+      ],
+      "media_approval_basis": "Root and independent reviewer visually checked actual final PNG and all three property source photographs; native SVG layout with ordinary resize/crop, no generated photographic content; exact real AnyTour vector logo recolored white."
+    },
+    {
+      "hotel_id": 82545,
+      "logical_id": "commercial-ell-lounge-spa-hotel-82545-v1",
+      "aliases": [
+        "Ell Lounge Spa & Hotel",
+        "ELL LOUNGE SPA & HOTEL",
+        "ELL LOUNGE SPA HOTEL"
+      ],
+      "text": "✈️ Туры в Ell Lounge Spa & Hotel\n📍 Нячанг, Вьетнам.\n\nГородской отель для тех, кто планирует проводить дни на пляже и знакомиться с Нячангом.\n\n🛏 Standard Double 25 м² с двуспальной кроватью, окном и ограниченным видом. Standard Triple 35 м² без окна, с двуспальной и односпальной кроватями.\n🍽 Без питания.\n💆 Массаж за дополнительную плату.\n🏖 Общественный песчаный пляж. Пляжные полотенца, лежаки и зонтики отель не предоставляет.\n\n✈️ Подберём номер с подходящими условиями и рассчитаем тур с перелётом на ваши даты.",
+      "text_sha256": "6feca8b418025b463756621ab42a2a8468c1ed9d5adb0a7152ec0458f20c5960",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/82545.png",
+      "photo_sha256": "bef06a0386cba2dba1707a9208018a0d8face7d316e9bb42e78af58f3e75b2a5",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://anextour.ru/tours/vietnam/ell-lounge-spahotel",
+        "https://anextour.ru/news/travel-guide/prileteli-vo-vetnam-na-vietjet",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "https://files.anextour.ru/hotel/vietnam/hotel/ell-lounge-spa-hotel/room/standard-room-double/424033",
+        "https://files1.anextour.com/user-files/elfinder/anexru/news-2/vo-vetnam-na-vietjet/vo-vetnam-na-vietjet-1.jpg",
+        "https://files.anextour.ru/hotel/vietnam/hotel/ell-lounge-spa-hotel/room/standard-triple/424031"
+      ],
+      "identity_binding": {
+        "legacy_native_id": 82545,
+        "anytour_id": 7015,
+        "source_url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "source_sha256": "2948082ec60ef000c36c5442182da10606e0313d28aa7c7e1ddfc95525c21ec7",
+        "binding": "Explicit links.legacyHotelId to links.anytourHotelId to items.id; no number or array-order inference"
+      },
+      "category": 2,
+      "display_category": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "source_url": "https://files.anextour.ru/hotel/vietnam/hotel/ell-lounge-spa-hotel/room/standard-room-double/424033",
+          "source_page": "https://anextour.ru/tours/vietnam/ell-lounge-spahotel",
+          "raw_sha256": "18b0e0a78c844f602c786d1af0f6178f217e64fc470ab083c62f25898e85ac8d",
+          "dimensions": [
+            1663,
+            935
+          ],
+          "alt": "STANDARD ROOM - DOUBLE, 25 m², window with restricted view",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://files1.anextour.com/user-files/elfinder/anexru/news-2/vo-vetnam-na-vietjet/vo-vetnam-na-vietjet-1.jpg",
+          "source_page": "https://anextour.ru/news/travel-guide/prileteli-vo-vetnam-na-vietjet",
+          "raw_sha256": "accb567c47f473904bf87b73797d8762597d1ef1a31801697316332a0826bd2d",
+          "dimensions": [
+            1200,
+            800
+          ],
+          "alt": "Placed immediately after Ell Lounge Spa & Hotel paragraph",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://files.anextour.ru/hotel/vietnam/hotel/ell-lounge-spa-hotel/room/standard-triple/424031",
+          "source_page": "https://anextour.ru/tours/vietnam/ell-lounge-spahotel",
+          "raw_sha256": "71cb5ea9d95d19acc01ea507de5b1143b7d2eb4c1abdd0692758c070ed60550c",
+          "dimensions": [
+            1920,
+            1080
+          ],
+          "alt": "STANDARD TRIPLE, 35 m², without window",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        }
+      ],
+      "media_approval_basis": "Root and independent reviewer visually checked actual final PNG and all three property source photographs; native SVG layout with ordinary resize/crop, no generated photographic content; exact real AnyTour vector logo recolored white."
+    },
+    {
+      "hotel_id": 70048,
+      "logical_id": "commercial-marina-gallery-kacha-kalim-bay-70048-v1",
+      "aliases": [
+        "Marina Gallery Resort - KACHA - Kalim Bay",
+        "MARINA GALLERY RESORT KACHA KALIM BAY",
+        "MARINA GALLERY KACHA KALIM BAY"
+      ],
+      "text": "✈️ Туры в Marina Gallery Resort KACHA Kalim Bay\n📍 Пхукет, Таиланд.\n\nОтель на склоне у бухты Калим: белые аркады, колониальный стиль и территория с бассейном.\n\n🛏 Deluxe Pool View площадью 40 м², с собственным балконом и видом на бассейн.\n💦 Открытый бассейн, сад и зона с лежаками.\n🍽 Ресторан Laikraam с блюдами кухни Пхукета.\n🏖 До пляжа Калим около 1 км. В Патонг ходит бесплатный шаттл по расписанию.\n\n✈️ Подберём тур с перелётом и питанием на ваши даты. Расписание шаттла уточним при подборе.",
+      "text_sha256": "1cbe76cd7ca0e7feacd5d7cfe2bc56ca0b5495b3ccb8292ed6402d198ad28c82",
+      "photo_url": "https://raw.githubusercontent.com/pyatkoff/max-search-bot/180282ea69e4eed3fe72910736e5253335ed4c40/.github/traffic-publish/commercial-batch-20261108-44/70048.png",
+      "photo_sha256": "6a4d3b758a07e187952c39a413fe25a416874fb6bb9ce4b5ba0c65dc20030427",
+      "media_state": "REAL_OFFICIAL_PHOTOGRAPHY_BRANDED_COVER_VISUALLY_VERIFIED",
+      "sources": [
+        "https://www.marinagalleryresort.com/",
+        "https://www.marinagalleryresort.com/accommadation/",
+        "https://www.marinagalleryresort.com/contact/",
+        "https://www.marinagalleryresort.com/our-service/",
+        "https://www.marinagalleryresort.com/space-and-facilities/",
+        "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "https://www.marinagalleryresort.com/wp-content/uploads/2026/03/Marina_Overview-Kacha_Phuket.webp",
+        "https://www.marinagalleryresort.com/wp-content/uploads/2023/12/marina-gallery-kacha-deluxe-pool-view-room-king-bed-ceramic-wall-plates-kalim-beach-phuket.jpg",
+        "https://www.marinagalleryresort.com/wp-content/uploads/2026/05/marina-gallery-resort-kacha-exterior-facade-chino-colonial-kalim-bay-phuket.webp"
+      ],
+      "identity_binding": {
+        "legacy_native_id": 70048,
+        "anytour_id": 3141,
+        "source_url": "https://anytoour.ru/_preview/search3-local-candidate/data/hotel-details-read-v1.php?catalog=anytour&legacyHotelIds%5B%5D=70030&legacyHotelIds%5B%5D=1555&legacyHotelIds%5B%5D=1690&legacyHotelIds%5B%5D=28704&legacyHotelIds%5B%5D=1699&legacyHotelIds%5B%5D=82545&legacyHotelIds%5B%5D=70048",
+        "source_sha256": "2948082ec60ef000c36c5442182da10606e0313d28aa7c7e1ddfc95525c21ec7",
+        "binding": "Explicit links.legacyHotelId to links.anytourHotelId to items.id; no number or array-order inference"
+      },
+      "category": 5,
+      "display_category": true,
+      "photo_dimensions": [
+        600,
+        600
+      ],
+      "photo_provenance": [
+        {
+          "role": "hero",
+          "source_url": "https://www.marinagalleryresort.com/wp-content/uploads/2026/03/Marina_Overview-Kacha_Phuket.webp",
+          "source_page": "https://www.marinagalleryresort.com/",
+          "raw_sha256": "0f52b5461195abecd95c9da4e48ab769e2660a08056f3e770cb63a60e076af18",
+          "dimensions": [
+            1440,
+            800
+          ],
+          "alt": "Home",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_left",
+          "source_url": "https://www.marinagalleryresort.com/wp-content/uploads/2023/12/marina-gallery-kacha-deluxe-pool-view-room-king-bed-ceramic-wall-plates-kalim-beach-phuket.jpg",
+          "source_page": "https://www.marinagalleryresort.com/accommadation/",
+          "raw_sha256": "136ac8b019b02378ce01b238d2c47dd1ec9e149088c72f5d05e77f1fa11973a3",
+          "dimensions": [
+            800,
+            600
+          ],
+          "alt": "Deluxe Pool View Room king bed with carved wooden headboard and blue-and-white ceramic wall plates at Marina Gallery Resort KACHA, Kalim Beach Phuket.",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        },
+        {
+          "role": "detail_right",
+          "source_url": "https://www.marinagalleryresort.com/wp-content/uploads/2026/05/marina-gallery-resort-kacha-exterior-facade-chino-colonial-kalim-bay-phuket.webp",
+          "source_page": "https://www.marinagalleryresort.com/gallery/",
+          "raw_sha256": "38ca5daad0d6307b428296842d91cc2939c7ab071074069c8bc1544268349d5a",
+          "dimensions": [
+            998,
+            1000
+          ],
+          "alt": "Overview",
+          "source_visual_review": "PASS_REAL_PROPERTY_PHOTOGRAPH",
+          "processing": "ordinary proportional resize and crop; WebP decoded to PNG for SVG compatibility; no generative photographic changes"
+        }
+      ],
+      "media_approval_basis": "Root and independent reviewer visually checked actual final PNG and all three property source photographs; native SVG layout with ordinary resize/crop, no generated photographic content; exact real AnyTour vector logo recolored white."
+    }
+  ]
+}
