@@ -1,4 +1,4 @@
-name: Refresh current headings for the 458 existing AnyTour hotel pairs
+name: Reconcile the stopped caption journal once without application access
 on:
   push:
     branches: [audit/content100-bot-publication-20261101]
@@ -9,39 +9,71 @@ permissions:
 concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
-env:
-  EXPECTED_PRODUCTION_SHA: 7d3ad8cc07f71de6e85a285a4adaef5372f52df4
 jobs:
   inspect:
     if: github.ref == 'refs/heads/audit/content100-bot-publication-20261101'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Verify exact reviewed publishing conditions independently of unrelated aggregate jobs
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Prepare the exact private-journal reader only
         shell: bash
         run: |
           set -euo pipefail
+          umask 077
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          evidence="$RUNNER_TEMP/commercial-source-evidence"
-          mkdir -p "$evidence"
-          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$evidence/main.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42437675610 > "$evidence/verify_run.json"
-          gh api "repos/pyatkoff/max-search-bot/actions/runs/42437675610/jobs?per_page=20" > "$evidence/verify_jobs.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42438084138 > "$evidence/tls_run.json"
-          gh api "repos/pyatkoff/max-search-bot/git/commits/$EXPECTED_PRODUCTION_SHA" > "$evidence/source_commit.json"
-          tree_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["tree"]["sha"])' "$evidence/source_commit.json")"
-          gh api "repos/pyatkoff/max-search-bot/git/trees/$tree_sha?recursive=1" > "$evidence/source_tree.json"
-          python3 tools/direct_demand/operations/verify-commercial-source.py --expected-source "$EXPECTED_PRODUCTION_SHA" --evidence-dir "$evidence"
-          python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert r["status"] == "completed" and r["conclusion"] == "success"' "$evidence/verify_run.json"
-          gh api repos/pyatkoff/max-search-bot/actions/runs/42397616407 > "$evidence/confirmed-route-bindings.json"
-          python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert (r["status"],r["conclusion"],r["head_sha"]) == ("completed","success","452ef56b8d714a0feb67577f0020cf8e56add9aa")' "$evidence/confirmed-route-bindings.json"
+          cat > "$RUNNER_TEMP/caption-prior-journal-reader.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          // One existing private journal, outside the application checkout.
+          // No application load, database, provider request, or journal write.
+          ini_set('display_errors','0');ini_set('log_errors','0');
+          $out=['operation'=>'commercial-hotel-caption-review6706115450-20261107-1-v1','mode'=>'read_only_original_journal_reconciliation','ok'=>false,'prior_run_id'=>42433350408,'prior_job_id'=>128586848537,'file_writes'=>0,'database_calls'=>0,'provider_calls'=>0,'post_write_attempts'=>0,'used_operation_id_reusable'=>false];
+          function requireJournal(bool $ok,string $reason):void{if(!$ok)throw new RuntimeException($reason);}
+          $handle=null;
+          try {
+              requireJournal(PHP_SAPI==='cli','cli_required');
+              $parent='/var/www/anytoour/data/channel-post-operations';
+              $dir=$parent.'/commercial-hotel-caption-review6706115450-20261107-1-v1';
+              $file=$dir.'/receipt.jsonl';
+              requireJournal(is_dir($parent)&&!is_link($parent)&&realpath($parent)===$parent,'journal_parent_path_changed');
+              requireJournal(is_dir($dir)&&!is_link($dir)&&realpath($dir)===$dir,'original_operation_directory_missing_or_changed');
+              requireJournal((fileperms($dir)&0077)===0,'operation_directory_not_private');
+              requireJournal(is_file($file)&&!is_link($file)&&realpath($file)===$file,'original_journal_missing_or_changed');
+              $handle=fopen($file,'rb');requireJournal(is_resource($handle),'journal_read_open_failed');
+              requireJournal(flock($handle,LOCK_SH|LOCK_NB),'journal_has_active_exclusive_writer');
+              $before=fstat($handle);requireJournal(is_array($before)&&$before['size']>0&&$before['size']<=1048576,'journal_empty_or_outside_read_bound');
+              $raw=stream_get_contents($handle,1048577);$after=fstat($handle);
+              requireJournal(is_string($raw)&&strlen($raw)===$before['size']&&is_array($after),'bounded_original_journal_read_failed');
+              foreach(['dev','ino','size','mtime','ctime'] as $key)requireJournal($before[$key]===$after[$key],'journal_changed_during_read');
+              requireJournal(str_ends_with($raw,"\n"),'journal_contains_unresolved_partial_line');
+              $lines=explode("\n",substr($raw,0,-1));requireJournal(count($lines)>0&&count($lines)<=64,'journal_line_count_outside_bound');
+              foreach($lines as $line){
+                  requireJournal($line!=='','journal_contains_empty_record');
+                  $state=json_decode($line,true,64,JSON_THROW_ON_ERROR);
+                  requireJournal(is_array($state)&&($state['operation']??'')===$out['operation'],'original_journal_operation_changed');
+                  requireJournal(($state['manifest_hash']??'')==='bc42da11b7f4d806b4e7e2cff33ccbabf30333881df5c49581f7b59d8597b4e1','original_journal_manifest_binding_changed');
+                  requireJournal(array_key_exists('configs',$state)&&array_key_exists('posts',$state)&&$state['configs']===[]&&$state['posts']===[],'journal_has_configuration_or_edit_intent_requires_original_reconciliation');
+                  requireJournal(($state['complete']??false)===false,'journal_already_marked_complete');
+              }
+              $out['ok']=true;$out['outcome']='ORIGINAL_JOURNAL_CONFIRMS_NO_CONFIGURATION_OR_POST_EDIT_INTENT';
+              $out['journal_records']=count($lines);$out['journal_bytes']=strlen($raw);$out['journal_sha256']=hash('sha256',$raw);
+              $out['original_manifest_binding_matches']=true;$out['shared_lock_acquired']=true;
+              $out['all_records_empty_configs_and_posts']=true;$out['journal_unchanged_during_read']=true;
+              $out['no_replay_remains_required']=true;
+          } catch(Throwable $error) {
+              $out['error']=preg_match('/\A[a-z][a-z0-9_]{1,150}\z/',$error->getMessage())?$error->getMessage():'bounded_original_journal_reconciliation_failed';
+          } finally {
+              if(is_resource($handle)){flock($handle,LOCK_UN);fclose($handle);}
+          }
+          echo json_encode($out,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),PHP_EOL;
+          exit($out['ok']?0:2);
+          PHP
+          php -l "$RUNNER_TEMP/caption-prior-journal-reader.php"
       - name: Prepare existing server connection
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -80,42 +112,51 @@ jobs:
           assert matches,'HOST_CONTINUITY_PIN_MISMATCH_STOP'
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(matches)+'\n')
           PY
-      - name: Read the exact current posts and routes without writes
+      - name: Read only the exact original stopped journal under the existing publisher
         env:
+          GH_TOKEN: ${{ github.token }}
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/journal-current-repository.json"
+          gh api repos/pyatkoff/max-search-bot/git/ref/heads/audit/content100-bot-publication-20261101 > "$RUNNER_TEMP/journal-current-audit.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/journal-active-publisher.json"
+          gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/journal-queued-publisher.json"
           python3 - <<'PY'
-          import base64,hashlib,os,pathlib
-          path=pathlib.Path('tools/direct_demand/operations')
-          raw=(path/'short-heading-scope-20261107.json').read_bytes()
-          source=(path/'read-short-heading-scope-20261108.php').read_text()
-          assert hashlib.sha256(raw).hexdigest()=='d1c11d29609483213cd8988aeb398fca48c9d78b8a3588297066cf4926398724'
-          assert hashlib.sha256(source.encode()).hexdigest()=='16b2f660709bda1995fa4edbf90e67651338d54d25244e1b54cdabf36ec2aaea'
-          constants="\nconst EXPECTED_INSTALLED_SHA='"+os.environ['EXPECTED_PRODUCTION_SHA']+"';\nconst APPROVED_MANIFEST_SHA256='"+hashlib.sha256(raw).hexdigest()+"';\nconst MANIFEST_BASE64='"+base64.b64encode(raw).decode()+"';\n"
-          (pathlib.Path(os.environ['RUNNER_TEMP'])/'read-short-heading.php').write_text(source.replace('declare(strict_types=1);','declare(strict_types=1);'+constants,1))
+          import json,os,pathlib,re
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])
+          main=json.loads((p/'journal-current-repository.json').read_text())['object']['sha'];assert re.fullmatch('[0-9a-f]{40}',main)
+          assert json.loads((p/'journal-current-audit.json').read_text())['object']['sha']==os.environ['GITHUB_SHA']
+          active=json.loads((p/'journal-active-publisher.json').read_text());queued=json.loads((p/'journal-queued-publisher.json').read_text())
+          assert active['total_count']<=1 and all(str(r['id'])==os.environ['GITHUB_RUN_ID'] for r in active['workflow_runs'])
+          assert queued['total_count']==0
           PY
-          php -l "$RUNNER_TEMP/read-short-heading.php"
-          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_PRODUCTION_SHA'; test -z \"\$(git status --porcelain --untracked-files=no)\"; php" < "$RUNNER_TEMP/read-short-heading.php" > "$RUNNER_TEMP/short-heading-readback.json" || probe_status=$?
-          python3 - <<'PY'
-          import collections,json,os,pathlib
-          d=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'short-heading-readback.json').read_text())
-          print(json.dumps({'ok':d['ok'],'posts':len(d['posts']),'statuses':collections.Counter(p['status'] for p in d['posts']),'error':d.get('error')}))
-          assert d['ok'] and d['post_write_attempts']==d['provider_calls']==0 and len(d['posts'])==916
+          probe_status=0
+          ssh -i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts" "$DEPLOY_USER@$DEPLOY_HOST" php < "$RUNNER_TEMP/caption-prior-journal-reader.php" > "$RUNNER_TEMP/caption-prior-journal-reconciliation.safe.json" || probe_status=$?
+          JOURNAL_SSH_STATUS="$probe_status" python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP']);f=p/'caption-prior-journal-reconciliation.safe.json'
+          try:d=json.loads(f.read_text())
+          except Exception:
+              d={'operation':'commercial-hotel-caption-review6706115450-20261107-1-v1','mode':'read_only_original_journal_reconciliation','ok':False,'error':'no_valid_original_journal_result','used_operation_id_reusable':False}
+          d['reader_commit']=os.environ['GITHUB_SHA'];d['observed_repository_sha']=json.loads((p/'journal-current-repository.json').read_text())['object']['sha'];d['ssh_status']=int(os.environ['JOURNAL_SSH_STATUS'])
+          f.write_text(json.dumps(d,sort_keys=True));print(json.dumps(d,sort_keys=True))
+          assert d['ok'] is True and d['outcome']=='ORIGINAL_JOURNAL_CONFIRMS_NO_CONFIGURATION_OR_POST_EDIT_INTENT'
+          assert d['original_manifest_binding_matches'] is True and d['all_records_empty_configs_and_posts'] is True and d['journal_unchanged_during_read'] is True
+          assert d['file_writes']==d['database_calls']==d['provider_calls']==d['post_write_attempts']==0 and d['used_operation_id_reusable'] is False
+          assert d['ssh_status']==0
           PY
-          test "${probe_status:-0}" = 0
-      - name: Retain the exact read-only caption evidence
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: commercial-short-heading-registry-audit-20261108-result
-          path: ${{ runner.temp }}/short-heading-readback.json
+          name: commercial-caption-prior-journal-reconciliation-20261108-1
+          path: ${{ runner.temp }}/caption-prior-journal-reconciliation.safe.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Remove ephemeral files
+      - name: Remove only ephemeral runner files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/read-short-heading.php"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/caption-prior-journal-reader.php"
