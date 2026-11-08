@@ -85,13 +85,53 @@ final class AppleService39PilotPublicationStore
         if (!$saved || $saved['external_message_id'] !== $mid || $saved['public_url'] !== $url) throw new RuntimeException('provider_receipt_storage_unknown');
     }
 
+    /** A canonical image binding never resets the original create claim. */
+    public function rememberImageReceipt(array $row, array $receipt): void
+    {
+        if ($this->pdo->inTransaction()) throw new RuntimeException('pilot_requires_autocommit');
+        $keys = ['kind','message_id','photo_id','source_sha256','upload_token_sha256','request_sha256','evidence_sha256'];
+        $current = $this->operation((string)$row['post_key'], 'create');
+        if (($row['operation'] ?? '') !== 'create' || !$current || (int)$current['id'] !== (int)$row['id']
+            || $current['payload_sha256'] !== $row['payload_sha256']
+            || !in_array($current['state'], ['write_started','unknown'], true) || (int)$current['write_attempts'] !== 1
+            || array_keys($receipt) !== $keys
+            || !in_array($receipt['kind'], ['create_response','exact_upload_token','reviewed_legacy_native_image'], true)
+            || $receipt['message_id'] !== $current['external_message_id']
+            || !is_string($receipt['photo_id']) || preg_match('/\\A(?:0|-?[1-9][0-9]{0,18})\\z/D', $receipt['photo_id']) !== 1
+            || $receipt['request_sha256'] !== $current['payload_sha256']) throw new RuntimeException('invalid_image_receipt');
+        foreach (['source_sha256','upload_token_sha256','request_sha256'] as $key) {
+            if (!is_string($receipt[$key]) || preg_match('/\\A[a-f0-9]{64}\\z/D', $receipt[$key]) !== 1) throw new RuntimeException('invalid_image_receipt');
+        }
+        if (!is_string($receipt['evidence_sha256'])
+            || ($receipt['kind'] === 'reviewed_legacy_native_image'
+                ? preg_match('/\\A[a-f0-9]{64}\\z/D', $receipt['evidence_sha256']) !== 1 : $receipt['evidence_sha256'] !== '')) {
+            throw new RuntimeException('invalid_image_receipt');
+        }
+        $existing = $current['outcome']['image_receipt'] ?? null;
+        if ($existing !== null) {
+            if ($existing !== $receipt) throw new RuntimeException('image_receipt_changed');
+            return;
+        }
+        $outcome = $current['outcome']; $outcome['image_receipt'] = $receipt;
+        $query = $this->pdo->prepare("UPDATE appleservice39_pilot_operations SET outcome_json=?,updated_at=? WHERE id=? AND payload_sha256=? AND state IN ('write_started','unknown') AND write_attempts=1 AND external_message_id=? AND outcome_json=?");
+        $query->execute([self::json($outcome),gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256'],$receipt['message_id'],$current['outcome_json']]);
+        $saved = $this->operation((string)$row['post_key'], 'create');
+        if (!$saved || ($saved['outcome']['image_receipt'] ?? null) !== $receipt) throw new RuntimeException('image_receipt_storage_unknown');
+    }
+
     public function finish(array $row, string $state, array $outcome = []): void
     {
         if (!in_array($state, ['verified','unknown','rejected'], true)) throw new RuntimeException('invalid_pilot_outcome');
-        $query = $this->pdo->prepare("UPDATE appleservice39_pilot_operations SET state=?,outcome_json=?,updated_at=? WHERE id=? AND payload_sha256=? AND state IN ('write_started','unknown') AND write_attempts=1");
-        $query->execute([$state,self::json($outcome),gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256']]);
+        $current = $this->operation((string)$row['post_key'], (string)$row['operation']);
+        if (!$current || (int)$current['id'] !== (int)$row['id'] || $current['payload_sha256'] !== $row['payload_sha256']) throw new RuntimeException('pilot_outcome_storage_unknown');
+        $receipt = $current['outcome']['image_receipt'] ?? null;
+        if (array_key_exists('image_receipt', $outcome) && $outcome['image_receipt'] !== $receipt) throw new RuntimeException('image_receipt_changed');
+        if ($receipt !== null) $outcome['image_receipt'] = $receipt;
+        $json = self::json($outcome);
+        $query = $this->pdo->prepare("UPDATE appleservice39_pilot_operations SET state=?,outcome_json=?,updated_at=? WHERE id=? AND payload_sha256=? AND state IN ('write_started','unknown') AND write_attempts=1 AND outcome_json=?");
+        $query->execute([$state,$json,gmdate('Y-m-d H:i:s'),(int)$row['id'],$row['payload_sha256'],$current['outcome_json']]);
         $saved = $this->operation((string)$row['post_key'], (string)$row['operation']);
-        if (!$saved || $saved['state'] !== $state) throw new RuntimeException('pilot_outcome_storage_unknown');
+        if (!$saved || $saved['state'] !== $state || $saved['outcome_json'] !== $json) throw new RuntimeException('pilot_outcome_storage_unknown');
     }
 
     /** A native GET may establish that our exact verified menu is already pinned. */
