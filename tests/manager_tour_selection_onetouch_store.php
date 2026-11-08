@@ -2,6 +2,7 @@
 declare(strict_types=1);
 /** Real canonical transaction/receipts, disposable SQLite memory only. No HTTP. */
 require_once __DIR__.'/../services/ManagerTourSelectionService.php';
+require_once __DIR__.'/../services/ManagerTourSelectionPublicationDraft.php';
 require_once __DIR__.'/../services/ManagerTourSelectionOneTouchIntake.php';
 require_once __DIR__.'/fixtures/onetouch-public.php';
 $p=new PDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
@@ -115,6 +116,32 @@ $directRecovered=ManagerTourSelectionService::importOneTouch(8,1,$key,$directCom
 storeCheck($directRecovered['ok']&&$directRecovered['found']&&$directRecovered['saved_version']===$directAdd['saved_version'],'lost direct receipt reconciles original operation readonly without requiring a new offer id');
 storeCheck((int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$beforeDirectOperations+1&&ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$directDraft,'readonly direct recovery performs no second import or photo write');
 foreach($before as $table=>$rows)storeCheck($p->query('SELECT * FROM '.$table)->fetchAll()===$rows,'direct import causes no collateral change '.$table);
+
+
+// Family writes use the same canonical transaction and original-operation receipts.
+$familyStart=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];$familyCommands=[];
+foreach([[8],[8,8],[0,8,17]] as $ages){
+    $ff=syntheticOneTouchSource(2,$ages);$fs=ManagerTourSelectionOneTouchIntake::search(8,1,$key,['url'=>$ff['url']],static fn($url):array=>['url'=>$ff['url'],'response'=>$ff['response'],'form'=>$ff['form'],'observed_at'=>gmdate('Y-m-d\TH:i:s\Z')]);
+    storeCheck($fs['ok'],'family obtains current canonical context '.implode(',',$ages));$fr=ManagerTourSelectionOneTouchIntake::review(8,1,$key,['ticket'=>$fs['offers'][0]['ticket']],static fn($url):string=>$ff['hotel']);storeCheck($fr['ok'],'family gallery bound to ticket '.implode(',',$ages));
+    $cmd=['operation_id'=>'fixture-family-'.implode('-',$ages).'-0001','ticket'=>$fr['ticket'],'confirm_price_from'=>true,'manager_amount'=>'145000'];$prior=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];$ops=(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
+    $added=ManagerTourSelectionService::importOneTouch(8,1,$key,$cmd);$view=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];$savedFamily=$view[array_key_last($view)];
+    storeCheck($added['ok']&&$added['state']==='added'&&count($view)===count($prior)+1&&array_slice($view,0,count($prior))===$prior,'family appends once with all prior Biblio and OneTouch untouched '.implode(',',$ages));
+    storeCheck($savedFamily['child_ages']===$ages&&$savedFamily['import_source']['fields']['child_ages']===$ages&&$savedFamily['import_source']['raw']['party']==='2AD+'.count($ages).'CH('.implode(',',$ages).')'&&$savedFamily['import_source']['url']===$ff['url'],'requested vector multiplicity survives canonical database '.implode(',',$ages));
+    storeCheck($savedFamily['amount']==='145000'&&$savedFamily['import_source']['fields']['amount']==='123456.78'&&$savedFamily['price_qualifier']==='from'&&$savedFamily['photos']===[['url'=>$ff['photo'],'kind'=>'cover','illustrative'=>true]],'family price override and source photos retained separately '.implode(',',$ages));
+    $recovered=ManagerTourSelectionService::importOneTouch(8,1,$key,$cmd,true);storeCheck($recovered['ok']&&$recovered['found']&&$recovered['saved_version']===$added['saved_version']&&(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$ops+1&&ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$view,'family lost receipt resolves original operation read only '.implode(',',$ages));
+    $familyCommands[implode(',',$ages)]=$cmd;
+    $publication=ManagerTourSelectionPublicationDraft::build(['title'=>'Synthetic family preview','intro'=>'','offers'=>[$savedFamily]]);
+    storeCheck($publication['ok']&&$publication['offers'][0]['snapshot']['child_ages']===$ages&&$publication['offers'][0]['snapshot']['amount']==='145000'&&$publication['offers'][0]['import_source']===$savedFamily['import_source'],'private publication freezes exact ages price and original source '.implode(',',$ages));
+}
+$ff=syntheticOneTouchSource(2,[9]);$eightClaim='0x'.hash('sha256','synthetic-family-2-8');$nineClaim='0x'.hash('sha256','synthetic-family-2-9');$responseCollision=str_replace($nineClaim,$eightClaim,$ff['response']);
+$fs=ManagerTourSelectionOneTouchIntake::search(8,1,$key,['url'=>$ff['url']],static fn($url):array=>['url'=>$ff['url'],'response'=>$responseCollision,'form'=>$ff['form'],'observed_at'=>gmdate('Y-m-d\TH:i:s\Z')]);$fr=ManagerTourSelectionOneTouchIntake::review(8,1,$key,['ticket'=>$fs['offers'][0]['ticket']],static fn($url):string=>$ff['hotel']);
+$prior=ManagerTourSelectionService::get(8,1)['selection']['draft']['offers'];$ops=(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn();
+$collision=ManagerTourSelectionService::importOneTouch(8,1,$key,['operation_id'=>'fixture-family-age-collision-0001','ticket'=>$fr['ticket'],'confirm_price_from'=>true,'manager_amount'=>'145000']);
+storeCheck(($collision['error']??'')==='ambiguous_offer'&&ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$prior&&(int)$p->query('SELECT COUNT(*) FROM manager_tour_selection_operations')->fetchColumn()===$ops,'same opaque claim and price with another age cannot overwrite or append');
+$wrong=$familyCommands['8'];$wrong['ticket']=$fr['ticket'];$mismatch=ManagerTourSelectionService::importOneTouch(8,1,$key,$wrong,true);
+storeCheck(($mismatch['error']??'')==='operation_mismatch'&&ManagerTourSelectionService::get(8,1)['selection']['draft']['offers']===$prior,'another age ticket cannot reconcile original age-eight operation');
+storeCheck(array_slice($prior,0,count($familyStart))===$familyStart,'entire pre-family selection remains unchanged');
+foreach($before as $table=>$rows)storeCheck($p->query('SELECT * FROM '.$table)->fetchAll()===$rows,'family tests leave conversations messages events and reads unchanged '.$table);
 
 
 echo json_encode(['checks'=>$count,'database'=>'sqlite::memory:','realDatabase'=>false,'network'=>0,'realImports'=>0],JSON_THROW_ON_ERROR)."\n";

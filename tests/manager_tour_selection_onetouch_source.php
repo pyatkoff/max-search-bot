@@ -65,4 +65,34 @@ $threeSource=ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportD
 onetouchCheck(ManagerTourSelectionImportDraft::fingerprint($twoSource,false)!==ManagerTourSelectionImportDraft::fingerprint($threeSource,false),'otherwise identical source conditions retain distinct party identity');
 
 
+// Family controls describe requested ages; native rows independently bind counts only.
+$familyQuotes=[];
+foreach([[0],[8],[17],[8,8],[0,8,17]] as $ages){
+    $ff=syntheticOneTouchSource(2,$ages);$fq=ManagerTourSelectionOneTouchSource::parse($ff['response'],$ff['url'],$ff['form'],'2077-01-01T00:00:00Z')[0];
+    onetouchCheck($fq['offer']['adults']===2&&$fq['offer']['child_ages']===$ages&&$fq['raw']['party']==='2AD+'.count($ages).'CH('.implode(',',$ages).')','requested ages retain multiplicity '.implode(',',$ages));
+    $fq['photos']=ManagerTourSelectionOneTouchSource::gallery($ff['hotel'],$fq);$fi=ManagerTourSelectionImportDraft::normalize($fq);
+    onetouchCheck($fi!==null&&$fi['offer']['child_ages']===$ages,'family normalizes through unchanged generic draft '.implode(',',$ages));
+    onetouchCheck($fi['offer']['amount']==='123456.78'&&$fi['offer']['price_qualifier']==='from'&&$fi['offer']['room']==='STANDARD ROOM / 2 ADL + '.count($ages).' CHD(0-17)'&&$fi['offer']['meal']==='BB','whole-party from and literal placement retained '.implode(',',$ages));
+    onetouchCheck(str_contains($fi['offer']['constraints'],'Возраст детей — из параметров поиска.')&&str_contains($fi['offer']['constraints'],'требуют подтверждения у оператора'),'requested age and unknown beds explained '.implode(',',$ages));
+    $familyQuotes[implode(',',$ages)]=$fq;
+}
+$ff=syntheticOneTouchSource(2,[8]);$fq=$familyQuotes['8'];
+$mixed='<table>'.preg_replace('~</?table>~','',$three['html']).preg_replace('~</?table>~','',$ff['html']).'</table>';
+$mixedResponse='samo.jQuery(samo.controls.resultset).ehtml('.json_encode($mixed,JSON_THROW_ON_ERROR).');';
+$mixedQuotes=ManagerTourSelectionOneTouchSource::parse($mixedResponse,$ff['url'],$ff['form'],'2077-01-01T00:00:00Z');
+onetouchCheck(count($mixedQuotes)===1&&$mixedQuotes[0]['offer']['child_ages']===[8]&&$mixedQuotes[0]['offer']['adults']===2,'nearby adult-only alternative is excluded rather than relabelled');
+onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse($three['response'],$ff['url'],$ff['form'],'2077-01-01T00:00:00Z'),'no exact actual party cannot produce a family quote');
+foreach(['adult-2 adult-2','adult-2 adult-3','adult-02','adult-',''] as $token)onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse(str_replace('adult-2',$token,$ff['response']),$ff['url'],$ff['form'],'2077-01-01T00:00:00Z'),'family adult token ambiguous or malformed '.$token);
+foreach(['child-1 child-1','child-1 child-0','child-01','child-4','child-',''] as $token)onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::parse(str_replace('child-1',$token,$ff['response']),$ff['url'],$ff['form'],'2077-01-01T00:00:00Z'),'family child token ambiguous or malformed '.$token);
+foreach([['CHILD'=>'1','AGES'=>''],['CHILD'=>'1','AGES'=>'18'],['CHILD'=>'1','AGES'=>'08'],['CHILD'=>'1','AGES'=>'-1'],['CHILD'=>'1','AGES'=>'8.0'],['CHILD'=>'2','AGES'=>'8'],['CHILD'=>'1','AGES'=>'8,8'],['CHILD'=>'2','AGES'=>'9,8'],['CHILD'=>'4','AGES'=>'0,1,2,3'],['CHILD'=>'0','AGES'=>'']] as $change){$query=array_replace($f['query'],$change);onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::query($urlFor($query)),'noncanonical child query refused '.json_encode($change));}
+onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::query($ff['url'].'&AGES=8'),'duplicate age query refused');
+onetouchReject(fn()=>ManagerTourSelectionOneTouchSource::query($ff['url'].'&AGE1=8'),'extra age query key refused');
+foreach([[9],['8'],[8.0],[true],[],[8,8],[1=>8]] as $wrong){$bad=$fq;$bad['offer']['child_ages']=$wrong;onetouchCheck(ManagerTourSelectionImportDraft::normalize($bad)===null,'canonical offer cannot substitute requested age '.json_encode($wrong));}
+$bad=$fq;$bad['raw']['party']='2AD+1CH(9)';onetouchCheck(ManagerTourSelectionImportDraft::normalize($bad)===null,'raw party age cannot diverge from query');
+$nineFixture=syntheticOneTouchSource(2,[9]);$nine=ManagerTourSelectionOneTouchSource::parse($nineFixture['response'],$nineFixture['url'],$nineFixture['form'],'2077-01-01T00:00:00Z')[0];$nine['photos']=[$nineFixture['photo']];
+$eightSource=ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize($fq));$nineSource=ManagerTourSelectionImportDraft::source(ManagerTourSelectionImportDraft::normalize($nine));
+onetouchCheck(ManagerTourSelectionImportDraft::fingerprint($eightSource,false)!==ManagerTourSelectionImportDraft::fingerprint($nineSource,false),'same minimum and hotel retain different requested-age identity');
+$twins=$familyQuotes['8,8'];$twins['offer']['child_ages']=[8,8];onetouchCheck(ManagerTourSelectionImportDraft::normalize($twins)['offer']['child_ages']===[8,8],'equal ages never collapse');
+
+
 echo 'OneTouch synthetic source: '.$passed." checks passed; no network or selection writes.\n";

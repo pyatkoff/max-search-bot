@@ -8,7 +8,7 @@ declare(strict_types=1);
 final class ManagerTourSelectionOneTouchSource
 {
     public const MAX_BYTES=2097152;
-    private const QUERY=['samo_action','TOWNFROMINC','STATEINC','TOURTYPE','TOURINC','PROGRAMGROUPINC','PROGRAMINC','CHECKIN_BEG','NIGHTS_FROM','CHECKIN_END','NIGHTS_TILL','ADULT','CURRENCY','CHILD','TOWNS_ANY','townssearch','TOWNS','STARS_ANY','STARS','HOTELS_ANY','hotelsearch','HOTELS','MEALS_ANY','MEALS','ROOMS_ANY','ROOMS','CHILD_IN_BED','FREIGHT','COMFORTABLE_SEATS','FILTER','MOMENT_CONFIRM','WITHOUT_PROMO','HOTELTYPES','PARTITION_PRICE','PRICEPAGE','DYN_SEPARATE','rev'];
+    private const QUERY=['samo_action','TOWNFROMINC','STATEINC','TOURTYPE','TOURINC','PROGRAMGROUPINC','PROGRAMINC','CHECKIN_BEG','NIGHTS_FROM','CHECKIN_END','NIGHTS_TILL','ADULT','CURRENCY','CHILD','AGES','TOWNS_ANY','townssearch','TOWNS','STARS_ANY','STARS','HOTELS_ANY','hotelsearch','HOTELS','MEALS_ANY','MEALS','ROOMS_ANY','ROOMS','CHILD_IN_BED','FREIGHT','COMFORTABLE_SEATS','FILTER','MOMENT_CONFIRM','WITHOUT_PROMO','HOTELTYPES','PARTITION_PRICE','PRICEPAGE','DYN_SEPARATE','rev'];
 
     public static function query(string $url): array
     {
@@ -16,15 +16,86 @@ final class ManagerTourSelectionOneTouchSource
         if(strlen($url)>4096 || preg_match('/[\x00-\x20\x7f]/',$url) || !$p || ($p['scheme']??'')!=='https' || ($p['host']??'')!=='b2b.onetouch.travel' || ($p['path']??'')!=='/search_tour' || array_intersect(['user','pass','port','fragment'],array_keys($p))) self::fail();
         $q=[];
         foreach(explode('&',$p['query']??'') as $pair){$pair=explode('=',$pair,2);if(count($pair)!==2)self::fail();[$k,$v]=array_map('rawurldecode',$pair);if(array_key_exists($k,$q)||!in_array($k,self::QUERY,true)||!preg_match('/\A[0-9,]*\z/D',$v)&&!($k==='samo_action'&&$v==='PRICES'))self::fail();$q[$k]=$v;}
-        if(array_diff(self::QUERY,array_keys($q)))self::fail();
+        if(array_diff(array_diff(self::QUERY,['AGES']),array_keys($q)))self::fail();
         foreach(['TOURTYPE'=>'0','TOURINC'=>'0','PROGRAMGROUPINC'=>'0','PROGRAMINC'=>'0','TOWNS_ANY'=>'1','townssearch'=>'0','TOWNS'=>'','STARS_ANY'=>'1','STARS'=>'','HOTELS_ANY'=>'1','hotelsearch'=>'0','HOTELS'=>'','MEALS_ANY'=>'1','MEALS'=>'','ROOMS_ANY'=>'1','ROOMS'=>'','CHILD_IN_BED'=>'0','FREIGHT'=>'1','COMFORTABLE_SEATS'=>'0','FILTER'=>'1','MOMENT_CONFIRM'=>'0','WITHOUT_PROMO'=>'0','HOTELTYPES'=>'','PARTITION_PRICE'=>''] as $k=>$v)if($q[$k]!==$v)self::fail();
         // Decode only native enabled adult counts; each response row must bind the exact query party.
-        foreach(['samo_action'=>'PRICES','TOWNFROMINC'=>'2','STATEINC'=>'9','CHILD'=>'0','CURRENCY'=>'1','PRICEPAGE'=>'1','DYN_SEPARATE'=>'1'] as $k=>$v)if(($q[$k]??null)!==$v)self::fail();
+        foreach(['samo_action'=>'PRICES','TOWNFROMINC'=>'2','STATEINC'=>'9','CURRENCY'=>'1','PRICEPAGE'=>'1','DYN_SEPARATE'=>'1'] as $k=>$v)if(($q[$k]??null)!==$v)self::fail();
         // Enabled native options are 1..14; canonical max20 does not admit 15..20 here.
         if(!preg_match('/\A(?:[1-9]|1[0-4])\z/D',$q['ADULT']??''))self::fail();
+        self::requestedAges($q);
         foreach(['CHECKIN_BEG','CHECKIN_END'] as $k)self::date($q[$k]??'');
         if($q['CHECKIN_BEG']!==$q['CHECKIN_END']||($q['NIGHTS_FROM']??null)!==($q['NIGHTS_TILL']??null)||!preg_match('/\A[1-9][0-9]?\z/D',$q['NIGHTS_FROM']??'')||(int)$q['NIGHTS_FROM']>60||!preg_match('/\A[0-9]{1,12}\z/D',$q['rev']??''))self::fail();
         return $q;
+    }
+
+
+    /** Native requested ages: canonical numeric sort, including equal ages. */
+    public static function requestedAges(array $query): array
+    {
+        $children=$query['CHILD']??null;
+        if(!is_string($children)||!preg_match('/\A[0-3]\z/D',$children))self::fail();
+        if($children==='0'){
+            if(array_key_exists('AGES',$query))self::fail();
+            return [];
+        }
+        $raw=$query['AGES']??null;
+        if(!is_string($raw)||!preg_match('/\A(?:0|[1-9]|1[0-7])(?:,(?:0|[1-9]|1[0-7])){0,2}\z/D',$raw))self::fail();
+        $ages=array_map('intval',explode(',',$raw));$sorted=$ages;sort($sorted,SORT_NUMERIC);
+        if(count($ages)!==(int)$children||$ages!==$sorted)self::fail();
+        return $ages;
+    }
+
+    public static function partyText(array $query): string
+    {
+        $ages=self::requestedAges($query);
+        return $query['ADULT'].'AD'.($ages?'+'.count($ages).'CH('.implode(',',$ages).')':'');
+    }
+
+    /** Selected public controls bind requested ages, not an independent row-age claim. */
+    public static function requestedFormAges(DOMXPath $x,array $query): array
+    {
+        $ages=self::requestedAges($query);if(!$ages)return [];
+        foreach(['ADULT','CHILD'] as $name){
+            $nodes=self::nodes($x,'//select[@name="'.$name.'"]');
+            if(count($nodes)!==1||self::selectedPublicValue($x,$nodes[0])!==$query[$name])self::fail();
+        }
+        $observed=[];
+        for($i=1;$i<=count($ages);$i++){
+            $nodes=self::nodes($x,'//select[@name="AGE'.$i.'"]');
+            if(count($nodes)!==1)self::fail();$node=$nodes[0];
+            if(!self::nodes($x,'ancestor::div['.self::cls('child_ages').']',$node))self::fail();
+            $classes=preg_split('/\s+/',trim($node->getAttribute('class')));sort($classes,SORT_STRING);
+            if($classes!==['age','age_'.$i])self::fail();
+            $value=self::selectedPublicValue($x,$node);
+            if(!preg_match('/\A(?:0|[1-9]|1[0-7])\z/D',$value))self::fail();
+            $observed[]=(int)$value;
+        }
+        sort($observed,SORT_NUMERIC);
+        if($observed!==$ages)self::fail();
+        return $ages;
+    }
+
+    private static function selectedPublicValue(DOMXPath $x,DOMElement $node): string
+    {
+        if($node->hasAttribute('disabled')||$node->hasAttribute('multiple')||self::nodes($x,'ancestor::fieldset[@disabled]',$node))self::fail();
+        $options=self::nodes($x,'.//option',$node);
+        $selected=array_values(array_filter($options,static fn($o)=>$o->hasAttribute('selected')));
+        if(count($selected)!==1||$selected[0]->hasAttribute('disabled')||self::nodes($x,'ancestor::optgroup[@disabled]',$selected[0]))self::fail();
+        $value=$selected[0]->getAttribute('value');
+        if(count(array_filter($options,static fn($o)=>$o->getAttribute('value')===$value))!==1)self::fail();
+        return $value;
+    }
+
+    /** Family results can contain adult-only alternatives: never relabel them. */
+    private static function nativeParty(DOMElement $row): array
+    {
+        $classes=preg_split('/\s+/',trim($row->getAttribute('class')));$out=[];
+        foreach(['adult'=>'adults','child'=>'children'] as $prefix=>$key){
+            $tokens=array_values(array_filter($classes,static fn($t)=>str_starts_with($t,$prefix.'-')));
+            if(count($tokens)!==1||!preg_match($prefix==='adult'?'/\Aadult-([1-9]|1[0-4])\z/D':'/\Achild-([0-3])\z/D',$tokens[0],$m))self::fail();
+            $out[$key]=(int)$m[1];
+        }
+        return $out;
     }
 
     /** Decode one exact observed assignment as a JSON string; never execute JS. */
@@ -54,13 +125,15 @@ final class ManagerTourSelectionOneTouchSource
             $nodes=self::nodes($fx,'//select[@name="'.$key.'"]/option[@value="'.$q[$key].'" and @selected]');
             if(count($nodes)!==1)self::fail();$labels[$key]=self::text($nodes[0]->textContent);
         }
+        $childAges=self::requestedAges($q);
         if($labels['CURRENCY']!=='RUB'||$labels['TOWNFROMINC']===''||$labels['STATEINC']==='')self::fail();
         $x=self::document(self::resultHtml($response));$rows=self::nodes($x,'//tr['.self::cls('price_info').']');
         if(!$rows||count($rows)>250)self::fail();$out=[];$claims=[];
         foreach($rows as $row){
+            if($childAges){$actual=self::nativeParty($row);if($actual['adults']!==(int)$q['ADULT']||$actual['children']!==(int)$q['CHILD'])continue;}
             foreach(['townfrom'=>'TOWNFROMINC','state'=>'STATEINC','checkin'=>'CHECKIN_BEG','nights'=>'NIGHTS_FROM','hnights'=>'NIGHTS_FROM'] as $attr=>$key)if($row->getAttribute('data-'.$attr)!==$q[$key])self::fail();
             $classes=preg_split('/\s+/',trim($row->getAttribute('class')));
-            foreach(['adult'=>$q['ADULT'],'child'=>'0'] as $kind=>$value){
+            foreach(['adult'=>$q['ADULT'],'child'=>$q['CHILD']] as $kind=>$value){
                 $tokens=array_values(array_filter($classes,static fn(string $token):bool=>str_starts_with($token,$kind.'-')));
                 if($tokens!==[$kind.'-'.$value])self::fail();
             }
@@ -94,8 +167,8 @@ final class ManagerTourSelectionOneTouchSource
             if(count($seats)!==4)self::fail();$availability=[];
             foreach($seats as $seat){$label=self::text($seat->getAttribute('title'));if($label==='')self::fail();$availability[]=$label;}
             $availability='Отель у источника: '.implode(', ',array_values(array_unique($availability))).'. Наличие и окончательная стоимость требуют проверки.';
-            $offer=['hotel'=>$hm[1],'stars'=>(int)$hm[2],'destination'=>$labels['STATEINC'].' · '.$resort,'departure'=>$labels['TOWNFROMINC'],'date_from'=>$date,'nights'=>(int)$q['NIGHTS_FROM'],'adults'=>(int)$q['ADULT'],'child_ages'=>[],'room'=>$room,'meal'=>$meal,'amount'=>$amount,'currency'=>'RUB','price_qualifier'=>'from'];
-            $raw=['hotel'=>$hm[1].' '.$hm[2].'*','date'=>$date,'nights'=>$q['NIGHTS_FROM'],'room'=>$room,'meal'=>$meal,'price'=>'от '.$amount.' RUB','party'=>$q['ADULT'].'AD','tour'=>$tour,'transport'=>$transport,'tariff'=>$tariff,'base_price'=>$base,'base_currency'=>'EUR','hotel_url'=>$hotelUrl,'availability'=>$availability];
+            $offer=['hotel'=>$hm[1],'stars'=>(int)$hm[2],'destination'=>$labels['STATEINC'].' · '.$resort,'departure'=>$labels['TOWNFROMINC'],'date_from'=>$date,'nights'=>(int)$q['NIGHTS_FROM'],'adults'=>(int)$q['ADULT'],'child_ages'=>$childAges,'room'=>$room,'meal'=>$meal,'amount'=>$amount,'currency'=>'RUB','price_qualifier'=>'from'];
+            $raw=['hotel'=>$hm[1].' '.$hm[2].'*','date'=>$date,'nights'=>$q['NIGHTS_FROM'],'room'=>$room,'meal'=>$meal,'price'=>'от '.$amount.' RUB','party'=>self::partyText($q),'tour'=>$tour,'transport'=>$transport,'tariff'=>$tariff,'base_price'=>$base,'base_currency'=>'EUR','hotel_url'=>$hotelUrl,'availability'=>$availability];
             $observation=['adapter'=>'onetouch-public-v1','url'=>$url,'observed_at'=>$observed,'quote_id'=>$claim,'keys'=>$keys,'offer'=>$offer,'raw'=>$raw];
             require_once __DIR__.'/ManagerTourSelectionOneTouchImportDraft.php';
             if(ManagerTourSelectionOneTouchImportDraft::normalize($observation)===null)self::fail();
