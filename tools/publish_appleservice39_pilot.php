@@ -1,0 +1,70 @@
+<?php
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+ini_set('display_errors', '0');
+
+/** No credentials, paths, payloads, message IDs or arbitrary commands are inputs. */
+function applePilotCheckout(string $root, string $expected): bool
+{
+    $run = static function (array $args): ?string {
+        $pipes = [];
+        $process = proc_open($args, [['pipe','r'],['pipe','w'],['pipe','w']], $pipes);
+        if (!is_resource($process)) return null;
+        fclose($pipes[0]); $output = stream_get_contents($pipes[1]); fclose($pipes[1]);
+        stream_get_contents($pipes[2]); fclose($pipes[2]);
+        return proc_close($process) === 0 && is_string($output) ? trim($output) : null;
+    };
+    return realpath($root) === '/var/www/anytoour/data/www/app.anytoour.ru'
+        && $run(['git','-C',$root,'rev-parse','HEAD']) === $expected
+        && $run(['git','-C',$root,'status','--porcelain','--untracked-files=no']) === '';
+}
+
+try {
+    $mode = $argv[1] ?? '';
+    if ($mode === '--help' && $argc === 2) {
+        echo "php tools/publish_appleservice39_pilot.php inspect|prepare|publish|finalize|pin|reconcile --expected-sha=<accepted application SHA> --channel-id=<exact negative numeric ID>\n";
+        exit(0);
+    }
+    if (!in_array($mode, ['inspect','prepare','publish','finalize','pin','reconcile'], true) || $argc !== 4) throw new RuntimeException('fixed_operation_and_target_required');
+    $options = [];
+    foreach (array_slice($argv, 2) as $argument) {
+        if (!preg_match('/\A--(expected-sha|channel-id)=(.*)\z/D', $argument, $match) || isset($options[$match[1]])) throw new RuntimeException('fixed_operation_and_target_required');
+        $options[$match[1]] = $match[2];
+    }
+    if (!preg_match('/\A[a-f0-9]{40}\z/D', $options['expected-sha'] ?? '')
+        || !preg_match('/\A-[1-9][0-9]{0,18}\z/D', $options['channel-id'] ?? '')) throw new RuntimeException('fixed_operation_and_target_required');
+    $root = dirname(__DIR__); $expected = $options['expected-sha'];
+    if (!applePilotCheckout($root, $expected)) throw new RuntimeException('installed_checkout_changed');
+    $private = '/var/www/anytoour/data/config/max-search.php';
+    if (!is_file($private) || is_link($private)) throw new RuntimeException('protected_connection_unavailable');
+    $privateHash = hash_file('sha256', $private);
+    if (!is_string($privateHash)) throw new RuntimeException('protected_connection_unavailable');
+    require_once $root.'/config.php';
+    require_once $root.'/services/ConversationDb.php';
+    require_once $root.'/services/AppleService39PilotPublisher.php';
+    $manifest = AppleService39PilotManifest::installed();
+    $provenance = static function () use ($root,$expected,$private,$privateHash): bool {
+        clearstatcache(true, $private);
+        return is_file($private) && !is_link($private) && hash_file('sha256', $private) === $privateHash
+            && applePilotCheckout($root, $expected);
+    };
+    $publisher = new AppleService39PilotPublisher(ConversationDb::connection(), $manifest, $options['channel-id'], $provenance);
+    $result = $publisher->run($mode);
+    $result['application_sha'] = $expected;
+    echo json_encode($result, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL;
+    exit(!empty($result['ok']) ? 0 : 1);
+} catch (Throwable $error) {
+    $allowed = ['fixed_operation_and_target_required','installed_checkout_changed','protected_connection_unavailable',
+        'pilot_connection_unavailable','pilot_connection_changed','pilot_connection_binding_mismatch','publication_authority_changed',
+        'active_project_admin_and_source_required','canonical_bot_identity_mismatch','provider_bot_identity_changed',
+        'public_channel_identity_mismatch','channel_admin_required','channel_publish_edit_read_permissions_required','pilot_requires_autocommit',
+        'channel_pin_permission_required','campaign_binding_changed','pilot_operation_changed','pilot_operation_held',
+        'pilot_upload_held','pilot_create_held','pilot_edit_held','pilot_pin_held','prepare_images_first',
+        'all_pilot_posts_required','all_pilot_links_required','post_readback_mismatch','post_attachment_mismatch',
+        'post_image_mismatch','post_button_mismatch','post_url_changed','native_post_url_required',
+        'provider_read_unknown','approved_image_changed','approved_image_invalid','resolved_post_too_long'];
+    $reason = in_array($error->getMessage(), $allowed, true) ? $error->getMessage() : 'pilot_operation_unavailable';
+    echo json_encode(['ok'=>false,'state'=>'stopped','reason'=>$reason,'automatic_retry'=>false], JSON_UNESCAPED_SLASHES).PHP_EOL;
+    exit(2);
+}

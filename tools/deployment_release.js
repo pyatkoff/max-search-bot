@@ -40,7 +40,7 @@ const PUSH_OPERATIONS = new Set(['max-shadow-delivery.yml','repair-lead-receiver
   'restore-live-runtime.yml','restore-route-cache.yml','sync-legacy-lead-receiver.yml'].map(p=>PREFIX+p));
 const MANUAL_OPERATIONS = new Set([...DIRECT,...PUSH_OPERATIONS,
   PREFIX+'max-owner-avatar-probe.yml',PREFIX+'max-owner-tour-preview.yml',PREFIX+'telegram-webhook-status.yml',
-  PREFIX+'setup-appleservice39-connection.yml']);
+  PREFIX+'setup-appleservice39-connection.yml',PREFIX+'publish-appleservice39-pilot.yml']);
 const SCHEDULES = new Map([[PREFIX+'live-session-diagnostics.yml','25 * * * *'],
   [PREFIX+'modeled-conversion-monitor.yml','2-59/5 * * * *']]);
 const sha = v => typeof v === 'string' && /^[0-9a-f]{40}$/.test(v);

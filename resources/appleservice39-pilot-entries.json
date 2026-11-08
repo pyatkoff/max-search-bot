@@ -1,0 +1,243 @@
+{
+  "schema": 1,
+  "project_key": "appleservice39",
+  "bot_key": "id390521129062_bot",
+  "checked_date": "2026-11-07",
+  "source_posts_sha256": "a91078c8debb1ea318690170a0d63ff5d79676953c744ff420e2a370197352d9",
+  "entries": [
+    {
+      "post_id": "repair-iphone-x-battery-replacement",
+      "model": "iPhone X",
+      "service_key": "battery_replacement",
+      "service": "Замена аккумулятора",
+      "price_kind": "listed",
+      "price_text": "Замена аккумулятора по прайсу — 3 500 ₽. Диагностика бесплатная. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "Как проявляется проблема: быстро уходит заряд или телефон выключается с остатком?",
+      "source_ids": [
+        "as39_17ef44f9eb76d620bf97",
+        "as39_baf98635e1aeed17d0dc"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-x-front-glass-replacement",
+      "model": "iPhone X",
+      "service_key": "front_glass_replacement",
+      "service": "Замена стекла без дисплея",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 5 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "После повреждения стекла изображение и касания работают без сбоев?",
+      "source_ids": [
+        "as39_5753f028573829c74383",
+        "as39_5621312c2914c7797fc5"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-x-display",
+      "model": "iPhone X",
+      "service_key": "display",
+      "service": "Замена дисплея",
+      "price_kind": "variants",
+      "price_text": "Оригинальный дисплей — 12 000 ₽. Аналог — 6 000 ₽. Цены по прайсу. Уточним наличие и условия выбранного варианта.",
+      "question": "Что происходит с экраном: нет изображения, есть полосы или не реагирует сенсор?",
+      "source_ids": [
+        "as39_2024c480e872fce8f83e",
+        "as39_bbbfa0723c583bab630b"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-battery-replacement",
+      "model": "iPhone 15",
+      "service_key": "battery_replacement",
+      "service": "Замена аккумулятора",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 6 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "Как проявляется проблема: быстро уходит заряд или телефон выключается с остатком?",
+      "source_ids": [
+        "as39_1e2dfce7afcc7417fb4d"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-front-glass-replacement",
+      "model": "iPhone 15",
+      "service_key": "front_glass_replacement",
+      "service": "Замена стекла без дисплея",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "После повреждения стекла изображение и касания работают без сбоев?",
+      "source_ids": [
+        "as39_f6a2a46cc39d6d8842a4"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-display",
+      "model": "iPhone 15",
+      "service_key": "display",
+      "service": "Замена дисплея",
+      "price_kind": "on_request",
+      "price_text": "Стоимость по запросу. Уточним варианты дисплея, цену и наличие детали.",
+      "question": "Что происходит с экраном: нет изображения, есть полосы или не реагирует сенсор?",
+      "source_ids": [
+        "as39_54b25185891aa94289a3",
+        "as39_cd6b4f2676a8ded5eaea"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-plus-battery-replacement",
+      "model": "iPhone 15 Plus",
+      "service_key": "battery_replacement",
+      "service": "Замена аккумулятора",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 6 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "Как проявляется проблема: быстро уходит заряд или телефон выключается с остатком?",
+      "source_ids": [
+        "as39_6ccad6347b7f878b28c4"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-plus-front-glass-replacement",
+      "model": "iPhone 15 Plus",
+      "service_key": "front_glass_replacement",
+      "service": "Замена стекла без дисплея",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 8 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "После повреждения стекла изображение и касания работают без сбоев?",
+      "source_ids": [
+        "as39_e856dec6d0b298ce4b88"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-plus-display",
+      "model": "iPhone 15 Plus",
+      "service_key": "display",
+      "service": "Замена дисплея",
+      "price_kind": "on_request",
+      "price_text": "Стоимость по запросу. Уточним варианты дисплея, цену и наличие детали.",
+      "question": "Что происходит с экраном: нет изображения, есть полосы или не реагирует сенсор?",
+      "source_ids": [
+        "as39_54b25185891aa94289a3",
+        "as39_cd6b4f2676a8ded5eaea"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-pro-battery-replacement",
+      "model": "iPhone 15 Pro",
+      "service_key": "battery_replacement",
+      "service": "Замена аккумулятора",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "Как проявляется проблема: быстро уходит заряд или телефон выключается с остатком?",
+      "source_ids": [
+        "as39_b1410445337f4cc31066"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-pro-front-glass-replacement",
+      "model": "iPhone 15 Pro",
+      "service_key": "front_glass_replacement",
+      "service": "Замена стекла без дисплея",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 9 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "После повреждения стекла изображение и касания работают без сбоев?",
+      "source_ids": [
+        "as39_b2a27b7463f3140d9650"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-pro-display",
+      "model": "iPhone 15 Pro",
+      "service_key": "display",
+      "service": "Замена дисплея",
+      "price_kind": "on_request",
+      "price_text": "Стоимость по запросу. Уточним варианты дисплея, цену и наличие детали.",
+      "question": "Что происходит с экраном: нет изображения, есть полосы или не реагирует сенсор?",
+      "source_ids": [
+        "as39_54b25185891aa94289a3",
+        "as39_cd6b4f2676a8ded5eaea"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-battery-replacement",
+      "model": "iPhone 15 Pro Max",
+      "service_key": "battery_replacement",
+      "service": "Замена аккумулятора",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "Как проявляется проблема: быстро уходит заряд или телефон выключается с остатком?",
+      "source_ids": [
+        "as39_d4ff1ca62e35f1b15154"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-front-glass-replacement",
+      "model": "iPhone 15 Pro Max",
+      "service_key": "front_glass_replacement",
+      "service": "Замена стекла без дисплея",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 10 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "question": "После повреждения стекла изображение и касания работают без сбоев?",
+      "source_ids": [
+        "as39_09165b04301d930449f5"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ]
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-display",
+      "model": "iPhone 15 Pro Max",
+      "service_key": "display",
+      "service": "Замена дисплея",
+      "price_kind": "on_request",
+      "price_text": "Стоимость по запросу. Уточним варианты дисплея, цену и наличие детали.",
+      "question": "Что происходит с экраном: нет изображения, есть полосы или не реагирует сенсор?",
+      "source_ids": [
+        "as39_54b25185891aa94289a3",
+        "as39_cd6b4f2676a8ded5eaea"
+      ],
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ]
+    }
+  ]
+}
