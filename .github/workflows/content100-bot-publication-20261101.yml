@@ -10,12 +10,13 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 env:
-  EXPECTED_PRODUCTION_SHA: 160e019701165cd53dd5a9be0fa3db533d82120e
+  EXPECTED_PRODUCTION_SHA: 476931bb213765f7fc6317d057c1399f06cfbc0b
   NATIVE509_RUN_ID: '42491219716'
   NATIVE509_JOB_ID: '128763814016'
   NATIVE509_HEAD_SHA: 'a49467e357609afe8d06042538a768da6ab49a78'
   NATIVE509_ARTIFACT_ID: '13621224836'
   NATIVE509_ZIP_SHA256: '0f085116f1c8e378a547372a5de3684687bbd9cb35dc811acda5c3d5531eea0a'
+  NATIVE509_PROVENANCE_SHA256: '5adacbbe9a8f0c02f28c5717644f211e85020942b5c6d4be9ec78919ed6c0cbd'
 jobs:
   inspect:
     runs-on: ubuntu-latest
@@ -34,9 +35,24 @@ jobs:
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           gh api repos/pyatkoff/max-search-bot/git/ref/heads/main > "$RUNNER_TEMP/current-main.json"
-          gh api "repos/pyatkoff/tour-max/actions/runs/$NATIVE509_RUN_ID" > "$RUNNER_TEMP/native509-original-run.json"
-          gh api "repos/pyatkoff/tour-max/actions/runs/$NATIVE509_RUN_ID/attempts/1/jobs?per_page=10" > "$RUNNER_TEMP/native509-original-jobs.json"
-          gh api "repos/pyatkoff/tour-max/actions/artifacts/$NATIVE509_ARTIFACT_ID" > "$RUNNER_TEMP/native509-original-artifact.json"
+          python3 - <<'PYBRIDGE'
+          import datetime,hashlib,json,os,pathlib
+          p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(p/'commercial-max509-original-provenance-20261108.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()==os.environ['NATIVE509_PROVENANCE_SHA256']
+          snapshot=json.loads(raw)
+          assert snapshot['schema_version']==1 and snapshot['source']=='Existing authorized GitHub connector; exact minimal projection of original API results' and snapshot['source_repository']=='pyatkoff/tour-max'
+          assert snapshot['safe_evidence_sha256']==hashlib.sha256((p/'commercial-max509-installed-safe-evidence-20261108.json').read_bytes()).hexdigest() and snapshot['original_result_bytes_verified_against_artifact_digest'] is True
+          captured=datetime.datetime.fromisoformat(snapshot['captured_at_utc'].replace('Z','+00:00'))
+          assert 0<=(datetime.datetime.now(datetime.timezone.utc)-captured).total_seconds()<=900
+          owner=snapshot['owner_snapshot'];assert owner['native_head']==os.environ['NATIVE509_HEAD_SHA'] and owner['native_active_total']==owner['native_queued_total']==0
+          assert owner['bot_main']==os.environ['EXPECTED_PRODUCTION_SHA'] and owner['bot_operations_head']=='baf96ea5d2c6a3c9a9456dcdc31a9c352d9e41dc'
+          assert os.environ['GITHUB_REPOSITORY']=='pyatkoff/max-search-bot' and os.environ['GITHUB_EVENT_NAME']=='push' and os.environ['GITHUB_RUN_ATTEMPT']=='1'
+          assert os.environ['GITHUB_RUN_ID']!='42491652868' and os.environ['GITHUB_SHA']!=owner['bot_operations_head']
+          event=json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text());assert event['before']==owner['bot_operations_head'] and event['after']==os.environ['GITHUB_SHA']
+          for key,name in [('native_run','native509-original-run.json'),('native_jobs','native509-original-jobs.json'),('native_artifact','native509-original-artifact.json')]:
+              (t/name).write_text(json.dumps(snapshot[key],ensure_ascii=False,separators=(',',':')))
+          PYBRIDGE
           python3 - <<'PYCODE'
           import base64,hashlib,json,os,pathlib,re,xml.etree.ElementTree as ET
           p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP']);b=pathlib.Path('.github/traffic-publish')
@@ -138,9 +154,24 @@ jobs:
           gh api "repos/pyatkoff/max-search-bot/actions/runs/$GITHUB_RUN_ID" > "$RUNNER_TEMP/current-feed-run.json"
           gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=in_progress&per_page=30" > "$RUNNER_TEMP/active-before-feed-write.json"
           gh api "repos/pyatkoff/max-search-bot/actions/runs?branch=audit%2Fcontent100-bot-publication-20261101&status=queued&per_page=30" > "$RUNNER_TEMP/queued-before-feed-write.json"
-          gh api "repos/pyatkoff/tour-max/actions/runs/$NATIVE509_RUN_ID" > "$RUNNER_TEMP/native509-original-run.json"
-          gh api "repos/pyatkoff/tour-max/actions/runs/$NATIVE509_RUN_ID/attempts/1/jobs?per_page=10" > "$RUNNER_TEMP/native509-original-jobs.json"
-          gh api "repos/pyatkoff/tour-max/actions/artifacts/$NATIVE509_ARTIFACT_ID" > "$RUNNER_TEMP/native509-original-artifact.json"
+          python3 - <<'PYBRIDGE'
+          import datetime,hashlib,json,os,pathlib
+          p=pathlib.Path('tools/direct_demand/operations');t=pathlib.Path(os.environ['RUNNER_TEMP'])
+          raw=(p/'commercial-max509-original-provenance-20261108.json').read_bytes()
+          assert hashlib.sha256(raw).hexdigest()==os.environ['NATIVE509_PROVENANCE_SHA256']
+          snapshot=json.loads(raw)
+          assert snapshot['schema_version']==1 and snapshot['source']=='Existing authorized GitHub connector; exact minimal projection of original API results' and snapshot['source_repository']=='pyatkoff/tour-max'
+          assert snapshot['safe_evidence_sha256']==hashlib.sha256((p/'commercial-max509-installed-safe-evidence-20261108.json').read_bytes()).hexdigest() and snapshot['original_result_bytes_verified_against_artifact_digest'] is True
+          captured=datetime.datetime.fromisoformat(snapshot['captured_at_utc'].replace('Z','+00:00'))
+          assert 0<=(datetime.datetime.now(datetime.timezone.utc)-captured).total_seconds()<=900
+          owner=snapshot['owner_snapshot'];assert owner['native_head']==os.environ['NATIVE509_HEAD_SHA'] and owner['native_active_total']==owner['native_queued_total']==0
+          assert owner['bot_main']==os.environ['EXPECTED_PRODUCTION_SHA'] and owner['bot_operations_head']=='baf96ea5d2c6a3c9a9456dcdc31a9c352d9e41dc'
+          assert os.environ['GITHUB_REPOSITORY']=='pyatkoff/max-search-bot' and os.environ['GITHUB_EVENT_NAME']=='push' and os.environ['GITHUB_RUN_ATTEMPT']=='1'
+          assert os.environ['GITHUB_RUN_ID']!='42491652868' and os.environ['GITHUB_SHA']!=owner['bot_operations_head']
+          event=json.loads(pathlib.Path(os.environ['GITHUB_EVENT_PATH']).read_text());assert event['before']==owner['bot_operations_head'] and event['after']==os.environ['GITHUB_SHA']
+          for key,name in [('native_run','native509-original-run.json'),('native_jobs','native509-original-jobs.json'),('native_artifact','native509-original-artifact.json')]:
+              (t/name).write_text(json.dumps(snapshot[key],ensure_ascii=False,separators=(',',':')))
+          PYBRIDGE
           python3 - <<'PYFENCE'
           import hashlib,json,os,pathlib
           t=pathlib.Path(os.environ['RUNNER_TEMP'])

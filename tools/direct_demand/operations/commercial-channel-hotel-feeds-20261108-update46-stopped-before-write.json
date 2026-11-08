@@ -1,0 +1,44 @@
+{
+  "operation": "commercial-channel-hotel-feeds-20261108-update46",
+  "state": "STOPPED_BEFORE_SERVER_CONNECTION",
+  "run_id": 42491652868,
+  "job_id": 128765133268,
+  "source_commit": "baf96ea5d2c6a3c9a9456dcdc31a9c352d9e41dc",
+  "original_attempt": 1,
+  "conclusion": "failure",
+  "failed_step": "Bind the exact approved509 route receipt and additive feed bytes",
+  "observed_error": "gh: Not Found (HTTP 404)",
+  "native_repository_visibility": "private",
+  "connection_and_write_steps": [
+    {
+      "name": "Prepare existing server connection",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 5
+    },
+    {
+      "name": "Pin existing server host-key continuity",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 6
+    },
+    {
+      "name": "Atomically replace only the three feeds with exact previous hash guards",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 7
+    },
+    {
+      "name": "Read back only the three new public feed files once",
+      "status": "completed",
+      "conclusion": "skipped",
+      "number": 8
+    }
+  ],
+  "provider_sends": 0,
+  "feed_write_invocations": 0,
+  "credentials_preparation_invocations": 0,
+  "intent_uploaded": false,
+  "original_run_replay_allowed": false,
+  "correction": "Use exact original native run/job/artifact provenance read through the existing authorized GitHub connector and pinned in the reviewed bot operation commit. Keep all scope, source, digest, attempt, CAS and public-readback checks."
+}

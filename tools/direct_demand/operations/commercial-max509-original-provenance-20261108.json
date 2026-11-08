@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "captured_at_utc": "2026-11-08T15:02:44Z",
+  "source": "Existing authorized GitHub connector; exact minimal projection of original API results",
+  "source_repository": "pyatkoff/tour-max",
+  "native_run": {
+    "id": 42491219716,
+    "status": "completed",
+    "conclusion": "success",
+    "run_attempt": 1,
+    "head_sha": "a49467e357609afe8d06042538a768da6ab49a78",
+    "head_branch": "audit/anytour-hotel-feed-routing-20261104",
+    "path": ".github/workflows/tgmini-identity-readonly.yml",
+    "event": "push",
+    "name": "Append only the seven confirmed hotel routes preserving all502",
+    "html_url": "https://github.com/pyatkoff/tour-max/actions/runs/42491219716",
+    "repository": {
+      "full_name": "pyatkoff/tour-max"
+    }
+  },
+  "native_jobs": {
+    "total_count": 1,
+    "jobs": [
+      {
+        "id": 128763814016,
+        "run_id": 42491219716,
+        "head_sha": "a49467e357609afe8d06042538a768da6ab49a78",
+        "status": "completed",
+        "conclusion": "success",
+        "name": "install"
+      }
+    ]
+  },
+  "native_artifact": {
+    "id": 13621224836,
+    "name": "commercial-max509-route-extension-install-result",
+    "size_in_bytes": 666,
+    "expired": false,
+    "digest": "sha256:0f085116f1c8e378a547372a5de3684687bbd9cb35dc811acda5c3d5531eea0a",
+    "archive_download_url": "https://api.github.com/repos/pyatkoff/tour-max/actions/artifacts/13621224836/zip",
+    "created_at": "2026-11-08T14:44:01Z",
+    "updated_at": "2026-11-08T14:44:01Z",
+    "workflow_run": {
+      "id": 42491219716,
+      "head_sha": "a49467e357609afe8d06042538a768da6ab49a78",
+      "head_branch": "audit/anytour-hotel-feed-routing-20261104"
+    }
+  },
+  "owner_snapshot": {
+    "native_head": "a49467e357609afe8d06042538a768da6ab49a78",
+    "native_active_total": 0,
+    "native_queued_total": 0,
+    "bot_main": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+    "bot_operations_head": "baf96ea5d2c6a3c9a9456dcdc31a9c352d9e41dc"
+  },
+  "original_result_bytes_verified_against_artifact_digest": true,
+  "safe_evidence_sha256": "891080d383bc900f91ccdc2efa260fac76354111912a5f90ce1a21536a0d3ecb"
+}

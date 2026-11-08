@@ -31,7 +31,7 @@
     "artifact_id": 13620762616,
     "artifact_zip_sha256": "3708d51d984492b5be0f83f73802499ac09551c5824cd13de220d3bc255cab2c"
   },
-  "expected_production_sha": "160e019701165cd53dd5a9be0fa3db533d82120e",
+  "expected_production_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
   "native509_gate": {
     "evidence_sha256": "891080d383bc900f91ccdc2efa260fac76354111912a5f90ce1a21536a0d3ecb",
     "run_id": 42491219716,

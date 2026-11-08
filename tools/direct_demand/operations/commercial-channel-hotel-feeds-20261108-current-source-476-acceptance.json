@@ -1,0 +1,82 @@
+{
+  "state": "CURRENT_STATIC_FEED_RUNTIME_SOURCE_ACCEPTED",
+  "expected_production_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+  "previous_production_sha": "160e019701165cd53dd5a9be0fa3db533d82120e",
+  "deploy_run": {
+    "id": 42492264169,
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "path": ".github/workflows/deploy.yml",
+    "head_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+    "event": "push"
+  },
+  "jobs": [
+    {
+      "id": 128767000272,
+      "name": "verify-syntax",
+      "head_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128767000473,
+      "name": "verify-inventory",
+      "head_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128767153169,
+      "name": "verify / application",
+      "head_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128767153188,
+      "name": "verify / diagnostics",
+      "head_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128767520701,
+      "name": "deploy",
+      "head_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 128768133347,
+      "name": "verify",
+      "head_sha": "476931bb213765f7fc6317d057c1399f06cfbc0b",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "source_changed_paths": [
+    "manager/assets/workspace-v2-tour-selection.css",
+    "manager/assets/workspace-v2-tour-selection.js",
+    "modules/tour-selections/editor.json",
+    "services/ManagerTourSelectionOneTouchIntake.php",
+    "services/ManagerTourSelectionOneTouchSource.php",
+    "tests/fixtures/onetouch-public.php",
+    "tests/manager_tour_selection_onetouch_capture.php",
+    "tests/manager_tour_selection_onetouch_source.php",
+    "tests/manager_tour_selection_onetouch_store.php",
+    "tests/visual/manager-tour-selection.spec.js"
+  ],
+  "historical_publication_and_read48_source": "160e019701165cd53dd5a9be0fa3db533d82120e",
+  "historical_receipts_unchanged": true,
+  "source_qualification": {
+    "accepted_publication_surface_paths": 22,
+    "changed_publication_surface_paths": 0,
+    "canonical_feed_publisher_changed": false,
+    "canonical_feed_publisher_sha256": "2c5afa39924770d30bb541c05d483f44569e5aeae652abcb553cff89ef1f3a6e"
+  },
+  "checks_dispatched": 0,
+  "publication_reissued": false,
+  "native_installation_reissued": false,
+  "undispatched_superseded_feed_commit": "cc2c9cef248e589b8af550d976890f9922520d32"
+}
