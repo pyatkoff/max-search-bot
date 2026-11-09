@@ -133,8 +133,8 @@ source dimensions1072x1467 and the same exact URL as the downloaded preview;
 the channel ID is80917954947727 and canonical channel URL is the expected one.
 This joins public preview to SSR PHOTO ID to original provider GET photoID.
 The image's appearance or the absence/presence of an ID inside a CDN URL is not
-the identity evidence. The author verified this chain and both files; Pavel also
-reported his separate individual pair and original-job-log review. This does not
+the identity evidence. The author verified this chain and both files; the originating
+Codex agent separately opened both files and checked the original job logs. This does not
 relabel the author's review as independent review of the earlier runtime code.
 
 Both locator hashes remain disclosed and different:
