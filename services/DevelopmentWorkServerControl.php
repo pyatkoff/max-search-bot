@@ -240,6 +240,43 @@ trait DevelopmentWorkServerControl
         });
     }
 
+    /** Operational proof only: no dispatch, acceptance, claim release or mutation. */
+    private function serverHeldObservation(array $q,array $c,array $lane): array
+    {
+        $unproven=['handled'=>true,'state'=>'unknown','provider_calls'=>0];
+        try {
+            $this->serverExecutionAuthority($q,$c['execution_connection_id']);
+            $this->ownsLane($q,$lane);$this->project($q);
+            $item=$this->current($q);
+            if($q['state']!=='unknown'||$item['state']!=='unknown'
+                ||!in_array($item['task_id'],[DevelopmentWorkServerContract::A,DevelopmentWorkServerContract::B],true)
+                ||$q['last_receipt_task_id']!==$item['task_id']
+                ||!is_string($item['claim_sha256'])||!preg_match('/\\A[a-f0-9]{64}\\z/D',$item['claim_sha256']))
+                return $unproven;
+            $saved=$this->one('SELECT receipt_sha256,receipt_json FROM development_work_receipts WHERE queue_id=? AND task_id=?',
+                [$q['queue_id'],$item['task_id']]);
+            if(!$saved||hash('sha256',$saved['receipt_json'])!==$saved['receipt_sha256'])return $unproven;
+            $receipt=self::receipt(json_decode($saved['receipt_json'],true,16,JSON_THROW_ON_ERROR));
+            if($receipt['outcome']!=='unknown'||$receipt['run_id']!==$item['current_run_id']
+                ||$receipt['owned_claims_released']!==false)return $unproven;
+            $proof=$this->serverProof($q,$c);$attempts=$proof['attempts'];
+            if(count($attempts)!==(int)$c['reserved_calls']||count($attempts)<1
+                ||!array_filter($attempts,static fn(array $a):bool=>$a['state']==='unknown'&&$a['task_id']===$item['task_id']))return $unproven;
+            foreach($attempts as $a)if(!in_array($a['state'],['unknown','succeeded'],true))return $unproven;
+            $source=$this->serverImplementation()['files'];
+            foreach(['DevelopmentWorkHealth.php','DevelopmentWorkCronVerifier.php'] as $file){
+                $hash=hash_file('sha256',__DIR__.'/'.$file);
+                if(!is_string($hash))return $unproven;$source[$file]=$hash;
+            }
+            // Only the aggregate is exported; the retained claim hash is never revealed.
+            $held=self::hash(['binding'=>$c['binding_sha256'],'source'=>$source,
+                'receipt'=>$saved['receipt_sha256'],'claim'=>$item['claim_sha256'],
+                'current_run'=>$item['current_run_id'],'attempts'=>$attempts,
+                'calls'=>(int)$c['reserved_calls'],'tokens'=>(int)$c['reserved_tokens'],'micros'=>(int)$c['reserved_micros']]);
+            return $unproven+['execution_status'=>'held_existing_unknown','work_accepted'=>false,'held_evidence_sha256'=>$held];
+        }catch(DomainException|InvalidArgumentException|JsonException $error){return $unproven;}
+    }
+
     /** Backend-only entry, never exposed by MCP. Only the installed CLI supplies cron context. */
     public function serverTick(DevelopmentWorkServerProvider $provider,array $origin): array
     {
@@ -250,9 +287,7 @@ trait DevelopmentWorkServerControl
             $q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]);
             if(!$q||!($c=$this->serverControl($q)))return ['handled'=>false,'provider_calls'=>0];
             $b=$this->serverBinding($q,$c);
-            if($c['state']==='unknown')
-                return ['handled'=>true,'state'=>'unknown','provider_calls'=>0,
-                    'execution_status'=>'held_existing_unknown','work_accepted'=>false];
+            if($c['state']==='unknown')return $this->serverHeldObservation($q,$c,$lane);
             if(in_array($c['state'],['hold','complete'],true))
                 return ['handled'=>true,'state'=>$c['state'],'provider_calls'=>0];
             $this->ownsLane($q,$lane);

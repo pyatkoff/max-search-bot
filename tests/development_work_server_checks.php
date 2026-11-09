@@ -231,6 +231,7 @@ function devServerChecks(): void
     $p->beforeExecute=null;$time->at+=60;
     devAssert($queue->serverTick($fake,devServerOrigin($time))['provider_calls']===0&&count($seen->sent)===1,
         'lost_result_commit_retains_original_unknown_reservation');
+    devServerHeldHealthChecks();
     devServerOverlayChecks();
     devServerSubscriptionRaceChecks();
     devServerConcurrentTickCheck();
@@ -709,6 +710,57 @@ function devServerArmRaceCheck(): void
                 if(is_resource($proc)){proc_terminate($proc,9);proc_close($proc);}
             }
             $queue=null;$pdo=null;foreach(glob($dir.'/*')?:[] as $path)unlink($path);rmdir($dir);
+        }
+    }
+}
+
+
+/** Real queue state is validated before the operational held marker; no fake CLI marker. */
+function devServerHeldHealthChecks(): void
+{
+    $snapshot=static function(PDO $p):string {
+        $all=[];
+        foreach(['lane','queues','items','receipts','resolutions','retirements','connection_handoffs',
+            'server_controls','server_events','server_attempts'] as $family)
+            $all[$family]=$p->query('SELECT * FROM development_work_'.$family)->fetchAll(PDO::FETCH_ASSOC);
+        return DevelopmentWorkServerContract::hash($all);
+    };
+    foreach(['valid','missing_receipt','corrupt_receipt','wrong_run','queue_drift','item_drift','foreign_lane',
+        'missing_attempt','reservation_drift','missing_claim','receipt_run_drift'] as $case) {
+        [$p,$q,$clock]=devServerFixture();$ordinal=0;
+        [$provider,$seen]=devServerSender(static function(array &$raw)use(&$ordinal):void{
+            if(++$ordinal===2)$raw['status']='incomplete';
+        });
+        $q->serverTick($provider,devServerOrigin($clock));$clock->at+=60;
+        $q->serverTick($provider,devServerOrigin($clock));$clock->at+=60;
+        if($case==='missing_receipt')$p->exec('DELETE FROM development_work_receipts WHERE task_id="'.DevelopmentWorkServerContract::A.'"');
+        if($case==='corrupt_receipt')$p->exec("UPDATE development_work_receipts SET receipt_json='{}' WHERE task_id='".DevelopmentWorkServerContract::A."'");
+        if($case==='wrong_run')$p->exec("UPDATE development_work_items SET current_run_id='resp_DIFFERENT' WHERE task_id='".DevelopmentWorkServerContract::A."'");
+        if($case==='queue_drift')$p->exec("UPDATE development_work_queues SET state='ready'");
+        if($case==='item_drift')$p->exec("UPDATE development_work_items SET state='claimed' WHERE task_id='".DevelopmentWorkServerContract::A."'");
+        if($case==='foreign_lane')$p->exec("UPDATE development_work_lane SET queue_id='FOREIGN'");
+        if($case==='missing_attempt')$p->exec("DELETE FROM development_work_server_attempts WHERE role='reviewer'");
+        if($case==='reservation_drift')$p->exec("UPDATE development_work_server_controls SET reserved_tokens=reserved_tokens+1");
+        if($case==='missing_claim')$p->exec("UPDATE development_work_items SET claim_sha256=NULL WHERE task_id='".DevelopmentWorkServerContract::A."'");
+        if($case==='receipt_run_drift'){
+            $s=$p->query('SELECT receipt_json FROM development_work_receipts WHERE task_id="'.DevelopmentWorkServerContract::A.'"')->fetchColumn();
+            $r=json_decode($s,true,16,JSON_THROW_ON_ERROR);$r['run_id']='resp_DIFFERENT';
+            $bytes=DevelopmentWorkServerContract::json($r);
+            $s=$p->prepare('UPDATE development_work_receipts SET receipt_json=?,receipt_sha256=? WHERE task_id=?');
+            $s->execute([$bytes,hash('sha256',$bytes),DevelopmentWorkServerContract::A]);
+        }
+        $before=$snapshot($p);$result=null;$thrown=false;
+        try{$result=$q->serverTick($provider,devServerOrigin($clock));}catch(Throwable $error){$thrown=true;}
+        $proved=!$thrown&&($result['execution_status']??null)==='held_existing_unknown';
+        devAssert($case==='valid'?$proved:!$proved,'canonical_held_health_'.$case.'_requires_real_retained_state');
+        devAssert($before===$snapshot($p)&&count($seen->sent)===2,'held_observation_'.$case.'_never_mutates_or_replays');
+        if($case==='valid'){
+            $digest=$result['held_evidence_sha256'];$clock->at+=60;
+            $again=$q->serverTick($provider,devServerOrigin($clock));
+            devAssert($result['provider_calls']===0&&$result['work_accepted']===false
+                &&preg_match('/\\A[a-f0-9]{64}\\z/D',$digest)===1
+                &&$again['held_evidence_sha256']===$digest&&$snapshot($p)===$before,
+                'valid_held_health_two_future_observations_keep_same_claim_receipt_attempts_budget_and_source');
         }
     }
 }

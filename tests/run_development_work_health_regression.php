@@ -45,13 +45,13 @@ try {
     DevelopmentWorkHealth::record('running','bootstrap',[],'cron');DevelopmentWorkHealth::record('failed','delivery',[],'cron');
     $originalFailure=DevelopmentWorkHealth::snapshot();
     DevelopmentWorkHealth::record('running','bootstrap',[],'cron');
-    DevelopmentWorkHealth::record('held_unknown','complete',['accepted'=>0,'held'=>1],'cron');$held=DevelopmentWorkHealth::snapshot();
+    DevelopmentWorkHealth::record('held_unknown','complete',['accepted'=>0,'held'=>1],'cron',str_repeat('a',64));$held=DevelopmentWorkHealth::snapshot();
     developmentHealthCheck('held original UNKNOWN preserves original error without claiming success',
         $held['state']==='held_unknown'&&$held['counts']===['accepted'=>0,'held'=>1]
         &&$held['last_error_at']===$originalFailure['last_error_at']&&$held['last_error_stage']===$originalFailure['last_error_stage']
         &&$held['last_success_at']===$originalFailure['last_success_at']);
     $v=new DevelopmentWorkCronVerifier(1000);
-    $heldSample=static fn(int $at):array=>$sample($at,'held_unknown')+['stage'=>'complete','counts'=>['accepted'=>0,'held'=>1]];
+    $heldSample=static fn(int $at):array=>$sample($at,'held_unknown')+['stage'=>'complete','counts'=>['accepted'=>0,'held'=>1],'held_evidence_sha256'=>str_repeat('a',64)];
     developmentHealthCheck('one held UNKNOWN tick does not prove recurrence',$v->observe($heldSample(1020),1025)===null);
     $heldProof=$v->observe($heldSample(1080),1085);
     developmentHealthCheck('two future held UNKNOWN ticks prove schedule only',
@@ -63,6 +63,11 @@ try {
     $v=new DevelopmentWorkCronVerifier(1000);$v->observe($heldSample(1020),1025);$rejected=false;
     try{$v->observe($sample(1080,'failed'),1085);}catch(RuntimeException $error){$rejected=$error->getMessage()==='development_cron_worker_failed';}
     developmentHealthCheck('new real runtime failure still fails after held observation',$rejected);
+    $v=new DevelopmentWorkCronVerifier(1000);$v->observe($heldSample(1020),1025);$rejected=false;
+    try{$v->observe(array_replace($heldSample(1080),['held_evidence_sha256'=>str_repeat('b',64)]),1085);}
+    catch(RuntimeException $error){$rejected=$error->getMessage()==='development_cron_held_state_changed';}
+    developmentHealthCheck('changed receipt budget claim or source digest is not unchanged held proof',$rejected);
+
     $raw=file_get_contents($file);DevelopmentWorkHealth::record('PRIVATE','PRIVATE');
     developmentHealthCheck('unknown categories rejected',file_get_contents($file)===$raw);
     $injected=json_decode($raw,true)+['callback_url'=>'PRIVATE CALLBACK'];$injected['counts']['queue_id']='PRIVATE';
@@ -88,7 +93,7 @@ class DevelopmentWorkServerRuntime {
     public static function tick($pdo,$trigger,$authorize){
         if(is_file(__DIR__.'/serverfail'))throw new RuntimeException('PRIVATE SERVER RESULT STORAGE');
         if(is_file(__DIR__.'/serverunknown'))return ['handled'=>true,'state'=>'unknown','provider_calls'=>null];
-        if(is_file(__DIR__.'/serverheld'))return ['handled'=>true,'state'=>'unknown','provider_calls'=>0,'execution_status'=>'held_existing_unknown','work_accepted'=>false];
+        if(is_file(__DIR__.'/serverheld'))return ['handled'=>true,'state'=>'unknown','provider_calls'=>0,'execution_status'=>'held_existing_unknown','work_accepted'=>false,'held_evidence_sha256'=>str_repeat('a',64)];
         if(is_file(__DIR__.'/serverfakeheld'))return ['handled'=>true,'state'=>'unknown','provider_calls'=>0];
         if(is_file(__DIR__.'/servercomplete'))return ['handled'=>true,'state'=>'complete','accepted_task'=>'PRIVATE TASK','provider_calls'=>1];
         return ['handled'=>false,'provider_calls'=>0];
