@@ -89,11 +89,21 @@ function devAmendmentGate(array $m,object $state): DevelopmentWorkServerAmendmen
             'expected_terminal'=>$terminal,'gates'=>$gates]];
     $comment=['id'=>6483628958,'user'=>['id'=>226193297],'issue_url'=>'https://api.github.com/repos/pyatkoff/max-search-bot/issues/1122',
         'author_association'=>'OWNER','body'=>$terminal,'updated_at'=>'2026-11-09T05:10:00Z'];
-    $state->requests??=0;
+    $state->requests??=0;$state->sha??=$sha;
+    $mode=$state->mode??'';
+    if($mode==='wrong_sha')$status['sha']=str_repeat('b',40);
+    if($mode==='attempt2')$status['repository_release']['release']['run_attempt']=2;
+    if($mode==='missing_gate')array_pop($status['repository_release']['closure']['gates']);
+    if($mode==='failed_gate')$status['repository_release']['closure']['gates'][1]['conclusion']='failure';
+    if($mode==='unchanged')$status['repository_release']['kind']='application_unchanged';
+    if($mode==='publisher_busy')$comment['body']='PR9999: выпуск занят';
+    if($mode==='foreign_publisher')$comment['user']['id']=2;
     return new DevelopmentWorkServerAmendmentGate($m,static function(string $url)use($state,$status,$comment):array{
+        if(isset($state->pdo)&&$state->pdo->inTransaction())throw new RuntimeException('synthetic_network_lock_survived');
         ++$state->requests;if(!($state->released??true))throw new DomainException('amendment_publisher_not_released');
+        if(($state->mode??'')==='source_drift'&&$state->requests===2)$state->sha=str_repeat('b',40);
         if(str_contains($url,'raw.githubusercontent.com'))return $status;return $comment;
-    },static fn():string=>$sha);
+    },static fn():string=>$state->sha);
 }
 function devServerAmendmentChecks(): void
 {
@@ -110,12 +120,12 @@ function devServerAmendmentChecks(): void
     $wire=json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
     $small=devAmendmentCapture($wire,8192);$full=devAmendmentCapture($wire,16384);
     devAssert(!$small['wire_complete']&&$full['wire_complete']&&$full['provider']['status']==='completed'
-        &&$full['raw']===$wire&&$full['report']===$fake['report'],
+        &&$full['raw']===$wire&&DevelopmentWorkServerContract::hash($full['report'])===DevelopmentWorkServerContract::hash($fake['report']),
         'valid_small_report_with_large_opaque_envelope_has_lossless_v2_transport');
     $b='';$large=false;ManagerDraftClient::captureDevelopmentChunk($b,$large,str_repeat('x',8191),8192);
     $written=ManagerDraftClient::captureDevelopmentChunk($b,$large,'é',8192);
     devAssert($written===0&&$large&&strlen($b)===8192,'actual_chunk_boundary_retains_exact_bytes_even_when_prefix_is_not_UTF8');
-    $state=(object)['released'=>false];$gate=devAmendmentGate($m,$state);
+    $state=(object)['released'=>false,'pdo'=>$p];$gate=devAmendmentGate($m,$state);
     $held=$q->serverTick($provider,devServerOrigin($clock),$gate);
     devAssert($held['provider_calls']===0&&$held['work_accepted']===false&&$held['execution_status']==='held_existing_unknown'
         &&count($log->sent)===2&&devServerStatus($q)['accepted_count']===0,
@@ -153,6 +163,19 @@ function devServerAmendmentChecks(): void
     devAssert(strlen($tool['content'][0]['text'])<=1024&&$tool['structuredContent']===$done
         &&!str_contains($tool['content'][0]['text'],$done['server_control']['attempts'][2]['response_base64']),
         'full_original_proof_is_single_copy_structured_content_with_short_explicit_digest_summary');
+    foreach(['wrong_sha','attempt2','missing_gate','failed_gate','unchanged','publisher_busy','foreign_publisher','source_drift'] as $case){
+        [$p,$q,$clock,$provider,$log,$m,$old]=devAmendmentFixture();
+        $gate=devAmendmentGate($m,(object)['mode'=>$case,'pdo'=>$p]);
+        try{$q->serverTick($provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
+        $status=devServerStatus($q);
+        devAssert($status['state']==='unknown'&&$status['accepted_count']===0&&$status['task_count']===2
+            &&$status['server_control']['attempts']===$old['server_control']['attempts']&&count($log->sent)===2,
+            'public_release_gate_'.$case.'_cannot_amend_unknown_or_spend_provider_budget');
+    }
+    [$p,$q,$clock,$provider,$log,$m]=devAmendmentFixture();$state=(object)['released'=>false,'pdo'=>$p];$gate=devAmendmentGate($m,$state);
+    for($i=0;$i<31;++$i){$q->serverTick($provider,devServerOrigin($clock),$gate);$clock->at+=60;}
+    devAssert($state->requests===30&&count($log->sent)===2&&devServerStatus($q)['accepted_count']===0,
+        'fixed_public_read_probe_budget_stops_without_work_retry_or_authority_reset');
     foreach(['root_not_terminal','root_error','other_task','changed_binding','changed_old_review','new_policy','expired'] as $case){
         [$p,$q,$clock,$provider,$log,$m]=devAmendmentFixture();
         if($case==='root_not_terminal')$m['review']['state']='in_progress';

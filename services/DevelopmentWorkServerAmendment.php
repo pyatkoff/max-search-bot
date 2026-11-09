@@ -173,7 +173,21 @@ trait DevelopmentWorkServerAmendment
             if(!is_string($hash))throw new DomainException('amendment_implementation_unavailable');$out['files'][$file]=$hash;
         }
         $s=$this->pdo->query('SELECT queue_id,task_id,manifest_sha256,future_binding_sha256,state FROM development_work_server_amendments WHERE 1=0');
-        $s->closeCursor();$out['schema']='097_development_work_server_amendment';return $out;
+        $s->closeCursor();$indexes=[];
+        if($this->driver==='mysql'){
+            foreach($this->pdo->query('SHOW INDEX FROM development_work_server_amendments')->fetchAll(PDO::FETCH_ASSOC) as $row)
+                if((int)$row['Non_unique']===0)$indexes[$row['Key_name']][(int)$row['Seq_in_index']]=$row['Column_name'];
+        }else{
+            foreach($this->pdo->query('PRAGMA index_list(development_work_server_amendments)')->fetchAll(PDO::FETCH_ASSOC) as $row){
+                if((int)$row['unique']!==1||!preg_match('/\A[A-Za-z0-9_]+\z/D',$row['name']))continue;
+                foreach($this->pdo->query('PRAGMA index_info('.$row['name'].')')->fetchAll(PDO::FETCH_ASSOC) as $col)
+                    $indexes[$row['name']][(int)$col['seqno']]=$col['name'];
+            }
+        }
+        $sets=[];foreach($indexes as $cols){ksort($cols);$sets[]=implode(',',array_values($cols));}
+        foreach(['queue_id,task_id','manifest_sha256'] as $needed)
+            if(!in_array($needed,$sets,true))throw new DomainException('amendment_unique_schema_required');
+        $out['schema']='097_development_work_server_amendment';$out['amendment_uniqueness']=true;return $out;
     }
     private function serverAmendmentEffective(array $q,array $c,array $original,bool $current): array
     {
