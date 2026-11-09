@@ -388,7 +388,8 @@ function devServerOverlayDb(?string $file=null): PDO
     if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite')$pdo->exec('PRAGMA busy_timeout=5000');
     foreach(devServerAuthTables() as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
     $engine=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' ENGINE=InnoDB':'';
-    $pdo->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,role VARCHAR(32),is_active INTEGER,is_working INTEGER)$engine;
+    $idType=$engine!==''?'BIGINT UNSIGNED':'INTEGER';
+    $pdo->exec("CREATE TABLE managers(id $idType PRIMARY KEY,role VARCHAR(32),is_active INTEGER,is_working INTEGER)$engine;
         CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(255),is_active INTEGER)$engine;
         CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER)$engine;
         INSERT INTO managers VALUES(1,'admin',1,0),(2,'admin',1,0);
@@ -468,10 +469,15 @@ function devServerOverlayCall(object $service,array $context,string $method,arra
 }
 function devServerOverlayChecks(): void
 {
+    require_once dirname(__DIR__).'/services/ManagerPreparationMcpService.php';
+    $priorPdo=(new ReflectionProperty(ConversationDb::class,'pdo'))->getValue();
+    $priorSchema=(new ReflectionProperty(ProjectAccessService::class,'schemaReady'))->getValue();
     $pdo=null;
     try {
         foreach(['legacy','development'] as $profile) {
             [$pdo,$queue,$clock,$old,$current,$third,$oldSpec]=devServerOverlayFixture($profile);
+            (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$pdo);
+            (new ReflectionProperty(ProjectAccessService::class,'schemaReady'))->setValue(null,false);
             $oldBytes=devServerOldBytes($pdo);$service=devServerOverlayService($pdo,$queue,$clock,$profile);
             $read=static fn()=>devServerOverlayCall($service,$current,'status',['queue_id'=>DevelopmentWorkServerContract::QUEUE]);
             $reply=$read();$s=$reply['result']['structuredContent']??[];
@@ -577,6 +583,8 @@ function devServerOverlayChecks(): void
         devServerArmRaceCheck();
     } finally {
         if($pdo instanceof PDO)foreach(devServerAuthTables() as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
+        (new ReflectionProperty(ConversationDb::class,'pdo'))->setValue(null,$priorPdo);
+        (new ReflectionProperty(ProjectAccessService::class,'schemaReady'))->setValue(null,$priorSchema);
     }
 }
 
@@ -586,7 +594,8 @@ function devServerSeedNativeAuthority(PDO $pdo,object $clock): void
     ProjectConfig::resetForTests(['id'=>'anytour','brand'=>['name'=>'Synthetic project']]);
     foreach(devServerAuthTables() as $table)$pdo->exec('DROP TABLE IF EXISTS '.$table);
     $engine=$pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'?' ENGINE=InnoDB':'';
-    $pdo->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,role VARCHAR(32),is_active INTEGER,is_working INTEGER)$engine;
+    $idType=$engine!==''?'BIGINT UNSIGNED':'INTEGER';
+    $pdo->exec("CREATE TABLE managers(id $idType PRIMARY KEY,role VARCHAR(32),is_active INTEGER,is_working INTEGER)$engine;
         CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key VARCHAR(64),display_name VARCHAR(255),is_active INTEGER)$engine;
         CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER)$engine;
         INSERT INTO managers VALUES(1,'admin',1,0);

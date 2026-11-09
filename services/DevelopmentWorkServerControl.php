@@ -306,7 +306,6 @@ trait DevelopmentWorkServerControl
                     'started_at'=>$now,'event_id'=>$event['event_id'],'event_created_at'=>(int)$event['created_at'],
                     'event_created_cron_id'=>$event['created_cron_id'],'spec_sha256'=>$item['spec_sha256'],
                     'binding_sha256'=>$c['binding_sha256'],'plan_sha256'=>$q['plan_sha256'],
-                    'authority_sha256'=>self::hash($b['proposal']['authority']),
                     'implementation'=>['sha256'=>self::hash($installed),'files_sha256'=>self::hash($installed['files']),
                         'file_count'=>count($installed['files']),'schema'=>$installed['schema'],
                         'response_task_role_slot_uniqueness'=>$installed['response_task_role_slot_uniqueness']],
