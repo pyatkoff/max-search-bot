@@ -71,8 +71,10 @@ final class DevelopmentWorkConnectionAuthority
                 ?'/\Adev_[a-f0-9]{44}\z/D':'/\A[a-f0-9]{48}\z/D',$client)!==1)
             throw new DomainException('development_work_access_denied');
         $scope=$row['scopes']??null;
-        if (!is_string($scope)||strlen($scope)>100) throw new DomainException('development_work_access_denied');
-        $parts=explode(' ',$scope);$allowed=ManagerPreparationOAuth::resourceMetadata($profile)['scopes_supported'];
+        $allowed=ManagerPreparationOAuth::resourceMetadata($profile)['scopes_supported'];
+        $canonicalLimit=strlen(implode(' ',$allowed));
+        if (!is_string($scope)||strlen($scope)>$canonicalLimit) throw new DomainException('development_work_access_denied');
+        $parts=explode(' ',$scope);
         if (count(array_unique($parts))!==count($parts)||array_diff($parts,$allowed)
             ||implode(' ',array_values(array_intersect($allowed,$parts)))!==$scope
             ||!in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$parts,true))

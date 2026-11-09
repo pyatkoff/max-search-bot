@@ -55,11 +55,20 @@ try {
     $app=$tmp.'/app';mkdir($app,0700);mkdir($app.'/tools',0700);mkdir($app.'/services',0700);
     copy(dirname(__DIR__).'/tools/development_work.php',$app.'/tools/development_work.php');
     foreach (['DevelopmentWorkHealth','DiagnosticLogger'] as $name) copy(dirname(__DIR__).'/services/'.$name.'.php',$app.'/services/'.$name.'.php');
-    foreach (['ProjectAccessService','DevelopmentWorkEventService'] as $name) file_put_contents($app.'/services/'.$name.'.php','<?php');
+    foreach (['ProjectAccessService','DevelopmentWorkEventService','DevelopmentWorkServerRuntime'] as $name) file_put_contents($app.'/services/'.$name.'.php','<?php');
     file_put_contents($app.'/config.php', <<<'PHP'
 <?php
 if (is_file(__DIR__.'/fail')) throw new RuntimeException('PRIVATE BOOTSTRAP ERROR');
 class ProjectAccessService {public static function initializeReadOnly(){}}
+class ConversationDb {public static function connection(){return new PDO('sqlite::memory:');}}
+class DevelopmentWorkServerRuntime {
+    public static function tick($pdo,$trigger,$authorize){
+        if(is_file(__DIR__.'/serverfail'))throw new RuntimeException('PRIVATE SERVER RESULT STORAGE');
+        if(is_file(__DIR__.'/serverunknown'))return ['handled'=>true,'state'=>'unknown','provider_calls'=>null];
+        if(is_file(__DIR__.'/servercomplete'))return ['handled'=>true,'state'=>'complete','accepted_task'=>'PRIVATE TASK','provider_calls'=>1];
+        return ['handled'=>false,'provider_calls'=>0];
+    }
+}
 class DevelopmentWorkEventService {
     public function hasActiveSubscriptions(){return !is_file(__DIR__.'/waiting');}
     public function deliverPending(){
@@ -82,6 +91,17 @@ PHP);
     exec('DEVELOPMENT_WORK_TRIGGER=cron '.escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/development_work.php').' tick 2>&1',$out,$code);
     $row=json_decode((string)file_get_contents($checkpoint),true);
     developmentHealthCheck('installed cron marker captured by real CLI',$code===0&&($row['trigger']??null)==='cron');
+    foreach(['servercomplete','serverunknown','serverfail'] as $mode) {
+        file_put_contents($app.'/'.$mode,'1');$out=[];$code=-1;
+        exec('DEVELOPMENT_WORK_TRIGGER=cron '.escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/development_work.php').' tick 2>&1',$out,$code);
+        $row=json_decode((string)file_get_contents($checkpoint),true);$body=json_decode(implode("\n",$out),true);
+        developmentHealthCheck('actual server CLI '.$mode.' preserves known health categories and call uncertainty',
+            $code===($mode==='servercomplete'?0:1)&&($row['state']??null)===($mode==='servercomplete'?'ok':'failed')
+            &&($row['stage']??null)===($mode==='servercomplete'?'complete':'delivery')
+            &&($body['provider_calls']??null)===($mode==='servercomplete'?1:null)
+            &&!str_contains(implode("\n",$out),'PRIVATE'));
+        unlink($app.'/'.$mode);
+    }
     file_put_contents($app.'/fail','1');$out=[];$code=-1;
     exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/development_work.php').' status 2>&1',$out,$code);
     developmentHealthCheck('status does not bootstrap application',$code===0&&json_decode(implode("\n",$out),true)['provider_calls']===0);
