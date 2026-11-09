@@ -412,3 +412,14 @@ outside the attribution window, eligible visits despite provider rejection, or
 an unavailable diagnosis. It never supplies a replacement identity or credits
 a candidate visit. Native VisitID/event-log attribution remains outside this
 reconciliation contract.
+
+
+New unresolved MAX identities also require the retained tracker recording time
+to be known, no later than the signal, and at most 21 days before it. A missing,
+future or expired source click stays in the existing pending lane without an
+upload; the original positive signal and immutable forecast remain saved.
+A later lookup may resolve that same row only from an eligible prior click.
+This is a conservative source-clock admission, not proof that the counter
+recorded a visit. Actual visit linkage still requires the provider report.
+Already accepted/processed/failed receipts are never reset or resent by this
+guard; no historical queue sweep is introduced.
