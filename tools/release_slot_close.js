@@ -28,7 +28,9 @@ const REQUIRED = [
 const sha = value => typeof value === 'string' && /^[0-9a-f]{40}$/.test(value);
 const id = value => Number.isSafeInteger(value) && value > 0;
 const stamp = value => typeof value === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(value) && Number.isFinite(Date.parse(value));
-class Refusal extends Error { constructor(code) { super(code); this.code = code; } }
+class Refusal extends Error {
+  constructor(code, pending) { super(code); this.code = code; if (pending) this.pending = pending; }
+}
 function requireValue(ok, code) { if (!ok) throw new Refusal(code); }
 function context(env, event) {
   const run = event && event.workflow_run;
@@ -75,7 +77,7 @@ function validRun(run, c, path, event, name, origin = null) {
     && run.head_repository?.full_name === REPOSITORY
     && run.run_attempt === (path===PREFIX+'deploy.yml'&&c.recovery?2:1) && stamp(run.created_at), 'untrusted_run');
 }
-function gateState(snapshot, c) {
+function gateState(snapshot, c, pending = []) {
   requireValue(typeof c.activation === 'boolean', 'activation_context_missing');
   const runs = snapshot?.workflow_runs;
   requireValue(Array.isArray(runs) && Number.isSafeInteger(snapshot.total_count)
@@ -95,7 +97,10 @@ function gateState(snapshot, c) {
     const candidates = runs.filter(r => r.path === path
       && (file === 'deploy.yml' || r.event === event));
     requireValue(candidates.length <= 1, 'ambiguous_run');
-    if (!candidates.length) { waiting = true; continue; }
+    if (!candidates.length) {
+      pending.push({workflow:file,status:'missing'});
+      waiting = true; continue;
+    }
     const run = candidates[0];
     validRun(run, c, path, event, name, event === 'workflow_run' ? origin(file) : null);
     if (file === 'deploy.yml') {
@@ -105,6 +110,7 @@ function gateState(snapshot, c) {
     if (run.status !== 'completed') {
       requireValue(['queued', 'in_progress', 'waiting', 'pending', 'requested'].includes(run.status)
         && run.conclusion === null, 'invalid_run_state');
+      pending.push({workflow:file,status:run.status,run_id:String(run.id)});
       waiting = true;
     } else if (file === ACTIVATION.file && !c.activation) {
       // The workflow is present on every deployment. Its job must also prove
@@ -130,7 +136,7 @@ async function selectReleaseRuns(snapshot,c,get) {
   requireValue(Array.isArray(runs)&&Number.isSafeInteger(snapshot.total_count)
     &&snapshot.total_count===runs.length&&runs.length<100
     &&new Set(runs.map(r=>r.id)).size===runs.length,'incomplete_runs');
-  const selected=[],origins=new Set();
+  const selected=[],origins=new Set(),pending=[];
   let waiting=false;
   for(const run of runs) {
     const match=run.path===PREFIX+ACTIVATION.file&&run.event==='workflow_run'
@@ -144,13 +150,18 @@ async function selectReleaseRuns(snapshot,c,get) {
     const parent=present||await get('/actions/runs/'+parentId);
     if(parent?.event!=='schedule'){selected.push(run);continue;}
     validRun(parent,c,PREFIX+'modeled-conversion-monitor.yml','schedule','Monitor modeled conversion delivery');
-    requireValue(parent.id===parentId&&parent.status==='completed'&&parent.conclusion==='success'
+    // A failed scheduled consumer can be waiting on this release's terminal.
+    // Its outcome is retained; only its proved zero-step child is excluded.
+    // The original deployment monitor and activation remain mandatory below.
+    requireValue(parent.id===parentId&&parent.status==='completed'&&['success','failure'].includes(parent.conclusion)
       &&parent.head_commit?.id===c.sha,'independent_monitor_unconfirmed');
     validRun(run,c,PREFIX+ACTIVATION.file,'workflow_run',ACTIVATION.name,match[0]);
     requireValue(Date.parse(run.created_at)>=Date.parse(parent.created_at),'stale_gate');
     if(run.status!=='completed'){
       requireValue(['queued','in_progress','waiting','pending','requested'].includes(run.status)
         &&run.conclusion===null,'invalid_run_state');
+      pending.push({workflow:ACTIVATION.file,status:run.status,run_id:String(run.id),
+        origin:'scheduled_monitor',parent_run_id:String(parentId)});
       waiting=true;continue;
     }
     requireValue(['success','skipped'].includes(run.conclusion),'independent_activation_unconfirmed');
@@ -162,7 +173,7 @@ async function selectReleaseRuns(snapshot,c,get) {
       &&j.head_sha===c.sha&&j.status==='completed'&&j.conclusion==='skipped'
       &&Array.isArray(j.steps)&&j.steps.length===0,'independent_activation_executed');
   }
-  return {runs:await selectRecoveryRuns({...snapshot,total_count:selected.length,workflow_runs:selected},c,get),waiting};
+  return {runs:await selectRecoveryRuns({...snapshot,total_count:selected.length,workflow_runs:selected},c,get),waiting,pending};
 }
 function recordState(record, b) {
   requireValue(record?.id === b.comment_id && record.user?.id === b.owner_id
@@ -243,9 +254,10 @@ async function closeRelease({ env, event, api, sleep, now = Date.now, prepare = 
   while (true) {
     await main();
     const observed = await snapshot();
-    const state = gateState(observed.runs, c);
+    const pending = [];
+    const state = gateState(observed.runs, c, pending);
     if (state === 'ready' && !observed.waiting) break;
-    requireValue(now() < deadline, 'gate_deadline');
+    if (now() >= deadline) throw new Refusal('gate_deadline', [...pending, ...observed.pending]);
     await sleep(Math.min(20000, deadline - now()));
   }
   verifyConfigure(await get('/actions/runs/' + c.run + '/attempts/1/jobs?per_page=100'), c);
@@ -745,6 +757,9 @@ if (typeof require === 'function' && require.main === module) {
     process.stdout.write('release_slot=' + result + '\n');
   })().catch(error => {
     process.stderr.write('release_slot=held reason=' + (error instanceof Refusal||error instanceof release.Refusal ? error.code : 'internal_failure') + '\n');
+    if (error instanceof Refusal && error.code === 'gate_deadline' && Array.isArray(error.pending))
+      process.stderr.write('release_slot_pending=' + JSON.stringify(error.pending) + '\n');
     process.exitCode = 1;
   });
 }
+

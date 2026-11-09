@@ -49,7 +49,9 @@ trait DevelopmentWorkServerControl
     {
         $files=[];
         foreach(['DevelopmentWorkServerContract.php','DevelopmentWorkServerControl.php','DevelopmentWorkServerProvider.php',
-            'DevelopmentWorkServerRuntime.php','DevelopmentWorkQueue.php','../ai/ManagerDraftClient.php'] as $file) {
+            'DevelopmentWorkServerRuntime.php','DevelopmentWorkQueue.php','../ai/ManagerDraftClient.php',
+            'DevelopmentWorkEventService.php','DevelopmentWorkMcpAdapter.php','DevelopmentWorkMcpService.php',
+            'ManagerPreparationMcpService.php','../tools/development_work.php','../migrations/096_development_work_server_control.sql'] as $file) {
             $hash=hash_file('sha256',__DIR__.'/'.$file);
             if(!is_string($hash))throw new DomainException('development_server_implementation_unavailable');
             $files[$file]=$hash;
@@ -157,7 +159,7 @@ trait DevelopmentWorkServerControl
             'state'=>$c['state'],'attention_reason'=>$c['attention_reason'],'reserved_calls'=>(int)$c['reserved_calls'],
             'reserved_tokens'=>(int)$c['reserved_tokens'],'reserved_micros'=>(int)$c['reserved_micros'],
             'events'=>$events,'attempts'=>$attempts,'receipts'=>$receipts,
-            'completeness'=>'all_original_job_wire_request_response_report_bytes_base64',
+            'completeness'=>'all_retained_bytes_base64_transport_completeness_in_original_observation',
             'scope'=>'technical_control_pair_not_coding_or_deploy'];
     }
     private function serverExtendStatus(array $q,array $out): array
@@ -242,16 +244,46 @@ trait DevelopmentWorkServerControl
             }
             $input=$kind==='commissioning'?$b['proposal']['inputs'][DevelopmentWorkServerContract::A]:$this->serverBInput($b,$parent);
             if(self::hash($input)!==$item['input_sha256'])throw new DomainException('development_server_input_pin');
-            $facts=array_fill_keys(DevelopmentWorkServerContract::checks($kind),true);unset($facts['legacy_unknown']);
-            $facts['legacy_unknown']='unreconciled';
+            $freshLegacy=$this->serverLegacy($q);$policy=$b['proposal']['policy'];
+            $installed=$b['proposal']['implementation'];
+            $evidence=[
+                'input'=>['sha256'=>$item['input_sha256'],'kind'=>$kind,'static_bytes_in'=>'input'],
+                'execution'=>['execution_kind'=>'server_model','origin'=>'ordinary_server_cron','cron_id'=>$origin['cron_id'],
+                    'started_at'=>$now,'event_id'=>$event['event_id'],'event_created_at'=>(int)$event['created_at'],
+                    'event_created_cron_id'=>$event['created_cron_id'],'spec_sha256'=>$item['spec_sha256'],
+                    'binding_sha256'=>$c['binding_sha256'],'plan_sha256'=>$q['plan_sha256'],
+                    'implementation'=>['sha256'=>self::hash($installed),'files_sha256'=>self::hash($installed['files']),
+                        'file_count'=>count($installed['files']),'schema'=>$installed['schema'],
+                        'response_task_role_slot_uniqueness'=>$installed['response_task_role_slot_uniqueness']],
+                    'claim_commit'=>'committed_before_transport_send','observed_accepted_count'=>(int)$q['accepted_count']],
+                'limits'=>['policy_sha256'=>self::hash($policy),'profile'=>$policy['profile'],
+                    'max_calls'=>$policy['max_calls'],'reserved_calls_before'=>(int)$c['reserved_calls'],
+                    'tokens_per_call'=>$policy['tokens_per_call'],'reserved_micros_per_call'=>$policy['reserved_micros_per_call'],
+                    'money_semantics'=>$policy['money_semantics'],'admitted_at'=>(int)$c['admitted_at'],'deadline_at'=>(int)$c['deadline_at']],
+                'legacy'=>['baseline_sha256'=>$c['legacy_sha256'],'observed_sha256'=>$freshLegacy,
+                    'retired_task'=>'DEV-CONTROL-COMMISSION-20261028-01','retired_count'=>(int)$q['retirement_count'],
+                    'coverage'=>'old_queue_item_receipt_retirement_handoff_bytes_only',
+                    'native_unknowns'=>'unreconciled_not_inspected_or_replayed_by_this_control'],
+            ];
+            if($parent!==null)$evidence['parent']=$parent;
+            $facts=['input'=>self::hash($input)===$item['input_sha256'],'legacy_unknown'=>'unreconciled'];
+            if($kind==='commissioning')$facts+=['server_mode'=>$installed['execution_kind']==='server_model',
+                'ordinary_cron'=>$origin['trigger']==='cron',
+                'first_claim'=>$role==='producer'?($q['state']==='ready'&&$item['claim_sha256']===null):
+                    ($q['state']==='claimed'&&$item['current_run_id']===$producer['response_id']),
+                'legacy_integrity'=>hash_equals($c['legacy_sha256'],$freshLegacy)];
+            else $facts+=['accepted_parent'=>$parent['outcome']==='accepted_readback',
+                'new_pending'=>$event['spec_sha256']===$item['spec_sha256'],
+                'different_cron'=>$event['created_cron_id']!==$origin['cron_id']&&(int)$event['created_at']<$now,
+                'handover'=>$q['current_task_id']===DevelopmentWorkServerContract::B&&$now<(int)$c['deadline_at']];
+            foreach($facts as $key=>$value)if($key!=='legacy_unknown'&&$value!==true)
+                throw new DomainException('development_server_evidence_not_supported');
             $candidate=$producer===null?null:json_decode($producer['report_bytes'],true,32,JSON_THROW_ON_ERROR);
-            $producerEvidence=$producer===null?null:json_decode($producer['metadata_bytes'],true,16,JSON_THROW_ON_ERROR);
+            $producerEvidence=$producer===null?null:array_intersect_key(
+                json_decode($producer['metadata_bytes'],true,32,JSON_THROW_ON_ERROR),
+                array_flip(['response_id','status','model','usage','wire_request_sha256','wire_response_sha256','report_sha256']));
             $payload=['execution_kind'=>'server_model','role'=>$role,'kind'=>$kind,'input'=>$input,
-                'execution'=>['schema'=>'development-server-execution-v1','origin'=>'ordinary_server_cron',
-                    'cron_id'=>$origin['cron_id'],'started_at'=>$now,'event_id'=>$event['event_id'],
-                    'spec_sha256'=>$item['spec_sha256'],'binding_sha256'=>$c['binding_sha256'],
-                    'observed_accepted_count'=>(int)$q['accepted_count'],
-                    'first_claim_before_send'=>true,'legacy_sha256'=>$c['legacy_sha256']],
+                'execution'=>$evidence['execution'],'evidence'=>$evidence,
                 'facts'=>$facts,'candidate'=>$candidate,'producer_evidence'=>$producerEvidence];
             $wire=$provider->prepare($payload);
             $attempt=bin2hex(random_bytes(32));
@@ -346,16 +378,43 @@ trait DevelopmentWorkServerControl
             $this->ownsLane($q,$lane);
             if($a['state']!=='unknown'||$control['state']!=='unknown'||$q['state']!=='claimed'||$q['current_task_id']!==$a['task_id'])
                 throw new DevelopmentWorkQueueConflict('development_server_original_state');
-            if($raw!==null&&strlen($raw)<=262144) {
-                $this->execute('UPDATE development_work_server_attempts SET response_bytes=?,response_sha256=? WHERE attempt_id=?',
-                    [$raw,hash('sha256',$raw),$attemptId]);
-            }
             $actual=is_array($transport)&&is_string($transport['wire_request_bytes']??null)?$transport['wire_request_bytes']:null;
-            if($actual!==null&&$actual!==$a['request_bytes']&&strlen($actual)<=262144)
+            $rawLimit=DevelopmentWorkServerContract::MAX_RESPONSE_BYTES;$wireLimit=DevelopmentWorkServerContract::MAX_REQUEST_BYTES;
+            // The real DEV transport is bounded at capture. A malformed backend result also cannot
+            // poison the sole supported getter: retain a labelled prefix, never claim it is full.
+            $retained=$raw===null?null:substr($raw,0,$rawLimit);
+            if($retained!==null)$this->execute('UPDATE development_work_server_attempts SET response_bytes=?,response_sha256=? WHERE attempt_id=?',
+                [$retained,hash('sha256',$retained),$attemptId]);
+            if($actual!==null&&$actual!==$a['request_bytes']) {
+                $prefix=substr($actual,0,$wireLimit);
                 $this->execute('UPDATE development_work_server_attempts SET actual_request_bytes=?,actual_request_sha256=? WHERE attempt_id=?',
-                    [$actual,hash('sha256',$actual),$attemptId]);
+                    [$prefix,hash('sha256',$prefix),$attemptId]);
+            }
+            $meta=null;$report=null;$http=is_int($transport['http_status']??null)?$transport['http_status']:null;
+            if($raw!==null&&$http!==null&&strlen($raw)<=ManagerDraftClient::MAX_RESPONSE_BYTES)
+                $report=ManagerDraftClient::parseHotelResponse($raw,$http,static function(array $m)use(&$meta):void{$meta=$m;});
+            $observation=['schema'=>'development-server-original-observation-v1','execution_kind'=>'server_model',
+                'http_status'=>$http,'wire_complete'=>($transport['wire_complete']??null)===true,
+                'response_capture'=>$transport['response_capture']??'backend_supplied',
+                'retained_response_is_complete'=>$raw!==null&&strlen($raw)<=$rawLimit&&($transport['wire_complete']??null)===true,
+                'observed_response_bytes'=>$raw===null?null:strlen($raw),'retained_response_bytes'=>$retained===null?null:strlen($retained),
+                'retained_actual_request_is_complete'=>$actual!==null&&strlen($actual)<=$wireLimit,
+                'observed_actual_request_bytes'=>$actual===null?null:strlen($actual),'provider'=>$meta];
+            $duplicate=false;$knownId=is_array($meta)?($meta['response_id']??null):null;
+            if(is_string($knownId)&&preg_match('/\Aresp_[A-Za-z0-9_-]{1,123}\z/D',$knownId)) {
+                $duplicate=$this->one('SELECT attempt_id FROM development_work_server_attempts WHERE response_id=? AND attempt_id<>?',[$knownId,$attemptId])!==null;
+                $observation['duplicate_response_id']=$duplicate;
+                if(!$duplicate) {
+                    // Known original terminal facts survive report refusal, invalid JSON or late result.
+                    $this->execute('UPDATE development_work_server_attempts SET response_id=? WHERE attempt_id=?',[$knownId,$attemptId]);
+                    if($a['role']==='producer')$this->execute('UPDATE development_work_items SET current_run_id=? WHERE queue_id=? AND task_id=?',
+                        [$knownId,$q['queue_id'],$a['task_id']]);
+                }
+            }
+            $this->execute('UPDATE development_work_server_attempts SET metadata_bytes=? WHERE attempt_id=?',[self::canonical($observation),$attemptId]);
             try {
                 $this->serverBinding($q,$control,true);
+                if($this->timestamp()>=(int)$control['deadline_at'])throw new DomainException('development_server_late_original_result');
                 if(hash('sha256',$a['job_bytes'])!==$a['job_sha256']||hash('sha256',$a['request_bytes'])!==$a['request_sha256'])
                     throw new DomainException('development_server_original_request_corrupt');
                 $job=json_decode($a['job_bytes'],true,32,JSON_THROW_ON_ERROR);
@@ -367,9 +426,6 @@ trait DevelopmentWorkServerControl
                     ||!is_int($transport['http_status']??null)||$transport['http_status']<200||$transport['http_status']>=300
                     ||$raw===null||strlen($raw)>DevelopmentWorkServerContract::MAX_RESPONSE_BYTES)
                     throw new DomainException('development_server_original_transport_unconfirmed');
-                $meta=null;
-                $report=ManagerDraftClient::parseHotelResponse($raw,$transport['http_status'],
-                    static function(array $m)use(&$meta):void{$meta=$m;});
                 if(!is_array($meta)||($meta['status']??null)!=='completed'
                     ||($meta['model']??null)!==$binding['proposal']['policy']['profile']['model']
                     ||!is_string($meta['response_id']??null)||strlen($meta['response_id'])>128)
@@ -389,13 +445,13 @@ trait DevelopmentWorkServerControl
                 if($job['input_sha256']!==$item['input_sha256']||self::hash($payload['input'])!==$item['input_sha256']
                     ||$payload['execution']['cron_id']!==$a['cron_id']||$payload['execution']['event_id']!==$a['event_id'])
                     throw new DomainException('development_server_actual_input_pin');
-                DevelopmentWorkServerContract::validateReport($report,$a['role'],$job['kind'],$payload['facts'],$job['candidate_sha256']);
-                if($this->one('SELECT attempt_id FROM development_work_server_attempts WHERE response_id=? AND attempt_id<>?',[$meta['response_id'],$attemptId]))
+                DevelopmentWorkServerContract::validateReport($report,$a['role'],$job['kind'],$payload['facts'],$job['candidate_sha256'],$payload['evidence']);
+                if($duplicate)
                     throw new DomainException('development_server_duplicate_response');
                 $reportBytes=self::canonical($report);
                 $metadata=['response_id'=>$meta['response_id'],'status'=>$meta['status'],'model'=>$meta['model'],'usage'=>$usage,
                     'execution_kind'=>'server_model','stateless'=>true,'wire_request_sha256'=>$a['request_sha256'],
-                    'wire_response_sha256'=>hash('sha256',$raw),'report_sha256'=>hash('sha256',$reportBytes)];
+                    'wire_response_sha256'=>hash('sha256',$raw),'report_sha256'=>hash('sha256',$reportBytes),'original_observation'=>$observation];
                 $this->execute('UPDATE development_work_server_attempts SET response_id=?,report_bytes=?,report_sha256=?,metadata_bytes=? WHERE attempt_id=?',
                     [$meta['response_id'],$reportBytes,hash('sha256',$reportBytes),self::canonical($metadata),$attemptId]);
                 $fresh=$this->serverProof($q,$this->serverControl($q));

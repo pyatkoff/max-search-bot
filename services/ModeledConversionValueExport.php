@@ -457,7 +457,12 @@ final class ModeledConversionValueExport
         $client=null;$record=null;$observation=null;$identityReason='identity_not_found';
         if($r['platform']==='max'){
             $record=$identities[$r['external_user_id']]??null;
-            if(is_array($record)&&($record['external_user_id']??null)===$r['external_user_id'])$client=$record['client_id']??null;
+            // A retained MAX click can outlive the provider's attribution window.
+            // Hold unresolved identities without rewriting any accepted receipt or forecast.
+            $observed=is_array($record)?($record['observed_at_unix']??null):null;
+            if(is_array($record)&&($record['external_user_id']??null)===$r['external_user_id']
+                &&is_int($observed)&&$observed>=946684800&&$observed<=(int)$r['event_unix']
+                &&(int)$r['event_unix']-$observed<=21*86400)$client=$record['client_id']??null;
         }else{
             $q=$this->pdo->prepare("SELECT client_id,MIN(id) AS observation_id FROM advertising_visit_observations WHERE project_key='anytour' AND source_key='tgmini' AND platform='telegram' AND counter_id='98615635' AND external_user_id=? AND identity_status='verified' AND client_id<>'' AND visit_at_unix<=? AND observed_at_unix<=? AND received_at_unix<=? GROUP BY client_id LIMIT 2");
             $q->execute([$r['external_user_id'],$r['event_unix'],$now,$now]);$ids=$q->fetchAll(PDO::FETCH_ASSOC);if(count($ids)>1)$identityReason='identity_ambiguous';if(count($ids)===1){$client=$ids[0]['client_id'];$observation=$ids[0]['observation_id'];}

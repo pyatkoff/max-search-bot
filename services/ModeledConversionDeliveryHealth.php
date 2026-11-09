@@ -91,6 +91,12 @@ final class ModeledConversionDeliveryHealth
             if(count($rows)!==1)throw new UnexpectedValueException('invalid_metadata');
             foreach(['ready_queue_stale','upload_outcome_unknown','api_row_rejected']as$key)if(self::bit($rows[0][$key]??null))$flags[]=$key;
             if(self::bit($rows[0]['invalid_clock']??null))throw new UnexpectedValueException('invalid_clock');
+            require_once __DIR__.'/ModeledConversionVisitProof.php';
+            $automatic=ModeledConversionVisitProof::automatic($now);
+            if(($automatic['available']??false)===true){
+                if($automatic['status']==='failed'||($automatic['status']==='running'&&$now-$automatic['attempt_unix']>120))$flags[]='visit_proof_refresh_failed';
+                if($now-($automatic['success_unix']?:$automatic['attempt_unix'])>900)$flags[]='visit_proof_stale';
+            }
             $out['flags']=array_values(array_unique($flags));$out['status']=$out['flags']===[]?'ok':'degraded';$guard();return$out;
         }catch(PDOException|JsonException $ignored){$guard();$out['status']='unavailable';$out['flags']=['storage_unavailable'];return$out;}
         catch(UnexpectedValueException $error){$guard();$out['status']='unavailable';

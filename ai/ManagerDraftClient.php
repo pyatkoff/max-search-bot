@@ -126,8 +126,12 @@ final class ManagerDraftClient
                     CURLOPT_CONNECTTIMEOUT=>3,CURLOPT_TIMEOUT=>20,CURLOPT_FOLLOWLOCATION=>false,
                     CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,
                     CURLOPT_PROXY=>'',CURLOPT_RETURNTRANSFER=>false,
-                    CURLOPT_WRITEFUNCTION=>static function($ignored,string $chunk) use (&$bytes,&$oversized): int {
-                        if (strlen($bytes)+strlen($chunk)>self::MAX_RESPONSE_BYTES) {$oversized=true;return 0;}
+                    CURLOPT_WRITEFUNCTION=>static function($ignored,string $chunk) use (&$bytes,&$oversized,$development): int {
+                        $limit=$development?8192:self::MAX_RESPONSE_BYTES;
+                        if (strlen($bytes)+strlen($chunk)>$limit) {
+                            if($development)$bytes.=substr($chunk,0,max(0,$limit-strlen($bytes)));
+                            $oversized=true;return 0;
+                        }
                         $bytes.=$chunk;return strlen($chunk);
                     }]);
                 if (!$configured) return ['_error'=>'provider_unavailable'];
@@ -141,7 +145,9 @@ final class ManagerDraftClient
                     :self::parseHotelResponse($bytes,$status,static function(array $m)use(&$meta):void{$meta=$m;});
                 if($metadataObserver!==null)$metadataObserver(($meta??[])+[
                     'wire_request_bytes'=>$encoded,'wire_response_bytes'=>$bytes,
-                    'wire_complete'=>!$oversized&&$success!==false&&$errno===0,'http_status'=>$status]);
+                    'wire_complete'=>!$oversized&&$success!==false&&$errno===0,'http_status'=>$status,
+                    'response_capture_limit'=>8192,'response_capture'=>$oversized?'prefix_truncated_at_budget':
+                        (($success!==false&&$errno===0)?'complete':'incomplete_transport')]);
                 return $parsed;
             }
             if ($oversized) return ['_error'=>'provider_response_too_large'];

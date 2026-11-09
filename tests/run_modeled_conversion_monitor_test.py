@@ -576,8 +576,11 @@ class LocalCliTests(unittest.TestCase):
         self.seed(self.state)
         self.private_directory = mock.patch.object(local_monitor, "PRIVATE_DIR", self.directory)
         self.private_directory.start()
+        self.proof_patch = mock.patch.object(local_monitor, "refresh_visit_proof", return_value="skipped")
+        self.proof_patch.start()
 
     def tearDown(self):
+        self.proof_patch.stop()
         self.private_directory.stop()
         self.temporary.cleanup()
 
@@ -727,6 +730,42 @@ class LocalCliTests(unittest.TestCase):
             self.assertEqual(run.call_args.args[0], ["/usr/bin/git", "rev-parse", "HEAD"])
             self.assertEqual(run.call_args.kwargs["timeout"], 3)
             self.assertEqual(run.call_args.kwargs["cwd"], str(local_monitor.ROOT))
+
+
+class VisitProofRefreshTests(unittest.TestCase):
+    def test_fixed_bounded_read_only_command_and_no_queue_or_route_operations(self):
+        payload = {"ok": True, "private_verification_saved": True,
+                   "provider_write_requests": False, "source_writes": False}
+        def run(command, **kwargs):
+            self.assertEqual(command, ["/usr/bin/php", "tools/modeled_conversion_visit_proof.php", "scheduled", "19"])
+            self.assertEqual(kwargs["timeout"], 21)
+            self.assertEqual(kwargs["cwd"], str(local_monitor.ROOT))
+            kwargs["stdout"].write(json.dumps(payload).encode())
+            return SimpleNamespace(returncode=0)
+        with mock.patch.object(local_monitor.subprocess, "run", side_effect=run) as call:
+            self.assertEqual(local_monitor.refresh_visit_proof(20), "saved")
+            self.assertEqual(call.call_count, 1)
+        with mock.patch.object(local_monitor.subprocess, "run") as call:
+            self.assertEqual(local_monitor.refresh_visit_proof(36), "no_time_budget")
+            call.assert_not_called()
+
+    def test_failures_and_oversized_or_unsafe_receipts_stay_isolated(self):
+        for payload, code in ((b"x"*1025, 0), (b"{}", 0), (
+                b'{"ok":true,"private_verification_saved":true,"provider_write_requests":true,"source_writes":false}', 0),
+                (b"{}", 1)):
+            def run(command, **kwargs):
+                kwargs["stdout"].write(payload)
+                return SimpleNamespace(returncode=code)
+            with mock.patch.object(local_monitor.subprocess, "run", side_effect=run):
+                self.assertEqual(local_monitor.refresh_visit_proof(1), "unavailable")
+        with mock.patch.object(local_monitor.subprocess, "run", side_effect=subprocess.TimeoutExpired("fixed", 20)):
+            self.assertEqual(local_monitor.refresh_visit_proof(1), "unavailable")
+
+    def test_new_flags_remain_in_the_pipeline_role_and_have_owner_notifications(self):
+        flags = ["visit_proof_stale", "visit_proof_refresh_failed"]
+        self.assertTrue(set(flags).issubset(monitor.ROLE_FLAGS["pipeline"]))
+        self.assertTrue(set(flags).isdisjoint(monitor.ROLE_FLAGS["external"]))
+        self.assertEqual(monitor.clean_flags(flags), sorted(flags))
 
 if __name__ == "__main__":
     unittest.main()

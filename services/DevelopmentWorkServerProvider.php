@@ -19,7 +19,7 @@ final class DevelopmentWorkServerProvider
             ||!in_array($job['kind']??null,['commissioning','readiness'],true))
             throw new DomainException('development_server_job');
         $payload=['input'=>$job['input'],'execution'=>$job['execution'],'facts'=>$job['facts'],
-            'candidate'=>$job['candidate'],'producer_evidence'=>$job['producer_evidence']];
+            'evidence'=>$job['evidence'],'candidate'=>$job['candidate'],'producer_evidence'=>$job['producer_evidence']];
         $body=ManagerDraftClient::developmentRequestBody($job['role'],
             DevelopmentWorkServerContract::instructions($job['role']),$payload,
             DevelopmentWorkServerContract::schema($job['role'],$job['kind']));

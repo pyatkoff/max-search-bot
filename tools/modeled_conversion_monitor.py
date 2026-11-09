@@ -23,6 +23,7 @@ FLAGS = {
     "storage_unavailable", "configuration_unavailable", "invalid_clock",
     "health_metadata_unavailable", "monitor_transport_unavailable", "monitor_source_mismatch",
     "pipeline_checker_stale", "pipeline_checker_notification_unknown",
+    "visit_proof_stale", "visit_proof_refresh_failed",
 }
 ID_RE = re.compile(r"[1-9][0-9]{0,19}\Z")
 TOKEN_RE = re.compile(r"[1-9][0-9]{4,19}:[A-Za-z0-9_-]{30,100}\Z")
@@ -220,6 +221,8 @@ def message_for(pending, role=None):
             return "AnyTour: внешний контроль — работа восстановлена."
         return "AnyTour: технический мониторинг — работа восстановлена."
     descriptions = {
+        "visit_proof_stale": "Сверка начислений с визитами не обновлялась более 15 минут.",
+        "visit_proof_refresh_failed": "Не удалось обновить сверку начислений с визитами.",
         "delivery_tick_stale": "Обработка конверсий не обновлялась более 15 минут.",
         "profile_tick_stale": "Сохранение прогнозов не обновлялось более 15 минут.",
         "delivery_tick_errors": "Обнаружена ошибка обработки конверсий.",
