@@ -24,7 +24,7 @@ final class DevelopmentWorkServerProvider
         if($v2&&$job['kind']!=='readiness')throw new DomainException('development_server_v2_scope');
         $body=ManagerDraftClient::developmentRequestBody($job['role'],
             $v2?DevelopmentWorkServerContract::futureInstructions($job['role']):DevelopmentWorkServerContract::instructions($job['role']),$payload,
-            $v2?DevelopmentWorkServerContract::futureSchema($job['role']):DevelopmentWorkServerContract::schema($job['role'],$job['kind']),$v2);
+            $v2?DevelopmentWorkServerContract::futureSchema($job['role'],is_array($job['candidate'])?DevelopmentWorkServerContract::hash($job['candidate']):null):DevelopmentWorkServerContract::schema($job['role'],$job['kind']),$v2);
         $wire=json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         if(strlen($wire)>DevelopmentWorkServerContract::MAX_REQUEST_BYTES)
             throw new DomainException('development_server_request_budget');

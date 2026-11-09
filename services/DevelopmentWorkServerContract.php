@@ -178,14 +178,20 @@ final class DevelopmentWorkServerContract
         $p['producer_instructions_sha256']=hash('sha256',self::futureInstructions('producer'));
         $p['reviewer_instructions_sha256']=hash('sha256',self::futureInstructions('reviewer'));
         $p['producer_schema_sha256']=self::hash(self::futureSchema('producer'));
-        $p['reviewer_schema_sha256']=self::hash(self::futureSchema('reviewer'));
+        $p['reviewer_schema_template_sha256']=self::hash(self::futureSchema('reviewer',str_repeat('0',64)));
+        $p['reviewer_candidate_binding']='exact_canonical_original_candidate_sha256_enum';
         return $p;
     }
     public static function futureInstructions(string $role): string
-    {return self::instructions($role).' Emit compact JSON without padding. Keep each English evidence note within 64 characters. Do not produce explanatory prose outside the JSON.';}
-    public static function futureSchema(string $role): array
+    {return self::instructions($role).' Emit compact JSON without padding. Keep each English evidence note within 64 characters. The reviewer candidate hash is fixed by schema; do not calculate it. Do not produce explanatory prose outside the JSON.';}
+    public static function futureSchema(string $role,?string $candidateHash=null): array
     {
-        $s=self::schema($role,'readiness');$s['properties']['checks']['items']['properties']['note']['maxLength']=64;return $s;
+        $s=self::schema($role,'readiness');$s['properties']['checks']['items']['properties']['note']['maxLength']=64;
+        if($role==='reviewer'){
+            if(!is_string($candidateHash)||preg_match('/\\A[a-f0-9]{64}\\z/D',$candidateHash)!==1)throw new DomainException('development_server_candidate_schema');
+            $s['properties']['candidate_sha256']=['type'=>'string','enum'=>[$candidateHash]];
+        }
+        return $s;
     }
     public static function toolResult(array $data): array
     {

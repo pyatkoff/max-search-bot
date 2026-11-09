@@ -136,6 +136,9 @@ function devServerAmendmentChecks(): void
     devAssert(count($log->sent)===2,'B_never_dispatches_in_A_acceptance_cron_or_minute_slot');
     $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock),$gate);
     $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock),$gate);$done=devServerStatus($q);
+    $reviewWire=json_decode($log->sent[3],true,32,JSON_THROW_ON_ERROR);
+    devAssert($reviewWire['text']['format']['schema']['properties']['candidate_sha256']['enum']===[$done['server_control']['attempts'][2]['report_sha256']],
+        'reviewer_lineage_hash_is_fixed_from_original_candidate_not_recomputed_by_model');
     devAssert(count($log->sent)===4&&$done['accepted_count']===2&&$done['blocked_count']===1&&$done['retirement_count']===1
         &&$done['state']==='blocked'&&$done['task_id']===null&&$done['server_control']['state']==='complete'
         &&$done['worker_receipt_count']===2&&$done['server_control']['reserved_calls']===4,

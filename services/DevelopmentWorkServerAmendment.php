@@ -48,14 +48,28 @@ final class DevelopmentWorkServerAmendmentGate
             self::ensure($r['completed_at']===self::ROOT_COMPLETED_AT
                 &&$r['canonical_terminal_readback_sha256']===self::ROOT_TERMINAL_READBACK,'amendment_other_root_terminal');
             // The operative production document can only concern these actual saved originals.
-            $fixed=['binding_sha256'=>'bc459fe29c3de9546228249c02b7c081c43a067df7b8dd5a03b0bafaec3753ad',
+            $fixed=['queue_id'=>'DEVELOPMENT-CONTROL-20261028',
+                'task_id'=>'DEV-CONTROL-COMMISSION-20261109-02',
+                'plan_sha256'=>'008035cd6e80a2d63219a1b095406a315ad5608abbc122461a0ecc388de7ed95',
+                'spec_sha256'=>'1a7d498a05cc5764e6a00f0c7f732a6c8af399258561e3ceb0cc55367ca12de2',
+                'input_sha256'=>'a35f7d2020587b364718c5664c7f5df7e148314d0fdad10bc964195243fcde58',
+                'acceptance_contract_sha256'=>'863099f098c64d8fe59f12497f164baa319ca142fe37820f0f698fbc37825cda',
+                'binding_sha256'=>'bc459fe29c3de9546228249c02b7c081c43a067df7b8dd5a03b0bafaec3753ad',
+                'legacy_sha256'=>'25f86e0f0b99a5b2aefbdd0d22736ee94e95823c49783b1d98441499278922f5',
                 'unknown_receipt_sha256'=>'40566206b557db9e5744bae0f84c497fc8c60847e2a05bf7e68047a75927397b',
+                'old_deadline_at'=>1794263276,
+                'producer_run_id'=>'resp_0a34730f0f880ef0016af23ae1c05887d2b52093614bdeeafd',
+                'producer_cron_at'=>1794259681,
+                'producer_cron_id'=>'b26e6197c01a69e6de264cf84f80c1e35a7fd8850cffe173d65b535d21f9b063',
                 'producer_attempt_id'=>'0e89c8d406c350c26f175f518c3380b7cb3a08fa41e992455908f6db7476c085',
+                'producer_job_sha256'=>'7a3dffb5f9ce6d8fbbbf905b7ee8b73b4eb8da41cf4bfdb8a501d690cbc20385',
+                'producer_request_sha256'=>'6d0ab3396b00f69ad624cee9da751801de1f3c947062e052ca9a0e8c29bd69bf',
                 'producer_response_sha256'=>'ba3a21f7b968e1600dee83bad096957ca1960b6d4b134c42d910f696c5d1ca72',
-                'producer_report_sha256'=>'d6af276602df70bafe9faf894bbe654fcdc89841bcd800b39ea20eccf4a61cb3',
                 'reviewer_attempt_id'=>'d0f6b924551c45f94b97ef1d2c28794e672e7bb43f2407189bcd65a9226093b3',
+                'reviewer_job_sha256'=>'f0289200fd2491dc55a75a0202268cd2b234c0ad4d13f2beef692faea56e9e6f',
+                'reviewer_request_sha256'=>'7f8893658a4f52b2ffea795b02d28825d53901f93dc62de27d0e38b06ae61270',
                 'reviewer_response_sha256'=>'991d74350060693169fa2a3f31e7d9732925bc69693afd2a85728a0d2590d9cc',
-                'old_deadline_at'=>1794263276];
+                'producer_report_sha256'=>'d6af276602df70bafe9faf894bbe654fcdc89841bcd800b39ea20eccf4a61cb3'];
             foreach($fixed as $key=>$value)self::ensure(($o[$key]??null)===$value,'amendment_other_original');
         }
         self::ensure(strlen(DevelopmentWorkServerContract::json($m))<=self::MAX_MANIFEST_BYTES,'amendment_manifest_budget');
