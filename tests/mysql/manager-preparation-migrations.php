@@ -334,7 +334,7 @@ try{
         ||($scopeColumn['COLLATION_NAME']??null)!=='ascii_bin'||($scopeColumn['IS_NULLABLE']??null)!=='NO')throw new RuntimeException('dialogue_scope_column_contract_failed');
     echo "PASS native MySQL091 apply and retry preserve exact grants codes and tokens with ascii_bin128 scope capacity\n";
     require_once dirname(__DIR__,2).'/services/ManagerPreparationOAuth.php';
-    $allScopes=implode(' ',array_values(array_filter(ManagerPreparationOAuth::SUPPORTED_SCOPES,static fn(string $scope):bool=>$scope!==ManagerPreparationOAuth::QUALITY_SCOPE)));$allScopeFamily=str_repeat('c',32);
+    $allScopes=implode(' ',array_values(array_filter(ManagerPreparationOAuth::SUPPORTED_SCOPES,static fn(string $scope):bool=>$scope!==ManagerPreparationOAuth::QUALITY_SCOPE&&$scope!==ManagerPreparationOAuth::BOOKING_SCOPE)));$allScopeFamily=str_repeat('c',32);
     if(strlen($allScopes)!==125)throw new RuntimeException('dialogue_scope_full_fixture_invalid');
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$allScopeFamily,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php',$allScopes,time(),time()+3600]);
     $fullScopeRead=$pdo->prepare('SELECT scopes,OCTET_LENGTH(scopes) AS bytes,HEX(scopes) AS hex_value FROM manager_preparation_oauth_grants WHERE grant_id=?');
@@ -355,7 +355,7 @@ try{
     $historyColumn=$pdo->query("SELECT CHARACTER_MAXIMUM_LENGTH,CHARACTER_SET_NAME,COLLATION_NAME,IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='manager_preparation_oauth_grants' AND COLUMN_NAME='scopes'")->fetch();
     if((int)$historyColumn['CHARACTER_MAXIMUM_LENGTH']!==160||$historyColumn['CHARACTER_SET_NAME']!=='ascii'||$historyColumn['COLLATION_NAME']!=='ascii_bin'||$historyColumn['IS_NULLABLE']!=='NO')
         throw new RuntimeException('history_scope_column_contract_failed');
-    $historyScopes=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
+    $historyScopes=implode(' ',array_values(array_filter(ManagerPreparationOAuth::SUPPORTED_SCOPES,static fn(string $scope):bool=>$scope!==ManagerPreparationOAuth::BOOKING_SCOPE)));
     if(strlen($historyScopes)!==138)throw new RuntimeException('history_scope_full_fixture_invalid');
     $historyFamily=str_repeat('4',32);
     $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$historyFamily,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php',$historyScopes,time(),time()+3600]);
@@ -363,6 +363,23 @@ try{
     if($historyRow['scopes']!==$historyScopes||(int)$historyRow['bytes']!==138||strtolower($historyRow['hex_value'])!==bin2hex($historyScopes))
         throw new RuntimeException('history_scope_roundtrip_failed');
     echo "PASS native MySQL092 retry preserves old authority; explicitly consented138-byte scope round-trips exactly\n";
+
+    // A new optional read capability fits the already applied schema. Retain
+    // the historical125/138 grants and their original codes/tokens byte-exact.
+    $bookingBefore=[];
+    foreach($oauthTables as $table=>$key)$bookingBefore[$table]=$pdo->query('SELECT * FROM '.$table.' ORDER BY '.$key)->fetchAll();
+    $bookingScopes=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);$bookingFamily=str_repeat('5',32);
+    if(strlen($bookingScopes)!==152||strlen($bookingScopes)>160)throw new RuntimeException('booking_scope_full_fixture_invalid');
+    $pdo->prepare('INSERT INTO manager_preparation_oauth_grants VALUES(?,?,?,?,?,?,?,?,NULL)')->execute([$bookingFamily,$client,1,'anytour','https://app.anytoour.ru/manager/ai-mcp.php',$bookingScopes,time(),time()+3600]);
+    $fullScopeRead->execute([$bookingFamily]);$bookingRow=$fullScopeRead->fetch();
+    if($bookingRow['scopes']!==$bookingScopes||(int)$bookingRow['bytes']!==152||strtolower($bookingRow['hex_value'])!==bin2hex($bookingScopes))
+        throw new RuntimeException('booking_scope_native_roundtrip_failed');
+    foreach($oauthTables as $table=>$key){
+        $rows=$pdo->query('SELECT * FROM '.$table.' ORDER BY '.$key)->fetchAll();
+        if($table==='manager_preparation_oauth_grants')$rows=array_values(array_filter($rows,static fn(array $row):bool=>$row['grant_id']!==$bookingFamily));
+        if($rows!==$bookingBefore[$table])throw new RuntimeException('booking_scope_changed_old_authority');
+    }
+    echo "PASS native MySQL explicit152-byte booking scope round-trips without changing historical grants codes or tokens\n";
 
     $jobs=json_encode(array_fill(0,200,str_repeat('1',64)),JSON_THROW_ON_ERROR);
     $q=$pdo->prepare('INSERT INTO manager_preparation_events (subscription_id,admin_id,oauth_connection_id,project_key,event_name,arguments_json,callback_url,signing_secret,verified_at,expires_at,observed_jobs_json,pending_jobs_json,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)');

@@ -17,8 +17,10 @@ function preparationMcpCheck(string $name,bool $ok): void
 final class PreparationMcpPdo extends PDO
 {
     public $beforeClaim=null;
+    public $beforeRead=null;
     public function prepare(string $query,array $options=[]): PDOStatement|false
     {
+        if ($this->beforeRead!==null) ($this->beforeRead)($this,$query);
         if ($this->beforeClaim!==null && str_contains($query,'SET lease_token=?,lease_until=?')) {
             $hook=$this->beforeClaim;$this->beforeClaim=null;$hook($this);
         }
@@ -51,6 +53,79 @@ function preparationMcpHeaders(array $headers): array
 {
     $out=[];foreach ($headers as $header) { [$key,$value]=explode(': ',$header,2);$out[strtolower($key)]=$value; }return $out;
 }
+
+function preparationBookingMetadataChecks(): void
+{
+    $pdo=preparationMcpFixture();
+    $pdo->exec('CREATE TABLE manager_preparation_oauth_clients(client_id TEXT PRIMARY KEY,redirect_uri TEXT,registration_bucket TEXT,created_at INTEGER);
+CREATE TABLE manager_preparation_oauth_grants(grant_id TEXT PRIMARY KEY,client_id TEXT,admin_id INTEGER,project_key TEXT,resource TEXT,scopes TEXT,created_at INTEGER,expires_at INTEGER,revoked_at INTEGER);
+CREATE TABLE manager_preparation_oauth_codes(code_hash TEXT PRIMARY KEY,grant_id TEXT,redirect_uri TEXT,code_challenge TEXT,expires_at INTEGER,consumed_at INTEGER);
+CREATE TABLE manager_preparation_oauth_tokens(token_hash TEXT PRIMARY KEY,grant_id TEXT,token_kind TEXT,expires_at INTEGER,consumed_at INTEGER);');
+    $oauth=new ManagerPreparationOAuth($pdo);$client=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'booking-metadata-fixture')['client_id'];
+    $issue=static function(string $scope)use($oauth,$client):array{
+        $verifier=str_repeat('m',43);$session=['csrf'=>'booking-meta-csrf'];
+        $pending=$oauth->beginAuthorization($session,['client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,'resource'=>ManagerPreparationOAuth::RESOURCE,
+            'response_type'=>'code','scope'=>$scope,'state'=>'booking-meta-state','code_challenge_method'=>'S256',
+            'code_challenge'=>rtrim(strtr(base64_encode(hash('sha256',$verifier,true)),'+/','-_'),'=')]);
+        $target=$oauth->completeAuthorization($session,$pending,1,$session['csrf'],true);parse_str((string)parse_url($target,PHP_URL_QUERY),$query);
+        $tokens=$oauth->exchange(['grant_type'=>'authorization_code','client_id'=>$client,'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,
+            'resource'=>ManagerPreparationOAuth::RESOURCE,'code'=>$query['code'],'code_verifier'=>$verifier]);
+        return $oauth->contextForBearer('Bearer '.$tokens['access_token']);
+    };
+    $old=$issue(implode(' ',ManagerPreparationOAuth::SCOPES));$service=new ManagerPreparationMcpService($pdo);
+    $rpc=preparationMcpRpc('tools/call',['name'=>'read_tour_choices','arguments'=>[]]);
+    $tools=$service->handle(preparationMcpRpc('tools/list'),1,$old['connection_id'],$old['scopes'])['result']['tools'];
+    $booking=array_column($tools,null,'name')['read_tour_choices'];
+    preparationMcpCheck('existing link discovers booking OAuth policy and valid empty metadata arguments',
+        $booking['securitySchemes']===[['type'=>'oauth2','scopes'=>['bookings:read']]]
+        &&$booking['inputSchema']['required']===[]&&$booking['inputSchema']['additionalProperties']===false);
+    $changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $denied=$service->handle($rpc,1,$old['connection_id'],$old['scopes']);
+    $meta=$denied['result']['_meta']??[];$challenge=$meta['mcp/www_authenticate'][0]??'';
+    preparationMcpCheck('zero-argument old-grant invocation emits supported step-up before any customer access',
+        ($denied['result']['isError']??false)&&str_contains($challenge,'error="insufficient_scope"')
+        &&str_contains($challenge,'error_description="')
+        &&str_contains($challenge,'resource_metadata="'.ManagerPreparationOAuth::ENDPOINT.'?action=resource"')
+        &&str_contains($challenge,'scope="queue:read prepared:write bookings:read"')
+        &&!isset($denied['result']['structuredContent'])&&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes);
+    $baseline=$meta['anytour/authorization_context'];
+    preparationMcpCheck('challenge baseline exposes only scope names and opaque link context',
+        array_keys($baseline)===['granted_scopes','link_context']&&!str_contains(json_encode($baseline),$client)
+        &&!str_contains(json_encode($baseline),$old['connection_id'])&&strlen($baseline['link_context'])===64);
+    $bad=preparationMcpRpc('tools/call',['name'=>'read_tour_choices','arguments'=>['actor'=>1]]);
+    preparationMcpCheck('unknown metadata arguments fail before prompting consent',($service->handle($bad,1,$old['connection_id'],$old['scopes'])['error']['code']??null)===-32602);
+    $current=$issue(implode(' ',[...$old['scopes'],ManagerPreparationOAuth::BOOKING_SCOPE]));
+    $changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    $receipt=$service->handle($rpc,1,$current['connection_id'],$current['scopes'])['result']['structuredContent']??[];
+    preparationMcpCheck('new explicitly consented grant returns self-only receipt without customer tables or writes',
+        ($receipt['kind']??null)==='authorization_metadata'&&$receipt['customer_reads']===0
+        &&$receipt['form_context_loaded']===false&&$receipt['visual_form_opened']===false
+        &&$receipt['granted_scopes']===[...$old['scopes'],ManagerPreparationOAuth::BOOKING_SCOPE]
+        &&$receipt['link_context']===$baseline['link_context']&&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes);
+    preparationMcpCheck('metadata receipt never exports raw identity or token fields',
+        array_keys($receipt)===['ok','kind','granted_scopes','link_context','customer_reads','form_context_loaded','visual_form_opened']
+        &&!str_contains(json_encode($receipt),$client)&&!str_contains(json_encode($receipt),$current['connection_id']));
+    $grantReads=0;
+    $pdo->beforeRead=static function(PDO $unused,string $query)use(&$grantReads):void{if(str_contains($query,'SELECT g.*'))++$grantReads;};
+    $service->handle($rpc,1,$current['connection_id'],$current['scopes']);$pdo->beforeRead=null;
+    preparationMcpCheck('receipt uses fresh canonical grant lookups',$grantReads>1);
+    $seen=0;$last=$grantReads;
+    $pdo->beforeRead=static function(PDO $p,string $query)use(&$seen,$last,$current):void{
+        if(str_contains($query,'SELECT g.*')&&++$seen===$last){
+            $p->beforeRead=null;$p->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([time(),$current['connection_id']]);
+        }
+    };
+    $late=$service->handle($rpc,1,$current['connection_id'],$current['scopes']);$pdo->beforeRead=null;
+    preparationMcpCheck('actual final grant revocation suppresses the authorization receipt',($late['error']['code']??null)===-32001&&!isset($late['result']));
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$current['connection_id']]);
+    $pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
+    preparationMcpCheck('inactive admin cannot use metadata as a credential probe',($service->handle($rpc,1,$current['connection_id'],$current['scopes'])['error']['code']??null)===-32001);
+    $pdo->exec('UPDATE managers SET is_active=1 WHERE id=1');
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET resource=? WHERE grant_id=?')->execute([ManagerPreparationOAuth::profileDefinition(ManagerPreparationOAuth::PROFILE_HOTELS)['resource'],$current['connection_id']]);
+    preparationMcpCheck('foreign resource cannot disclose same-link receipt',($service->handle($rpc,1,$current['connection_id'],$current['scopes'])['error']['code']??null)===-32001);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET resource=? WHERE grant_id=?')->execute([ManagerPreparationOAuth::RESOURCE,$current['connection_id']]);
+}
+
 
 /** Synthetic Search3 envelope: no production request, transcript, supplier or quote. */
 function preparationCandidateSource(array $params,int $now): array
@@ -650,6 +725,8 @@ if(in_array('--hotel-demand-inventory',$argv??[],true)){
 }
 
 try {
+    preparationBookingMetadataChecks();
+    if (in_array('--booking-only',$argv??[],true)) {echo 'Booking MCP metadata: '.$passed." checks passed\n";exit;}
     hotelDemandInventoryChecks();
     preparationMcpConnectionChecks();
     preparationCandidateChecks();

@@ -110,9 +110,9 @@ try{
     dialogueMcpCheck('ordinary registration and defaults grant no live transcript access',
         $registration['scope']===$legacyScope&&ManagerPreparationOAuth::SCOPES===['queue:read','prepared:write']
         &&!$oauth->connectionAuthorized($legacy,1,[$dialogueScope]));
-    $previousAllScope=implode(' ',array_values(array_filter(ManagerPreparationOAuth::SUPPORTED_SCOPES,static fn(string $scope):bool=>$scope!==$qualityScope)));
+    $previousAllScope=implode(' ',array_values(array_filter(ManagerPreparationOAuth::SUPPORTED_SCOPES,static fn(string $scope):bool=>$scope!==$qualityScope&&$scope!==ManagerPreparationOAuth::BOOKING_SCOPE)));
     dialogueMcpCheck('existing explicit rights remain the same125-byte sequence',strlen($previousAllScope)===125&&strlen($previousAllScope)<=128);
-    dialogueMcpCheck('optional history rights fit forward160-byte storage',strlen($allScope)===138&&strlen($allScope)<=160);
+    dialogueMcpCheck('optional history and booking rights fit forward160-byte storage',strlen($allScope)===152&&strlen($allScope)<=160);
     $historyBefore=dialogueMcpCredentialRows($pdo);
     try{
         $oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,

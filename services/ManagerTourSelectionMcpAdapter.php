@@ -4,12 +4,15 @@ declare(strict_types=1);
 require_once __DIR__.'/ManagerTourSelectionService.php';
 require_once __DIR__.'/ManagerTourSelectionDeliveryService.php';
 require_once __DIR__.'/ManagerTourSelectionShareService.php';
+require_once __DIR__.'/ManagerPreparationOAuth.php';
+require_once __DIR__.'/TourBookingService.php';
 
 /** OAuth transport adapter only; canonical selection services own all state. */
 final class ManagerTourSelectionMcpAdapter
 {
     public const SCOPE='selections:write';
-    public const NAMES=['read_tour_selection','save_tour_selection','prepare_tour_selection','review_tour_selection_photo','publish_tour_selection'];
+    public const NAMES=['read_tour_selection','save_tour_selection','prepare_tour_selection','review_tour_selection_photo','publish_tour_selection','read_tour_choices','read_tour_booking_context'];
+    private const BOOKING_NAMES=['read_tour_choices','read_tour_booking_context'];
     private const JSON_BYTES=524288;
     private const INPUT_BYTES=196608;
     private Closure $authorize;
@@ -18,6 +21,25 @@ final class ManagerTourSelectionMcpAdapter
     public function __construct(callable $authorize)
     {
         $this->authorize=Closure::fromCallable($authorize);
+    }
+
+    public static function scopeFor(string $name): string
+    {
+        return in_array($name,self::BOOKING_NAMES,true)?ManagerPreparationOAuth::BOOKING_SCOPE:self::SCOPE;
+    }
+
+    public static function validateBookingArguments(string $name,array $args): void
+    {
+        if ($name==='read_tour_choices') {
+            if ($args===[]) return;
+            self::keys($args,['conversation_id']);
+            self::integer($args,'conversation_id',1,PHP_INT_MAX);
+        } elseif ($name==='read_tour_booking_context') {
+            self::keys($args,['conversation_id','source_kind','source_id','choice_revision']);
+            self::integer($args,'conversation_id',1,PHP_INT_MAX);self::integer($args,'source_id',1,PHP_INT_MAX);
+            if (!in_array($args['source_kind'],['native','web','search'],true)||!is_string($args['choice_revision'])
+                ||preg_match('/\A[a-f0-9]{64}\z/D',$args['choice_revision'])!==1) throw new InvalidArgumentException();
+        }
     }
 
     public static function tools(): array
@@ -37,10 +59,14 @@ final class ManagerTourSelectionMcpAdapter
                 ['conversation_id'=>$id,'publication_id'=>$publication,'card_index'=>['type'=>'integer','minimum'=>0,'maximum'=>19],'photo_index'=>['type'=>'integer','minimum'=>0,'maximum'=>2]],['conversation_id','publication_id','card_index','photo_index'],false,true,true],
             ['publish_tour_selection','Explicitly activate a reviewed immutable selection on the native AnyTour public URL using the current share version. Publishing an active link can replace its current publication; preserve existing selections unless that replacement was requested. Never sends a customer message. After an uncertain result read view=share; do not replay publication.',
                 ['conversation_id'=>$id,'share_version'=>$version,'publication_id'=>$publication,'confirm_publish'=>['type'=>'boolean','const'=>true]],['conversation_id','share_version','publication_id','confirm_publish'],false,false,true],
+            ['read_tour_choices','Without arguments, read only the authenticated link authorization receipt or request explicit step-up consent, without customer access. With conversation_id, read bounded current-subject native offers and customer web/search inquiries. Delivered unliked is not a choice. Immutable revisions match saved sources, not fresh price or availability. Requires separately consented bookings:read; no transcript, mark-read or writes.',
+                ['conversation_id'=>$id],[],true,true,false],
+            ['read_tour_booking_context','Read an exact existing customer choice and saved booking fields, including agreement evidence, operator/reference/status when present. Requires separate bookings:read consent and exact choice revision. Never saves, agrees, books, sends, pays or refreshes supplier data. Loaded context is not a visually opened form.',
+                ['conversation_id'=>$id,'source_kind'=>['type'=>'string','enum'=>['native','web','search']],'source_id'=>$id,'choice_revision'=>['type'=>'string','pattern'=>'^[a-f0-9]{64}$']],['conversation_id','source_kind','source_id','choice_revision'],true,true,false],
         ];
         $out=[];
         foreach ($definitions as [$name,$description,$properties,$required,$readOnly,$idempotent,$openWorld]) {
-            $security=[['type'=>'oauth2','scopes'=>[self::SCOPE]]];
+            $security=[['type'=>'oauth2','scopes'=>[self::scopeFor($name)]]];
             $out[]=['name'=>$name,'description'=>$description,
                 'inputSchema'=>['type'=>'object','properties'=>$properties,'required'=>$required,'additionalProperties'=>false],
                 'annotations'=>['readOnlyHint'=>$readOnly,'destructiveHint'=>in_array($name,['save_tour_selection','publish_tour_selection'],true),'idempotentHint'=>$idempotent,'openWorldHint'=>$openWorld],
@@ -54,11 +80,43 @@ final class ManagerTourSelectionMcpAdapter
     {
         if (!in_array($name,self::NAMES,true)) throw new OutOfBoundsException();
         if ($actor<1 || preg_match('/\A[a-f0-9]{32}\z/D',$connection)!==1) throw new DomainException();
-        ($this->authorize)($actor,$connection,[self::SCOPE]);
+        self::validateBookingArguments($name,$args);
+        $required=[self::scopeFor($name)];
+        ($this->authorize)($actor,$connection,$required);
         $conversation=self::integer($args,'conversation_id',1,PHP_INT_MAX);
         self::requireConversation($actor,$conversation);
-        $image=null;
-        if ($name==='read_tour_selection') {
+        $image=null;$current=null;$requested=null;
+        if (in_array($name,self::BOOKING_NAMES,true)) {
+            self::keys($args,$name==='read_tour_choices'?['conversation_id']:['conversation_id','source_kind','source_id','choice_revision']);
+            $current=TourChoiceService::currentForConversation(ConversationDb::connection(),$conversation);
+            if ($current===null) throw new DomainException('booking_subject_unavailable');
+            if ($name==='read_tour_choices') {
+                $data=['ok'=>true,'choices'=>self::choices($current['choices']),
+                    'coverage'=>['native_offers_limited'=>$current['choices']['limited'],'maximum_per_source'=>20,
+                        'older_inquiries_may_exist'=>count($current['choices']['web_inquiries']??[])>=20||count($current['choices']['search_inquiries']??[])>=20],
+                    'price_refreshed'=>false,'writes'=>0,'visual_form_opened'=>false];
+            } else {
+                $kind=$args['source_kind']??null;$revision=$args['choice_revision']??null;
+                if (!in_array($kind,['native','web','search'],true)||!is_string($revision)||preg_match('/\A[a-f0-9]{64}\z/D',$revision)!==1) throw new InvalidArgumentException();
+                $sourceId=self::integer($args,'source_id',1,PHP_INT_MAX);
+                $requested=self::choice($current['choices'],$kind,$sourceId);
+                if ($requested===null || !hash_equals(self::choiceRevision($kind,$requested),$revision)) throw new DomainException('booking_choice_changed');
+                $read=TourBookingService::read(ConversationDb::connection(),$conversation,$kind,$sourceId,'',$actor);
+                if (($read['ok']??false)!==true) throw new DomainException('booking_context_unavailable');
+                $source=$read['source']??null;
+                if (!is_array($source)||($source['kind']??null)!==$kind||($source['id']??null)!==$sourceId||!is_array($source['choice']??null)
+                    ||!hash_equals($revision,self::choiceRevision($kind,$source['choice']))) throw new DomainException('booking_record_source_changed');
+                $record=$read['record']??null;
+                if ($record!==null) {
+                    $fields=TourBookingService::normalize($record['fields']??null);
+                    if ($fields===null||!is_int($record['revision']??null)||$record['revision']<1
+                        ||!is_string($record['updated_at']??null)||strlen($record['updated_at'])>40) throw new RuntimeException('booking_record_invalid');
+                    $record=['revision'=>$record['revision'],'updated_at'=>$record['updated_at'],'fields'=>$fields];
+                }
+                $data=['ok'=>true,'source'=>['kind'=>$kind,'id'=>$sourceId,'demo'=>$kind==='native'&&($requested['snapshot']['is_demo']??false)===true,'choice'=>$requested],
+                    'choice_revision'=>$revision,'record'=>$record,'context_loaded'=>true,'visual_form_opened'=>false,'price_refreshed'=>false,'writes'=>0];
+            }
+        } elseif ($name==='read_tour_selection') {
             $view=$args['view']??null;
             $extra=match ($view) {'draft','history','share'=>[], 'operation'=>['operation_id'], 'publication'=>['publication_id'], default=>throw new InvalidArgumentException()};
             self::keys($args,array_merge(['conversation_id','view'],$extra));
@@ -116,11 +174,51 @@ final class ManagerTourSelectionMcpAdapter
         if (strlen($json)>self::JSON_BYTES) throw new RuntimeException('selection_result_too_large');
         $content=[['type'=>'text','text'=>$json]];
         if ($image!==null) $content[]=$image;
-        ($this->authorize)($actor,$connection,[self::SCOPE]);
+        ($this->authorize)($actor,$connection,$required);
         // Final OAuth may wait for storage. Check current project, active actor
         // and conversation ACL after it, before disclosing text or image bytes.
         self::requireConversation($actor,$conversation);
+        if ($current!==null) {
+            $fresh=TourChoiceService::currentForConversation(ConversationDb::connection(),$conversation);
+            if ($fresh===null || $fresh['identity']!==$current['identity']) throw new DomainException('booking_subject_changed');
+            if ($requested!==null) {
+                $after=self::choice($fresh['choices'],$args['source_kind'],$args['source_id']);
+                if ($after===null || $after!==$requested || !hash_equals($args['choice_revision'],self::choiceRevision($args['source_kind'],$after))) throw new DomainException('booking_choice_changed');
+            } elseif (self::choices($fresh['choices'])!==self::choices($current['choices'])) throw new DomainException('booking_choices_changed');
+            // The late source scan may itself wait for storage. Check current
+            // authority and pinned identity after it. No source scans follow.
+            ($this->authorize)($actor,$connection,$required);
+            self::requireConversation($actor,$conversation);
+            if (TourChoiceService::currentIdentity(ConversationDb::connection(),$conversation)!==$current['identity']) throw new DomainException('booking_subject_changed');
+        }
         return ['content'=>$content,'structuredContent'=>$data,'isError'=>($data['ok']??false)!==true];
+    }
+
+    private static function choiceRevision(string $kind,array $choice): string
+    {
+        // This computed clock state is not part of the frozen search observation.
+        if ($kind==='search') unset($choice['price_state_now']);
+        return hash('sha256',json_encode([$kind,$choice],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    }
+
+    private static function choices(array $choices): array
+    {
+        $out=[];
+        foreach (['native'=>'offers','web'=>'web_inquiries','search'=>'search_inquiries'] as $kind=>$key) foreach ($choices[$key]??[] as $choice) {
+            $eligible=$kind!=='native'||!empty($choice['liked_at']);
+            $out[]=['source_kind'=>$kind,'source_id'=>$choice[$kind==='native'?'offer_id':'inquiry_id'],
+                'choice_revision'=>self::choiceRevision($kind,$choice),'booking_eligible'=>$eligible,
+                'signal'=>$eligible?($kind==='native'?'native_like':$kind.'_inquiry'):'delivered_unliked','choice'=>$choice];
+        }
+        return $out;
+    }
+
+    private static function choice(array $choices,string $kind,int $id): ?array
+    {
+        foreach ($choices[$kind==='native'?'offers':($kind==='web'?'web_inquiries':'search_inquiries')]??[] as $choice) {
+            if (($choice[$kind==='native'?'offer_id':'inquiry_id']??null)===$id && ($kind!=='native'||!empty($choice['liked_at']))) return $choice;
+        }
+        return null;
     }
 
     private static function requireConversation(int $actor,int $conversation): void
