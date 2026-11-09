@@ -704,6 +704,28 @@ async function scheduledActivationCases(){
   equal(f.record.repository_release.closure.gates.some(r=>r.run_id==='5001'),false,
     'published terminal retains original deployment provenance');
 
+  // A scheduled consumer may fail because this release is still pending.
+  // Its zero-step child is unrelated to the original successful release gates.
+  f=fixture(a);extra=scheduledActivation(f);extra.parent.conclusion='failure';
+  out=await read(f);
+  equal(C.gateState(out.runs,C.context(f.options().env,f.options().event)),'ready',
+    'a failed scheduled monitor does not turn its proved skipped child into a release gate');
+  equal(out.runs.workflow_runs.find(r=>r.id===extra.parent.id).conclusion,'failure',
+    'the independent monitor failure is retained, not relabeled as success');
+  const failedSchedulePrepared=await C.closeRelease({...f.options(),prepare:true});
+  f.bindTerminal(failedSchedulePrepared.record_digest);
+  equal(await C.closeRelease(f.options()),'released','original mandatory gates can close despite an independent schedule failure');
+  equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,1,
+    'failed scheduled parent grants only the original single terminal write');
+  equal(f.record.repository_release.closure.gates.some(r=>['5000','5001'].includes(r.run_id)),false,
+    'neither the failed schedule nor its skipped child becomes accepted release proof');
+
+  f=fixture(a);extra=scheduledActivation(f);extra.parent.conclusion='failure';
+  f.wave.wave.find(r=>r.path.endsWith('modeled-conversion-monitor.yml')).conclusion='failure';
+  await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'required_gate_failed',
+    'a failed original monitor remains a mandatory failure');
+  equal(f.calls.some(c=>c.method!=='GET'),false,'failed original monitor retains publication and publisher');
+
   f=fixture(a);extra=scheduledActivation(f);
   Object.assign(extra.child,{status:'in_progress',conclusion:null});
   let clock=0,sleeps=0;
@@ -716,11 +738,24 @@ async function scheduledActivationCases(){
 
   f=fixture(a);extra=scheduledActivation(f);
   Object.assign(extra.child,{status:'queued',conclusion:null});clock=0;sleeps=0;
-  await refuses(()=>C.closeRelease({...f.options(),prepare:true,now:()=>clock,sleep:async ms=>{
+  const independentDeadline=await refuses(()=>C.closeRelease({...f.options(),prepare:true,now:()=>clock,sleep:async ms=>{
     clock+=ms;sleeps++;
   }}),'gate_deadline','pending unrelated activation cannot be silently ignored');
+  equal(independentDeadline.pending,[{workflow:C.ACTIVATION.file,status:'queued',run_id:'5001',
+    origin:'scheduled_monitor',parent_run_id:'5000'}],'deadline names the exact pending independent child');
   equal(clock,18*60*1000,'independent waiting shares the existing finite deadline');
   equal(f.calls.some(c=>c.method!=='GET'),false,'deadline retains diagnostics and publisher without a write');
+
+  f=fixture(a);extra=scheduledActivation(f);extra.parent.conclusion='failure';
+  f.runs.delete(extra.original.id);
+  const tls=f.wave.wave.find(r=>r.path.endsWith('max-tls-preflight.yml'));
+  Object.assign(tls,{status:'in_progress',conclusion:null});clock=0;
+  const missingDeadline=await refuses(()=>C.closeRelease({...f.options(),prepare:true,now:()=>clock,
+    sleep:async ms=>{clock+=ms;}}),'gate_deadline','a scheduled skip never substitutes for a late original activation');
+  equal(missingDeadline.pending,[{workflow:'max-tls-preflight.yml',status:'in_progress',run_id:String(tls.id)},
+    {workflow:C.ACTIVATION.file,status:'missing'}],'deadline distinguishes an existing pending gate from a missing original run');
+  equal(clock,18*60*1000,'missing original proof does not extend the wait or dispatch another run');
+  equal(f.calls.some(c=>c.method!=='GET'),false,'late original activation retains the untouched publisher');
 
   const invalid=[
     ['parent fork',x=>x.parent.head_repository.full_name='other/repository','untrusted_run'],
@@ -729,7 +764,9 @@ async function scheduledActivationCases(){
     ['child rerun',x=>x.child.run_attempt=2,'untrusted_run'],
     ['parent rerun',x=>x.parent.run_attempt=2,'untrusted_run'],
     ['parent commit',x=>x.parent.head_commit.id='b'.repeat(40),'independent_monitor_unconfirmed'],
-    ['failed parent',x=>x.parent.conclusion='failure','independent_monitor_unconfirmed'],
+    ['cancelled parent',x=>x.parent.conclusion='cancelled','independent_monitor_unconfirmed'],
+    ['unknown parent',x=>x.parent.conclusion=null,'independent_monitor_unconfirmed'],
+    ['pending parent',x=>{x.parent.status='in_progress';x.parent.conclusion=null;},'independent_monitor_unconfirmed'],
     ['failed child',x=>x.child.conclusion='failure','independent_activation_unconfirmed'],
     ['executed activation',x=>x.job.steps.push(step('Protected operation')),'independent_activation_executed'],
     ['successful job',x=>x.job.conclusion='success','independent_activation_executed'],
@@ -742,8 +779,8 @@ async function scheduledActivationCases(){
     ['duplicate child',(x,f)=>f.runs.set(5002,{...copy(x.child),id:5002}),'ambiguous_activation_origin'],
     ['manual parent',x=>x.parent.event='workflow_dispatch','ambiguous_run'],
   ];
-  for(const [label,mutate,reason]of invalid){
-    f=fixture(a);extra=scheduledActivation(f);mutate(extra,f);
+  for(const conclusion of ['success','failure'])for(const [label,mutate,reason]of invalid){
+    f=fixture(a);extra=scheduledActivation(f);extra.parent.conclusion=conclusion;mutate(extra,f);
     await refuses(()=>C.closeRelease({...f.options(),prepare:true}),reason,label);
     equal(f.calls.some(c=>c.method!=='GET'),false,label+' retains the publisher and publication');
   }
@@ -779,3 +816,4 @@ async function main(){await pureValidation();await gitBridge();await metadataWai
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
+

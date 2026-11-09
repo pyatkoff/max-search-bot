@@ -8,6 +8,7 @@ on:
       - 'services/ProjectMaxConnection.php'
       - 'integrations/AppleService39ChannelTransport.php'
       - 'resources/appleservice39/pilot/**'
+      - 'resources/appleservice39/landing-v2/**'
       - 'resources/appleservice39-pilot-entries.json'
       - 'migrations/095_appleservice39_pilot_publications.sql'
       - 'tools/publish_appleservice39_pilot.php'
@@ -21,7 +22,7 @@ on:
       operation:
         description: Fixed reviewed pilot operation; unknown outcomes never repeat a write
         type: choice
-        options: [inspect, prepare, publish, finalize, pin, reconcile]
+        options: [inspect, prepare, publish, finalize, pin, reconcile, landing_inspect, landing_prepare, landing_apply, landing_reconcile]
         required: true
         default: inspect
       expected_application_sha:
@@ -103,7 +104,7 @@ jobs:
           set -euo pipefail
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
-          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile) ;; *) exit 2 ;; esac
+          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile) ;; *) exit 2 ;; esac
           test "$RELEASE_READY" = true
           test "$PERFORM_ACTIONS" = true
           test "$WORKFLOW_SHA" = "$REPOSITORY_SHA"
@@ -139,15 +140,17 @@ jobs:
           set -euo pipefail
           [[ "$EXPECTED_APPLICATION_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$CHANNEL_ID" =~ ^-[1-9][0-9]{0,18}$ ]]
-          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile) ;; *) exit 2 ;; esac
+          case "$OPERATION" in inspect|prepare|publish|finalize|pin|reconcile|landing_inspect|landing_prepare|landing_apply|landing_reconcile) ;; *) exit 2 ;; esac
           remote="$DEPLOY_USER@$DEPLOY_HOST"
           ssh_options=(-i "$RUNNER_TEMP/appleservice39_pilot_deploy_key" -o BatchMode=yes -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=no)
           command="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php $OPERATION --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
           result=0
           ssh "${ssh_options[@]}" "$remote" "$command" || result=$?
-          if [[ "$result" != 0 && "$OPERATION" != inspect ]]; then
+          if [[ "$result" != 0 && "$OPERATION" != inspect && "$OPERATION" != landing_inspect ]]; then
             # A lost result permits one inspection, never a repeated mutation.
-            inspection="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php inspect --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
+            inspection_mode=inspect
+            if [[ "$OPERATION" == landing_* ]]; then inspection_mode=landing_inspect; fi
+            inspection="cd /var/www/anytoour/data/www/app.anytoour.ru && php tools/publish_appleservice39_pilot.php $inspection_mode --expected-sha=$EXPECTED_APPLICATION_SHA --channel-id=$CHANNEL_ID"
             ssh "${ssh_options[@]}" "$remote" "$inspection" || true
           fi
           exit "$result"

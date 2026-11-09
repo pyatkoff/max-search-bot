@@ -93,5 +93,5 @@ Run `php tools/architecture_inventory.php` during periodic full-repository audit
 
 - `services/ModeledConversionPriceContinuity.php` — conservative derived monetary caps and append-only price-loss reconciliation inside the existing modeled-value tick; no source-profile/customer mutation or provider reversal.
 
-- `services/ModeledConversionVisitProof.php` — finite read-only Metrika receipt/unique-visit reconciliation and an owner-only external cache; private status and administrator ledger read the cache without provider requests.
-- `tools/modeled_conversion_visit_proof.php` — bounded CLI entry for that finite verification; writes only its private receipt, never the outbox, source profiles, schedules or customer messages.
+- `services/ModeledConversionVisitProof.php` — bounded GET-only Metrika receipt/unique-visit reconciliation, failure diagnosis, fair due-row selection and owner-only current/per-event evidence; private status and administrator ledger read caches without provider requests.
+- `tools/modeled_conversion_visit_proof.php` — manual and guarded cron verification entry with an isolated nonblocking lock and read deadline; writes only private derived receipts and automatic-check metadata. The existing local monitor invokes it after its primary health/notification cycle; it never writes the outbox, source profiles, schedules or customer messages.

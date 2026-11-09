@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/DevelopmentWorkServerControl.php';
 
 /** Development metadata only. Claims do not replace source or publisher leases. */
 final class DevelopmentWorkQueue
 {
+    use DevelopmentWorkServerControl;
     public const CLAIM_DEADLINE_SECONDS=180;
     public const WATCHDOG_SECONDS=300;
     private const PROJECT='anytour';
@@ -18,6 +20,8 @@ final class DevelopmentWorkQueue
     {
         self::keys($args,['queue_id','plan_sha256','tasks']);
         $id=self::id($args['queue_id']??null);$plan=self::sha($args['plan_sha256']??null);$tasks=self::specs($args['tasks']??null);
+        if(array_intersect(array_column($tasks,'task_id'),[DevelopmentWorkServerContract::A,DevelopmentWorkServerContract::B]))
+            throw new DevelopmentWorkQueueConflict('development_server_existing_queue_only');
         self::actor($admin,$connection);$tasksHash=self::hash($tasks);
         return $this->transaction(function() use($admin,$connection,$id,$plan,$tasks,$tasksHash): array {
             $lane=$this->lane();$old=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[$id]);
@@ -41,15 +45,16 @@ final class DevelopmentWorkQueue
         $id=self::id($args['queue_id']??null);$expected=self::sha($args['expected_plan_sha256']??null);
         $plan=self::sha($args['plan_sha256']??null);$tasks=self::specs($args['tasks']??null);
         return $this->transaction(function() use($id,$expected,$plan,$tasks,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);
+            $lane=$this->lane();$q=$this->serverAdmissionOwned($id,$admin,$connection);
             $tasksHash=self::hash($tasks);
             if ($q['plan_sha256']===$plan) {
                 $audit=$this->appendMetadata($q);
                 if ($audit===null||$audit['expected_plan_sha256']!==$expected||$audit['tasks_sha256']!==$tasksHash||$audit['task_count']!==count($tasks)) throw new DevelopmentWorkQueueConflict('plan_conflict');
-                return $this->project($q)+['append_status'=>'already_recorded'];
+                $this->serverAdmissionFinish($q,$connection);return $this->project($q)+['append_status'=>'already_recorded'];
             }
             if ($q['plan_sha256']!==$expected||$expected===$plan||$plan===$q['initial_plan_sha256']
                 ||$this->one('SELECT plan_sha256 FROM development_work_appends WHERE queue_id=? AND plan_sha256=?',[$id,$plan])) throw new DevelopmentWorkQueueConflict('plan_conflict');
+            $this->serverBeforeAppend($q,$lane,$plan,$tasks,$connection);
             $count=(int)$q['task_count'];
             if ($count+count($tasks)>self::MAX_ITEMS) throw new DevelopmentWorkQueueConflict('task_limit_reached');
             if ($q['current_task_id']!==null) $this->ownsLane($q,$lane);
@@ -57,15 +62,18 @@ final class DevelopmentWorkQueue
             $now=$this->now();$this->insertTasks($id,$plan,$tasks,$count,$now);
             $this->execute('INSERT INTO development_work_appends (queue_id,plan_sha256,expected_plan_sha256,tasks_sha256,task_count,created_at) VALUES (?,?,?,?,?,?)',[$id,$plan,$expected,$tasksHash,count($tasks),$now]);
             $this->execute('UPDATE development_work_queues SET plan_sha256=?,task_count=?,updated_at=? WHERE queue_id=?',[$plan,$count+count($tasks),$now,$id]);
-            $q=$this->owned($id,$admin,$connection);
+            $q=$this->serverAdmissionOwned($id,$admin,$connection);
             if ($q['current_task_id']===null) $q=$this->selectNext($q,$lane,$now);
-            return $this->project($q)+['append_status'=>'appended'];
+            $this->serverAdmissionFinish($q,$connection);return $this->project($q)+['append_status'=>'appended'];
         });
     }
     public function status(int $admin,string $connection,string $queueId): array
     {
         $id=self::id($queueId);
-        return $this->transaction(function() use($id,$admin,$connection): array {$this->lane();return $this->project($this->owned($id,$admin,$connection,true));});
+        return $this->transaction(function() use($id,$admin,$connection): array {
+            $this->lane();$q=$this->serverAdmissionOwned($id,$admin,$connection);$out=$this->serverExtendStatus($q,$this->project($q),$connection);
+            $this->serverPairAuthority($q,$connection);return $out;
+        });
     }
     public function claim(int $admin,string $connection,array $args): array
     {
@@ -74,7 +82,7 @@ final class DevelopmentWorkQueue
         $event=$args['expected_pending_event_id']??null;
         if (!is_string($event)||preg_match('/\Adev_evt_[a-f0-9]{64}\z/D',$event)!==1) throw new InvalidArgumentException('invalid_development_work_pending_event');
         return $this->transaction(function() use($id,$task,$spec,$claim,$event,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->ownsLane($q,$lane);
+            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->serverNativeOnly($q);$this->ownsLane($q,$lane);
             $item=$this->current($q,$task,$spec);
             if (!hash_equals($this->eventId($q,$item,false),$event)) throw new DevelopmentWorkQueueConflict('stale_pending_event');
             if ($item['state']==='claimed'&&hash_equals((string)$item['claim_sha256'],$claim)) return $this->project($q)+['claim_status'=>'already_claimed_do_not_replay'];
@@ -91,7 +99,7 @@ final class DevelopmentWorkQueue
         self::keys($args,['queue_id','task_id','spec_sha256','claim_key','run_id']);
         [$id,$task,$spec,$claim]=$this->claimArgs($args);$run=self::run($args['run_id']??null);
         return $this->transaction(function() use($id,$task,$spec,$claim,$run,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->ownsLane($q,$lane);
+            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->serverNativeOnly($q);$this->ownsLane($q,$lane);
             $item=$this->current($q,$task,$spec);$this->claimed($item,$claim,false);
             if ($item['current_run_id']!==null&&$item['current_run_id']!==$run) throw new DevelopmentWorkQueueConflict('run_conflict');
             if ($item['current_run_id']===null) $this->execute('UPDATE development_work_items SET current_run_id=?,watchdog_due_at=?,updated_at=? WHERE queue_id=? AND task_id=?',[$run,$this->date($this->timestamp()+self::WATCHDOG_SECONDS),$this->now(),$id,$task]);
@@ -103,7 +111,7 @@ final class DevelopmentWorkQueue
         self::keys($args,['queue_id','task_id','spec_sha256','claim_key','receipt']);
         [$id,$task,$spec,$claim]=$this->claimArgs($args);$receipt=self::receipt($args['receipt']??null);$json=self::canonical($receipt);$hash=hash('sha256',$json);
         return $this->transaction(function() use($id,$task,$spec,$claim,$receipt,$json,$hash,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$item=$this->exactItem($id,$task,$spec);
+            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->serverNativeOnly($q);$item=$this->exactItem($id,$task,$spec);
             $old=$this->one('SELECT receipt_sha256 FROM development_work_receipts WHERE queue_id=? AND task_id=?',[$id,$task]);
             if ($old) {
                 if ($old['receipt_sha256']!==$hash) throw new DevelopmentWorkQueueConflict('completion_conflict');
@@ -130,7 +138,7 @@ final class DevelopmentWorkQueue
         if (!in_array($receipt['outcome'],['accepted_readback','terminal_blocked'],true)||$receipt['run_id']!==$run) throw new InvalidArgumentException('invalid_development_work_resolution');
         $json=self::canonical($receipt);$hash=hash('sha256',$json);$resolution=self::hash([$id,$task,$spec,$unknown,$run,$hash]);
         return $this->transaction(function() use($id,$task,$spec,$claim,$unknown,$run,$receipt,$json,$hash,$resolution,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$item=$this->exactItem($id,$task,$spec);
+            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->serverNativeOnly($q);$item=$this->exactItem($id,$task,$spec);
             $old=$this->one('SELECT resolution_sha256 FROM development_work_resolutions WHERE queue_id=? AND task_id=?',[$id,$task]);
             if ($old) {
                 if ($old['resolution_sha256']!==$resolution) throw new DevelopmentWorkQueueConflict('resolution_conflict');
@@ -154,7 +162,7 @@ final class DevelopmentWorkQueue
         $intent=self::retirementIntent($args);$id=$intent['queue_id'];$task=$intent['task_id'];$spec=$intent['spec_sha256'];
         $json=self::canonical($intent);$hash=self::hash(['namespace'=>'development_work_retirement_v1','intent'=>$intent]);
         return $this->transaction(function() use($id,$task,$spec,$intent,$json,$hash,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);
+            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->serverNativeOnly($q);
             $prior=$this->one('SELECT retirement_sha256 FROM development_work_retirements WHERE queue_id=? AND task_id=?',[$id,$task]);
             if ($prior) {
                 $record=$this->retirementMetadata($q,$task);
@@ -233,7 +241,7 @@ final class DevelopmentWorkQueue
         $hash=self::hash(['namespace'=>'development_work_idle_connection_handoff_v1','intent'=>$intent]);
         $retirementHash=self::hash(['namespace'=>'development_work_retirement_v1','intent'=>$retirement]);
         return $this->transaction(function() use($id,$old,$admin,$connection,$authority,$retirement,$retirementHash,$intent,$json,$hash): array {
-            $lane=$this->lane();$q=$this->handoffQueue($id,$admin);
+            $lane=$this->lane();$q=$this->handoffQueue($id,$admin);$this->serverNativeOnly($q);
             // The digest is not authority: fresh current ownership comes first.
             $record=$this->handoffRecord($q);
             if ($record!==null) {
@@ -387,6 +395,7 @@ final class DevelopmentWorkQueue
         $id=self::id($queueId);
         return $this->transaction(function() use($id,$admin,$connection): ?array {
             $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);
+            if($this->serverControl($q)!==null)return null;
             if (!in_array($q['state'],['ready','claimed','unknown'],true)) return null;
             $this->ownsLane($q,$lane);$item=$this->current($q);
             if (in_array($item['state'],['claimed','unknown'],true)) {
@@ -414,7 +423,7 @@ final class DevelopmentWorkQueue
     {
         $id=self::id($queueId);
         return $this->transaction(function() use($id,$eventId,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);
+            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);$this->serverNativeOnly($q);
             if ($q['current_task_id']===null||!in_array($q['state'],['ready','claimed','unknown'],true)) throw new DevelopmentWorkQueueConflict('stale_event');
             $this->ownsLane($q,$lane);$item=$this->current($q);$now=$this->now();
             if (in_array($item['state'],['claimed','unknown'],true)) {

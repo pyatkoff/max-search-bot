@@ -1,0 +1,57 @@
+-- Same DEVELOPMENT lane. No native, hotel, customer or credential import.
+CREATE TABLE IF NOT EXISTS development_work_server_controls (
+    queue_id VARBINARY(80) NOT NULL,
+    execution_connection_id VARBINARY(32) NOT NULL,
+    binding_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    binding_bytes MEDIUMTEXT NOT NULL,
+    legacy_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    state VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    reserved_calls INT UNSIGNED NOT NULL DEFAULT 0,
+    reserved_tokens INT UNSIGNED NOT NULL DEFAULT 0,
+    reserved_micros BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    admitted_at BIGINT UNSIGNED NOT NULL,
+    deadline_at BIGINT UNSIGNED NOT NULL,
+    last_dispatch_slot BIGINT UNSIGNED NULL,
+    attention_reason VARCHAR(80) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    PRIMARY KEY (queue_id),
+    UNIQUE KEY uq_development_server_binding (binding_sha256)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS development_work_server_events (
+    event_id CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    queue_id VARBINARY(80) NOT NULL,
+    task_id VARBINARY(80) NOT NULL,
+    spec_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    created_cron_id CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    created_at BIGINT UNSIGNED NOT NULL,
+    state VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    PRIMARY KEY (event_id),
+    UNIQUE KEY uq_development_server_task_event (queue_id,task_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS development_work_server_attempts (
+    attempt_id CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    queue_id VARBINARY(80) NOT NULL,
+    task_id VARBINARY(80) NOT NULL,
+    role VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    state VARCHAR(16) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    event_id CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    cron_id CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    cron_at BIGINT UNSIGNED NOT NULL,
+    cron_slot BIGINT UNSIGNED NOT NULL,
+    job_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    job_bytes MEDIUMTEXT NOT NULL,
+    request_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    request_bytes MEDIUMTEXT NOT NULL,
+    actual_request_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    actual_request_bytes MEDIUMTEXT NULL,
+    response_id VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    response_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    response_bytes MEDIUMTEXT NULL,
+    report_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    report_bytes MEDIUMTEXT NULL,
+    metadata_bytes TEXT NULL,
+    PRIMARY KEY (attempt_id),
+    UNIQUE KEY uq_development_server_task_role (queue_id,task_id,role),
+    UNIQUE KEY uq_development_server_response (response_id),
+    UNIQUE KEY uq_development_server_slot (queue_id,cron_slot),
+    KEY idx_development_server_queue (queue_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

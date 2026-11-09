@@ -7,7 +7,7 @@ final class ModeledConversionPipelineMonitorStatus
 {
     private const FLAGS=['delivery_tick_stale','profile_tick_stale','delivery_tick_errors','profile_tick_errors',
         'profile_disabled','ready_queue_stale','upload_outcome_unknown','api_row_rejected','report_unavailable',
-        'storage_unavailable','configuration_unavailable','invalid_clock','health_metadata_unavailable'];
+        'storage_unavailable','configuration_unavailable','invalid_clock','health_metadata_unavailable','visit_proof_stale','visit_proof_refresh_failed'];
     private const ACTIVATION_KEYS=['schema_version','project','counter_id','role','operation','activated_at','source_sha','state_imported'];
     private const RECEIPT_KEYS=['schema_version','project','counter_id','role','origin','checked_at','status','flags',
         'notification','last_notification_at','source_sha','cycle_id','ok','checks'];

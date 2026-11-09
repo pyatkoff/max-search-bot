@@ -373,3 +373,70 @@ separately. A healthy external check cannot cover missing local evidence, and a
 healthy local result cannot make external availability fresh. Keep the latter's
 best-effort limitation visible. Do not replay old helpers, accepted workflows,
 business ticks or a notification intent to manufacture proof.
+
+
+### Automatic visit reconciliation
+
+The existing activated five-minute pipeline monitor now calls the fixed
+`modeled_conversion_visit_proof.php scheduled <5..20 seconds>` operation **after**
+the primary health/owner-notification cycle. The 45-second cron timeout, route,
+activation and all delivery/profile workers remain owned by their existing
+components. A proof subprocess receives only the remaining bounded time; its
+failure does not replace the primary monitor result.
+
+The scheduled CLI requires the existing cron origin and canonical production
+root, takes a separate nonblocking proof lock, applies a GET-only API deadline,
+and uses a read-only DB session. It never retries an upload or changes identities,
+outbox rows, profiles, transcripts, read markers, goals or queues.
+The original-cohort checkpoint is retained from the validated current receipt.
+Stable original-cohort proofs are reused for at most a day. Each five-minute
+batch checks one newest due row and one oldest unchecked/due row; processing
+receipts are due after five minutes and terminal evidence after a day. The
+bounded ledger currently refuses more than 1,000 eligible value rows explicitly;
+it must be extended before that safety bound is reached.
+
+Only derived private evidence is written outside the webroot:
+`max-search-bot-modeled-visit-proof/{last-check.json,automatic.json,refresh.lock}`
+and `events/<event-fingerprint>.json`, under owner-only 0700/0600 permissions.
+Atomic hashed event receipts preserve individual results after rotation out of
+the current bounded report. Fingerprints bind row, dialogue, amount, time,
+ClientID and provider upload. Per-event check times remain truthful when reused.
+The owner page and fixed no-argument MCP status read these caches without live
+provider calls. Automatic status retains the last three successful natural
+checks, separate from manual verification. A failed/stuck refresh or a stale
+successful refresh enters the existing pipeline owner-alert role.
+
+A provider LINKAGE_FAILURE stays failed. An exact, complete, unsampled ClientID
+visit report without a goal filter only distinguishes no reported visits, visits
+outside the attribution window, eligible visits despite provider rejection, or
+an unavailable diagnosis. It never supplies a replacement identity or credits
+a candidate visit. Native VisitID/event-log attribution remains outside this
+reconciliation contract.
+
+
+New unresolved MAX identities also require the retained tracker recording time
+to be known, no later than the signal, and at most 21 days before it. A missing,
+future or expired source click stays in the existing pending lane without an
+upload; the original positive signal and immutable forecast remain saved.
+A later lookup may resolve that same row only from an eligible prior click.
+This is a conservative source-clock admission, not proof that the counter
+recorded a visit. Actual visit linkage still requires the provider report.
+Already accepted/processed/failed receipts are never reset or resent by this
+guard; no historical queue sweep is introduced.
+
+
+### Private same-cohort daily delivery totals
+
+The cached visit proof also carries fixed goal/counter, aggregate-only current-day
+delivery totals in Europe/Kaliningrad. Sent rows are selected by their last
+persisted upload-claim time. API receipts, processing, failed linkage and exact
+visit reconciliation are measured on those same rows; they are not the separate
+first-observed-today cohorts on the existing Moscow calendar report.
+
+Each platform reports distinct conversations, goal rows and RUB independently.
+Conversation counts overlap across status groups and must not be added.
+Missing/stale per-event evidence and receipt clocks remain explicit. Processing
+alone never credits a visit. The ordinary fixed private MCP reader validates the
+cached arithmetic and calendar, exposes no individual identities, performs no
+new provider/DB read for this projection, and does not change the existing UI
+calendar, goals, values, source profiles or delivery queues.

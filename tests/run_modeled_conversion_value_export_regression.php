@@ -99,16 +99,46 @@ final class ModeledValueTestWire
 }
 final class ModeledValueTestLookup
 {
-    public bool $missing=false;public int $calls=0;
+    public bool $missing=false;public int $calls=0;public ?int $observedAt=1792447200;
     public function lookup(string $counter,array $users):array
     {
         $this->calls++;
-        $out=[];if(!$this->missing)foreach($users as$user)$out[$user]=['external_user_id'=>$user,'client_id'=>'880000'.$user,'record_id'=>'77'];
+        $out=[];if(!$this->missing)foreach($users as$user)$out[$user]=['external_user_id'=>$user,'client_id'=>'880000'.$user,'record_id'=>'77','observed_at_unix'=>$this->observedAt];
         return $out;
     }
 }
+
+function modeledValueMaxAttributionWindowAssertions(PDO $p,callable $check):void
+{
+    $now=1793660000;$gate=static fn(string $chat):bool=>true;
+    foreach(['unknown'=>null,'future'=>$now+1,'expired'=>$now-21*86400-1,'boundary'=>$now-21*86400,'fresh'=>$now-60]as$case=>$observed){
+        modeledValueSchema($p);$scope=modeledValueBinding($p,910);
+        $wire=new ModeledValueTestWire();$api=$wire->api();$control=new ModeledConversionValueExport($p);
+        $control->configure('create-goal',$api,$now-20);$control->configure('enable',$api,$now-10);
+        modeledValueSave($p,modeledValueWrapper($scope,$now));$lookup=new ModeledValueTestLookup();$lookup->observedAt=$observed;
+        $profiles=(string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions LIMIT 1')->fetchColumn();
+        ModeledConversionValueExport::tick($p,$lookup,$api,$now,$gate);
+        $q=$p->query('SELECT state,client_id,tracker_observed_unix,last_error,value_rub,event_unix FROM max_channel_conversion_outbox LIMIT 1');
+        $row=$q->fetch(PDO::FETCH_ASSOC);$q->closeCursor();$allowed=in_array($case,['boundary','fresh'],true);
+        $check('MAX source attribution clock: '.$case,$allowed
+            ?$wire->posts===1&&$row['state']==='accepted'&&(int)$row['tracker_observed_unix']===$observed
+            :$wire->posts===0&&$row['state']==='pending'&&$row['last_error']==='identity_not_found'&&$row['client_id']===null);
+        $check('source-window gate retains the immutable forecast and its positive signal: '.$case,
+            (string)$p->query('SELECT profile_json FROM modeled_conversion_profile_versions LIMIT 1')->fetchColumn()===$profiles
+            &&(int)$row['value_rub']>0&&(int)$row['event_unix']===$now);
+        if(!$allowed){
+            $lookup->observedAt=$now-5;ModeledConversionValueExport::tick($p,$lookup,$api,$now+301,$gate);
+            $check('a genuinely new prior click releases the same held row: '.$case,
+                $wire->posts===1&&(int)$p->query('SELECT COUNT(*) FROM max_channel_conversion_outbox')->fetchColumn()===1);
+            ModeledConversionValueExport::tick($p,$lookup,$api,$now+302,$gate);
+            $check('a recovered row is not uploaded twice: '.$case,$wire->posts===1);
+        }
+    }
+}
+
 function modeledValueAssertions(PDO $p,callable $check):void
 {
+    modeledValueMaxAttributionWindowAssertions($p,$check);
     modeledValuePredictionAssertions($p,$check);
     modeledValuePolicyTransitionAssertions($p,$check);
     modeledPriceLossAssertions($p,$check);
