@@ -148,7 +148,8 @@ foreach ($nightsTests as [$text, $expected, $label]) {
     }
 }
 
-$novemberYear = 11 < (int)date('n') ? ((int)date('Y') + 1) : (int)date('Y');
+// Match the next occurrence of the full day/month, including a past day in November.
+$novemberYear = (int)date('Y') + ((int)date('md') > 1108 ? 1 : 0);
 $dateResolved = DateParser::resolveDate('8 Ноября');
 $expectedDate = sprintf('08.11.%04d', $novemberYear);
 if (($dateResolved['date'] ?? '') === $expectedDate) {
