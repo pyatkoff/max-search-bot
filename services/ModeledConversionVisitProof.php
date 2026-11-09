@@ -43,6 +43,8 @@ final class ModeledConversionVisitProof
             if(!str_starts_with($r['target'],'anytour_value_pred_')){
                 $rank=array_search($r['value_stage'],ModeledConversionValueContract::STAGES,true);
                 if($rank===false||$r['target']!==ModeledConversionValueContract::key($rank))throw new RuntimeException('verification_stage_binding');
+                // An explicit bounded goal-cohort read can also verify legacy stage rows.
+                if($selectedIds!==null&&in_array((string)$r['id'],$selectedIds,true))$other[]=$r;
                 continue;
             }
             if($r['target']!==ModeledConversionValueContract::predictionKey((string)$r['value_profile_id']))throw new RuntimeException('verification_binding');

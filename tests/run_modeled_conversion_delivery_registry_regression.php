@@ -381,6 +381,13 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         $retainedProof['events'][0]===$proof['events'][0]&&$retainedProof['selected_rows']===0&&count($api->calls)===$deadlineCalls);
 
 
+    $api->mismatch=false;$api->duplicate=false;
+    $explicitLegacy=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now,[(string)$legacy['id']]);
+    $legacyResult=[];foreach($explicitLegacy['events']as$e)if($e['outbox_id']===(string)$legacy['id'])$legacyResult=$e;
+    $check('an explicit full-goal daily read can reconcile a legacy row without changing the frozen predictive cohort',
+        ($legacyResult['linkage']??null)==='unique_visit_reconciled'&&$legacyResult['cohort']===false
+        &&count(array_filter($explicitLegacy['events'],static fn(array $e):bool=>$e['cohort']))===2);
+
     $todayA=$a;$todayA['claimed_at_unix']=$day+3600;$todayA['value_api_accepted_at_unix']=$day+3601;
     $todayB=$b;$todayB['claimed_at_unix']=$day+4000;$todayB['value_api_accepted_at_unix']=$day+4001;
     $todayB['upload_status']='UPLOADED';$todayB['state']='accepted';
