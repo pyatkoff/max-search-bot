@@ -657,6 +657,114 @@ async function failureBoundaries(){
   const wrapped=await R.wrapInstalled({env,event:{repository:{full_name:R.REPOSITORY},ref:'refs/heads/main',after:a,forced:false},api:f.api,installation:raw});
   equal(wrapped.repository_release.intent_scan.status,'unknown','rewritten recovery cannot shrink an original marker DAG into R..R');
 }
+function scheduledActivation(f) {
+  const monitor=f.wave.wave.find(r=>r.path.endsWith('modeled-conversion-monitor.yml'));
+  const original=f.wave.wave.find(r=>r.path.endsWith(C.ACTIVATION.file));
+  const parent={...copy(monitor),id:5000,event:'schedule',display_title:'Scheduled monitoring'};
+  const child={...copy(original),id:5001,display_title:'monitor-proof:v1:5000:1',conclusion:'skipped'};
+  f.runs.set(parent.id,parent);f.runs.set(child.id,child);
+  f.jobs.set(child.id,[job('activate',child,[],'skipped')]);
+  return {parent,child,original,job:f.jobs.get(child.id)[0]};
+}
+async function scheduledActivationCases(){
+  const a='a'.repeat(40);
+  const read=async f=>{
+    const snapshot=await f.api('GET',R.API_ROOT+'/actions/runs?head_sha='+a+'&per_page=100');
+    const c=C.context(f.options().env,f.options().event);
+    return C.selectReleaseRuns(snapshot,c,p=>f.api('GET',R.API_ROOT+p));
+  };
+  let f=fixture(a),extra=scheduledActivation(f),out=await read(f);
+  equal(out.waiting,false,'authenticated scheduled activation has no pending operation');
+  equal(C.gateState(out.runs,C.context(f.options().env,f.options().event)),'ready',
+    'same-source scheduled child cannot replace or collide with the original activation');
+  equal(C.gateReferences(out.runs).some(r=>r.run_id===String(extra.child.id)),false,
+    'scheduled child is not recorded as release proof');
+  equal(f.calls.every(c=>c.method==='GET'),true,'classification is metadata-only');
+  f.runs.delete(extra.original.id);out=await read(f);
+  equal(C.gateState(out.runs,C.context(f.options().env,f.options().event)),'waiting',
+    'an early scheduled child cannot satisfy a missing original activation');
+  f.runs.set(extra.original.id,extra.original);
+  // Keep the parent available to the exact-ID fixture endpoint, outside the list.
+  f=fixture(a);extra=scheduledActivation(f);
+  const safeParent=copy(extra.parent);f.runs.delete(extra.parent.id);
+  f.hook=({path:p})=>p.endsWith('/actions/runs/5000')?safeParent:undefined;
+  out=await read(f);equal(out.waiting,false,'exact-ID fallback proves the original scheduled parent');
+
+  f=fixture(a);extra=scheduledActivation(f);
+  f.jobs.get(extra.original.id)[0].conclusion='failure';
+  await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'activation_unconfirmed',
+    'a scheduled skip cannot conceal the failed original activation job');
+  equal(f.calls.some(c=>c.method!=='GET'),false,'failed original activation retains publication and publisher');
+
+  f=fixture(a);extra=scheduledActivation(f);
+  const prepared=await C.closeRelease({...f.options(),prepare:true});f.bindTerminal(prepared.record_digest);
+  equal(await C.closeRelease(f.options()),'released','the ordinary two-phase closer finishes after every original gate');
+  equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,1,
+    'scheduled-child classification grants no extra terminal write');
+  equal(f.record.repository_release.closure.gates.some(r=>r.run_id==='5001'),false,
+    'published terminal retains original deployment provenance');
+
+  f=fixture(a);extra=scheduledActivation(f);
+  Object.assign(extra.child,{status:'in_progress',conclusion:null});
+  let clock=0,sleeps=0;
+  const waited=await C.closeRelease({...f.options(),prepare:true,now:()=>clock,sleep:async ms=>{
+    equal(ms,20000,'independent pending child uses the existing observation interval');
+    clock+=ms;sleeps++;Object.assign(extra.child,{status:'completed',conclusion:'skipped'});
+  }});
+  equal(sleeps,1,'a pending independent activation is awaited before publication');
+  equal(typeof waited.record_digest,'string','only the settled exact skip permits preparation');
+
+  f=fixture(a);extra=scheduledActivation(f);
+  Object.assign(extra.child,{status:'queued',conclusion:null});clock=0;sleeps=0;
+  await refuses(()=>C.closeRelease({...f.options(),prepare:true,now:()=>clock,sleep:async ms=>{
+    clock+=ms;sleeps++;
+  }}),'gate_deadline','pending unrelated activation cannot be silently ignored');
+  equal(clock,18*60*1000,'independent waiting shares the existing finite deadline');
+  equal(f.calls.some(c=>c.method!=='GET'),false,'deadline retains diagnostics and publisher without a write');
+
+  const invalid=[
+    ['parent fork',x=>x.parent.head_repository.full_name='other/repository','untrusted_run'],
+    ['child fork',x=>x.child.head_repository.full_name='other/repository','untrusted_run'],
+    ['parent source',x=>x.parent.head_sha='b'.repeat(40),'untrusted_run'],
+    ['child rerun',x=>x.child.run_attempt=2,'untrusted_run'],
+    ['parent rerun',x=>x.parent.run_attempt=2,'untrusted_run'],
+    ['parent commit',x=>x.parent.head_commit.id='b'.repeat(40),'independent_monitor_unconfirmed'],
+    ['failed parent',x=>x.parent.conclusion='failure','independent_monitor_unconfirmed'],
+    ['failed child',x=>x.child.conclusion='failure','independent_activation_unconfirmed'],
+    ['executed activation',x=>x.job.steps.push(step('Protected operation')),'independent_activation_executed'],
+    ['successful job',x=>x.job.conclusion='success','independent_activation_executed'],
+    ['unknown job steps',x=>x.job.steps=null,'independent_activation_executed'],
+    ['foreign job',x=>x.job.run_id=9999,'independent_activation_executed'],
+    ['foreign job source',x=>x.job.head_sha='b'.repeat(40),'independent_activation_executed'],
+    ['job rerun',x=>x.job.run_attempt=2,'independent_activation_executed'],
+    ['missing job',(_x,f)=>f.jobs.set(5001,[]),'incomplete_independent_activation_jobs'],
+    ['extra job',(x,f)=>f.jobs.get(5001).push(copy(x.job)),'incomplete_independent_activation_jobs'],
+    ['duplicate child',(x,f)=>f.runs.set(5002,{...copy(x.child),id:5002}),'ambiguous_activation_origin'],
+    ['manual parent',x=>x.parent.event='workflow_dispatch','ambiguous_run'],
+  ];
+  for(const [label,mutate,reason]of invalid){
+    f=fixture(a);extra=scheduledActivation(f);mutate(extra,f);
+    await refuses(()=>C.closeRelease({...f.options(),prepare:true}),reason,label);
+    equal(f.calls.some(c=>c.method!=='GET'),false,label+' retains the publisher and publication');
+  }
+  f=fixture(a);extra=scheduledActivation(f);
+  f.hook=({path:p})=>p.includes('/5001/attempts/1/jobs')?{total_count:2,jobs:[copy(extra.job)]}:undefined;
+  await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'incomplete_independent_activation_jobs',
+    'partial independent job pagination is not an explicit skip');
+  f=fixture(a);extra=scheduledActivation(f);
+  f.hook=({path:p})=>{if(p.includes('/5001/attempts/1/jobs'))throw new R.Refusal('rate_limited');};
+  await refuses(()=>C.closeRelease({...f.options(),prepare:true}),'rate_limited','API refusal is not retried or ignored');
+  equal(f.calls.filter(c=>c.path.includes('/5001/attempts/1/jobs')).length,1,'one failed read is terminal');
+
+  f=fixture(a);extra=scheduledActivation(f);
+  const proposal=await C.closeRelease({...f.options(),prepare:true});f.bindTerminal(proposal.record_digest);
+  extra.job.steps.push(step('Unexpected late operation'));
+  await refuses(()=>C.closeRelease(f.options()),'independent_activation_executed',
+    'a fresh independent-child proof is required before the terminal mutation');
+  equal(f.calls.some(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')),false,
+    'late contradictory execution retains the same admitted publisher');
+}
+
 async function transportBoundaries(){
   const api=R.makeReadApi('fixture',async()=>{throw new Error('secret transport details');});
   await refuses(()=>api('PATCH',R.API_ROOT+'/issues/comments/900',{body:'x'}),'invalid_read_request');
@@ -667,7 +775,7 @@ async function transportBoundaries(){
   await refuses(()=>writer('PATCH',R.API_ROOT+'/git/refs/heads/diagnostics',{sha:'a'.repeat(40),force:true}),'invalid_write_target');
   await refuses(()=>writer('POST',R.API_ROOT+'/actions/workflows/deploy.yml/dispatches',{ref:'main'}),'invalid_write_target');
 }
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await transportBoundaries();
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await transportBoundaries();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
 module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
