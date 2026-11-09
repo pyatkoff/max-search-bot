@@ -684,7 +684,7 @@ async function verifyReleaseRecovery() {
 
 }
 
-return verifyReleasePriority().then(verifyReleaseRecovery).then(verifyReleaseSlot).then(verifyReleaseSlotActivation).then(() => {
+return verifyReleasePriority().then(verifyReleaseRecovery).then(verifyReleaseSlot).then(verifyReleaseSlotActivation).then(() => module.exports.verifyLateClosureRecovery(check)).then(() => {
   const admission = spawnSync(process.execPath, [path.resolve(__dirname, '../tools/release_priority.js'),
     '--admit', '1306', 'a'.repeat(40), 'b'.repeat(40)], {
     encoding: 'utf8', env: { GITHUB_REPOSITORY: 'pyatkoff/max-search-bot' }
@@ -696,3 +696,86 @@ return verifyReleasePriority().then(verifyReleaseRecovery).then(verifyReleaseSlo
   check(invalid.status, 1, 'incomplete CLI admission cannot fall back to CI success');
 });
 };
+
+
+// New finite recovery delta only. Synthetic API; no token, network or server.
+module.exports.verifyLateClosureRecovery = async function(check) {
+  const R=require('../tools/deployment_release'),C=require('../tools/release_slot_close');
+  const {lateRecoveryFixture}=require('./run_deployment_release_regression');
+  let cases=0;
+  const refuse=async(fn,expected)=>{let error;try{await fn();}catch(e){error=e;}
+    check(error?.code,expected,'finite recovery refuses '+expected);cases++;};
+  const ready=async()=>{const t=lateRecoveryFixture();await t.plan();await t.prepare();return t;};
+  const missing=lateRecoveryFixture();await missing.plan();
+  missing.dq.head_commit.message='ordinary-looking Q';missing.x.head_commit.message='ordinary-looking Q';
+  await refuse(()=>C.closeRelease({env:missing.env,event:missing.event,api:missing.api,prepare:true}),
+    'recovery_message_missing');
+  check(missing.f.head,missing.original,'unmarked recovery source cannot prepare a terminal record');
+  check(missing.writes,0,'unmarked recovery source never writes publisher');
+  const ok=await ready();
+  check(await C.closeRelease({env:ok.env,event:ok.event,api:ok.api}),'released','only original publisher released');
+  check(ok.writes,1,'one terminal write');ok.complete();
+  await R.authenticatePublication(ok.api,await R.readRecord(ok.api),{closed:true});cases++;
+  const before=ok.writes;
+  await refuse(()=>C.closeRelease({env:ok.env,event:ok.event,api:ok.api}),'workflow_not_active');
+  check(ok.writes,before,'completed producer cannot repeat write');
+  for(const mutate of [
+    t=>{t.comment={...t.comment,body:'foreign text'};},
+    t=>{t.comment={...t.comment,updated_at:'2026-11-09T12:00:00Z'};},
+    t=>{t.comment={...t.comment,user:{id:123}};}
+  ]){
+    const t=await ready();mutate(t);
+    let error;try{await C.closeRelease({env:t.env,event:t.event,api:t.api});}catch(e){error=e;}
+    check(['record_changed','foreign_record'].includes(error?.code),true,'changed publisher refuses');
+    check(t.writes,0,'foreign publisher never written');cases++;
+  }
+  const oldFailure=lateRecoveryFixture();await oldFailure.plan();
+  oldFailure.f.jobs.get(R.LATE_RECOVERY.closer).find(j=>j.name==='release-slot').steps[0].conclusion='cancelled';
+  await refuse(()=>oldFailure.prepare(),'incomplete_job_steps');
+  const late=lateRecoveryFixture();await late.plan();
+  late.f.jobs.get(R.LATE_RECOVERY.activation)[0].steps.push({name:'unexpected work',status:'completed',conclusion:'success'});
+  await refuse(()=>late.prepare(),'late_activation_not_declared_skip');
+  const failLog=lateRecoveryFixture();await failLog.plan();
+  failLog.api.jobLog=async()=> '2026-11-09T10:36:30Z release_slot=held reason=transport_failed\n';
+  await refuse(()=>failLog.prepare(),'original_failure_reason_unconfirmed');
+  for(const key of ['losePatch','loseReadback']){
+    const t=await ready();t[key]=true;
+    await refuse(()=>C.closeRelease({env:t.env,event:t.event,api:t.api}),'write_unknown');
+    check(t.writes,1,'unknown outcome attempted once');
+    await refuse(async()=>R.authenticatePublication(t.api,await R.readRecord(t.api),{closed:true}),
+      'producer_not_successful');
+    t[key]=false;
+    await refuse(()=>C.closeRelease({env:t.env,event:t.event,api:t.api}),'recovery_slot_not_active');
+    check(t.writes,1,'readback never authorizes resend');
+  }
+  const changed=await ready(),originalCommit=changed.f.head;
+  changed.f.putRecord(changed.f.record,originalCommit);
+  await refuse(()=>C.closeRelease({env:changed.env,event:changed.event,api:changed.api}),'recovery_diagnostics_changed');
+  check(changed.writes,0,'intervening diagnostics parent prevents terminal write');
+  const absent=await ready();absent.xjob.steps=[];
+  await refuse(()=>C.closeRelease({env:absent.env,event:absent.event,api:absent.api}),'publication_step_unconfirmed');
+  check(absent.writes,0,'unbound digest never releases');
+  const refUnknown=lateRecoveryFixture();await refUnknown.plan();let refAttempts=0;
+  const lostRef=async(method,p,body,raw)=>{
+    const result=await refUnknown.api(method,p,body,raw);
+    if(method==='PATCH'&&p===R.API_ROOT+'/git/refs/heads/diagnostics'){
+      refAttempts++;throw Error('lost diagnostics response');
+    }return result;
+  };
+  lostRef.artifact=refUnknown.api.artifact;lostRef.jobLog=refUnknown.api.jobLog;
+  await refuse(()=>C.closeRelease({env:refUnknown.env,event:refUnknown.event,api:lostRef,prepare:true}),
+    'diagnostics_write_unknown');
+  await refuse(()=>refUnknown.prepare(),'recovery_diagnostics_changed');
+  check(refAttempts,1,'unknown diagnostics update is not attempted again');
+  check(refUnknown.writes,0,'unknown diagnostics never releases publisher');
+  const lateRerun=await ready();lateRerun.f.runs.get(R.LATE_RECOVERY.monitor).run_attempt=2;
+  await refuse(()=>C.closeRelease({env:lateRerun.env,event:lateRerun.event,api:lateRerun.api}),'untrusted_run');
+  check(lateRerun.writes,0,'late original rerun is not inherited');
+  const failedProducer=await ready();
+  await C.closeRelease({env:failedProducer.env,event:failedProducer.event,api:failedProducer.api});
+  failedProducer.x.status='completed';failedProducer.x.conclusion='failure';
+  await refuse(async()=>R.authenticatePublication(failedProducer.api,await R.readRecord(failedProducer.api),{closed:true}),
+    'producer_not_successful');
+  return {cases};
+};
+

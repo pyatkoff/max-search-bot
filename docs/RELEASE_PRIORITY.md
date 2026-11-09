@@ -252,3 +252,89 @@ workflow, queue, publisher, customer message or failure experiment is introduced
 
 Recovery is effective only for releases containing this package. Do not repeat
 an accepted older installation to obtain the new workflow layout.
+
+
+## Finite PR1420 late-closure maintenance exception
+
+This exception is limited to the already installed application
+`5c18f7a49e1fba15e58f7e6a266c2b3a5e7527f2` (P), original Deploy
+42599160592/1 and failed closer 42599880179/1. Its original required activation
+42603556603 is the skipped, zero-step child of monitor 42599880395/1. A generic
+failed closer, scheduled substitute, another source, rerun or an unknown terminal
+write cannot use this route. Original failure and installation remain immutable.
+
+The owner explicitly approved the eight-file recovery scope on 2026-11-09 after
+the local audit explained the no-CI-change exception. Implementation must receive
+independent review and required CI before promotion. The existing SOURCE
+6727936549 and publisher 6682640708 remain the only claim and slot; do not create
+another slot, rewrite its original PR1420 binding, or revive historical packages.
+
+A reviewed maintenance head H is promoted as an ordinary two-parent merge Q
+with P as first parent and exactly H's tree. It is operational source, not a new
+application installation. Both the PR title/merge message and H use
+`[anytour-pr1420-closure-recovery-v1]`. The maintenance PR has exactly one marker:
+
+```text
+<!-- release-slot-recovery:v1 {"source_head":"<H>","base_sha":"5c18f7a49e1fba15e58f7e6a266c2b3a5e7527f2","changes_digest":"<canonical manifest SHA256>","diagnostics":{"commit":"<captured ref>","blob":"<deploy_status Git blob>","record_digest":"<canonical record SHA256>"}} -->
+```
+
+The complete immutable Git-tree comparison must contain exactly the eight
+reviewed regular-file changes in `RECOVERY_PATHS`, with unchanged file modes.
+The canonical manifest is the path-sorted array of
+`{path,old_mode,old_blob,new_mode,new_blob}`, hashed by
+`deployment_release.digest`. No additional path, rename, symlink, submodule,
+configuration/migration/runtime change or modeled value/activation marker is
+admitted. Directory hashes alone are not file changes. The intent does not
+embed its own merge SHA and is not a general development-only exemption.
+
+Q promotion automatically starts one original first-attempt Deploy DQ. Its
+admission authenticates Q, the exact original installation, original publisher
+version and captured diagnostics reference before SSH credentials. DQ publishes
+only a digest-bound recovery plan. Key preparation, bundle/sync/migrations,
+ownership/cron/profile/smoke, diagnostics capture and installed verification are
+skipped. The existing downstream resolver authenticates that plan and returns
+`perform_actions=false` for Q's automatic technical children. The existing
+value/tail workflow stays byte-identical; business configure must be skipped.
+
+The existing first-attempt release-slot X follows DQ. It separately validates
+the original P gates, failed closer/job and recognized gate_deadline log, skipped
+old upload/terminal steps, and exact late activation/job. It writes a strict
+repository_release schema2 `terminal_recovery` record: repository source Q,
+application P, original installer run/stages unchanged, every maintenance server
+stage explicitly not performed, original failure preserved and
+`baseline_eligible=false`. No new observation or healthier business flags are
+invented. Original ops/snapshot data and privacy fencing remain intact.
+
+One non-force diagnostics ref update uses the captured parent/blob/digest; any
+drift stops rather than rebasing. X binds its record digest and exact publication
+commit in the existing uploaded proof. The final process verifies that exact
+proof, current Q, original PR1420 binding and publisher identity/body/version
+before its single terminal PATCH to
+`PR1420: установлено, выпуск свободен`. GitHub comments have no atomic CAS:
+the exclusive retained lease and existing workflow serialization are necessary.
+A non-force ref update also is not an expected-old-SHA conditional API.
+
+After X completes successfully, its authenticated digest-bound terminal step
+seals the exact PATCH/readback result. Historical authentication does not require
+the mutable publisher comment to keep PR1420's old text: the next ordinary PR
+may legitimately reuse that same slot. This never relaxes the fresh original
+binding/body/version admission immediately before X's one PATCH, and a failed
+or unknown X is not accepted as a closed historical record.
+
+Any unknown write, response or readback is HOLD, never permission to resend,
+rerun, choose another key or free the slot manually. Exact terminal text alone
+does not establish acceptance: the successful authenticated producer and bound
+record are required. An unsuccessful producer after an unknown PATCH requires
+separate read-only reconciliation; this route supplies no automatic retry.
+
+Readers retain strict v1 handling. After Q closes, ordinary future release N
+can authenticate Q historically and prove Q is its ancestor, but P is only the
+previous installed receipt, never an eligible optimization baseline. The
+recovery branch of acceptedBaseline returns null explicitly. Therefore even a
+content-only N requires its own ordinary authorized installation and its own v1
+installed receipt with application/repository SHA N and DeployN; while N is
+pending, consumers defer. Q's intent cannot activate on N. This does not request
+an N release or an installation replay of P, and administrative closure is not a
+condition of constructor readiness. Booking/OAuth/customer live acceptance
+remains a separate, deferred stage.
+

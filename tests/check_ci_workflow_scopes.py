@@ -366,6 +366,25 @@ check(dj['deploy']['steps'][0]['name'] == 'Require the complete deployment verif
       and 'test "$GITHUB_RUN_ATTEMPT" = 1' in dj['deploy']['steps'][0]['run'],
       'installer replay stopped before checkout or protected access')
 check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
+check(dj['verify']['if'] == "needs.deploy.outputs.kind != 'terminal_recovery'",
+      'finite recovery cannot enter installed verification')
+ds = dj['deploy']['steps']
+by_id = {step['id']: step for step in ds if 'id' in step}
+check(dj['deploy']['outputs']['kind'] == '${{ steps.recovery.outputs.kind || steps.release.outputs.kind }}',
+      'metadata-only disposition is explicit upstream output')
+check(by_id['ssh_key']['if'] == "steps.provenance.outcome == 'success' && steps.release_plan.outcome == 'success' && (steps.release_plan.outputs.plan == 'install' || steps.release_plan.outputs.plan == 'observe_unchanged')",
+      'successful metadata plan alone never binds production SSH key')
+check(ds.index(by_id['release_plan']) < ds.index(by_id['recovery']) < ds.index(by_id['ssh_key']),
+      'finite plan and metadata admission precede credentials')
+check(by_id['recovery']['if'] == "steps.provenance.outcome == 'success' && steps.release_plan.outcome == 'success' && steps.release_plan.outputs.plan == 'terminal_recovery'"
+      and '${{ secrets.' not in json.dumps(by_id['recovery'])
+      and 'test "$GITHUB_RUN_ATTEMPT" = 1' in by_id['recovery']['run'], 'finite original attempt admission without secrets')
+rp = by_id['recovery_plan_publication']
+check(rp['uses'] == 'actions/upload-artifact@v4' and rp['if'] == "steps.recovery.outcome == 'success'"
+      and rp['name'] == 'Bind the recovery plan to its original maintenance run — ${{ steps.release_plan.outputs.plan_digest }}'
+      and rp['with']['name'] == 'closure-recovery-plan-${{ github.run_id }}-1'
+      and rp['with']['path'] == '${{ runner.temp }}/release-plan.json'
+      and '${{ secrets.' not in json.dumps(rp), 'only the digest-bound original plan artifact is published')
 vs = dj['verify']['steps']
 admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')
 key = next(i for i,s in enumerate(vs) if s.get('id') == 'ssh_key')

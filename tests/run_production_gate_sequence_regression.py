@@ -410,8 +410,10 @@ def deployment_aggregate_cases(root):
                   'MAX_WEBHOOK_OUTCOME', 'METRIKA_CRON_OUTCOME', 'INSTALLED_OUTCOME')
     installed = dict.fromkeys(proof + operations, 'success')
     installed['RELEASE_KIND'] = 'installed'
+    installed.update(PLAN='install', RECOVERY='skipped', RECOVERY_PROOF='skipped')
     unchanged = dict(installed, RELEASE_KIND='application_unchanged',
                      **dict.fromkeys(operations, 'skipped'))
+    unchanged['PLAN'] = 'observe_unchanged'
     installation_cases = [('complete installation', installed, True),
                           ('proved unchanged installation performs no protected stage', unchanged, True)]
     for branch, baseline in [('installed', installed), ('unchanged', unchanged)]:
@@ -485,6 +487,43 @@ def deployment_aggregate_cases(root):
                 check((completed.returncode == 0) is valid, name + ': ' + label)
                 cases_executed += 1
     print('DEPLOYMENT AGGREGATES: ' + str(cases_executed) + ' actual shell cases PASS (offline)')
+
+
+
+def late_closure_recovery_cases(root):
+    """Execute only the new no-credential aggregate contract, never a workflow."""
+    source = (root / '.github/workflows/deploy.yml').read_text(encoding='utf-8')
+    steps = step_blocks(source)
+    terminal = next(s for s in steps if s.startswith('      - name: Fail failed installation\n'))
+    key = next(s for s in steps if s.startswith('      - name: Prepare canonical SSH private key\n'))
+    values = {'steps.provenance.outcome': 'success', 'steps.release_plan.outcome': 'success'}
+    for plan, allowed in [('terminal_recovery', False), ('unknown', False), ('', False),
+                          ('install', True), ('observe_unchanged', True)]:
+        check(workflow_condition(field(key, 'if'), {**values, 'steps.release_plan.outputs.plan': plan}) is allowed,
+              'recovery plan cannot bind SSH secret: ' + plan)
+    protected = ('RELEASE_OUTCOME', 'KEY_OUTCOME', 'BUNDLE_OUTCOME', 'SYNC_OUTCOME',
+                 'MIGRATION_OUTCOME', 'MAX_WEBHOOK_OUTCOME', 'METRIKA_CRON_OUTCOME', 'INSTALLED_OUTCOME')
+    baseline = dict.fromkeys(protected, 'skipped')
+    baseline.update(PLAN='terminal_recovery', PROVENANCE_OUTCOME='success', PLAN_OUTCOME='success',
+                    RECOVERY='success', RECOVERY_PROOF='success', RELEASE_KIND='')
+    cases = [('metadata proof, all protected work skipped', baseline, True)]
+    for name in ('PROVENANCE_OUTCOME', 'PLAN_OUTCOME', 'RECOVERY', 'RECOVERY_PROOF'):
+        for bad in ('failure', 'cancelled', 'skipped', ''):
+            cases.append((name + '=' + bad, {**baseline, name: bad}, False))
+    for name in protected:
+        for bad in ('success', 'failure', 'cancelled'):
+            cases.append(('protected ' + name + '=' + bad, {**baseline, name: bad}, False))
+    bash = shutil.which('bash')
+    if not bash:
+        raise RuntimeError('Existing bash is required for recovery contract')
+    shell = run_block(terminal)
+    with tempfile.TemporaryDirectory(prefix='late-closure-contract-') as temporary:
+        for label, env, valid in cases:
+            result = subprocess.run([bash, '--noprofile', '--norc', '-e', '-u', '-o', 'pipefail', '-c', shell],
+                                    cwd=temporary, env={'PATH': temporary, 'LC_ALL': 'C', **env},
+                                    text=True, capture_output=True, timeout=3)
+            check((result.returncode == 0) is valid, 'finite recovery aggregate: ' + label)
+    print('LATE CLOSURE CONTRACT: ' + str(len(cases)) + ' actual shell cases PASS (offline)')
 
 
 def event_payload():
@@ -1345,6 +1384,7 @@ def main():
     operation_trigger_cases(args.root)
     telegram_operation_cases(args.root)
     deployment_aggregate_cases(args.root)
+    late_closure_recovery_cases(args.root)
     for filename, source in sources.items():
         behavior_cases(source_step(source, filename), filename)
         if filename == 'modeled-conversion-monitor.yml':

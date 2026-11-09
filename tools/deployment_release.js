@@ -217,6 +217,7 @@ function terminalBody(kind,pr) {
 }
 function validateRelease(record, success = true) {
   const installation=installationReceipt(record,success),r=record.repository_release;
+  if(r?.schema===2)return validateTerminalRecovery(record,installation);
   requireValue(keys(r,['schema','kind','phase','repository_sha','application_sha','release','baseline',
     'content','intent_scan','observation','observation_producer','stages','baseline_eligible','closure'])
     &&r.schema===1&&['installed','application_unchanged'].includes(r.kind)
@@ -423,6 +424,8 @@ async function requirePublicationStep(api,run,r,recordDigest,producerAttempt,clo
   }
 }
 async function authenticatePublication(api,location,{closed=false,diagnosticsHead=null,metadataWait=null}={}) {
+  if(location.record.repository_release?.schema===2)
+    return authenticateTerminalRecovery(api,location,{closed,diagnosticsHead});
   const {record}=location,{release:r}=validateRelease(record);
   let producer=r.phase==='pending_closure'?r.release:r.closure,run;
   if(r.phase==='pending_closure'&&r.kind==='installed'){
@@ -505,6 +508,19 @@ function makeReadApi(token,fetchImpl=globalThis.fetch) {
     // The signed storage URL is untrusted transport data, never an API authority.
     // Do not forward the repository token to it or follow another redirect.
     return request(url.href,{},'error',MAX_ARCHIVE);
+  };
+  api.jobLog=async job=>{
+    requireValue(job===LATE_RECOVERY.closer_job,'untrusted_log_job');
+    let bytes=await request('https://api.github.com'+API_ROOT+'/actions/jobs/'+job+'/logs',headers(false),'manual');
+    if(!Buffer.isBuffer(bytes)){
+      let url;try{url=new URL(bytes.headers.get('location'));}catch{throw new Refusal('invalid_log_redirect');}
+      requireValue(url.protocol==='https:'&&!url.username&&!url.password&&!url.port&&!url.hash
+        &&(url.hostname.endsWith('.blob.core.windows.net')||url.hostname.endsWith('.actions.githubusercontent.com')
+          ||url.hostname==='github.com'),'invalid_log_redirect');
+      bytes=await request(url.href,{},'error');
+    }
+    try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes);}
+    catch{throw new Refusal('invalid_log_encoding');}
   };
   return api;
 }
@@ -687,6 +703,7 @@ function releaseRecord(installation,c,{baseline=null,content,intent,observation=
 }
 async function acceptedBaseline(api,location) {
   const r=validateRelease(location.record).release;
+  if(r.schema===2){await authenticateTerminalRecovery(api,location,{closed:true});return null;}
   if(r.kind==='installed'&&!r.baseline_eligible)return null;
   requireValue(r.phase==='pending_terminal','baseline_release_pending');
   const reference=await authenticatePublication(api,location,{closed:true});
@@ -704,6 +721,13 @@ async function planDeployment({env,event,api,repository=process.cwd(),compare=v2
   const c=await sourceContext(env,event,api,DEPLOY);
   requireValue(c.attempt===1&&c.job==='deploy'&&['push','workflow_dispatch'].includes(c.event),'untrusted_deployment_context');
   if(c.event==='push')requireValue(event.ref==='refs/heads/main'&&event.after===c.sha&&typeof event.forced==='boolean','untrusted_push');
+  const recovery=await recoveryForSource(api,c.sha),marked=hasRecoveryMessage(c.run);
+  if(recovery||marked){
+    requireValue(recovery&&marked,'recovery_message_missing');
+    requireValue(c.event==='push'&&event.forced===false&&!Object.keys(event.inputs||{}).length,
+      'untrusted_recovery_deploy');
+    return planLateRecovery(api,c,recovery);
+  }
   const location=await readRecord(api),result={schema:1,protocol:'anytour-deployment-plan-v1',repository:REPOSITORY,
     repository_sha:c.sha,run_id:c.id,run_attempt:1,event:c.event,plan:'install',application_sha:c.sha,
     source:{commit:location.commit,blob:location.blob,record_digest:location.record_digest},
@@ -716,6 +740,10 @@ async function planDeployment({env,event,api,repository=process.cwd(),compare=v2
   // A typed record, however, must be valid: malformed authority never downgrades.
   if(location.record.repository_release){
     validateRelease(location.record,false);
+    if(location.record.repository_release.schema===2){
+      await authenticateTerminalRecovery(api,location,{closed:true});
+      await requireAncestry(api,location.record.repository_release.repository_sha,c.sha);
+    }
     if(!INSTALL_STAGES.every(s=>location.record[s]==='success'))return result;
     receipt=installationReceipt(location.record);
   }else{
@@ -834,6 +862,15 @@ async function resolveCurrent(api,c,location,{defer=false}={}) {
   }
   const {release:r,installation}=validateRelease(location.record);
   if(r.repository_sha!==c.sha){await pendingDeployment(api,c.sha);return pending();}
+  if(r.schema===2){
+    const producer=await api('GET',API_ROOT+'/actions/runs/'+r.closure.run_id);
+    if(producer.status!=='completed'){
+      runIdentity(producer,{id:r.closure.run_id,attempt:1,head:c.sha,workflow:CLOSER,event:'workflow_run',completed:false});
+      return pending();
+    }
+    await authenticateTerminalRecovery(api,location,{closed:true});
+    return resolution(c.sha,installation.sha,'terminal_recovery');
+  }
   if(r.kind==='application_unchanged'){
     if(r.phase!=='pending_terminal'){await confirmPendingRecord(api,location);return pending();}
     const closer=await api('GET',API_ROOT+'/actions/runs/'+r.closure.run_id);
@@ -873,6 +910,18 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
   const startedAt=now();
   const c=await sourceContext(env,event,api);
   requireValue(c.attempt===1,'consumer_rerun_forbidden');
+  const recovery=await recoveryForSource(api,c.sha),marked=hasRecoveryMessage(c.run);
+  requireValue((!recovery&&!marked)||(recovery&&marked),'recovery_message_missing');
+  if(recovery&&c.event==='workflow_run'){
+    requireValue(DIRECT.has(c.workflow)&&event.action==='completed'
+      &&c.run.display_title==='deploy-proof:v1:'+event.workflow_run?.id+':1',
+      'untrusted_recovery_consumer');
+    const p=await readRecoveryPlan(api,event.workflow_run);
+    requireValue(p.repository_sha===c.sha,'recovery_parent_changed');
+    requireValue(same(recovery.spec,p.intent),'recovery_intent_changed');
+    await recoverySourceProof(api,c.sha,recovery);
+    return finalResolution(api,c,null,resolution(c.sha,p.application_sha,'terminal_recovery',false));
+  }
   if(c.event==='push'){
     requireValue(PUSH_OPERATIONS.has(c.workflow)&&event.ref==='refs/heads/main'&&event.after===c.sha,
       'untrusted_push_consumer');return finalResolution(api,c,null,resolution(c.sha,c.sha,'installed'));
@@ -930,6 +979,257 @@ async function hostObservation(api,run,applicationSha) {
   requireValue(observation.application_sha===applicationSha,'host_observation_source_mismatch');
   return {observation,producer:{run_id:String(run.id),run_attempt:1}};
 }
+
+// Finite repair of PR1420's expired closer. This is NOT a generic no-install
+// exemption or permission to retry an old workflow.
+const LATE_RECOVERY=Object.freeze({
+  application:'5c18f7a49e1fba15e58f7e6a266c2b3a5e7527f2',pr:1420,
+  deploy:42599160592,closer:42599880179,closer_job:129101425849,
+  monitor:42599880395,activation:42603556603,activation_job:129113619145,
+  comment:6682640708,owner:226193297,version:'2026-11-09T10:10:40Z',
+  head:'a0f0ac2fd5a9f1dcafe08eb717ae66654b2d7f24',
+  gates:[42599160592,42599160646,42599880210,42599880201,42599880261,
+    42599880370,42599880338,42599880087,42599880395,42603556603],
+});
+const RECOVERY_PATHS=Object.freeze(['tools/deployment_release.js','tools/release_slot_close.js',
+  '.github/workflows/deploy.yml','tests/release_lifecycle_regression.js',
+  'tests/run_deployment_release_regression.js','tests/check_ci_workflow_scopes.py',
+  'tests/run_production_gate_sequence_regression.py','docs/RELEASE_PRIORITY.md'].sort());
+const RECOVERY_PLAN_PROTOCOL='anytour-pr1420-closure-recovery-v1';
+const RECOVERY_PLAN_STEP='Bind the recovery plan to its original maintenance run — ';
+function hasRecoveryMessage(run) {
+  const text=run?.head_commit?.message;
+  if(typeof text!=='string'||!text.toLowerCase().includes('anytour-pr1420-closure-recovery'))return false;
+  requireValue(text.includes('[anytour-pr1420-closure-recovery-v1]')&&run.head_commit.id===run.head_sha,
+    'invalid_recovery_message');return true;
+}
+function recoverySpec(pr,source) {
+  const body=pr?.body;
+  if(typeof body!=='string'||!body.includes('release-slot-recovery:'))return null;
+  requireValue(body.length<=65536&&pr.merged===true&&pr.state==='closed'
+    &&pr.merge_commit_sha===source&&positive(pr.number)&&pr.number!==LATE_RECOVERY.pr
+    &&pr.base?.ref==='main'&&pr.base.repo?.full_name===REPOSITORY
+    &&pr.head?.repo?.full_name===REPOSITORY&&sha(pr.head.sha),'untrusted_recovery_pull');
+  const matches=[...body.matchAll(/<!-- release-slot-recovery:v1 (\{[^\r\n]*\}) -->/g)];
+  requireValue((body.match(/release-slot-recovery:/g)||[]).length===1&&matches.length===1,
+    'invalid_recovery_intent');
+  const spec=parseJson(matches[0][1],4096);
+  requireValue(keys(spec,['source_head','base_sha','changes_digest','diagnostics'])
+    &&spec.source_head===pr.head.sha&&spec.base_sha===LATE_RECOVERY.application
+    &&digest64(spec.changes_digest)&&keys(spec.diagnostics,['commit','blob','record_digest'])
+    &&sha(spec.diagnostics.commit)&&sha(spec.diagnostics.blob)&&digest64(spec.diagnostics.record_digest),
+    'invalid_recovery_intent');
+  return clone(spec);
+}
+async function recoveryForSource(api,source) {
+  const rows=await api('GET',API_ROOT+'/commits/'+source+'/pulls?per_page=100');
+  requireValue(Array.isArray(rows)&&rows.length<100,'incomplete_pulls');
+  const merged=rows.filter(p=>p.merge_commit_sha===source&&p.state==='closed');
+  if(!merged.length)return null;
+  requireValue(merged.length===1,'ambiguous_pull');
+  const pr=await api('GET',API_ROOT+'/pulls/'+merged[0].number);
+  const spec=recoverySpec(pr,source);return spec?{pr,spec}:null;
+}
+async function recoverySourceProof(api,source,admitted) {
+  const {pr,spec}=admitted;
+  requireValue(same(recoverySpec(pr,source),spec),'recovery_intent_changed');
+  const q=await api('GET',API_ROOT+'/git/commits/'+source);
+  const h=await api('GET',API_ROOT+'/git/commits/'+spec.source_head);
+  requireValue(q?.sha===source&&h?.sha===spec.source_head&&q.tree?.sha===h.tree?.sha
+    &&Array.isArray(q.parents)&&q.parents.length===2
+    &&q.parents[0].sha===spec.base_sha&&q.parents[1].sha===spec.source_head,
+    'recovery_merge_changed');
+  // Immutable Git trees provide complete mode/path/blob coverage without a
+  // caller-controlled filesystem or a broad tools/tests/workflow exemption.
+  const base=await api('GET',API_ROOT+'/git/commits/'+spec.base_sha);
+  requireValue(base?.sha===spec.base_sha&&sha(base.tree?.sha)&&sha(q.tree?.sha),'recovery_base_changed');
+  const trees=await Promise.all([base.tree.sha,q.tree.sha].map(async s=>{
+    const t=await api('GET',API_ROOT+'/git/trees/'+s+'?recursive=1');
+    requireValue(t?.truncated===false&&Array.isArray(t.tree)&&t.tree.length<50000,
+      'incomplete_recovery_tree');
+    const map=new Map();
+    for(const e of t.tree){
+      requireValue(e&&typeof e.path==='string'&&!map.has(e.path)&&sha(e.sha)
+        &&['tree','blob','commit'].includes(e.type),'invalid_recovery_tree');
+      map.set(e.path,e);
+    }return map;
+  }));
+  const changed=[];
+  for(const p of [...new Set([...trees[0].keys(),...trees[1].keys()])].sort()){
+    const a=trees[0].get(p),b=trees[1].get(p);
+    if(a?.sha===b?.sha&&a?.mode===b?.mode&&a?.type===b?.type)continue;
+    // Directory tree hashes necessarily change with their admitted children.
+    if(a?.type==='tree'&&b?.type==='tree'&&a.mode==='040000'&&b.mode==='040000')continue;
+    requireValue(RECOVERY_PATHS.includes(p)&&a?.type==='blob'&&b?.type==='blob'
+      &&a.mode==='100644'&&b.mode==='100644','recovery_content_out_of_scope');
+    changed.push({path:p,old_mode:a.mode,old_blob:a.sha,new_mode:b.mode,new_blob:b.sha});
+  }
+  requireValue(same(changed.map(e=>e.path),RECOVERY_PATHS)&&digest(changed)===spec.changes_digest,
+    'recovery_manifest_changed');
+  const compare=await api('GET',API_ROOT+'/compare/'+spec.base_sha+'...'+source+'?per_page=100');
+  requireValue(compare?.status==='ahead'&&compare.merge_base_commit?.sha===spec.base_sha
+    &&Array.isArray(compare.commits)&&compare.commits.length===compare.total_commits
+    &&compare.commits.length>0&&compare.commits.length<100,'incomplete_recovery_commits');
+  const forbidden=/\[(?:modeled-pipeline-monitor-activation-v1|anytour-value-launch-1288|anytour-value-history-1293|anytour-value-history-fortnight-v1)\]/i;
+  requireValue(compare.commits.every(x=>typeof x.commit?.message==='string'
+    &&x.commit.message.length<=65536&&!forbidden.test(x.commit.message)),'recovery_business_intent');
+  requireValue(typeof q.message==='string'&&q.message.includes('[anytour-pr1420-closure-recovery-v1]'),
+    'recovery_message_missing');
+  return changed;
+}
+function validateRecoveryPlan(p) {
+  requireValue(keys(p,['schema','protocol','repository','repository_sha','run_id','run_attempt',
+    'plan','application_sha','maintenance_pr','intent','original','binding'])
+    &&p.schema===1&&p.protocol===RECOVERY_PLAN_PROTOCOL&&p.repository===REPOSITORY
+    &&sha(p.repository_sha)&&positive(p.run_id)&&typeof p.run_id==='string'&&p.run_attempt===1
+    &&p.plan==='terminal_recovery'&&p.application_sha===LATE_RECOVERY.application
+    &&positive(p.maintenance_pr)&&p.maintenance_pr!==LATE_RECOVERY.pr
+    &&keys(p.intent,['source_head','base_sha','changes_digest','diagnostics'])
+    &&sha(p.intent.source_head)&&p.intent.base_sha===p.application_sha&&digest64(p.intent.changes_digest)
+    &&keys(p.intent.diagnostics,['commit','blob','record_digest'])
+    &&sha(p.intent.diagnostics.commit)&&sha(p.intent.diagnostics.blob)&&digest64(p.intent.diagnostics.record_digest),
+    'invalid_recovery_plan');
+  validateReference(p.original);
+  requireValue(p.original.commit===p.intent.diagnostics.commit&&p.original.blob===p.intent.diagnostics.blob
+    &&p.original.record_digest===p.intent.diagnostics.record_digest
+    &&String(p.original.producer_run_id)===String(LATE_RECOVERY.deploy)&&p.original.producer_run_attempt===1
+    &&keys(p.binding,['pr','head_sha','comment_id','owner_id','updated_at'])
+    &&p.binding.pr===LATE_RECOVERY.pr&&p.binding.head_sha===LATE_RECOVERY.head
+    &&p.binding.comment_id===LATE_RECOVERY.comment&&p.binding.owner_id===LATE_RECOVERY.owner
+    &&p.binding.updated_at===LATE_RECOVERY.version,'recovery_original_changed');
+  return p;
+}
+async function originalRecoveryRecord(api,plan,{current=false}={}) {
+  validateRecoveryPlan(plan);
+  const loc=await readRecord(api,current?null:plan.original.commit);
+  requireValue(loc.commit===plan.original.commit&&loc.blob===plan.original.blob
+    &&loc.record_digest===plan.original.record_digest,'recovery_diagnostics_changed');
+  const r=validateRelease(loc.record).release;
+  requireValue(r.schema===1&&r.kind==='installed'&&r.phase==='pending_closure'
+    &&r.repository_sha===LATE_RECOVERY.application&&r.application_sha===r.repository_sha
+    &&r.release.run_id===String(LATE_RECOVERY.deploy)&&r.release.run_attempt===1
+    &&r.release.event==='push'&&r.closure===null&&!r.baseline_eligible,
+    'recovery_original_changed');
+  await authenticatePublication(api,loc);
+  await requireOps(api,LATE_RECOVERY.application);
+  return loc;
+}
+async function planLateRecovery(api,c,admitted) {
+  requireValue(c.attempt===1&&c.job==='deploy'&&c.event==='push','untrusted_recovery_deploy');
+  await recoverySourceProof(api,c.sha,admitted);
+  const p={schema:1,protocol:RECOVERY_PLAN_PROTOCOL,repository:REPOSITORY,
+    repository_sha:c.sha,run_id:c.id,run_attempt:1,plan:'terminal_recovery',
+    application_sha:LATE_RECOVERY.application,maintenance_pr:admitted.pr.number,intent:admitted.spec,
+    original:{...admitted.spec.diagnostics,producer_run_id:String(LATE_RECOVERY.deploy),producer_run_attempt:1},
+    binding:{pr:LATE_RECOVERY.pr,head_sha:LATE_RECOVERY.head,comment_id:LATE_RECOVERY.comment,
+      owner_id:LATE_RECOVERY.owner,updated_at:LATE_RECOVERY.version}};
+  const loc=await originalRecoveryRecord(api,p,{current:true});
+  const close=require('./release_slot_close');
+  const old=await api('GET',API_ROOT+'/pulls/'+LATE_RECOVERY.pr);
+  requireValue(same(close.bindingSnapshot(close.binding(old,LATE_RECOVERY.application)),p.binding),
+    'recovery_original_binding_changed');
+  requireValue(close.recordState(await api('GET',API_ROOT+'/issues/comments/'+LATE_RECOVERY.comment),
+    close.binding(old,LATE_RECOVERY.application))==='active','recovery_slot_not_active');
+  requireValue(same(installationReceipt(loc.record).sha,p.application_sha),'recovery_original_changed');
+  return validateRecoveryPlan(p);
+}
+const RECOVERY_SERVER_STEPS=['Prepare canonical SSH private key',
+  'Select installation or prove the unchanged application without mutation',
+  'Build exact deployment bundle','Sync canonical production checkout',
+  'Apply database migrations and fence the old hotel contour','Reconcile canonical MAX webhook ownership',
+  'Ensure Metrika offline uploader cron','Apply profile and retain exact diagnostic snapshot'];
+async function verifyRecoveryDeploy(api,run,p) {
+  validateRecoveryPlan(p);
+  runIdentity(run,{id:p.run_id,attempt:1,head:p.repository_sha,workflow:DEPLOY,event:'push'});
+  const close=require('./release_slot_close');
+  const jobs=boundedList(await api('GET',API_ROOT+'/actions/runs/'+run.id+'/attempts/1/jobs?per_page=100'),
+    'jobs','incomplete_recovery_jobs');
+  for(const name of close.INSTALL_JOBS){
+    const matches=jobs.filter(j=>j.name===name);
+    requireValue(matches.length===1&&matches[0].run_id===run.id&&matches[0].run_attempt===1
+      &&matches[0].head_sha===p.repository_sha&&matches[0].status==='completed'
+      &&matches[0].conclusion==='success','recovery_job_unconfirmed');
+  }
+  const d=jobs.find(j=>j.name==='deploy'),verify=jobs.filter(j=>j.name==='verify');
+  requireValue(verify.length===1&&verify[0].run_id===run.id&&verify[0].head_sha===p.repository_sha
+    &&verify[0].run_attempt===1&&verify[0].status==='completed'&&verify[0].conclusion==='skipped'
+    &&Array.isArray(verify[0].steps)&&verify[0].steps.length===0,'recovery_verify_executed');
+  for(const name of RECOVERY_SERVER_STEPS)requireValue(close.stepResult(d,name)==='skipped',
+    'recovery_server_step_executed');
+  for(const name of ['Admit only the finite metadata recovery',RECOVERY_PLAN_STEP+digest(p),
+    'Fail failed installation'])requireValue(close.stepResult(d,name)==='success','recovery_plan_unbound');
+  return jobs;
+}
+async function readRecoveryPlan(api,parent) {
+  runIdentity(parent,{id:parent.id,attempt:1,head:parent.head_sha,workflow:DEPLOY,event:'push'});
+  const name='closure-recovery-plan-'+parent.id+'-1';
+  const meta=await findArtifact(api,parent,name);
+  const p=validateRecoveryPlan(await artifactJson(api,meta,'release-plan.json',parent,name));
+  requireValue(p.run_id===String(parent.id)&&p.repository_sha===parent.head_sha,'recovery_parent_changed');
+  await verifyRecoveryDeploy(api,parent,p);return p;
+}
+function validateTerminalRecovery(record,installation) {
+  const r=record.repository_release;
+  requireValue(keys(r,['schema','kind','phase','repository_sha','application_sha','release','recovery_plan',
+    'stages','baseline_eligible','closure'])
+    &&r.schema===2&&r.kind==='terminal_recovery'&&r.phase==='pending_terminal'
+    &&sha(r.repository_sha)&&r.application_sha===LATE_RECOVERY.application
+    &&r.repository_sha!==r.application_sha&&installation.sha===r.application_sha
+    &&installation.run_id===String(LATE_RECOVERY.deploy)&&r.baseline_eligible===false,
+    'invalid_terminal_recovery');
+  const p=validateRecoveryPlan(r.recovery_plan);
+  requireValue(p.repository_sha===r.repository_sha&&same(r.release,{run_id:p.run_id,run_attempt:1,event:'push'})
+    &&keys(r.stages,INSTALL_STAGES)&&INSTALL_STAGES.every(s=>same(r.stages[s],
+      {execution:'not_performed',assurance:'original_installation'})),'recovery_installation_rewritten');
+  const c=r.closure;
+  requireValue(keys(c,['run_id','run_attempt','job','terminal_step','binding','expected_terminal','gates',
+    'failed_closer','failure_log_digest'])
+    &&positive(c.run_id)&&typeof c.run_id==='string'&&c.run_attempt===1&&c.job==='release-slot'
+    &&c.terminal_step===TERMINAL_STEP&&same(c.binding,p.binding)
+    &&c.expected_terminal===terminalBody('installed',LATE_RECOVERY.pr)
+    &&same(c.failed_closer,{run_id:String(LATE_RECOVERY.closer),run_attempt:1,job_id:LATE_RECOVERY.closer_job,
+      conclusion:'failure',reason:'gate_deadline'})&&digest64(c.failure_log_digest)
+    &&Array.isArray(c.gates)&&c.gates.length===LATE_RECOVERY.gates.length,
+    'invalid_recovery_closure');
+  const close=require('./release_slot_close');
+  c.gates.forEach((g,i)=>requireValue(keys(g,['path','run_id','run_attempt','head_sha','conclusion'])
+    &&String(g.run_id)===String(LATE_RECOVERY.gates[i])&&g.path===PREFIX+close.REQUIRED[i][0]
+    &&g.run_attempt===1&&g.head_sha===LATE_RECOVERY.application
+    &&(i===9?['success','skipped'].includes(g.conclusion):g.conclusion==='success'),'invalid_recovery_gate'));
+  return {record,installation,release:r};
+}
+async function authenticateTerminalRecovery(api,location,{closed=false,diagnosticsHead=null}={}) {
+  const {record,release:r}=validateRelease(location.record),p=r.recovery_plan;
+  requireValue(r.schema===2,'not_terminal_recovery');
+  const admitted=await recoveryForSource(api,r.repository_sha);
+  requireValue(admitted&&admitted.pr.number===p.maintenance_pr&&same(admitted.spec,p.intent),
+    'recovery_intent_changed');
+  await recoverySourceProof(api,r.repository_sha,admitted);
+  const old=await originalRecoveryRecord(api,p);
+  requireValue(same(installationReceipt(old.record),installationReceipt(record)),'recovery_installation_rewritten');
+  const parent=await api('GET',API_ROOT+'/actions/runs/'+p.run_id);
+  await verifyRecoveryDeploy(api,parent,p);
+  const producer=await api('GET',API_ROOT+'/actions/runs/'+r.closure.run_id);
+  runIdentity(producer,{id:r.closure.run_id,attempt:1,head:r.repository_sha,workflow:CLOSER,
+    event:'workflow_run',completed:closed});
+  requireValue(producer.display_title==='deploy-proof:v1:'+p.run_id+':1','terminal_origin_mismatch');
+  requireValue(location.record_digest===digest(record),'publication_digest_mismatch');
+  await requirePublicationStep(api,producer,r,location.record_digest,1,closed);
+  if(!closed){
+    const name=publicationName('pending_terminal',producer.id,1);
+    const meta=await findArtifact(api,producer,name);
+    const proof=validatePublication(await artifactJson(api,meta,PUBLICATION_FILE,producer,name),record);
+    requireValue(proof.commit===location.commit&&proof.blob===location.blob,'recovery_diagnostics_changed');
+  }
+  await requireAncestry(api,p.original.commit,location.commit);
+  await requireAncestry(api,location.commit,diagnosticsHead||location.commit);
+  // Successful closed X already proves its exact PATCH/readback in the bound
+  // terminal step. The same publisher may now belong to a later ordinary PR;
+  // mutable current comment text is not historical installation authority.
+  return {commit:location.commit,blob:location.blob,record_digest:location.record_digest,
+    producer_run_id:r.closure.run_id,producer_run_attempt:1};
+}
+
 function argumentsOf(argv,commands) {
   requireValue(argv.length>0&&commands.includes(argv[0]),'invalid_mode');
   const out={command:argv[0]};
@@ -948,6 +1248,10 @@ module.exports={REPOSITORY,API_ROOT,PREFIX,DEPLOY,CLOSER,HOST,RECORD_PATH,PUBLIC
   artifactJson,findArtifact,authenticatePublication,readBaseline,makeReadApi,sourceContext,deploymentProof,requireOps,
   v2,intentScan,contentSummary,releaseRecord,acceptedBaseline,planDeployment,currentBinding,requireCurrentBinding,admitUnchanged,
   wrapInstalled,verifyUnchanged,resolveCurrent,resolveConsumer,resolveEditor,hostObservation,argumentsOf,outputs,responseBytes};
+Object.assign(module.exports,{LATE_RECOVERY,RECOVERY_PATHS,RECOVERY_PLAN_PROTOCOL,RECOVERY_PLAN_STEP,
+  hasRecoveryMessage,recoverySpec,recoveryForSource,recoverySourceProof,validateRecoveryPlan,
+  originalRecoveryRecord,planLateRecovery,RECOVERY_SERVER_STEPS,verifyRecoveryDeploy,readRecoveryPlan,
+  validateTerminalRecovery,authenticateTerminalRecovery});
 if(require.main===module){
   (async()=>{
     const args=argumentsOf(process.argv.slice(2),['resolve-consumer','resolve-editor','plan-deployment','admit-unchanged','wrap-installed']);
@@ -961,7 +1265,8 @@ if(require.main===module){
     }
     if(args.command==='plan-deployment'){
       requireValue(keys(args,['command','output']),'invalid_arguments');const result=await planDeployment(common);saveJson(args.output,result);
-      outputs({plan:result.plan,application_sha:result.application_sha,plan_file:args.output});return;
+      outputs({plan:result.plan,application_sha:result.application_sha,plan_file:args.output,
+        plan_digest:result.plan==='terminal_recovery'?digest(result):''});return;
     }
     if(args.command==='admit-unchanged'){
       requireValue(keys(args,['command','plan','observation','output']),'invalid_arguments');

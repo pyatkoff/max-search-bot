@@ -775,7 +775,200 @@ async function transportBoundaries(){
   await refuses(()=>writer('PATCH',R.API_ROOT+'/git/refs/heads/diagnostics',{sha:'a'.repeat(40),force:true}),'invalid_write_target');
   await refuses(()=>writer('POST',R.API_ROOT+'/actions/workflows/deploy.yml/dispatches',{ref:'main'}),'invalid_write_target');
 }
-async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await transportBoundaries();
+
+function lateRecoveryFixture(){
+  const pin=R.LATE_RECOVERY,P=pin.application,Q=H('maintenance Q'),head=H('maintenance head');
+  const f=fixture(P,installed(P,String(pin.deploy))),original=f.head;
+  const originalRecord=copy(f.record),oldTemplate=copy(f.wave.parent);
+  f.runs.clear();f.jobs.clear();
+  const wave=C.REQUIRED.map(([file,event,name],i)=>({...copy(oldTemplate),id:pin.gates[i],
+    path:R.PREFIX+file,event,name,head_sha:P,head_commit:{id:P,message:'original product'},
+    status:'completed',conclusion:i===9?'skipped':'success',run_attempt:1}));
+  for(const r of wave)if(r.event==='workflow_run')r.display_title=r.path.endsWith(C.ACTIVATION.file)
+    ?'monitor-proof:v1:'+pin.monitor+':1':'deploy-proof:v1:'+pin.deploy+':1';
+  for(const r of wave)f.runs.set(r.id,r);
+  f.jobs.set(pin.deploy,fullJobs(wave[0],originalRecord));
+  f.jobs.set(pin.activation,[{...job('activate',wave[9],[],'skipped'),id:pin.activation_job}]);
+  const old={...copy(wave[0]),id:pin.closer,path:R.CLOSER,event:'workflow_run',
+    name:'Configure AnyTour modeled value goal',display_title:'deploy-proof:v1:'+pin.deploy+':1',
+    status:'completed',conclusion:'failure'};
+  f.runs.set(old.id,old);
+  f.jobs.set(old.id,[job('configure',old,[],'skipped'),{...job('release-slot',old,[
+    step('Prepare the exact release proof before terminal publication','failure'),
+    step(R.TERMINAL_BINDING_STEP,'skipped'),step(R.TERMINAL_STEP,'skipped')],'failure'),id:pin.closer_job}]);
+  const marker={head_sha:pin.head,comment_id:pin.comment,owner_id:pin.owner,updated_at:pin.version};
+  const oldPr={...copy(f.pr),number:pin.pr,merge_commit_sha:P,head:{sha:pin.head,repo:{full_name:R.REPOSITORY}},
+    body:'<!-- release-slot-close:v1 '+JSON.stringify(marker)+' -->'};
+  const trees=R.RECOVERY_PATHS.map(p=>({path:p,type:'blob',mode:'100644',sha:H('old '+p)}));
+  const newer=trees.map(e=>({...e,sha:H('new '+e.path)}));
+  const changes=trees.map((e,i)=>({path:e.path,old_mode:e.mode,old_blob:e.sha,new_mode:e.mode,new_blob:newer[i].sha}));
+  const spec={source_head:head,base_sha:P,changes_digest:R.digest(changes),
+    diagnostics:{commit:original,blob:f.records.get(original).blob,record_digest:R.digest(originalRecord)}};
+  const pr={...copy(oldPr),number:1500,merge_commit_sha:Q,head:{sha:head,repo:{full_name:R.REPOSITORY}},
+    body:'<!-- release-slot-recovery:v1 '+JSON.stringify(spec)+' -->'};
+  const message='[anytour-pr1420-closure-recovery-v1] Finish PR1420 metadata only';
+  const dq={...copy(wave[0]),id:900001,head_sha:Q,head_commit:{id:Q,message},
+    status:'in_progress',conclusion:null};
+  const x={...copy(dq),id:900002,path:R.CLOSER,event:'workflow_run',name:'Configure AnyTour modeled value goal',
+    display_title:'deploy-proof:v1:'+dq.id+':1'};
+  f.runs.set(dq.id,dq);f.runs.set(x.id,x);f.main=Q;
+  const xjob=job('release-slot',x,[],null);xjob.status='in_progress';
+  f.jobs.set(x.id,[job('configure',x,[],'skipped'),xjob]);
+  let comment={id:pin.comment,body:'PR1420: выпуск занят',user:{id:pin.owner},updated_at:pin.version,
+    author_association:'OWNER',issue_url:'https://api.github.com'+R.API_ROOT+'/issues/1122'};
+  let hook=null,writes=0,losePatch=false,loseReadback=false;
+  const api=async(method,p,body,raw=false)=>{
+    if(hook){const result=await hook({method,path:p,body,raw});if(result!==undefined)return copy(result);}
+    if(p===R.API_ROOT+'/commits/'+Q+'/pulls?per_page=100')return [copy(pr)];
+    if(p===R.API_ROOT+'/pulls/'+pr.number)return copy(pr);
+    if(p===R.API_ROOT+'/pulls/'+pin.pr)return copy(oldPr);
+    if(p===R.API_ROOT+'/git/commits/'+Q)return {sha:Q,tree:{sha:H('newtree')},parents:[{sha:P},{sha:head}],message};
+    if(p===R.API_ROOT+'/git/commits/'+head)return {sha:head,tree:{sha:H('newtree')},parents:[{sha:P}],message};
+    if(p===R.API_ROOT+'/git/commits/'+P)return {sha:P,tree:{sha:H('oldtree')},parents:[]};
+    if(p===R.API_ROOT+'/git/trees/'+H('oldtree')+'?recursive=1')return {sha:H('oldtree'),truncated:false,tree:copy(trees)};
+    if(p===R.API_ROOT+'/git/trees/'+H('newtree')+'?recursive=1')return {sha:H('newtree'),truncated:false,tree:copy(newer)};
+    if(p===R.API_ROOT+'/compare/'+P+'...'+Q+'?per_page=100')return {status:'ahead',merge_base_commit:{sha:P},
+      total_commits:2,commits:[{commit:{message}},{commit:{message}}]};
+    if(p===R.API_ROOT+'/issues/comments/'+pin.comment){
+      if(method==='PATCH'){writes++;comment={...comment,body:body.body};if(losePatch)throw Error('lost patch response');}
+      else if(writes&&loseReadback)throw Error('lost readback');
+      return copy(comment);
+    }
+    return f.api(method,p,body,raw);
+  };
+  api.artifact=f.api.artifact;api.jobLog=async n=>{equal(n,pin.closer_job);
+    return '2026-11-09T10:36:30.9940033Z release_slot=held reason=gate_deadline\n';};
+  const env={GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_EVENT_NAME:'workflow_run',GITHUB_REF:'refs/heads/main',
+    GITHUB_SHA:Q,GITHUB_RUN_ID:String(x.id),GITHUB_RUN_ATTEMPT:'1',GITHUB_JOB:'release-slot',
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.CLOSER+'@refs/heads/main',CONFIGURE_RESULT:'skipped'};
+  const event={action:'completed',repository:{full_name:R.REPOSITORY},workflow_run:dq};
+  return {f,P,Q,head,spec,pr,oldPr,trees,newer,dq,x,xjob,env,event,api,original,originalRecord,
+    get writes(){return writes;},get comment(){return comment;},set comment(v){comment=v;},
+    set hook(fn){hook=fn;},set losePatch(v){losePatch=v;},set loseReadback(v){loseReadback=v;},
+    async plan(){
+      const result=await R.planDeployment({env:{...env,GITHUB_RUN_ID:String(dq.id),GITHUB_EVENT_NAME:'push',
+        GITHUB_JOB:'deploy',GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.DEPLOY+'@refs/heads/main'},
+        event:{repository:{full_name:R.REPOSITORY},ref:'refs/heads/main',after:Q,forced:false},api,
+        compare:()=>{throw Error('ordinary content planner cannot run during recovery');}});
+      dq.status='completed';dq.conclusion='success';
+      const rows=C.INSTALL_JOBS.map(n=>job(n,dq,n==='deploy'
+        ?[...R.RECOVERY_SERVER_STEPS.map(s=>step(s,'skipped')),
+          step('Admit only the finite metadata recovery'),step(R.RECOVERY_PLAN_STEP+R.digest(result)),
+          step('Fail failed installation')]:[step('Required source checks')]));
+      rows.push(job('verify',dq,[],'skipped'));f.jobs.set(dq.id,rows);
+      const archive=storedZip('release-plan.json',result),meta={id:900003,name:'closure-recovery-plan-'+dq.id+'-1',
+        expired:false,size_in_bytes:archive.length,workflow_run:{id:dq.id,head_sha:Q,head_branch:'main'},
+        digest:'sha256:'+crypto.createHash('sha256').update(archive).digest('hex'),created_at:T};
+      f.artifacts.set(dq.id,[meta]);f.archives.set(meta.id,archive);return result;
+    },
+    async prepare(){const p=await C.closeRelease({env,event,api,prepare:true});env.PREPARED_RECORD_DIGEST=p.record_digest;
+      const location=await R.readRecord(api),proof=R.publicationProof(f.record,location,String(x.id),1);
+      const archive=storedZip(R.PUBLICATION_FILE,proof),meta={id:900004,name:p.publication_artifact,
+        expired:false,size_in_bytes:archive.length,workflow_run:{id:x.id,head_sha:Q,head_branch:'main'},
+        digest:'sha256:'+crypto.createHash('sha256').update(archive).digest('hex'),created_at:T};
+      f.artifacts.set(x.id,[meta]);f.archives.set(meta.id,archive);
+      xjob.steps.push(step(R.TERMINAL_BINDING_STEP+p.record_digest));return p;},
+    complete(){x.status='completed';x.conclusion='success';xjob.status='completed';xjob.conclusion='success';
+      xjob.steps.push(step(R.TERMINAL_STEP));},
+  };
+}
+async function lateRecoveryCases(){
+  const unmarked=lateRecoveryFixture(),mergeMessage='Finish PR1420 administrative closure';
+  unmarked.dq.head_commit.message=mergeMessage;
+  unmarked.pr.title='[anytour-pr1420-closure-recovery-v1] Finish PR1420';
+  unmarked.hook=async({path:p})=>{
+    if(p===R.API_ROOT+'/git/commits/'+unmarked.Q)return {sha:unmarked.Q,tree:{sha:H('newtree')},
+      parents:[{sha:unmarked.P},{sha:unmarked.head}],message:mergeMessage};
+    if(p===R.API_ROOT+'/compare/'+unmarked.P+'...'+unmarked.Q+'?per_page=100')return {status:'ahead',
+      merge_base_commit:{sha:unmarked.P},total_commits:2,commits:[{sha:unmarked.head,commit:{message:unmarked.pr.title}},
+        {sha:unmarked.Q,commit:{message:mergeMessage}}]};
+  };
+  let ordinaryPlannerReached=false;
+  await refuses(()=>R.planDeployment({env:{...unmarked.env,GITHUB_RUN_ID:String(unmarked.dq.id),
+    GITHUB_EVENT_NAME:'push',GITHUB_JOB:'deploy',GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.DEPLOY+'@refs/heads/main'},
+    event:{repository:{full_name:R.REPOSITORY},ref:'refs/heads/main',after:unmarked.Q,forced:false},api:unmarked.api,
+    compare:()=>{ordinaryPlannerReached=true;return {decision:'ordinary_release_required',
+      comparison:{classification:'runtime_or_unknown',release_path:'full_required'}};}}),
+    'recovery_message_missing','valid recovery PR with consistent unmarked Q refuses, never installs');
+  equal(ordinaryPlannerReached,false,'missing marker refuses before ordinary content/installation fallback');
+  const t=lateRecoveryFixture(),plan=await t.plan();
+  const unmarkedConsumer={...copy(t.x),id:900021,path:R.PREFIX+'max-production-health.yml',
+    head_commit:{id:t.Q,message:mergeMessage}};t.f.runs.set(unmarkedConsumer.id,unmarkedConsumer);
+  await refuses(()=>R.resolveConsumer({env:{...t.env,GITHUB_RUN_ID:String(unmarkedConsumer.id),
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+unmarkedConsumer.path+'@refs/heads/main'},event:t.event,api:t.api}),
+    'recovery_message_missing','recovery PR also fences unmarked downstream source before credentials');
+  equal(plan.plan,'terminal_recovery');
+  equal(plan.application_sha,R.LATE_RECOVERY.application,'source Q never becomes installed application');
+  equal(R.recoverySpec(t.pr,t.Q),plan.intent);
+  for(const [key,value]of [['base_sha','a'.repeat(40)],['source_head','a'.repeat(40)],['changes_digest','invalid']]){
+    const bad=copy(t.pr),v=copy(t.spec);v[key]=value;
+    bad.body='<!-- release-slot-recovery:v1 '+JSON.stringify(v)+' -->';
+    await refuses(()=>R.recoverySpec(bad,t.Q),'invalid_recovery_intent');
+  }
+  const malformed=copy(t.pr);malformed.body+='<!-- release-slot-recovery:v2 {} -->';
+  await refuses(()=>R.recoverySpec(malformed,t.Q),'invalid_recovery_intent');
+  const out=lateRecoveryFixture();out.newer.push({path:'config.php',type:'blob',mode:'100644',sha:H('bad')});
+  await refuses(()=>out.plan(),'recovery_content_out_of_scope');
+  const modes=lateRecoveryFixture();modes.newer[0].mode='100755';
+  await refuses(()=>modes.plan(),'recovery_content_out_of_scope');
+  const digest=lateRecoveryFixture();digest.newer[0].sha=H('different reviewed bytes');
+  await refuses(()=>digest.plan(),'recovery_manifest_changed');
+  const executed=t.f.jobs.get(t.dq.id).find(j=>j.name==='deploy');
+  const key=executed.steps.find(s=>s.name==='Prepare canonical SSH private key');key.conclusion='success';
+  await refuses(()=>R.readRecoveryPlan(t.api,t.dq),'recovery_server_step_executed');key.conclusion='skipped';
+  for(const file of ['live-session-diagnostics.yml','max-production-health.yml','max-tls-preflight.yml',
+    'modeled-conversion-monitor.yml','publish-conversation-diagnostics.yml','telegram-production-health.yml',
+    'tour-selection-host.yml','modeled-conversion-value-export.yml']){
+    const run={...copy(t.x),id:900020,path:R.PREFIX+file};t.f.runs.set(run.id,run);
+    const resolved=await R.resolveConsumer({env:{...t.env,GITHUB_RUN_ID:String(run.id),
+      GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+run.path+'@refs/heads/main'},event:t.event,api:t.api});
+    equal(resolved,{repository_sha:t.Q,application_sha:t.P,kind:'terminal_recovery',perform_actions:false,ready:true},
+      'automatic Q child suppressed before credentials: '+file);
+  }
+  await t.prepare();
+  const r=t.f.record;
+  equal(R.validateRelease(r).release.schema,2);
+  equal(R.installationReceipt(r),R.installationReceipt(t.originalRecord),'original installation receipt immutable');
+  equal(r.repository_release.baseline_eligible,false);
+  await C.closeRelease({env:t.env,event:t.event,api:t.api});t.complete();
+  await R.authenticatePublication(t.api,await R.readRecord(t.api),{closed:true});
+  equal(await R.acceptedBaseline(t.api,await R.readRecord(t.api)),null,'recovery never seeds optimization');
+  t.comment={...t.comment,body:'PR1600: выпуск занят',updated_at:'2026-11-09T18:00:00Z'};
+  equal(await R.acceptedBaseline(t.api,await R.readRecord(t.api)),null,
+    'accepted historical recovery survives legitimate reuse of its publisher by next PR');
+  const N=H('later ordinary N'),run={...copy(t.dq),id:900010,head_sha:N,head_commit:{id:N,message:'ordinary next release'},
+    status:'in_progress',conclusion:null};
+  t.f.runs.set(run.id,run);t.f.main=N;
+  const fallback=t.api;
+  const nextApi=async(method,p,body,raw)=>{
+    if(p===R.API_ROOT+'/compare/'+t.Q+'...'+N+'?per_page=1')return {status:'ahead',merge_base_commit:{sha:t.Q}};
+    return fallback(method,p,body,raw);
+  };
+  nextApi.artifact=fallback.artifact;
+  const next=await R.planDeployment({env:{...t.env,GITHUB_RUN_ID:String(run.id),GITHUB_SHA:N,GITHUB_EVENT_NAME:'push',
+    GITHUB_JOB:'deploy',GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.DEPLOY+'@refs/heads/main'},
+    event:{repository:{full_name:R.REPOSITORY},ref:'refs/heads/main',after:N,forced:false},api:nextApi,
+    compare:()=>({decision:'ordinary_release_required',comparison:{classification:'runtime_or_unknown',release_path:'full_required'}})});
+  equal(next.plan,'install','future ordinary N requires its own normal installation');
+  equal(next.application_sha,N);
+  const contentOnly=await R.planDeployment({env:{...t.env,GITHUB_RUN_ID:String(run.id),GITHUB_SHA:N,GITHUB_EVENT_NAME:'push',
+    GITHUB_JOB:'deploy',GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.DEPLOY+'@refs/heads/main'},
+    event:{repository:{full_name:R.REPOSITORY},ref:'refs/heads/main',after:N,forced:false},api:nextApi,
+    compare:()=>({decision:'no_install_candidate',comparison:{classification:'development_only',
+      release_path:'content_candidate',candidate_runtime_fingerprint:D('same runtime')}})});
+  equal(contentOnly.plan,'install','baseline false also forbids a content-only shortcut after Q');
+  const normal=fixture(H('ordinary installed P')),ordinarySha=H('ordinary associated PR N');
+  const nextWave=normal.start(ordinarySha,7000,8000,1600);nextWave.parent.status='in_progress';nextWave.parent.conclusion=null;
+  const normalPlan=await R.planDeployment({env:{...t.env,GITHUB_RUN_ID:'7000',GITHUB_SHA:ordinarySha,
+    GITHUB_EVENT_NAME:'push',GITHUB_JOB:'deploy',GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.DEPLOY+'@refs/heads/main'},
+    event:{repository:{full_name:R.REPOSITORY},ref:'refs/heads/main',after:ordinarySha,forced:false},api:normal.api,
+    compare:()=>({decision:'ordinary_release_required',comparison:{classification:'runtime_or_unknown',release_path:'full_required'}})});
+  equal(normalPlan.plan,'install','ordinary merged PR without recovery intent retains installation');
+  equal(normalPlan.application_sha,ordinarySha);
+  return {assertions,cases:'finite recovery source/schema/credential/forward-release boundaries'};
+}
+
+async function main(){await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await transportBoundaries();await lateRecoveryCases();
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
-module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip};
+module.exports={main,fixture,receipt,observation,installed,installNoopJobs,storedZip,lateRecoveryFixture,lateRecoveryCases};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});

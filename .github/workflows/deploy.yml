@@ -86,7 +86,7 @@ jobs:
     needs: [verify-inventory, verify-syntax, verify-groups]
     runs-on: ubuntu-latest
     outputs:
-      kind: ${{ steps.release.outputs.kind }}
+      kind: ${{ steps.recovery.outputs.kind || steps.release.outputs.kind }}
       record_json: ${{ steps.release.outputs.record_json }}
     steps:
       - name: Require the complete deployment verification
@@ -122,9 +122,32 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/deployment_release.js plan-deployment --output "$RUNNER_TEMP/release-plan.json" >> "$GITHUB_OUTPUT"
 
+      - name: Admit only the finite metadata recovery
+        id: recovery
+        if: steps.provenance.outcome == 'success' && steps.release_plan.outcome == 'success' && steps.release_plan.outputs.plan == 'terminal_recovery'
+        env:
+          PLAN_DIGEST: ${{ steps.release_plan.outputs.plan_digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_EVENT_NAME" = push
+          [[ "$PLAN_DIGEST" =~ ^[0-9a-f]{64}$ ]]
+          printf 'kind=terminal_recovery\n' >> "$GITHUB_OUTPUT"
+
+      - name: Bind the recovery plan to its original maintenance run — ${{ steps.release_plan.outputs.plan_digest }}
+        id: recovery_plan_publication
+        if: steps.recovery.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: closure-recovery-plan-${{ github.run_id }}-1
+          path: ${{ runner.temp }}/release-plan.json
+          if-no-files-found: error
+          retention-days: 90
+
       - name: Prepare canonical SSH private key
         id: ssh_key
-        if: steps.provenance.outcome == 'success' && steps.release_plan.outcome == 'success'
+        if: steps.provenance.outcome == 'success' && steps.release_plan.outcome == 'success' && (steps.release_plan.outputs.plan == 'install' || steps.release_plan.outputs.plan == 'observe_unchanged')
         continue-on-error: true
         env:
           DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
@@ -417,6 +440,9 @@ jobs:
         env:
           PROVENANCE_OUTCOME: ${{ steps.provenance.outcome }}
           PLAN_OUTCOME: ${{ steps.release_plan.outcome }}
+          PLAN: ${{ steps.release_plan.outputs.plan }}
+          RECOVERY: ${{ steps.recovery.outcome }}
+          RECOVERY_PROOF: ${{ steps.recovery_plan_publication.outcome }}
           RELEASE_OUTCOME: ${{ steps.release.outcome }}
           RELEASE_KIND: ${{ steps.release.outputs.kind }}
           KEY_OUTCOME: ${{ steps.ssh_key.outcome }}
@@ -429,6 +455,21 @@ jobs:
         run: |
           test "$PROVENANCE_OUTCOME" = success
           test "$PLAN_OUTCOME" = success
+          if test "$PLAN" = terminal_recovery; then
+            test "$RECOVERY" = success
+            test "$RECOVERY_PROOF" = success
+            test "$RELEASE_OUTCOME" = skipped
+            test "$KEY_OUTCOME" = skipped
+            test "$BUNDLE_OUTCOME" = skipped
+            test "$SYNC_OUTCOME" = skipped
+            test "$MIGRATION_OUTCOME" = skipped
+            test "$MAX_WEBHOOK_OUTCOME" = skipped
+            test "$METRIKA_CRON_OUTCOME" = skipped
+            test "$INSTALLED_OUTCOME" = skipped
+            exit 0
+          fi
+          test "$RECOVERY" = skipped
+          test "$RECOVERY_PROOF" = skipped
           test "$RELEASE_OUTCOME" = success
           test "$KEY_OUTCOME" = success
           if test "$RELEASE_KIND" = application_unchanged; then
@@ -450,6 +491,7 @@ jobs:
 
   verify:
     needs: deploy
+    if: needs.deploy.outputs.kind != 'terminal_recovery'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout exact installed verification SHA
