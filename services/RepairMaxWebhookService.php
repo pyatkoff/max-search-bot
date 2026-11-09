@@ -102,7 +102,7 @@ final class RepairMaxWebhookService
             $metadata['max_bot_key'] = $botKey;
             // A generic/reopened start cannot erase the customer's known device.
             // Only another recognized repair entry replaces the reviewed context.
-            if ($context) $metadata['repair_context'] = $context;
+            if ($context && ($entry['scope'] ?? 'repair') !== 'menu') $metadata['repair_context'] = $context;
             $q = $pdo->prepare('UPDATE conversations SET metadata_json=? WHERE id=? AND project_key=?');
             $q->execute([json_encode($metadata, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),$conversationId,$projectKey]);
             if ($type === 'bot_started') {
