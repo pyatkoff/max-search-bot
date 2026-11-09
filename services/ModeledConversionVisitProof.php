@@ -162,7 +162,8 @@ final class ModeledConversionVisitProof
                 &&($r['value_processed_at_unix']===null||(int)$r['value_processed_at_unix']>$checkpoint)){$cohort++;continue;}
             $old=$prior($r);$at=(int)($old['at']??0);$e=$old['event']??[];
             $db=$r['upload_status']??null;
-            if(in_array($db,['PROCESSED','LINKAGE_FAILURE'],true)&&($e['upload_status']??null)!==$db){
+            if(in_array($db,['PROCESSED','LINKAGE_FAILURE'],true)&&($e['upload_status']??null)!==$db
+                &&($at>0||(int)($r['value_processed_at_unix']??0)>=$now-900)){
                 $urgent[]=(string)$r['id'];continue;
             }
             $terminal=($e['linkage']??null)==='unique_visit_reconciled'

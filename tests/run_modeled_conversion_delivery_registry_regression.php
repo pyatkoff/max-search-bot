@@ -379,6 +379,13 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         static fn(array $r):array=>['at'=>$now-1,'event'=>['upload_status'=>'UPLOADED','linkage'=>'not_checked']],2);
     $check('newly completed receipts precede repeated pending reads and include legacy goal rows',
         $priority===[(string)$finished['id'],(string)$legacyFinished['id']]);
+    $historic=$queue[0];$historic['id']='41';$historic['upload_status']='PROCESSED';$historic['value_processed_at_unix']=$day+1;
+    $fresh=$queue[0];$fresh['id']='42';
+    $fair=ModeledConversionVisitProof::dueIds([$fresh,$historic,$finished],$day+500,$now,
+        static fn(array $r):array=>$r['id']===(string)$finished['id']
+            ?['at'=>$now-1,'event'=>['upload_status'=>'UPLOADED','linkage'=>'not_checked']]:[],2);
+    $check('old unchecked processing history cannot consume the new-upload slot',
+        $fair===[(string)$finished['id'],(string)$fresh['id']]);
     $deadlineCalls=count($api->calls);$deadlineBlocked=false;
     try{ModeledConversionVisitProof::verify([$a],$api,$day,$day+500,$now,null,microtime(true)-1);}catch(RuntimeException $ignored){$deadlineBlocked=true;}
     $check('expired verifier time budget stops before a provider receipt read',$deadlineBlocked&&count($api->calls)===$deadlineCalls);
