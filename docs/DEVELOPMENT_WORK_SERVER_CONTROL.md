@@ -196,3 +196,81 @@ rerun of the failed deployment nor an unrelated manual diagnostic may substitute
 for that proof. Before actual finite ARM, independently read the installed candidate
 and verify its historical baseline, actual execution authority, profile, budget,
 deadline and once-only state. No real A02/B acceptance has yet been established.
+
+
+## Original reviewer loss and disabled ONE-A02 recovery
+
+PR1433 installed the server control and migration096. Two ordinary server ticks
+were independently observed 60 seconds apart. A02's producer completed, but its
+separate reviewer returned an incomplete response at the output-token limit.
+The original 8192-byte DEV capture retained only a labelled prefix. A02 is not
+accepted under the frozen stateless-review contract; its original UNKNOWN,
+request, prefix, receipt, claim and two charged calls are not replayed or erased.
+
+The default config/development_work_one_a02_amendment.json is **inoperative**.
+Migration097 creates only an empty audit sidecar. There is no new MCP action,
+claim-key substitution, callback, timer, queue, grant or generic executor.
+Only the existing ordinary DEV cron may apply one separately reviewed, sealed
+amendment to this exact A02. A genuinely completed independent original ROOT
+review, its saved artifact and canonical terminal readback are required. This
+is a supplementary acceptance contract, explicitly not success of the failed
+stateless reviewer. The old receipt and failed reviewer remain immutable.
+
+The operative document must pin the exact original queue/task/spec/input/plan,
+binding/legacy, producer job/request/full response/report/run/cron, failed
+reviewer job/request/prefix and UNKNOWN receipt, actual ROOT review artifact
+and terminal proof, plus the separately reviewed future implementation and
+B-only policy. Source may never manufacture terminal completion or silently
+change fields after review. An operative publication needs a further exact
+independent review; preparing a disabled candidate is no live permission.
+
+Before applying, the cron independently reads only the fixed repository's
+public deployment status and the existing publisher6483628958. Local checkout,
+published application SHA, original successful push attempt1, all performed
+installation stages, mandatory gates and actual automatic installed/free
+terminal must agree. These bounded read-only probes run outside SQL locks,
+at most once per minute and at most30 pairs for this one manifest. Until release
+is established, a canonical unchanged held-UNKNOWN observation may prove the
+schedule only; it never accepts work or bypasses a release gate.
+
+A unique queue/task sidecar and the existing resolution history record the
+amendment atomically under the same lane/queue locks and current authority.
+A02's original UNKNOWN remains a worker receipt; its separate supplementary
+resolution is identified as such. A valid actual accepted-A parent then creates
+B's immutable input, task and pending event in the same transaction. B cannot
+dispatch in the amendment cron or minute slot. Its producer and separate
+reviewer each require a later ordinary minute and a real complete original
+provider response. Total charged calls stay two spent plus two remaining,
+with no refund/reset or new pair.
+
+The explicit proposed deadline rule is activation before the actual original
+ROOT review completion plus86400 seconds, then one fixed B deadline equal to
+the amendment's actual applied_at plus3600 seconds. That deadline is frozen
+in the separate future binding and receipt. It never slides, and the original
+admission deadline remains unchanged. Expired activation or execution stops
+without a provider call.
+
+Only future B requests use the separately bound DEV-v2 transport: the same
+configured model/low reasoning/default service/store=false,4096 output tokens,
+compact six-check notes, and at most16384 full response bytes. The limit covers
+reasoning as well as visible output; an incomplete response is not accepted.
+The manager/HOTEL request profile and all old bytes retain their original
+settings. Opaque reasoning is neither removed from retained evidence nor
+published as a fixture.
+
+The bounded status getter requires no new arguments or catalogue refresh.
+DEV-v2 returns the entire bounded original proof once in structuredContent and
+a short explicit text digest, rather than duplicating base64 in both copies.
+The exact JSON proof cap is196608 bytes; the complete escaped JSON-RPC cap stays
+262144, including a1024-byte hostile ID and reserved metadata. Both authenticated
+MCP wrappers must preserve full structuredContent. A disabled installed candidate
+must demonstrate that compatibility before an operative publication.
+
+Tests use synthetic encrypted-looking padding and whitespace through the real
+DEV chunk callback. They cover the actual old6162-byte producer and8192-byte
+lost prefix sizes, a valid small report inside a large complete envelope,
+complete-but-incomplete provider results, truncation, full16KiB future bodies,
+four retained attempts, both real authenticated wrappers, immutable originals,
+publication waiting, once-only amendment and later B, forged/missing terminal
+and lineage, expiry and no replay. Passing tests alone are not installation,
+operative approval, A02 acceptance or completion of the development roadmap.

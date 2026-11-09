@@ -20,9 +20,11 @@ final class DevelopmentWorkServerProvider
             throw new DomainException('development_server_job');
         $payload=['input'=>$job['input'],'facts'=>$job['facts'],
             'evidence'=>$job['evidence'],'candidate'=>$job['candidate'],'producer_evidence'=>$job['producer_evidence']];
+        $v2=($job['transport_contract']??null)==='full_structured_v2';
+        if($v2&&$job['kind']!=='readiness')throw new DomainException('development_server_v2_scope');
         $body=ManagerDraftClient::developmentRequestBody($job['role'],
-            DevelopmentWorkServerContract::instructions($job['role']),$payload,
-            DevelopmentWorkServerContract::schema($job['role'],$job['kind']));
+            $v2?DevelopmentWorkServerContract::futureInstructions($job['role']):DevelopmentWorkServerContract::instructions($job['role']),$payload,
+            $v2?DevelopmentWorkServerContract::futureSchema($job['role']):DevelopmentWorkServerContract::schema($job['role'],$job['kind']),$v2);
         $wire=json_encode($body,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         if(strlen($wire)>DevelopmentWorkServerContract::MAX_REQUEST_BYTES)
             throw new DomainException('development_server_request_budget');

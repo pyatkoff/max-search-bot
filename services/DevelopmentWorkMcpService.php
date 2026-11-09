@@ -112,8 +112,7 @@ final class DevelopmentWorkMcpService
             if ($self===null) throw new DevelopmentWorkMcpAccessError('AUTH_CONTEXT_UNAVAILABLE');
             $data=['ok'=>false,'reason'=>'OWNED_QUEUE_UNAVAILABLE','queue_available'=>false,'caller_self'=>$self];
         }
-        return ['content'=>[['type'=>'text','text'=>json_encode($data,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)]],
-            'structuredContent'=>$data,'isError'=>isset($data['ok'])&&$data['ok']!==true];
+        return DevelopmentWorkServerContract::toolResult($data);
     }
 
     private function subscription(array $params,int $admin,string $connection,bool $remove): mixed

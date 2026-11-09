@@ -1,10 +1,12 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/DevelopmentWorkServerProvider.php';
+require_once __DIR__.'/DevelopmentWorkServerAmendment.php';
 
 /** Part of the canonical queue: same PDO transaction/lane and native audit. */
 trait DevelopmentWorkServerControl
 {
+    use DevelopmentWorkServerAmendment;
     private function serverControl(array $q): ?array
     {
         return $this->one('SELECT * FROM development_work_server_controls WHERE queue_id=?',[$q['queue_id']]);
@@ -177,10 +179,11 @@ trait DevelopmentWorkServerControl
             ||(int)$c['reserved_tokens']!==(int)$c['reserved_calls']*$policy['tokens_per_call']
             ||(int)$c['reserved_micros']!==(int)$c['reserved_calls']*$policy['reserved_micros_per_call'])
             throw new DomainException('development_server_reservation_conflict');
-        if($current&&(self::hash(DevelopmentWorkServerContract::policy())!==self::hash($policy)
+        $effective=$this->serverAmendmentEffective($q,$c,$b,$current);
+        if($current&&!isset($effective['amendment_sha256'])&&(self::hash(DevelopmentWorkServerContract::policy())!==self::hash($policy)
             ||self::hash($this->serverImplementation())!==self::hash($b['proposal']['implementation'])))
             throw new DomainException('development_server_policy_changed');
-        return $b;
+        return $effective;
     }
     private function serverProof(array $q,array $c): array
     {
@@ -209,6 +212,8 @@ trait DevelopmentWorkServerControl
         }
         if(count($attempts)>4||count($events)>2||count($receipts)>2)throw new DomainException('development_server_finite_bound');
         return ['execution_kind'=>'server_model','binding_sha256'=>$c['binding_sha256'],'binding_base64'=>base64_encode($c['binding_bytes']),
+            'readback_contract'=>'full_structured_v2','amendment'=>$this->serverAmendmentProof($q),
+            'acceptance_semantics'=>'original_failed_review_retained_A_requires_explicit_supplementary_resolution_B_requires_completed_stateless_pair',
             'state'=>$c['state'],'attention_reason'=>$c['attention_reason'],'reserved_calls'=>(int)$c['reserved_calls'],
             'reserved_tokens'=>(int)$c['reserved_tokens'],'reserved_micros'=>(int)$c['reserved_micros'],
             'events'=>$events,'attempts'=>$attempts,'receipts'=>$receipts,
@@ -229,6 +234,10 @@ trait DevelopmentWorkServerControl
         }
         $out['execution_kind']='server_model';$out['expected_pending_event_id']=null;
         $out['server_control']=$this->serverProof($q,$c);
+        $out['server_amendment_preparation']=['operative'=>false,'scope'=>'fixed_original_A02_only',
+            'future_policy'=>DevelopmentWorkServerContract::futurePolicy(),
+            'future_implementation'=>$this->serverFutureImplementation(),
+            'native_root_terminal_required'=>true,'no_mcp_mutation_or_claim_key'=>true];
         DevelopmentWorkServerContract::assertReadback($out);
         return $out;
     }
@@ -278,10 +287,12 @@ trait DevelopmentWorkServerControl
     }
 
     /** Backend-only entry, never exposed by MCP. Only the installed CLI supplies cron context. */
-    public function serverTick(DevelopmentWorkServerProvider $provider,array $origin): array
+    public function serverTick(DevelopmentWorkServerProvider $provider,array $origin,?DevelopmentWorkServerAmendmentGate $gate=null): array
     {
         if(($origin['trigger']??null)!=='cron'||!preg_match('/\A[a-f0-9]{64}\z/D',$origin['cron_id']??'')
             ||!is_int($origin['started_at']??null))return ['handled'=>true,'state'=>'hold','reason'=>'ordinary_cron_required','provider_calls'=>0];
+        $this->serverAmendmentGate=$gate;
+        $amended=$this->serverApplyReviewedAmendment($origin);if($amended!==null)return $amended;
         $prepared=$this->transaction(function()use($provider,$origin):array {
             $lane=$this->lane();
             $q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]);
@@ -291,16 +302,18 @@ trait DevelopmentWorkServerControl
             if(in_array($c['state'],['hold','complete'],true))
                 return ['handled'=>true,'state'=>$c['state'],'provider_calls'=>0];
             $this->ownsLane($q,$lane);
-            try{$this->serverBinding($q,$c,true);}catch(DomainException $error){
+            try{$b=$this->serverBinding($q,$c,true);}catch(DomainException $error){
                 $this->execute('UPDATE development_work_server_controls SET state=?,attention_reason=? WHERE queue_id=?',['hold','admission_authority_or_policy_changed',$q['queue_id']]);
                 return ['handled'=>true,'state'=>'hold','reason'=>'admission_authority_or_policy_changed','provider_calls'=>0];
             }
             $now=$this->timestamp();$slot=intdiv($now,60);
-            if($now<(int)$c['admitted_at']||$now>=(int)$c['deadline_at']||(int)$c['reserved_calls']>=4) {
+            if($now<(int)$c['admitted_at']||$now>=(int)$b['deadline_at']||(int)$c['reserved_calls']>=4) {
                 $this->execute('UPDATE development_work_server_controls SET state=?,attention_reason=? WHERE queue_id=?',['hold','budget_or_deadline',$q['queue_id']]);
                 return ['handled'=>true,'state'=>'hold','reason'=>'budget_or_deadline','provider_calls'=>0];
             }
-            if(($origin['started_at']>$now||$now-$origin['started_at']>30)||($c['last_dispatch_slot']!==null&&$slot<=(int)$c['last_dispatch_slot']))
+            if(($origin['started_at']>$now||$now-$origin['started_at']>30)
+                ||(isset($b['amendment_applied_at'])&&$slot<=intdiv((int)$b['amendment_applied_at'],60))
+                ||($c['last_dispatch_slot']!==null&&$slot<=(int)$c['last_dispatch_slot']))
                 return ['handled'=>true,'state'=>'waiting_next_cron','provider_calls'=>0];
             if(!$provider->ready())return ['handled'=>true,'state'=>'hold','reason'=>'provider_not_configured','provider_calls'=>0];
             $item=$this->current($q);$kind=$item['task_id']===DevelopmentWorkServerContract::A?'commissioning':'readiness';
@@ -351,7 +364,7 @@ trait DevelopmentWorkServerControl
                 'limits'=>['policy_sha256'=>self::hash($policy),'profile'=>$policy['profile'],
                     'max_calls'=>$policy['max_calls'],'reserved_calls_before'=>(int)$c['reserved_calls'],
                     'tokens_per_call'=>$policy['tokens_per_call'],'reserved_micros_per_call'=>$policy['reserved_micros_per_call'],
-                    'money_semantics'=>$policy['money_semantics'],'admitted_at'=>(int)$c['admitted_at'],'deadline_at'=>(int)$c['deadline_at']],
+                    'money_semantics'=>$policy['money_semantics'],'admitted_at'=>(int)$c['admitted_at'],'deadline_at'=>(int)$b['deadline_at']],
                 'legacy'=>['baseline_sha256'=>$c['legacy_sha256'],'observed_sha256'=>$freshLegacy,
                     'retired_task'=>'DEV-CONTROL-COMMISSION-20261028-01','retired_count'=>(int)$q['retirement_count'],
                     'coverage'=>'old_queue_item_receipt_retirement_handoff_bytes_only',
@@ -368,7 +381,7 @@ trait DevelopmentWorkServerControl
             else $facts+=['accepted_parent'=>$parent['outcome']==='accepted_readback',
                 'new_pending'=>$event['spec_sha256']===$item['spec_sha256'],
                 'different_cron'=>$event['created_cron_id']!==$origin['cron_id']&&(int)$event['created_at']<$now,
-                'handover'=>$q['current_task_id']===DevelopmentWorkServerContract::B&&$now<(int)$c['deadline_at']];
+                'handover'=>$q['current_task_id']===DevelopmentWorkServerContract::B&&$now<(int)$b['deadline_at']];
             foreach($facts as $key=>$value)if($key!=='legacy_unknown'&&$value!==true)
                 throw new DomainException('development_server_evidence_not_supported');
             $candidate=$producer===null?null:json_decode($producer['report_bytes'],true,32,JSON_THROW_ON_ERROR);
@@ -377,7 +390,8 @@ trait DevelopmentWorkServerControl
                 array_flip(['response_id','status','model','usage','wire_request_sha256','wire_response_sha256','report_sha256']));
             $payload=['execution_kind'=>'server_model','role'=>$role,'kind'=>$kind,'input'=>$input,
                 'execution'=>$evidence['execution'],'evidence'=>$evidence,
-                'facts'=>$facts,'candidate'=>$candidate,'producer_evidence'=>$producerEvidence];
+                'facts'=>$facts,'candidate'=>$candidate,'producer_evidence'=>$producerEvidence,
+                'transport_contract'=>isset($b['amendment_sha256'])?'full_structured_v2':'full_duplicate_v1'];
             $wire=$provider->prepare($payload);
             $attempt=bin2hex(random_bytes(32));
             $job=['schema'=>'development-server-job-v1','attempt_id'=>$attempt,'execution_kind'=>'server_model',
@@ -385,7 +399,8 @@ trait DevelopmentWorkServerControl
                 'logical_owner_task_id'=>$role==='producer'?$item['owner_task_id']:$item['reviewer_task_id'],
                 'binding_sha256'=>$c['binding_sha256'],'spec_sha256'=>$item['spec_sha256'],
                 'input_sha256'=>$item['input_sha256'],'cron_id'=>$origin['cron_id'],'event_id'=>$event['event_id'],
-                'wire_sha256'=>hash('sha256',$wire),'candidate_sha256'=>$producer['report_sha256']??null];
+                'wire_sha256'=>hash('sha256',$wire),'candidate_sha256'=>$producer['report_sha256']??null]
+                +(isset($b['amendment_sha256'])?['amendment_sha256'=>$b['amendment_sha256']]:[]);
             $jobBytes=self::canonical($job);
             if($role==='producer') {
                 if($q['state']!=='ready'||$item['claim_sha256']!==null||$item['current_run_id']!==null)
@@ -415,6 +430,8 @@ trait DevelopmentWorkServerControl
     {
         $a=$this->item($q['queue_id'],DevelopmentWorkServerContract::A);
         if(!$a||$a['state']!=='accepted')throw new DomainException('development_server_parent_not_accepted');
+        $amended=$this->serverAmendmentRow($q);
+        if($amended&&$amended['state']==='applied')return $this->serverAmendmentParent($q,$amended);
         $this->acceptedItemReceipt($q,$a);
         $r=$this->one('SELECT * FROM development_work_receipts WHERE queue_id=? AND task_id=?',[$q['queue_id'],$a['task_id']]);
         $p=$this->one('SELECT * FROM development_work_server_attempts WHERE queue_id=? AND task_id=? AND role=?',[$q['queue_id'],$a['task_id'],'producer']);
@@ -472,7 +489,7 @@ trait DevelopmentWorkServerControl
             if($a['state']!=='unknown'||$control['state']!=='unknown'||$q['state']!=='claimed'||$q['current_task_id']!==$a['task_id'])
                 throw new DevelopmentWorkQueueConflict('development_server_original_state');
             $actual=is_array($transport)&&is_string($transport['wire_request_bytes']??null)?$transport['wire_request_bytes']:null;
-            $rawLimit=DevelopmentWorkServerContract::MAX_RESPONSE_BYTES;$wireLimit=DevelopmentWorkServerContract::MAX_REQUEST_BYTES;
+            $rawLimit=isset($binding['amendment_sha256'])?16384:DevelopmentWorkServerContract::MAX_RESPONSE_BYTES;$wireLimit=DevelopmentWorkServerContract::MAX_REQUEST_BYTES;
             // The real DEV transport is bounded at capture. A malformed backend result also cannot
             // poison the sole supported getter: retain a labelled prefix, never claim it is full.
             $retained=$raw===null?null:substr($raw,0,$rawLimit);
@@ -506,18 +523,19 @@ trait DevelopmentWorkServerControl
             }
             $this->execute('UPDATE development_work_server_attempts SET metadata_bytes=? WHERE attempt_id=?',[self::canonical($observation),$attemptId]);
             try {
-                $this->serverBinding($q,$control,true);
-                if($this->timestamp()>=(int)$control['deadline_at'])throw new DomainException('development_server_late_original_result');
+                $binding=$this->serverBinding($q,$control,true);
+                if($this->timestamp()>=(int)$binding['deadline_at'])throw new DomainException('development_server_late_original_result');
                 if(hash('sha256',$a['job_bytes'])!==$a['job_sha256']||hash('sha256',$a['request_bytes'])!==$a['request_sha256'])
                     throw new DomainException('development_server_original_request_corrupt');
                 $job=json_decode($a['job_bytes'],true,32,JSON_THROW_ON_ERROR);
                 if($job['attempt_id']!==$attemptId||$job['task_id']!==$a['task_id']||$job['role']!==$a['role']
-                    ||$job['wire_sha256']!==$a['request_sha256']||$job['binding_sha256']!==$control['binding_sha256'])
+                    ||$job['wire_sha256']!==$a['request_sha256']||$job['binding_sha256']!==$control['binding_sha256']
+                    ||($job['amendment_sha256']??null)!==($binding['amendment_sha256']??null))
                     throw new DomainException('development_server_job_lineage');
                 if(!is_array($transport)||($transport['wire_complete']??null)!==true
                     ||($transport['wire_request_bytes']??null)!==$a['request_bytes']
                     ||!is_int($transport['http_status']??null)||$transport['http_status']<200||$transport['http_status']>=300
-                    ||$raw===null||strlen($raw)>DevelopmentWorkServerContract::MAX_RESPONSE_BYTES)
+                    ||$raw===null||strlen($raw)>$rawLimit)
                     throw new DomainException('development_server_original_transport_unconfirmed');
                 if(!is_array($meta)||($meta['status']??null)!=='completed'
                     ||($meta['model']??null)!==$binding['proposal']['policy']['profile']['model']
@@ -539,6 +557,8 @@ trait DevelopmentWorkServerControl
                     ||$payload['evidence']['execution']['cron_id']!==$a['cron_id']||$payload['evidence']['execution']['event_id']!==$a['event_id'])
                     throw new DomainException('development_server_actual_input_pin');
                 DevelopmentWorkServerContract::validateReport($report,$a['role'],$job['kind'],$payload['facts'],$job['candidate_sha256'],$payload['evidence']);
+                if(isset($binding['amendment_sha256']))foreach($report['checks'] as $check)
+                    if(preg_match_all('/./us',$check['note'])>64)throw new DomainException('development_server_v2_note_budget');
                 if($duplicate)
                     throw new DomainException('development_server_duplicate_response');
                 $reportBytes=self::canonical($report);
@@ -588,24 +608,7 @@ trait DevelopmentWorkServerControl
         $next=$this->finish($q,$item,$receipt,$lane,$this->now());
         $this->execute('UPDATE development_work_server_events SET state=? WHERE queue_id=? AND task_id=?',['consumed',$q['queue_id'],$item['task_id']]);
         if($item['task_id']===DevelopmentWorkServerContract::A) {
-            // B's actual input and row do not exist until this accepted A receipt exists.
-            $parent=$this->serverParent($next);$input=$this->serverBInput($binding,$parent);
-            $spec=['task_id'=>DevelopmentWorkServerContract::B,'owner_task_id'=>DevelopmentWorkServerContract::SOURCE,
-                'reviewer_task_id'=>DevelopmentWorkServerContract::REVIEWER,'input_sha256'=>self::hash($input),
-                'acceptance_contract_sha256'=>self::hash($binding['proposal']['dependent_acceptance']+['accepted_parent'=>$parent]),
-                'deps'=>[DevelopmentWorkServerContract::A],'priority'=>10];
-            $plan=self::hash(['previous_plan'=>$q['plan_sha256'],'accepted_A'=>$parent,'task'=>$spec]);
-            $this->insertTasks($q['queue_id'],$plan,[$spec],(int)$next['task_count'],$this->now());
-            $this->execute('INSERT INTO development_work_appends(queue_id,plan_sha256,expected_plan_sha256,tasks_sha256,task_count,created_at) VALUES(?,?,?,?,1,?)',
-                [$q['queue_id'],$plan,$q['plan_sha256'],self::hash([$spec]),$this->now()]);
-            $this->execute('UPDATE development_work_queues SET plan_sha256=?,task_count=task_count+1,updated_at=? WHERE queue_id=?',
-                [$plan,$this->now(),$q['queue_id']]);
-            $next=$this->selectNext($this->owned($q['queue_id'],(int)$q['admin_id'],$q['oauth_connection_id']),$this->lane(),$this->now());
-            $b=$this->current($next);
-            $event=self::hash([$this->serverControl($q)['binding_sha256'],$b['task_id'],$b['spec_sha256']]);
-            $this->execute('INSERT INTO development_work_server_events(event_id,queue_id,task_id,spec_sha256,created_cron_id,created_at,state) VALUES(?,?,?,?,?,?,?)',
-                [$event,$q['queue_id'],$b['task_id'],$b['spec_sha256'],$reviewer['cron_id'],$this->timestamp(),'pending']);
-            $this->execute('UPDATE development_work_server_controls SET state=? WHERE queue_id=?',['ready',$q['queue_id']]);
+            $this->serverMaterializeB($next,$reviewer['cron_id'],$this->timestamp());
         } else {
             if($next['current_task_id']!==null||(int)$next['task_count']!==3||(int)$next['accepted_count']!==2
                 ||(int)$next['blocked_count']!==1||(int)$next['retirement_count']!==1||$next['state']!=='blocked')
@@ -615,4 +618,25 @@ trait DevelopmentWorkServerControl
         return ['handled'=>true,'state'=>$item['task_id']===DevelopmentWorkServerContract::A?'ready':'complete',
             'accepted_task'=>$item['task_id'],'provider_calls'=>1,'receipt_sha256'=>hash('sha256',$bytes)];
     }
+    private function serverMaterializeB(array $next,string $createdCron,int $createdAt): void
+    {
+        $q=$next;$parent=$this->serverParent($q);
+        $binding=$this->serverBinding($q,$this->serverControl($q));$input=$this->serverBInput($binding,$parent);
+        $spec=['task_id'=>DevelopmentWorkServerContract::B,'owner_task_id'=>DevelopmentWorkServerContract::SOURCE,
+            'reviewer_task_id'=>DevelopmentWorkServerContract::REVIEWER,'input_sha256'=>self::hash($input),
+            'acceptance_contract_sha256'=>self::hash($binding['proposal']['dependent_acceptance']+['accepted_parent'=>$parent]),
+            'deps'=>[DevelopmentWorkServerContract::A],'priority'=>10];
+        $plan=self::hash(['previous_plan'=>$q['plan_sha256'],'accepted_A'=>$parent,'task'=>$spec]);
+        $this->insertTasks($q['queue_id'],$plan,[$spec],(int)$next['task_count'],$this->now());
+        $this->execute('INSERT INTO development_work_appends(queue_id,plan_sha256,expected_plan_sha256,tasks_sha256,task_count,created_at) VALUES(?,?,?,?,1,?)',
+            [$q['queue_id'],$plan,$q['plan_sha256'],self::hash([$spec]),$this->now()]);
+        $this->execute('UPDATE development_work_queues SET plan_sha256=?,task_count=task_count+1,updated_at=? WHERE queue_id=?',
+            [$plan,$this->now(),$q['queue_id']]);
+        $next=$this->selectNext($this->owned($q['queue_id'],(int)$q['admin_id'],$q['oauth_connection_id']),$this->lane(),$this->now());
+        $b=$this->current($next);$event=self::hash([$this->serverControl($q)['binding_sha256'],$b['task_id'],$b['spec_sha256']]);
+        $this->execute('INSERT INTO development_work_server_events(event_id,queue_id,task_id,spec_sha256,created_cron_id,created_at,state) VALUES(?,?,?,?,?,?,?)',
+            [$event,$q['queue_id'],$b['task_id'],$b['spec_sha256'],$createdCron,$createdAt,'pending']);
+        $this->execute('UPDATE development_work_server_controls SET state=? WHERE queue_id=?',['ready',$q['queue_id']]);
+    }
+
 }
