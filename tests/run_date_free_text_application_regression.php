@@ -160,6 +160,7 @@ $cases = [
     ['leap day', 1503, '29.02.2028', '29.02.2028'],
     ['spaced explicit date', 1504, '18 . 11.2030', '18.11.2030'],
     ['numeric date suffix is not a day range', 1505, '24.11.28-29.11.28', '24.11.2028'],
+    ['attached day and named month', 1507, '9апреля 2030', '09.04.2030'],
 ];
 foreach ($cases as [$label, $chatId, $text, $expected]) {
     $messenger = dateFreeTextReset($chatId);

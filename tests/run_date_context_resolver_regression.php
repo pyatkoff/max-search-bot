@@ -74,6 +74,34 @@ dcrCheck('spaced explicit date clears obsolete month context', PendingMonthStore
 $spacedGuard = AiDateContextService::applyAiGuard($chatId, '18 . 11.2030', ['date'=>'20.12.2030']);
 dcrCheck('spaced explicit user date wins over AI guess', ($spacedGuard['date'] ?? '') === '18.11.2030');
 
+// A missing space in a complete short date retains the ordinary date contract.
+foreach ([
+    ['9апреля 2030', '9 апреля 2030'],
+    ['9АПРЕЛЯ 2030', '9 апреля 2030'],
+    ['29февраля 2032', '29 февраля 2032'],
+    ['31января 2030.', '31 января 2030'],
+    ['9апреля', '9 апреля'],
+] as [$attached, $spaced]) {
+    dcrCheck('attached named date equals ordinary spelling: '.$attached,
+        DateParser::resolveDate($attached) === DateParser::resolveDate($spaced));
+}
+foreach (['31апреля 2030', '29февраля 2030', '9апреля 2030?', 'ребёнку9апреля 2030', '9апреля или 10апреля 2030'] as $unsupportedAttached) {
+    dcrCheck('attached spelling cannot invent an invalid or ambiguous day: '.$unsupportedAttached,
+        empty(DateParser::resolveDate($unsupportedAttached)['date']));
+}
+DateContextResolver::rememberMonth($chatId, 12, 2030);
+$attachedLocal = AiDateContextService::resolveLocal($chatId, '9апреля 2030');
+dcrCheck('attached date completes actual local parsing and clears stale month',
+    $attachedLocal['date'] === '09.04.2030' && PendingMonthStore::get($chatId) === []);
+$attachedGuard = AiDateContextService::applyAiGuard($chatId, '9апреля 2030', ['date'=>'20.12.2030','nights'=>'11']);
+dcrCheck('attached date overrides conflicting model date without losing nights',
+    $attachedGuard['date'] === '09.04.2030' && $attachedGuard['nights'] === '11');
+DateContextResolver::rememberMonth($chatId, 7, 2030);
+PendingMonthStore::set($chatId, 7, 2030, true);
+$attachedClarification = AiDateContextService::resolveLocal($chatId, '9апреля 2030');
+dcrCheck('attached explicit date also completes pending window clarification',
+    $attachedClarification['date'] === '09.04.2030' && PendingMonthStore::get($chatId) === []);
+
 // Synthetic cross-month windows cannot borrow a phase from another month.
 foreach (['конец июня — начало июля', 'июль или июнь', 'с середины августа до начала сентября'] as $window) {
     DateContextResolver::rememberMonth($chatId, 12, 2030);
