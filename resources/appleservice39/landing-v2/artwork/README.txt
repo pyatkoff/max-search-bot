@@ -1,5 +1,7 @@
-AppleService39: 15 new reviewed source covers, prepared 9 November 2026.
+AppleService39 — source catalog cover input, 9 November 2026.
 
-This is an artwork preparation branch based on PR1425 head6fab12a5c22149011d3fd0892594699a02708a3a. It changes no runtime, workflow, campaign, v1 asset, message or provider operation. Current PR1425 still reuses original verified images; these new files require coherent admission to that same existing publication process before they can appear in MAX.
+15 visually reviewed AI-generated PNGs, 1072x1467, created with the built-in image generator. Direct service/model/price hierarchy; no problem-question headlines or drawn CTAs. Prices and source qualifiers are bound by asset-manifest.json. Full selected prompts are retained.
 
-All15 source PNGs were visually inspected for the model, service, price/unknown-price qualification and legibility. asset-manifest.json pins their actual bytes and price-source provenance. These are generated advertising illustrations, not photographs of a particular repair or native publication receipts. No claim of a measured 9/10 score or live publication is made. Preserve all original24MIDs/URLs, pin and UNKNOWN/no-replay. No new publisher, queue, worker, timer, post or advertising expense.
+These18 source-artwork files replace the earlier question-led artwork input. They are not provider receipts or evidence of publication. This input commit preserves all runtime code, current landing manifest and every original v1 asset/receipt. The existing owner must bind the new artwork-manifest hash and exact new dimensions in the same PR1425 and run checks for that actual source. Retain the renewed-token recovery already prepared on b29e5597.
+
+Same SOURCE6722718562 and existing publisher/store/workflow only. Preserve original24MID/URLs/menu pin, one bot button per post,86 navigation hyperlinks and UNKNOWN/no replay. No uploads, edits, new posts, deployment or business configuration are performed by this source input.
