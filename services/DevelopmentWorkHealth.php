@@ -7,11 +7,11 @@ require_once __DIR__.'/DiagnosticLogger.php';
 final class DevelopmentWorkHealth
 {
     private const STAGES = ['bootstrap','subscription','delivery','complete'];
-    private const COUNTS = ['subscriptions','accepted','retried','stopped','unchanged'];
+    private const COUNTS = ['subscriptions','accepted','retried','stopped','unchanged','held'];
 
     public static function record(string $state, string $stage, array $counts = [], string $trigger = 'manual'): void
     {
-        if (!in_array($state,['running','ok','awaiting_connection','failed'],true) || !in_array($stage,self::STAGES,true) || !in_array($trigger,['cron','manual'],true)) return;
+        if (!in_array($state,['running','ok','awaiting_connection','held_unknown','failed'],true) || !in_array($stage,self::STAGES,true) || !in_array($trigger,['cron','manual'],true)) return;
         try {
             $file=self::path();
             if ($file==='') return;
@@ -58,7 +58,7 @@ final class DevelopmentWorkHealth
         rewind($handle);
         if ((int)(fstat($handle)['size']??0)>8192) return [];
         $raw=json_decode((string)stream_get_contents($handle,8192),true);
-        if (!is_array($raw) || !in_array($raw['state']??null,['running','ok','awaiting_connection','failed'],true)
+        if (!is_array($raw) || !in_array($raw['state']??null,['running','ok','awaiting_connection','held_unknown','failed'],true)
             || !in_array($raw['stage']??null,self::STAGES,true)) return [];
         $row=['state'=>$raw['state'],'stage'=>$raw['stage'],
             'trigger'=>in_array($raw['trigger']??null,['cron','manual'],true)?$raw['trigger']:'unknown'];

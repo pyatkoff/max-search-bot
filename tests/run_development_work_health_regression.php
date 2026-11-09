@@ -40,6 +40,29 @@ try {
     $v=new DevelopmentWorkCronVerifier(1000);$rejected=false;
     try {$v->observe($sample(1020,'failed'),1025);} catch(RuntimeException $e) {$rejected=$e->getMessage()==='development_cron_worker_failed';}
     developmentHealthCheck('failed fresh worker fails scheduled proof',$rejected);
+
+    // Exact held-UNKNOWN distinction: keep the original error and no acceptance credit.
+    DevelopmentWorkHealth::record('running','bootstrap',[],'cron');DevelopmentWorkHealth::record('failed','delivery',[],'cron');
+    $originalFailure=DevelopmentWorkHealth::snapshot();
+    DevelopmentWorkHealth::record('running','bootstrap',[],'cron');
+    DevelopmentWorkHealth::record('held_unknown','complete',['accepted'=>0,'held'=>1],'cron');$held=DevelopmentWorkHealth::snapshot();
+    developmentHealthCheck('held original UNKNOWN preserves original error without claiming success',
+        $held['state']==='held_unknown'&&$held['counts']===['accepted'=>0,'held'=>1]
+        &&$held['last_error_at']===$originalFailure['last_error_at']&&$held['last_error_stage']===$originalFailure['last_error_stage']
+        &&$held['last_success_at']===$originalFailure['last_success_at']);
+    $v=new DevelopmentWorkCronVerifier(1000);
+    $heldSample=static fn(int $at):array=>$sample($at,'held_unknown')+['stage'=>'complete','counts'=>['accepted'=>0,'held'=>1]];
+    developmentHealthCheck('one held UNKNOWN tick does not prove recurrence',$v->observe($heldSample(1020),1025)===null);
+    $heldProof=$v->observe($heldSample(1080),1085);
+    developmentHealthCheck('two future held UNKNOWN ticks prove schedule only',
+        $heldProof['observed_interval_seconds']===60&&$heldProof['retained_work_state']==='unknown'&&$heldProof['work_accepted']===false);
+    $v=new DevelopmentWorkCronVerifier(1000);
+    developmentHealthCheck('held state without verified no-acceptance counters is not proof',
+        $v->observe($sample(1020,'held_unknown'),1025)===null
+        &&$v->observe(array_replace($heldSample(1080),['counts'=>['accepted'=>1,'held'=>1]]),1085)===null);
+    $v=new DevelopmentWorkCronVerifier(1000);$v->observe($heldSample(1020),1025);$rejected=false;
+    try{$v->observe($sample(1080,'failed'),1085);}catch(RuntimeException $error){$rejected=$error->getMessage()==='development_cron_worker_failed';}
+    developmentHealthCheck('new real runtime failure still fails after held observation',$rejected);
     $raw=file_get_contents($file);DevelopmentWorkHealth::record('PRIVATE','PRIVATE');
     developmentHealthCheck('unknown categories rejected',file_get_contents($file)===$raw);
     $injected=json_decode($raw,true)+['callback_url'=>'PRIVATE CALLBACK'];$injected['counts']['queue_id']='PRIVATE';
@@ -65,6 +88,8 @@ class DevelopmentWorkServerRuntime {
     public static function tick($pdo,$trigger,$authorize){
         if(is_file(__DIR__.'/serverfail'))throw new RuntimeException('PRIVATE SERVER RESULT STORAGE');
         if(is_file(__DIR__.'/serverunknown'))return ['handled'=>true,'state'=>'unknown','provider_calls'=>null];
+        if(is_file(__DIR__.'/serverheld'))return ['handled'=>true,'state'=>'unknown','provider_calls'=>0,'execution_status'=>'held_existing_unknown','work_accepted'=>false];
+        if(is_file(__DIR__.'/serverfakeheld'))return ['handled'=>true,'state'=>'unknown','provider_calls'=>0];
         if(is_file(__DIR__.'/servercomplete'))return ['handled'=>true,'state'=>'complete','accepted_task'=>'PRIVATE TASK','provider_calls'=>1];
         return ['handled'=>false,'provider_calls'=>0];
     }
@@ -100,6 +125,20 @@ PHP);
             &&($row['stage']??null)===($mode==='servercomplete'?'complete':'delivery')
             &&($body['provider_calls']??null)===($mode==='servercomplete'?1:null)
             &&!str_contains(implode("\n",$out),'PRIVATE'));
+        unlink($app.'/'.$mode);
+    }
+
+    $prior=json_decode((string)file_get_contents($checkpoint),true);
+    foreach(['serverheld'=>0,'serverfakeheld'=>1] as $mode=>$expected){
+        file_put_contents($app.'/'.$mode,'1');$out=[];$code=-1;
+        exec('DEVELOPMENT_WORK_TRIGGER=cron '.escapeshellarg(PHP_BINARY).' '.escapeshellarg($app.'/tools/development_work.php').' tick 2>&1',$out,$code);
+        $row=json_decode((string)file_get_contents($checkpoint),true);$body=json_decode(implode("\n",$out),true);
+        developmentHealthCheck('actual CLI '.$mode.' distinguishes preserved UNKNOWN from new failure',
+            $code===$expected&&$body['state']==='unknown'&&$body['provider_calls']===0
+            &&$row['state']===($mode==='serverheld'?'held_unknown':'failed')&&!str_contains(implode("\n",$out),'PRIVATE'));
+        if($mode==='serverheld')developmentHealthCheck('actual safe held CLI retains original error and zero accepted',
+            $body['work_accepted']===false&&$row['counts']===['accepted'=>0,'held'=>1]
+            &&$row['last_error_at']===$prior['last_error_at']&&$row['last_error_stage']===$prior['last_error_stage']);
         unlink($app.'/'.$mode);
     }
     file_put_contents($app.'/fail','1');$out=[];$code=-1;

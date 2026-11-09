@@ -250,7 +250,10 @@ trait DevelopmentWorkServerControl
             $q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[DevelopmentWorkServerContract::QUEUE]);
             if(!$q||!($c=$this->serverControl($q)))return ['handled'=>false,'provider_calls'=>0];
             $b=$this->serverBinding($q,$c);
-            if(in_array($c['state'],['unknown','hold','complete'],true))
+            if($c['state']==='unknown')
+                return ['handled'=>true,'state'=>'unknown','provider_calls'=>0,
+                    'execution_status'=>'held_existing_unknown','work_accepted'=>false];
+            if(in_array($c['state'],['hold','complete'],true))
                 return ['handled'=>true,'state'=>$c['state'],'provider_calls'=>0];
             $this->ownsLane($q,$lane);
             try{$this->serverBinding($q,$c,true);}catch(DomainException $error){

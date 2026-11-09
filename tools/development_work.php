@@ -44,10 +44,14 @@ try {
     $server=DevelopmentWorkServerRuntime::tick(ConversationDb::connection(),$trigger,
         static fn(string $connection,int $admin):bool=>$authorize($connection,$admin,[]));
     if($server['handled']) {
-        $safe=array_intersect_key($server,array_flip(['state','reason','provider_calls']));
-        $healthy=!in_array($server['state']??'unknown',['unknown','hold'],true);
-        DevelopmentWorkHealth::record($healthy?'ok':'failed',$healthy?'complete':'delivery',
-            ['accepted'=>isset($server['accepted_task'])?1:0],$trigger);$finished=true;
+        $safe=array_intersect_key($server,array_flip(['state','reason','provider_calls','execution_status','work_accepted']));
+        // A verified no-dispatch observation of an already held UNKNOWN is not a new failure.
+        // The original failing send still has provider_calls=null and remains failed.
+        $held=($server['state']??null)==='unknown'&&($server['provider_calls']??null)===0
+            &&($server['execution_status']??null)==='held_existing_unknown'&&($server['work_accepted']??null)===false;
+        $healthy=$held||!in_array($server['state']??'unknown',['unknown','hold'],true);
+        DevelopmentWorkHealth::record($held?'held_unknown':($healthy?'ok':'failed'),$healthy?'complete':'delivery',
+            ['accepted'=>isset($server['accepted_task'])?1:0]+($held?['held'=>1]:[]),$trigger);$finished=true;
         echo json_encode(['ok'=>$healthy,'execution_kind'=>'server_model']+$safe,JSON_THROW_ON_ERROR)."\n";exit($healthy?0:1);
     }
     $serverMode=false;$events=new DevelopmentWorkEventService(null,null,null,$authorize);$stage='subscription';
