@@ -45,16 +45,16 @@ final class DevelopmentWorkQueue
         $id=self::id($args['queue_id']??null);$expected=self::sha($args['expected_plan_sha256']??null);
         $plan=self::sha($args['plan_sha256']??null);$tasks=self::specs($args['tasks']??null);
         return $this->transaction(function() use($id,$expected,$plan,$tasks,$admin,$connection): array {
-            $lane=$this->lane();$q=$this->owned($id,$admin,$connection,true);
+            $lane=$this->lane();$q=$this->serverAdmissionOwned($id,$admin,$connection);
             $tasksHash=self::hash($tasks);
             if ($q['plan_sha256']===$plan) {
                 $audit=$this->appendMetadata($q);
                 if ($audit===null||$audit['expected_plan_sha256']!==$expected||$audit['tasks_sha256']!==$tasksHash||$audit['task_count']!==count($tasks)) throw new DevelopmentWorkQueueConflict('plan_conflict');
-                return $this->project($q)+['append_status'=>'already_recorded'];
+                $this->serverPairAuthority($q,$connection);return $this->project($q)+['append_status'=>'already_recorded'];
             }
             if ($q['plan_sha256']!==$expected||$expected===$plan||$plan===$q['initial_plan_sha256']
                 ||$this->one('SELECT plan_sha256 FROM development_work_appends WHERE queue_id=? AND plan_sha256=?',[$id,$plan])) throw new DevelopmentWorkQueueConflict('plan_conflict');
-            $this->serverBeforeAppend($q,$lane,$plan,$tasks);
+            $this->serverBeforeAppend($q,$lane,$plan,$tasks,$connection);
             $count=(int)$q['task_count'];
             if ($count+count($tasks)>self::MAX_ITEMS) throw new DevelopmentWorkQueueConflict('task_limit_reached');
             if ($q['current_task_id']!==null) $this->ownsLane($q,$lane);
@@ -62,16 +62,17 @@ final class DevelopmentWorkQueue
             $now=$this->now();$this->insertTasks($id,$plan,$tasks,$count,$now);
             $this->execute('INSERT INTO development_work_appends (queue_id,plan_sha256,expected_plan_sha256,tasks_sha256,task_count,created_at) VALUES (?,?,?,?,?,?)',[$id,$plan,$expected,$tasksHash,count($tasks),$now]);
             $this->execute('UPDATE development_work_queues SET plan_sha256=?,task_count=?,updated_at=? WHERE queue_id=?',[$plan,$count+count($tasks),$now,$id]);
-            $q=$this->owned($id,$admin,$connection);
+            $q=$this->serverAdmissionOwned($id,$admin,$connection);
             if ($q['current_task_id']===null) $q=$this->selectNext($q,$lane,$now);
-            return $this->project($q)+['append_status'=>'appended'];
+            $this->serverPairAuthority($q,$connection);return $this->project($q)+['append_status'=>'appended'];
         });
     }
     public function status(int $admin,string $connection,string $queueId): array
     {
         $id=self::id($queueId);
         return $this->transaction(function() use($id,$admin,$connection): array {
-            $this->lane();$q=$this->owned($id,$admin,$connection,true);return $this->serverExtendStatus($q,$this->project($q));
+            $this->lane();$q=$this->serverAdmissionOwned($id,$admin,$connection);$out=$this->serverExtendStatus($q,$this->project($q),$connection);
+            $this->serverPairAuthority($q,$connection);return $out;
         });
     }
     public function claim(int $admin,string $connection,array $args): array

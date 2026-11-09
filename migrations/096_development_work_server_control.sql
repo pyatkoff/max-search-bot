@@ -1,6 +1,7 @@
 -- Same DEVELOPMENT lane. No native, hotel, customer or credential import.
 CREATE TABLE IF NOT EXISTS development_work_server_controls (
     queue_id VARBINARY(80) NOT NULL,
+    execution_connection_id VARBINARY(32) NOT NULL,
     binding_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
     binding_bytes MEDIUMTEXT NOT NULL,
     legacy_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,

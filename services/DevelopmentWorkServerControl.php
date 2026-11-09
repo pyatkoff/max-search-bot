@@ -13,6 +13,38 @@ trait DevelopmentWorkServerControl
     {
         if($this->serverControl($q)!==null)throw new DevelopmentWorkQueueConflict('server_model_only');
     }
+    /** Fixed new-pair overlay only; native owned()/authorize() and old bytes stay unchanged. */
+    private function serverAdmissionOwned(string $id,int $admin,string $connection): array
+    {
+        self::actor($admin,$connection);
+        $q=$this->one('SELECT * FROM development_work_queues WHERE queue_id=?'.$this->lock(),[$id]);
+        if(!$q||$q['project_key']!==self::PROJECT||(int)$q['admin_id']!==$admin)
+            throw new DomainException('development_work_access_denied');
+        if(hash_equals($q['oauth_connection_id'],$connection))return $q;
+        if($id!==DevelopmentWorkServerContract::QUEUE)throw new DomainException('development_work_access_denied');
+        $control=$this->serverControl($q);
+        if($control===null) {
+            if(!$this->serverEligible($q))throw new DomainException('development_work_access_denied');
+        } else {
+            $this->serverBinding($q,$control);
+            if(!hash_equals($control['execution_connection_id'],$connection))throw new DomainException('development_work_access_denied');
+        }
+        $this->serverPairAuthority($q,$connection);
+        return $q;
+    }
+    private function serverPairAuthority(array $q,string $connection): void
+    {
+        if(hash_equals($q['oauth_connection_id'],$connection))return;
+        require_once __DIR__.'/DevelopmentWorkConnectionAuthority.php';
+        (new DevelopmentWorkConnectionAuthority($this->pdo,$this->clock))
+            ->assertPair((int)$q['admin_id'],$q['oauth_connection_id'],$connection);
+    }
+    private function serverAuthority(array $q,string $connection): array
+    {
+        return ['schema'=>'development-server-authority-overlay-v1','admin_id'=>(int)$q['admin_id'],
+            'native_owner_connection_id'=>$q['oauth_connection_id'],'execution_connection_id'=>$connection,
+            'kind'=>hash_equals($q['oauth_connection_id'],$connection)?'native_owner':'same_admin_overlay'];
+    }
     private function serverLegacy(array $q): string
     {
         $old='DEV-CONTROL-COMMISSION-20261028-01';
@@ -51,12 +83,12 @@ trait DevelopmentWorkServerControl
         foreach(['DevelopmentWorkServerContract.php','DevelopmentWorkServerControl.php','DevelopmentWorkServerProvider.php',
             'DevelopmentWorkServerRuntime.php','DevelopmentWorkQueue.php','../ai/ManagerDraftClient.php',
             'DevelopmentWorkEventService.php','DevelopmentWorkMcpAdapter.php','DevelopmentWorkMcpService.php',
-            'ManagerPreparationMcpService.php','../tools/development_work.php','../migrations/096_development_work_server_control.sql'] as $file) {
+            'ManagerPreparationMcpService.php','ManagerPreparationOAuth.php','DevelopmentWorkConnectionAuthority.php','../tools/development_work.php','../migrations/096_development_work_server_control.sql'] as $file) {
             $hash=hash_file('sha256',__DIR__.'/'.$file);
             if(!is_string($hash))throw new DomainException('development_server_implementation_unavailable');
             $files[$file]=$hash;
         }
-        foreach(['development_work_server_controls'=>'binding_sha256,binding_bytes,state',
+        foreach(['development_work_server_controls'=>'execution_connection_id,binding_sha256,binding_bytes,state',
             'development_work_server_events'=>'event_id,queue_id,task_id,created_cron_id',
             'development_work_server_attempts'=>'attempt_id,queue_id,task_id,role,cron_slot,response_id,request_bytes,response_bytes'] as $table=>$columns) {
             $s=$this->pdo->query('SELECT '.$columns.' FROM '.$table.' WHERE 1=0');$s->closeCursor();
@@ -79,21 +111,23 @@ trait DevelopmentWorkServerControl
         return ['execution_kind'=>'server_model','files'=>$files,'schema'=>'096_development_work_server_control',
             'response_task_role_slot_uniqueness'=>true];
     }
-    private function serverProposal(array $q): array
+    private function serverProposal(array $q,string $connection): array
     {
         if(!$this->serverEligible($q))throw new DevelopmentWorkQueueConflict('development_server_baseline_not_eligible');
         $p=DevelopmentWorkServerContract::proposal($q['plan_sha256'],$this->serverLegacy($q));
+        $this->serverPairAuthority($q,$connection);
+        $p['authority']=$this->serverAuthority($q,$connection);
         $p['implementation']=$this->serverImplementation();
         // Pin the actual installed code/schema along with the frozen pair policy.
         $p['plan_sha256']=self::hash(array_diff_key($p,['plan_sha256'=>true]));
         return $p;
     }
-    private function serverBeforeAppend(array $q,array $lane,string $plan,array $tasks): void
+    private function serverBeforeAppend(array $q,array $lane,string $plan,array $tasks,string $connection): void
     {
         $this->serverNativeOnly($q);
         $reserved=array_intersect(array_column($tasks,'task_id'),[DevelopmentWorkServerContract::A,DevelopmentWorkServerContract::B]);
-        if(!$reserved)return;
-        $p=$this->serverProposal($q);
+        if(!$reserved&&hash_equals($q['oauth_connection_id'],$connection))return;
+        $p=$this->serverProposal($q,$connection);
         if(self::hash($tasks)!==self::hash($p['tasks'])||$plan!==$p['plan_sha256'])
             throw new DevelopmentWorkQueueConflict('development_server_exact_candidate_required');
         if($lane['queue_id']!==null&&$lane['queue_id']!==$q['queue_id'])
@@ -107,8 +141,8 @@ trait DevelopmentWorkServerControl
             'admitted_at'=>$at,'deadline_at'=>$at+$p['policy']['duration_seconds'],
             'admin_id'=>(int)$q['admin_id'],'connection_sha256'=>hash('sha256',$q['oauth_connection_id'])];
         $bytes=self::canonical($binding);$hash=hash('sha256',$bytes);
-        $this->execute('INSERT INTO development_work_server_controls(queue_id,binding_sha256,binding_bytes,legacy_sha256,state,reserved_calls,reserved_tokens,reserved_micros,admitted_at,deadline_at,last_dispatch_slot,attention_reason) VALUES(?,?,?,?,?,0,0,0,?,?,NULL,NULL)',
-            [$q['queue_id'],$hash,$bytes,$p['legacy_sha256'],'ready',$at,$binding['deadline_at']]);
+        $this->execute('INSERT INTO development_work_server_controls(queue_id,execution_connection_id,binding_sha256,binding_bytes,legacy_sha256,state,reserved_calls,reserved_tokens,reserved_micros,admitted_at,deadline_at,last_dispatch_slot,attention_reason) VALUES(?,?,?,?,?,?,0,0,0,?,?,NULL,NULL)',
+            [$q['queue_id'],$connection,$hash,$bytes,$p['legacy_sha256'],'ready',$at,$binding['deadline_at']]);
     }
     private function serverBinding(array $q,array $c,bool $current=false): array
     {
@@ -119,6 +153,10 @@ trait DevelopmentWorkServerControl
             ||($b['connection_sha256']??null)!==hash('sha256',$q['oauth_connection_id'])
             ||($b['proposal']['queue_id']??null)!==$q['queue_id']||$c['legacy_sha256']!==$this->serverLegacy($q))
             throw new DomainException('development_server_binding_or_legacy_conflict');
+        if(!is_string($c['execution_connection_id'])||preg_match('/\A[a-f0-9]{32}\z/D',$c['execution_connection_id'])!==1
+            ||self::hash($b['proposal']['authority']??[])!==self::hash($this->serverAuthority($q,$c['execution_connection_id'])))
+            throw new DomainException('development_server_authority_binding_conflict');
+        if($current)$this->serverPairAuthority($q,$c['execution_connection_id']);
         $policy=$b['proposal']['policy'];
         if((int)$c['reserved_calls']<0||(int)$c['reserved_calls']>4
             ||(int)$c['reserved_tokens']!==(int)$c['reserved_calls']*$policy['tokens_per_call']
@@ -162,13 +200,14 @@ trait DevelopmentWorkServerControl
             'completeness'=>'all_retained_bytes_base64_transport_completeness_in_original_observation',
             'scope'=>'technical_control_pair_not_coding_or_deploy'];
     }
-    private function serverExtendStatus(array $q,array $out): array
+    private function serverExtendStatus(array $q,array $out,string $connection): array
     {
         $c=$this->serverControl($q);
         if($c===null) {
             if($this->serverEligible($q)) {
-                try{$out['server_model_candidate']=$this->serverProposal($q)+[
-                    'transport_configured'=>ManagerDraftClient::developmentTransportAvailable()];}
+                try{$out['server_model_candidate']=$this->serverProposal($q,$connection)+[
+                    'transport_configured'=>ManagerDraftClient::developmentTransportAvailable()];
+                    $out['execution_kind']='server_model_candidate';}
                 catch(DomainException $error){$out['server_model_candidate']=['available'=>false,'reason'=>'profile_or_schema_unavailable'];}
             }
             return $out;
@@ -200,8 +239,8 @@ trait DevelopmentWorkServerControl
                 return ['handled'=>true,'state'=>$c['state'],'provider_calls'=>0];
             $this->ownsLane($q,$lane);
             try{$this->serverBinding($q,$c,true);}catch(DomainException $error){
-                $this->execute('UPDATE development_work_server_controls SET state=?,attention_reason=? WHERE queue_id=?',['hold','policy_or_schema_changed',$q['queue_id']]);
-                return ['handled'=>true,'state'=>'hold','reason'=>'policy_or_schema_changed','provider_calls'=>0];
+                $this->execute('UPDATE development_work_server_controls SET state=?,attention_reason=? WHERE queue_id=?',['hold','admission_authority_or_policy_changed',$q['queue_id']]);
+                return ['handled'=>true,'state'=>'hold','reason'=>'admission_authority_or_policy_changed','provider_calls'=>0];
             }
             $now=$this->timestamp();$slot=intdiv($now,60);
             if($now<(int)$c['admitted_at']||$now>=(int)$c['deadline_at']||(int)$c['reserved_calls']>=4) {
@@ -252,6 +291,7 @@ trait DevelopmentWorkServerControl
                     'started_at'=>$now,'event_id'=>$event['event_id'],'event_created_at'=>(int)$event['created_at'],
                     'event_created_cron_id'=>$event['created_cron_id'],'spec_sha256'=>$item['spec_sha256'],
                     'binding_sha256'=>$c['binding_sha256'],'plan_sha256'=>$q['plan_sha256'],
+                    'authority_sha256'=>self::hash($b['proposal']['authority']),
                     'implementation'=>['sha256'=>self::hash($installed),'files_sha256'=>self::hash($installed['files']),
                         'file_count'=>count($installed['files']),'schema'=>$installed['schema'],
                         'response_task_role_slot_uniqueness'=>$installed['response_task_role_slot_uniqueness']],

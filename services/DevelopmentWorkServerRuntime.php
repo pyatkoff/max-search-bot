@@ -7,7 +7,7 @@ final class DevelopmentWorkServerRuntime
 {
     public static function tick(PDO $pdo,string $trigger,callable $authorize,?DevelopmentWorkServerProvider $provider=null,$clock=null): array
     {
-        $s=$pdo->prepare('SELECT q.admin_id,q.oauth_connection_id FROM development_work_server_controls c JOIN development_work_queues q ON q.queue_id=c.queue_id WHERE q.queue_id=?');
+        $s=$pdo->prepare('SELECT q.admin_id,c.execution_connection_id AS oauth_connection_id FROM development_work_server_controls c JOIN development_work_queues q ON q.queue_id=c.queue_id WHERE q.queue_id=?');
         $s->execute([DevelopmentWorkServerContract::QUEUE]);$owner=$s->fetch(PDO::FETCH_ASSOC);$s->closeCursor();
         if(!$owner)return ['handled'=>false,'provider_calls'=>0];
         if($trigger!=='cron')return ['handled'=>true,'state'=>'hold','reason'=>'ordinary_cron_required','provider_calls'=>0];
