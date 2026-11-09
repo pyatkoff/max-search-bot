@@ -287,7 +287,25 @@ trait DevelopmentWorkServerAmendment
         $sets=[];foreach($indexes as $cols){ksort($cols);$sets[]=implode(',',array_values($cols));}
         foreach(['queue_id,task_id','manifest_sha256'] as $needed)
             if(!in_array($needed,$sets,true))throw new DomainException('amendment_unique_schema_required');
-        $raw=$this->pdo->query('SELECT attempt_id,response_blob,actual_request_blob FROM development_work_server_raw_bytes WHERE 1=0');$raw->closeCursor();
+        $raw=$this->pdo->query('SELECT attempt_id,response_blob,actual_request_blob FROM development_work_server_raw_bytes WHERE 1=0');$raw->closeCursor();$types=[];$unique=[];
+        if($this->driver==='mysql'){
+            foreach($this->pdo->query('SHOW COLUMNS FROM development_work_server_raw_bytes')->fetchAll(PDO::FETCH_ASSOC) as $col)
+                $types[$col['Field']]=strtolower($col['Type']);
+            foreach($this->pdo->query('SHOW INDEX FROM development_work_server_raw_bytes')->fetchAll(PDO::FETCH_ASSOC) as $row)
+                if((int)$row['Non_unique']===0)$unique[$row['Key_name']][(int)$row['Seq_in_index']]=$row['Column_name'];
+        }else{
+            foreach($this->pdo->query('PRAGMA table_info(development_work_server_raw_bytes)')->fetchAll(PDO::FETCH_ASSOC) as $col)
+                $types[$col['name']]=strtolower($col['type']);
+            foreach($this->pdo->query('PRAGMA index_list(development_work_server_raw_bytes)')->fetchAll(PDO::FETCH_ASSOC) as $row){
+                if((int)$row['unique']!==1||!preg_match('/\A[A-Za-z0-9_]+\z/D',$row['name']))continue;
+                foreach($this->pdo->query('PRAGMA index_info('.$row['name'].')')->fetchAll(PDO::FETCH_ASSOC) as $col)
+                    $unique[$row['name']][(int)$col['seqno']]=$col['name'];
+            }
+        }
+        $sets=[];foreach($unique as $cols){ksort($cols);$sets[]=implode(',',array_values($cols));}
+        if(($types['response_blob']??null)!=='mediumblob'||($types['actual_request_blob']??null)!=='mediumblob'
+            ||!in_array('attempt_id',$sets,true))throw new DomainException('amendment_byte_storage_schema_required');
+        $out['raw_storage_types']=['response_blob'=>'mediumblob','actual_request_blob'=>'mediumblob','unique_attempt_id'=>true];
         $out['schema']='097_development_work_server_amendment';$out['amendment_uniqueness']=true;
         $out['byte_exact_invalid_utf8_storage']='new_raw_blob_sidecar_old_TEXT_unchanged';return $out;
     }

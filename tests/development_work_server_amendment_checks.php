@@ -144,6 +144,7 @@ function devAmendmentGate(array $m,object $state): DevelopmentWorkServerAmendmen
 function devServerAmendmentChecks(): void
 {
     devServerRawBoundaryStorageChecks();
+    devServerRawSchemaNegativeChecks();
     // The real callback sees a small report plus a large opaque envelope, not a tiny fake report only.
     [$p,$q,$clock,$provider,$log,$m,$before]=devAmendmentFixture();
     $oldProducer=base64_decode($before['server_control']['attempts'][0]['response_base64'],true);
@@ -297,9 +298,9 @@ function devServerRawBoundaryStorageChecks(): void
         ManagerDraftClient::captureDevelopmentChunk($retained,$oversized,str_repeat('x',$limit-1),$limit);
         ManagerDraftClient::captureDevelopmentChunk($retained,$oversized,'é',$limit);
         devAssert(strlen($retained)===$limit&&preg_match('//u',$retained)===false,'synthetic_boundary_really_contains_invalid_UTF8_'.$limit);
-        $sent=0;
-        $provider=new DevelopmentWorkServerProvider(static function(string $wire,callable $capture)use(&$sent,$retained,$limit):array{
-            ++$sent;$capture(['wire_request_bytes'=>$wire,'wire_response_bytes'=>$retained,'http_status'=>200,
+        $sent=0;$actualRequest=str_repeat('r',8191)."\xC3";
+        $provider=new DevelopmentWorkServerProvider(static function(string $wire,callable $capture)use(&$sent,$retained,$limit,$actualRequest):array{
+            ++$sent;$capture(['wire_request_bytes'=>$actualRequest,'wire_response_bytes'=>$retained,'http_status'=>200,
                 'wire_complete'=>false,'response_capture_limit'=>$limit,'response_capture'=>'prefix_truncated_at_budget']);
             return ['_error'=>'provider_unavailable'];
         });
@@ -316,8 +317,47 @@ function devServerRawBoundaryStorageChecks(): void
             &&$s['server_control']['attempts'][1]===$previous['server_control']['attempts'][1]
             &&$s['server_control']['receipts'][0]===$previous['server_control']['receipts'][0],
             'old_6162_8192_attempt_and_UNKNOWN_receipt_bytes_unchanged_after_B_blob_failure');
+        devAssert(base64_decode($attempt['actual_request_base64'],true)===$actualRequest
+            &&$attempt['actual_request_sha256']===hash('sha256',$actualRequest)
+            &&($attempt['actual_request_storage']??null)==='byte_exact_blob',
+            'same_native_row_uses_binary_LOB_UPDATE_for_invalid_actual_request_'.$limit);
+        $again=['report'=>['_error'=>'provider_unavailable'],'transport'=>['wire_request_bytes'=>$actualRequest,
+            'wire_response_bytes'=>$retained,'http_status'=>200,'wire_complete'=>false,'response_capture'=>'prefix_truncated_at_budget']];
+        $same=$q->serverRecord($attempt['attempt_id'],$again);
+        devAssert($same['result_status']==='already_captured_no_replay','identical_UNKNOWN_capture_is_readonly_noop_'.$limit);
+        $again['transport']['wire_response_bytes']=str_repeat('z',$limit);$rejected=false;
+        try{$q->serverRecord($attempt['attempt_id'],$again);}catch(DevelopmentWorkQueueConflict $error){$rejected=true;}
+        $unchanged=devServerStatus($q);
+        devAssert($rejected&&$unchanged['server_control']['attempts']===$s['server_control']['attempts']
+            &&$unchanged['state']==='unknown'&&count($unchanged['server_control']['attempts'])===count($s['server_control']['attempts']),
+            'changed_UNKNOWN_capture_cannot_replace_blob_with_TEXT_or_poison_getter_'.$limit);
         $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock),$gate);
         devAssert($sent===1,'invalid_UTF8_failure_never_dispatches_again_'.$limit);
         devServerWrapperChecks($s);
+    }
+}
+
+
+function devServerRawSchemaNegativeChecks(): void
+{
+    foreach(['text_instead_of_blob','no_attempt_unique'] as $case){
+        [$p,$q,$clock,$provider,$log,$m]=devAmendmentFixture();
+        if($p->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'){
+            if($case==='text_instead_of_blob')$p->exec('ALTER TABLE development_work_server_raw_bytes MODIFY response_blob MEDIUMTEXT NULL');
+            else $p->exec('ALTER TABLE development_work_server_raw_bytes DROP PRIMARY KEY');
+        }else{
+            $p->exec('DROP TABLE development_work_server_raw_bytes');
+            $p->exec('CREATE TABLE development_work_server_raw_bytes(attempt_id TEXT'.
+                ($case==='text_instead_of_blob'?' PRIMARY KEY':'').',response_blob '.
+                ($case==='text_instead_of_blob'?'TEXT':'MEDIUMBLOB').',actual_request_blob MEDIUMBLOB)');
+        }
+        $s=devServerStatus($q);
+        devAssert($s['server_amendment_preparation']['available']===false&&$s['state']==='unknown'
+            &&count($s['server_control']['attempts'])===2,'actual_raw_storage_schema_'.$case.'_is_not_falsely_offered_as_ready');
+        $state=(object)['pdo'=>$p];$gate=devAmendmentGate($m,$state);
+        try{$q->serverTick($provider,devServerOrigin($clock),$gate);}catch(Throwable $error){}
+        $s=devServerStatus($q);
+        devAssert($s['accepted_count']===0&&$s['task_count']===2&&count($log->sent)===2&&$state->requests===0,
+            'wrong_native_raw_schema_holds_before_metadata_or_provider_'.$case);
     }
 }

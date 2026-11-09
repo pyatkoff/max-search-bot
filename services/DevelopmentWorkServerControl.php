@@ -268,10 +268,11 @@ trait DevelopmentWorkServerControl
         $out['execution_kind']='server_model';$out['expected_pending_event_id']=null;
         $out['server_control']=$this->serverProof($q,$c);
         $out['server_amendment_preparation']=['operative'=>false,'scope'=>'fixed_original_A02_only',
-            'future_policy'=>DevelopmentWorkServerContract::futurePolicy(),
-            'future_implementation'=>$this->serverFutureImplementation(),
             'native_root_terminal_required'=>true,'no_mcp_mutation_or_claim_key'=>true,
             'actual_local_source_sha'=>(new DevelopmentWorkServerAmendmentGate())->sourceSha()];
+        try{$out['server_amendment_preparation']+=['available'=>true,'future_policy'=>DevelopmentWorkServerContract::futurePolicy(),
+            'future_implementation'=>$this->serverFutureImplementation()];}
+        catch(DomainException|PDOException $error){$out['server_amendment_preparation']+=['available'=>false,'reason'=>'future_profile_or_schema_unavailable'];}
         DevelopmentWorkServerContract::assertReadback($out);
         return $out;
     }
@@ -519,6 +520,13 @@ trait DevelopmentWorkServerControl
             if($a['state']==='succeeded') {
                 if($raw===null||$raw!==$a['response_bytes'])throw new DevelopmentWorkQueueConflict('development_server_immutable_result');
                 return ['handled'=>true,'state'=>$control['state'],'result_status'=>'already_recorded_no_replay','provider_calls'=>0];
+            }
+            if($a['metadata_bytes']!==null||$a['response_sha256']!==null||$a['actual_request_sha256']!==null){
+                $incoming=is_array($transport)?($transport['wire_request_bytes']??null):null;
+                $savedRequest=$a['actual_request_bytes']??$a['request_bytes'];
+                if($raw!==$a['response_bytes']||$incoming!==$savedRequest)
+                    throw new DevelopmentWorkQueueConflict('development_server_immutable_original_capture');
+                return ['handled'=>true,'state'=>$control['state'],'result_status'=>'already_captured_no_replay','provider_calls'=>0];
             }
             $this->ownsLane($q,$lane);
             if($a['state']!=='unknown'||$control['state']!=='unknown'||$q['state']!=='claimed'||$q['current_task_id']!==$a['task_id'])
