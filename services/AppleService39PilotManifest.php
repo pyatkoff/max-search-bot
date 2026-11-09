@@ -186,7 +186,7 @@ final class AppleService39LandingRevision
             $entry = AppleService39PilotCatalog::forPost($id);
             self::check($entry !== null && ($asset['path'] ?? null) === 'covers/'.$id.'.png'
                 && ($asset['source_artwork_visually_reviewed'] ?? null) === true
-                && ($asset['width'] ?? null) === 1122 && ($asset['height'] ?? null) === 1402
+                && ($asset['width'] ?? null) === 1072 && ($asset['height'] ?? null) === 1467
                 && is_int($asset['bytes'] ?? null) && $asset['bytes'] > 0 && $asset['bytes'] < 1900000
                 && is_string($asset['sha256'] ?? null) && preg_match('/\A[a-f0-9]{64}\z/D', $asset['sha256']) === 1,
                 'landing_artwork_manifest_changed');
@@ -257,7 +257,7 @@ final class AppleService39LandingRevision
             && hash_file('sha256', $path) === $asset['sha256'], 'landing_artwork_changed');
         $image = @getimagesize($path);
         self::check(is_array($image) && ($image[2] ?? null) === IMAGETYPE_PNG
-            && $image[0] === 1122 && $image[1] === 1402, 'landing_artwork_changed');
+            && $image[0] === 1072 && $image[1] === 1467, 'landing_artwork_changed');
         return $path;
     }
 

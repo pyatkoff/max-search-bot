@@ -200,6 +200,11 @@ function as39LandingRegression(PDO $pdo, ApplePilotTestProvider $provider, Apple
 {
     $manifest = AppleService39PilotManifest::installed();
     $revision = new AppleService39LandingRevision($manifest);
+    $firstArtwork = $revision->artwork($manifest->posts()[0]['id']);
+    as39Expect($firstArtwork['width'] === 1072 && $firstArtwork['height'] === 1467
+        && hash_file('sha256', dirname(__DIR__).'/resources/appleservice39/landing-v2/artwork/asset-manifest.json')
+            === 'bfc0cf0812cd576dc7d778aeae60b518b900a6762533a60a80c83513c6508027',
+        'current catalogue artwork uses its exact admitted manifest and1072x1467 dimensions');
     $store = new AppleService39PilotPublicationStore($pdo);
     $original = $store->rows();
     $writes = $provider->writes();
@@ -450,6 +455,57 @@ function as39ReviewedLandingRegression(PDO $pdo): void
     }
 }
 
+function as39CatalogueArtworkRegression(): void
+{
+    $root = dirname(__DIR__).'/resources/appleservice39/landing-v2';
+    $temporary = sys_get_temp_dir().'/as39-catalog-'.bin2hex(random_bytes(8));
+    mkdir($temporary.'/artwork', 0700, true);
+    try {
+        $manifest = json_decode((string)file_get_contents($root.'/manifest.json'), true, 32, JSON_THROW_ON_ERROR);
+        $assets = json_decode((string)file_get_contents($root.'/artwork/asset-manifest.json'), true, 32, JSON_THROW_ON_ERROR);
+        $assets['posts'][0]['width'] = 1122; $assets['posts'][0]['height'] = 1402;
+        $raw = json_encode($assets, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        file_put_contents($temporary.'/artwork/asset-manifest.json', $raw);
+        $manifest['artwork_manifest_sha256'] = hash('sha256', $raw);
+        file_put_contents($temporary.'/manifest.json', json_encode($manifest, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        as39Refuses(static fn()=>new AppleService39LandingRevision(AppleService39PilotManifest::installed(), $temporary.'/manifest.json'),
+            'landing_artwork_manifest_changed');
+    } finally {
+        @unlink($temporary.'/artwork/asset-manifest.json'); @unlink($temporary.'/manifest.json');
+        @rmdir($temporary.'/artwork'); @rmdir($temporary);
+    }
+    foreach (['landing_upload','landing_edit'] as $operation) foreach (['prepared','unknown'] as $state) {
+        ProjectMaxConnection::resetForTests(as39Registry()); $pdo = as39Sqlite(); $provider = new ApplePilotTestProvider;
+        $publisher = as39Publisher($pdo,$provider);
+        foreach (['prepare','publish','finalize','pin'] as $phase) $publisher->run($phase);
+        $store = new AppleService39PilotPublicationStore($pdo); $original = AppleService39PilotManifest::installed();
+        $id = $original->posts()[0]['id']; $created = $store->operation($id,'create');
+        $request = ['revision'=>'landing-v2','revision_sha256'=>'5a763c91f6953ddc0a4248e9c512b2475de73c6ab322e8b78a9e0862c9ffce73',
+            'mid'=>$created['external_message_id'],'url'=>$created['public_url'],
+            'source_sha256'=>'40c306b32f9ac66464b10b8cb052defcfe16895ca3219dd80a2e835608f2ebe8'];
+        if ($operation === 'landing_edit') {
+            $revision = new AppleService39LandingRevision($original); $urls = [];
+            foreach ($original->posts() as $post) $urls[$post['id']] = $store->operation($post['id'],'create')['public_url'];
+            $plan = $revision->plan($revision->posts()[0], ['token'=>'retired-artwork-upload','photo_id'=>'0'], $urls);
+            $request = ['revision'=>'landing-v2','revision_sha256'=>$request['revision_sha256'],
+                'mid'=>$created['external_message_id'],'url'=>$created['public_url'],
+                'prior_body_sha256'=>hash('sha256', json_encode($store->operation($id,'links')['request']['body'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
+                'body'=>$plan['body'],'native_text'=>$plan['native_text'],'native_markup'=>$plan['native_markup'],
+                'source_sha256'=>$request['source_sha256'],'upload_token_sha256'=>hash('sha256','retired-artwork-upload')];
+        }
+        $old = $store->prepare($id,$operation,$request);
+        if ($state === 'unknown') {
+            as39Expect($store->claim($old), 'old-revision fixture owns its sole attempt');
+            if ($operation === 'landing_edit') $store->rememberMessage($old,$created['external_message_id'],$created['public_url']);
+            $store->finish($old,'unknown',['reason'=>'retired_revision_fixture']);
+        }
+        $before = $store->rows(); $writes = $provider->writes();
+        as39Refuses(static fn()=>$publisher->run('landing_prepare'),'landing_revision_changed');
+        as39Expect($store->rows() === $before && $provider->writes() === $writes,
+            'catalogue replacement cannot rewrite or replay an existing '.$state.' '.$operation);
+    }
+}
+
 function as39LandingImageSafetyRegression(): void
 {
     foreach (['landing_foreign_image','landing_missing_image_id','landing_missing_token','landing_success_old_image','rotated_native_token'] as $mode) {
@@ -506,6 +562,7 @@ function as39LandingImageSafetyRegression(): void
 if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
     as39FullPublicationRegression(as39Sqlite());
     as39ReviewedLandingRegression(as39Sqlite());
+    as39CatalogueArtworkRegression();
     as39LandingImageSafetyRegression();
 
     // Provider did not apply a timed-out edit: reconciliation must keep the original hold.
