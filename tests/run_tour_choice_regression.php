@@ -111,4 +111,43 @@ $bad = $offer; $bad['url'] = 'https://example.invalid/private'; $bad['token'] = 
 tourChoiceCheck('unknown raw metadata does not enter snapshot', !str_contains(json_encode(TourChoiceService::normalize($bad)), 'DO_NOT_PROJECT') && !str_contains(json_encode(TourChoiceService::normalize($bad)), 'example.invalid'));
 tourChoiceCheck('no conversation status/customer state writes', $pdo->query('SELECT status FROM conversations WHERE id=1')->fetchColumn() === 'manager' && $pdo->query('SELECT status FROM conversations WHERE id=2')->fetchColumn() === 'waiting_manager');
 tourChoiceCheck('all transaction boundaries are closed', !$pdo->inTransaction());
+
+// Strict current-subject reads do not reinterpret historical records.
+$currentDb=tourChoiceDb();
+$currentDb->exec('ALTER TABLE customer_channels ADD COLUMN customer_id INTEGER;ALTER TABLE customer_channels ADD COLUMN external_chat_id TEXT;
+ALTER TABLE conversations ADD COLUMN customer_id INTEGER;
+UPDATE customer_channels SET customer_id=id,external_chat_id=external_user_id;UPDATE conversations SET customer_id=customer_channel_id;');
+$currentOffer=TourChoiceService::prepare($currentDb,1,tourChoiceOffer());
+TourChoiceService::recordDelivered($currentDb,$currentOffer['offer_id'],'777','101');
+TourChoiceService::like($currentDb,tourChoiceIncoming('telegram',$currentOffer['callback_data']));
+$beforeChanges=(int)$currentDb->query('SELECT total_changes()')->fetchColumn();
+$current=TourChoiceService::currentForConversation($currentDb,1);
+tourChoiceCheck('strict read pins the current customer and exact original native offer',
+    $current['identity']['customer_id']==='1'&&$current['choices']['offers'][0]['offer_id']===$currentOffer['offer_id']);
+tourChoiceCheck('strict identity and choice reads perform no database write',(int)$currentDb->query('SELECT total_changes()')->fetchColumn()===$beforeChanges);
+$currentDb->exec("UPDATE customer_channels SET external_user_id='909' WHERE id=1");
+tourChoiceCheck('old native binding cannot become a different current customer choice',TourChoiceService::currentForConversation($currentDb,1)['choices']['offers']===[]);
+$currentDb->exec("UPDATE customer_channels SET external_user_id='101' WHERE id=1");
+$currentDb->exec('UPDATE conversations SET customer_id=2 WHERE id=1');
+tourChoiceCheck('customer-channel identity mismatch fails closed',TourChoiceService::currentForConversation($currentDb,1)===null);
+$currentDb->exec('UPDATE conversations SET customer_id=1 WHERE id=1');
+$currentDb->beginTransaction();
+foreach (['101','909'] as $actor) TourChoiceService::webInquiryInTransaction($currentDb,1,$actor,hash('sha256',$actor),
+    ['public_offer'=>['hotel'=>'Synthetic actor '.$actor],'publication_id'=>str_repeat('c',32),'version'=>4,'card'=>0]);
+$currentDb->commit();
+tourChoiceCheck('strict web inquiry read includes only the current native customer actor',
+    count(TourChoiceService::currentForConversation($currentDb,1)['choices']['web_inquiries'])===1
+    &&count(TourChoiceService::forConversation($currentDb,1)['web_inquiries'])===2);
+$webRow=$currentDb->query("SELECT id,payload_json FROM conversation_events WHERE event_type='tour_web_inquiry' AND actor_id='101'")->fetch(PDO::FETCH_ASSOC);
+$unsafe=json_decode($webRow['payload_json'],true);$unsafe['public_offer']['private_visitor']='DO_NOT_DISCLOSE';
+$currentDb->prepare('UPDATE conversation_events SET payload_json=? WHERE id=?')->execute([json_encode($unsafe),$webRow['id']]);
+tourChoiceCheck('unexpected private web fields fail closed instead of entering the new projection',
+    empty(TourChoiceService::currentForConversation($currentDb,1)['choices']['web_inquiries']));
+$currentDb->exec("UPDATE conversation_events SET actor_id='909' WHERE event_type='tour_offer_liked'");
+tourChoiceCheck('foreign customer like is not accepted merely because its offer ID matches',
+    TourChoiceService::currentForConversation($currentDb,1)['choices']['offers'][0]['liked_at']===null);
+$currentDb->exec("UPDATE conversations SET status='closed' WHERE id=1");
+tourChoiceCheck('current booking reader refuses closed context while original history remains readable',
+    TourChoiceService::currentForConversation($currentDb,1)===null&&count(TourChoiceService::forConversation($currentDb,1)['offers'])===1);
+
 echo 'OK '.$checks.' tour choice checks'.PHP_EOL;

@@ -6,7 +6,7 @@ An installed adapter alone is not an available connected tool or a published lin
 
 ## Authorization and integration boundary
 
-Every tool requires the separately consented `selections:write` capability. Consent
+The original constructor tools require the separately consented `selections:write` capability. Consent
 must explicitly name reading saved selections, editing, preparing private immutable
 versions, reviewing their photos and publishing their public links. It never permits
 customer messaging or collector import/retry/reconnect/clear. Old grants, defaults
@@ -35,8 +35,9 @@ step-up; supplying a callback in a unit test is not that proof.
 
 `dialogues:read` and the current-dialogue reader remain the separate PR1330
 capability. `selections:write` does not grant transcript search or access. The full
-legacy catalog, that reader scope and this single new scope occupy125 characters,
-within PR1330's128-character capacity. No additional migration is proposed.
+legacy catalog and optional quality reader use138 characters. The already accepted
+migration092 provides160-character capacity; adding bookings:read uses152.
+No additional migration is proposed, and existing grants remain unchanged.
 
 When the connection really holds both existing scopes, the current-dialogue context
 can additionally return purpose-scoped `messages[].selection_sources`. This is the
@@ -83,7 +84,7 @@ do not manufacture its URL, conditions or photos.
    service owns its capability token and host. Never fabricate either. Verify the
    public page against the exact selected conditions, dated prices and real photos.
 
-No tool sends a customer message. Sending, revocation, booking, collector operations,
+No tool sends a customer message. Sending, revocation, booking writes, collector operations,
 transcript read acknowledgments, role changes and provider requests are absent.
 Public selection output retains its existing explicit privacy allowlist.
 
@@ -118,3 +119,108 @@ required suite. No CI/workflow/release-mechanism change or second local CI is ne
 Run current-head required checks and independent review, then the ordinary single
 publisher release. Keep code readiness, connected consent, installation and an
 actual native published selection as separate facts.
+
+## Explicit readonly customer-choice and booking capability
+
+The two additive tools require **bookings:read**, independently of
+selections:write, dialogues:read and reply rights:
+
+- read_tour_choices with an actual conversation_id returns at most20 native
+  offers,20 web inquiries and20 Search3 inquiries. It identifies a native like,
+  a genuine customer inquiry, or a delivered but unliked offer. Delivery alone
+  is never booking eligible. Bounds are reported; this is not a global inventory.
+- read_tour_booking_context requires conversation_id, source_kind
+  (native/web/search), source_id and the exact returned64-character
+  choice_revision. It loads only that current choice and its allowed existing
+  worksheet. The revision hashes the immutable choice projection, excluding
+  the computed Search3 price_state_now. It is not a booking-record revision.
+
+The separately requested consent names the private categories honestly: original
+offer/version/conditions, saved amount and currency, availability-check evidence,
+terms, customer-agreement evidence, operator, booking reference and status, when
+present. The record allowlist is revision, updated_at and normalized fields:
+state, amount, currency, checked_at, verification_source, terms, available,
+customer_agreed, agreement_evidence, operator, booking_reference, confirmed_at,
+cancellation_reason. Raw actor/customer/visitor/binding identities, callback
+tokens, credential material and request hashes are excluded. Free text is
+private untrusted evidence, never instructions or a verified agreement.
+
+The new grant does not permit transcript access, read acknowledgments,
+booking_save, choice/agreement creation, messages, supplier requests, booking
+confirmation, payment, import or collection. context_loaded=true only means API
+data was loaded; visual_form_opened=false is literal. Reading a recorded fare
+does not refresh price, availability, room or travel-date validity.
+
+Canonical current-subject reads verify the current customer/channel relationship,
+native prepared binding and customer-origin inquiry actor. A saved booking
+record is not proof of a current like or inquiry. The adapter first requires the
+current choice, then compares its exact source kind/ID/revision to the returned
+record source, and revalidates the current identity/choice after final OAuth and
+conversation ACL checks. Missing/unliked/stale/foreign sources fail closed without
+partial context. The ordinary historical panel projection remains unchanged.
+
+### Existing-link opt-in and tokenless readback
+
+This is a supported protocol plan, not a claim that the current client's
+authorization UI or link continuity has been observed. No activation call is
+part of source tests or code installation.
+
+1. After installation and readiness, invoke read_tour_choices with **empty
+   arguments** on the selected existing AnyTour connection. Do not invent a
+   conversation/source ID or send a request to the staff session endpoint.
+   The tool's OAuth securitySchemes declare bookings:read. A valid old grant
+   receives an insufficient_scope tool error before customer-store access:
+   _meta["mcp/www_authenticate"] includes error, error_description, the union
+   of the actual existing scopes plus bookings:read, and resource_metadata
+   pointing to the existing OAuth endpoint's action=resource metadata.
+2. The existing MCP client owns reauthorization of that link, reused DCR client,
+   PKCE, state, request URL, callback and token exchange. These values must never
+   be guessed, copied from a profile, or manufactured by an agent. The existing
+   server authorize action displays the complete requested rights and requires
+   the ordinary authenticated administrator's explicit allow/deny POST with
+   CSRF. This native consent UI is the one permission request; no preliminary
+   permission-to-ask question, reconnect, new connector or approval-mode change
+   substitutes for it.
+3. A visible server challenge additionally supplies only
+   _meta["anytour/authorization_context"]: canonical granted_scopes and a
+   domain-separated opaque link_context hash over issuer/resource/profile/
+   project/client/admin. No grant/token/scope/customer value enters the hash.
+   Retain that actually observed baseline privately before consent.
+4. Only explicit allow creates a **new grant** for the same client and account;
+   the prior grant/access/refresh family is never widened. Denial or cancellation
+   gives no booking right. Refresh cannot add this scope. No grant is updated
+   merely by deployment or discovery.
+5. After client reauthorization, the same empty-argument call returns only
+   kind=authorization_metadata, canonical granted_scopes, link_context,
+   customer_reads=0, form_context_loaded=false and visual_form_opened=false.
+   Both authorization snapshots must remain active and equal at disclosure.
+   Verify bookings:read and compare the actually observed baseline hash; do not
+   export raw IDs or tokens between chats. A changed hash is not the same
+   authorized subject/client.
+6. A host may present its consent UI before sending an old bearer request. If
+   that prevents observation of the challenge baseline, **same-link/account
+   continuity remains unverified**. Receipt generation in a synthetic test is
+   not that observation. Stop customer reads and report this precise missing
+   evidence; do not silently call reconnect or guess a baseline. Missing tool
+   discovery/UI support is likewise an activation blocker, not a reason to
+   change grants or use another route.
+7. Even successful consent/readback does not authorize a replay of a prior live
+   check. Obtain the new bounded coordinator admission for the same executor
+   before actual current-choice reads and form acceptance. API context is not
+   evidence of a visible form.
+
+The server protocol and client reauthorization requirements are described in
+[OpenAI authentication documentation](https://developers.openai.com/plugins/build/auth).
+Client operation on this particular existing link remains separately observed;
+an installed enum or a manually assembled authorization URL cannot prove it.
+
+Existing defaults and all separated Replies/Hotels/Development resources retain
+their scopes. Current migration092 already provides160 ASCII scope bytes.
+The full previously supported list uses138; including bookings:read uses152.
+The previously documented125/128 baseline was superseded by092; it is not a new schema change.
+Synthetic tests cover actual consent allow/deny, old access/refresh isolation,
+safe metadata without customer tables, opaque client/account continuity,
+late revocation/ACL/customer/current-choice changes, stored stale record sources,
+and unchanged events/messages/read markers. The full existing required CI still
+runs; focused CLI booking-only modes exercise new fixtures without replacing it.
+

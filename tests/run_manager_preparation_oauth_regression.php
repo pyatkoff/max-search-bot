@@ -62,6 +62,78 @@ function preparationOauthGrant(ManagerPreparationOAuth $oauth, string $client, i
         'resource'=>ManagerPreparationOAuth::RESOURCE,'code'=>$query['code'],'code_verifier'=>$verifier],$target,$session,$id];
 }
 
+function preparationBookingScopeChecks(): void
+{
+    [$pdo,$clock,$oauth,$client]=preparationOauthFixture();
+    $issue=static function(string $scope,int $actor=1,?string $targetClient=null)use($oauth,$client):array{
+        $actualClient=$targetClient??$client;$verifier=str_repeat('b',43);$session=['csrf'=>'booking-fixture-csrf'];
+        $request=preparationOauthRequest($actualClient,$verifier);$request['scope']=$scope;
+        $pending=$oauth->beginAuthorization($session,$request);
+        $target=$oauth->completeAuthorization($session,$pending,$actor,$session['csrf'],true);
+        parse_str((string)parse_url($target,PHP_URL_QUERY),$query);
+        $tokens=$oauth->exchange(['grant_type'=>'authorization_code','client_id'=>$actualClient,'resource'=>ManagerPreparationOAuth::RESOURCE,
+            'redirect_uri'=>ManagerPreparationOAuth::REDIRECT_URI,'code'=>$query['code'],'code_verifier'=>$verifier]);
+        return [$tokens,$oauth->contextForBearer('Bearer '.$tokens['access_token'])];
+    };
+    [$oldTokens,$old]=$issue(implode(' ',ManagerPreparationOAuth::SCOPES));
+    $before=$oauth->currentAuthorizationMetadata($old['connection_id'],1,$old['scopes']);
+    preparationOauthCheck('booking capability is absent from defaults and existing actual tokens',
+        !in_array(ManagerPreparationOAuth::BOOKING_SCOPE,$old['scopes'],true)
+        &&ManagerPreparationOAuth::SCOPES===['queue:read','prepared:write']
+        &&$oauth->currentAuthorizationMetadata($old['connection_id'],1,[ManagerPreparationOAuth::BOOKING_SCOPE])===null);
+    $oldRows=$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll();
+    $scope=implode(' ',[...$old['scopes'],ManagerPreparationOAuth::BOOKING_SCOPE]);
+    $request=preparationOauthRequest($client,str_repeat('b',43));$request['scope']=$scope;$session=['csrf'=>'deny-booking'];
+    $pending=$oauth->beginAuthorization($session,$request);
+    $denied=$oauth->completeAuthorization($session,$pending,1,$session['csrf'],false);
+    preparationOauthCheck('denied explicit booking consent issues no grant or token',
+        str_contains($denied,'error=access_denied')&&$pdo->query('SELECT * FROM manager_preparation_oauth_grants ORDER BY grant_id')->fetchAll()===$oldRows);
+    [$tokens,$current]=$issue($scope);
+    $after=$oauth->currentAuthorizationMetadata($current['connection_id'],1,[ManagerPreparationOAuth::BOOKING_SCOPE]);
+    preparationOauthCheck('explicit same-client reauthorization creates a distinct narrowly consented grant',
+        $current['connection_id']!==$old['connection_id']&&$after['granted_scopes']===[...$old['scopes'],ManagerPreparationOAuth::BOOKING_SCOPE]);
+    preparationOauthCheck('same existing client and account retain stable opaque link context across new grants',
+        $before['link_context']===$after['link_context']&&strlen($after['link_context'])===64
+        &&array_keys($after)===['granted_scopes','link_context']
+        &&!str_contains(json_encode($after),$client)&&!str_contains(json_encode($after),$tokens['access_token']));
+    preparationOauthCheck('new consent never widens the old grant or old access token',
+        $oauth->contextForBearer('Bearer '.$oldTokens['access_token'])['scopes']===$old['scopes']
+        &&!$oauth->connectionAuthorized($old['connection_id'],1,[ManagerPreparationOAuth::BOOKING_SCOPE]));
+    preparationOauthReject('refresh cannot add the booking capability',static fn()=>$oauth->exchange([
+        'grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,
+        'refresh_token'=>$oldTokens['refresh_token'],'scope'=>$scope]),'invalid_scope');
+    $refreshed=$oauth->exchange(['grant_type'=>'refresh_token','client_id'=>$client,'resource'=>ManagerPreparationOAuth::RESOURCE,'refresh_token'=>$oldTokens['refresh_token']]);
+    preparationOauthCheck('ordinary old-token refresh preserves exact original scopes',$refreshed['scope']===implode(' ',$old['scopes']));
+    $other=$oauth->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'booking-other-client')['client_id'];
+    [, $otherContext]=$issue(ManagerPreparationOAuth::BOOKING_SCOPE,1,$other);
+    preparationOauthCheck('another client cannot be mistaken for the same existing link',
+        $oauth->currentAuthorizationMetadata($otherContext['connection_id'],1,[ManagerPreparationOAuth::BOOKING_SCOPE])['link_context']!==$after['link_context']);
+    $pdo->exec("INSERT INTO managers VALUES(5,'admin',1,0);INSERT INTO manager_projects VALUES(5,1)");
+    [, $otherActor]=$issue(ManagerPreparationOAuth::BOOKING_SCOPE,5);
+    preparationOauthCheck('same client with another account has a distinct context',
+        $oauth->currentAuthorizationMetadata($otherActor['connection_id'],5,[ManagerPreparationOAuth::BOOKING_SCOPE])['link_context']!==$after['link_context']);
+    $changes=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+    preparationOauthCheck('self authorization read works without customer tables or database writes',
+        $oauth->currentAuthorizationMetadata($current['connection_id'],1,[ManagerPreparationOAuth::BOOKING_SCOPE])===$after
+        &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$changes);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=? WHERE grant_id=?')->execute([$clock->now,$current['connection_id']]);
+    preparationOauthCheck('revoked actual grant has no authorization receipt',$oauth->currentAuthorizationMetadata($current['connection_id'],1,[ManagerPreparationOAuth::BOOKING_SCOPE])===null);
+    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET revoked_at=NULL WHERE grant_id=?')->execute([$current['connection_id']]);
+    $pdo->exec('UPDATE managers SET is_active=0 WHERE id=1');
+    preparationOauthCheck('inactive administrator has no authorization receipt',$oauth->currentAuthorizationMetadata($current['connection_id'],1,[ManagerPreparationOAuth::BOOKING_SCOPE])===null);
+    $pdo->exec('UPDATE managers SET is_active=1 WHERE id=1');
+    foreach ([ManagerPreparationOAuth::PROFILE_REPLIES,ManagerPreparationOAuth::PROFILE_HOTELS,ManagerPreparationOAuth::PROFILE_DEVELOPMENT] as $profile) {
+        $separate=new ManagerPreparationOAuth($pdo,null,$profile);$pclient=$separate->registerClient(['redirect_uris'=>[ManagerPreparationOAuth::REDIRECT_URI]],'booking-deny-'.$profile)['client_id'];
+        $req=preparationOauthRequest($pclient,str_repeat('b',43));$req['resource']=ManagerPreparationOAuth::profileDefinition($profile)['resource'];$req['scope']=ManagerPreparationOAuth::BOOKING_SCOPE;
+        preparationOauthReject($profile.' audience cannot acquire booking scope',static fn()=>$separate->validateAuthorization($req),'invalid_scope');
+    }
+    $all=implode(' ',ManagerPreparationOAuth::SUPPORTED_SCOPES);
+    [$allTokens,$allContext]=$issue($all);
+    preparationOauthCheck('all explicitly requested scopes roundtrip within unchanged160-byte schema capacity',
+        strlen($all)===152&&$allTokens['scope']===$all&&$allContext['scopes']===ManagerPreparationOAuth::SUPPORTED_SCOPES);
+}
+
+
 /** Read the actual rendered successful controls, not a hand-invented POST body. */
 function preparationOauthConsentForm(string $html, string $decision, string $action='/manager/ai-oauth.php?action=authorize'): array
 {
@@ -648,6 +720,8 @@ try {
         preparationOauthHttpChecks(true,in_array('--development-profile',$argv??[],true));
         exit;
     }
+    preparationBookingScopeChecks();
+    if (in_array('--booking-only',$argv??[],true)) {echo 'Booking OAuth: '.$passed." checks passed\n";exit;}
     [$pdo,$clock,$oauth,$client]=preparationOauthFixture();
     $metadata=ManagerPreparationOAuth::authorizationMetadata();
     preparationOauthCheck('issuer path leaves origin resource and OAuth action endpoints unchanged',
@@ -664,7 +738,7 @@ try {
         && $metadata['token_endpoint_auth_methods_supported']===['none'] && $metadata['code_challenge_methods_supported']===['S256']
         && !in_array('client_credentials',$metadata['grant_types_supported'],true)
         && ManagerPreparationOAuth::resourceMetadata()['resource']===ManagerPreparationOAuth::RESOURCE
-        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write','forecasts:read','dialogues:read','selections:write','quality:read']);
+        && ManagerPreparationOAuth::resourceMetadata()['scopes_supported']===['queue:read','prepared:write','hotel_work:write','archive:read','development_work:write','forecasts:read','dialogues:read','selections:write','quality:read','bookings:read']);
     preparationOauthCheck('only current active admin with canonical project membership is eligible',
         $oauth->activeAdmin(1) && !$oauth->activeAdmin(0) && !$oauth->activeAdmin(2) && !$oauth->activeAdmin(3) && !$oauth->activeAdmin(4));
     preparationOauthCheck('authorization never changes the operator working state', (int)$pdo->query('SELECT is_working FROM managers WHERE id=1')->fetchColumn()===0);
