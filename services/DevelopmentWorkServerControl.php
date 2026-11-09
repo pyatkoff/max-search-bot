@@ -265,7 +265,8 @@ trait DevelopmentWorkServerControl
                     'coverage'=>'old_queue_item_receipt_retirement_handoff_bytes_only',
                     'native_unknowns'=>'unreconciled_not_inspected_or_replayed_by_this_control'],
             ];
-            if($parent!==null)$evidence['parent']=$parent;
+            if($parent!==null)$evidence['parent']=['resolved_in'=>'input.accepted_parent','sha256'=>self::hash($parent),
+                'outcome'=>$parent['outcome'],'producer_cron_id'=>$parent['producer_cron_id'],'reviewer_cron_id'=>$parent['reviewer_cron_id']];
             $facts=['input'=>self::hash($input)===$item['input_sha256'],'legacy_unknown'=>'unreconciled'];
             if($kind==='commissioning')$facts+=['server_mode'=>$installed['execution_kind']==='server_model',
                 'ordinary_cron'=>$origin['trigger']==='cron',
@@ -443,7 +444,7 @@ trait DevelopmentWorkServerControl
                 $payload=json_decode($wire['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
                 $item=$this->current($q,$a['task_id'],$job['spec_sha256']);
                 if($job['input_sha256']!==$item['input_sha256']||self::hash($payload['input'])!==$item['input_sha256']
-                    ||$payload['execution']['cron_id']!==$a['cron_id']||$payload['execution']['event_id']!==$a['event_id'])
+                    ||$payload['evidence']['execution']['cron_id']!==$a['cron_id']||$payload['evidence']['execution']['event_id']!==$a['event_id'])
                     throw new DomainException('development_server_actual_input_pin');
                 DevelopmentWorkServerContract::validateReport($report,$a['role'],$job['kind'],$payload['facts'],$job['candidate_sha256'],$payload['evidence']);
                 if($duplicate)

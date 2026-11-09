@@ -142,8 +142,12 @@ function devServerChecks(): void
     devAssert($r['state']==='candidate'&&$bp['input']['accepted_parent']['receipt_sha256']===$proof['receipts'][0]['receipt_sha256']
         &&$bp['input']['accepted_parent']['result_sha256']===$receipt['result_sha256']
         &&$bp['input']['accepted_parent']['reviewer_run_id']===$receipt['reviewer_run_id']
-        &&$bp['execution']['cron_id']!==$event['created_cron_id'],'later_B_consumes_actual_accepted_A_bytes_and_new_cron');
+        &&$bp['evidence']['execution']['cron_id']!==$event['created_cron_id'],'later_B_consumes_actual_accepted_A_bytes_and_new_cron');
     $clock->at+=60;$q->serverTick($provider,devServerOrigin($clock));$s=devServerStatus($q);
+    $largest=json_decode(json_decode($log->sent[3],true,32,JSON_THROW_ON_ERROR)['input'][1]['content'][0]['text'],true,32,JSON_THROW_ON_ERROR);
+    foreach($largest['candidate']['checks'] as &$check)$check['note']=str_repeat('n',160);unset($check);
+    devAssert(strlen($provider->prepare($largest+['execution_kind'=>'server_model','role'=>'reviewer','kind'=>'readiness']))<=8192,
+        'largest_note_B_review_remains_inside_original_wire_budget');
     devAssert($s['task_count']===3&&$s['accepted_count']===2&&$s['blocked_count']===1
         &&$s['retirement_count']===1&&$s['worker_receipt_count']===2&&$s['task_id']===null&&$s['state']==='blocked'
         &&$s['server_control']['state']==='complete','final_truth_preserves_retired_A01_and_two_worker_acceptances');
@@ -218,7 +222,9 @@ function devServerChecks(): void
     [$fake,$seen]=devServerSender();$p->beforeExecute=static function(string $sql):void {
         if(str_starts_with($sql,'UPDATE development_work_server_attempts SET response_id='))throw new PDOException('synthetic_storage_loss');
     };
-    devReject(fn()=>$queue->serverTick($fake,devServerOrigin($time)),PDOException::class,'result_storage_failure_is_not_retried_or_falsely_zero_calls');
+    try{$queue->serverTick($fake,devServerOrigin($time));devAssert(false,'storage_failure_must_throw');}
+    catch(RuntimeException $error){devAssert($error->getMessage()==='development_work_storage_unavailable',
+        'canonical_storage_boundary_wraps_original_failure_without_retry');}
     $p->beforeExecute=null;$time->at+=60;
     devAssert($queue->serverTick($fake,devServerOrigin($time))['provider_calls']===0&&count($seen->sent)===1,
         'lost_result_commit_retains_original_unknown_reservation');
