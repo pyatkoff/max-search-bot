@@ -1,0 +1,269 @@
+{
+  "schema_version": 1,
+  "project_key": "appleservice39",
+  "prepared_date": "2026-11-09",
+  "status": "prepared_not_published",
+  "media_kind": "AI_generated_illustration",
+  "source_catalog_git_blob": "fa9c4a68d890280aa8e9545a081ccde82caf2ec0",
+  "text_revision_pr": "https://github.com/pyatkoff/max-search-bot/pull/1425",
+  "note": "Direct service catalog covers without question headlines or drawn CTAs. Source artwork only; not a provider receipt.",
+  "posts": [
+    {
+      "post_id": "repair-iphone-x-battery-replacement",
+      "model": "iPhone X",
+      "service": "Замена аккумулятора",
+      "service_key": "battery_replacement",
+      "price_kind": "listed",
+      "price_text": "Замена аккумулятора по прайсу — 3 500 ₽. Диагностика бесплатная. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-x-battery-replacement.png",
+      "sha256": "1ceddaceee5039703d400a904a44c905ded9e7fc69e22890e71544ca506c3ded",
+      "bytes": 1700964,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-x-front-glass-replacement",
+      "model": "iPhone X",
+      "service": "Замена стекла без дисплея",
+      "service_key": "front_glass_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 5 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-x-front-glass-replacement.png",
+      "sha256": "8dfe3d3012bfa448f5480136559d5e58737ec555de158f0a840e4ba1c8965518",
+      "bytes": 1712703,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/",
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-x-display",
+      "model": "iPhone X",
+      "service": "Замена дисплея",
+      "service_key": "display",
+      "price_kind": "variants",
+      "price_text": "Оригинальный дисплей — 12 000 ₽. Аналог — 6 000 ₽. Цены по прайсу. Уточним наличие и условия выбранного варианта.",
+      "path": "covers/repair-iphone-x-display.png",
+      "sha256": "d9782a061d8dffa31fb631ab935170a22bb239661e894e169b9209e2091ab752",
+      "bytes": 1675433,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-x-v-kalingrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-battery-replacement",
+      "model": "iPhone 15",
+      "service": "Замена аккумулятора",
+      "service_key": "battery_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 6 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-15-battery-replacement.png",
+      "sha256": "59c699c8895f21624dd482dd69d69401c68e8637b728900e206ca0dbc406881b",
+      "bytes": 1669398,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-front-glass-replacement",
+      "model": "iPhone 15",
+      "service": "Замена стекла без дисплея",
+      "service_key": "front_glass_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-15-front-glass-replacement.png",
+      "sha256": "c007e64c39576f51b26aa1b802da871b1416db6cbfafe9afe0bce1523aec0eac",
+      "bytes": 1724715,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-display",
+      "model": "iPhone 15",
+      "service": "Замена дисплея",
+      "service_key": "display",
+      "price_kind": "on_request",
+      "price_text": "Стоимость по запросу. Уточним варианты дисплея, цену и наличие детали.",
+      "path": "covers/repair-iphone-15-display.png",
+      "sha256": "07ded323e64471c7cc1508c1d19fade13ff23f9712b1fba8378386e142a8f233",
+      "bytes": 1652523,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-plus-battery-replacement",
+      "model": "iPhone 15 Plus",
+      "service": "Замена аккумулятора",
+      "service_key": "battery_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 6 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-15-plus-battery-replacement.png",
+      "sha256": "8d563f3ef64e6eeb0d15c8b60956d399a8dc53e52764ca87a3a9676fd38a6f4e",
+      "bytes": 1682811,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-plus-front-glass-replacement",
+      "model": "iPhone 15 Plus",
+      "service": "Замена стекла без дисплея",
+      "service_key": "front_glass_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 8 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-15-plus-front-glass-replacement.png",
+      "sha256": "a1ea033067622b3abcefd2cb36f58c2ae0332d1c1b3443c48d2e8222ebe308b1",
+      "bytes": 1720970,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-plus-display",
+      "model": "iPhone 15 Plus",
+      "service": "Замена дисплея",
+      "service_key": "display",
+      "price_kind": "on_request",
+      "price_text": "Стоимость по запросу. Уточним варианты дисплея, цену и наличие детали.",
+      "path": "covers/repair-iphone-15-plus-display.png",
+      "sha256": "07ae38eb30c3bd380cd6c97b253a650297844493054b9e72ff22245774430bb5",
+      "bytes": 1657603,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-pro-battery-replacement",
+      "model": "iPhone 15 Pro",
+      "service": "Замена аккумулятора",
+      "service_key": "battery_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-15-pro-battery-replacement.png",
+      "sha256": "8968452ea8cb5499ebe170df5f622426ae302690572962423d2da26121df5f95",
+      "bytes": 1795827,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-pro-front-glass-replacement",
+      "model": "iPhone 15 Pro",
+      "service": "Замена стекла без дисплея",
+      "service_key": "front_glass_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 9 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-15-pro-front-glass-replacement.png",
+      "sha256": "8b4cd83591ed607ad92a631f62da66bb731f5bf66c59a9e89c12ec1f3459228e",
+      "bytes": 1859722,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-pro-display",
+      "model": "iPhone 15 Pro",
+      "service": "Замена дисплея",
+      "service_key": "display",
+      "price_kind": "on_request",
+      "price_text": "Стоимость по запросу. Уточним варианты дисплея, цену и наличие детали.",
+      "path": "covers/repair-iphone-15-pro-display.png",
+      "sha256": "76434bf3c2ca9cabc3c1e8c6e7441cb108f1b8ef5628c5159e13c4e250de417e",
+      "bytes": 1711052,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-battery-replacement",
+      "model": "iPhone 15 Pro Max",
+      "service": "Замена аккумулятора",
+      "service_key": "battery_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 7 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-15-pro-max-battery-replacement.png",
+      "sha256": "8a2b0d23d1909d9e8d0cef4aaf769225da83875f2fce7f2993f1c793136b1b84",
+      "bytes": 1752608,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-batarei-ayfon-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-front-glass-replacement",
+      "model": "iPhone 15 Pro Max",
+      "service": "Замена стекла без дисплея",
+      "service_key": "front_glass_replacement",
+      "price_kind": "listed",
+      "price_text": "Стоимость по прайсу — 10 000 ₽. Актуальную цену и наличие детали уточним до ремонта.",
+      "path": "covers/repair-iphone-15-pro-max-front-glass-replacement.png",
+      "sha256": "7d4158f8290159b023c13b07b6234daa9724fe49c99205a024ac706bc14e800c",
+      "bytes": 1808336,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/zamena-stekla-ekrana-iphone-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    },
+    {
+      "post_id": "repair-iphone-15-pro-max-display",
+      "model": "iPhone 15 Pro Max",
+      "service": "Замена дисплея",
+      "service_key": "display",
+      "price_kind": "on_request",
+      "price_text": "Стоимость по запросу. Уточним варианты дисплея, цену и наличие детали.",
+      "path": "covers/repair-iphone-15-pro-max-display.png",
+      "sha256": "84c9c4ca1b0a1298f46e49e82b222f8703de1001a76a5514abb5bd03345828b6",
+      "bytes": 1662109,
+      "width": 1072,
+      "height": 1467,
+      "source_urls": [
+        "https://appleservice39.ru/remont-iphone/remont-iphone-15-15plus-15pro-15pro-max-ayfon-v-kaliningrade/"
+      ],
+      "source_artwork_visually_reviewed": true
+    }
+  ]
+}

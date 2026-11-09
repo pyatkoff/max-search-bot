@@ -153,6 +153,31 @@ foreach ($catalog as $index=>$entry) {
         && repairIntent($pdo,(int)$row['id']) === []);
 }
 
+
+$navigationPosts = ['menu','model-iphone-x','model-iphone-15','model-iphone-15-plus','model-iphone-15-pro',
+    'model-iphone-15-pro-max','service-battery-replacement','service-front-glass-replacement','service-display'];
+foreach ($navigationPosts as $i=>$postId) {
+    $entry = AppleService39PilotCatalog::landingEntryForPost($postId);
+    $payload = AppleService39PilotCatalog::landingPayloadForPost($postId);
+    repairCheck('navigation entry is exact and allowlisted '.$postId, $entry !== null && $payload === 'as39_'.$postId
+        && AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot',$payload) === $entry);
+    $result = $handle('appleservice39',repairStart(7300+$i,$payload));
+    $conversation = repairConversation($pdo,'appleservice39',7300+$i);
+    repairCheck('navigation bot entry replies and mirrors in common history '.$postId, $result['status'] === 200
+        && $conversation['status'] === 'waiting_manager'
+        && end($sent)['text'] === AppleService39PilotCatalog::responseText($entry,'AppleService39')
+        && repairEntryIntent($pdo,(int)$conversation['id'])['state'] === 'delivered');
+    if ($entry['scope'] === 'model') repairCheck('model-only entry asks about the problem without guessing a service',
+        str_contains(end($sent)['text'],$entry['model']) && !preg_match('/[0-9] [0-9]{3} ₽/',end($sent)['text']));
+}
+$beforeMenu = json_decode((string)repairConversation($pdo,'appleservice39',7001)['metadata_json'],true)['repair_context'];
+$handle('appleservice39',repairStart(7001,'as39_menu',1800000099000));
+repairCheck('menu consultation preserves previously known device and repair',
+    (json_decode((string)repairConversation($pdo,'appleservice39',7001)['metadata_json'],true)['repair_context'] ?? null) === $beforeMenu);
+repairCheck('unapproved navigation remains closed',
+    AppleService39PilotCatalog::resolve('appleservice39','id390521129062_bot','as39_model-iphone-16') === null
+    && AppleService39PilotCatalog::resolve('repair_two','id390521129062_bot','as39_menu') === null);
+
 $before = (int)$pdo->query('SELECT COUNT(*) FROM conversations')->fetchColumn();
 $ignored = [
     ['update_type'=>'message_callback','callback'=>['user'=>['user_id'=>8001]]],
