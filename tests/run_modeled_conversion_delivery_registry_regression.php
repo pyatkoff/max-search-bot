@@ -365,14 +365,27 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         $rejected['events'][0]['linkage']==='failed'&&$rejected['events'][0]['reason']==='eligible_visit_but_provider_linkage_failed'
         &&$rejected['events'][0]['visit_started_at']===null);
     $queue=[];
-    for($i=40;$i>0;$i--){$r=$a;$r['id']=(string)$i;$r['value_api_accepted_at_unix']=$day+600;$queue[]=$r;}
+    for($i=40;$i>0;$i--){$r=$a;$r['id']=(string)$i;$r['value_api_accepted_at_unix']=$day+600;$r['upload_status']='UPLOADED';$queue[]=$r;}
     $selection=ModeledConversionVisitProof::dueIds($queue,$day+500,$now,static function(array $r)use($now):array{
         return $r['id']==='40'?['at'=>$now-400,'event'=>['linkage'=>'not_checked']]:[];
     },2);
     $check('a bounded scheduled batch includes the freshest row and an older never-checked row',$selection===['40','39']);
     $checked=ModeledConversionVisitProof::dueIds($queue,$day+500,$now,static fn(array $r):array=>[
-        'at'=>$now-500,'event'=>['linkage'=>'unique_visit_reconciled']],2);
+        'at'=>$now-500,'event'=>['linkage'=>'unique_visit_reconciled','upload_status'=>'PROCESSED']],2);
     $check('terminal visit evidence is not repeatedly queried every five minutes',$checked===[]);
+    $finished=$queue[35];$finished['upload_status']='PROCESSED';$finished['state']='processed';
+    $legacyFinished=$legacy;$legacyFinished['value_api_accepted_at_unix']=$day+600;
+    $priority=ModeledConversionVisitProof::dueIds([$queue[0],$finished,$legacyFinished],$day+500,$now,
+        static fn(array $r):array=>['at'=>$now-1,'event'=>['upload_status'=>'UPLOADED','linkage'=>'not_checked']],2);
+    $check('newly completed receipts precede repeated pending reads and include legacy goal rows',
+        $priority===[(string)$finished['id'],(string)$legacyFinished['id']]);
+    $historic=$queue[0];$historic['id']='41';$historic['upload_status']='PROCESSED';$historic['value_processed_at_unix']=$day+1;
+    $fresh=$queue[0];$fresh['id']='42';
+    $fair=ModeledConversionVisitProof::dueIds([$fresh,$historic,$finished],$day+500,$now,
+        static fn(array $r):array=>$r['id']===(string)$finished['id']
+            ?['at'=>$now-1,'event'=>['upload_status'=>'UPLOADED','linkage'=>'not_checked']]:[],2);
+    $check('old unchecked processing history cannot consume the new-upload slot',
+        $fair===[(string)$finished['id'],(string)$fresh['id']]);
     $deadlineCalls=count($api->calls);$deadlineBlocked=false;
     try{ModeledConversionVisitProof::verify([$a],$api,$day,$day+500,$now,null,microtime(true)-1);}catch(RuntimeException $ignored){$deadlineBlocked=true;}
     $check('expired verifier time budget stops before a provider receipt read',$deadlineBlocked&&count($api->calls)===$deadlineCalls);
@@ -431,6 +444,32 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $unbound=ModeledConversionVisitProof::dailySentCohort([$todayA],[(string)$todayA['id']=>$changedProof],$now,$archived);
     $check('a different event fingerprint cannot contribute to daily confirmed visit totals',
         $unbound['by_platform']['max']['visit_linked']['events']===0&&$unbound['by_platform']['max']['proof_missing']['events']===1);
+
+
+    $cut=$day+5000;$beforeA=$todayA;$beforeA['value_processed_at_unix']=$day+4500;
+    $afterB=$todayB;$afterB['value_processed_at_unix']=$day+7000;$afterB['state']='processed';$afterB['upload_status']='PROCESSED';
+    $newer=$todayA;$newer['id']='6';$newer['claimed_at_unix']=$day+6000;$newer['value_rub']=19;
+    $currentB=$proof['events'][1];$currentB['checked_at']=gmdate('c',$now);
+    $follow=ModeledConversionVisitProof::followupReport([$beforeA,$afterB,$todayC,$newer],
+        [(string)$afterB['id']=>$currentB],$cut,$now,$archived);
+    $check('followup excludes later sends and receipts already processed at the original checkpoint',
+        $follow['baseline_by_platform']['max']['sent']['value_rub']===37
+        &&$follow['baseline_by_platform']['max']['processed_at_checkpoint']['value_rub']===17
+        &&$follow['outcome']['by_platform']['max']['sent']['value_rub']===20
+        &&$follow['outcome']['by_platform']['telegram']['visit_linked']['value_rub']===100000);
+    $followReader=new ReflectionMethod(ModeledConversionVisitProof::class,'followupSummary');
+    $followSafe=$followReader->invoke(null,$follow,$now);
+    $badFollow=$follow;$badFollow['baseline_by_platform']['max']['sent']['value_rub']++;
+    $check('followup arithmetic and original selection are validated before private disclosure',
+        $followSafe['available']&&!$followReader->invoke(null,$badFollow,$now)['available']
+        &&!str_contains(json_encode($followSafe,JSON_THROW_ON_ERROR),'conversation_id'));
+    $nextDay=$day+100000;$nextProof=$currentB;$nextProof['checked_at']=gmdate('c',$nextDay);
+    $later=ModeledConversionVisitProof::followupReport([$beforeA,$afterB,$todayC,$newer],
+        [(string)$afterB['id']=>$nextProof],$cut,$nextDay,$archived);
+    $laterSafe=$followReader->invoke(null,$later,$nextDay);
+    $check('an explicit followup retains the original calendar after midnight while evidence stays current',
+        $laterSafe['available']&&$laterSafe['fresh']&&$laterSafe['date']==='2026-11-02'
+        &&$laterSafe['by_platform']['telegram']['sent']['events']===1);
 
     deliveryRegistrySchema($p);
     for($i=0;$i<35;$i++)deliveryRegistryFixtureEvent($p,610,1,$day+100+$i,['predictive'=>true,'value'=>10]);

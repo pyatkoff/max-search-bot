@@ -440,3 +440,21 @@ alone never credits a visit. The ordinary fixed private MCP reader validates the
 cached arithmetic and calendar, exposes no individual identities, performs no
 new provider/DB read for this projection, and does not change the existing UI
 calendar, goals, values, source profiles or delivery queues.
+
+
+### Follow up a fixed earlier sent cohort
+
+The same private proof cache can retain a followup checkpoint independently of
+the original visit-proof cohort. Its selection uses the recording day and
+claim time at or before that checkpoint, excluding rows whose first durable
+processing observation already existed then. Baseline counts/values and unknown
+processing clocks remain visible so the reconstructed scope can be checked
+against the original report. Later sends are excluded. This is metadata
+reconciliation, not a historical forecast rewrite or conversion replay.
+
+The normal guarded checker carries this context across refreshes and day
+boundaries. Freshly completed or rejected receipts are checked before repeated
+pending/historical reads, under the unchanged batch and API time bounds.
+Legacy stage-value rows use the same exact goal verification. The cached
+followup contains only aggregate outcomes and bounded anonymous failure
+evidence; private individual identities never enter MCP or public logs.
