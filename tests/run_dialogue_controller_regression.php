@@ -64,6 +64,7 @@ class TravelDirectoryRepository {
             ['id'=>1, 'name'=>'Казань', 'name_genitive'=>'Казани'],
             ['id'=>2, 'name'=>'Ростов-на-Дону', 'name_genitive'=>'Ростова-на-Дону'],
             ['id'=>3, 'name'=>'Минеральные Воды', 'name_genitive'=>'Минеральных Вод'],
+            ['id'=>4, 'name'=>'Самара', 'name_genitive'=>'Самары'],
             ['id'=>10, 'name'=>'Санкт Город', 'name_genitive'=>'Санкт Города'],
             ['id'=>11, 'name'=>'Санаторный Город', 'name_genitive'=>'Санаторного Города'],
         ];
@@ -77,7 +78,26 @@ class DestinationCatalogRepository {
     public static array $queries = [];
     public static function query(int $id, array $filter, array $select, int $limit=20): array {
         self::$queries[] = [$id, $filter, $select, $limit];
+        // If the departure leaks into destination inference, reproduce its
+        // plausible Russian resort match instead of silently returning nothing.
+        if ($id === 3 && preg_match('/самар/ui', (string)($filter['%UF_NAME'] ?? ''))) {
+            return [['UF_TID'=>100, 'UF_CID'=>1, 'UF_NAME'=>'Самара', 'UF_PARENT_TID'=>0]];
+        }
+        if ($id === 2 && (int)($filter['=UF_CID'] ?? 0) === 1) {
+            return [['UF_CID'=>1, 'UF_NAME'=>'Россия']];
+        }
         return [];
+    }
+}
+PHP
+        );
+        file_put_contents($tmp . '/services/AiInvocationService.php', <<<'PHP'
+<?php
+class AiInvocationService {
+    public static array $calls = [];
+    public static function invoke($route, $chat, $text, $context): array {
+        self::$calls[] = [$route, $chat, $text];
+        throw new RuntimeException('Fixture forbids external model calls');
     }
 }
 PHP
@@ -107,6 +127,7 @@ PHP
             }
             public static function getTrafficMeta($chat): array { return TrafficAttributionService::get(self::$testBaseDir, $chat); }
             public static function getAiSearchContext($chat): array { return self::$aiContexts[$chat] ?? []; }
+            public static function getCityByName($text) { return false; }
             public static function getAiMissingFields($chat): array { return self::$missingFields[$chat] ?? ['city']; }
             public static function applyAiParameters($chat, array $params): array {
                 self::$parameterWrites[] = [$chat, $params];
@@ -217,7 +238,7 @@ PHP
 
         // Exercise the real controller/resolver/application/progression route.
         // Stop unmatched turns at the existing AI log boundary before any model call.
-        $cityTurn = static function (int $chat, string $platform, string $text, array $context, array $missing, int $status)
+        $cityTurn = static function (int $chat, string $platform, string $text, array $context, array $missing, int $status, bool $probeAi = true)
             use (&$chats, &$sent, $maxMessenger, $telegramMessenger): array {
             $chats[] = $chat;
             MaxSearchApi::$statuses[$chat] = $status;
@@ -225,10 +246,11 @@ PHP
             MaxSearchApi::$missingFields[$chat] = $missing;
             MaxSearchApi::$parameterWrites = [];
             DestinationCatalogRepository::$queries = [];
+            AiInvocationService::$calls = [];
             IntegrationRegistry::useMessenger($platform === 'max' ? $maxMessenger : $telegramMessenger);
             $before = count($sent); $eventsBefore = count(MaxSearchApi::$events);
             $reached = null; $handled = null;
-            MaxSearchApi::$probeAi = true;
+            MaxSearchApi::$probeAi = $probeAi;
             try {
                 $handled = (new DialogueController())->handleIncomingMessage(IncomingMessage::text(
                     $platform, abs($chat), $chat, 'fixture-city', $text
@@ -240,8 +262,11 @@ PHP
                 'messages'=>array_slice($sent, $before),
                 'events'=>array_column(array_slice(MaxSearchApi::$events, $eventsBefore), 1),
                 'context'=>MaxSearchApi::getAiSearchContext($chat),
+                'missing'=>MaxSearchApi::getAiMissingFields($chat),
                 'writes'=>MaxSearchApi::$parameterWrites,
                 'destination_queries'=>count(DestinationCatalogRepository::$queries),
+                'destination_filters'=>DestinationCatalogRepository::$queries,
+                'model_calls'=>AiInvocationService::$calls,
             ];
         };
         foreach ([
@@ -280,6 +305,60 @@ PHP
         $check('explicit rich departure continues destination inference', $result['destination_queries'] > 0, true);
         $check('explicit rich departure reaches AI unchanged', $result['ai_text'], $text);
         $check('explicit rich departure is not consumed as a field answer', $result['messages'], []);
+
+        // Exercise the complete local collector with the real date/night
+        // parsers, application and progression, on both messenger paths.
+        $tripYear = (int)date('Y') + 1;
+        $compoundText = 'Самара с 12 декабря ' . $tripYear . ' на 10 ночей';
+        foreach (['max', 'telegram'] as $index=>$platform) {
+            $chat = $platform === 'max' ? -($chatBase + 140 + $index) : $chatBase + 140 + $index;
+            $result = $cityTurn($chat, $platform, $compoundText, ['country'=>'Египет'],
+                ['city', 'adults', 'children', 'nights', 'date'], MaxSearchApi::$statusAi, false);
+            $check($platform . ' compound answer retains all explicit trip facts', $result['context'],
+                ['country'=>'Египет', 'city'=>'Самара', 'nights'=>'10', 'date'=>'12.12.' . $tripYear, 'meal'=>'all_inclusive', 'stars'=>4]);
+            $check($platform . ' compound answer asks only the next missing fact', array_column($result['messages'], 'text'),
+                [MissingFieldQuestionService::question('adults')]);
+            $check($platform . ' compound answer is handled without model inference', [$result['handled'], $result['model_calls']], [true, []]);
+            $check($platform . ' departure name never reaches destination lookup',
+                strpos(json_encode($result['destination_filters'], JSON_UNESCAPED_UNICODE), 'Самар') === false
+                    && strpos(json_encode($result['destination_filters'], JSON_UNESCAPED_UNICODE), 'самар') === false, true);
+        }
+        $result = $cityTurn(-($chatBase + 145), 'max', $compoundText, [],
+            ['city', 'country', 'adults', 'children', 'nights', 'date'], MaxSearchApi::$statusAi, false);
+        $check('compound departure never invents a holiday country', $result['context'],
+            ['city'=>'Самара', 'nights'=>'10', 'date'=>'12.12.' . $tripYear]);
+        $check('unknown destination is clarified through the existing question', array_column($result['messages'], 'text'),
+            [MissingFieldQuestionService::question('country')]);
+        $check('unknown destination does not invoke inference on the departure name', $result['model_calls'], []);
+        $result = $cityTurn(-($chatBase + 146), 'max', $compoundText, ['country'=>'Египет'],
+            ['city', 'adults', 'children', 'nights', 'date'], MaxSearchApi::$statusCityChoose, false);
+        $check('wizard compound departure reaches the same complete local collector', $result['context'],
+            ['country'=>'Египет', 'city'=>'Самара', 'nights'=>'10', 'date'=>'12.12.' . $tripYear, 'meal'=>'all_inclusive', 'stars'=>4]);
+        $check('wizard compound departure asks the next missing field once', array_column($result['messages'], 'text'),
+            [MissingFieldQuestionService::question('adults')]);
+        $check('wizard compound departure performs no model call', $result['model_calls'], []);
+        $result = $cityTurn(-($chatBase + 147), 'max', $compoundText,
+            ['country'=>'Египет', 'adults'=>2, 'children'=>2],
+            ['city', 'child_ages', 'nights', 'date'], MaxSearchApi::$statusAi, false);
+        $check('date and duration numbers never become missing child ages',
+            array_key_exists('child_ages', $result['context']), false);
+        $check('known children retain the same compound trip facts', $result['context'],
+            ['country'=>'Египет', 'adults'=>2, 'children'=>2, 'city'=>'Самара',
+                'nights'=>'10', 'date'=>'12.12.' . $tripYear, 'meal'=>'all_inclusive', 'stars'=>4]);
+        $check('only the actual child ages remain to be clarified',
+            [$result['missing'], count($result['messages']), $result['model_calls']], [['child_ages'], 1, []]);
+        foreach (['max', 'telegram'] as $index=>$platform) {
+            $chat = $platform === 'max' ? -($chatBase + 150 + $index) : $chatBase + 150 + $index;
+            $text = 'Самара 2 взрослых и 1 ребёнок 5 лет с 12 декабря ' . $tripYear . ' на 10 ночей';
+            $result = $cityTurn($chat, $platform, $text, ['country'=>'Таиланд'],
+                ['city', 'adults', 'children', 'child_ages', 'nights', 'date', 'stars'], MaxSearchApi::$statusAi, false);
+            $check($platform . ' compound party bypasses scalar-answer consumption', $result['context'],
+                ['country'=>'Таиланд', 'city'=>'Самара', 'adults'=>2, 'children'=>1,
+                    'child_ages'=>[5], 'nights'=>'10', 'date'=>'12.12.' . $tripYear]);
+            $check($platform . ' compound party advances once after all facts', array_column($result['messages'], 'text'),
+                [MissingFieldQuestionService::question('stars')]);
+            $check($platform . ' compound party stays local despite rich classification', $result['model_calls'], []);
+        }
 
         foreach (['rejectParameters', 'staleParameterReadback'] as $index=>$failure) {
             MaxSearchApi::${$failure} = true;
