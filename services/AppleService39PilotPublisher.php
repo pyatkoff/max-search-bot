@@ -35,10 +35,11 @@ final class AppleService39PilotPublisher
 
     public function run(string $operation): array
     {
-        self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile'], true), 'unsupported_pilot_operation');
+        self::check(in_array($operation, ['inspect','prepare','publish','finalize','pin','reconcile','landing_inspect','landing_apply','landing_reconcile'], true), 'unsupported_pilot_operation');
         $this->readbackDiagnostics = [];
         $binding = $this->preflight();
         $this->store->assertBinding($binding);
+        if (str_starts_with($operation, 'landing_')) return $this->landing($operation, $binding);
         if ($operation === 'inspect') return $this->report('inspected');
         if ($operation === 'reconcile') {
             if ($this->store->campaign() !== null) $this->reconcile();
@@ -293,6 +294,142 @@ final class AppleService39PilotPublisher
         }
     }
 
+
+    /** Same original MIDs, images and campaign; one immutable edit attempt per post. */
+    private function landing(string $operation, array $binding): array
+    {
+        self::check($this->store->campaign() !== null, 'landing_existing_campaign_required');
+        $revision = new AppleService39LandingRevision($this->manifest);
+        $targets = $this->landingTargets($revision);
+        self::check($this->pinnedMid() === $targets[$this->manifest->menuPostId()]['mid'], 'landing_menu_pin_changed');
+        if ($operation === 'landing_apply') {
+            // All 24 current bodies and the existing pin are verified before any edit.
+            $this->landingRead($targets, false);
+            foreach ($targets as $id=>$target) {
+                $row = $this->store->prepare($id, 'landing_edit', $target['request']);
+                if ($row['state'] === 'verified') continue;
+                self::check($row['state'] === 'prepared', 'landing_edit_held');
+                ($this->pause)();
+                $this->beforeWrite($row, function () use ($target): void {
+                    $message = self::read($this->transport->message($target['mid']));
+                    self::check($this->verifyMessage($message, $target['mid'], $target['prior'],
+                        $target['post']) === $target['url'], 'post_url_changed');
+                    self::check($this->pinnedMid() === $target['menu_mid'], 'landing_menu_pin_changed');
+                });
+                try {
+                    $this->store->rememberMessage($row, $target['mid'], $target['url']);
+                    $this->transport->edit($target['mid'], $target['plan']['body']);
+                    $this->verifyLandingTarget($target);
+                    $this->store->rememberMessage($row, $target['mid'], $target['url']);
+                    $this->store->finish($row, 'verified', ['readback'=>true,
+                        'revision_sha256'=>$revision->sha256(),'button_object_key_order_normalized'=>$this->buttonsNormalized]);
+                } catch (Throwable $error) {
+                    $this->hold($row, 'landing_edit_outcome_unknown');
+                    throw new RuntimeException('landing_edit_held');
+                }
+            }
+        } elseif ($operation === 'landing_reconcile') {
+            // Only a complete fresh read of the intended result may close an existing claim.
+            foreach ($targets as $id=>$target) {
+                $row = $this->store->operation($id, 'landing_edit');
+                if ($row === null || !in_array($row['state'], ['write_started','unknown'], true)) continue;
+                try {
+                    $this->store->assertBinding($this->preflight());
+                    $this->verifyLandingTarget($target);
+                    $this->store->finish($row, 'verified', ['readback'=>true,
+                        'revision_sha256'=>$revision->sha256(),'button_object_key_order_normalized'=>$this->buttonsNormalized]);
+                } catch (Throwable $error) {
+                    $this->readbackDiagnostics[] = ['post_id'=>$id,'operation'=>'landing_edit',
+                        'message_id'=>$target['mid'],'reason'=>'landing_readback_held'];
+                }
+            }
+        }
+        $observation = $this->landingRead($targets, true);
+        self::check($this->pinnedMid() === $targets[$this->manifest->menuPostId()]['mid'], 'landing_menu_pin_changed');
+        $result = $this->report($operation.'_complete');
+        $result['landing_revision'] = AppleService39LandingRevision::KEY;
+        $result['landing_revision_sha256'] = $revision->sha256();
+        $result['landing_readback'] = $observation;
+        $result['landing_verified_posts'] = count(array_filter($observation, static fn(array $row): bool => $row['state'] === 'verified'));
+        $result['landing_expected_navigation_links'] = 86;
+        $result['landing_expected_bot_buttons'] = 24;
+        $result['landing_menu_pin_preserved'] = true;
+        return $result;
+    }
+
+    private function landingTargets(AppleService39LandingRevision $revision): array
+    {
+        $targets = []; $urls = []; $mids = [];
+        foreach ($this->manifest->posts() as $post) {
+            $create = $this->store->operation($post['id'], 'create');
+            $links = $this->store->operation($post['id'], 'links');
+            self::check($create !== null && $links !== null && $create['state'] === 'verified' && $links['state'] === 'verified'
+                && (int)$create['write_attempts'] === 1 && (int)$links['write_attempts'] === 1
+                && is_string($create['external_message_id']) && $create['external_message_id'] !== ''
+                && ($links['request']['mid'] ?? null) === $create['external_message_id']
+                && $links['external_message_id'] === $create['external_message_id']
+                && $links['public_url'] === $create['public_url']
+                && self::publicUrl($create['public_url'], $this->channelId), 'landing_original_receipts_required');
+            $urls[$post['id']] = $create['public_url']; $mids[$post['id']] = $create['external_message_id'];
+            $targets[$post['id']] = ['post'=>$post,'mid'=>$create['external_message_id'],
+                'url'=>$create['public_url'],'prior'=>$links['request']['body']];
+        }
+        self::check(count(array_unique($urls)) === 24 && count(array_unique($mids)) === 24, 'pilot_provider_identity_collision');
+        foreach ($revision->posts() as $post) {
+            $target = &$targets[$post['id']];
+            $upload = $this->upload($target['post']);
+            self::check($target['prior'] === $this->manifest->body($target['post'], $upload, $urls)
+                && $this->store->operation($post['id'], 'create')['request']['body']
+                    === $this->manifest->body($target['post'], $upload), 'landing_original_receipts_required');
+            $target['plan'] = $revision->plan($post, $upload, $urls);
+            $target['menu_mid'] = $mids[$this->manifest->menuPostId()];
+            $target['request'] = ['revision'=>AppleService39LandingRevision::KEY,
+                'revision_sha256'=>$revision->sha256(),'mid'=>$target['mid'],'url'=>$target['url'],
+                'prior_body_sha256'=>hash('sha256', json_encode($target['prior'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)),
+                'body'=>$target['plan']['body'],'native_text'=>$target['plan']['native_text'],
+                'native_markup'=>$target['plan']['native_markup']];
+            $row = $this->store->operation($post['id'], 'landing_edit');
+            if ($row !== null) {
+                $json = json_encode($target['request'], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                self::check($row['request_json'] === $json && $row['payload_sha256'] === hash('sha256', $json),
+                    'landing_revision_changed');
+                self::check(($row['external_message_id'] === null || $row['external_message_id'] === $target['mid'])
+                    && ($row['public_url'] === '' || $row['public_url'] === $target['url']),
+                    'landing_original_receipts_required');
+            }
+            unset($target);
+        }
+        return $targets;
+    }
+
+    private function verifyLandingTarget(array $target): void
+    {
+        $message = self::read($this->transport->message($target['mid']));
+        self::check($this->verifyMessage($message, $target['mid'], $target['plan']['body'],
+            $target['post'], null, $target['plan']) === $target['url'], 'post_url_changed');
+    }
+
+    /** Inspection does not change a claim, receipt, pin or provider message. */
+    private function landingRead(array $targets, bool $allowHeld): array
+    {
+        $observed = [];
+        foreach ($targets as $id=>$target) {
+            $row = $this->store->operation($id, 'landing_edit');
+            $state = $row['state'] ?? 'not_started';
+            $held = in_array($state, ['write_started','unknown','rejected'], true);
+            self::check($allowHeld || !$held, 'landing_edit_held');
+            if ($state === 'verified') $this->verifyLandingTarget($target);
+            elseif (!$held) {
+                $message = self::read($this->transport->message($target['mid']));
+                self::check($this->verifyMessage($message, $target['mid'], $target['prior'],
+                    $target['post']) === $target['url'], 'post_url_changed');
+            }
+            $observed[] = ['post_id'=>$id,'message_id'=>$target['mid'],'url'=>$target['url'],
+                'state'=>$state,'write_attempts'=>(int)($row['write_attempts'] ?? 0)];
+        }
+        return $observed;
+    }
+
     private function messageIdentity(array $message): bool
     {
         $sender = $message['sender'] ?? null;
@@ -303,12 +440,13 @@ final class AppleService39PilotPublisher
                 && (!isset($sender['is_bot']) || $sender['is_bot'] === true));
     }
 
-    private function verifyMessage(array $message, string $mid, array $body, array $post, ?array $candidate = null): string
+    private function verifyMessage(array $message, string $mid, array $body, array $post, ?array $candidate = null, ?array $native = null): string
     {
         $this->buttonsNormalized = false;
         self::check($this->messageIdentity($message) && $message['body']['mid'] === $mid
-            && ($message['body']['text'] ?? null) === $body['text']
-            && in_array($message['body']['markup'] ?? null, [null,[]], true)
+            && ($message['body']['text'] ?? null) === ($native['native_text'] ?? $body['text'])
+            && ($native !== null ? AppleService39LandingRevision::sameMarkup($message['body']['markup'] ?? null, $native['native_markup'])
+                : in_array($message['body']['markup'] ?? null, [null,[]], true))
             && ($message['link'] ?? null) === null, 'post_readback_mismatch');
         $actual = $message['body']['attachments'] ?? [];
         $expected = $body['attachments'] ?? [];

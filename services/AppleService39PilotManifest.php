@@ -120,3 +120,113 @@ final class AppleService39PilotManifest
     }
     private static function check(bool $condition, string $reason): void { if (!$condition) throw new RuntimeException($reason); }
 }
+
+
+/** Fixed text revision of the original 24 messages; original assets and receipts remain authoritative. */
+final class AppleService39LandingRevision
+{
+    public const KEY = 'landing-v2';
+    private array $data;
+    private string $sha256;
+    private AppleService39PilotManifest $original;
+
+    public function __construct(AppleService39PilotManifest $original, ?string $path = null)
+    {
+        $path ??= dirname(__DIR__).'/resources/appleservice39/landing-v2/manifest.json';
+        self::check(is_file($path) && !is_link($path) && filesize($path) <= 131072, 'landing_revision_unavailable');
+        $raw = file_get_contents($path);
+        self::check(is_string($raw), 'landing_revision_unavailable');
+        $data = json_decode($raw, true, 32, JSON_THROW_ON_ERROR);
+        self::check(is_array($data) && ($data['schema_version'] ?? null) === 1
+            && ($data['revision_key'] ?? null) === self::KEY
+            && ($data['campaign_key'] ?? null) === AppleService39PilotManifest::CAMPAIGN
+            && ($data['project_key'] ?? null) === AppleService39PilotManifest::PROJECT
+            && ($data['bot_key'] ?? null) === AppleService39PilotManifest::BOT
+            && ($data['source_key'] ?? null) === AppleService39PilotManifest::SOURCE
+            && ($data['channel_url'] ?? null) === AppleService39PilotManifest::CHANNEL
+            && ($data['base_manifest_sha256'] ?? null) === $original->sha256()
+            && ($data['asset_policy'] ?? null) === 'reuse_verified_original_images'
+            && ($data['contact_source'] ?? null) === 'https://appleservice39.ru/kontakty/',
+            'landing_revision_identity_mismatch');
+        self::check(is_array($data['posts'] ?? null) && array_is_list($data['posts'])
+            && array_column($data['posts'], 'id') === array_column($original->posts(), 'id'), 'landing_exact_posts_required');
+        foreach ($data['posts'] as $post) {
+            self::check(is_array($post) && array_keys($post) === ['id','title','paragraphs','button_label','links'],
+                'landing_post_invalid');
+            self::plain($post['title'], 100);
+            self::plain($post['button_label'], 20);
+            self::check(is_array($post['paragraphs']) && array_is_list($post['paragraphs'])
+                && count($post['paragraphs']) >= 2 && count($post['paragraphs']) <= 6
+                && $post['links'] === $original->post($post['id'])['links'], 'landing_post_invalid');
+            foreach ($post['paragraphs'] as $paragraph) self::plain($paragraph, 1600);
+            self::check(AppleService39PilotCatalog::landingPayloadForPost($post['id']) !== null, 'landing_entry_invalid');
+            $entry = AppleService39PilotCatalog::forPost($post['id']);
+            if ($entry !== null) self::check(in_array($entry['price_text'], $post['paragraphs'], true)
+                && str_contains($post['title'], $entry['model']), 'landing_reviewed_price_required');
+        }
+        $this->original = $original; $this->data = $data; $this->sha256 = hash('sha256', $raw);
+    }
+
+    public function sha256(): string { return $this->sha256; }
+    public function posts(): array { return $this->data['posts']; }
+
+    /** Build both the outgoing HTML and its exact native text/link projection. */
+    public function plan(array $post, array $upload, array $urls): array
+    {
+        $escape = static fn(string $text): string => htmlspecialchars($text, ENT_QUOTES|ENT_SUBSTITUTE, 'UTF-8');
+        $plain = $post['title']."\n\n".implode("\n\n", $post['paragraphs']);
+        $html = '<b>'.$escape($post['title']).'</b>'."\n\n".$escape(implode("\n\n", $post['paragraphs']));
+        $markup = [['type'=>'strong','from'=>0,'length'=>mb_strlen($post['title'], 'UTF-8')]];
+        $navigationTitle = $post['id'] === 'menu' ? 'Выберите модель или услугу'
+            : (str_starts_with($post['id'], 'model-') ? 'Выберите ремонт'
+                : (str_starts_with($post['id'], 'service-') ? 'Выберите модель' : 'Другие варианты'));
+        $plain .= "\n\n".$navigationTitle;
+        $html .= "\n\n".$escape($navigationTitle);
+        foreach ($post['links'] as $link) {
+            $url = $urls[$link['id']] ?? null;
+            self::check(is_string($url) && preg_match('~\Ahttps://max\.ru/channel_appleservice39ru/[A-Za-z0-9_-]{1,191}\z~D', $url) === 1,
+                'landing_verified_link_required');
+            $plain .= "\n";
+            $markup[] = ['type'=>'link','from'=>mb_strlen($plain, 'UTF-8'),
+                'length'=>mb_strlen($link['label'], 'UTF-8'),'url'=>$url];
+            $plain .= $link['label'];
+            $html .= "\n".'<a href="'.$escape($url).'">'.$escape($link['label']).'</a>';
+        }
+        self::check(mb_strlen($plain, 'UTF-8') <= 4000 && mb_strlen($html, 'UTF-8') <= 4000, 'landing_post_too_long');
+        $old = $this->original->post($post['id']);
+        $body = $this->original->body($old, $upload);
+        $images = array_values(array_filter($body['attachments'] ?? [], static fn(array $item): bool => $item['type'] === 'image'));
+        self::check(count($images) === 1, 'landing_original_image_required');
+        $payload = AppleService39PilotCatalog::landingPayloadForPost($post['id']);
+        $body = ['text'=>$html,'format'=>'html','attachments'=>[$images[0],
+            ['type'=>'inline_keyboard','payload'=>['buttons'=>[[['type'=>'link','text'=>$post['button_label'],
+                'url'=>'https://max.ru/'.AppleService39PilotManifest::BOT.'?start='.$payload]]]]]]];
+        return ['revision_sha256'=>$this->sha256,'body'=>$body,'native_text'=>$plain,'native_markup'=>$markup];
+    }
+
+    public static function sameMarkup($actual, array $expected): bool
+    {
+        if (!is_array($actual) || !array_is_list($actual) || count($actual) !== count($expected)) return false;
+        foreach ($actual as $item) {
+            if (!is_array($item) || !is_string($item['type'] ?? null) || !is_int($item['from'] ?? null)
+                || !is_int($item['length'] ?? null)) return false;
+            $keys = $item['type'] === 'link' ? ['type','from','length','url'] : ['type','from','length'];
+            if (array_diff(array_keys($item), $keys) !== [] || count($item) !== count($keys)) return false;
+        }
+        $sort = static fn(array $a, array $b): int => ($a['from'] <=> $b['from']) ?: strcmp($a['type'], $b['type']);
+        usort($actual, $sort); usort($expected, $sort);
+        foreach ($expected as $i=>$item) foreach ($item as $key=>$value) {
+            if (!array_key_exists($key, $actual[$i]) || $actual[$i][$key] !== $value) return false;
+        }
+        return true;
+    }
+
+    private static function plain($value, int $limit): void
+    {
+        // Fixed BMP-only copy makes Unicode character and UTF-16 entity offsets identical.
+        self::check(is_string($value) && trim($value) !== '' && mb_strlen($value, 'UTF-8') <= $limit
+            && preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f<>\x{10000}-\x{10ffff}]/u', $value) === 0,
+            'landing_plain_text_required');
+    }
+    private static function check(bool $ok, string $reason): void { if (!$ok) throw new RuntimeException($reason); }
+}

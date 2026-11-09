@@ -36,3 +36,25 @@ The image-upload response map key is not assumed to be the canonical message pho
 The one legacy first create has a separate, disclosed operator-reviewed native image binding in `resources/appleservice39/pilot/reconciliation/first-create.json`. Its original returned MID, exact source PNG, native photo ID, real public URL, native readback run and downloaded MAX JPEG are retained. Both exact image files were visually inspected against the approved cover; the resized JPEG is not byte-equal to the source PNG. This evidence is not called an original POST image receipt. It applies only to that exact known own MID, project/bot/channel, immutable manifest/source image, request and reviewed photo ID. A different MID, asset or current native body cannot use it. Reconciliation performs no provider mutation and preserves the original one-attempt claim; only complete fresh native validation may move it to verified.
 
 Button objects use exact key sets and strict typed field values independent of JSON object-key order. Both row order and button order remain exact. Native receipt metadata discloses when object-key normalization was needed; generic PHP loose equality is not used. Image, text, URL, connection, actor and source guards remain active. Natural published-button/client response/common-panel acceptance remains separate from these publication receipts.
+
+
+## Landing text revision — 9 November 2026
+
+The owner's requested one-button/text-navigation revision updates the same 24 original MAX messages. Its immutable source is resources/appleservice39/landing-v2/manifest.json. The original v1 manifest, campaign binding, uploads, creates, links, pin, MIDs, public URLs and image receipts remain unchanged.
+
+This revision improves the copy and navigation and deliberately reuses the existing verified covers. It is not a new image-design release or a claim that the artwork has reached a measured quality score. Repair prices and their qualifiers must exactly match the accepted pilot catalog. The current public contact page was read on 9 November: Leninsky Prospekt18, floor4, office404. Conflicting general hours, repair durations and blanket warranty periods are not promoted into fixed promises.
+
+Every post has exactly one bot CTA. The15 repair entries retain their exact service/model and price policy. The9 navigation pages use a finite menu/model/service allowlist; they do not guess a repair or its price. A menu consultation preserves the existing conversation's known repair metadata. Existing manager ownership, one-event reply claims, uncertain-delivery holds and tourism behavior are retained.
+
+Navigation uses HTML text anchors to the original verified own-post URLs, not keyboard buttons or exposed raw URLs. The publisher verifies the provider's rendered text, exact link/strong spans and URLs, original native image identity, one-button keyboard, original MID/URL and menu pin. Fixed copy and labels use BMP characters, making character and UTF-16 offsets identical. Unsupported or changed native formatting fails closed.
+
+Use the existing approved workflow with:
+- landing_inspect: read-only inspection; expected button/link totals are explicitly labeled as expected. This creates no campaign or operation.
+- landing_apply: a full current24-message and pin preflight, then one immutable landing_edit claim per original MID. Each exact body is reread immediately before the edit and independently after it. No new posts, uploads or pin operations are issued.
+- landing_reconcile: read-only provider reconciliation of the exact already-claimed edits. A complete matching native result may close the original claim. A still-old, changed, missing or ambiguous result remains held; no edit is retried.
+
+A lost edit response may be accepted only through its exact independent native readback. A failed or missing readback retains UNKNOWN/write_attempts1. Repeated apply cannot repeat that edit. Once reconciliation verifies the original attempt, apply may finish only the remaining unsent posts. Changed revision data or original operation identity cannot reset an attempt. Intervening manual content or pin changes stop the revision.
+
+The ordinary required current-source CI, installation and original release gates remain prerequisites. Source tests and a merged PR do not establish that the MAX posts were updated. Published acceptance requires all24 final native message readbacks, their original URLs and the preserved menu pin.
+
+Pavel already confirmed the real iPhoneX battery button and the correct contextual answer on9November. Do not repeat that customer test. The same real conversation's visibility in the common manager panel remains a separate open read-only acceptance; this revision does not assert that it has been completed.

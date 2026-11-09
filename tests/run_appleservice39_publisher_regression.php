@@ -61,6 +61,7 @@ final class ApplePilotTestProvider
     public bool $zeroUploadKey = false;
     public bool $reorderButtons = false;
     public bool $dropCreateImageId = false;
+    public bool $failLandingReadOnce = false;
     public ?string $fixedMid = null;
     public ?string $fixedPhotoId = null;
     public ?string $fixedUrl = null;
@@ -101,6 +102,10 @@ final class ApplePilotTestProvider
             if ($this->mode === 'readback_timeout' && !$this->failedRead) { $this->failedRead = true; return ['http'=>0,'transport_error'=>true,'data'=>null]; }
             $message = $this->messages[basename($path)] ?? null;
             if (!is_array($message)) return ['http'=>404,'transport_error'=>false,'data'=>['code'=>'not_found']];
+            if ($this->failLandingReadOnce && isset($message['body']['markup'])) {
+                $this->failLandingReadOnce = false;
+                return ['http'=>0,'transport_error'=>true,'data'=>null];
+            }
             if ($this->mode === 'wrong_image') $message['body']['attachments'][0]['payload']['photo_id'] = '999999';
             if (in_array($this->mode, ['remapped_image','remapped_wrong_token','missing_id_same_token'], true)) {
                 $image = &$message['body']['attachments'][0]['payload'];
@@ -146,7 +151,23 @@ final class ApplePilotTestProvider
             $attachment['payload']['token'] = 'renewed_'.$attachment['payload']['photo_id'];
         }
         unset($attachment);
-        return ['recipient'=>['chat_id'=>(int)$this->channelId,'chat_type'=>'channel'],'body'=>['mid'=>$mid,'text'=>$body['text'],'attachments'=>$attachments],
+        $native = ['mid'=>$mid,'text'=>$body['text'],'attachments'=>$attachments];
+        if (($body['format'] ?? null) === 'html') {
+            // Independent provider fixture: parse emitted tags, not the production projection.
+            $plain = ''; $markup = []; $cursor = 0;
+            preg_match_all('~<(b|a)(?: href="([^"]+)")?>(.*?)</\1>~s', $body['text'], $matches, PREG_SET_ORDER|PREG_OFFSET_CAPTURE);
+            foreach ($matches as $match) {
+                $plain .= html_entity_decode(substr($body['text'], $cursor, $match[0][1]-$cursor), ENT_QUOTES|ENT_HTML5, 'UTF-8');
+                $label = html_entity_decode($match[3][0], ENT_QUOTES|ENT_HTML5, 'UTF-8');
+                $item = ['type'=>$match[1][0] === 'b' ? 'strong' : 'link',
+                    'from'=>mb_strlen($plain, 'UTF-8'),'length'=>mb_strlen($label, 'UTF-8')];
+                if ($item['type'] === 'link') $item['url'] = html_entity_decode($match[2][0], ENT_QUOTES|ENT_HTML5, 'UTF-8');
+                $markup[] = $item; $plain .= $label; $cursor = $match[0][1]+strlen($match[0][0]);
+            }
+            $native['text'] = $plain.html_entity_decode(substr($body['text'], $cursor), ENT_QUOTES|ENT_HTML5, 'UTF-8');
+            $native['markup'] = $markup;
+        }
+        return ['recipient'=>['chat_id'=>(int)$this->channelId,'chat_type'=>'channel'],'body'=>$native,
             'url'=>$this->fixedUrl ?? 'https://max.ru/channel_appleservice39ru/post_'.substr($mid,4),'timestamp'=>1770000000000];
     }
     public function count(string $method, string $path): int
@@ -160,6 +181,98 @@ final class ApplePilotTestProvider
 function as39Publisher(PDO $pdo, ApplePilotTestProvider $provider, ?AppleService39PilotManifest $manifest = null): AppleService39PilotPublisher
 {
     return new AppleService39PilotPublisher($pdo, $manifest ?? AppleService39PilotManifest::installed(), $provider->channelId, static fn(): bool=>true, $provider, static function (): void {});
+}
+
+
+function as39LandingRegression(PDO $pdo, ApplePilotTestProvider $provider, AppleService39PilotPublisher $publisher): void
+{
+    $manifest = AppleService39PilotManifest::installed();
+    $revision = new AppleService39LandingRevision($manifest);
+    $store = new AppleService39PilotPublicationStore($pdo);
+    $original = $store->rows();
+    $writes = $provider->writes();
+    $pin = $provider->pinned;
+    $inspection = $publisher->run('landing_inspect');
+    as39Expect($inspection['landing_verified_posts'] === 0 && count($inspection['landing_readback']) === 24
+        && $provider->writes() === $writes && $store->rows() === $original, 'landing inspection changes no provider or durable state');
+
+    $last = $manifest->posts()[23]['id']; $lastMid = $store->operation($last, 'create')['external_message_id'];
+    $saved = $provider->messages[$lastMid];
+    $provider->messages[$lastMid]['body']['text'] .= ' Manual intervening edit';
+    as39Refuses(static fn()=>$publisher->run('landing_apply'), 'post_readback_mismatch');
+    as39Expect($provider->writes() === $writes && $store->rows() === $original,
+        'a changed final original post stops the entire batch before any revision claim or edit');
+    $provider->messages[$lastMid] = $saved;
+    $provider->pinned = null;
+    as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_menu_pin_changed');
+    as39Expect($provider->writes() === $writes, 'landing never silently repins or replaces an operator pin');
+    $provider->pinned = $pin;
+
+    $provider->failLandingReadOnce = true;
+    as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_edit_held');
+    $first = $manifest->posts()[0]['id']; $row = $store->operation($first, 'landing_edit');
+    as39Expect($row['state'] === 'unknown' && (int)$row['write_attempts'] === 1 && $provider->writes() === $writes+1,
+        'lost landing readback retains one exact same-MID edit attempt');
+    as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_edit_held');
+    as39Expect($provider->writes() === $writes+1, 'a repeated apply cannot replay an uncertain landing edit');
+
+    $mid = $row['external_message_id']; $saved = $provider->messages[$mid];
+    $provider->messages[$mid]['body']['markup'][1]['url'] = 'https://max.ru/other_channel/borrowed';
+    $held = $publisher->run('landing_reconcile');
+    as39Expect(!$held['ok'] && $store->operation($first, 'landing_edit')['state'] === 'unknown'
+        && $provider->writes() === $writes+1, 'changed native hyperlink refuses read-only landing reconciliation');
+    $provider->messages[$mid] = $saved;
+    $reconciled = $publisher->run('landing_reconcile');
+    as39Expect($reconciled['ok'] && $reconciled['landing_verified_posts'] === 1 && $provider->writes() === $writes+1,
+        'exact native formatted readback closes the original held edit without another PUT');
+
+    $provider->mode = 'edit_timeout';
+    $finished = $publisher->run('landing_apply');
+    $provider->mode = '';
+    as39Expect($finished['ok'] && $finished['landing_verified_posts'] === 24 && $finished['landing_menu_pin_preserved']
+        && $provider->writes() === $writes+24 && $provider->pinned === $pin,
+        'one coherent revision updates all original messages and preserves the existing menu pin');
+    $publisher->run('landing_apply'); $publisher->run('landing_reconcile'); $publisher->run('landing_inspect');
+    as39Expect($provider->writes() === $writes+24 && $provider->count('POST', '/messages') === 24
+        && $provider->count('POST', '/uploads') === 24 && $provider->count('PUT', '/chats/-12345/pin') === 1,
+        'completed revision repeats no edits, publications, uploads or pin operations');
+    $oldRows = array_values(array_filter($store->rows(), static fn(array $r): bool => $r['operation'] !== 'landing_edit'));
+    as39Expect($oldRows === $original, 'all original campaign operations and image receipts remain byte-for-byte unchanged');
+
+    $links = 0;
+    foreach ($revision->posts() as $post) {
+        $row = $store->operation($post['id'], 'landing_edit');
+        $body = $provider->messages[$row['external_message_id']]['body'];
+        $keyboards = array_values(array_filter($body['attachments'], static fn(array $a): bool=>$a['type'] === 'inline_keyboard'));
+        $buttons = $keyboards[0]['payload']['buttons'] ?? [];
+        as39Expect($row['state'] === 'verified' && (int)$row['write_attempts'] === 1 && count($keyboards) === 1
+            && count($buttons) === 1 && count($buttons[0]) === 1 && $buttons[0][0]['text'] === $post['button_label']
+            && $buttons[0][0]['url'] === 'https://max.ru/'.AppleService39PilotManifest::BOT.'?start=as39_'.$post['id'],
+            'exactly one contextual bot button on '.$post['id']);
+        $navigation = array_values(array_filter($body['markup'], static fn(array $m): bool=>$m['type'] === 'link'));
+        as39Expect(count($navigation) === count($post['links']) && !str_contains($body['text'], '<a ')
+            && !preg_match('~https?://~', $body['text']), 'navigation is native text hyperlinks, not visible URLs or extra buttons');
+        foreach ($post['links'] as $i=>$link) {
+            $expectedUrl = $store->operation($link['id'], 'create')['public_url'];
+            $m = $navigation[$i];
+            as39Expect($m['url'] === $expectedUrl
+                && mb_substr($body['text'], $m['from'], $m['length'], 'UTF-8') === $link['label'],
+                'native link span targets the exact original own post');
+        }
+        $links += count($navigation);
+        $entry = AppleService39PilotCatalog::forPost($post['id']);
+        if ($entry !== null) as39Expect(str_contains($body['text'], $entry['price_text']),
+            'landing preserves the exact approved price qualification');
+    }
+    as39Expect($links === 86, 'all 86 navigation links survive the one-button revision');
+    $markup = [['type'=>'link','from'=>2,'length'=>3,'url'=>'https://max.ru/channel_appleservice39ru/a']];
+    as39Expect(AppleService39LandingRevision::sameMarkup([array_reverse($markup[0], true)], $markup),
+        'native markup object key order is immaterial');
+    foreach ([null,[],[['type'=>'link','from'=>'2','length'=>3,'url'=>$markup[0]['url']]],
+        [['type'=>'link','from'=>2,'length'=>4,'url'=>$markup[0]['url']]],
+        [array_merge($markup[0], ['extra'=>null])]] as $bad) {
+        as39Expect(!AppleService39LandingRevision::sameMarkup($bad, $markup), 'changed markup type, span, count or fields refuses');
+    }
 }
 
 function as39FullPublicationRegression(PDO $pdo): void
@@ -200,12 +313,29 @@ function as39FullPublicationRegression(PDO $pdo): void
     as39Expect($provider->count('PUT','/chats/-12345/pin') === 1, 'menu pin follows all post and link readbacks exactly once');
     $summary = json_encode($publisher->run('inspect'), JSON_THROW_ON_ERROR);
     as39Expect(!str_contains($summary, 'synthetic-apple-token') && !preg_match('/"(?:photo|renewed)_[0-9]+"/', $summary), 'operator report excludes credentials and media tokens');
+    as39LandingRegression($pdo, $provider, $publisher);
     $pdo->exec('DELETE FROM manager_projects WHERE manager_id=2');
     as39Refuses(static fn()=>$publisher->run('inspect'), 'active_project_admin_and_source_required');
 }
 
 if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
     as39FullPublicationRegression(as39Sqlite());
+
+    // Provider did not apply a timed-out edit: reconciliation must keep the original hold.
+    ProjectMaxConnection::resetForTests(as39Registry());
+    $landingPdo = as39Sqlite(); $landingProvider = new ApplePilotTestProvider;
+    $landingPublisher = as39Publisher($landingPdo, $landingProvider);
+    foreach (['prepare','publish','finalize','pin'] as $phase) $landingPublisher->run($phase);
+    $landingProvider->mode = 'edit_unchanged_timeout';
+    $landingWrites = $landingProvider->writes();
+    as39Refuses(static fn()=>$landingPublisher->run('landing_apply'), 'landing_edit_held');
+    $landingHeld = $landingPublisher->run('landing_reconcile');
+    as39Expect(!$landingHeld['ok'] && $landingHeld['held_operations'] === 1
+        && $landingProvider->writes() === $landingWrites+1 && $landingHeld['landing_verified_posts'] === 0,
+        'an unapplied timed-out revision remains held after read-only reconciliation');
+    as39Refuses(static fn()=>$landingPublisher->run('landing_apply'), 'landing_edit_held');
+    as39Expect($landingProvider->writes() === $landingWrites+1, 'an old body cannot reset an attempted landing edit');
+
     foreach (['wrong_bot'=>'canonical_bot_identity_mismatch','wrong_channel'=>'public_channel_identity_mismatch'] as $mode=>$reason) {
         ProjectMaxConnection::resetForTests(as39Registry()); $pdo=as39Sqlite(); $provider=new ApplePilotTestProvider; $provider->mode=$mode;
         as39Refuses(static fn()=>as39Publisher($pdo,$provider)->run('prepare'), $reason);

@@ -49,7 +49,7 @@ final class AppleService39PilotPublicationStore
 
     public function prepare(string $post, string $operation, array $request): array
     {
-        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin'], true)) throw new RuntimeException('invalid_pilot_operation');
+        if (!preg_match('/\A[a-z][a-z0-9_-]{0,55}\z/D', $post) || !in_array($operation, ['upload','create','links','pin','landing_edit'], true)) throw new RuntimeException('invalid_pilot_operation');
         $json = self::json($request); $hash = hash('sha256', $json);
         $row = $this->operation($post, $operation);
         if ($row === null) {
