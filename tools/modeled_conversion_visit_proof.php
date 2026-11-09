@@ -55,8 +55,11 @@ try{
                 $ids=ModeledConversionVisitProof::dueIds($ledger,$cutoff,$now,
                     static fn(array $r):array=>ModeledConversionVisitProof::prior($r,$now),2);
             }else $cutoff=$checkpoint->getTimestamp();
+            $followup=($cache['available']??false)&&is_string($cache['receipt']['followup_checkpoint_at']??null)
+                ?strtotime($cache['receipt']['followup_checkpoint_at']):false;
+            if(!is_int($followup)||$followup<946684800||$followup>$now)$followup=null;
             $receipt=ModeledConversionVisitProof::verify($ledger,new MetrikaOfflineClient('98615635',(string)METRIKA_OAUTH_TOKEN,null,$deadline),
-                $activation,$cutoff,$now,$ids,$deadline,$retained);
+                $activation,$cutoff,$now,$ids,$deadline,$retained,$followup);
             ModeledConversionVisitProof::save($receipt);$saved=true;
             if($scheduled)ModeledConversionVisitProof::recordAutomatic('ok',time(),$prior);
             $ok=true;
