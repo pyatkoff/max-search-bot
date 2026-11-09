@@ -154,12 +154,76 @@ These four exact evidence blobs are the reviewed inputad56dc29bc44c882540a3e6586
 SHA256 is907fee423093a56bbdb3bb7a2d47d37ae26bff38adfdb48177d6779c6f502ffe;
 the existing author independently verified the same primary HTML/literal and
 individually opened both exact files before adopting this one input version.
-Only this first entry is registered. No runtime, transport, CLI, workflow,
-approval-input, database, campaign, image source, body/CTA/link plan or guard changes.
+Only this first entry is registered. The finite preparation below changes only
+the existing publisher and its behavioral fixtures; the transport, CLI, workflow,
+approval inputs, database schema, campaign, image sources and body/CTA/link plans
+remain unchanged. The normal source/native verification guards are retained.
 
 After ordinary proof-source review/CI/installation, run `landing_reconcile` by
 the same fixed publisher with actual accepted application provenance. It may
 close only original edit89 after every current native body/markup/image/CTA/URL,
 source/attempt and menu-pin guard passes. Then `landing_apply` may edit only the
-remaining23unsent messages and reuse all fifteen verified uploads. This source
-proof itself does not assert that reconciliation or24/24 publication succeeded.
+remaining23unsent messages and reuse all fifteen verified uploads, with the
+individual review holds below when required. This source proof itself does not
+assert that reconciliation or24/24 publication succeeded.
+
+## Finite preparation of the remaining individual image reviews
+
+The existing `landing_apply` can collect the remaining fixed repair-image review
+holds only after the first repair edit is actually VERIFIED by GET reconciliation
+with its registered `reviewed_native_replacement` receipt. A source index entry,
+ACK, source CI or row state alone is not this anchor. Its complete current native
+body/image proof is reread before every new edit. There is no new operation,
+workflow input, publisher, table, queue, timer or arbitrary image approval.
+
+Every source upload must already be VERIFIED/attempt1. Before each new own PUT,
+the publisher checks current authority/channel, all24 current bodies and their
+exact MID/URL/markup/keyboard, every existing pending hold, the target's original
+source-bound image/body and the existing menu pin. It claims only a prepared,
+unattempted original MID with the identical immutable request/source/revision.
+
+The sole newly collectable outcome is `landing_native_image_evidence_required`
+after an acknowledged own PUT, with a fresh exact planned body/markup/oneCTA/
+navigation/URL and preserved pin. Native photoID must be valid/nonzero and differ
+from its original image and every known other-post image; the native locator and
+nonempty renewed token must be present. This establishes no source-image identity.
+The original attempt becomes UNKNOWN/attempt1 with an explicitly unverified
+`image_review_observation`, binding its actual imageID/locator hash to its own
+source/upload/edit/request/start. It has no image receipt and is not VERIFIED.
+Every other failure, including missing token/locator, an old/known-other image,
+invalid body/button/channel/MID/URL/pin/authority or unknown PUT acknowledgement,
+stops. Earlier unclassified UNKNOWNs are never retrospectively relabelled.
+
+Only these narrowly classified image holds may be freshly checked and skipped
+while claiming the other still-unattempted fixed repair MIDs. They are never
+replayed or rewritten. Signed locator renewal does not replace their original
+stored observation; the exact imageID and every other binding must persist.
+An intervening failed guard stops before the next claim. The9 navigation pages
+remain unattempted while any image review is pending.
+
+The result truthfully remains `ok:false`/held, with the independent image hold
+count and current/original per-image observations. The unchanged workflow may
+perform its one GET-only fallback inspection after that result; do not duplicate
+it merely for status. Such a provider job is not successful24/24 publication.
+The15 uploads are retained and `landing_prepare` is not repeated.
+
+Open each remaining actual image and its exact approved source individually;
+establish each public SSR PHOTO ID-to-original-provider-ID correspondence and
+retain both locator hashes. Admit all genuinely reviewed14 proof/JPEG/witness
+sets in one ordinary source update through review/CI/installation. A contact
+sheet, new photoID, ACK or a later coincidentally equal token cannot substitute
+for an individual registered proof once an image-review hold was collected.
+GET-only `landing_reconcile` still requires all native/source/attempt/pin guards
+and the original observed imageID, then closes only those same attempts. It
+preserves their original image observations. Finally apply edits only the9
+remaining navigation messages. Accept the real24 final readbacks/15 native image
+receipts/24 single botCTAs/86 text links and unchanged original URLs/pin separately
+from preparation, source tests and installation.
+
+The regression exercises a complete synthetic first-review →14holds →14individual
+source proofs →GET reconciliation →9remaining edits path. It also checks old and
+unreconciled UNKNOWNs, lost uploads, every failed native content/identity/pin/
+authority predicate, missing media fields, arbitrary/changed imageIDs, a lost PUT
+ACK, later token coincidence, intervening corruption and byte-for-byte immutable
+attempt/request/observation retention. Synthetic proofs are restored or removed
+in `finally` and are not live approvals.

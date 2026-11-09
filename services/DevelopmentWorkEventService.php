@@ -168,10 +168,8 @@ final class DevelopmentWorkEventService
         // No lock is held over DNS/TLS or the remote challenge.
         $this->authorize($admin,$connection);$this->queue->status($admin,$connection,$queueId);
         $expires=self::date($now+max(1,intdiv($ttl,1000)));
-        $sqlite=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='sqlite';
-        if ($this->pdo->inTransaction()) throw new LogicException('development_event_foreign_transaction');
-        if ($sqlite) $this->pdo->exec('BEGIN IMMEDIATE');else $this->pdo->beginTransaction();
-        try {
+        // Serialize the subscription write with server-mode admission; challenge was outside locks.
+        $this->queue->nativeEventWrite($admin,$connection,$queueId,function()use($single,$date,$id,$admin,$connection,$secret,$now,$verified,$expires,$queueId,$name,$arguments,$url):void {
             $this->pdo->prepare('UPDATE development_work_events SET is_active=0,single_consumer_key=NULL WHERE single_consumer_key=? AND (is_active=0 OR expires_at<=?)')->execute([$single,$date]);
             $q=$this->pdo->prepare('SELECT subscription_id FROM development_work_events WHERE single_consumer_key=?');$q->execute([$single]);
             $other=$q->fetchColumn();
@@ -188,12 +186,7 @@ final class DevelopmentWorkEventService
                 $this->pdo->prepare('INSERT INTO development_work_events (subscription_id,single_consumer_key,admin_id,oauth_connection_id,project_key,queue_id,event_name,arguments_json,callback_url,signing_secret,verified_at,expires_at,is_active,attempts,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,0,?,?)')
                     ->execute([$id,$single,$admin,$connection,self::PROJECT,$queueId,$name,$arguments,$url,$secret,$verified,$expires,$date,$date]);
             }
-            if ($sqlite) $this->pdo->exec('COMMIT');else $this->pdo->commit();
-        } catch (Throwable $error) {
-            try {if ($sqlite) $this->pdo->exec('ROLLBACK');elseif ($this->pdo->inTransaction()) $this->pdo->rollBack();}
-            catch (Throwable $ignored) {throw new RuntimeException('development_event_rollback_failed');}
-            throw $error;
-        }
+        });
         return ['id'=>$id,'refreshBefore'=>str_replace(' ','T',$expires).'Z','cursor'=>null,'truncated'=>false];
     }
 

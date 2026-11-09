@@ -70,6 +70,7 @@ final class ApplePilotTestProvider
     public ?string $pinned = null;
     public string $uploadHost = 'iu.oneme.ru';
     public $membershipHook = null;
+    public $editHook = null;
     private int $uploadId = 0;
     private bool $failedRead = false;
 
@@ -142,6 +143,7 @@ final class ApplePilotTestProvider
             $priorImage = $this->messages[$mid]['body']['attachments'][0];
             if ($this->mode !== 'edit_unchanged_timeout') $this->messages[$mid] = $this->message($mid, $request['body']);
             if ($this->mode === 'landing_success_old_image') $this->messages[$mid]['body']['attachments'][0] = $priorImage;
+            if ($this->editHook !== null) ($this->editHook)($mid);
             if (in_array($this->mode, ['edit_timeout','edit_unchanged_timeout'], true)) return ['http'=>0,'transport_error'=>true,'data'=>null];
             return $this->ok(['success'=>true]);
         }
@@ -361,7 +363,7 @@ function as39FullPublicationRegression(PDO $pdo): void
 }
 
 /** Synthetic evidence only; restore every source byte even when a negative case fails. */
-function as39ReviewedLandingRegression(PDO $pdo): void
+function as39ReviewedLandingRegression(PDO $pdo, ?callable $afterFirstReview = null): void
 {
     $directory = dirname(__DIR__).'/resources/appleservice39/landing-v2/reconciliation';
     $id = AppleService39PilotManifest::installed()->posts()[0]['id'];
@@ -409,6 +411,21 @@ function as39ReviewedLandingRegression(PDO $pdo): void
                 'native_preview_sha256'=>hash('sha256',$preview)]];
             file_put_contents($indexPath, $json($approved));
         };
+        if ($afterFirstReview !== null) {
+            $heldBefore = $store->rows(); $writesBefore = $provider->writes();
+            as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_edit_held');
+            as39Expect($store->rows() === $heldBefore && $provider->writes() === $writesBefore,
+                'an unreviewed original first UNKNOWN cannot unlock further repair edits');
+            $register($proof);
+            as39Refuses(static fn()=>$publisher->run('landing_apply'), 'landing_edit_held');
+            as39Expect($store->rows() === $heldBefore && $provider->writes() === $writesBefore,
+                'registered firstproof without actual successful GET reconciliation does not unlock batching');
+            $anchor = $publisher->run('landing_reconcile');
+            as39ProviderAssert($anchor['ok'] && $anchor['landing_verified_posts'] === 1,
+                'batch fixture starts from an individually reviewed GET-reconciled first edit');
+            $afterFirstReview($pdo,$provider,$publisher,$store,$proof);
+            return;
+        }
         file_put_contents($proofPath, $json($proof));
         $result = $publisher->run('landing_reconcile');
         as39Expect(!$result['ok'] && !isset($store->operation($id,'landing_edit')['outcome']['image_receipt']),
@@ -453,6 +470,182 @@ function as39ReviewedLandingRegression(PDO $pdo): void
     } finally {
         foreach ($savedFiles as $path=>$bytes) { if ($bytes === null) @unlink($path); else file_put_contents($path, $bytes); }
     }
+}
+
+/** Synthetic independent files are restored; this creates no live approvals. */
+function as39ImageReviewBatchRegression(): void
+{
+    as39ReviewedLandingRegression(as39Sqlite(), static function ($pdo,$provider,$publisher,$store,$firstProof): void {
+        $before = $store->rows(); $writes = $provider->writes();
+        $uploads = $provider->count('POST','/uploads'); $pin = $provider->pinned;
+        $first = $store->operation($firstProof['post_id'],'landing_edit');
+        $result = $publisher->run('landing_apply');
+        $held = array_values(array_filter($store->rows(), static fn($r)=>$r['operation']==='landing_edit' && $r['state']==='unknown'));
+        as39Expect(!$result['ok'] && $result['landing_image_review_holds']===14
+            && $result['landing_verified_posts']===1 && $result['landing_verified_new_images']===1 && count($held)===14,
+            'one reviewed first image permits14 individual UNKNOWN review holds, never24/24 acceptance');
+        as39Expect($provider->writes()===$writes+14 && $provider->count('POST','/uploads')===$uploads
+            && $provider->pinned===$pin && $store->operation($firstProof['post_id'],'landing_edit')===$first,
+            'finite preparation sends14ownPUTs once, reuses15uploads and preserves original first proof/pin');
+        foreach ($held as $row) as39Expect((int)$row['write_attempts']===1 && !isset($row['outcome']['image_receipt'])
+            && $row['outcome']['image_review_observation']['source_identity_verified']===false
+            && $row['outcome']['image_review_observation']['edit_request_sha256']===$row['payload_sha256'],
+            'each new image is an immutable individual review hold, not ACK/new-ID/source identity');
+        $navigation = array_filter(AppleService39PilotManifest::installed()->posts(), static fn($p)=>!str_starts_with($p['id'],'repair-'));
+        foreach ($navigation as $post) as39Expect($store->operation($post['id'],'landing_edit')===null,
+            'navigation remains unstarted while images await actual source review');
+        $frozen = $store->rows(); $again = $publisher->run('landing_apply');
+        as39Expect(!$again['ok'] && $store->rows()===$frozen && $provider->writes()===$writes+14,
+            'repeated apply never rewrites/replays an existing image-review UNKNOWN');
+        $one=$held[0];$mid=$one['external_message_id'];$originalImage=$provider->messages[$mid]['body']['attachments'][0]['payload'];
+        $provider->messages[$mid]['body']['attachments'][0]['payload']['token']=$store->operation($one['post_key'],'landing_upload')['outcome']['token'];
+        $tokenOnly=$publisher->run('landing_reconcile');
+        as39Expect(!$tokenOnly['ok'] && $store->rows()===$frozen && $provider->writes()===$writes+14,
+            'a later token coincidence cannot replace an individually required registered review');
+        $provider->messages[$mid]['body']['attachments'][0]['payload']=$originalImage;
+        $provider->messages[$mid]['body']['attachments'][0]['payload']['photo_id']='999999';
+        as39Refuses(static fn()=>$publisher->run('landing_apply'),'landing_edit_held');
+        as39Expect($store->rows()===$frozen && $provider->writes()===$writes+14,
+            'a changed imageID on an existing pending attempt stops instead of adopting a fresh arbitrary GET');
+        $provider->messages[$mid]['body']['attachments'][0]['payload']=$originalImage;
+        $unapproved = $publisher->run('landing_reconcile');
+        as39Expect(!$unapproved['ok'] && $unapproved['landing_image_review_holds']===14
+            && $store->rows()===$frozen && $provider->writes()===$writes+14,
+            'GET/new photoIDs without individual source proofs leave every original hold intact');
+        $inspection = $publisher->run('landing_inspect'); $safe = json_encode($inspection,JSON_THROW_ON_ERROR);
+        as39Expect($inspection['landing_image_review_holds']===14 && $store->rows()===$frozen
+            && !str_contains($safe,'renewed_26') && !str_contains($safe,'i.oneme.ru/synthetic-image'),
+            'one GET-only inspection discloses individual original/fresh hashes without tokens or media URLs');
+
+        // These are explicitly synthetic approvals to exercise the unchanged
+        // source-index path, not a claim that real remaining images were reviewed.
+        $directory=dirname(__DIR__).'/resources/appleservice39/landing-v2/reconciliation';
+        $indexPath=$directory.'/index.json'; $index=json_decode((string)file_get_contents($indexPath),true);
+        $jpeg=file_get_contents(dirname(__DIR__).'/resources/appleservice39/pilot/reconciliation/first-create-preview.jpg');
+        $size=getimagesizefromstring($jpeg); $restore=[];
+        try {
+            foreach ($held as $row) {
+                $post=$row['post_key']; $observation=$row['outcome']['image_review_observation'];
+                $proof=array_replace($firstProof,['post_id'=>$post,'message_id'=>$row['external_message_id'],
+                    'public_url'=>$row['public_url'],'revision_sha256'=>$row['request']['revision_sha256'],
+                    'source_sha256'=>$row['request']['source_sha256'],
+                    'upload_operation_id'=>$observation['upload_operation_id'],
+                    'upload_request_sha256'=>$observation['upload_request_sha256'],
+                    'upload_token_sha256'=>$observation['upload_token_sha256'],
+                    'edit_operation_id'=>(int)$row['id'],'edit_request_sha256'=>$row['payload_sha256'],
+                    'edit_started_ms'=>(int)$row['started_ms'],'native_photo_id'=>$observation['native_photo_id'],
+                    'native_payload_url_sha256'=>$observation['native_payload_url_sha256'],
+                    'native_preview_sha256'=>hash('sha256',$jpeg),'native_preview_width'=>$size[0],'native_preview_height'=>$size[1]]);
+                $raw=json_encode($proof,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR)."\n";
+                foreach ([$directory.'/'.$post.'.json'=>$raw,$directory.'/'.$post.'.jpg'=>$jpeg] as $path=>$bytes) {
+                    $restore[$path]=is_file($path)?file_get_contents($path):null; file_put_contents($path,$bytes);
+                }
+                $index['approvals'][]=['post_id'=>$post,'proof_sha256'=>hash('sha256',$raw),'native_preview_sha256'=>hash('sha256',$jpeg)];
+            }
+            file_put_contents($indexPath,json_encode($index,JSON_THROW_ON_ERROR));
+            $reconciled=$publisher->run('landing_reconcile');
+            as39Expect($reconciled['ok'] && $reconciled['landing_verified_new_images']===15
+                && $reconciled['landing_verified_posts']===15 && $provider->writes()===$writes+14,
+                'only individual registered proofs reconcile the SAME14original attempts by GET');
+            foreach ($held as $original) {
+                $now=$store->operation($original['post_key'],'landing_edit');
+                as39Expect($now['state']==='verified' && $now['request_json']===$original['request_json']
+                    && $now['payload_sha256']===$original['payload_sha256'] && $now['started_ms']===$original['started_ms']
+                    && $now['write_attempts']===$original['write_attempts']
+                    && $now['outcome']['image_review_observation']===$original['outcome']['image_review_observation'],
+                    'native proof completion preserves original payload/attempt/start and first image observation');
+            }
+            $done=$publisher->run('landing_apply');
+            as39Expect($done['ok'] && $done['landing_verified_posts']===24 && $done['landing_verified_new_images']===15
+                && $provider->writes()===$writes+23 && $provider->count('POST','/uploads')===$uploads
+                && $provider->pinned===$pin, 'after all15reviews apply edits only9unsent navigation pages');
+            $publisher->run('landing_apply'); $publisher->run('landing_reconcile');
+            as39Expect($provider->writes()===$writes+23,'completed finite preparation/recovery never repeats a mutation');
+        } finally {
+            foreach ($restore as $path=>$bytes) { if ($bytes===null) @unlink($path); else file_put_contents($path,$bytes); }
+        }
+    });
+
+    foreach (['body','markup','button','url','channel','mid','old_image','missing_token','missing_locator','invalid_image_id','zero_image_id',
+        'known_foreign_image','pin','authority','unknown_ack'] as $failure) {
+        as39ReviewedLandingRegression(as39Sqlite(), static function ($pdo,$provider,$publisher,$store,$firstProof) use ($failure): void {
+            $writes=$provider->writes(); $beforeFirst=$store->operation($firstProof['post_id'],'landing_edit');
+            $provider->editHook=static function (string $mid) use ($provider,$pdo,$failure):void {
+                if ($failure==='body') $provider->messages[$mid]['body']['text'].=' foreign';
+                if ($failure==='markup') $provider->messages[$mid]['body']['markup'][1]['url']='https://max.ru/channel_appleservice39ru/foreign';
+                if ($failure==='button') $provider->messages[$mid]['body']['attachments'][1]['payload']['buttons'][0][0]['url']='https://max.ru/foreign_bot';
+                if ($failure==='url') $provider->messages[$mid]['url']='https://max.ru/channel_appleservice39ru/foreign';
+                if ($failure==='channel') $provider->messages[$mid]['recipient']['chat_id']=-9999;
+                if ($failure==='mid') $provider->messages[$mid]['body']['mid']='foreign_mid';
+                if ($failure==='old_image') $provider->messages[$mid]['body']['attachments'][0]['payload']['photo_id']='2';
+                if ($failure==='missing_token') unset($provider->messages[$mid]['body']['attachments'][0]['payload']['token']);
+                if ($failure==='missing_locator') unset($provider->messages[$mid]['body']['attachments'][0]['payload']['url']);
+                if ($failure==='invalid_image_id') $provider->messages[$mid]['body']['attachments'][0]['payload']['photo_id']='not-an-id';
+                if ($failure==='zero_image_id') $provider->messages[$mid]['body']['attachments'][0]['payload']['photo_id']='0';
+                if ($failure==='known_foreign_image') $provider->messages[$mid]['body']['attachments'][0]['payload']['photo_id']='25';
+                if ($failure==='pin') $provider->pinned=null;
+                if ($failure==='authority') $pdo->exec('DELETE FROM manager_projects WHERE manager_id=2');
+                if ($failure==='unknown_ack') $provider->mode='edit_timeout';
+            };
+            as39Refuses(static fn()=>$publisher->run('landing_apply'),'landing_edit_held');
+            $edits=array_values(array_filter($store->rows(),static fn($r)=>$r['operation']==='landing_edit' && $r['post_key']!==$firstProof['post_id']));
+            as39Expect($provider->writes()===$writes+1 && count($edits)===1 && $edits[0]['state']==='unknown'
+                && (int)$edits[0]['write_attempts']===1 && !isset($edits[0]['outcome']['image_review_observation'])
+                && !isset($edits[0]['outcome']['image_receipt'])
+                && $store->operation($firstProof['post_id'],'landing_edit')===$beforeFirst,
+                'any non-image-evidence ambiguity STOPS without continuing or approving: '.$failure);
+        });
+    }
+
+    as39ReviewedLandingRegression(as39Sqlite(), static function ($pdo,$provider,$publisher,$store):void {
+        $targets=(new ReflectionMethod(AppleService39PilotPublisher::class,'landingTargets'))
+            ->invoke($publisher,new AppleService39LandingRevision(AppleService39PilotManifest::installed()));
+        $target=array_values($targets)[1]; $row=$store->prepare($target['post']['id'],'landing_edit',$target['request']);
+        $store->claim($row);$store->rememberMessage($row,$target['mid'],$target['url']);
+        $store->finish($row,'unknown',['reason'=>'historical_unclassified_unknown']);
+        $frozen=$store->rows();$writes=$provider->writes();
+        as39Refuses(static fn()=>$publisher->run('landing_apply'),'landing_edit_held');
+        as39Expect($store->rows()===$frozen && $provider->writes()===$writes,
+            'an older unclassified UNKNOWN is never upgraded/relabelled/replayed for batching');
+    });
+    as39ReviewedLandingRegression(as39Sqlite(), static function ($pdo,$provider,$publisher,$store):void {
+        $pdo->exec("UPDATE appleservice39_pilot_operations SET state='unknown' WHERE operation='landing_upload' AND post_key='repair-iphone-x-front-glass-replacement'");
+        $frozen=$store->rows();$writes=$provider->writes();
+        as39Refuses(static fn()=>$publisher->run('landing_apply'),'landing_edit_held');
+        as39Expect($store->rows()===$frozen && $provider->writes()===$writes,'a lost upload cannot become a batch review hold or authorize another write');
+    });
+    as39ReviewedLandingRegression(as39Sqlite(), static function ($pdo,$provider,$publisher,$store):void {
+        $path=dirname(__DIR__).'/resources/appleservice39/landing-v2/reconciliation/index.json';
+        $index=json_decode(file_get_contents($path),true);$index['approvals']=[];file_put_contents($path,json_encode($index));
+        $frozen=$store->rows();$writes=$provider->writes();
+        as39Refuses(static fn()=>$publisher->run('landing_apply'),'landing_native_image_evidence_required');
+        as39Expect($store->rows()===$frozen && $provider->writes()===$writes,'a previously verified row without its admitted firstreview cannot unlock batching');
+    });
+    as39ReviewedLandingRegression(as39Sqlite(), static function ($pdo,$provider,$publisher,$store):void {
+        $post=AppleService39PilotManifest::installed()->posts()[1]['id'];$mid=$store->operation($post,'create')['external_message_id'];
+        $writes=$provider->writes();
+        $provider->membershipHook=static function () use ($provider,$store,$post,$mid):void {
+            $pending=$store->operation($post,'landing_edit');
+            if ($pending!==null && $pending['state']==='unknown') {
+                $provider->messages[$mid]['body']['markup'][1]['url']='https://max.ru/channel_appleservice39ru/intervening';
+            }
+        };
+        as39Refuses(static fn()=>$publisher->run('landing_apply'),'post_readback_mismatch');
+        $edits=array_values(array_filter($store->rows(),static fn($r)=>$r['operation']==='landing_edit' && $r['post_key']!==AppleService39PilotManifest::installed()->posts()[0]['id']));
+        as39Expect($provider->writes()===$writes+1 && count($edits)===2 && $edits[0]['state']==='unknown'
+            && $edits[1]['state']==='prepared' && (int)$edits[1]['write_attempts']===0,
+            'an intervening failed guard on an earlier review hold stops before claiming the next edit');
+    });
+    as39ReviewedLandingRegression(as39Sqlite(), static function ($pdo,$provider,$publisher,$store):void {
+        $post=AppleService39PilotManifest::installed()->posts()[1]['id'];$mid=$store->operation($post,'create')['external_message_id'];
+        $provider->editHook=static function (string $edited) use ($provider,$mid):void {
+            if ($edited===$mid) $provider->messages[$mid]['body']['attachments'][0]['payload']['photo_id']='999999';
+        };
+        $writes=$provider->writes();$result=$publisher->run('landing_apply');$row=$store->operation($post,'landing_edit');
+        as39Expect(!$result['ok'] && $result['landing_verified_new_images']===1 && $row['state']==='unknown'
+            && !isset($row['outcome']['image_receipt']) && $provider->writes()===$writes+14,
+            'even a valid fresh arbitrary imageID is only an individual UNKNOWN, never verified identity');
+    });
 }
 
 function as39CatalogueArtworkRegression(): void
@@ -564,6 +757,7 @@ if (!defined('APPLESERVICE39_PUBLISHER_FIXTURES_ONLY')) {
     as39ReviewedLandingRegression(as39Sqlite());
     as39CatalogueArtworkRegression();
     as39LandingImageSafetyRegression();
+    as39ImageReviewBatchRegression();
 
     // Provider did not apply a timed-out edit: reconciliation must keep the original hold.
     ProjectMaxConnection::resetForTests(as39Registry());

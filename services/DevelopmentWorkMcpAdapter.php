@@ -28,9 +28,9 @@ final class DevelopmentWorkMcpAdapter
         $definitions=[
             ['development_work_create','Register one explicitly authorized immutable development plan on the shared DEVELOPMENT lane. Tasks name existing distinct owners/reviewers and immutable input/acceptance hashes; dependencies must already exist or occur earlier in this batch. Metadata only: no source edits, worker dispatch, merge or deploy.',
                 ['queue_id'=>$id,'plan_sha256'=>$sha,'tasks'=>$tasks],['queue_id','plan_sha256','tasks'],false],
-            ['development_work_append','Append 1–20 new immutable tasks with an expected-plan CAS. An exact recorded batch is idempotent and never resets a task, acknowledgement, claim or run. Current admitted work is preserved. No worker is started.',
+            ['development_work_append','Append 1–20 new immutable tasks with an expected-plan CAS. An exact recorded batch is idempotent and never resets a task, acknowledgement, claim or run. Current admitted work is preserved. An exact single server_model candidate explicitly opts into its finite future ordinary-cron model calls (ARM); no inline send, source edit or deploy occurs.',
                 ['queue_id'=>$id,'expected_plan_sha256'=>$sha,'plan_sha256'=>$sha,'tasks'=>$tasks],['queue_id','expected_plan_sha256','plan_sha256','tasks'],false],
-            ['development_work_status','Read one owned development metadata queue and its current task. Hashes and counters are authenticated attestations, not independent artifact, CI or production proof. No claim key, source content or publisher permission is returned.',
+            ['development_work_status','Read one owned development metadata queue and its current task. Hashes and counters are authenticated attestations, not independent artifact, CI or production proof. For the fixed server_model control pair, return the installed opt-in candidate or full bounded original request/result/review bytes as base64. No credential, claim key, customer/hotel content or publisher permission is returned.',
                 ['queue_id'=>$id],['queue_id'],true],
             ['development_work_claim','Claim the exact current task using expected_pending_event_id from the actual fresh trusted signed development_work.pending delivery. Never manufacture that evidence from status. Check the existing owner, private UNKNOWN, active jobs/files and source/publisher gates first. An already-claimed result never authorizes another dispatch.',
                 $claim+['expected_pending_event_id'=>['type'=>'string','pattern'=>'^dev_evt_[a-f0-9]{64}$']],[...array_keys($claim),'expected_pending_event_id'],false],
@@ -96,6 +96,10 @@ final class DevelopmentWorkMcpAdapter
         if ($operation==='status') {
             require_once __DIR__.'/DevelopmentWorkHealth.php';
             $result['cron_health']=DevelopmentWorkHealth::snapshot($this->clock!==null?(int)($this->clock)():null);
+            if(in_array($result['execution_kind']??null,['server_model','server_model_candidate'],true)) {
+                $result['subscription_setup']=['semantics'=>'not_applicable_server_owned_cron_no_native_subscription'];
+                DevelopmentWorkServerContract::assertReadback($result);return $result;
+            }
             require_once __DIR__.'/DevelopmentWorkEventService.php';
             $result['subscription_setup']=DevelopmentWorkEventService::unavailableSubscriptionSetup();
             $trace=self::unavailableRegistrationTrace();$traceAuthorized=false;
